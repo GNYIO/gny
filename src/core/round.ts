@@ -1,30 +1,23 @@
-import slots = require('../utils/slots');
+import * as slots from '../utils/slots';
 
 export default class Round {
-  library: any;
-  modules: any;
+  private library: any;
   private isloaded: boolean = false;
-  private feesByRound = {};
-  private rewardsByRound = {};
-  private delegatesByRound = {};
-  private unFeesByRound = {};
-  private unRewardsByRound = {};
-  private unDelegatesByRound = {};
 
   constructor(scope: any) {
     this.library = scope;
   }
 
-  loaded() {
+  getLoadStatus() {
     return this.isloaded;
   }
 
-  calc(height: number) {
+  calculateRound(height: number) {
     return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
   }
 
   onBind(scope: any) {
-    this.modules = scope;
+    this.library = scope;
   }
 
   onBlockChainReady() {
