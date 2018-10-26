@@ -4,7 +4,7 @@ import fs = require('fs');
 import ip = require('ip');
 import daemon = require('daemon');
 import tracer = require('tracer');
-import Application from './index-alt';
+import Application from '.';
 import packageJson from './package.json';
 
 const version = packageJson.version;

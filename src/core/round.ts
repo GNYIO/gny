@@ -1,54 +1,41 @@
 import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
 
-let library
-let self
-let modules
-const priv = {}
-const shared = {}
+export default class Round {
+  library: any;
+  modules: any;
+  private isloaded: boolean = false;
+  private feesByRound = {};
+  private rewardsByRound = {};
+  private delegatesByRound = {};
+  private unFeesByRound = {};
+  private unRewardsByRound = {};
+  private unDelegatesByRound = {};
 
-priv.loaded = false
+  constructor(scope: any) {
+    this.library = scope;
+  }
 
-priv.feesByRound = {}
-priv.rewardsByRound = {}
-priv.delegatesByRound = {}
-priv.unFeesByRound = {}
-priv.unRewardsByRound = {}
-priv.unDelegatesByRound = {}
+  loaded() {
+    return this.isloaded;
+  }
 
-function Round(cb, scope) {
-  library = scope
-  self = this
-  setImmediate(cb, null, self)
+  calc(height: number) {
+    return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
+  }
+
+  onBind(scope: any) {
+    this.modules = scope;
+  }
+
+  onBlockChainReady() {
+    this.isloaded = true;
+  }
+
+  onFinishRound(round: any) {
+    this.library.network.io.sockets.emit('/round/change', { number: round });
+  }
+
+  cleanup() {
+    this.isloaded = false;
+  }
 }
-
-Round.prototype.loaded = () => priv.loaded
-
-Round.prototype.calc = (height) => {
-  const round = Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0)
-  return round
-}
-
-Round.prototype.sandboxApi = (call, args, cb) => {
-  sandboxHelper.callMethod(shared, call, args, cb)
-}
-
-// Events
-Round.prototype.onBind = (scope) => {
-  modules = scope
-}
-
-Round.prototype.onBlockchainReady = () => {
-  priv.loaded = true
-}
-
-Round.prototype.onFinishRound = (round) => {
-  library.network.io.sockets.emit('rounds/change', { number: round })
-}
-
-Round.prototype.cleanup = (cb) => {
-  priv.loaded = false
-  cb()
-}
-
-export = Round;

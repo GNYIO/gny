@@ -1,295 +1,251 @@
-// const crypto = require('crypto');
-// const ByteBuffer = require('bytebuffer');
-// const ed = require('../utils/ed.js');
-// const BlockStatus = require('../utils/block-status.js');
-// const constants = require('../utils/constants.js');
+import * as crypto from 'crypto';
+import * as ByteBuffer from 'bytebuffer';
+import * as ed from '../utils/ed';
+import { BlockStatus } from '../utils/block-status';
+import * as constants from '../utils/constants'
+import * as addressHelper from '../utils/address';
 
-import crypto = require('crypto');
-import ByteBuffer = require('bytebuffer');
-import ed = require('../utils/ed');
-import BlockStatus = require('../utils/block-status');
-import constants = require('../utils/constants');
+export class Block {
+  private blockStatus = new BlockStatus();
+  public scope: any;
 
-// Private methods
-const prv = {}
-prv.getAddressByPublicKey = (publicKey) => {
-  const publicKeyHash = crypto.createHash('sha256').update(publicKey, 'hex').digest()
-  const temp = Buffer.alloc(8)
-  for (let i = 0; i < 8; i++) {
-    temp[i] = publicKeyHash[7 - i]
+  constructor(scope: any) {
+    this.scope = scope;
   }
 
-  const address = app.util.bignumber.fromBuffer(temp).toString()
-  return address
-}
+  private sortTransactions(data: any) {
+    // 优先级：二级密码，金额
+    data.transactions.sort((a, b) => {
+      if (a.type === b.type) {
+        if (a.type === 1) {
+          return 1
+        }
+        if (b.type === 1) {
+          return -1
+        }
+        return a.type - b.type
+      }
+      if (a.amount !== b.amount) {
+        return a.amount - b.amount
+      }
+      return a.id.localeCompare(b.id)
+    })
+  }
 
-let self
-// Constructor
-function Block(scope) {
-  self = this
-  this.scope = scope
-  prv.blockStatus = new BlockStatus()
-}
+  create(data: any) {
+    const transactions = this.sortTransactions(data)
+    const nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1
+    const reward = this.blockStatus.calcReward(nextHeight)
 
-// Public methods
-
-Block.prototype.sortTransactions = data => data.transactions.sort((a, b) => {
-  if (a.type === b.type) {
-    if (a.type === 1) {
-      return 1
+    let totalFee = 0
+    let totalAmount = 0
+    let size = 0
+    let blockTransactions = []
+    let payloadHash = crypto.createHash('sha256')
+  
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i]
+      const bytes = this.scope.transaction.getBytes(transaction)
+      // 小于8M
+      if (size + bytes.length > constants.maxPayloadLength) {
+        break
+      }
+  
+      size += bytes.length
+      totalFee += transaction.fee
+      totalAmount += transaction.amount
+  
+      blockTransactions.push(transaction)
+      payloadHash.update(bytes)
     }
-    if (b.type === 1) {
-      return -1
+  
+    let block: any = {
+      version: 0,
+      height: nextHeight,
+      timestamp: data.timestamp,
+      previousBlockId: data.previousBlock.id,
+      generatorPublicKey: data.keypair.publicKey.toString('hex'),
+      numberOfTransactions: blockTransactions.length,
+      totalAmount,
+      totalFee,
+      reward,
+      payloadHash: payloadHash.digest().toString('hex'),
+      payloadLength: size,
+      transactions: blockTransactions,
     }
-    return a.type - b.type
+  
+    try {
+      block.blockSignature = this.sign(block, data.keypair)
+      block = this.objectNormalize(block)
+    } catch (e) {
+      throw Error(e.toString())
+    }
+  
+    return block
   }
-  if (a.amount !== b.amount) {
-    return a.amount - b.amount
+
+  sign(block, keypair) {
+    const hash = this.calculateHash(block);
+    return ed.Sign(hash, keypair).toString('hex');
   }
-  return a.id.localeCompare(b.id)
-})
 
-Block.prototype.create = (data) => {
-  const transactions = self.sortTransactions(data)
+  private calculateHash(block) {
+    return crypto.createHash('sha256').update(this.serialize(block)).digest();
+  }
 
-  const nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1
+  serialize(block, skipSignature?) {
+    const size = 4 + 4 + 64 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 // 待纠正
 
-  const reward = prv.blockStatus.calcReward(nextHeight)
-  let totalFee = 0
-  let totalAmount = 0
-  let size = 0
+    const byteBuffer = new ByteBuffer(size, true)
+    byteBuffer.writeInt(block.version) // 4
+    byteBuffer.writeLong(block.height) // 
+    byteBuffer.writeInt(block.timestamp) // 4
+    byteBuffer.writeString(block.prevBlockId) // 64
+    byteBuffer.writeInt(block.generatorPublicKey) // 32
+    byteBuffer.writeInt(block.numberOfTransactions) // 4
+    byteBuffer.writeInt(block.totalAmount) // 8
+    byteBuffer.writeInt(block.totalFee) // 8
+    byteBuffer.writeLong(block.reward) // 8
 
-  const blockTransactions = []
-  const payloadHash = crypto.createHash('sha256')
-
-  for (let i = 0; i < transactions.length; i++) {
-    const transaction = transactions[i]
-    const bytes = self.scope.transaction.getBytes(transaction)
-
-    if (size + bytes.length > constants.maxPayloadLength) {
-      break
+    const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex')
+    for (let i = 0; i < payloadHashBuffer.length; i++) {
+      byteBuffer.writeByte(payloadHashBuffer[i])
     }
 
-    size += bytes.length
+    byteBuffer.writeInt(block.payloadLength); // 4
 
-    totalFee += transaction.fee
-    totalAmount += transaction.amount
-
-    blockTransactions.push(transaction)
-    payloadHash.update(bytes)
-  }
-
-  let block = {
-    version: 0,
-    totalAmount,
-    totalFee,
-    reward,
-    payloadHash: payloadHash.digest().toString('hex'),
-    timestamp: data.timestamp,
-    numberOfTransactions: blockTransactions.length,
-    payloadLength: size,
-    previousBlock: data.previousBlock.id,
-    generatorPublicKey: data.keypair.publicKey.toString('hex'),
-    transactions: blockTransactions,
-  }
-
-  try {
-    block.blockSignature = self.sign(block, data.keypair)
-
-    block = self.objectNormalize(block)
-  } catch (e) {
-    throw Error(e.toString())
-  }
-
-  return block
-}
-
-Block.prototype.sign = (block, keypair) => {
-  const hash = self.getHash(block)
-
-  return ed.Sign(hash, keypair).toString('hex')
-}
-
-Block.prototype.getBytes = (block, skipSignature) => {
-  const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64
-
-  const bb = new ByteBuffer(size, true)
-  bb.writeInt(block.version)
-  bb.writeInt(block.timestamp)
-  bb.writeLong(block.height)
-  bb.writeInt(block.count)
-  bb.writeLong(block.fees)
-  bb.writeLong(block.reward)
-  bb.writeString(block.delegate)
-
-  // HARDCODE HOTFIX
-  // if (block.height > 6167000 && block.prevBlockId) {
-  if (block.prevBlockId) {
-    bb.writeString(block.prevBlockId)
-  } else {
-    bb.writeString('0')
-  }
-
-  const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex')
-  for (let i = 0; i < payloadHashBuffer.length; i++) {
-    bb.writeByte(payloadHashBuffer[i])
-  }
-
-
-  if (!skipSignature && block.signature) {
-    const signatureBuffer = Buffer.from(block.signature, 'hex')
-    for (let i = 0; i < signatureBuffer.length; i++) {
-      bb.writeByte(signatureBuffer[i])
+    if (!skipSignature && block.signature) {
+      const signatureBuffer = Buffer.from(block.signature, 'hex')
+      for (let i = 0; i < signatureBuffer.length; i++) {
+        byteBuffer.writeByte(signatureBuffer[i])
+      }
     }
+
+    byteBuffer.flip()
+    return byteBuffer.toBuffer()
   }
 
-  bb.flip()
-  const b = bb.toBuffer()
+  verifySignature(block) {
+    const remove = 64
 
-  return b
-}
+    try {
+      const data = this.serialize(block)
+      const data2 = Buffer.alloc(data.length - remove)
+  
+      for (let i = 0; i < data2.length; i++) {
+        data2[i] = data[i]
+      }
 
-Block.prototype.verifySignature = (block) => {
-  const remove = 64
-
-  try {
-    const data = self.getBytes(block)
-    const data2 = Buffer.alloc(data.length - remove)
-
-    for (let i = 0; i < data2.length; i++) {
-      data2[i] = data[i]
-    }
-    const hash = crypto.createHash('sha256').update(data2).digest()
-    const blockSignatureBuffer = Buffer.from(block.signature, 'hex')
-    const generatorPublicKeyBuffer = Buffer.from(block.delegate, 'hex')
-
-    return ed.Verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
-  } catch (e) {
-    throw Error(e.toString())
-  }
-}
-
-Block.prototype.objectNormalize = (block) => {
-  for (const i in block) {
-    if (block[i] == null || typeof block[i] === 'undefined') {
-      delete block[i]
-    }
-    if (Buffer.isBuffer(block[i])) {
-      block[i] = block[i].toString()
+      const hash = crypto.createHash('sha256').update(data2).digest()
+      const blockSignatureBuffer = Buffer.from(block.signature, 'hex')
+      const generatorPublicKeyBuffer = Buffer.from(block.delegate, 'hex')
+  
+      return ed.Verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
+    } catch (e) {
+      throw Error(e.toString())
     }
   }
 
-  const report = self.scope.scheme.validate(block, {
-    type: 'object',
-    properties: {
-      id: {
-        type: 'string',
-      },
-      height: {
-        type: 'integer',
-      },
-      signature: {
-        type: 'string',
-        format: 'signature',
-      },
-      delegate: {
-        type: 'string',
-        format: 'publicKey',
-      },
-      payloadHash: {
-        type: 'string',
-        format: 'hex',
-      },
-      payloadLength: {
-        type: 'integer',
-      },
-      prevBlockId: {
-        type: 'string',
-      },
-      timestamp: {
-        type: 'integer',
-      },
-      transactions: {
-        type: 'array',
-        uniqueItems: true,
-      },
-      version: {
-        type: 'integer',
-        minimum: 0,
-      },
-      reward: {
-        type: 'integer',
-        minimum: 0,
-      },
-    },
-    required: ['signature', 'delegate', 'payloadHash', 'timestamp', 'transactions', 'version', 'reward'],
-  })
-
-  if (!report) {
-    throw Error(self.scope.scheme.getLastError())
-  }
-
-  try {
-    for (let i = 0; i < block.transactions.length; i++) {
-      block.transactions[i] = self.scope.transaction.objectNormalize(block.transactions[i])
+  objectNormalize(block) {
+    for (const i in block) {
+      if (block[i] == null || typeof block[i] === 'undefined') {
+        delete block[i]
+      }
+      if (Buffer.isBuffer(block[i])) {
+        block[i] = block[i].toString()
+      }
     }
-  } catch (e) {
-    throw Error(e.toString())
+  
+    const report = this.scope.scheme.validate(block, {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+        },
+        height: {
+          type: 'integer',
+        },
+        signature: {
+          type: 'string',
+          format: 'signature',
+        },
+        delegate: {
+          type: 'string',
+          format: 'publicKey',
+        },
+        payloadHash: {
+          type: 'string',
+          format: 'hex',
+        },
+        payloadLength: {
+          type: 'integer',
+        },
+        prevBlockId: {
+          type: 'string',
+        },
+        timestamp: {
+          type: 'integer',
+        },
+        transactions: {
+          type: 'array',
+          uniqueItems: true,
+        },
+        version: {
+          type: 'integer',
+          minimum: 0,
+        },
+        reward: {
+          type: 'integer',
+          minimum: 0,
+        },
+      },
+      required: ['signature', 'delegate', 'payloadHash', 'timestamp', 'transactions', 'version', 'reward'],
+    })
+  
+    if (!report) {
+      throw Error(this.scope.scheme.getLastError())
+    }
+  
+    try {
+      for (let i = 0; i < block.transactions.length; i++) {
+        block.transactions[i] = this.scope.transaction.objectNormalize(block.transactions[i])
+      }
+    } catch (e) {
+      throw Error(e.toString())
+    }
+  
+    return block
   }
 
-  return block
+  calculateFee() {
+    return 1000000;
+  }
+
+  dbRead(raw) {
+    if (!raw.b_id) {
+      return null
+    }
+  
+    const block:any = {
+      id: raw.b_id,
+      version: parseInt(raw.b_version, 10),
+      height: parseInt(raw.b_height, 10),
+      timestamp: parseInt(raw.b_timestamp, 10),
+      previousBlockId: raw.b_previousBlock,
+      generatorPublicKey: raw.b_generatorPublicKey,
+      numberOfTransactions: parseInt(raw.b_numberOfTransactions, 10),
+      totalAmount: parseInt(raw.b_totalAmount, 10),
+      totalFee: parseInt(raw.b_totalFee, 10),
+      reward: parseInt(raw.b_reward, 10),
+      payloadHash: raw.b_payloadHash,
+      payloadLength: parseInt(raw.b_payloadLength, 10),
+      generatorId: addressHelper.generateNormalAddress(raw.b_generatorPublicKey), // 方法待实现
+      blockSignature: raw.b_blockSignature,
+      confirmations: raw.b_confirmations,
+    }
+    block.totalForged = (block.totalFee + block.reward)
+    return block
+  }
 }
 
-Block.prototype.getId = block => self.getId2(block)
 
-Block.prototype.getId_old = (block) => {
-  if (global.featureSwitch.enableLongId) {
-    return self.getId2(block)
-  }
-  const hash = crypto.createHash('sha256').update(self.getBytes(block)).digest()
-  const temp = Buffer.alloc(8)
-  for (let i = 0; i < 8; i++) {
-    temp[i] = hash[7 - i]
-  }
-
-  const id = app.util.bignumber.fromBuffer(temp).toString()
-  return id
-}
-
-Block.prototype.getId2 = (block) => {
-  const hash = crypto.createHash('sha256').update(self.getBytes(block)).digest()
-  return hash.toString('hex')
-}
-
-Block.prototype.getHash = block => crypto.createHash('sha256').update(self.getBytes(block)).digest()
-
-Block.prototype.calculateFee = () => 10000000
-
-Block.prototype.dbRead = (raw) => {
-  if (!raw.b_id) {
-    return null
-  }
-
-  const block = {
-    id: raw.b_id,
-    version: parseInt(raw.b_version, 10),
-    timestamp: parseInt(raw.b_timestamp, 10),
-    height: parseInt(raw.b_height, 10),
-    previousBlock: raw.b_previousBlock,
-    numberOfTransactions: parseInt(raw.b_numberOfTransactions, 10),
-    totalAmount: parseInt(raw.b_totalAmount, 10),
-    totalFee: parseInt(raw.b_totalFee, 10),
-    reward: parseInt(raw.b_reward, 10),
-    payloadLength: parseInt(raw.b_payloadLength, 10),
-    payloadHash: raw.b_payloadHash,
-    generatorPublicKey: raw.b_generatorPublicKey,
-    generatorId: prv.getAddressByPublicKey(raw.b_generatorPublicKey),
-    blockSignature: raw.b_blockSignature,
-    confirmations: raw.b_confirmations,
-  }
-  block.totalForged = (block.totalFee + block.reward)
-  return block
-}
-
-// Export
-export = Block;
