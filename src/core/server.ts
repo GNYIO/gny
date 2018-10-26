@@ -1,5 +1,5 @@
-import Router = require('../utils/router');
-import constants = require('../utils/constants');
+import * as Router from '../utils/router';
+import * as constants from '../utils/constants';
 
 export default class Server {
   private isLoaded = false;

@@ -1,9 +1,9 @@
-import crypto = require('crypto');
-import util = require('util');
-import Mnemonic = require('bitcore-mnemonic');
-import ed = require('../utils/ed.js');
-import Router = require('../utils/router');
-import addressHelper = require('../utils/address');
+import * as crypto from 'crypto';
+import * as util from 'util';
+import * as Mnemonic from 'bitcore-mnemonic';
+import * as ed from '../utils/ed';
+import * as Router from '../utils/router';
+import * as addressHelper from '../utils/address';
 
 export default class Account {
   modules: any;
