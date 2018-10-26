@@ -1,1 +1,1 @@
-# gny-experiment
+# ts-model
