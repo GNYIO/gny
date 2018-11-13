@@ -1,7 +1,7 @@
 import path = require('path');
 import ip = require('ip');
 import crypto = require('crypto');
-import _ = require('lodash');
+import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
 import Router = require('../utils/router');

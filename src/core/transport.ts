@@ -1,4 +1,4 @@
-import _ = require('lodash');
+import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router = require('../utils/router');
 import slots = require('../utils/slots');

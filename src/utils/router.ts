@@ -1,4 +1,4 @@
-import _ = require('lodash');
+import * as _  from 'lodash';
 import express = require('express');
 
 function map(root, config) {

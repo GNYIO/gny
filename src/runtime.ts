@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import util = require('util');
 import { EventEmitter } from 'events';
-import _ = require('lodash');
+import * as _ from 'lodash';
 import changeCase = require('change-case');
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';

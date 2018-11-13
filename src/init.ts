@@ -10,7 +10,7 @@ import ip = require('ip');
 import express = require('express');
 import compression = require('compression');
 import cors = require('cors');
-import _ = require('lodash');
+import * as _ from 'lodash';
 import bodyParser = require('body-parser');
 import methodOverride = require('method-override');
 import Sequence = require('./utils/sequence');

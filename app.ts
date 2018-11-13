@@ -1,4 +1,4 @@
-import program = require('commander');
+import program from 'commander'
 import path = require('path');
 import fs = require('fs');
 import ip = require('ip');
