@@ -17,12 +17,10 @@ import Sequence = require('./utils/sequence');
 import slots = require('./utils/slots');
 import queryParser = require('./utils/express-query-int');
 import ZSchemaExpress = require('./utils/zscheme-express');
-import Transaction = require('./base/transaction');
-import Block = require('./base/block');
-import Consensus = require('./base/consensus');
+import { Transaction } from './base/transaction';
+import { Block } from './base/block';
+import { Consensus } from './base/consensus';
 import protobuf = require('./utils/protobuf');
-import { Round } from './core-alt/round';
-import { Server } from './core-alt/server';
 
 // no chain module
 const moduleNames = [
@@ -218,8 +216,8 @@ async function init_alt(options: any) {
     let obj;
     scope.logger.debug('Loading Module...', name);
     // import * as Klass from `./core-alt/${name}`;
-    const Klass = require(`./core-alt/${name}`);
-    obj = new Klass.default(cb, scope);
+    const Klass = require(`./core/${name}`);
+    obj = new Klass.default(scope);
     modules.push(obj);
     scope.modules[name] = obj;
   });

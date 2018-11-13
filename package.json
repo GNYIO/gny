@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "copyProto": "cp -r proto dist/",
+    "copyGenesisBlock": "cp ./genesisBlock.json dist/",
+    "copyConfig": "cp ./config.json dist/",
+    "tsc": "tsc; npm run copyProto; npm run copyGenesisBlock; npm run copyConfig",
     "test": "jest"
   },
   "repository": {

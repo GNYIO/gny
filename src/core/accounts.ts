@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as util from 'util';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as ed from '../utils/ed';
-import * as Router from '../utils/router';
+import Router from '../utils/router';
 import * as addressHelper from '../utils/address';
 
 export default class Account {

@@ -4,13 +4,11 @@ import fs = require('fs');
 import ip = require('ip');
 import daemon = require('daemon');
 import tracer = require('tracer');
-import asch = require('./index');
+import Application from './index';
 import packageJson from './package.json';
 
 
 const version = packageJson.version;
-const Application = asch.Application;
-
 
 function main() {
 
