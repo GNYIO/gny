@@ -1,10 +1,10 @@
-import constants = require('./constants');
+import * as constants from './constants';
 
 function beginEpochTime() {
   return new Date(Date.UTC(2016, 5, 27, 20, 0, 0, 0))
 }
 
-function getEpochTime(time) {
+function getEpochTime(time?: number) {
   let t = time
   if (t === undefined) {
     t = (new Date()).getTime()
@@ -15,16 +15,15 @@ function getEpochTime(time) {
 
 export = {
 
-  // interval: 10,
   interval: constants.interval,
 
   delegates: 101,
 
-  getTime(time) {
+  getTime(time?: number) {
     return getEpochTime(time)
   },
 
-  getRealTime(epochTime) {
+  getRealTime(epochTime?: number) {
     let et = epochTime
     if (et === undefined) {
       et = this.getTime()
@@ -34,7 +33,7 @@ export = {
     return t + (et * 1000)
   },
 
-  getSlotNumber(epochTime) {
+  getSlotNumber(epochTime?: number) {
     let et = epochTime
     if (et === undefined) {
       et = this.getTime()
@@ -42,7 +41,7 @@ export = {
     return Math.floor(et / this.interval)
   },
 
-  getSlotTime(slot) {
+  getSlotTime(slot: any) {
     return slot * this.interval
   },
 

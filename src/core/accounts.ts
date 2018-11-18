@@ -341,7 +341,7 @@ export default class Account {
     })
 
     this.library.network.app.use('/api/accounts', router);
-    this.library.network.app.use((err, req, res, next) => {
+    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
       return res.status(500).send({

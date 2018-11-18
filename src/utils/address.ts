@@ -39,14 +39,14 @@ function generateRawBase58CheckAddress(hashes) {
 
 export = {
   TYPE,
-  getType(address) {
+  getType(address: any) {
     const prefix = address[0]
     if (PREFIX_MAP[prefix]) {
       return PREFIX_MAP[prefix]
     }
     return TYPE.NONE
   },
-  isAddress(address) {
+  isAddress(address: string) {
     if (typeof address !== 'string') {
       return false
     }
@@ -61,7 +61,7 @@ export = {
     return true
   },
 
-  isBase58CheckAddress(address) {
+  isBase58CheckAddress(address: string) {
     if (typeof address !== 'string') {
       return false
     }
@@ -74,11 +74,11 @@ export = {
     return true
   },
 
-  isNormalAddress(address) {
+  isNormalAddress(address: string) {
     return this.isBase58CheckAddress(address) && address[0] === NORMAL_PREFIX
   },
 
-  isGroupAddress(address) {
+  isGroupAddress(address: string) {
     return this.isBase58CheckAddress(address) && address[0] === GROUP_PREFIX
   },
 

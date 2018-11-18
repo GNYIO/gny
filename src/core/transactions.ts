@@ -68,9 +68,7 @@ class Transactions {
   pool: TransactionPool;
   failedTrsCache: LimitCache;
 
-  constructor(cb: any, scope: any) {
-    debugger;
-
+  constructor(scope: any) {
     this.library = scope;
     this.genesisblock = this.library.genesisblock
     this.pool = new TransactionPool();
@@ -759,4 +757,4 @@ class Transactions {
 
 
 // Export
-export = Transactions;
+export default Transactions;

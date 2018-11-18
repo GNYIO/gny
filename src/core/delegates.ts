@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as util from 'util';
-import * as BlockStatus from '../utils/block-status';
+import BlockStatus from '../utils/block-status';
 import * as addressUtils from '../utils/address';
 import * as slots from '../utils/slots';
 
