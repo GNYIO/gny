@@ -306,7 +306,7 @@ export default class Account {
     const router = new Router();
 
     router.use((req, res, next) => {
-      if (modules) return next();
+      if (this.modules) return next();
       return res.status(500).send({
         success: false,
         error: 'Blockchain is syncing'
