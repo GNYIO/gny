@@ -30,6 +30,7 @@
     "@types/bytebuffer": "=5.0.37",
     "@types/nedb": "=1.8.6",
     "@types/request": "=2.47.1",
+    "@types/lru-cache": "=4.1.1",
     "asch-smartdb": "https://github.com/AschPlatform/asch-smartdb-dist/tarball/v1.1.1",
     "async": "=1.5.2",
     "babel-eslint": "^9.0.0",
