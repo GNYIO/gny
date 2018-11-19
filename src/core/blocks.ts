@@ -10,7 +10,7 @@ import sandboxHelper = require('../utils/sandbox');
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
 
-export class Block {
+export default class Block {
   modules: any;
   library: any;
   genesisBlock: any;
@@ -33,11 +33,11 @@ export class Block {
     const router = new Router();
 
     router.use((req, res, next) => {
-      if (modules) return next()
+      if (this.modules) return next()
       return res.status(500).send({ success: false, error: 'Blockchain is loading' });
     })
 
-    router.map(shared, {
+    router.map(this, {
       'get /get': 'getBlock',
       'get /full': 'getFullBlock',
       'get /': 'getBlocks',
@@ -66,16 +66,14 @@ export class Block {
       const minHeight = Math.max(0, maxHeight - 4);
       let blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
-      const ids = blocks.map(b => b.id);
+      const ids = blocks.map((b: any) => b.id);
       return { ids, firstHeight: minHeight };
     } catch (e) {
       throw e;
     }
   }
 
-  async getCommonBlock(peer, height: number) {
+  async getCommonBlock(peer: any, height: number) {
     const lastBlockHeight = height;
-
-
   }
 }

@@ -216,6 +216,7 @@ async function init_alt(options: any) {
     let obj;
     scope.logger.debug('Loading Module...', name);
     // import * as Klass from `./core-alt/${name}`;
+    console.log(`loading modules "${name}"`)
     const Klass = require(`./core/${name}`);
     obj = new Klass.default(scope);
     modules.push(obj);

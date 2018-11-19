@@ -13,6 +13,50 @@ export class Block {
     this.scope = scope;
   }
 
+  public getId = (block: any) => {
+    const bytes = new DataView(this.getBytes(block))
+    const hash = crypto.createHash('sha256').update(bytes).digest()
+    return hash.toString('hex')
+  }
+
+  getBytes = (block: any, skipSignature?: any) => {
+    const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64
+  
+    const bb = new ByteBuffer(size, true)
+    bb.writeInt(block.version)
+    bb.writeInt(block.timestamp)
+    bb.writeInt64(block.height)
+    bb.writeInt(block.count)
+    bb.writeInt64(block.fees)
+    bb.writeInt64(block.reward)
+    bb.writeUTF8String(block.delegate)
+  
+    // HARDCODE HOTFIX
+    if (block.height > 6167000 && block.prevBlockId) {
+      bb.writeUTF8String(block.prevBlockId)
+    } else {
+      bb.writeUTF8String('0')
+    }
+  
+    const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex')
+    for (let i = 0; i < payloadHashBuffer.length; i++) {
+      bb.writeByte(payloadHashBuffer[i])
+    }
+  
+  
+    if (!skipSignature && block.signature) {
+      const signatureBuffer = Buffer.from(block.signature, 'hex')
+      for (let i = 0; i < signatureBuffer.length; i++) {
+        bb.writeByte(signatureBuffer[i])
+      }
+    }
+  
+    bb.flip()
+    const b = bb.toArrayBuffer()
+  
+    return b
+  }
+
   private sortTransactions(data: any) {
     // 优先级：二级密码，金额
     data.transactions.sort((a, b) => {
