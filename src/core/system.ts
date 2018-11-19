@@ -8,6 +8,10 @@ export default class System {
     this.library = scope;
   }
 
+  getOs() {
+    return os.platform() + os.release()
+  }
+
   getSystemInfo() {
     const lastBlock = this.library.blocks.getLastBlock();
 
