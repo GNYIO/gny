@@ -8,7 +8,7 @@ async function validateAssetIssue(content) {
   app.validate('amount', String(content.amount))
 }
 
-module.exports = {
+export default {
   async propose(title, desc, topic, content, endHeight) {
     if (!/^[A-Za-z0-9_\-+!@$% ]{10,100}$/.test(title)) return 'Invalid proposal title'
     if (desc.length > 4096) return 'Invalid proposal description'

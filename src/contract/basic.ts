@@ -36,7 +36,7 @@ function isUniq(arr) {
   return true
 }
 
-module.exports = {
+export default {
   async transfer(amount, recipient) {
     if (!recipient) return 'Invalid recipient'
     // Verify amount should be positive integer

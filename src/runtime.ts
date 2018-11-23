@@ -3,7 +3,6 @@ import path = require('path');
 import util = require('util');
 import { EventEmitter } from 'events';
 import * as _ from 'lodash';
-import changeCase = require('change-case');
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import slots = require('./utils/slots');
@@ -14,10 +13,10 @@ import AutoIncrement = require('./smartdb/auto-increment');
 import AccountRole = require('./utils/account-role');
 import transactionMode = require('./utils/transaction-mode');
 import loadModels from './loadModels'
+import loadContracts from './loadContracts'
 
 import address from './utils/address.js';
 import bignumber from './utils/bignumber';
-import transaction from './model/transaction';
 
 const PIFY = util.promisify
 
@@ -52,25 +51,7 @@ class RouteWrapper {
   }
 }
 
-async function loadContracts(dir) {
-  let contractFiles
-  try {
-    contractFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`contracts load error: ${e}`)
-    return
-  }
-  contractFiles.forEach((contractFile) => {
-    app.logger.info('loading contract', contractFile)
-    const basename = path.basename(contractFile, '.js')
-    const contractName = changeCase.snakeCase(basename)
-    const fullpath = path.resolve(dir, contractFile)
-    const contract = require(fullpath)
-    if (contractFile !== 'index.js') {
-      app.contract[contractName] = contract
-    }
-  })
-}
+
 
 async function loadInterfaces(dir, routes) {
   let interfaceFiles
@@ -260,7 +241,6 @@ module.exports = async function runtime(options) {
 
   const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks')
   const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db')
-  debugger
 
   adaptSmartDBLogger(options.appConfig)
   app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
@@ -275,7 +255,7 @@ module.exports = async function runtime(options) {
   }
 
   await loadModels()
-  await loadContracts(path.join(appDir, 'contract'))
+  await loadContracts()
   // await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
 
   app.contractTypeMapping[0] = 'basic.transfer'
