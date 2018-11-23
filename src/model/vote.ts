@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'votes',
   tableFields: [
     { name: 'address', type: 'String', length: 50, not_null: true, composite_key: true },

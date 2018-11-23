@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'balances',
   memory: true,
   tableFields: [

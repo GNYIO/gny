@@ -13,6 +13,11 @@ import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
 import AccountRole = require('./utils/account-role');
 import transactionMode = require('./utils/transaction-mode');
+import loadModels from './loadModels'
+
+import address from './utils/address.js';
+import bignumber from './utils/bignumber';
+import transaction from './model/transaction';
 
 const PIFY = util.promisify
 
@@ -45,30 +50,6 @@ class RouteWrapper {
   get handlers() {
     return this.hands
   }
-}
-
-async function loadModels(dir) {
-  let modelFiles = []
-  try {
-    modelFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`models load error: ${e}`)
-    return
-  }
-  app.logger.debug('models', modelFiles)
-
-  const schemas = []
-  modelFiles.forEach((modelFile) => {
-    app.logger.info('loading model', modelFile)
-    const basename = path.basename(modelFile, '.js')
-    const modelName = _.chain(basename).camelCase().upperFirst().value()
-    const fullpath = path.resolve(dir, modelFile)
-    const schema = require(fullpath)
-    schemas.push(new AschCore.ModelSchema(schema, modelName))
-  })
-
-  await app.sdb.init(schemas)
-
 }
 
 async function loadContracts(dir) {
@@ -279,6 +260,7 @@ module.exports = async function runtime(options) {
 
   const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks')
   const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db')
+  debugger
 
   adaptSmartDBLogger(options.appConfig)
   app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
@@ -287,24 +269,21 @@ module.exports = async function runtime(options) {
   app.events = new EventEmitter()
 
   app.util = {
-    address: require('./utils/address.js'),
-    bignumber: require('./utils/bignumber'),
-    transactionMode: require('./utils/transaction-mode.js'),
+    address: address,
+    bignumber: bignumber,
+    transactionMode: transactionMode,
   }
 
-  await loadModels(path.join(appDir, 'model'))
+  await loadModels()
   await loadContracts(path.join(appDir, 'contract'))
-  await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
+  // await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
 
-  app.contractTypeMapping[1] = 'basic.transfer'
-  app.contractTypeMapping[2] = 'basic.setName'
-  app.contractTypeMapping[3] = 'basic.setPassword'
-  app.contractTypeMapping[4] = 'basic.lock'
-  app.contractTypeMapping[5] = 'basic.unlock'
-  // app.contractTypeMapping[6] = 'basic.registerGroup'
-  app.contractTypeMapping[10] = 'basic.registerDelegate'
-  app.contractTypeMapping[11] = 'basic.vote'
-  app.contractTypeMapping[12] = 'basic.unvote'
+  app.contractTypeMapping[0] = 'basic.transfer'
+  app.contractTypeMapping[1] = 'basic.setUserName'
+  app.contractTypeMapping[2] = 'basic.setSecondPassphrase'
+  app.contractTypeMapping[3] = 'basic.lock'
+  app.contractTypeMapping[4] = 'basic.vote'
+  app.contractTypeMapping[5] = 'basic.unvote'
 
   app.contractTypeMapping[100] = 'uia.registerIssuer'
   app.contractTypeMapping[101] = 'uia.registerAsset'

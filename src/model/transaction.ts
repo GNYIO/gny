@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'transactions',
   tableFields: [
     { name: 'id', type: 'String', length: 64, not_null: true, primary_key: true },

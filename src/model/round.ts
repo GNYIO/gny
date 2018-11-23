@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'rounds',
   tableFields: [
     { name: 'round', type: 'BigInt', primary_key: true },

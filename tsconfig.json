@@ -64,8 +64,8 @@
     "test/**/*.spec.ts"
   ],
   "include": [
-    "src/**/*.ts",
-    "src/*.ts",
+    "src/**/*[.ts|.js]",
+    "src/*[.ts|.js]",
     "app.ts",
     "app-alt.ts",
     "index.ts",

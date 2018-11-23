@@ -8,8 +8,20 @@ export default class System {
     this.library = scope;
   }
 
-  getOs() {
+  getOS() {
     return os.platform() + os.release()
+  }
+
+  getVersion() {
+    return global.Config.version;
+  }
+
+  getPort() {
+    return global.Config.port
+  }
+
+  getMagic() {
+    return global.Config.magic
   }
 
   getSystemInfo() {

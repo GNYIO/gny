@@ -82,7 +82,7 @@ module.exports = {
     return null
   },
 
-  async setName(name) {
+  async setUserName(name) {
     app.validate('name', name)
 
     const senderId = this.sender.address

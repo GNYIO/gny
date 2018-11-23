@@ -21,21 +21,8 @@ import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf = require('./utils/protobuf');
+import loadedModules from './loadModules'
 
-// no chain module
-const moduleNames = [
-  'server',
-  'accounts',
-  'transactions',
-  'loader',
-  'system',
-  'peer',
-  'transport',
-  'delegates',
-  'round',
-  'uia',
-  'blocks',
-];
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
@@ -212,16 +199,12 @@ async function init_alt(options: any) {
   }
   scope.modules = {};
 
-  moduleNames.forEach(name => {
-    let obj;
-    scope.logger.debug('Loading Module...', name);
-    // import * as Klass from `./core-alt/${name}`;
-    console.log(`loading modules "${name}"`)
-    const Klass = require(`./core/${name}`);
-    obj = new Klass.default(scope);
+  loadedModules.forEach(mod => {
+    scope.logger.debug(`loading Module... ${mod.name}`)
+    let obj = new mod.class(scope);
     modules.push(obj);
-    scope.modules[name] = obj;
-  });
+    scope.modules[mod.name] = obj
+  })
 
   class Bus extends EventEmitter {
     message(topic, ...restArgs) {

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'proposals',
   tableFields: [
     { name: 'tid', type: 'String', length: 64, primary_key: true },
