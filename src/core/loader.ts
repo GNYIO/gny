@@ -12,7 +12,7 @@ export default class Loader {
   
   constructor(scope: any) {
     this.library = scope;
-    this.genesisBlock = this.library.genesisblock;
+    this.genesisBlock = this.library.genesisBlock;
   }
 
   syncTrigger(turnOn: boolean) {

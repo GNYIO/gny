@@ -18,7 +18,7 @@ function main() {
     757137132
   ];
   let appConfigFile;
-  let genesisblockFile;
+  let genesisBlockFile;
   let logger;
 
   process.stdin.resume();
@@ -63,12 +63,12 @@ function main() {
   global.Config = appConfig;
 
   if (program.genesisblock) {
-    genesisblockFile = path.resolve(process.cwd(), program.genesisblock);
+    genesisBlockFile = path.resolve(process.cwd(), program.genesisblock);
   } else {
-    genesisblockFile = path.join(baseDir, 'genesisBlock.json');
+    genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisblock = JSON.parse(fs.readFileSync(genesisblockFile, 'utf8'));
+  const genesisBlock = JSON.parse(fs.readFileSync(genesisBlockFile, 'utf8'));
 
   if (program.port) {
     appConfig.port = program.port;
@@ -121,7 +121,7 @@ function main() {
 
   const options = {
     appConfig,
-    genesisblock,
+    genesisBlock,
     logger,
     pidFile,
   };

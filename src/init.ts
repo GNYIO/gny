@@ -61,7 +61,7 @@ const modules = [];
 
 async function init_alt(options: any) {
   let scope = {};
-  const { appConfig, genesisblock } = options;
+  const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
@@ -76,8 +76,8 @@ async function init_alt(options: any) {
 
   scope.config = appConfig;
   scope.logger = options.logger;
-  scope.genesisblock = {
-    block: genesisblock,
+  scope.genesisBlock = {
+    block: genesisBlock,
   };
   // scope.protobuf =
 
@@ -183,7 +183,7 @@ async function init_alt(options: any) {
   scope.base = {};
   scope.base.bus = scope.bus;
   scope.base.scheme = scope.scheme;
-  scope.base.genesisblock = scope.genesisblock;
+  scope.base.genesisBlock = scope.genesisBlock;
   scope.base.consensus = new Consensus(scope);
   scope.base.transaction = new Transaction(scope);
   scope.base.block = new Block(scope);
@@ -338,4 +338,4 @@ function balancesSequence(options: any) {
   });
 }
 
-export = init_alt;
+export default init_alt;

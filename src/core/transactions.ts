@@ -7,9 +7,6 @@ import LimitCache = require('../utils/limit-cache');
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
 
-// let genesisblock = null
-// Private fields
-
 const priv = {}
 
 priv.unconfirmedNumber = 0
@@ -64,13 +61,13 @@ class TransactionPool {
 class Transactions {
   library: any;
   modules: any;
-  genesisblock: any;
+  genesisBlock: any;
   pool: TransactionPool;
   failedTrsCache: LimitCache;
 
   constructor(scope: any) {
     this.library = scope;
-    this.genesisblock = this.library.genesisblock
+    this.genesisBlock = this.library.genesisBlock
     this.pool = new TransactionPool();
     this.failedTrsCache = new LimitCache()
 
