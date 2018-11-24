@@ -252,7 +252,7 @@ export class Block {
   
     try {
       for (let i = 0; i < block.transactions.length; i++) {
-        block.transactions[i] = this.scope.transaction.objectNormalize(block.transactions[i])
+        block.transactions[i] = this.scope.base.transaction.objectNormalize(block.transactions[i])
       }
     } catch (e) {
       throw Error(e.toString())
