@@ -173,8 +173,10 @@ export class Block {
     const remove = 64
 
     try {
-      const data = this.serialize(block)
-      const data2 = Buffer.alloc(data.length - remove)
+      debugger
+      const data = this.getBytes(block)
+      debugger
+      const data2 = Buffer.alloc(data.byteLength - remove)
   
       for (let i = 0; i < data2.length; i++) {
         data2[i] = data[i]

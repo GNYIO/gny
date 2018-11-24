@@ -159,6 +159,7 @@ export class Transaction {
     if (!signature) return false
   
     try {
+      debugger
       const bytes = this.getBytes(transaction, true, true)
       return this.verifyBytes(bytes, publicKey, signature)
     } catch (e) {

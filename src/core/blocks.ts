@@ -257,6 +257,78 @@ export default class Block {
     }
   }
 
+  public generateBlock = async (keypair: any, timestamp: any) => {
+    if (this.library.base.consensus.hasPendingBlock(timestamp)) {
+      return null
+    }
+    const unconfirmedList = this.modules.transactions.getUnconfirmedTransactionList()
+    const payloadHash = crypto.createHash('sha256')
+    let payloadLength = 0
+    let fees = 0
+    for (const transaction of unconfirmedList) {
+      fees += transaction.fee
+      const bytes = this.library.base.transaction.getBytes(transaction)
+      // TODO check payload length when process remote block
+      if ((payloadLength + bytes.length) > 8 * 1024 * 1024) {
+        throw new Error('Playload length outof range')
+      }
+      payloadHash.update(bytes)
+      payloadLength += bytes.length
+    }
+    const height = this.lastBlock.height + 1
+    const block = {
+      version: 0,
+      delegate: keypair.publicKey.toString('hex'),
+      height,
+      prevBlockId: this.lastBlock.id,
+      timestamp,
+      transactions: unconfirmedList,
+      count: unconfirmedList.length,
+      fees,
+      payloadHash: payloadHash.digest().toString('hex'),
+      reward: this.blockStatus.calcReward(height),
+    }
+  
+    block.signature = this.library.base.block.sign(block, keypair)
+    block.id = this.library.base.block.getId(block)
+  
+    let activeKeypairs
+    try {
+      activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(block.height)
+    } catch (e) {
+      throw new Error(`Failed to get active delegate keypairs: ${e}`)
+    }
+  
+    const id = block.id
+    assert(activeKeypairs && activeKeypairs.length > 0, 'Active keypairs should not be empty')
+    this.library.logger.info(`get active delegate keypairs len: ${activeKeypairs.length}`)
+    const localVotes = this.library.base.consensus.createVotes(activeKeypairs, block)
+    if (this.library.base.consensus.hasEnoughVotes(localVotes)) {
+      this.modules.transactions.clearUnconfirmed()
+      await this.processBlock(block, { local: true, broadcast: true, votes: localVotes })
+      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+      return null
+    }
+    if (!this.library.config.publicIp) {
+      this.library.logger.error('No public ip')
+      return null
+    }
+    const serverAddr = `${this.library.config.publicIp}:${this.library.config.peerPort}`
+    let propose
+    try {
+      propose = this.library.base.consensus.createPropose(keypair, block, serverAddr)
+    } catch (e) {
+      this.library.logger.error('Failed to create propose', e)
+      return null
+    }
+    this.library.base.consensus.setPendingBlock(block)
+    this.library.base.consensus.addPendingVotes(localVotes)
+    // this.proposeCache[propose.hash] = true
+    this.isCollectingVotes = true
+    this.library.bus.message('newPropose', propose, true)
+    return null
+  }
+
   public saveBlockTransactions = (block: any) => {
     app.logger.trace('Blocks#saveBlockTransactions height', block.height)
     for (const trs of block.transactions) {
