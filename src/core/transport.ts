@@ -7,8 +7,8 @@ import sandboxHelper = require('../utils/sandbox');
 
 export default class Transport {
   private library: any;
-  private latestBlocksCache = new LRU(200)
-  private blockHeaderMidCache = new LRU(1000)
+  private latestBlocksCache: any = new LRU(200)
+  private blockHeaderMidCache: any = new LRU(1000)
   
   private modules: any;
 
@@ -21,7 +21,7 @@ export default class Transport {
   }
 
 
-  attachApi = () => {
+  private attachApi = () => {
     const router = new Router()
 
     router.use((req, res, next) => {
@@ -207,16 +207,16 @@ export default class Transport {
     this.library.network.app.use('/peer', router)
   }
 
-  broadcast = (topic: any, message: any, recursive?: any) => {
+  public broadcast = (topic: any, message: any, recursive?: any) => {
     this.modules.peer.publish(topic, message, recursive)
   }
 
-  sandboxApi = (call, args, cb) => {
+  public sandboxApi = (call: any, args: any, cb: any) => {
     sandboxHelper.callMethod(this, call, args, cb)
   }
 
   // Events
-  onBind = (scope: any) => {
+  public onBind = (scope: any) => {
     this.modules = scope
     this.headers = {
       os: this.modules.system.getOS(),
@@ -226,13 +226,13 @@ export default class Transport {
     }
   }
 
-  onBlockchainReady = () => {
+  public onBlockchainReady = () => {
     this.loaded = true
   }
 
-  onPeerReady = () => {
+  public onPeerReady = () => {
     this.modules.peer.subscribe('newBlockHeader', (message, peer) => {
-      if (this.modules.loader.isSyncing) {
+      if (this.modules.loader.syncing()) {
         return
       }
       const lastBlock = this.modules.blocks.getLastBlock()
@@ -328,7 +328,7 @@ export default class Transport {
     })
   }
 
-  onUnconfirmedTransaction = (transaction) => {
+  public onUnconfirmedTransaction = (transaction: any) => {
     const message = {
       body: {
         transaction: JSON.stringify(transaction),
@@ -337,7 +337,7 @@ export default class Transport {
     this.broadcast('transaction', message)
   }
 
-  onNewBlock = (block, votes) => {
+  public onNewBlock = (block, votes) => {
     this.latestBlocksCache.set(block.id,
       {
         block,
@@ -354,7 +354,7 @@ export default class Transport {
     this.broadcast('newBlockHeader', message, 0)
   }
 
-  onNewPropose = (propose) => {
+  public onNewPropose = (propose) => {
     const message = {
       body: {
         propose: this.library.protobuf.encodeBlockPropose(propose),
@@ -363,7 +363,7 @@ export default class Transport {
     this.broadcast('propose', message)
   }
 
-  sendVotes = (votes, address) => {
+  public sendVotes = (votes, address) => {
     const parts = address.split(':')
     const contact = {
       host: parts[0],
@@ -376,12 +376,12 @@ export default class Transport {
     })
   }
 
-  cleanup = (cb: any) => {
+  public cleanup = (cb: any) => {
     this.loaded = false
     cb()
   }
 
-  message = (msg, cb) => {
+  public message = (msg, cb) => {
     msg.timestamp = (new Date()).getTime()
 
     // self.broadcast('chainMessage', msg)
@@ -389,7 +389,7 @@ export default class Transport {
     cb(null, {})
   }
 
-  request = (req, cb) => {
+  public request = (req, cb) => {
     if (req.body.peer) {
       this.modules.peer.request('chainRequest', req, req.body.peer, (err, res) => {
         if (res) {
