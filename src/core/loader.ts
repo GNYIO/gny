@@ -63,13 +63,14 @@ export default class Loader {
     const commonBlockId = this.genesisBlock.block.id
   
     this.library.logger.debug(`Loading blocks from genesis from ${peerStr}`)
-  
+
     this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb)
   }
 
-  private findUpdate(lastBlock: any, peer: any, cb: any) {
+  private async findUpdate (lastBlock: any, peer: any, cb: any) {
     const peerStr = `${peer.host}:${peer.port - 1}`
-  
+
+    throw new Error('findUpdate is broken (core/loader.ts)')
     this.modules.blocks.getCommonBlock(peer, lastBlock.height, (err, commonBlock) => {
       if (err || !commonBlock) {
         this.library.logger.error('Failed to get common block:', err)
