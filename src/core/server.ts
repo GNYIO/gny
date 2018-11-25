@@ -10,7 +10,7 @@ export default class Server {
     this.library= scope;
   }
 
-  onBlockchainReady() {
+  onBlockchainReady = () => {
     this.isLoaded = true;
   }
 

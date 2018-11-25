@@ -238,7 +238,6 @@ export default class Loader {
   }
 
   onBlockchainReady = () => {
-    debugger
     this.isLoaded = true
   }
 
