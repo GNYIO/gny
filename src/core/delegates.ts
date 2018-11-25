@@ -21,6 +21,28 @@ export default class Delegate {
     // this.attachApi();
   }
 
+  public compare = (l, r) => {
+    if (l.votes !== r.votes) {
+      return r.votes - l.votes
+    }
+    return l.publicKey < r.publicKey ? 1 : -1
+  }
+  
+
+  public getTopDelegates = () => {
+    const allDelegates = app.sdb.getAll('Delegate')
+    return allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101)
+  }
+
+  public updateBookkeeper = (delegates) => {
+    const value = JSON.stringify(delegates || this.getTopDelegates())
+    const { create } = app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
+    if (!create) {
+      app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME })
+    }
+  }
+  
+
   public onBlockchainReady = async () => {
     this.isLoaded = true
 
@@ -77,7 +99,8 @@ export default class Delegate {
       return;
     }
 
-    if (!this.isLoaded || this.modules.loader.isSyncing()) {
+    debugger
+    if (!this.isLoaded || this.modules.loader.isSynced) {
       this.library.logger.trace('Loop: node is not ready');
       return;
     }

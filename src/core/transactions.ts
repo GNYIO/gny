@@ -259,7 +259,6 @@ class Transactions {
   }
 
   applyUnconfirmedTransactionAsync = async (transaction) => {
-    debugger
     this.library.logger.debug('apply unconfirmed trs', transaction)
 
     const height = this.modules.blocks.getLastBlock().height

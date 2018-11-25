@@ -185,14 +185,12 @@ export class Transaction {
   }
 
   async apply(context: any) {
-    debugger
     const {
-      block, transaction, sender, requestor,
+      block, trs, sender, requestor,
     } = context
-    debugger
-    const name = app.getContractName(transaction.type)
+    const name = app.getContractName(trs.type)
     if (!name) {
-      throw new Error(`Unsupported transaction type: ${transaction.type}`)
+      throw new Error(`Unsupported transaction type: ${trs.type}`)
     }
     const [mod, func] = name.split('.')
     if (!mod || !func) {
@@ -204,22 +202,22 @@ export class Transaction {
     }
   
     if (block.height !== 0) {
-      if (transactionMode.isRequestMode(transaction.mode) && !context.activating) {
+      if (transactionMode.isRequestMode(trs.mode) && !context.activating) {
         const requestorFee = 20000000
         if (requestor.aec < requestorFee) throw new Error('Insufficient requestor balance')
         requestor.aec -= requestorFee
         app.addRoundFee(requestorFee, modules.round.calc(block.height))
         // transaction.executed = 0
-        app.sdb.create('TransactionStatu', { tid: transaction.id, executed: 0 })
+        app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
         app.sdb.update('Account', { aec: requestor.aec }, { address: requestor.address })
         return
       }
-      if (sender.aec < transaction.fee) throw new Error('Insufficient sender balance')
-      sender.aec -= transaction.fee
+      if (sender.aec < trs.fee) throw new Error('Insufficient sender balance')
+      sender.aec -= trs.fee
       app.sdb.update('Account', { aec: sender.aec }, { address: sender.address })
     }
   
-    const error = await fn.apply(context, transaction.args)
+    const error = await fn.apply(context, trs.args)
     if (error) {
       throw new Error(error)
     }

@@ -264,6 +264,7 @@ export default async function runtime(options) {
   app.contractTypeMapping[3] = 'basic.lock'
   app.contractTypeMapping[4] = 'basic.vote'
   app.contractTypeMapping[5] = 'basic.unvote'
+  app.contractTypeMapping[10] = 'basic.registerDelegate'
 
   app.contractTypeMapping[100] = 'uia.registerIssuer'
   app.contractTypeMapping[101] = 'uia.registerAsset'
