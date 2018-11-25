@@ -184,10 +184,12 @@ export class Transaction {
     }
   }
 
-  async apply(context) {
+  async apply(context: any) {
+    debugger
     const {
       block, transaction, sender, requestor,
     } = context
+    debugger
     const name = app.getContractName(transaction.type)
     if (!name) {
       throw new Error(`Unsupported transaction type: ${transaction.type}`)

@@ -14,7 +14,7 @@ export class Block {
   }
 
   public getId = (block: any) => {
-    const bytes = new DataView(this.getBytes(block))
+    const bytes = this.getBytes(block)
     const hash = crypto.createHash('sha256').update(bytes).digest()
     return hash.toString('hex')
   }
@@ -25,17 +25,17 @@ export class Block {
     const bb = new ByteBuffer(size, true)
     bb.writeInt(block.version)
     bb.writeInt(block.timestamp)
-    bb.writeInt64(block.height)
+    bb.writeLong(block.height)
     bb.writeInt(block.count)
-    bb.writeInt64(block.fees)
-    bb.writeInt64(block.reward)
-    bb.writeUTF8String(block.delegate)
+    bb.writeLong(block.fees)
+    bb.writeLong(block.reward)
+    bb.writeString(block.delegate)
   
     // HARDCODE HOTFIX
     if (block.height > 6167000 && block.prevBlockId) {
-      bb.writeUTF8String(block.prevBlockId)
+      bb.writeString(block.prevBlockId)
     } else {
-      bb.writeUTF8String('0')
+      bb.writeString('0')
     }
   
     const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex')
@@ -52,7 +52,7 @@ export class Block {
     }
   
     bb.flip()
-    const b = bb.toArrayBuffer()
+    const b = bb.toBuffer()
   
     return b
   }
@@ -173,15 +173,12 @@ export class Block {
     const remove = 64
 
     try {
-      debugger
       const data = this.getBytes(block)
-      debugger
-      const data2 = Buffer.alloc(data.byteLength - remove)
+      const data2 = Buffer.alloc(data.length - remove)
   
       for (let i = 0; i < data2.length; i++) {
         data2[i] = data[i]
       }
-
       const hash = crypto.createHash('sha256').update(data2).digest()
       const blockSignatureBuffer = Buffer.from(block.signature, 'hex')
       const generatorPublicKeyBuffer = Buffer.from(block.delegate, 'hex')

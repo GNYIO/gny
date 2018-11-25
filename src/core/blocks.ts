@@ -329,6 +329,8 @@ export default class Block {
     return null
   }
 
+  public getLastBlock = () => this.lastBlock
+
   public saveBlockTransactions = (block: any) => {
     app.logger.trace('Blocks#saveBlockTransactions height', block.height)
     for (const trs of block.transactions) {
