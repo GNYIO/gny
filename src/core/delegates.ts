@@ -57,7 +57,6 @@ export default class Delegate {
   }
 
   private loadMyDelegates = async () => {
-    debugger
     let secrets = []
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
@@ -99,7 +98,6 @@ export default class Delegate {
       return;
     }
 
-    debugger
     if (!this.isLoaded || this.modules.loader.isSynced) {
       this.library.logger.trace('Loop: node is not ready');
       return;
