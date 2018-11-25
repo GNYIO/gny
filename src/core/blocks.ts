@@ -96,7 +96,6 @@ export default class Block {
   
       // TODO sort transactions
       // block.transactions = library.base.block.sortTransactions(block)
-      debugger
       await this.verifyBlock(block, options)
   
       this.library.logger.debug('verify block ok')
@@ -183,7 +182,7 @@ export default class Block {
   
     app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
-    const delegates = await modules.delegates.generateDelegateList(block.height)
+    const delegates = modules.delegates.generateDelegateList(block.height)
     app.logger.debug('delegate length', delegates.length)
   
     const forgedBlocks = await app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
@@ -354,7 +353,6 @@ export default class Block {
     }
   
     try {
-      debugger
       if (!this.library.base.block.verifySignature(block)) {
         throw new Error('Failed to verify block signature')
       }
@@ -432,13 +430,12 @@ export default class Block {
       if (!votes.signatures || !this.library.base.consensus.hasEnoughVotesRemote(votes)) {
         throw new Error('Votes signature is not correct')
       }
-      debugger
       await this.verifyBlockVotes(block, votes)
     }
   }
 
   public verifyBlockVotes = async (block: any, votes: any) => {
-    const delegateList = await this.modules.delegates.generateDelegateList(block.height)
+    const delegateList = this.modules.delegates.generateDelegateList(block.height)
     const publicKeySet = new Set(delegateList)
     for (const item of votes.signatures) {
       if (!publicKeySet.has(item.key.toString('hex'))) {

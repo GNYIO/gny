@@ -90,6 +90,7 @@ export default class Loader {
     this.modules.peer.randomRequest('getHeight', {}, (err, ret, peer) => {
       if (err) {
         this.library.logger.error('Failed to request form random peer', err)
+        return cb()
       }
 
       const peerStr = `${peer.host}:${peer.port - 1}`

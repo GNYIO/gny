@@ -143,7 +143,7 @@ export default class Delegate {
     return addresses
   }
 
-  public generateDelegateList = (height: any) => () => {
+  public generateDelegateList = (height: any) => {
     try {
       const truncDelegateList = this.getBookkeeper()
       const seedSource = this.modules.round.calc(height).toString()
@@ -167,8 +167,6 @@ export default class Delegate {
 
   private getBlockSlotData = (slot: any, height: any) => {
     let activeDelegates: any = this.generateDelegateList(height);
-
-    debugger
     if (!activeDelegates) {
       return
     }
