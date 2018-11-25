@@ -1,11 +1,32 @@
-# ts-model
+# GNY Blockchain
 
+## 1 Install
 
-交易的排序规则：
+Clone this repository:
+```bash
+git clone https://github.com/gnyio/gny-experiment
+```
 
+## 2 Install Dependencies
 
-core/blocks .onBind() immediatlly executes with an IFFY
-core/blocks processBlocks()
-core/blocks verifyBlock()
-base/block verifySignature()
+Execute:
+```bash
+npm install
+```
+
+## 3 Transpile Files with TypeScript
+
+Execute:
+```bash
+npm run tsc
+```
+
+## 4 Start Blockchain
+
+Change directory to the `dist` dir and start the Blockchain:
+```
+
+cd dist
+node app
+```
 
