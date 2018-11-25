@@ -216,7 +216,7 @@ export default class Loader {
     })
   }
 
-  onPeerReady() {
+  public onPeerReady = () => {
     let nextSync = () => {
       const lastBlock = this.modules.blocks.getLastBlock()
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp)
@@ -233,11 +233,12 @@ export default class Loader {
     })
   }
 
-  onBind(scope) {
+  onBind = (scope: any) => {
     this.modules = scope
   }
 
-  onBlockchainReady() {
+  onBlockchainReady = () => {
+    debugger
     this.isLoaded = true
   }
 
