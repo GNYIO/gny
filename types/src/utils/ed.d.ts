@@ -1,9 +1,6 @@
-declare const _default: {
-    MakeKeypair(hash: any): {
-        publicKey: any;
-        privateKey: any;
-    };
-    Sign(hash: any, keypair: any): any;
-    Verify(hash: any, signatureBuffer: any, publicKeyBuffer: any): any;
+export declare function generateKeyPair(hash: any): {
+    publicKey: any;
+    privateKey: any;
 };
-export = _default;
+export declare function sign(hash: any, keyPair: any): any;
+export declare function verify(hash: any, signatureBuffer: any, publicKeyBuffer: any): any;

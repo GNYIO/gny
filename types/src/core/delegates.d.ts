@@ -1,2 +1,9 @@
-declare function Delegates(cb: any, scope: any): void;
-export = Delegates;
+export default class Delegate {
+    private isLoaded;
+    private blockStatus;
+    private isForgingEnabled;
+    private keyPairs;
+    private library;
+    constructor(scope: any);
+    private loop;
+}

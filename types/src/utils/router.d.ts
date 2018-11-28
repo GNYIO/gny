@@ -1,2 +1,6 @@
-declare function Router(): any;
+declare class Router {
+    router: any;
+    constructor();
+    private map;
+}
 export = Router;

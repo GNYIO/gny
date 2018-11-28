@@ -1,2 +1,6 @@
-declare function Chains(cb: any, scope: any): void;
-export = Chains;
+export declare class Chains {
+    library: any;
+    modules: any;
+    private baseDir;
+    constructor(scope: any);
+}

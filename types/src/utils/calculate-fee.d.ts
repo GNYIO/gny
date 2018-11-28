@@ -1,6 +1,6 @@
 declare const _default: {
     1: () => number;
-    2: (trs: any) => 1 | 100 | 10 | 200 | 80 | 40;
+    2: (trs: any) => 10 | 200 | 1 | 100 | 80 | 40;
     3: () => number;
     4: () => number;
     5: () => number;
