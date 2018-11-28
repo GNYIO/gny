@@ -17,3 +17,25 @@ export const fixedPoint: number = 10 ** 6;
 export const totalAmount: number = 2500000000000000;
 export const maxTxsPerBlock: number = 20000;
 export const interval: number = 15;
+
+export const INTERVAL: number = 10;
+export const DELEGATES: number = 101;
+export const EPOCH_TIME: Date = new Date(Date.UTC(2018, 10, 18, 20, 0, 0, 0));
+
+interface IReward {
+  MILESTONES: number[];
+  OFFSET: number;
+  DISTANCE: number;
+}
+export const REWARDS: IReward = {
+  MILESTONES: [
+    200000000, // Initial Reward
+    150000000, // Milestone 1
+    100000000, // Milestone 2
+    50000000, // Milestone 3
+  ],
+  OFFSET: 2160, // Start rewards at first block of the second round
+  DISTANCE: 3000000, // Distance between each milestone
+}
+export const TOTAL_AMOUNT: string = '10000000000000000';
+

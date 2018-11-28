@@ -7,7 +7,7 @@ import * as feeCalculators from '../utils/calculate-fee';
 import * as transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 
-export class Transaction {
+class Transaction {
   constructor(public scope: any) {}
 
   create(data) {
@@ -276,3 +276,5 @@ export class Transaction {
     return transaction
   }
 }
+
+export = Transaction;

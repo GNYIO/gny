@@ -1,25 +1,23 @@
-const DEFAULT_LIMIT = 10000
+const DEFAULT_LIMIT = 10000;
 
-class LimitCache {
-  constructor(opt?: any) {
-    const options = opt || {}
-    this.limit = options.limit || DEFAULT_LIMIT
-    this.index = []
-    this.cache = new Map()
-  }
+export default class LimitCache {
+  private cache = new Map();
+  public index = [];
+  public options = {};
+  public limit = DEFAULT_LIMIT;
+
+  constructor() {}
 
   set(key, value) {
     if (this.cache.size >= this.limit && !this.cache.has(key)) {
-      const dropKey = this.index.shift()
-      this.cache.delete(dropKey)
+      const dropKey = this.index.shift();
+      this.cache.delete(dropKey);
     }
-    this.cache.set(key, value)
-    this.index.push(key)
+    this.cache.set(key, value);
+    this.index.push(key);
   }
 
   has(key) {
-    return this.cache.has(key)
+    return this.cache.has(key);
   }
 }
-
-export = LimitCache

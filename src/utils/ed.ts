@@ -1,20 +1,17 @@
-import { api } from 'sodium';
-const sodium = api;
+const sodium = require('sodium').api;
 
-export = {
-  MakeKeypair(hash) {
-    const keypair = sodium.crypto_sign_seed_keypair(hash);
-    return {
-      publicKey: keypair.publicKey,
-      privateKey: keypair.secretKey,
-    };
-  },
+export function generateKeyPair(hash: Buffer) {
+  const keypair = sodium.crypto_sign_seed_keypair(hash);
+  return {
+    publicKey: keypair.publicKey,
+    privateKey: keypair.secretKey,
+  };
+}
 
-  Sign(hash, keypair) {
-    return sodium.crypto_sign_detached(hash, Buffer.from(keypair.privateKey, 'hex'));
-  },
+export function sign(hash: Buffer, privateKey: Buffer) {
+  return sodium.crypto_sign_detached(hash, privateKey);
+}
 
-  Verify(hash, signatureBuffer, publicKeyBuffer) {
-    return sodium.crypto_sign_verify_detached(signatureBuffer, hash, publicKeyBuffer);
-  },
-};
+export function verify(hash: Buffer, signature: Buffer, publicKey: Buffer) {
+  return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
+}
