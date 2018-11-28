@@ -1,6 +1,6 @@
 const BigNumber = require('bignumber.js');
 
-import { REWARDS, TOTAL_AMOUNT} from './constants';
+import { REWARDS, TOTAL_AMOUNT } from './constants';
 
 export default class BlockReward {
   public distance;

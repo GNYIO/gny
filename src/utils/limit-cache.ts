@@ -1,4 +1,4 @@
-const DEFAULT_LIMIT = 10000
+const DEFAULT_LIMIT = 10000;
 
 export default class LimitCache {
   private cache = new Map();
@@ -10,14 +10,14 @@ export default class LimitCache {
 
   set(key, value) {
     if (this.cache.size >= this.limit && !this.cache.has(key)) {
-      const dropKey = this.index.shift()
-      this.cache.delete(dropKey)
+      const dropKey = this.index.shift();
+      this.cache.delete(dropKey);
     }
-    this.cache.set(key, value)
-    this.index.push(key)
+    this.cache.set(key, value);
+    this.index.push(key);
   }
 
   has(key) {
-    return this.cache.has(key)
+    return this.cache.has(key);
   }
 }

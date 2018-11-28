@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import { EventEmitter } from 'events';
-import http = require('http');
+import http = require('http')
 import https = require('https');
 import socketio = require('socket.io');
 import ZSchema = require('z-schema');
