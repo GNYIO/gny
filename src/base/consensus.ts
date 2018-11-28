@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
+import ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import * as slots from '../utils/slots';

@@ -1,4 +1,4 @@
-const _ = require('lodash')
+import * as _ from 'lodash';
 
 module.exports = (router) => {
   router.get('/', async (req) => {

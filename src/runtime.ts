@@ -2,8 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import util = require('util');
 import { EventEmitter } from 'events';
-import _ = require('lodash');
-import changeCase = require('change-case');
+import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import slots = require('./utils/slots');
@@ -13,6 +12,11 @@ import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
 import AccountRole = require('./utils/account-role');
 import transactionMode = require('./utils/transaction-mode');
+import loadModels from './loadModels'
+import loadContracts from './loadContracts'
+
+import address from './utils/address.js';
+import bignumber from './utils/bignumber';
 
 const PIFY = util.promisify
 
@@ -47,49 +51,7 @@ class RouteWrapper {
   }
 }
 
-async function loadModels(dir) {
-  let modelFiles = []
-  try {
-    modelFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`models load error: ${e}`)
-    return
-  }
-  app.logger.debug('models', modelFiles)
 
-  const schemas = []
-  modelFiles.forEach((modelFile) => {
-    app.logger.info('loading model', modelFile)
-    const basename = path.basename(modelFile, '.js')
-    const modelName = _.chain(basename).camelCase().upperFirst().value()
-    const fullpath = path.resolve(dir, modelFile)
-    const schema = require(fullpath)
-    schemas.push(new AschCore.ModelSchema(schema, modelName))
-  })
-
-  await app.sdb.init(schemas)
-
-}
-
-async function loadContracts(dir) {
-  let contractFiles
-  try {
-    contractFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`contracts load error: ${e}`)
-    return
-  }
-  contractFiles.forEach((contractFile) => {
-    app.logger.info('loading contract', contractFile)
-    const basename = path.basename(contractFile, '.js')
-    const contractName = changeCase.snakeCase(basename)
-    const fullpath = path.resolve(dir, contractFile)
-    const contract = require(fullpath)
-    if (contractFile !== 'index.js') {
-      app.contract[contractName] = contract
-    }
-  })
-}
 
 async function loadInterfaces(dir, routes) {
   let interfaceFiles
@@ -152,7 +114,7 @@ function adaptSmartDBLogger(config) {
   }
 }
 
-module.exports = async function runtime(options) {
+export default async function runtime(options) {
   global.app = {
     sdb: null,
     balances: null,
@@ -287,24 +249,22 @@ module.exports = async function runtime(options) {
   app.events = new EventEmitter()
 
   app.util = {
-    address: require('./utils/address.js'),
-    bignumber: require('./utils/bignumber'),
-    transactionMode: require('./utils/transaction-mode.js'),
+    address: address,
+    bignumber: bignumber,
+    transactionMode: transactionMode,
   }
 
-  await loadModels(path.join(appDir, 'model'))
-  await loadContracts(path.join(appDir, 'contract'))
-  await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
+  await loadModels()
+  await loadContracts()
+  // await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
 
-  app.contractTypeMapping[1] = 'basic.transfer'
-  app.contractTypeMapping[2] = 'basic.setName'
-  app.contractTypeMapping[3] = 'basic.setPassword'
-  app.contractTypeMapping[4] = 'basic.lock'
-  app.contractTypeMapping[5] = 'basic.unlock'
-  // app.contractTypeMapping[6] = 'basic.registerGroup'
+  app.contractTypeMapping[0] = 'basic.transfer'
+  app.contractTypeMapping[1] = 'basic.setUserName'
+  app.contractTypeMapping[2] = 'basic.setSecondPassphrase'
+  app.contractTypeMapping[3] = 'basic.lock'
+  app.contractTypeMapping[4] = 'basic.vote'
+  app.contractTypeMapping[5] = 'basic.unvote'
   app.contractTypeMapping[10] = 'basic.registerDelegate'
-  app.contractTypeMapping[11] = 'basic.vote'
-  app.contractTypeMapping[12] = 'basic.unvote'
 
   app.contractTypeMapping[100] = 'uia.registerIssuer'
   app.contractTypeMapping[101] = 'uia.registerAsset'

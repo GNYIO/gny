@@ -1,87 +1,109 @@
-import * as Router from '../utils/router';
 import * as slots from '../utils/slots';
 import * as constants from '../utils/constants';
+import Router from '../utils/router';
 
 export default class Loader {
   private isLoaded: boolean = false;
-  private isSynced: boolean = false;
+  private privSyncing: boolean = false;
   private library: any;
   private modules: any;
   private genesisBlock: any;
+  private loadingLastBlock: any = null;
   private syncIntervalId: any;
+  private blocksToSync = 0;
+  private total = 0;
+  
+  public shared: any = {};
   
   constructor(scope: any) {
     this.library = scope;
-    this.genesisBlock = this.library.genesisblock;
+    this.genesisBlock = this.library.genesisBlock;
+    this.loadingLastBlock = this.library.genesisBlock;
+
+    this.attachApi()
   }
+
+  private attachApi = () => {
+    const router = new Router()
+  
+    router.map(this.shared, {
+      'get /status': 'status',
+      'get /status/sync': 'sync',
+    })
+  
+    this.library.network.app.use('/api/loader', router)
+    this.library.network.app.use((err, req, res, next) => {
+      if (!err) return next()
+      this.library.logger.error(req.url, err.toString())
+      return res.status(500).send({ success: false, error: err.toString() })
+    })
+  }
+
 
   syncTrigger(turnOn: boolean) {
     if (turnOn === false && this.syncIntervalId) {
-      clearTimeout(priv.syncIntervalId)
-      priv.syncIntervalId = null
+      clearTimeout(this.syncIntervalId)
+      this.syncIntervalId = null
     }
-    if (turnOn === true && !priv.syncIntervalId) {
-      setImmediate(function nextSyncTrigger() {
-        library.network.io.sockets.emit('loader/sync', {
-          blocks: priv.blocksToSync,
-          height: modules.blocks.getLastBlock().height,
+    if (turnOn === true && !this.syncIntervalId) {
+      let nextSyncTrigger = () => {
+        this.library.network.io.sockets.emit('loader/sync', {
+          blocks: this.blocksToSync,
+          height: this.modules.blocks.getLastBlock().height,
         })
-        priv.syncIntervalId = setTimeout(nextSyncTrigger, 1000)
-      })
+        this.syncIntervalId = setTimeout(nextSyncTrigger, 1000)
+      }
+      setImmediate(nextSyncTrigger)
     }
   }
 
-  private async loadFullDatabase(peer: any) {
-    const commonBlockId = this.genesisBlock.block.id
-    this.library.logger.debug(`Start loading blocks from ${peer.host}:${peer.port - 1} from genesis block`);
-    await this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId)
-  }
-
-  private async findUpdate(lastBlock, peer) {
-    this.library.logger.info(`Looking for common block with peer ${peer.host}:${peer.port - 1}`);
-    let commonBlock = await this.modules.blocks.getCommonBlock(peer, lastBlock.height);
-
-
-  }
-
-  priv.findUpdate = (lastBlock, peer, cb) => {
+  private loadFullDb = (peer, cb) => {
     const peerStr = `${peer.host}:${peer.port - 1}`
   
-    
+    const commonBlockId = this.genesisBlock.block.id
   
-    modules.blocks.getCommonBlock(peer, lastBlock.height, (err, commonBlock) => {
+    this.library.logger.debug(`Loading blocks from genesis from ${peerStr}`)
+
+    this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb)
+  }
+
+  private async findUpdate (lastBlock: any, peer: any, cb: any) {
+    const peerStr = `${peer.host}:${peer.port - 1}`
+
+    throw new Error('findUpdate is broken (core/loader.ts)')
+    this.modules.blocks.getCommonBlock(peer, lastBlock.height, (err, commonBlock) => {
       if (err || !commonBlock) {
-        library.logger.error('Failed to get common block:', err)
+        this.library.logger.error('Failed to get common block:', err)
         return cb()
       }
   
-      library.logger.info(`Found common block ${commonBlock.id} (at ${commonBlock.height})
+      this.library.logger.info(`Found common block ${commonBlock.id} (at ${commonBlock.height})
         with peer ${peerStr}, last block height is ${lastBlock.height}`)
       const toRemove = lastBlock.height - commonBlock.height
   
       if (toRemove >= 5) {
-        library.logger.error(`long fork with peer ${peerStr}`)
+        this.library.logger.error(`long fork with peer ${peerStr}`)
         return cb()
       }
   
       return (async () => {
         try {
-          modules.transactions.clearUnconfirmed()
+          this.modules.transactions.clearUnconfirmed()
           if (toRemove > 0) {
             await app.sdb.rollbackBlock(commonBlock.height)
-            modules.blocks.setLastBlock(app.sdb.lastBlock)
-            library.logger.debug('set new last block', app.sdb.lastBlock)
+            this.modules.blocks.setLastBlock(app.sdb.lastBlock)
+            this.library.logger.debug('set new last block', app.sdb.lastBlock)
           } else {
             await app.sdb.rollbackBlock()
           }
         } catch (e) {
-          library.logger.error('Failed to rollback block', e)
+          this.library.logger.error('Failed to rollback block', e)
           return cb()
         }
-        library.logger.debug(`Loading blocks from peer ${peerStr}`)
-        return modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, (err2) => {
+        this.library.logger.debug(`Loading blocks from peer ${peerStr}`)
+        return this.modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, (err2) => {
           if (err) {
-            library.logger.error(`Failed to load blocks, ban 60 min: ${peerStr}`, err2)
+            this.library.logger.error(`Failed to load blocks, ban 60 min: ${peerStr}`, err2)
           }
           cb()
         })
@@ -89,19 +111,20 @@ export default class Loader {
     })
   }
 
-  private async loadBlocks(lastBlock) {
-    modules.peer.randomRequest('getHeight', {}, (err, ret, peer) => {
+
+  private async loadBlocks(lastBlock: any, cb: any) {
+    this.modules.peer.randomRequest('getHeight', {}, (err, ret, peer) => {
       if (err) {
-        library.logger.error('Failed to request form random peer', err)
+        this.library.logger.error('Failed to request form random peer', err)
         return cb()
       }
-  
+
       const peerStr = `${peer.host}:${peer.port - 1}`
-      library.logger.info(`Check blockchain on ${peerStr}`)
+      this.library.logger.info(`Check blockchain on ${peerStr}`)
   
       ret.height = Number.parseInt(ret.height, 10)
   
-      const report = library.scheme.validate(ret, {
+      const report = this.library.scheme.validate(ret, {
         type: 'object',
         properties: {
           height: {
@@ -113,29 +136,30 @@ export default class Loader {
       })
   
       if (!report) {
-        library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${library.scheme.getLastError()}`)
-        return cb()
+        this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${this.library.scheme.getLastError()}`)
       }
   
       if (app.util.bignumber(lastBlock.height).lt(ret.height)) {
-        priv.blocksToSync = ret.height
-  
-        if (lastBlock.id !== priv.genesisBlock.block.id) {
-          return priv.findUpdate(lastBlock, peer, cb)
+        this.blocksToSync = ret.height
+
+        if (lastBlock.id !== this.genesisBlock.block.id) {
+          return this.findUpdate(lastBlock, peer, cb)
         }
-        return priv.loadFullDb(peer, cb)
+        // return this.loadFullDb(peer, cb)
       }
       return cb()
     })
   }
 
-  private async loadUnconfirmedTransactions() {
-    modules.peer.randomRequest('getUnconfirmedTransactions', {}, (err, data, peer) => {
+
+  // next
+  private async loadUnconfirmedTransactions = (cb) => {
+    this.modules.peer.randomRequest('getUnconfirmedTransactions', {}, (err, data, peer) => {
       if (err) {
-        return cb()
+        return null
       }
   
-      const report = library.scheme.validate(data.body, {
+      const report = this.library.scheme.validate(data.body, {
         type: 'object',
         properties: {
           transactions: {
@@ -147,7 +171,7 @@ export default class Loader {
       })
   
       if (!report) {
-        return cb()
+        return null
       }
   
       const transactions = data.body.transactions
@@ -155,119 +179,133 @@ export default class Loader {
   
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = library.base.transaction.objectNormalize(transactions[i])
+          transactions[i] = this.library.base.transaction.objectNormalize(transactions[i])
         } catch (e) {
-          library.logger.info(`Transaction ${transactions[i] ? transactions[i].id : 'null'} is not valid, ban 60 min`, peerStr)
-          return cb()
+          this.library.logger.info(`Transaction ${transactions[i] ? transactions[i].id : 'null'} is not valid, ban 60 min`, peerStr)
+          return null
         }
       }
   
-      const trs = []
+      const trs: any[] = []
       for (let i = 0; i < transactions.length; ++i) {
-        if (!modules.transactions.hasUnconfirmed(transactions[i])) {
+        if (!this.modules.transactions.hasUnconfirmed(transactions[i])) {
           trs.push(transactions[i])
         }
       }
-      library.logger.info(`Loading ${transactions.length} unconfirmed transaction from peer ${peerStr}`)
-      return library.sequence.add((done) => {
-        modules.transactions.processUnconfirmedTransactions(trs, done)
+      this.library.logger.info(`Loading ${transactions.length} unconfirmed transaction from peer ${peerStr}`)
+      return this.library.sequence.add((done: any) => {
+        this.modules.transactions.processUnconfirmedTransactions(trs, done)
       }, cb)
     })
   }
 
-  startSyncBlocks() {
-    library.logger.debug('startSyncBlocks enter')
-    if (!priv.loaded || self.syncing()) {
-      library.logger.debug('blockchain is already syncing')
+
+
+
+
+
+  // Public methods
+  public syncing = () => this.privSyncing
+
+  // Loader.prototype.sandboxApi = (call, args, cb) => {
+  //   sandboxHelper.callMethod(shared, call, args, cb)
+  // }
+
+  public startSyncBlocks = () => {
+    this.library.logger.debug('startSyncBlocks enter')
+    if (!this.isLoaded || this.privSyncing) {
+      this.library.logger.debug('blockchain is already syncing')
       return
     }
-    library.sequence.add((cb) => {
-      library.logger.debug('startSyncBlocks enter sequence')
-      priv.syncing = true
-      const lastBlock = modules.blocks.getLastBlock()
-      priv.loadBlocks(lastBlock, (err) => {
+    this.library.sequence.add((cb) => {
+      this.library.logger.debug('startSyncBlocks enter sequence')
+      this.privSyncing = true
+      const lastBlock = this.modules.blocks.getLastBlock()
+      this.loadBlocks(lastBlock, (err) => {
         if (err) {
-          library.logger.error('loadBlocks error:', err)
+          this.library.logger.error('loadBlocks error:', err)
         }
-        priv.syncing = false
-        priv.blocksToSync = 0
-        library.logger.debug('startSyncBlocks end')
+        this.privSyncing = false
+        this.blocksToSync = 0
+        this.library.logger.debug('startSyncBlocks end')
         cb()
       })
     })
   }
 
- syncBlocksFromPeer(peer) {
-    library.logger.debug('syncBlocksFromPeer enter')
-    if (!priv.loaded || self.syncing()) {
-      library.logger.debug('blockchain is already syncing')
+  public syncBlocksFromPeer = (peer) => {
+    this.library.logger.debug('syncBlocksFromPeer enter')
+    if (!this.isLoaded || this.privSyncing) {
+      this.library.logger.debug('blockchain is already syncing')
       return
     }
-    library.sequence.add((cb) => {
-      library.logger.debug('syncBlocksFromPeer enter sequence')
-      priv.syncing = true
-      const lastBlock = modules.blocks.getLastBlock()
-      modules.transactions.clearUnconfirmed()
+    this.library.sequence.add((cb) => {
+      this.library.logger.debug('syncBlocksFromPeer enter sequence')
+      this.privSyncing = true
+      const lastBlock = this.modules.blocks.getLastBlock()
+      this.modules.transactions.clearUnconfirmed()
       app.sdb.rollbackBlock().then(() => {
-        modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
+        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
-            library.logger.error('syncBlocksFromPeer error:', err)
+            this.library.logger.error('syncBlocksFromPeer error:', err)
           }
-          priv.syncing = false
-          library.logger.debug('syncBlocksFromPeer end')
+          this.privSyncing = false
+          this.library.logger.debug('syncBlocksFromPeer end')
           cb()
         })
       })
     })
   }
 
-  onPeerReady() {
-    setImmediate(function nextSync() {
-      const lastBlock = modules.blocks.getLastBlock()
+  // Events
+  public onPeerReady = () => {
+    let nextSync = () => {
+      const lastBlock = this.modules.blocks.getLastBlock()
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp)
       if (slots.getNextSlot() - lastSlot >= 3) {
-        self.startSyncBlocks()
+        this.startSyncBlocks()
       }
-      // // setTimeout(nextSync, 10 * 1000)
-      // setTimeout(nextSync, 15 * 1000)
       setTimeout(nextSync, constants.interval * 1000)
-    })
-  
+    }
+    setImmediate(nextSync)
+
     setImmediate(() => {
-      if (!priv.loaded || self.syncing()) return
-      priv.loadUnconfirmedTransactions((err) => {
+      if (!this.isLoaded || this.privSyncing) return
+      this.loadUnconfirmedTransactions((err) => {
         if (err) {
-          library.logger.error('loadUnconfirmedTransactions timer:', err)
+          this.library.logger.error('loadUnconfirmedTransactions timer:', err)
         }
       })
     })
   }
 
-  onBind(scope) {
-    modules = scope
-  }
-  
-  onBlockchainReady() {
-    priv.loaded = true
-  }
-  
-  Loader.prototype.cleanup = (cb) => {
-    priv.loaded = false
+  public onBind = (scope: any) => {
+    this.modules = scope
   }
 
-  shared.status = (req, cb) => {
+  public onBlockchainReady = () => {
+    this.isLoaded = true
+  }
+
+  public cleanup = (cb: any) => {
+    this.isLoaded = false
+    cb()
+  }
+
+  // Shared
+  public status = (req, cb) => {
     cb(null, {
-      loaded: priv.loaded,
-      now: priv.loadingLastBlock.height,
-      blocksCount: priv.total,
+      loaded: this.isLoaded,
+      now: this.loadingLastBlock.height,
+      blocksCount: this.total,
     })
   }
   
-  sync() {
-    return {
-      syncing: self.syncing(),
-      blocks: priv.blocksToSync,
-      height: modules.blocks.getLastBlock().height,
-    }
+  public sync = (req, cb) => {
+    cb(null, {
+      syncing: this.syncing(),
+      blocks: this.blocksToSync,
+      height: this.modules.blocks.getLastBlock().height,
+    })
   }
 }

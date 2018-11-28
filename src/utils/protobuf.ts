@@ -1,6 +1,6 @@
 import fs = require('fs');
 import protocolBuffers = require('protocol-buffers');
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 class Protobuf {
   constructor(schema) {

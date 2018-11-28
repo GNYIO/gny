@@ -8,6 +8,22 @@ export default class System {
     this.library = scope;
   }
 
+  getOS() {
+    return os.platform() + os.release()
+  }
+
+  getVersion() {
+    return global.Config.version;
+  }
+
+  getPort() {
+    return global.Config.port
+  }
+
+  getMagic() {
+    return global.Config.magic
+  }
+
   getSystemInfo() {
     const lastBlock = this.library.blocks.getLastBlock();
 

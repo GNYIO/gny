@@ -1,37 +1,31 @@
-import constants = require('./constants');
+import * as constants from './constants';
 import slots = require('./slots');
 
-function BlockStatus() {
-  // const milestones = [
-  //   350000000,
-  //   300000000,
-  //   200000000,
-  //   100000000,
-  //   50000000,
-  // ]
-
-  const milestones = [
+export default class BlockStatus {
+  private readonly milestones = [
     198190000,
     71350000,
     23780000,
     1,
-  ]
+  ];
 
-  const firstStage = 3 * 365 * 24 * 60 * 60
-  const secondStage = 5 * 365 * 24 * 60 * 60
-  const thirdStage = 5 * 365 * 24 * 60 * 60
-  const interval = slots.interval
+  private readonly firstStage = 3 * 365 * 24 * 60 * 60;
+  private readonly secondStage = 5 * 365 * 24 * 60 * 60;
+  private readonly thirdStage = 5 * 365 * 24 * 60 * 60;
+  private readonly interval = slots.interval;
 
   // const distance = 3000000 // Distance between each milestone
-  let rewardOffset = 1 // Start rewards at block (n)
+  private rewardOffset = 1; // Start rewards at block (n)
 
-  if (global.Config.netVersion === 'mainnet') {
-    // rewardOffset = 464500;
-    // 60/15 * 60 * 24 = 5760
-    rewardOffset = 30 * 24 * 60 * 60 / Number.parseInt(interval, 10)
+  constructur () {
+    if (global.Config.netVersion === 'mainnet') {
+      // rewardOffset = 464500;
+      // 60/15 * 60 * 24 = 5760
+      this.rewardOffset = 30 * 24 * 60 * 60 / Number.parseInt(this.interval, 10)
+    }
   }
 
-  function parseHeight(height) {
+  private parseHeight(height: any) {
     const h = Number.parseInt(height, 10)
 
     if (Number.isNaN(h)) {
@@ -41,70 +35,15 @@ function BlockStatus() {
     }
   }
 
-  // this.calcMilestone = (height) => {
-  //   const location = Math.floor(parseHeight(height - rewardOffset) / distance)
-  //   const lastMile = milestones[milestones.length - 1]
 
-  //   if (location > (milestones.length - 1)) {
-  //     return milestones.lastIndexOf(lastMile)
-  //   }
-  //   return location
-  // }
-
-  //   this.calcSupply = (h) => {
-  //     let height = parseHeight(h)
-  //     height -= height % 101
-  //     const milestone = this.calcMilestone(height)
-  //     let supply = constants.totalAmount
-  //     const rewards = []
-
-  //     if (height <= 0) {
-  //       return supply
-  //     }
-  //     let amount = 0
-  //     let multiplier = 0
-  //     height = (height - rewardOffset) + 1
-  //     for (let i = 0; i < milestones.length; i++) {
-  //       if (milestone >= i) {
-  //         multiplier = milestones[i];
-
-  //         if (height <= 0) {
-  //           break // Rewards not started yet
-  //         } else if (height < distance) {
-  //           amount = height % distance; // Measure distance thus far
-  //         } else {
-  //           amount = distance; // Assign completed milestone
-  //         }
-  //         rewards.push([amount, multiplier])
-  //         height -= distance // Deduct from total height
-  //       } else {
-  //         break // Milestone out of bounds
-  //       }
-  //     }
-  //     if (height > 0) {
-  //       rewards.push([height, milestones[milestones.length - 1]])
-  //     }
-
-  //     for (i = 0; i < rewards.length; i++) {
-  //       const reward = rewards[i];
-  //       supply += reward[0] * reward[1]
-  //     }
-
-  //     if (rewardOffset <= 1) {
-  //       supply -= milestones[0]
-  //     }
-  //     return supply
-  //   }
-  // }
-
-  this.calcMilestone = (height) => {
+  public calcMilestone = (height: any) => {
     let location
-    const ht = parseHeight(height - rewardOffset)
-    if (ht < firstStage) {
+    const ht = this.parseHeight(height - this.rewardOffset)
+    if (ht < this.firstStage) {
       location = 0
-    } else if (ht < (firstStage + secondStage)) {
+    } else if (ht < (this.firstStage + this.secondStage)) {
       location = 1
-    } else if (ht < (firstStage + secondStage + thirdStage)) {
+    } else if (ht < (this.firstStage + this.secondStage + this.thirdStage)) {
       location = 2
     } else {
       location = 3
@@ -112,17 +51,17 @@ function BlockStatus() {
     return location
   }
 
-  this.calcReward = (height) => {
-    const h = parseHeight(height)
+  public calcReward = (height: any) => {
+    const h = this.parseHeight(height)
 
-    if (h < rewardOffset || h <= 0) {
+    if (h < this.rewardOffset || h <= 0) {
       return 0
     }
-    return milestones[this.calcMilestone(height)]
+    return this.milestones[this.calcMilestone(height)]
   }
 
-  this.calcSupply = (h) => {
-    const height = parseHeight(h) - rewardOffset + 1
+  public calcSupply = (h: any) => {
+    const height = this.parseHeight(h) - this.rewardOffset + 1
     let supply = constants.totalAmount
     const rewards = []
 
@@ -132,28 +71,28 @@ function BlockStatus() {
 
     let amount = 0
     let multiplier = 0
-    if (height < firstStage) {
+    if (height < this.firstStage) {
       amount = height
-      multiplier = milestones[0]
+      multiplier = this.milestones[0]
       rewards.push([amount, multiplier])
     }
-    if (height > firstStage && height < (firstStage + secondStage)) {
-      amount = height - firstStage
-      multiplier = milestones[1]
+    if (height > this.firstStage && height < (this.firstStage + this.secondStage)) {
+      amount = height - this.firstStage
+      multiplier = this.milestones[1]
       rewards.push([amount, multiplier])
     }
-    if (height > (firstStage + secondStage) && height < (firstStage + secondStage + thirdStage)) {
-      amount = height - firstStage - secondStage
-      multiplier = milestones[2]
+    if (height > (this.firstStage + this.secondStage) && height < (this.firstStage + this.secondStage + this.thirdStage)) {
+      amount = height - this.firstStage - this.secondStage
+      multiplier = this.milestones[2]
       rewards.push([amount, multiplier])
     }
-    if (height > (firstStage + secondStage + thirdStage)) {
-      amount = height - firstStage - secondStage - thirdStage
-      multiplier = milestones[3]
+    if (height > (this.firstStage + this.secondStage + this.thirdStage)) {
+      amount = height - this.firstStage - this.secondStage - this.thirdStage
+      multiplier = this.milestones[3]
       rewards.push([amount, multiplier])
     }
 
-    for (i = 0; i < rewards.length; i++) {
+    for (let i = 0; i < rewards.length; i++) {
       const reward = rewards[i]
       supply += reward[0] * reward[1]
     }
@@ -161,5 +100,3 @@ function BlockStatus() {
     return supply
   }
 }
-
-export = BlockStatus

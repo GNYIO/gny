@@ -1,7 +1,7 @@
 const DEFAULT_LIMIT = 10000
 
 class LimitCache {
-  constructor(opt) {
+  constructor(opt?: any) {
     const options = opt || {}
     this.limit = options.limit || DEFAULT_LIMIT
     this.index = []

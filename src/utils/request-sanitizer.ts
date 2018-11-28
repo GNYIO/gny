@@ -1,5 +1,5 @@
 import Validator = require('./validator/validator');
-import _ = require('lodash');
+import * as _ from 'lodash';
 import { inherits } from 'util';
 
 function RequestSanitizer(options) {

@@ -1,21 +1,21 @@
 module.exports = (router) => {
   router.get('/:address', async (req) => {
-    const condition = {}
+    const condition = {};
     if (req.params.address.length <= 20) {
-      condition.name = req.params.address
+      condition.name = req.params.address;
     } else {
-      condition.address = req.params.address
+      condition.address = req.params.address;
     }
 
-    const account = await app.sdb.findOne('Account', { condition })
-    let unconfirmedAccount = null
+    const account = await app.sdb.findOne('Account', { condition });
+    let unconfirmedAccount = null;
     if (account) {
-      unconfirmedAccount = await app.sdb.load('Account', account.address)
+      unconfirmedAccount = await app.sdb.load('Account', account.address);
     } else {
-      unconfirmedAccount = null
+      unconfirmedAccount = null;
     }
 
-    const lastBlock = modules.blocks.getLastBlock()
+    const lastBlock = modules.blocks.getLastBlock();
     const ret = {
       account,
       unconfirmedAccount,
@@ -24,7 +24,7 @@ module.exports = (router) => {
         timestamp: lastBlock.timestamp,
       },
       version: modules.peer.getVersion(),
-    }
-    return ret
-  })
-}
+    };
+    return ret;
+  });
+};

@@ -11,8 +11,8 @@
     "allowJs": true, /* Allow javascript files to be compiled. */
     "checkJs": true, /* Report errors in .js files. */
     // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
-    "declaration": true, /* Generates corresponding '.d.ts' file. */
-    "declarationDir": "./types",
+    // "declaration": false, /* Generates corresponding '.d.ts' file. */
+    // "declarationDir": "./types",
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     "sourceMap": false, /* Generates corresponding '.map' file. */
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
@@ -63,13 +63,12 @@
     "dist",
     "test/**/*.spec.ts"
   ],
-  "inclue": [
-    "src/**/*.ts",
-    "src/*.ts",
-    "app.js",
-    "config.json",
-    "genesisBlock.json",
-    "index.js",
+  "include": [
+    "src/**/*[.ts|.js]",
+    "src/*[.ts|.js]",
+    "app.ts",
+    "app-alt.ts",
+    "index.ts",
     "proto",
     "data"
   ]

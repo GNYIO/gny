@@ -1,8 +1,7 @@
 import * as crypto from 'crypto';
-import * as util from 'util';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as ed from '../utils/ed';
-import * as Router from '../utils/router';
+import Router from '../utils/router';
 import * as addressHelper from '../utils/address';
 
 export default class Account {
@@ -307,7 +306,7 @@ export default class Account {
     const router = new Router();
 
     router.use((req, res, next) => {
-      if (modules) return next();
+      if (this.modules) return next();
       return res.status(500).send({
         success: false,
         error: 'Blockchain is syncing'
@@ -342,7 +341,7 @@ export default class Account {
     })
 
     this.library.network.app.use('/api/accounts', router);
-    this.library.network.app.use((err, req, res, next) => {
+    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
       return res.status(500).send({
