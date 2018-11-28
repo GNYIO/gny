@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
-import * as util from 'util';
 import * as Mnemonic from 'bitcore-mnemonic';
+
 import * as ed from '../utils/ed';
-import * as Router from '../utils/router';
-import * as addressHelper from '../utils/address';
+import Router from '../utils/router';
+import * as addressUtil from '../utils/address';
 
 export default class Account {
   modules: any;
@@ -215,7 +215,7 @@ export default class Account {
         try {
           let addr;
           if (query.name) {
-            const account = await app.sdb.load('Account', { name: query.name });
+            const account = await this.library.sdb.load('Account', { name: query.name });
             if (!account) {
               return 'Account not found';
             }
@@ -223,7 +223,7 @@ export default class Account {
           } else {
             addr = query.address;
           }
-          const votes = await app.sdb.findAll('Vote', { condition: { address: addr } });
+          const votes = await this.library.sdb.findAll('Vote', { condition: { address: addr } });
           if (!votes || !votes.length) {
             return { delegates: [] };
           }
@@ -265,7 +265,7 @@ export default class Account {
 
       return (async () => {
         try {
-          const account = await app.sdb.findOne('Account', { condition: { address: query.address } });
+          const account = await this.library.sdb.findOne('Account', { condition: { address: query.address } });
           let accountData;
           if (!account) {
             accountData = {
@@ -276,7 +276,7 @@ export default class Account {
               lockHeight: 0,
             };
           } else {
-            const unconfirmedAccount = await app.sdb.load('Account', { address: account.address });
+            const unconfirmedAccount = await this.library.sdb.load('Account', { address: account.address });
             accountData = {
               address: account.address,
               unconfirmedBalance: unconfirmedAccount.aec,
@@ -304,7 +304,10 @@ export default class Account {
   }
 
   private attachApi() {
-    const router = new Router();
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
+
 
     router.use((req, res, next) => {
       if (modules) return next();
@@ -314,20 +317,20 @@ export default class Account {
       });
     });
 
-    router.map(this.shared, {
-      'post /open': 'open',
-      'post /open2': 'open2',
-      'get /getBalance': 'getBalance',
-      'get /getPublicKey': 'getPublicKey',
-      'post /generatePublicKey': 'generatePublicKey',
-      'get /delegates': 'myVotedDelegates',
-      'get /': 'getAccount',
-      'get /new': 'newAccount',
-    });
+    // router.map(this.shared, {
+    //   'post /open': 'open',
+    //   'post /open2': 'open2',
+    //   'get /getBalance': 'getBalance',
+    //   'get /getPublicKey': 'getPublicKey',
+    //   'post /generatePublicKey': 'generatePublicKey',
+    //   'get /delegates': 'myVotedDelegates',
+    //   'get /': 'getAccount',
+    //   'get /new': 'newAccount',
+    // });
 
     router.get('/count', (req, res) => (async () => {
       try {
-        const count = await app.sdb.count('Account')
+        const count = await this.library.sdb.count('Account')
         return res.json({ success: true, count })
       } catch (e) {
         return res.status(500).send({ success: false, error: 'Server error' })
@@ -341,8 +344,8 @@ export default class Account {
       })
     })
 
-    this.library.network.app.use('/api/accounts', router);
-    this.library.network.app.use((err, req, res, next) => {
+    this.library.network.this.library.use('/api/accounts', router);
+    this.library.network.this.library.use((err, req, res, next) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
       return res.status(500).send({

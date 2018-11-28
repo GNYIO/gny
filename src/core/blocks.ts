@@ -16,7 +16,7 @@ export class Block {
   library: any;
   genesisBlock: any;
   private lastBlock = {};
-  private blockStatus = new BlockStatus();
+  private blockStatus = BlockStatus;
   private isLoaded: boolean = false;
   private isActive: boolean = false;
   private blockCache = {};

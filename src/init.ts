@@ -21,8 +21,8 @@ import Transaction = require('./base/transaction');
 import Block = require('./base/block');
 import Consensus = require('./base/consensus');
 import protobuf = require('./utils/protobuf');
-import { Round } from './core-alt/round';
-import { Server } from './core-alt/server';
+import { Round } from './core/round';
+import { Server } from './core/server';
 
 // no chain module
 const moduleNames = [
@@ -218,7 +218,8 @@ async function init_alt(options: any) {
     let obj;
     scope.logger.debug('Loading Module...', name);
     // import * as Klass from `./core-alt/${name}`;
-    const Klass = require(`./core-alt/${name}`);
+    const Klass = require(`./core/${name}`);
+    console.log(`${name}  ${Klass}`)
     obj = new Klass.default(cb, scope);
     modules.push(obj);
     scope.modules[name] = obj;

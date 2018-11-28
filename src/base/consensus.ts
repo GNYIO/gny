@@ -5,7 +5,7 @@ import * as assert from 'assert';
 import * as slots from '../utils/slots';
 import * as ip from 'ip';
 
-export class Consensus {
+class Consensus {
   public pendingBlock: any = null;
   public pendingVotes: any = null;
   public votesKeySet = new Set();
@@ -181,3 +181,5 @@ export class Consensus {
     }
   }
 }
+
+export = Consensus;
