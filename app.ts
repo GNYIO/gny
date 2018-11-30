@@ -7,7 +7,6 @@ import tracer = require('tracer');
 import Application from './index';
 import packageJson from './package.json';
 
-
 const version = packageJson.version;
 
 function main() {
@@ -127,7 +126,14 @@ function main() {
   };
 
   const app = new Application(options);
-  app.run();
+  (async () => {
+    try {
+      await app.run();
+    } catch (e) {
+      console.log(e)
+    }
+
+  })();
 }
 
 main();

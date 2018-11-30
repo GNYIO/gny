@@ -5,8 +5,8 @@ import BlockStatus from '../utils/block-status';
 import * as constants from '../utils/constants'
 import * as addressHelper from '../utils/address';
 
-export class Block {
-  private blockStatus = new BlockStatus();
+class Block {
+  private blockStatus = BlockStatus;
   public scope: any;
 
   constructor(scope: any) {
@@ -291,4 +291,5 @@ export class Block {
   }
 }
 
+export = Block;
 
