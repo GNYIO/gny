@@ -6,7 +6,6 @@ import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import slots = require('./utils/slots');
-import amountHelper = require('./utils/amount');
 import Router = require('./utils/router');
 import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
@@ -131,7 +130,19 @@ export default async function runtime(options) {
     logger: options.logger,
   };
   app.validators = {
-    amount: value => amountHelper.validate(value),
+    amount: (amount) => {
+      if (typeof amount !== 'string') return 'Invalid amount type'
+      if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer'
+  
+      let bnAmount
+      try {
+        bnAmount = app.util.bignumber(amount)
+      } catch (e) {
+        return 'Failed to convert'
+      }
+      if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range'
+      return null
+    },
     name: (value) => {
       const regname = /^[a-z0-9_]{2,20}$/
       if (!regname.test(value)) return 'Invalid name'

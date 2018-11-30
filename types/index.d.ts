@@ -1,9 +1,6 @@
 declare class Application {
     options: any;
     constructor(options: any);
-    run(): void;
+    run(): Promise<void>;
 }
-declare const _default: {
-    Application: typeof Application;
-};
-export = _default;
+export = Application;

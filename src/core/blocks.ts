@@ -796,28 +796,7 @@ public isHealthy = () => {
   return slots.getNextSlot() - lastSlot < 3 && !this.modules.loader.syncing()
 }
 
-public onBind = (scope: any) => {
-  this.modules = scope;
 
-  this.loaded = true
-  return (async () => {
-    try {
-      const count = app.sdb.blocksCount
-      app.logger.info('Blocks found:', count)
-      if (!count) {
-        this.setLastBlock({ height: -1 })
-        await this.processBlock(this.genesisBlock.block, {})
-      } else {
-        const block = await app.sdb.getBlockByHeight(count - 1)
-        this.setLastBlock(block)
-      }
-      this.library.bus.message('blockchainReady')
-    } catch (e) {
-      app.logger.error('Failed to prepare local blockchain', e)
-      process.exit(0)
-    }
-  })()
-}
 
   cleanup = (cb) => {
     this.loaded = false
@@ -1022,9 +1001,6 @@ public onBind = (scope: any) => {
     }
   }
   // end Shared
-
-
-
 
   // Events
   public onBind = (scope: any) => {

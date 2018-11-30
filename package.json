@@ -26,19 +26,19 @@
     "@types/bytebuffer": "=5.0.37",
     "@types/express": "=4.16.0",
     "@types/ip": "=0.0.32",
-    "@types/jest": "^23.3.2",
     "@types/lodash": "^4.14.118",
     "@types/lru-cache": "=4.1.1",
     "@types/nedb": "=1.8.6",
-    "@types/node": "^10.9.4",
     "@types/request": "=2.47.1",
+    "@types/jest": "^23.3.2",
+    "@types/node": "^10.9.4",
     "asch-smartdb": "https://github.com/AschPlatform/asch-smartdb-dist/tarball/v1.1.1",
     "async": "=1.5.2",
     "babel-eslint": "^9.0.0",
     "bignumber": "https://github.com/AschPlatform/bignumber/tarball/v1.3.0-2+asch.1",
-    "bitcore-mnemonic": "=1.2.5",
+    "bitcore-mnemonic": "^1.5.0",
     "bittorrent-dht": "https://github.com/AschPlatform/bittorrent-dht/tarball/master",
-    "body-parser": "=1.15.2",
+    "body-parser": "^1.18.3",
     "bytebuffer": "=5.0.1",
     "change-case": "3.0.0",
     "colors": "=1.1.2",
@@ -76,6 +76,12 @@
     "z-schema": "https://github.com/AschPlatform/z-schema/tarball/v3.15.2+asch.1"
   },
   "dependencies": {
-    "jest-cli": "^23.6.0"
+    "@types/bip39": "^2.4.0",
+    "@types/bs58": "^3.0.30",
+    "bignumber.js": "^8.0.1",
+    "bip39": "^2.5.0",
+    "bs58": "^3.0.0",
+    "jest-cli": "^23.6.0",
+    "protobufjs": "^6.8.8"
   }
 }
