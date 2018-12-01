@@ -2,7 +2,7 @@ function defined(obj) {
   return typeof obj !== 'undefined'
 }
 
-module.exports = (router) => {
+export default (router) => {
   router.get('/', async (req) => {
     const offset = req.query.offset ? Number(req.query.offset) : 0
     const limit = req.query.limit ? Number(req.query.limit) : 20

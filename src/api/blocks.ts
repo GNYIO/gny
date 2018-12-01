@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-module.exports = (router) => {
+export default (router) => {
   router.get('/', async (req) => {
     const query = req.query
     const offset = query.offset ? Number(query.offset) : 0
