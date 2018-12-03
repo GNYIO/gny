@@ -1,4 +1,4 @@
-module.exports = (router) => {
+export default (router) => {
   router.get('/:address', async (req) => {
     const condition = {};
     if (req.params.address.length <= 20) {

@@ -13,83 +13,17 @@ import AccountRole = require('./utils/account-role');
 import transactionMode = require('./utils/transaction-mode');
 import loadModels from './loadModels'
 import loadContracts from './loadContracts'
+import loadInterfaces from './loadInterfaces'
 
 import address from './utils/address.js';
 import bignumber from './utils/bignumber';
 
 const PIFY = util.promisify
 
-class RouteWrapper {
-  constructor() {
-    this.hands = []
-    this.routePath = null
-  }
-
-  get(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'get', handler })
-  }
-
-  put(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'put', handler })
-  }
-
-  post(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'post', handler })
-  }
-
-  set path(val) {
-    this.routePath = val
-  }
-
-  get path() {
-    return this.routePath
-  }
-
-  get handlers() {
-    return this.hands
-  }
-}
 
 
 
-async function loadInterfaces(dir, routes) {
-  let interfaceFiles
-  try {
-    interfaceFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`interfaces load error: ${e}`)
-    return
-  }
-  for (const f of interfaceFiles) {
-    app.logger.info('loading interface', f)
-    const basename = path.basename(f, '.js')
-    const rw = new RouteWrapper()
-    require(path.resolve(dir, f))(rw)
-    const router = new Router()
-    for (const h of rw.handlers) {
-      router[h.method](h.path, (req, res) => {
-        (async () => {
-          try {
-            const result = await h.handler(req)
-            let response = { success: true }
-            if (util.isObject(result) && !Array.isArray(result)) {
-              response = _.assign(response, result)
-            } else if (!util.isNullOrUndefined(result)) {
-              response.data = result
-            }
-            res.send(response)
-          } catch (e) {
-            res.status(500).send({ success: false, error: e.message })
-          }
-        })()
-      })
-    }
-    if (!rw.path) {
-      rw.path = `/api/v2/${basename}`
-    }
-    routes.use(rw.path, router)
-  }
-}
+
 
 function adaptSmartDBLogger(config) {
   const { LogLevel } = AschCore
@@ -267,7 +201,7 @@ export default async function runtime(options) {
 
   await loadModels()
   await loadContracts()
-  // await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
+  await loadInterfaces(options.library.network.app)
 
   app.contractTypeMapping[0] = 'basic.transfer'
   app.contractTypeMapping[1] = 'basic.setUserName'
