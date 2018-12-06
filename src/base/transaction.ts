@@ -3,8 +3,8 @@ import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as slots from '../utils/slots';
 import * as constants from '../utils/constants';
-import * as feeCalculators from '../utils/calculate-fee';
-import * as transactionMode from '../utils/transaction-mode';
+import feeCalculators from '../utils/calculate-fee';
+import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 
 export class Transaction {
