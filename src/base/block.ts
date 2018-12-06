@@ -5,7 +5,7 @@ import BlockStatus from '../utils/block-status';
 import * as constants from '../utils/constants'
 import * as addressHelper from '../utils/address';
 
-class Block {
+export class Block {
   private blockStatus = BlockStatus;
   public scope: any;
 
@@ -290,6 +290,3 @@ class Block {
     return block
   }
 }
-
-export = Block;
-
