@@ -1,4 +1,4 @@
-export function parseNums(obj, options) {
+export default function parseNums(obj, options) {
   let result = {},
       key,
       value;
