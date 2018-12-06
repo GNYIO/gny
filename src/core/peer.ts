@@ -5,7 +5,6 @@ import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
 import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
 const promisify = require('util').promisify;
 import Database = require('nedb');
 
@@ -292,10 +291,6 @@ export default class Peer {
       isCallbacked = true
       cb(err, result, randomNode)
     })
-  }
-
-  sandboxApi = (call: any, args: any, cb: any) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
   }
 
   // Events

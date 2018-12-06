@@ -7,7 +7,6 @@ import * as constants from '../utils/constants.js'
 import BlockStatus from '../utils/block-status';
 import Router = require('../utils/router');
 import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
 
@@ -603,15 +602,6 @@ export default class Blocks {
     this.library.bus.message('newPropose', propose, true)
     return null
   }
-
-  // obsolete
-  public sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
-  }
-
-
-
-
 
   // Events
   public onReceiveBlock = (block: any, votes: any) => {

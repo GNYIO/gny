@@ -2,8 +2,6 @@ import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router = require('../utils/router');
 import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
-
 
 export default class Transport {
   private library: any;
@@ -209,10 +207,6 @@ export default class Transport {
 
   public broadcast = (topic: any, message: any, recursive?: any) => {
     this.modules.peer.publish(topic, message, recursive)
-  }
-
-  public sandboxApi = (call: any, args: any, cb: any) => {
-    sandboxHelper.callMethod(this, call, args, cb)
   }
 
   // Events

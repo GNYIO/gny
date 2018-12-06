@@ -2,7 +2,6 @@ import crypto = require('crypto');
 import { isArray } from 'util';
 import ed = require('../utils/ed.js');
 import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
 import LimitCache = require('../utils/limit-cache');
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
@@ -475,10 +474,6 @@ class Transactions {
 
   addTransactionUnsigned = (transaction, cb) => {
     this.shared.addTransactionUnsigned({ body: transaction }, cb)
-  }
-
-  sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
   }
 
   list = (query, cb) => this.list(query, cb)

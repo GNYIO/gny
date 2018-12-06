@@ -6,7 +6,6 @@ jsonSql().setDialect('sqlite')
 
 import ed = require('../utils/ed');
 import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
 import addressHelper = require('../utils/address');
 
 
@@ -53,10 +52,6 @@ export default class UIA {
   }
 
   // Public methods
-  sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this, call, args, cb)
-  }
-
   trimPrecision(amount: any, precision: any) {
     const s = amount.toString()
     return String(Number.parseInt(s.substr(0, s.length - precision), 10))
