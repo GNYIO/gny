@@ -26,7 +26,6 @@ export default class Delegates {
   private attachApi = () => {
     const router1 = new Router();
     const router = router1.router;
-    console.log(router);
   
     router.use((req, res, next) => {
       if (this.modules && this.loaded) return next()

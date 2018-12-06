@@ -14,10 +14,10 @@ export default class Router {
       const params = param.split(' ')
       const method = params[0];
       const route = params[1];
-      if (route.length !== 2 || ['post', 'get', 'put'].indexOf(method) === -1) {
+      if (params.length !== 2 || ['post', 'get', 'put'].indexOf(method) === -1) {
         throw Error('Wrong router map config');
       }
-      this.router[method](route, (req: Request, res: Response) => {
+      this[method](route, (req: Request, res: Response) => {
         const reqParams = {
           body: method === 'get' ? req.query : req.body,
           params: req.params,
