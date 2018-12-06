@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import ByteBuffer from 'bytebuffer';
+import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import BlockStatus from '../utils/block-status';
 import * as constants from '../utils/constants'
