@@ -75,8 +75,8 @@ class Protobuf {
   }
 }
 
-export = {
-  protobuf: (schemaFile) => {
+export default {
+  getSchema: (schemaFile) => {
     let data = fs.readFileSync(schemaFile);
     const schema = protocolBuffers(data);
     return new Protobuf(schema);
