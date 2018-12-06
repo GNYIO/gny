@@ -1,8 +1,8 @@
 import crypto = require('crypto');
 import { isArray } from 'util';
 import ed = require('../utils/ed.js');
-import Router = require('../utils/router');
-import LimitCache = require('../utils/limit-cache');
+import Router from '../utils/router';
+import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
 
@@ -77,7 +77,8 @@ class Transactions {
 
   // Private methods
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router()
+    const router = router1.router
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -108,7 +109,9 @@ class Transactions {
   }
 
   private attachStorageApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
 
     router.use((req, res, next) => {
       if (this.modules) return next()

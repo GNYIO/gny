@@ -24,7 +24,9 @@ export default class Loader {
   }
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
   
     router.map(this.shared, {
       'get /status': 'status',

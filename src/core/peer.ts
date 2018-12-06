@@ -4,7 +4,7 @@ import crypto = require('crypto');
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
-import Router = require('../utils/router');
+import Router from '../utils/router';
 const promisify = require('util').promisify;
 import Database = require('nedb');
 
@@ -157,7 +157,9 @@ export default class Peer {
   // --------
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
 
     router.use((req, res, next) => {
       if (this.modules) return next()

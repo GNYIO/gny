@@ -5,7 +5,7 @@ import PIFY = require('pify')
 import isArray = require('util').isArray;
 import * as constants from '../utils/constants.js'
 import BlockStatus from '../utils/block-status';
-import Router = require('../utils/router');
+import Router from '../utils/router';
 import slots = require('../utils/slots');
 import addressHelper = require('../utils/address');
 import transactionMode = require('../utils/transaction-mode');
@@ -34,7 +34,9 @@ export default class Blocks {
 
   // priv methods
   private attachAPI() {
-    const router = new Router();
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
 
     router.use((req, res, next) => {
       if (this.modules) return next()

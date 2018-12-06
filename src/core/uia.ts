@@ -5,7 +5,7 @@ import jsonSql = require('json-sql');
 jsonSql().setDialect('sqlite')
 
 import ed = require('../utils/ed');
-import Router = require('../utils/router');
+import Router from '../utils/router';
 import addressHelper = require('../utils/address');
 
 
@@ -21,7 +21,9 @@ export default class UIA {
 
   // Private methods
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
+    console.log(router);
 
     router.use((req, res, next) => {
       if (this.modules) return next()
