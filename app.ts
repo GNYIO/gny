@@ -5,7 +5,7 @@ import ip = require('ip');
 import daemon = require('daemon');
 import tracer = require('tracer');
 import Application from './index';
-import packageJson from './package.json';
+import * as packageJson from './package.json';
 
 const version = packageJson.version;
 
