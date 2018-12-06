@@ -8,7 +8,7 @@ import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
 import slots = require('../utils/slots');
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
+import transactionMode from '../utils/transaction-mode';
 
 export default class Blocks {
   private genesisBlock: any;

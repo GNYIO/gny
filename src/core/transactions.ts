@@ -4,7 +4,7 @@ import * as ed from '../utils/ed.js';
 import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
+import transactionMode from '../utils/transaction-mode';
 
 const priv = {}
 

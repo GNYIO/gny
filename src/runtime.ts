@@ -9,7 +9,7 @@ import slots = require('./utils/slots');
 import Router = require('./utils/router');
 import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
-import transactionMode = require('./utils/transaction-mode');
+import transactionMode from './utils/transaction-mode';
 import loadModels from './loadModels'
 import loadContracts from './loadContracts'
 import loadInterfaces from './loadInterfaces'
