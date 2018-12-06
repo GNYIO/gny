@@ -130,7 +130,7 @@ export class Block {
 
   sign(block, keypair) {
     const hash = this.calculateHash(block);
-    return ed.Sign(hash, keypair).toString('hex');
+    return ed.sign(hash, keypair).toString('hex');
   }
 
   private calculateHash(block) {
@@ -183,7 +183,7 @@ export class Block {
       const blockSignatureBuffer = Buffer.from(block.signature, 'hex')
       const generatorPublicKeyBuffer = Buffer.from(block.delegate, 'hex')
   
-      return ed.Verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
+      return ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
     } catch (e) {
       throw Error(e.toString())
     }

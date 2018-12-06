@@ -4,7 +4,7 @@ import jsonSql = require('json-sql');
 
 jsonSql().setDialect('sqlite')
 
-import ed = require('../utils/ed');
+import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import addressHelper = require('../utils/address');
 
@@ -385,10 +385,10 @@ export default class UIA {
       (async () => {
         try {
           const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest()
-          const keypair = ed.MakeKeypair(hash)
+          const keypair = ed.generateKeyPair(hash)
           let secondKeypair = null
           if (query.secondSecret) {
-            secondKeypair = ed.MakeKeypair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
+            secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
           }
           const trs = this.library.base.transaction.create({
             secret: query.secret,

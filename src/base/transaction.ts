@@ -35,13 +35,13 @@ export class Transaction {
 
   sign(keypair, transaction) {
     const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
-    return ed.Sign(hash, keypair).toString('hex')
+    return ed.sign(hash, keypair).toString('hex')
   }
 
   multisign(keypair, transaction) {
     const bytes = this.getBytes(transaction, true, true)
     const hash = crypto.createHash('sha256').update(bytes).digest()
-    return ed.Sign(hash, keypair).toString('hex')
+    return ed.sign(hash, keypair).toString('hex')
   }
 
   getId(transaction) {
@@ -177,7 +177,7 @@ export class Transaction {
       const hash = crypto.createHash('sha256').update(data2).digest()
       const signatureBuffer = Buffer.from(signature, 'hex')
       const publicKeyBuffer = Buffer.from(publicKey, 'hex')
-      return ed.Verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ')
+      return ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ')
     } catch (e) {
       throw Error(e.toString())
     }
