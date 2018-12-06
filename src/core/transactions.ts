@@ -299,7 +299,7 @@ class Transactions {
       sender = app.sdb.create('Account', {
         address: senderId,
         name: null,
-        aec: 0,
+        gny: 0,
       })
     }
 
@@ -539,7 +539,7 @@ class Transactions {
           const type = Number(query.type)
           if (type !== 0 && type !== 14) return cb('invalid transaction type')
 
-          condition.currency = type === 0 ? 'AEC' : { $ne: 'AEC' }
+          condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' }
         }
         if (query.id) {
           condition.tid = query.id
