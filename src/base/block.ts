@@ -282,7 +282,7 @@ export class Block {
       reward: parseInt(raw.b_reward, 10),
       payloadHash: raw.b_payloadHash,
       payloadLength: parseInt(raw.b_payloadLength, 10),
-      generatorId: addressHelper.generateNormalAddress(raw.b_generatorPublicKey), // 方法待实现
+      generatorId: addressHelper.generateAddress(raw.b_generatorPublicKey), // 方法待实现
       blockSignature: raw.b_blockSignature,
       confirmations: raw.b_confirmations,
     }

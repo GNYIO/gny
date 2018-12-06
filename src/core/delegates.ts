@@ -456,7 +456,7 @@ export default class Delegates {
     const bookkeeper = this.getBookkeeper()
     const addresses = new Set()
     for (const i of bookkeeper) {
-      const address = addressHelper.generateNormalAddress(i)
+      const address = addressHelper.generateAddress(i)
       addresses.add(address)
     }
     return addresses

@@ -13,7 +13,7 @@ export class Transaction {
   create(data) {
     const transaction: any = {
       type: data.type,
-      senderId: addressHelper.generateNormalAddress(data.senderPublicKey),
+      senderId: addressHelper.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(),
       message: data.message,

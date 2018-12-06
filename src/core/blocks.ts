@@ -382,7 +382,7 @@ export default class Blocks {
       return
     }
   
-    let address = addressHelper.generateNormalAddress(block.delegate)
+    let address = addressHelper.generateAddress(block.delegate)
     app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
   
     let transFee = 0
@@ -407,12 +407,12 @@ export default class Blocks {
   
     const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd))
     missedDelegates.forEach((md) => {
-      address = addressHelper.generateNormalAddress(md)
+      address = addressHelper.generateAddress(md)
       app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
     })
   
     async function updateDelegate(pk, fee, reward) {
-      address = addressHelper.generateNormalAddress(pk)
+      address = addressHelper.generateAddress(pk)
       app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
       // TODO should account be all cached?
       app.sdb.increase('Account', { xas: fee + reward }, { address })

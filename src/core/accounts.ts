@@ -48,7 +48,7 @@ export default class Account {
   }
 
   generateAddressByPublicKey(publicKey) {
-    return addressHelper.generateNormalAddress(publicKey);
+    return addressHelper.generateAddress(publicKey);
   }
 
   onBind(scope: any) {
