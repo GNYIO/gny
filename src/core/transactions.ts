@@ -282,9 +282,9 @@ class Transactions {
       if (requestorId) throw new Error('RequestId should not be provided')
       // HARDCODE_HOT_FIX_BLOCK_6119128
       // if (height > 6119128 &&
-      //     app.util.address.isNormalAddress(senderId) &&
+      //     app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
-      if (app.util.address.isNormalAddress(senderId)
+      if (app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {
         throw new Error('Sender public key not provided')
       }
@@ -304,7 +304,7 @@ class Transactions {
     }
 
     if (requestorId) {
-      if (!app.util.address.isNormalAddress(requestorId)) {
+      if (!app.util.address.isAddress(requestorId)) {
         throw new Error('Invalid requestor address')
       }
 

@@ -50,8 +50,7 @@ export default {
 
     let recipientAccount
     // Validate recipient is valid address
-    if (recipient && (app.util.address.isNormalAddress(recipient)
-                    || app.util.address.isGroupAddress(recipient))) {
+    if (recipient && app.util.address.isAddress(recipient)) {
       recipientAccount = await app.sdb.load('Account', recipient)
       if (recipientAccount) {
         app.sdb.increase('Account', { aec: amount }, { address: recipientAccount.address })
@@ -100,7 +99,7 @@ export default {
   async setPassword(publicKey) {
     app.validate('publickey', publicKey)
 
-    if (!app.util.address.isNormalAddress(this.sender.address)) {
+    if (!app.util.address.isAddress(this.sender.address)) {
       return 'Invalid account type'
     }
     const senderId = this.sender.address
@@ -220,7 +219,7 @@ export default {
   //     // member.address should have valid address format
   //     app.validate('name', member.name)
   //     if (!Number.isInteger(member.weight) || member.weight <= 0) return 'Member weight should be positive integer'
-  //     if (!app.util.address.isNormalAddress(member.address)) {
+  //     if (!app.util.address.isAddress(member.address)) {
   //       return 'Invalid member address'
   //     }
   //   }
