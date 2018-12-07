@@ -445,6 +445,7 @@ export default class Delegates {
   }
 
   cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/delegates')
     this.loaded = false
     cb()
   }

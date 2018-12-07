@@ -29,8 +29,9 @@ export default class Round {
     this.library.network.io.sockets.emit('/round/change', { number: round });
   }
 
-  cleanup() {
-    console.log('round.ts cleanup')
+  cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/round')
     this.isloaded = false;
+    cb()
   }
 }

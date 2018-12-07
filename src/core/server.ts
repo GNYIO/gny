@@ -14,7 +14,9 @@ export default class Server {
     this.isLoaded = true;
   }
 
-  cleanup() {
+  cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/server')
     this.isLoaded = false;
+    cb()
   }
 }

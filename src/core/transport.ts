@@ -374,6 +374,7 @@ export default class Transport {
   }
 
   public cleanup = (cb: any) => {
+    this.library.logger.debug('Cleaning up core/transport')
     this.loaded = false
     cb()
   }

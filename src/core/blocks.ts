@@ -792,6 +792,7 @@ public isHealthy = () => {
 
 
   cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/blocks')
     this.loaded = false
     cb()
   }
