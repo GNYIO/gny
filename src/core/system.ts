@@ -40,7 +40,7 @@ export default class System {
     }
   }
 
-  onBind(scope: any) {
+  onBind = (scope: any) => {
     this.library = scope;
   }
 }
