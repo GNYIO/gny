@@ -25,9 +25,10 @@ export class Consensus {
       signatures: [],
     }
     keypairs.forEach((kp) => {
+      let privateKeyBuffer = Buffer.from(kp.privateKey, 'hex')
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
-        signature: ed.sign(hash, kp).toString('hex'),
+        signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
       })
     })
     return votes
@@ -117,7 +118,10 @@ export class Consensus {
 
     const hash = this.getProposeHash(propose)
     propose.hash = hash.toString('hex')
-    propose.signature = ed.sign(hash, keypair).toString('hex')
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex')
+
     return propose
   }
 
