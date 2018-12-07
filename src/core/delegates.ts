@@ -189,7 +189,7 @@ export default class Delegates {
     })
   }
 
-  private getBlockSlotData = (slot: any, height: any) => {
+  private getBlockSlotData = (slot: any, height: any) : { time: number, keypair: any } => {
     let activeDelegates: any = this.generateDelegateList(height);
     if (!activeDelegates) {
       return
@@ -210,59 +210,54 @@ export default class Delegates {
     }
   }
 
-  loop = (cb: any) => {
+  public loop = () => {
     if (!this.isForgingEnabled) {
       this.library.logger.trace('Loop:', 'forging disabled')
-      return setImmediate(cb)
+      return null
     }
     if (!Object.keys(this.keyPairs).length) {
       this.library.logger.trace('Loop:', 'no delegates')
-      return setImmediate(cb)
+      return null
     }
 
     if (!this.loaded || this.modules.loader.syncing()) {
       this.library.logger.trace('Loop:', 'node not ready')
-      return setImmediate(cb)
+      return null
     }
 
     const currentSlot = slots.getSlotNumber()
     const lastBlock = this.modules.blocks.getLastBlock()
 
     if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-      return setImmediate(cb)
+      return null
     }
 
     if (Date.now() % 10000 > 5000) {
       this.library.logger.trace('Loop:', 'maybe too late to collect votes')
-      return setImmediate(cb)
+      return null
     }
 
-    return this.getBlockSlotData(currentSlot, lastBlock.height + 1, (err, currentBlockData) => {
-      if (err || currentBlockData === null) {
-        this.library.logger.trace('Loop:', 'skipping slot')
-        return setImmediate(cb)
-      }
+    let currentBlockData = this.getBlockSlotData(currentSlot, lastBlock.height + 1)
+    if (!currentBlockData) {
+      this.library.logger.trace('Loop:', 'skipping slot')
+      return null
+    }
 
-      return library.sequence.add(done => (async () => {
+    // this.library.sequence.add(done => (async () => { }))
+    (async () => {
         try {
-          if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
-            && modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
-            await modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time)
-          }
-          done()
-        } catch (e) {
-          done(e)
+        if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
+          && this.modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
+          await this.modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time)
         }
-      })(), (err2) => {
-        if (err2) {
-          library.logger.error('Failed generate block within slot:', err2)
-        }
-        cb()
-      })
-    })
+      } catch (e) {
+        this.library.logger.error('Failed generate block within slot:', e)
+        return null
+      }
+    })();
   }
 
-  private loadMyDelegates = async () => {
+  private loadMyDelegates = () : void | Error => {
     let secrets = []
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
@@ -327,7 +322,7 @@ export default class Delegates {
   public generateDelegateList = (height: any) => {
     try {
       const truncDelegateList = this.getBookkeeper()
-      const seedSource = this.modules.round.calc(height).toString()
+      const seedSource = this.modules.round.calculateRound(height).toString()
   
       let currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest()
       for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
@@ -426,15 +421,18 @@ export default class Delegates {
   public onBlockchainReady = () => {
     this.loaded = true
 
-    this.loadMyDelegates(function nextLoop(err) {
-      if (err) {
-        library.logger.error('Failed to load delegates', err)
-      }
+    let error = this.loadMyDelegates()
+    if (error) {
+      this.library.logger.error('Failed to load delegates', error)
+    }
 
-      this.loop(() => {
-        setTimeout(nextLoop, 100)
-      })
-    })
+    let nextLoop = () => {
+
+      let result = this.loop()
+      setTimeout(nextLoop, 100)
+    }
+
+    setImmediate(nextLoop)
   }
 
   public compare = (l, r) => {
