@@ -25,7 +25,7 @@ export default class Round {
     this.isloaded = true;
   }
 
-  onFinishRound(round: any) {
+  onFinishRound = (round: any) => {
     this.library.network.io.sockets.emit('/round/change', { number: round });
   }
 
