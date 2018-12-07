@@ -114,8 +114,7 @@ export default {
 
     let recipientAddress
     let recipientName = ''
-    if (recipient && (app.util.address.isNormalAddress(recipient)
-                      || app.util.address.isGroupAddress(recipient))) {
+    if (recipient && app.util.address.isAddress(recipient)) {
       recipientAddress = recipient
     } else {
       recipientName = recipient

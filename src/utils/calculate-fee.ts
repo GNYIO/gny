@@ -1,4 +1,4 @@
-export = {
+export default {
   1: () => 0.1,
   2: (trs) => {
     const len = trs.args[0].length

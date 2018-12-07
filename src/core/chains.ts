@@ -5,7 +5,6 @@ import * as _ from 'lodash';
 import Sandbox = require('asch-sandbox');
 import rmdir = require('rimraf');
 import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
 
 export class Chains {
   library: any;

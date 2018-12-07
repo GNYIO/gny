@@ -9,20 +9,15 @@ import slots = require('./utils/slots');
 import Router = require('./utils/router');
 import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
-import AccountRole = require('./utils/account-role');
-import transactionMode = require('./utils/transaction-mode');
+import transactionMode from './utils/transaction-mode';
 import loadModels from './loadModels'
 import loadContracts from './loadContracts'
 import loadInterfaces from './loadInterfaces'
 
 import address from './utils/address.js';
-import bignumber from './utils/bignumber';
+import bignumber from 'bignumber'
 
 const PIFY = util.promisify
-
-
-
-
 
 
 function adaptSmartDBLogger(config) {
@@ -180,7 +175,11 @@ export default async function runtime(options) {
     return error
   }
 
-  app.AccountRole = AccountRole
+  app.AccountRole = {
+    DELEGATE: 1,
+    AGENT: 2,
+    GATEWAY_VALIDATOR: 3,
+  }
 
   const { appDir, dataDir } = options.appConfig
 

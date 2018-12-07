@@ -25,7 +25,7 @@ function verifyGenesisBlock(scope, block) {
   }
 }
 
-class Application {
+export default class Application {
   constructor(public options: any) { }
 
   async run() {
@@ -106,5 +106,3 @@ class Application {
     }
   }
 }
-
-export = Application;

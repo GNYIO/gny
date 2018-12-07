@@ -1,24 +1,15 @@
-import program from 'commander'
+import * as program from 'commander'
 import path = require('path');
 import fs = require('fs');
 import ip = require('ip');
 import daemon = require('daemon');
 import tracer = require('tracer');
 import Application from './index';
-import packageJson from './package.json';
+import * as packageJson from './package.json';
 
 const version = packageJson.version;
 
 function main() {
-
-  const baseDir = program.base || './';
-  const seedPort = 81;
-  const seeds = [
-    757137132
-  ];
-  let appConfigFile;
-  let genesisBlockFile;
-  let logger;
 
   process.stdin.resume();
 
@@ -35,6 +26,15 @@ function main() {
     .option('--base <dir>', 'Base directory')
     .option('--data <dir>', 'Data directory')
     .parse(process.argv);
+
+  const baseDir = program.base || './';
+  const seedPort = 81;
+  const seeds = [
+    757137132
+  ];
+  let appConfigFile;
+  let genesisBlockFile;
+  let logger;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);

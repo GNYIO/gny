@@ -16,11 +16,11 @@ import methodOverride = require('method-override');
 import Sequence = require('./utils/sequence');
 import slots = require('./utils/slots');
 import queryParser = require('./utils/express-query-int');
-import ZSchemaExpress = require('./utils/zscheme-express');
+import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
-import protobuf = require('./utils/protobuf');
+import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
 
 
@@ -72,14 +72,13 @@ async function init_alt(options: any) {
     console.log('Error: Proto file doesn\'t exist!');
     return;
   }
-  scope.protobuf = protobuf.protobufAlt(protoFile);
+  scope.protobuf = protobuf.getSchema(protoFile);
 
   scope.config = appConfig;
   scope.logger = options.logger;
   scope.genesisBlock = {
     block: genesisBlock,
   };
-  // scope.protobuf =
 
   scope.scheme = scheme();
   scope.network = await network(options);
@@ -171,7 +170,7 @@ async function init_alt(options: any) {
       }
     });
 
-    scope.network.server.listen(5098, scope.config.address, (err) => {
+    scope.network.server.listen(scope.config.port, scope.config.address, (err) => {
       scope.logger.log(`Server started: ${scope.config.address}:${scope.config.port}`);
       if (!err) {
         scope.logger.log(`Error: ${err}`);

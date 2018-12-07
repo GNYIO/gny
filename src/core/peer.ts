@@ -4,8 +4,7 @@ import crypto = require('crypto');
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
-import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
+import Router from '../utils/router';
 const promisify = require('util').promisify;
 import Database = require('nedb');
 
@@ -158,7 +157,8 @@ export default class Peer {
   // --------
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -292,10 +292,6 @@ export default class Peer {
       isCallbacked = true
       cb(err, result, randomNode)
     })
-  }
-
-  sandboxApi = (call: any, args: any, cb: any) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
   }
 
   // Events

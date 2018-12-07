@@ -1,4 +1,4 @@
-const parseNums = require('./parse');
+import parseNums from './parse';
 
 module.exports = function(options) {
   options = options || {

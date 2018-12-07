@@ -24,7 +24,8 @@ export default class Delegates {
   }
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
   
     router.use((req, res, next) => {
       if (this.modules && this.loaded) return next()
@@ -455,7 +456,7 @@ export default class Delegates {
     const bookkeeper = this.getBookkeeper()
     const addresses = new Set()
     for (const i of bookkeeper) {
-      const address = addressHelper.generateNormalAddress(i)
+      const address = addressHelper.generateAddress(i)
       addresses.add(address)
     }
     return addresses

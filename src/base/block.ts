@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
-import ByteBuffer from 'bytebuffer';
+import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import BlockStatus from '../utils/block-status';
 import * as constants from '../utils/constants'
 import * as addressHelper from '../utils/address';
 
-class Block {
+export class Block {
   private blockStatus = BlockStatus;
   public scope: any;
 
@@ -130,7 +130,7 @@ class Block {
 
   sign(block, keypair) {
     const hash = this.calculateHash(block);
-    return ed.Sign(hash, keypair).toString('hex');
+    return ed.sign(hash, keypair).toString('hex');
   }
 
   private calculateHash(block) {
@@ -183,7 +183,7 @@ class Block {
       const blockSignatureBuffer = Buffer.from(block.signature, 'hex')
       const generatorPublicKeyBuffer = Buffer.from(block.delegate, 'hex')
   
-      return ed.Verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
+      return ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ')
     } catch (e) {
       throw Error(e.toString())
     }
@@ -282,7 +282,7 @@ class Block {
       reward: parseInt(raw.b_reward, 10),
       payloadHash: raw.b_payloadHash,
       payloadLength: parseInt(raw.b_payloadLength, 10),
-      generatorId: addressHelper.generateNormalAddress(raw.b_generatorPublicKey), // 方法待实现
+      generatorId: addressHelper.generateAddress(raw.b_generatorPublicKey), // 方法待实现
       blockSignature: raw.b_blockSignature,
       confirmations: raw.b_confirmations,
     }
@@ -290,6 +290,3 @@ class Block {
     return block
   }
 }
-
-export = Block;
-

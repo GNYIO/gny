@@ -5,11 +5,10 @@ import PIFY = require('pify')
 import isArray = require('util').isArray;
 import * as constants from '../utils/constants.js'
 import BlockStatus from '../utils/block-status';
-import Router = require('../utils/router');
+import Router from '../utils/router';
 import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
+import transactionMode from '../utils/transaction-mode';
 
 export default class Blocks {
   private genesisBlock: any;
@@ -35,7 +34,8 @@ export default class Blocks {
 
   // priv methods
   private attachAPI() {
-    const router = new Router();
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -382,7 +382,7 @@ export default class Blocks {
       return
     }
   
-    let address = addressHelper.generateNormalAddress(block.delegate)
+    let address = addressHelper.generateAddress(block.delegate)
     app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
   
     let transFee = 0
@@ -407,12 +407,12 @@ export default class Blocks {
   
     const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd))
     missedDelegates.forEach((md) => {
-      address = addressHelper.generateNormalAddress(md)
+      address = addressHelper.generateAddress(md)
       app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
     })
   
     async function updateDelegate(pk, fee, reward) {
-      address = addressHelper.generateNormalAddress(pk)
+      address = addressHelper.generateAddress(pk)
       app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
       // TODO should account be all cached?
       app.sdb.increase('Account', { xas: fee + reward }, { address })
@@ -603,15 +603,6 @@ export default class Blocks {
     this.library.bus.message('newPropose', propose, true)
     return null
   }
-
-  // obsolete
-  public sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
-  }
-
-
-
-
 
   // Events
   public onReceiveBlock = (block: any, votes: any) => {

@@ -1,19 +1,19 @@
 import * as crypto from 'crypto';
-import ByteBuffer from 'bytebuffer';
+import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as slots from '../utils/slots';
 import * as constants from '../utils/constants';
-import * as feeCalculators from '../utils/calculate-fee';
-import * as transactionMode from '../utils/transaction-mode';
+import feeCalculators from '../utils/calculate-fee';
+import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 
-class Transaction {
+export class Transaction {
   constructor(public scope: any) {}
 
   create(data) {
     const transaction: any = {
       type: data.type,
-      senderId: addressHelper.generateNormalAddress(data.senderPublicKey),
+      senderId: addressHelper.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(),
       message: data.message,
@@ -35,13 +35,13 @@ class Transaction {
 
   sign(keypair, transaction) {
     const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
-    return ed.Sign(hash, keypair).toString('hex')
+    return ed.sign(hash, keypair).toString('hex')
   }
 
   multisign(keypair, transaction) {
     const bytes = this.getBytes(transaction, true, true)
     const hash = crypto.createHash('sha256').update(bytes).digest()
-    return ed.Sign(hash, keypair).toString('hex')
+    return ed.sign(hash, keypair).toString('hex')
   }
 
   getId(transaction) {
@@ -177,7 +177,7 @@ class Transaction {
       const hash = crypto.createHash('sha256').update(data2).digest()
       const signatureBuffer = Buffer.from(signature, 'hex')
       const publicKeyBuffer = Buffer.from(publicKey, 'hex')
-      return ed.Verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ')
+      return ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ')
     } catch (e) {
       throw Error(e.toString())
     }
@@ -203,17 +203,17 @@ class Transaction {
     if (block.height !== 0) {
       if (transactionMode.isRequestMode(trs.mode) && !context.activating) {
         const requestorFee = 20000000
-        if (requestor.aec < requestorFee) throw new Error('Insufficient requestor balance')
-        requestor.aec -= requestorFee
+        if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance')
+        requestor.gny -= requestorFee
         app.addRoundFee(requestorFee, modules.round.calc(block.height))
         // transaction.executed = 0
         app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
-        app.sdb.update('Account', { aec: requestor.aec }, { address: requestor.address })
+        app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address })
         return
       }
-      if (sender.aec < trs.fee) throw new Error('Insufficient sender balance')
-      sender.aec -= trs.fee
-      app.sdb.update('Account', { aec: sender.aec }, { address: sender.address })
+      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance')
+      sender.gny -= trs.fee
+      app.sdb.update('Account', { gny: sender.gny }, { address: sender.address })
     }
   
     const error = await fn.apply(context, trs.args)
@@ -276,5 +276,3 @@ class Transaction {
     return transaction
   }
 }
-
-export = Transaction;

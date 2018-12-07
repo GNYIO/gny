@@ -48,7 +48,7 @@ export default class Account {
   }
 
   generateAddressByPublicKey(publicKey) {
-    return addressHelper.generateNormalAddress(publicKey);
+    return addressHelper.generateAddress(publicKey);
   }
 
   onBind(scope: any) {
@@ -279,8 +279,8 @@ export default class Account {
             const unconfirmedAccount = await this.library.sdb.load('Account', { address: account.address });
             accountData = {
               address: account.address,
-              unconfirmedBalance: unconfirmedAccount.aec,
-              balance: account.aec,
+              unconfirmedBalance: unconfirmedAccount.gny,
+              balance: account.gny,
               secondPublicKey: account.secondPublicKey,
               lockHeight: account.lockHeight || 0,
             };
@@ -306,7 +306,6 @@ export default class Account {
   private attachApi() {
     const router1 = new Router();
     const router = router1.router;
-    console.log(router);
 
 
     router.use((req, res, next) => {

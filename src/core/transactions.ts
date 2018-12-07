@@ -1,11 +1,10 @@
 import crypto = require('crypto');
 import { isArray } from 'util';
-import ed = require('../utils/ed.js');
-import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
-import LimitCache = require('../utils/limit-cache');
+import * as ed from '../utils/ed.js';
+import Router from '../utils/router';
+import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
+import transactionMode from '../utils/transaction-mode';
 
 const priv = {}
 
@@ -78,7 +77,8 @@ class Transactions {
 
   // Private methods
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router()
+    const router = router1.router
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -109,7 +109,8 @@ class Transactions {
   }
 
   private attachStorageApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -281,9 +282,9 @@ class Transactions {
       if (requestorId) throw new Error('RequestId should not be provided')
       // HARDCODE_HOT_FIX_BLOCK_6119128
       // if (height > 6119128 &&
-      //     app.util.address.isNormalAddress(senderId) &&
+      //     app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
-      if (app.util.address.isNormalAddress(senderId)
+      if (app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {
         throw new Error('Sender public key not provided')
       }
@@ -298,12 +299,12 @@ class Transactions {
       sender = app.sdb.create('Account', {
         address: senderId,
         name: null,
-        aec: 0,
+        gny: 0,
       })
     }
 
     if (requestorId) {
-      if (!app.util.address.isNormalAddress(requestorId)) {
+      if (!app.util.address.isAddress(requestorId)) {
         throw new Error('Invalid requestor address')
       }
 
@@ -317,7 +318,7 @@ class Transactions {
 
     if (transaction.senderPublicKey) {
       const signerId = transaction.requestorId || transaction.senderId
-      if (addressHelper.generateNormalAddress(transaction.senderPublicKey) !== signerId) {
+      if (addressHelper.generateAddress(transaction.senderPublicKey) !== signerId) {
         throw new Error('Invalid senderPublicKey')
       }
     }
@@ -477,10 +478,6 @@ class Transactions {
     this.shared.addTransactionUnsigned({ body: transaction }, cb)
   }
 
-  sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
-  }
-
   list = (query, cb) => this.list(query, cb)
 
   getById = (id, cb) => this.getById(id, cb)
@@ -542,7 +539,7 @@ class Transactions {
           const type = Number(query.type)
           if (type !== 0 && type !== 14) return cb('invalid transaction type')
 
-          condition.currency = type === 0 ? 'AEC' : { $ne: 'AEC' }
+          condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' }
         }
         if (query.id) {
           condition.tid = query.id
@@ -696,10 +693,10 @@ class Transactions {
         (async () => {
           try {
             const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest()
-            const keypair = ed.MakeKeypair(hash)
+            const keypair = ed.generateKeyPair(hash)
             let secondKeypair = null
             if (query.secondSecret) {
-              secondKeypair = ed.MakeKeypair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
+              secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
             }
             const trs = this.library.base.transaction.create({
               secret: query.secret,

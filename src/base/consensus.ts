@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
-import ByteBuffer from 'bytebuffer';
+import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import * as slots from '../utils/slots';
 import * as ip from 'ip';
 
-class Consensus {
+export class Consensus {
   public pendingBlock: any = null;
   public pendingVotes: any = null;
   public votesKeySet = new Set();
@@ -25,7 +25,7 @@ class Consensus {
     keypairs.forEach((kp) => {
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
-        signature: ed.Sign(hash, kp).toString('hex'),
+        signature: ed.sign(hash, kp).toString('hex'),
       })
     })
     return votes
@@ -36,7 +36,7 @@ class Consensus {
       const hash = this.calculateHash(height, id)
       const signature = Buffer.from(voteItem.signature, 'hex')
       const publicKey = Buffer.from(voteItem.publicKey, 'hex')
-      return ed.Verify(hash, signature, publicKey)
+      return ed.verify(hash, signature, publicKey)
     } catch (e) {
       return false
     }
@@ -115,7 +115,7 @@ class Consensus {
 
     const hash = this.getProposeHash(propose)
     propose.hash = hash.toString('hex')
-    propose.signature = ed.Sign(hash, keypair).toString('hex')
+    propose.signature = ed.sign(hash, keypair).toString('hex')
     return propose
   }
 
@@ -172,7 +172,7 @@ class Consensus {
     try {
       const signature = Buffer.from(propose.signature, 'hex')
       const publicKey = Buffer.from(propose.generatorPublicKey, 'hex')
-      if (ed.Verify(hash, signature, publicKey)) {
+      if (ed.verify(hash, signature, publicKey)) {
         return 'Verify propose successful.';
       }
       throw Error('Propose signature verify failed.')
@@ -181,5 +181,3 @@ class Consensus {
     }
   }
 }
-
-export = Consensus;
