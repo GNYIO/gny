@@ -15,7 +15,7 @@ import loadContracts from './loadContracts'
 import loadInterfaces from './loadInterfaces'
 
 import address from './utils/address.js';
-import bignumber from 'bignumber'
+import * as bignumber from 'bignumber'
 
 const PIFY = util.promisify
 
