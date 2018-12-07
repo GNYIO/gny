@@ -493,7 +493,7 @@ export default class Blocks {
           limit,
           lastBlockId: lastCommonBlockId,
         }
-        modules.peer.request('blocks', params, peer, (err, body) => {
+        this.modules.peer.request('blocks', params, peer, (err, body) => {
           if (err) {
             return next(`Failed to request remote peer: ${err}`)
           }

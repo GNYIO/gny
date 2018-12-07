@@ -148,7 +148,7 @@ export default class Loader {
         if (lastBlock.id !== this.genesisBlock.block.id) {
           return this.findUpdate(lastBlock, peer, cb)
         }
-        // return this.loadFullDb(peer, cb)
+        return this.loadFullDb(peer, cb)
       }
       return cb()
     })
