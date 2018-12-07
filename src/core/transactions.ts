@@ -318,7 +318,8 @@ class Transactions {
 
     if (transaction.senderPublicKey) {
       const signerId = transaction.requestorId || transaction.senderId
-      if (addressHelper.generateAddress(transaction.senderPublicKey) !== signerId) {
+      let generatedAddress = addressHelper.generateAddress(transaction.senderPublicKey)
+      if (generatedAddress !== signerId) {
         throw new Error('Invalid senderPublicKey')
       }
     }
