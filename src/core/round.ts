@@ -17,7 +17,8 @@ export default class Round {
     return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
   }
 
-  onBind(scope: any) {
+  // Events
+  onBind = (scope: any) => {
     this.library = scope;
   }
 

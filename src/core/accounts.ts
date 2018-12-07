@@ -51,7 +51,8 @@ export default class Account {
     return addressHelper.generateAddress(publicKey);
   }
 
-  onBind(scope: any) {
+  // Events
+  onBind = (scope: any) => {
     this.modules = scope;
   }
 

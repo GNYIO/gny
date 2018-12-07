@@ -6,7 +6,8 @@ export default class Server {
     this.library = scope;
   }
 
-  onBind(scope: any) {
+  // Events
+  onBind = (scope: any) => {
     this.library= scope;
   }
 
