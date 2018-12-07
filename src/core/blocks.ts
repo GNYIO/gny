@@ -394,7 +394,7 @@ export default class Blocks {
       }
     }
   
-    const roundNumber = this.modules.round.calc(block.height)
+    const roundNumber = this.modules.round.calculateRound(block.height)
     const { fees, rewards } = this.increaseRoundData({ fees: transFee, rewards: block.reward }, roundNumber)
   
     if (block.height % 101 !== 0) return
@@ -583,7 +583,7 @@ export default class Blocks {
     if (this.library.base.consensus.hasEnoughVotes(localVotes)) {
       this.modules.transactions.clearUnconfirmed()
       await this.processBlock(block, { local: true, broadcast: true, votes: localVotes })
-      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
       return null
     }
     if (!this.library.config.publicIp) {
@@ -621,7 +621,7 @@ export default class Blocks {
     if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
-        ` round: ${this.modules.round.calc(this.modules.blocks.getLastBlock().height)}` +
+        ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
         ` slot: ${slots.getSlotNumber(block.timestamp)}`)
       return (async () => {
         const pendingTrsMap = new Map()
@@ -760,11 +760,11 @@ public onReceiveVotes = (votes: any) => {
         try {
           this.modules.transactions.clearUnconfirmed()
           await this.processBlock(block, { votes: totalVotes, local: true, broadcast: true })
-          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
         } catch (err) {
           this.library.logger.error(`Failed to process confirmed block height: ${height} id: ${id} error: ${err}`)
         }
-        cb()
+        cb() 
       })()
     }
     return setImmediate(cb)
