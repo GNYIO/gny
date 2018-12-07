@@ -401,7 +401,7 @@ export default class Blocks {
   
     app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
-    const delegates = modules.delegates.generateDelegateList(block.height)
+    const delegates = this.modules.delegates.generateDelegateList(block.height)
     app.logger.debug('delegate length', delegates.length)
   
     const forgedBlocks = await app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)

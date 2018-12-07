@@ -288,19 +288,19 @@ export default class Delegates {
     }
   }
 
-  public getActiveDelegateKeypairs = (height, cb) => {
-    this.generateDelegateList(height, (err, delegates) => {
-      if (err) {
-        return cb(err)
+  public getActiveDelegateKeypairs = (height) => {
+    let delegates = this.generateDelegateList(height)
+    if (!delegates) {
+      return null
+    }
+
+    const results = []
+    for (const key in this.keyPairs) {
+      if (delegates.indexOf(key) !== -1) {
+        results.push(this.keyPairs[key])
       }
-      const results = []
-      for (const key in this.keyPairs) {
-        if (delegates.indexOf(key) !== -1) {
-          results.push(this.keyPairs[key])
-        }
-      }
-      return cb(null, results)
-    })
+    }
+    return results
   }
 
   public validateProposeSlot = (propose, cb) => {
