@@ -81,7 +81,7 @@ export default class Delegates {
           return res.json({ success: false, error: 'Access denied' })
         }
   
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
   
         if (body.publicKey) {
           if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -135,7 +135,7 @@ export default class Delegates {
           return res.json({ success: false, error: 'Access denied' })
         }
   
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
   
         if (body.publicKey) {
           if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -279,7 +279,7 @@ export default class Delegates {
         delegateMap.set(d.publicKey, d)
       }
       for (const secret of secrets) {
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest())
         const publicKey = keypair.publicKey.toString('hex')
         if (delegateMap.has(publicKey)) {
           this.keyPairs[publicKey] = keypair;
