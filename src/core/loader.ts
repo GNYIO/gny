@@ -1,6 +1,8 @@
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
+
+const slots = new Slots()
 
 export default class Loader {
   private isLoaded: boolean = false;

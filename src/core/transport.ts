@@ -1,7 +1,9 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router from '../utils/router';
-import slots = require('../utils/slots');
+import Slots from '../utils/slots';
+
+const slots = new Slots()
 
 export default class Transport {
   private library: any;

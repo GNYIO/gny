@@ -2,8 +2,10 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as ip from 'ip';
+
+const slots = new Slots()
 
 export class Consensus {
   public pendingBlock: any = null;

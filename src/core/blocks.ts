@@ -6,9 +6,11 @@ import isArray = require('util').isArray;
 import * as constants from '../utils/constants.js'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
-import slots = require('../utils/slots');
+import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+
+const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;

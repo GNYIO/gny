@@ -1,11 +1,13 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import feeCalculators from '../utils/calculate-fee';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
+
+const slots = new Slots()
 
 export class Transaction {
   constructor(public scope: any) {}

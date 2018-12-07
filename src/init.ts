@@ -14,7 +14,7 @@ import * as _ from 'lodash';
 import bodyParser = require('body-parser');
 import methodOverride = require('method-override');
 import Sequence = require('./utils/sequence');
-import slots = require('./utils/slots');
+import Slots from './utils/slots';
 import queryParser = require('./utils/express-query-int');
 import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
@@ -22,6 +22,8 @@ import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
+
+const slots = new Slots()
 
 
 const CIPHERS = `

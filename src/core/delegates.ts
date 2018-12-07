@@ -2,9 +2,11 @@ import * as crypto from 'crypto';
 import * as util from 'util';
 import * as ed from '../utils/ed'
 import Router from '../utils/router'
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import BlockStatus from '../utils/block-status';
 import addressHelper from '../utils/address'
+
+const slots = new Slots()
 
 export default class Delegates {
   private loaded: boolean = false;

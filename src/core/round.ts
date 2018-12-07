@@ -1,4 +1,5 @@
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
+const slots = new Slots()
 
 export default class Round {
   private library: any;
