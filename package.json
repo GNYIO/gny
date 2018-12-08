@@ -32,6 +32,7 @@
     "@types/request": "=2.47.1",
     "@types/jest": "^23.3.2",
     "@types/node": "^10.9.4",
+    "@types/z-schema": "=3.16.32",
     "asch-smartdb": "https://github.com/a1300/asch-smartdb-dist.git#9a7954885e6971de4b9604402215a50e0122209b",
     "async": "=1.5.2",
     "babel-eslint": "^9.0.0",
