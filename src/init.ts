@@ -4,10 +4,10 @@ import os = require('os');
 import { EventEmitter } from 'events';
 import http = require('http')
 import https = require('https');
-import socketio = require('socket.io');
+import * as socketio from 'socket.io';
 import ZSchema = require('z-schema');
 import ip = require('ip');
-import express = require('express');
+import * as express from 'express';
 import compression = require('compression');
 import cors = require('cors');
 import * as _ from 'lodash';

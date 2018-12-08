@@ -22,6 +22,11 @@ import * as zSchema from 'z-schema'
 import Sequence from './utils/sequence'
 import { EventEmitter } from 'events';
 
+// IServer import
+import * as express from 'express'
+import { Server } from 'http'
+import * as SocketIO from 'socket.io'
+
 declare interface IBase {
   bus: any;
   scheme: zSchema;
@@ -37,7 +42,7 @@ export interface IScope {
   logger: tracer.Tracer.Logger;
   genesisBlock: any;
   scheme: zSchema;
-  network: any;
+  network: INetwork;
   dbSequence: Sequence;
   sequence: Sequence;
   balancesSequence: Sequence;
@@ -63,4 +68,13 @@ export interface Modules {
 
 export interface IMessageEmitter {
   message: (topic: string, ...restArgs: any[]) => void
+}
+
+export interface INetwork {
+  express: typeof express
+  app: express.Application;
+  server: Server;
+  io: SocketIO.Server;
+  sslServer?: Server;
+  sslio?: SocketIO.Server;
 }
