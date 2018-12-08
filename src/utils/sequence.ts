@@ -35,7 +35,11 @@ function tick(task, cb) {
   }
 }
 
-class Sequence {
+export default class Sequence {
+  private counter: number;
+  private readonly name: string;
+  private queue: async.queue;
+
   constructor(config) {
     this.counter = 1
     this.name = config.name
@@ -64,5 +68,3 @@ class Sequence {
     return this.sequence.length
   }
 }
-
-export = Sequence;
