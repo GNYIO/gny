@@ -49,6 +49,7 @@ export interface IScope {
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
+  connect: INetwork;
 }
 
 export interface Modules {
@@ -77,4 +78,14 @@ export interface INetwork {
   io: SocketIO.Server;
   sslServer?: Server;
   sslio?: SocketIO.Server;
+}
+
+
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      library: Partial<IScope>;
+    }
+  }
 }
