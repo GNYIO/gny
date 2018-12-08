@@ -22,7 +22,7 @@ import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
-import { IScope } from './interfaces'
+import { IScope, IMessageEmitter } from './interfaces'
 
 const slots = new Slots()
 
@@ -202,8 +202,8 @@ async function init_alt(options: any) {
 
   scope.modules = loadedModules(scope)
 
-  class Bus extends EventEmitter {
-    message(topic, ...restArgs) {
+  class Bus extends EventEmitter implements IMessageEmitter {
+    message(topic: string, ...restArgs) {
       Object.keys(scope.modules).forEach((moduleName) => {
         const module = scope.modules[moduleName]
         const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;

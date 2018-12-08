@@ -42,7 +42,7 @@ export interface IScope {
   sequence: Sequence;
   balancesSequence: Sequence;
   base: IBase;
-  bus: EventEmitter;
+  bus: EventEmitter & IMessageEmitter;
   modules: Modules;
 }
 
@@ -58,4 +58,9 @@ export interface Modules {
   round: round;
   uia: uia;
   blocks: blocks;
+}
+
+
+export interface IMessageEmitter {
+  message: (topic: string, ...restArgs: any[]) => void
 }
