@@ -86,6 +86,7 @@ declare global {
   namespace NodeJS {
     interface Global {
       library: Partial<IScope>;
+      modules: Modules;
     }
   }
 }
