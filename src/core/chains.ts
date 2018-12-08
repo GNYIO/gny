@@ -7,13 +7,11 @@ import rmdir = require('rimraf');
 import Router = require('../utils/router');
 
 export class Chains {
-  library: any;
-  modules: any;
+  private library: any;
+  private modules: any;
   private baseDir: string;
 
   constructor(scope: any) {
     this.library = scope;
   }
-
-
 }

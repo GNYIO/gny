@@ -15,7 +15,7 @@ const slots = new Slots()
 export default class Blocks {
   private genesisBlock: any;
   private modules: any;
-  private library: any;
+  private readonly library: any;
 
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();

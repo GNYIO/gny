@@ -11,7 +11,7 @@ import addressHelper = require('../utils/address');
 
 // Constructor
 export default class UIA {
-  private library: any;
+  private readonly library: any;
   private modules: any;
 
   constructor (scope: any) {

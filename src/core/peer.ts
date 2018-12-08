@@ -13,7 +13,7 @@ const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000
 const MAX_BOOTSTRAP_PEERS = 25
 
 export default class Peer {
-  private library: any;
+  private readonly library: any;
   private modules: any;
 
   private handlers: any = {};

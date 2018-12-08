@@ -14,7 +14,7 @@ export default class Delegates {
   private keyPairs: any = {};
   private isForgingEnabled: boolean = true;
 
-  private library: any;
+  private readonly library: any;
   private modules: any;
 
   private readonly BOOK_KEEPER_NAME = 'round_bookkeeper'

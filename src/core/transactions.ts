@@ -58,7 +58,7 @@ class TransactionPool {
 
 // Constructor
 class Transactions {
-  library: any;
+  private readonly library: any;
   modules: any;
   genesisBlock: any;
   pool: TransactionPool;

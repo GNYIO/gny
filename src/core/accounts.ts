@@ -6,9 +6,9 @@ import Router from '../utils/router';
 import * as addressHelper from '../utils/address';
 
 export default class Account {
-  modules: any;
-  library: any;
-  shared = {};
+  private modules: any;
+  private readonly library: any;
+  private shared = {};
 
   constructor(scope: any) {
     this.library = scope;
