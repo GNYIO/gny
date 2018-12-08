@@ -12,15 +12,6 @@ import Blocks from './core/blocks'
 
 import { Modules, IScope } from './interfaces'
 
-let loadedModules : Modules = {
-  server: new Server(
-}
-
-interface Wrapper {
-  class: any;
-  name: string;
-}
-
 
 export default function loadModules(scope: Partial<IScope>) {
 
