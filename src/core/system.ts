@@ -3,7 +3,7 @@ import Slots from '../utils/slots';
 const slots = new Slots()
 
 export default class System {
-  private library: any;
+  private readonly library: any;
 
   constructor(scope: any) {
     this.library = scope;
@@ -38,9 +38,5 @@ export default class System {
         behind: slots.getNextSlot() - (slots.getSlotNumber(lastBlock.timestamp) + 1),
       },
     }
-  }
-
-  onBind = (scope: any) => {
-    this.library = scope;
   }
 }

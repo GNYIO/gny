@@ -1,16 +1,13 @@
 export default class Server {
   private isLoaded = false;
-  library: any;
+  private readonly library: any;
 
   constructor(scope: any) {
     this.library = scope;
   }
 
   // Events
-  onBind = (scope: any) => {
-    this.library= scope;
-  }
-
+    // Events
   onBlockchainReady = () => {
     this.isLoaded = true;
   }

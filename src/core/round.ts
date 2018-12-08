@@ -2,7 +2,7 @@ import Slots from '../utils/slots';
 const slots = new Slots()
 
 export default class Round {
-  private library: any;
+  private readonly library: any;
   private isloaded: boolean = false;
 
   constructor(scope: any) {
@@ -18,10 +18,6 @@ export default class Round {
   }
 
   // Events
-  onBind = (scope: any) => {
-    this.library = scope;
-  }
-
   onBlockChainReady = () => {
     this.isloaded = true;
   }
