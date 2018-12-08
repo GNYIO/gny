@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 const protocolBuffers = require('protocol-buffers');
 
-class Protobuf {
+export class Protobuf {
   public schema;
 
   constructor(schema) {

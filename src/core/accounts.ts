@@ -52,7 +52,7 @@ export default class Account {
   }
 
   // Events
-  onBind = (scope: any) => {
+  onBind = (scope) => {
     this.modules = scope;
   }
 
