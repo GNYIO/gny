@@ -46,7 +46,6 @@ export default async function runtime(options) {
   global.app = {
     sdb: null,
     balances: null,
-    model: {},
     contract: {},
     contractTypeMapping: {},
     feeMapping: {},
