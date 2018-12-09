@@ -153,12 +153,33 @@ interface IApp {
 }
 
 
+type ILogLevel = "trace" | "debug" | "log" | "info" | "warn" | "error" | "fatal"
+
+
+export interface IConfig {
+  version: string;
+  baseDir: string;
+  dataDir: string;
+  appDir: string;
+  buildVersion: string;
+  netVersion: string;
+  publicDir: string;
+  port: number;
+  peerPort: number;
+  address: string;
+  peers: {
+    list: { ip: string, port: string | number }[];
+  };
+  logLevel: ILogLevel;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {
       library: Partial<IScope>;
       modules: Modules;
       app: Partial<IApp>;
+      Config: Partial<IConfig>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;
@@ -166,3 +187,4 @@ declare global {
     }
   }
 }
+

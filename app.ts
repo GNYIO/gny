@@ -6,6 +6,7 @@ import daemon = require('daemon');
 import tracer = require('tracer');
 import Application from './index';
 import * as packageJson from './package.json';
+import { IConfig } from './src/interfaces'
 
 const version = packageJson.version;
 
@@ -42,7 +43,7 @@ function main() {
     appConfigFile = path.join(baseDir, 'config.json');
   }
 
-  const appConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
+  const appConfig: IConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
 
   const pidFile = appConfig.pidFile || path.join(baseDir, 'aschd.pid');
 

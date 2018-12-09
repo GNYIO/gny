@@ -37,6 +37,7 @@
     "@types/compression": "=0.0.36",
     "@types/body-parser": "=1.17.0",
     "@types/method-override": "=0.0.31",
+    "@types/cors": "=2.8.4",
     "asch-smartdb": "https://github.com/a1300/asch-smartdb-dist.git#9a7954885e6971de4b9604402215a50e0122209b",
     "async": "=1.5.2",
     "babel-eslint": "^9.0.0",
