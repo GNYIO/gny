@@ -65,7 +65,7 @@ export default async function runtime(options) {
   
       let bnAmount
       try {
-        bnAmount = app.util.bignumber(amount)
+        bnAmount = global.app.util.bignumber(amount)
       } catch (e) {
         return 'Failed to convert'
       }
@@ -109,27 +109,27 @@ export default async function runtime(options) {
   }
   global.app.getContractName = type => global.app.contractTypeMapping[type]
 
-  app.registerFee = (type, min, currency) => {
-    app.feeMapping[type] = {
-      currency: currency || app.defaultFee.currency,
+  global.app.registerFee = (type, min, currency) => {
+    global.app.feeMapping[type] = {
+      currency: currency || global.app.defaultFee.currency,
       min,
     }
   }
-  app.getFee = type => app.feeMapping[type]
+  global.app.getFee = type => global.app.feeMapping[type]
 
-  app.setDefaultFee = (min, currency) => {
-    app.defaultFee.currency = currency
-    app.defaultFee.min = min
+  global.app.setDefaultFee = (min, currency) => {
+    global.app.defaultFee.currency = currency
+    global.app.defaultFee.min = min
   }
 
-  app.addRoundFee = (fee, roundNumber) => {
+  global.app.addRoundFee = (fee, roundNumber) => {
     modules.blocks.increaseRoundData({ fees: fee }, roundNumber)
   }
 
-  app.getRealTime = epochTime => slots.getRealTime(epochTime)
+  global.app.getRealTime = epochTime => slots.getRealTime(epochTime)
 
-  app.registerHook = (name, func) => {
-    app.hooks[name] = func
+  global.app.registerHook = (name, func) => {
+    global.app.hooks[name] = func
   }
 
   app.verifyBytes = (bytes, pk, signature) => app.api.crypto.verify(pk, signature, bytes);

@@ -106,6 +106,14 @@ interface IValidators {
   string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
+type ICurrency = string
+type IFee = string
+
+interface ICurrencyFee {
+  currency: ICurrency;
+  min: IFee;
+}
+
 interface IApp {
   sdb: AschCore.SmartDB;
   balances: BalanceManager;
@@ -115,10 +123,23 @@ interface IApp {
   validators: IValidators;
   validate: (type: string, value: any, constraints: IValidatorConstraints) => void | never;
   registerContract: (type: number, name: string) => void;
-  getContractName: (type: string) => any
+  getContractName: (type: string) => any;
   contractTypeMapping: {
     [type: string]: string;
+  };
+  registerFee: (type: number, min: string, currency: string) => void;
+  defaultFee: ICurrencyFee;
+  feeMapping: {
+    [type: string]: ICurrencyFee;
+  };
+  getFee: (type: string) => ICurrencyFee;
+  setDefaultFee: (min: string, currency: string) => void;
+  addRoundFee: (fee: IFee, roundNumber: number) => void;
+  getRealTime: (epochTime: number) => number;
+  hooks: {
+    [name: string]: () => void
   }
+  registerHook: (name: string, func: () => void) => void;
 }
 
 
