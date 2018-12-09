@@ -132,32 +132,6 @@ export default async function runtime(options) {
     global.app.hooks[name] = func
   }
 
-  app.checkMultiSignature = (bytes, allowedKeys, signatures, m) => {
-    const keysigs = signatures.split(',')
-    const publicKeys = []
-    const sigs = []
-    for (const ks of keysigs) {
-      if (ks.length !== 192) throw new Error('Invalid public key or signature')
-      publicKeys.push(ks.substr(0, 64))
-      sigs.push(ks.substr(64, 192))
-    }
-    const uniqPublicKeySet = new Set()
-    for (const pk of publicKeys) {
-      uniqPublicKeySet.add(pk)
-    }
-    if (uniqPublicKeySet.size !== publicKeys.length) throw new Error('Duplicated public key')
-
-    let sigCount = 0
-    for (let i = 0; i < publicKeys.length; ++i) {
-      const pk = publicKeys[i]
-      const sig = sigs[i]
-      if (allowedKeys.indexOf(pk) !== -1 && app.verifyBytes(bytes, pk, sig)) {
-        sigCount++
-      }
-    }
-    if (sigCount < m) throw new Error('Signatures not enough')
-  }
-
   app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
 
   app.executeContract = async (context) => {
