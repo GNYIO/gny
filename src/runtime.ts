@@ -54,7 +54,6 @@ export default async function runtime(options) {
       min: '10000000',
     },
     hooks: {},
-    custom: {},
     logger: options.logger,
   };
   global.app.validators = {
