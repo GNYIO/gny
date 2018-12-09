@@ -1,4 +1,4 @@
-import { totalAmount } from'./constants.js';
+import { totalAmount } from'./constants';
 
 export default function BlockStatus() {
   const milestones = [

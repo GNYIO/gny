@@ -32,9 +32,6 @@ export default class Application {
     const options = this.options;
     const pidFile = options.pidFile;
 
-    global.featureSwitch = {};
-    global.state = {};
-
     const scope = await initAlt(options);
     function cb(err, result) {
       if (err) return console.log(err);

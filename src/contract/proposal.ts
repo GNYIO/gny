@@ -5,7 +5,7 @@ const VALID_TOPICS = [
 async function validateAssetIssue(content) {
   if (!content || content.currency === undefined || content.amount === undefined) throw new Error('Invalid proposal content')
   if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(content.currency)) throw new Error('Invalid currency')
-  app.validate('amount', String(content.amount))
+  global.app.validate('amount', String(content.amount))
 }
 
 export default {
@@ -20,7 +20,7 @@ export default {
       await validateAssetIssue(content, this)
     }
 
-    app.sdb.create('Proposal', {
+    global.app.sdb.create('Proposal', {
       tid: this.trs.id,
       timestamp: this.trs.timestamp,
       title,
@@ -36,14 +36,14 @@ export default {
   },
 
   async vote(pid) {
-    if (!app.isCurrentBookkeeper(this.sender.address)) return 'Permission denied'
-    const proposal = await app.sdb.findOne('Proposal', { condition: { tid: pid } })
+    if (!global.app.isCurrentBookkeeper(this.sender.address)) return 'Permission denied'
+    const proposal = await global.app.sdb.findOne('Proposal', { condition: { tid: pid } })
     if (!proposal) return 'Proposal not found'
     // if (this.block.height - proposal.height > 8640 * 30) return 'Proposal expired'
     if (this.block.height - proposal.height > 5760 * 30) return 'Proposal expired'
-    const exists = await app.sdb.exists('ProposalVote', { voter: this.sender.address, pid })
+    const exists = await global.app.sdb.exists('ProposalVote', { voter: this.sender.address, pid })
     if (exists) return 'Already voted'
-    app.sdb.create('ProposalVote', {
+    global.app.sdb.create('ProposalVote', {
       tid: this.trs.id,
       pid,
       voter: this.sender.address,

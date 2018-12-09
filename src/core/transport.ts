@@ -67,8 +67,7 @@ export default class Transport {
       const ids = body.ids
       return (async () => {
         try {
-          let blocks = await app.sdb.getBlocksByHeightRange(min, max)
-          // app.logger.trace('find common blocks in database', blocks)
+          let blocks = await global.app.sdb.getBlocksByHeightRange(min, max)
           if (!blocks || !blocks.length) {
             return res.status(500).send({ success: false, error: 'Blocks not found' })
           }
@@ -85,7 +84,7 @@ export default class Transport {
           }
           return res.send({ success: true, common: commonBlock })
         } catch (e) {
-          app.logger.error(`Failed to find common block: ${e}`)
+         global.app.logger.error(`Failed to find common block: ${e}`)
           return res.send({ success: false, error: 'Failed to find common block' })
         }
       })()
@@ -103,7 +102,7 @@ export default class Transport {
       }
       return (async () => {
         try {
-          const lastBlock = await app.sdb.getBlockById(lastBlockId)
+          const lastBlock = await global.app.sdb.getBlockById(lastBlockId)
           if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`)
 
           const minHeight = lastBlock.height + 1
@@ -111,7 +110,7 @@ export default class Transport {
           const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true)
           return res.send({ blocks })
         } catch (e) {
-          app.logger.error('Failed to get blocks or transactions', e)
+         global.app.logger.error('Failed to get blocks or transactions', e)
           return res.send({ blocks: [] })
         }
       })()

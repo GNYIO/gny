@@ -2,8 +2,8 @@ import assert = require('assert');
 import crypto = require('crypto');
 import async = require('async');
 import PIFY = require('pify')
-import isArray = require('util').isArray;
-import * as constants from '../utils/constants.js'
+import { isArray } from 'util';
+import * as constants from '../utils/constants'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
 import Slots from '../utils/slots';
@@ -71,7 +71,7 @@ export default class Blocks {
     try {
       const maxHeight = Math.max(height, this.lastBlock.height);
       const minHeight = Math.max(0, maxHeight - 4);
-      let blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
+      let blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
       const ids = blocks.map((b: any) => b.id);
       return { ids, firstHeight: minHeight };
@@ -263,7 +263,7 @@ export default class Blocks {
   }
 
   public applyBlock = async (block: any) => {
-    app.logger.trace('enter applyblock')
+   global.app.logger.trace('enter applyblock')
     const appliedTransactions: any = {}
   
     try {
@@ -277,8 +277,8 @@ export default class Blocks {
         appliedTransactions[transaction.id] = transaction
       }
     } catch (e) {
-      app.logger.error(e)
-      await app.sdb.rollbackBlock()
+     global.app.logger.error(e)
+      await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to apply block: ${e}`)
     }
   }
@@ -287,7 +287,7 @@ export default class Blocks {
     if (!this.loaded) throw new Error('Blockchain is loading')
   
     let block = b
-    app.sdb.beginBlock(block)
+    global.app.sdb.beginBlock(block)
   
     if (!block.transactions) block.transactions = []
     if (!options.local) {
@@ -304,7 +304,7 @@ export default class Blocks {
 
       this.library.logger.debug('verify block ok')
       if (block.height !== 0) {
-        const exists = (undefined !== await app.sdb.getBlockById(block.id))
+        const exists = (undefined !== await global.app.sdb.getBlockById(block.id))
         if (exists) throw new Error(`Block already exists: ${block.id}`)
       }
   
@@ -323,15 +323,15 @@ export default class Blocks {
         this.library.base.transaction.objectNormalize(transaction)
       }
       const idList = block.transactions.map(t => t.id)
-      if (await app.sdb.exists('Transaction', { id: { $in: idList } })) {
+      if (await global.app.sdb.exists('Transaction', { id: { $in: idList } })) {
         throw new Error('Block contain already confirmed transaction')
       }
   
-      app.logger.trace('before applyBlock')
+     global.app.logger.trace('before applyBlock')
       try {
         await this.applyBlock(block, options)
       } catch (e) {
-        app.logger.error(`Failed to apply block: ${e}`)
+       global.app.logger.error(`Failed to apply block: ${e}`)
         throw e
       }
     }
@@ -339,9 +339,9 @@ export default class Blocks {
     try {
       this.saveBlockTransactions(block)
       await this.applyRound(block)
-      await app.sdb.commitBlock()
+      await global.app.sdb.commitBlock()
       const trsCount = block.transactions.length
-      app.logger.info(`Block applied correctly with ${trsCount} transactions`)
+     global.app.logger.info(`Block applied correctly with ${trsCount} transactions`)
       this.setLastBlock(block)
   
       if (options.broadcast) {
@@ -350,9 +350,9 @@ export default class Blocks {
       }
       this.library.bus.message('processBlock', block)
     } catch (e) {
-      app.logger.error(block)
-      app.logger.error('save block error: ', e)
-      await app.sdb.rollbackBlock()
+     global.app.logger.error(block)
+     global.app.logger.error('save block error: ', e)
+      await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to save block: ${e}`)
     } finally {
       this.blockCache = {}
@@ -364,18 +364,18 @@ export default class Blocks {
   }
 
   public saveBlockTransactions = (block: any) => {
-    app.logger.trace('Blocks#saveBlockTransactions height', block.height)
+   global.app.logger.trace('Blocks#saveBlockTransactions height', block.height)
     for (const trs of block.transactions) {
       trs.height = block.height
-      app.sdb.create('Transaction', trs)
+      global.app.sdb.create('Transaction', trs)
     }
-    app.logger.trace('Blocks#save transactions')
+   global.app.logger.trace('Blocks#save transactions')
   }
 
 
   public increaseRoundData = (modifier, roundNumber) => {
-    app.sdb.createOrLoad('Round', { fees: 0, rewards: 0, round: roundNumber })
-    return app.sdb.increase('Round', modifier, { round: roundNumber })
+    global.app.sdb.createOrLoad('Round', { fees: 0, rewards: 0, round: roundNumber })
+    return global.app.sdb.increase('Round', modifier, { round: roundNumber })
   }
 
   public applyRound = async (block: any) => {
@@ -385,7 +385,7 @@ export default class Blocks {
     }
   
     let address = addressHelper.generateAddress(block.delegate)
-    app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
+    global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
   
     let transFee = 0
     for (const t of block.transactions) {
@@ -399,32 +399,32 @@ export default class Blocks {
   
     if (block.height % 101 !== 0) return
   
-    app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
+   global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
     const delegates = this.modules.delegates.generateDelegateList(block.height)
-    app.logger.debug('delegate length', delegates.length)
+   global.app.logger.debug('delegate length', delegates.length)
   
-    const forgedBlocks = await app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
+    const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate]
   
     const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd))
     missedDelegates.forEach((md) => {
       address = addressHelper.generateAddress(md)
-      app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
+      global.app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
     })
   
     async function updateDelegate(pk, fee, reward) {
       address = addressHelper.generateAddress(pk)
-      app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
+      global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
       // TODO should account be all cached?
-      app.sdb.increase('Account', { xas: fee + reward }, { address })
+      global.app.sdb.increase('Account', { xas: fee + reward }, { address })
     }
   
     const councilControl = 1
     if (councilControl) {
       const councilAddress = 'GADQ2bozmxjBfYHDQx3uwtpwXmdhafUdkN'
-      app.sdb.createOrLoad('Account', { xas: 0, address: councilAddress, name: null })
-      app.sdb.increase('Account', { xas: fees + rewards }, { address: councilAddress })
+      global.app.sdb.createOrLoad('Account', { xas: 0, address: councilAddress, name: null })
+      global.app.sdb.increase('Account', { xas: fees + rewards }, { address: councilAddress })
     } else {
       const ratio = 1
   
@@ -450,7 +450,7 @@ export default class Blocks {
   }
 
   public getBlocks = async (minHeight, maxHeight, withTransaction) => {
-    const blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
+    const blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
   
     if (!blocks || !blocks.length) {
       return []
@@ -458,7 +458,7 @@ export default class Blocks {
   
     maxHeight = blocks[blocks.length - 1].height
     if (withTransaction) {
-      const transactions = await app.sdb.findAll('Transaction', {
+      const transactions = await global.app.sdb.findAll('Transaction', {
         condition: {
           height: { $gte: minHeight, $lte: maxHeight },
         },
@@ -631,7 +631,7 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t)
           }
           this.modules.transactions.clearUnconfirmed()
-          await app.sdb.rollbackBlock()
+          await global.app.sdb.rollbackBlock()
           await this.processBlock(block, { votes, broadcast: true })
         } catch (e) {
           this.library.logger.error('Failed to process received block', e)
@@ -826,9 +826,9 @@ public isHealthy = () => {
           try {
             let block
             if (query.id) {
-              block = await app.sdb.getBlockById(query.id)
+              block = await global.app.sdb.getBlockById(query.id)
             } else if (query.height !== undefined) {
-              block = await app.sdb.getBlockByHeight(query.height)
+              block = await global.app.sdb.getBlockByHeight(query.height)
             }
 
             if (!block) {
@@ -869,9 +869,9 @@ public isHealthy = () => {
           try {
             let block
             if (query.id) {
-              block = await app.sdb.getBlockById(query.id)
+              block = await global.app.sdb.getBlockById(query.id)
             } else if (query.height !== undefined) {
-              block = await app.sdb.getBlockByHeight(query.height)
+              block = await global.app.sdb.getBlockByHeight(query.height)
             }
             if (!block) return cb('Block not found')
 
@@ -935,10 +935,10 @@ public isHealthy = () => {
             // if (query.generatorPublicKey) {
             //   condition.delegate = query.generatorPublicKey
             // }
-            const count = app.sdb.blocksCount
+            const count = global.app.sdb.blocksCount
             if (!count) throw new Error('Failed to get blocks count')
 
-            const blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
+            const blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
             if (!blocks || !blocks.length) return cb('No blocks')
             return cb(null, { count, blocks: this.toAPIV1Blocks(blocks) })
           } catch (e) {
@@ -1004,18 +1004,18 @@ public isHealthy = () => {
 
     return (async () => {
       try {
-        const count = app.sdb.blocksCount
-        app.logger.info('Blocks found:', count)
+        const count = global.app.sdb.blocksCount
+       global.app.logger.info('Blocks found:', count)
         if (!count) {
           this.setLastBlock({ height: -1 })
           await this.processBlock(this.genesisBlock.block, {})
         } else {
-          const block = await app.sdb.getBlockByHeight(count - 1)
+          const block = await global.app.sdb.getBlockByHeight(count - 1)
           this.setLastBlock(block)
         }
         this.library.bus.message('blockchainReady')
       } catch (e) {
-        app.logger.error('Failed to prepare local blockchain', e)
+       global.app.logger.error('Failed to prepare local blockchain', e)
         process.exit(0)
       }
     })()

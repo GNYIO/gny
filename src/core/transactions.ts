@@ -1,41 +1,37 @@
 import crypto = require('crypto');
 import { isArray } from 'util';
-import * as ed from '../utils/ed.js';
+import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 
-const priv = {}
-
-priv.unconfirmedNumber = 0
-priv.unconfirmedTransactions = []
-priv.unconfirmedTransactionsIdIndex = {}
-
 class TransactionPool {
+  private index: Map<any, any>;
+  private unConfirmed: any[];
   constructor() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  add(trs) {
+  public add(trs: any) {
     this.unConfirmed.push(trs)
     this.index.set(trs.id, this.unConfirmed.length - 1)
   }
 
-  remove(id) {
+  public remove(id: string) {
     const pos = this.index.get(id)
     delete this.index[id]
     this.unConfirmed[pos] = null
   }
 
-  has(id) {
+  public has(id: string) {
     const pos = this.index.get(id)
     return pos !== undefined && !!this.unConfirmed[pos]
   }
 
-  getUnconfirmed() {
-    const a = []
+  public getUnconfirmed() {
+    const a: any[] = []
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {
@@ -45,12 +41,12 @@ class TransactionPool {
     return a
   }
 
-  clear() {
+  public clear() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  get(id) {
+  public get(id: string) {
     const pos = this.index.get(id)
     return this.unConfirmed[pos]
   }
@@ -164,12 +160,12 @@ class Transactions {
 
     (async () => {
       try {
-        const count = await app.sdb.count('Transaction', condition)
-        let transactions = await app.sdb.find('Transaction', condition, { limit, offset })
+        const count = await global.app.sdb.count('Transaction', condition)
+        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset })
         if (!transactions) transactions = []
         return cb(null, { transactions, count })
       } catch (e) {
-        app.logger.error('Failed to get transactions', e)
+       global.app.logger.error('Failed to get transactions', e)
         return cb(`System error: ${e}`)
       }
     })()
@@ -180,7 +176,7 @@ class Transactions {
       try {
         if (!req.params || !req.params.id) return cb('Invalid transaction id')
         const id = req.params.id
-        const trs = await app.sdb.find('Transaction', { id })
+        const trs = await global.app.sdb.find('Transaction', { id })
         if (!trs || !trs.length) return cb('Transaction not found')
         return cb(null, { transaction: trs[0] })
       } catch (e) {
@@ -246,7 +242,7 @@ class Transactions {
       if (this.pool.has(transaction.id)) {
         throw new Error('Transaction already in the pool')
       }
-      const exists = await app.sdb.exists('Transaction', { id: transaction.id })
+      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id })
       if (exists) {
         throw new Error('Transaction already confirmed')
       }
@@ -282,9 +278,9 @@ class Transactions {
       if (requestorId) throw new Error('RequestId should not be provided')
       // HARDCODE_HOT_FIX_BLOCK_6119128
       // if (height > 6119128 &&
-      //     app.util.address.isAddress(senderId) &&
+      //     global.app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
-      if (app.util.address.isAddress(senderId)
+      if (global.app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {
         throw new Error('Sender public key not provided')
       }
@@ -293,10 +289,10 @@ class Transactions {
     }
 
     let requestor = null
-    let sender = await app.sdb.load('Account', senderId)
+    let sender = await global.app.sdb.load('Account', senderId)
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found')
-      sender = app.sdb.create('Account', {
+      sender = global.app.sdb.create('Account', {
         address: senderId,
         name: null,
         gny: 0,
@@ -304,11 +300,11 @@ class Transactions {
     }
 
     if (requestorId) {
-      if (!app.util.address.isAddress(requestorId)) {
+      if (!global.app.util.address.isAddress(requestorId)) {
         throw new Error('Invalid requestor address')
       }
 
-      requestor = await app.sdb.load('Account', requestorId)
+      requestor = await global.app.sdb.load('Account', requestorId)
       if (!requestor) {
         throw new Error('Requestor account not found')
       }
@@ -336,11 +332,11 @@ class Transactions {
     }
 
     try {
-      app.sdb.beginContract()
+      global.app.sdb.beginContract()
       await this.library.base.transaction.apply(context)
-      app.sdb.commitContract()
+      global.app.sdb.commitContract()
     } catch (e) {
-      app.sdb.rollbackContract()
+      global.app.sdb.rollbackContract()
       this.library.logger.error(e)
       throw e
     }
@@ -358,7 +354,7 @@ class Transactions {
 
       let transMap = new Map()
       let transIds = transferArray.map(t => t.tid)
-      let transArray = await app.sdb.find('Transaction', { id: { $in: transIds } })
+      let transArray = await global.app.sdb.find('Transaction', { id: { $in: transIds } })
       transArray.forEach((t: any) => transMap.set(t.id, t))
 
       transferArray.forEach(transfer => {
@@ -550,20 +546,20 @@ class Transactions {
           try {
             let block
             if (query.blockId) {
-              block = await app.sdb.getBlockById(query.blockId)
+              block = await global.app.sdb.getBlockById(query.blockId)
               if (block === undefined) {
                 return cb(null, { transactions: [], count: 0 })
               }
               condition.height = block.height
             }
-            const count = await app.sdb.count('Transfer', condition)
-            let transfer = await app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset })
+            const count = await global.app.sdb.count('Transfer', condition)
+            let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset })
             if (!transfer) transfer = []
             block = this.modules.blocks.toAPIV1Block(block)
             const transactions = await this.tranfersToAPIV1Transactions(transfer, block)
             return cb(null, { transactions, count })
           } catch (e) {
-            app.logger.error('Failed to get transactions', e)
+           global.app.logger.error('Failed to get transactions', e)
             return cb(`System error: ${e}`)
           }
         })()

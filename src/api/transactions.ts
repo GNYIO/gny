@@ -17,9 +17,9 @@ export default (router) => {
     if (defined(req.query.height)) condition.height = Number(req.query.height)
     if (defined(req.query.senderId)) condition.senderId = req.query.senderId
     if (defined(req.query.message)) condition.message = req.query.message
-    const count = await app.sdb.count('Transaction', condition)
+    const count = await global.app.sdb.count('Transaction', condition)
     if (count > 0) {
-      transactions = await app.sdb.findAll('Transaction', {
+      transactions = await global.app.sdb.findAll('Transaction', {
         condition, offset, limit, sort,
       })
     }
@@ -27,7 +27,7 @@ export default (router) => {
   })
 
   router.get('/:id', async (req) => {
-    const trs = await app.sdb.findOne('Transaction', { condition: { id: req.params.id } })
+    const trs = await global.app.sdb.findOne('Transaction', { condition: { id: req.params.id } })
     if (!trs) throw new Error('Transaction no found')
     return { transaction: trs }
   })

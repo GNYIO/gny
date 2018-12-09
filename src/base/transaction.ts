@@ -140,8 +140,8 @@ export class Transaction {
         const error = this.verifyNormalSignature(transaction, requestor, bytes)
         if (error) return error
       } else if (!transaction.senderPublicKey && transaction.signatures && transaction.signatures.length > 1) {
-        const ADDRESS_TYPE = app.util.address.TYPE
-        const addrType = app.util.address.getType(transaction.senderId)
+        const ADDRESS_TYPE = global.app.util.address.TYPE
+        const addrType = global.app.util.address.getType(transaction.senderId)
         if (addrType === ADDRESS_TYPE.CHAIN) {
           const error = await this.verifyChainSignature(transaction, sender, bytes)
           if (error) return error
@@ -193,7 +193,7 @@ export class Transaction {
     const {
       block, trs, sender, requestor,
     } = context
-    const name = app.getContractName(trs.type)
+    const name = global.app.getContractName(trs.type)
     if (!name) {
       throw new Error(`Unsupported transaction type: ${trs.type}`)
     }
@@ -201,7 +201,7 @@ export class Transaction {
     if (!mod || !func) {
       throw new Error('Invalid transaction function')
     }
-    const fn = app.contract[mod][func]
+    const fn = global.app.contract[mod][func]
     if (!fn) {
       throw new Error('Contract not found')
     }
@@ -211,15 +211,15 @@ export class Transaction {
         const requestorFee = 20000000
         if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance')
         requestor.gny -= requestorFee
-        app.addRoundFee(requestorFee, modules.round.calc(block.height))
+        global.app.addRoundFee(requestorFee, modules.round.calc(block.height))
         // transaction.executed = 0
-        app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
-        app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address })
+        global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
+        global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address })
         return
       }
       if (sender.gny < trs.fee) throw new Error('Insufficient sender balance')
       sender.gny -= trs.fee
-      app.sdb.update('Account', { gny: sender.gny }, { address: sender.address })
+      global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address })
     }
   
     const error = await fn.apply(context, trs.args)

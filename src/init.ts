@@ -1,21 +1,21 @@
-import fs = require('fs');
-import path = require('path');
-import os = require('os');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { EventEmitter } from 'events';
-import http = require('http')
-import https = require('https');
+import * as http from 'http';
+import * as https from 'https';
 import * as socketio from 'socket.io';
-import ZSchema = require('z-schema');
-import ip = require('ip');
+import * as ZSchema from 'z-schema';
+import * as ip from 'ip';
 import * as express from 'express';
-import compression = require('compression');
+import * as compression from 'compression';
 import cors = require('cors');
 import * as _ from 'lodash';
-import bodyParser = require('body-parser');
-import methodOverride = require('method-override');
+import * as bodyParser from 'body-parser';
+import * as methodOverride from 'method-override';
 import Sequence from './utils/sequence';
 import Slots from './utils/slots';
-import queryParser = require('./utils/express-query-int');
+import queryParser from './utils/express-query-int';
 import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
 import { Block } from './base/block';
@@ -277,13 +277,13 @@ function network(options: any) {
   let sslServer;
   let sslio;
 
-  const app = express();
+  const expressApp = express();
 
-  app.use(compression({ level: 6 }));
-  app.use(cors());
-  app.options('*', cors());
+  expressApp.use(compression({ level: 6 }));
+  expressApp.use(cors());
+  expressApp.options('*', cors());
 
-  const server = http.createServer(app);
+  const server = http.createServer(expressApp);
   const io = socketio(server);
 
   if (options.appConfig.ssl.enabled) {
@@ -294,13 +294,13 @@ function network(options: any) {
       key: privateKey,
       cert: certificate,
       ciphers: CIPHERS,
-    }, app);
+    }, expressApp);
     sslio = socketio(sslServer);
   }
 
   return {
     express,
-    app,
+    app: expressApp,
     server,
     io,
     sslServer,

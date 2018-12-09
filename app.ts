@@ -125,10 +125,10 @@ function main() {
     pidFile,
   };
 
-  const app = new Application(options);
+  const application = new Application(options);
   (async () => {
     try {
-      await app.run();
+      await application.run();
     } catch (e) {
       console.log(e)
     }

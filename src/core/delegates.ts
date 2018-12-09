@@ -265,7 +265,7 @@ export default class Delegates {
     }
   
     try {
-      const delegates = app.sdb.getAll('Delegate')
+      const delegates = global.app.sdb.getAll('Delegate')
       if (!delegates || !delegates.length) {
         return 'Delegates not found in db'
       }
@@ -373,7 +373,7 @@ export default class Delegates {
   
   // fixme ?? : get method should not modify anything....
   public getDelegates = (query, cb) => {
-    let delegates = app.sdb.getAll('Delegate').map(d => Object.assign({}, d))
+    let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d))
     if (!delegates || !delegates.length) return cb('No delegates')
   
     delegates = delegates.sort(this.compare)
@@ -393,7 +393,7 @@ export default class Delegates {
       delegates[i].vote = delegates[i].votes
       delegates[i].missedblocks = delegates[i].missedBlocks
       delegates[i].producedblocks = delegates[i].producedBlocks
-      app.sdb.update('Delegate', delegates[i], { address: delegates[i].address })
+      global.app.sdb.update('Delegate', delegates[i], { address: delegates[i].address })
     }
     return cb(null, delegates)
   }
@@ -449,7 +449,7 @@ export default class Delegates {
   }
 
   getTopDelegates = () => {
-    const allDelegates = app.sdb.getAll('Delegate')
+    const allDelegates = global.app.sdb.getAll('Delegate')
     return allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101)
   }
 
@@ -464,7 +464,7 @@ export default class Delegates {
   }
 
   getBookkeeper = () => {
-    const item = app.sdb.get('Variable', this.BOOK_KEEPER_NAME)
+    const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME)
     if (!item) throw new Error('Bookkeeper variable not found')
 
     // TODO: ?? make field type as JSON
@@ -473,9 +473,9 @@ export default class Delegates {
 
   updateBookkeeper = (delegates) => {
     const value = JSON.stringify(delegates || this.getTopDelegates())
-    const { create } = app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
+    const { create } = global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
     if (!create) {
-      app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME })
+      global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME })
     }
   }
 
@@ -529,7 +529,7 @@ export default class Delegates {
     
     count: (req, cb) => (async () => {
       try {
-        const count = app.sdb.getAll('Delegate').length
+        const count = global.app.sdb.getAll('Delegate').length
         return cb(null, { count })
       } catch (e) {
         this.library.logger.error('get delegate count error', e)
@@ -555,11 +555,11 @@ export default class Delegates {
     
         return (async () => {
           try {
-            const votes = await app.sdb.findAll('Vote', { condition: { delegate: query.name } })
+            const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.name } })
             if (!votes || !votes.length) return cb(null, { accounts: [] })
     
             const addresses = votes.map(v => v.address)
-            const accounts = await app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
+            const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
             const lastBlock = this.modules.blocks.getLastBlock()
             const totalSupply = this.blockStatus.calcSupply(lastBlock.height)
             for (const a of accounts) {

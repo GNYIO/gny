@@ -1,5 +1,5 @@
 
-class AutoIncrement {
+export default class AutoIncrement {
   constructor(sdb) {
     this.sdb = sdb
   }
@@ -13,7 +13,7 @@ class AutoIncrement {
   increment(key) {
     let item = this.sdb.get('Variable', key)
     if (item) {
-      item.value = app.util.bignumber(item.value).plus(1).toString()
+      item.value = global.app.util.bignumber(item.value).plus(1).toString()
       this.sdb.update('Variable', { value: item.value }, key)
     } else {
       item = this.sdb.create('Variable', { key, value: '1' })
@@ -21,5 +21,3 @@ class AutoIncrement {
     return item.value
   }
 }
-
-module.exports = AutoIncrement

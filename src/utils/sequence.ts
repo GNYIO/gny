@@ -1,4 +1,4 @@
-import util = require('util');
+import { isArray } from 'util';
 import async = require('async');
 import * as constants from './constants';
 
@@ -56,7 +56,7 @@ export default class Sequence {
     }
     if (worker && typeof worker === 'function') {
       const task = { worker, done }
-      if (util.isArray(args)) {
+      if (isArray(args)) {
         task.args = args
       }
       task.counter = this.counter++

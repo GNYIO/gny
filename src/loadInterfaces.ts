@@ -62,7 +62,7 @@ let interfaceFiles: Array<Wrapper> = [
 export default async function loadInterfaces(routes) {
 
   for (const file of interfaceFiles) {
-    app.logger.info('loading interface', file)
+   global.app.logger.info('loading interface', file)
     const rw = new RouteWrapper()
     file.class(rw)
     const router1 = new Router()

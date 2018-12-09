@@ -93,11 +93,11 @@ export default class Loader {
         try {
           this.modules.transactions.clearUnconfirmed()
           if (toRemove > 0) {
-            await app.sdb.rollbackBlock(commonBlock.height)
-            this.modules.blocks.setLastBlock(app.sdb.lastBlock)
-            this.library.logger.debug('set new last block', app.sdb.lastBlock)
+            await global.app.sdb.rollbackBlock(commonBlock.height)
+            this.modules.blocks.setLastBlock(global.app.sdb.lastBlock)
+            this.library.logger.debug('set new last block', global.app.sdb.lastBlock)
           } else {
-            await app.sdb.rollbackBlock()
+            await global.app.sdb.rollbackBlock()
           }
         } catch (e) {
           this.library.logger.error('Failed to rollback block', e)
@@ -142,7 +142,7 @@ export default class Loader {
         this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${this.library.scheme.getLastError()}`)
       }
   
-      if (app.util.bignumber(lastBlock.height).lt(ret.height)) {
+      if (global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
         this.blocksToSync = ret.height
 
         if (lastBlock.id !== this.genesisBlock.block.id) {
@@ -247,7 +247,7 @@ export default class Loader {
       this.privSyncing = true
       const lastBlock = this.modules.blocks.getLastBlock()
       this.modules.transactions.clearUnconfirmed()
-      app.sdb.rollbackBlock().then(() => {
+      global.app.sdb.rollbackBlock().then(() => {
         this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err)
