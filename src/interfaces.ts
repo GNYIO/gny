@@ -27,6 +27,11 @@ import * as express from 'express'
 import { Server } from 'http'
 import * as SocketIO from 'socket.io'
 
+// IApp
+import { AschCore } from 'asch-smartdb';
+import BalanceManager from './smartdb/balance-manager'
+import AutoIncrement from './smartdb/auto-increment'
+
 declare interface IBase {
   bus: any;
   scheme: zSchema;
@@ -80,6 +85,19 @@ export interface INetwork {
   sslio?: SocketIO.Server;
 }
 
+interface IUtil {
+  address: any;
+  bignumber: any;
+  transactionMode: any;
+}
+
+interface IApp {
+  sdb: AschCore.SmartDB;
+  balances: BalanceManager;
+  autoID: AutoIncrement;
+  events: EventEmitter;
+  util: IUtil
+}
 
 
 declare global {
@@ -87,6 +105,7 @@ declare global {
     interface Global {
       library: Partial<IScope>;
       modules: Modules;
+      app: Partial<IApp>;
     }
   }
 }

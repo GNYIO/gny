@@ -10,7 +10,7 @@ function getCurrencyFlag(currency) {
   return 3
 }
 
-class BalanceManager {
+export default class BalanceManager {
   constructor(sdb) {
     this.sdb = sdb
   }
@@ -47,5 +47,3 @@ class BalanceManager {
     this.increase(to, currency, amount)
   }
 }
-
-module.exports = BalanceManager

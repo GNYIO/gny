@@ -1,5 +1,5 @@
 
-class AutoIncrement {
+export default class AutoIncrement {
   constructor(sdb) {
     this.sdb = sdb
   }
@@ -21,5 +21,3 @@ class AutoIncrement {
     return item.value
   }
 }
-
-module.exports = AutoIncrement

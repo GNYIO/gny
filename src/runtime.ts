@@ -7,19 +7,18 @@ import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import Slots from './utils/slots'
 import Router = require('./utils/router');
-import BalanceManager = require('./smartdb/balance-manager');
-import AutoIncrement = require('./smartdb/auto-increment');
+import BalanceManager from './smartdb/balance-manager';
+import AutoIncrement from  './smartdb/auto-increment';
 import transactionMode from './utils/transaction-mode';
 import loadModels from './loadModels'
 import loadContracts from './loadContracts'
 import loadInterfaces from './loadInterfaces'
 
-import address from './utils/address.js';
+import address from './utils/address';
 import * as bignumber from 'bignumber'
 
 const PIFY = util.promisify
 const slots = new Slots()
-
 
 function adaptSmartDBLogger(config) {
   const { LogLevel } = AschCore
@@ -188,12 +187,12 @@ export default async function runtime(options) {
   const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db')
 
   adaptSmartDBLogger(options.appConfig)
-  app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
-  app.balances = new BalanceManager(app.sdb)
-  app.autoID = new AutoIncrement(app.sdb)
-  app.events = new EventEmitter()
+  global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
+  global.app.balances = new BalanceManager(global.app.sdb)
+  global.app.autoID = new AutoIncrement(global.app.sdb)
+  global.app.events = new EventEmitter()
 
-  app.util = {
+  global.app.util = {
     address: address,
     bignumber: bignumber,
     transactionMode: transactionMode,
