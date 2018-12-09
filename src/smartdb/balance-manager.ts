@@ -22,7 +22,7 @@ export default class BalanceManager {
   }
 
   increase(address, currency, amount) {
-    if (app.util.bignumber(amount).eq(0)) return
+    if (global.app.util.bignumber(amount).eq(0)) return
     const key = { address, currency }
     let item = this.sdb.get('Balance', key)
     if (item) {

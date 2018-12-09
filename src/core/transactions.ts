@@ -284,7 +284,7 @@ class Transactions {
       // if (height > 6119128 &&
       //     global.app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
-      if (app.util.address.isAddress(senderId)
+      if (global.app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {
         throw new Error('Sender public key not provided')
       }

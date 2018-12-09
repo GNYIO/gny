@@ -12,7 +12,7 @@ async function isProposalApproved(pid, topic) {
   const votes = await global.app.sdb.findAll('ProposalVote', { condition: { pid } })
   let validVoteCount = 0
   for (const v of votes) {
-    if (app.isCurrentBookkeeper(v.voter)) {
+    if (global.app.isCurrentBookkeeper(v.voter)) {
       validVoteCount++
     }
   }
