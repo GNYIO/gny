@@ -5,7 +5,7 @@ const VALID_TOPICS = [
 async function validateAssetIssue(content) {
   if (!content || content.currency === undefined || content.amount === undefined) throw new Error('Invalid proposal content')
   if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(content.currency)) throw new Error('Invalid currency')
-  app.validate('amount', String(content.amount))
+  global.app.validate('amount', String(content.amount))
 }
 
 export default {

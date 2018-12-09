@@ -41,7 +41,7 @@ export default {
     if (!recipient) return 'Invalid recipient'
     // Verify amount should be positive integer
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
-    app.validate('amount', String(amount))
+    global.app.validate('amount', String(amount))
 
     amount = Number(amount)
     const sender = this.sender
@@ -50,7 +50,7 @@ export default {
 
     let recipientAccount
     // Validate recipient is valid address
-    if (recipient && app.util.address.isAddress(recipient)) {
+    if (recipient && global.app.util.address.isAddress(recipient)) {
       recipientAccount = await global.app.sdb.load('Account', recipient)
       if (recipientAccount) {
         global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address })
@@ -82,7 +82,7 @@ export default {
   },
 
   async setUserName(name) {
-    app.validate('name', name)
+    global.app.validate('name', name)
 
     const senderId = this.sender.address
     global.app.sdb.lock(`basic.account@${senderId}`)
@@ -97,9 +97,9 @@ export default {
   },
 
   async setPassword(publicKey) {
-    app.validate('publickey', publicKey)
+    global.app.validate('publickey', publicKey)
 
-    if (!app.util.address.isAddress(this.sender.address)) {
+    if (!global.app.util.address.isAddress(this.sender.address)) {
       return 'Invalid account type'
     }
     const senderId = this.sender.address
@@ -202,7 +202,7 @@ export default {
   },
 
   // async registerGroup(name, members, min, max, m, updateInterval) {
-  //   app.validate('name', name)
+  //   global.app.validate('name', name)
   //   // rule: min, max, m, updateInterval should be integer
   //   // rule：min >=3, min < max, updateInterval > 1
   //   if (!Number.isInteger(min) || min <= 0) return 'Min should be positive integer'
@@ -217,7 +217,7 @@ export default {
   //   for (const member of members) {
   //     // member.weight should be integer
   //     // member.address should have valid address format
-  //     app.validate('name', member.name)
+  //     global.app.validate('name', member.name)
   //     if (!Number.isInteger(member.weight) || member.weight <= 0) return 'Member weight should be positive integer'
   //     if (!app.util.address.isAddress(member.address)) {
   //       return 'Invalid member address'
@@ -225,7 +225,7 @@ export default {
   //   }
 
   //   if (await global.app.sdb.load('Account', { name })) return 'Name already registered'
-  //   const address = app.util.address.generateGroupAddress(name)
+  //   const address = global.app.util.address.generateGroupAddress(name)
   //   const account = await global.app.sdb.load('Account', address)
   //   if (!account) {
   //     global.app.sdb.create('Account', {
@@ -265,7 +265,7 @@ export default {
   //   const voteExist = await global.app.sdb.exists('Vote', { address: senderId })
   //   if (voteExist) return 'Account already voted'
 
-  //   sender.role = app.AccountRole.AGENT
+  //   sender.role = global.app.AccountRole.AGENT
   //   sender.isAgent = 1
   //   global.app.sdb.create('Agent', {
   //     name: sender.name,
@@ -284,7 +284,7 @@ export default {
   //   if (sender.agent) return 'Agent already set'
   //   if (!sender.isLocked) return 'Account is not locked'
 
-  //   app.validate('name', agent)
+  //   global.app.validate('name', agent)
 
   //   const agentAccount = await global.app.sdb.load('Account', { name: agent })
   //   if (!agentAccount) return 'Agent account not found'
@@ -344,8 +344,8 @@ export default {
       rewards: 0,
     })
     sender.isDelegate = 1
-    sender.role = app.AccountRole.DELEGATE
-    global.app.sdb.update('Account', { isDelegate: 1, role: app.AccountRole.DELEGATE }, { address: senderId })
+    sender.role = global.app.AccountRole.DELEGATE
+    global.app.sdb.update('Account', { isDelegate: 1, role: global.app.AccountRole.DELEGATE }, { address: senderId })
 
     return null
   },

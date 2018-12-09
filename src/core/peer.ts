@@ -124,7 +124,7 @@ export default class Peer {
       this.nodesDb = db
       db.persistence.setAutocompactionInterval(SAVE_PEERS_INTERVAL)
 
-      const errorHandler = (err) => err && app.logger.info('peer node index error', err)
+      const errorHandler = (err) => err && global.app.logger.info('peer node index error', err)
       db.ensureIndex({ fieldName: 'id' }, errorHandler)
       db.ensureIndex({ fieldName: 'seen' }, errorHandler)
     }
@@ -139,7 +139,7 @@ export default class Peer {
     let upsertNode = Object.assign({}, node)
     upsertNode.id = nodeId
     this.nodesDb.update({ id: nodeId }, upsertNode, { upsert: true }, (err, data) => {
-      if (err) app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`)
+      if (err) global.app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`)
       callback && callback(err, data)
     })
   }
@@ -148,7 +148,7 @@ export default class Peer {
     if (!nodeId) return
 
     this.nodesDb.remove({ id: nodeId }, (err, numRemoved) => {
-      if (err) app.logger.warn(`faild to remove node id (${nodeId})`)
+      if (err) global.app.logger.warn(`faild to remove node id (${nodeId})`)
       callback && callback(err, numRemoved)
     })
   }

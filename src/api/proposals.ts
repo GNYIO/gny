@@ -42,7 +42,7 @@ export default (router) => {
   router.get('/:pid/votes', async (req) => {
     const votes = await global.app.sdb.findAll('ProposalVote', { condition: { pid: req.params.pid } })
     const totalCount = votes.length
-    const validCount = votes.filter(v => app.isCurrentBookkeeper(v.voter)).length
+    const validCount = votes.filter(v => global.app.isCurrentBookkeeper(v.voter)).length
     if (totalCount > 0) {
       const voterAddresses = votes.map(v => v.voter)
       const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: voterAddresses } } })

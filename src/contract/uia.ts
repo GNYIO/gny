@@ -49,7 +49,7 @@ export default {
     if (desc.length > 4096) return 'Invalid asset description'
     if (!Number.isInteger(precision) || precision <= 0) return 'Precision should be positive integer'
     if (precision > 16 || precision < 0) return 'Invalid asset precision'
-    app.validate('amount', maximum)
+    global.app.validate('amount', maximum)
 
     const issuer = await global.app.sdb.findOne('Issuer', { condition: { issuerId: this.sender.address } })
     if (!issuer) return 'Account is not an issuer'
@@ -84,20 +84,20 @@ export default {
     const amount = content.amount
 
     if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name)) return 'Invalid currency'
-    app.validate('amount', amount)
+    global.app.validate('amount', amount)
     global.app.sdb.lock(`uia.issue@${name}`)
 
     const asset = await global.app.sdb.load('Asset', name)
     if (!asset) return 'Asset not exists'
     if (asset.issuerId !== this.sender.address) return 'Permission denied'
 
-    const quantity = app.util.bignumber(asset.quantity).plus(amount)
+    const quantity = global.app.util.bignumber(asset.quantity).plus(amount)
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit'
 
     asset.quantity = quantity.toString(10)
     global.app.sdb.update('Asset', { quantity: asset.quantity }, { name })
 
-    app.balances.increase(this.sender.address, name, amount)
+    global.app.balances.increase(this.sender.address, name, amount)
     global.app.sdb.update('Proposal', { activated: 1 }, { tid: pid })
     return null
   },
@@ -107,14 +107,14 @@ export default {
     if (!recipient || recipient.length > 50) return 'Invalid recipient'
     // if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(currency)) return 'Invalid currency'
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
-    app.validate('amount', String(amount))
+    global.app.validate('amount', String(amount))
     const senderId = this.sender.address
-    const balance = app.balances.get(senderId, currency)
+    const balance = global.app.balances.get(senderId, currency)
     if (balance.lt(amount)) return 'Insufficient balance'
 
     let recipientAddress
     let recipientName = ''
-    if (recipient && app.util.address.isAddress(recipient)) {
+    if (recipient && global.app.util.address.isAddress(recipient)) {
       recipientAddress = recipient
     } else {
       recipientName = recipient
@@ -123,7 +123,7 @@ export default {
       recipientAddress = recipientAccount.address
     }
 
-    app.balances.transfer(currency, amount, senderId, recipientAddress)
+    global.app.balances.transfer(currency, amount, senderId, recipientAddress)
     global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,

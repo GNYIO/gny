@@ -282,7 +282,7 @@ class Transactions {
       if (requestorId) throw new Error('RequestId should not be provided')
       // HARDCODE_HOT_FIX_BLOCK_6119128
       // if (height > 6119128 &&
-      //     app.util.address.isAddress(senderId) &&
+      //     global.app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
       if (app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {

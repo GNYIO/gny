@@ -121,7 +121,7 @@ interface IApp {
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
-  validate: (type: string, value: any, constraints: IValidatorConstraints) => void | never;
+  validate: (type: string, value: any, constraints?: IValidatorConstraints) => void | never;
   registerContract: (type: number, name: string) => void;
   getContractName: (type: string) => any;
   contractTypeMapping: {

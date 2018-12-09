@@ -18,7 +18,7 @@ export default class BalanceManager {
   get(address, currency) {
     const item = this.sdb.get('Balance', { address, currency })
     const balance = item ? item.balance : '0'
-    return app.util.bignumber(balance)
+    return global.app.util.bignumber(balance)
   }
 
   increase(address, currency, amount) {
@@ -26,7 +26,7 @@ export default class BalanceManager {
     const key = { address, currency }
     let item = this.sdb.get('Balance', key)
     if (item) {
-      item.balance = app.util.bignumber(item.balance).plus(amount).toString(10)
+      item.balance = global.app.util.bignumber(item.balance).plus(amount).toString(10)
       global.app.sdb.update('Balance', { balance: item.balance }, key)
     } else {
       item = this.sdb.create('Balance', {

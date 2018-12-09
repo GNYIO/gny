@@ -16,7 +16,7 @@ function getContractName(fileName: string) {
 
 function addContract(contract: ModuleWrapper) {
   if (contract.name !== 'index.js') {
-    app.contract[contract.name] = contract.module
+    global.app.contract[contract.name] = contract.module
   }
 }
 

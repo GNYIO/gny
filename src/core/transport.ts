@@ -68,7 +68,6 @@ export default class Transport {
       return (async () => {
         try {
           let blocks = await global.app.sdb.getBlocksByHeightRange(min, max)
-          // app.logger.trace('find common blocks in database', blocks)
           if (!blocks || !blocks.length) {
             return res.status(500).send({ success: false, error: 'Blocks not found' })
           }
