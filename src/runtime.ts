@@ -132,7 +132,7 @@ export default async function runtime(options) {
     global.app.hooks[name] = func
   }
 
-  app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
+  global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
 
   app.executeContract = async (context) => {
     context.activating = 1
