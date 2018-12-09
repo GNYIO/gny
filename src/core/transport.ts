@@ -85,7 +85,7 @@ export default class Transport {
           }
           return res.send({ success: true, common: commonBlock })
         } catch (e) {
-          app.logger.error(`Failed to find common block: ${e}`)
+         global.app.logger.error(`Failed to find common block: ${e}`)
           return res.send({ success: false, error: 'Failed to find common block' })
         }
       })()
@@ -111,7 +111,7 @@ export default class Transport {
           const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true)
           return res.send({ blocks })
         } catch (e) {
-          app.logger.error('Failed to get blocks or transactions', e)
+         global.app.logger.error('Failed to get blocks or transactions', e)
           return res.send({ blocks: [] })
         }
       })()

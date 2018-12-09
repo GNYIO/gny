@@ -263,7 +263,7 @@ export default class Blocks {
   }
 
   public applyBlock = async (block: any) => {
-    app.logger.trace('enter applyblock')
+   global.app.logger.trace('enter applyblock')
     const appliedTransactions: any = {}
   
     try {
@@ -277,7 +277,7 @@ export default class Blocks {
         appliedTransactions[transaction.id] = transaction
       }
     } catch (e) {
-      app.logger.error(e)
+     global.app.logger.error(e)
       await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to apply block: ${e}`)
     }
@@ -327,11 +327,11 @@ export default class Blocks {
         throw new Error('Block contain already confirmed transaction')
       }
   
-      app.logger.trace('before applyBlock')
+     global.app.logger.trace('before applyBlock')
       try {
         await this.applyBlock(block, options)
       } catch (e) {
-        app.logger.error(`Failed to apply block: ${e}`)
+       global.app.logger.error(`Failed to apply block: ${e}`)
         throw e
       }
     }
@@ -341,7 +341,7 @@ export default class Blocks {
       await this.applyRound(block)
       await global.app.sdb.commitBlock()
       const trsCount = block.transactions.length
-      app.logger.info(`Block applied correctly with ${trsCount} transactions`)
+     global.app.logger.info(`Block applied correctly with ${trsCount} transactions`)
       this.setLastBlock(block)
   
       if (options.broadcast) {
@@ -350,8 +350,8 @@ export default class Blocks {
       }
       this.library.bus.message('processBlock', block)
     } catch (e) {
-      app.logger.error(block)
-      app.logger.error('save block error: ', e)
+     global.app.logger.error(block)
+     global.app.logger.error('save block error: ', e)
       await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to save block: ${e}`)
     } finally {
@@ -364,12 +364,12 @@ export default class Blocks {
   }
 
   public saveBlockTransactions = (block: any) => {
-    app.logger.trace('Blocks#saveBlockTransactions height', block.height)
+   global.app.logger.trace('Blocks#saveBlockTransactions height', block.height)
     for (const trs of block.transactions) {
       trs.height = block.height
       global.app.sdb.create('Transaction', trs)
     }
-    app.logger.trace('Blocks#save transactions')
+   global.app.logger.trace('Blocks#save transactions')
   }
 
 
@@ -399,10 +399,10 @@ export default class Blocks {
   
     if (block.height % 101 !== 0) return
   
-    app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
+   global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
     const delegates = this.modules.delegates.generateDelegateList(block.height)
-    app.logger.debug('delegate length', delegates.length)
+   global.app.logger.debug('delegate length', delegates.length)
   
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate]
@@ -1005,7 +1005,7 @@ public isHealthy = () => {
     return (async () => {
       try {
         const count = global.app.sdb.blocksCount
-        app.logger.info('Blocks found:', count)
+       global.app.logger.info('Blocks found:', count)
         if (!count) {
           this.setLastBlock({ height: -1 })
           await this.processBlock(this.genesisBlock.block, {})
@@ -1015,7 +1015,7 @@ public isHealthy = () => {
         }
         this.library.bus.message('blockchainReady')
       } catch (e) {
-        app.logger.error('Failed to prepare local blockchain', e)
+       global.app.logger.error('Failed to prepare local blockchain', e)
         process.exit(0)
       }
     })()

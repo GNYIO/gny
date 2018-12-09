@@ -66,9 +66,9 @@ export default class Peer {
       try {
         lastNodes = await promisify(this.initNodesDb)(peerNodesDbPath)
         lastNodes = lastNodes || []
-        app.logger.debug(`load last node peers success, ${JSON.stringify(lastNodes)}`)
+       global.app.logger.debug(`load last node peers success, ${JSON.stringify(lastNodes)}`)
       } catch (e) {
-        app.logger.error('Last nodes not found', e)
+       global.app.logger.error('Last nodes not found', e)
       }
     }
     const bootstrapNodes = this.getBootstrapNodes(

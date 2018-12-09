@@ -169,7 +169,7 @@ class Transactions {
         if (!transactions) transactions = []
         return cb(null, { transactions, count })
       } catch (e) {
-        app.logger.error('Failed to get transactions', e)
+       global.app.logger.error('Failed to get transactions', e)
         return cb(`System error: ${e}`)
       }
     })()
@@ -563,7 +563,7 @@ class Transactions {
             const transactions = await this.tranfersToAPIV1Transactions(transfer, block)
             return cb(null, { transactions, count })
           } catch (e) {
-            app.logger.error('Failed to get transactions', e)
+           global.app.logger.error('Failed to get transactions', e)
             return cb(`System error: ${e}`)
           }
         })()
