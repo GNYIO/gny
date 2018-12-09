@@ -3,7 +3,7 @@ import crypto = require('crypto');
 import async = require('async');
 import PIFY = require('pify')
 import isArray = require('util').isArray;
-import * as constants from '../utils/constants.js'
+import * as constants from '../utils/constants'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
 import Slots from '../utils/slots';

@@ -1,6 +1,6 @@
 import crypto = require('crypto');
 import { isArray } from 'util';
-import * as ed from '../utils/ed.js';
+import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
