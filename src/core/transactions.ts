@@ -6,36 +6,32 @@ import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 
-const priv = {}
-
-priv.unconfirmedNumber = 0
-priv.unconfirmedTransactions = []
-priv.unconfirmedTransactionsIdIndex = {}
-
 class TransactionPool {
+  private index: Map<any, any>;
+  private unConfirmed: any[];
   constructor() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  add(trs) {
+  public add(trs: any) {
     this.unConfirmed.push(trs)
     this.index.set(trs.id, this.unConfirmed.length - 1)
   }
 
-  remove(id) {
+  public remove(id: string) {
     const pos = this.index.get(id)
     delete this.index[id]
     this.unConfirmed[pos] = null
   }
 
-  has(id) {
+  public has(id: string) {
     const pos = this.index.get(id)
     return pos !== undefined && !!this.unConfirmed[pos]
   }
 
-  getUnconfirmed() {
-    const a = []
+  public getUnconfirmed() {
+    const a: any[] = []
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {
@@ -45,12 +41,12 @@ class TransactionPool {
     return a
   }
 
-  clear() {
+  public clear() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  get(id) {
+  public get(id: string) {
     const pos = this.index.get(id)
     return this.unConfirmed[pos]
   }
