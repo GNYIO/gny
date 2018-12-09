@@ -304,7 +304,7 @@ class Transactions {
     }
 
     if (requestorId) {
-      if (!app.util.address.isAddress(requestorId)) {
+      if (!global.app.util.address.isAddress(requestorId)) {
         throw new Error('Invalid requestor address')
       }
 

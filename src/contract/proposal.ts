@@ -36,7 +36,7 @@ export default {
   },
 
   async vote(pid) {
-    if (!app.isCurrentBookkeeper(this.sender.address)) return 'Permission denied'
+    if (!global.app.isCurrentBookkeeper(this.sender.address)) return 'Permission denied'
     const proposal = await global.app.sdb.findOne('Proposal', { condition: { tid: pid } })
     if (!proposal) return 'Proposal not found'
     // if (this.block.height - proposal.height > 8640 * 30) return 'Proposal expired'

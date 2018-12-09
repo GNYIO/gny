@@ -219,7 +219,7 @@ export default {
   //     // member.address should have valid address format
   //     global.app.validate('name', member.name)
   //     if (!Number.isInteger(member.weight) || member.weight <= 0) return 'Member weight should be positive integer'
-  //     if (!app.util.address.isAddress(member.address)) {
+  //     if (!global.app.util.address.isAddress(member.address)) {
   //       return 'Invalid member address'
   //     }
   //   }
