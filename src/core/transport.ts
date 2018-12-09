@@ -1,10 +1,12 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router from '../utils/router';
-import slots = require('../utils/slots');
+import Slots from '../utils/slots';
+
+const slots = new Slots()
 
 export default class Transport {
-  private library: any;
+  private readonly library: any;
   private latestBlocksCache: any = new LRU(200)
   private blockHeaderMidCache: any = new LRU(1000)
   
@@ -372,6 +374,7 @@ export default class Transport {
   }
 
   public cleanup = (cb: any) => {
+    this.library.logger.debug('Cleaning up core/transport')
     this.loaded = false
     cb()
   }

@@ -67,9 +67,6 @@
     "src/**/*[.ts|.js]",
     "src/*[.ts|.js]",
     "app.ts",
-    "app-alt.ts",
     "index.ts",
-    "proto",
-    "data"
   ]
 }

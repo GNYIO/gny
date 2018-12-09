@@ -1,6 +1,7 @@
 import { EPOCH_TIME, INTERVAL, DELEGATES } from './constants';
 
 export default class Slots {
+  public delegates = DELEGATES;
   constructor() {}
 
   getEpochTime(time: number | undefined) {
@@ -23,7 +24,7 @@ export default class Slots {
     return start + epochTime * 1000;
   }
 
-  getSlotNumber(epochTime: number | undefined) {
+  getSlotNumber(epochTime?: number) {
     if (epochTime === undefined) {
       epochTime = this.getTime(undefined);
     }

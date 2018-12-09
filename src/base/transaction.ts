@@ -1,11 +1,13 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import feeCalculators from '../utils/calculate-fee';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
+
+const slots = new Slots()
 
 export class Transaction {
   constructor(public scope: any) {}
@@ -35,13 +37,17 @@ export class Transaction {
 
   sign(keypair, transaction) {
     const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
-    return ed.sign(hash, keypair).toString('hex')
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    return ed.sign(hash, privateKeyBuffer).toString('hex')
   }
 
   multisign(keypair, transaction) {
     const bytes = this.getBytes(transaction, true, true)
     const hash = crypto.createHash('sha256').update(bytes).digest()
-    return ed.sign(hash, keypair).toString('hex')
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    return ed.sign(hash, privateKeyBuffer).toString('hex')
   }
 
   getId(transaction) {

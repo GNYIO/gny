@@ -6,9 +6,9 @@ import Router from '../utils/router';
 import * as addressHelper from '../utils/address';
 
 export default class Account {
-  modules: any;
-  library: any;
-  shared = {};
+  private modules: any;
+  private readonly library: any;
+  private shared = {};
 
   constructor(scope: any) {
     this.library = scope;
@@ -17,7 +17,7 @@ export default class Account {
 
   openAccount(passphrase) {
     const hash = crypto.createHash('sha256').update(passphrase, 'utf8').digest();
-    const keyPair = ed.MakeKeypair(hash);
+    const keyPair = ed.generateKeyPair(hash);
     const publicKey = keyPair.publicKey.toString('hex');
     const address = this.generateAddressByPublicKey(publicKey);
 
@@ -51,7 +51,8 @@ export default class Account {
     return addressHelper.generateAddress(publicKey);
   }
 
-  onBind(scope: any) {
+  // Events
+  onBind = (scope) => {
     this.modules = scope;
   }
 
@@ -61,7 +62,7 @@ export default class Account {
       ent = 128;
     }
     const secret = new Mnemonic(ent).toString();
-    const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+    const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
     const address = this.generateAddressByPublicKey(keypair.publicKey);
     return {
       secret,
@@ -186,7 +187,7 @@ export default class Account {
         return err[0].message;
       }
 
-      const kp = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+      const kp = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
       const publicKey = kp.publicKey.toString('hex');
       return { publicKey };
     });

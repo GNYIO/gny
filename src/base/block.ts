@@ -130,11 +130,13 @@ export class Block {
 
   sign(block, keypair) {
     const hash = this.calculateHash(block);
-    return ed.sign(hash, keypair).toString('hex');
+    let privateKey = Buffer.from(keypair.privateKey, 'hex')
+    return ed.sign(hash, privateKey).toString('hex');
   }
 
   private calculateHash(block) {
-    return crypto.createHash('sha256').update(this.serialize(block)).digest();
+    let bytes = this.getBytes(block)
+    return crypto.createHash('sha256').update(bytes).digest();
   }
 
   serialize(block, skipSignature?) {

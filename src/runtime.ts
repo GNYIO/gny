@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
-import slots = require('./utils/slots');
+import Slots from './utils/slots'
 import Router = require('./utils/router');
 import BalanceManager = require('./smartdb/balance-manager');
 import AutoIncrement = require('./smartdb/auto-increment');
@@ -15,9 +15,10 @@ import loadContracts from './loadContracts'
 import loadInterfaces from './loadInterfaces'
 
 import address from './utils/address.js';
-import bignumber from 'bignumber'
+import * as bignumber from 'bignumber'
 
 const PIFY = util.promisify
+const slots = new Slots()
 
 
 function adaptSmartDBLogger(config) {

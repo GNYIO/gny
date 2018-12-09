@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 const protocolBuffers = require('protocol-buffers');
 
-class Protobuf {
+export class Protobuf {
   public schema;
 
   constructor(schema) {
@@ -48,8 +48,8 @@ class Protobuf {
   encodeBlockVotes(obj) {
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i]
-      signature.key = Buffer.from(signature.key, 'hex')
-      signature.sig = Buffer.from(signature.sig, 'hex')
+      signature.key = Buffer.from(signature.publicKey, 'hex')
+      signature.sig = Buffer.from(signature.signature, 'hex')
     }
     return this.schema.BlockVotes.encode(obj)
   }

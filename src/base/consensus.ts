@@ -2,8 +2,10 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as ip from 'ip';
+
+const slots = new Slots()
 
 export class Consensus {
   public pendingBlock: any = null;
@@ -23,9 +25,10 @@ export class Consensus {
       signatures: [],
     }
     keypairs.forEach((kp) => {
+      let privateKeyBuffer = Buffer.from(kp.privateKey, 'hex')
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
-        signature: ed.sign(hash, kp).toString('hex'),
+        signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
       })
     })
     return votes
@@ -115,7 +118,10 @@ export class Consensus {
 
     const hash = this.getProposeHash(propose)
     propose.hash = hash.toString('hex')
-    propose.signature = ed.sign(hash, keypair).toString('hex')
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex')
+
     return propose
   }
 

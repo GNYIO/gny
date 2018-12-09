@@ -1,11 +1,13 @@
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
+
+const slots = new Slots()
 
 export default class Loader {
   private isLoaded: boolean = false;
   private privSyncing: boolean = false;
-  private library: any;
+  private readonly library: any;
   private modules: any;
   private genesisBlock: any;
   private loadingLastBlock: any = null;
@@ -146,7 +148,7 @@ export default class Loader {
         if (lastBlock.id !== this.genesisBlock.block.id) {
           return this.findUpdate(lastBlock, peer, cb)
         }
-        // return this.loadFullDb(peer, cb)
+        return this.loadFullDb(peer, cb)
       }
       return cb()
     })
@@ -289,6 +291,7 @@ export default class Loader {
   }
 
   public cleanup = (cb: any) => {
+    this.library.logger.debug('Cleaning up core/loader')
     this.isLoaded = false
     cb()
   }

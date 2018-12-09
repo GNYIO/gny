@@ -6,14 +6,16 @@ import isArray = require('util').isArray;
 import * as constants from '../utils/constants.js'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
-import slots = require('../utils/slots');
+import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+
+const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;
   private modules: any;
-  private library: any;
+  private readonly library: any;
 
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();
@@ -392,14 +394,14 @@ export default class Blocks {
       }
     }
   
-    const roundNumber = this.modules.round.calc(block.height)
+    const roundNumber = this.modules.round.calculateRound(block.height)
     const { fees, rewards } = this.increaseRoundData({ fees: transFee, rewards: block.reward }, roundNumber)
   
     if (block.height % 101 !== 0) return
   
     app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
-    const delegates = modules.delegates.generateDelegateList(block.height)
+    const delegates = this.modules.delegates.generateDelegateList(block.height)
     app.logger.debug('delegate length', delegates.length)
   
     const forgedBlocks = await app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
@@ -491,7 +493,7 @@ export default class Blocks {
           limit,
           lastBlockId: lastCommonBlockId,
         }
-        modules.peer.request('blocks', params, peer, (err, body) => {
+        this.modules.peer.request('blocks', params, peer, (err, body) => {
           if (err) {
             return next(`Failed to request remote peer: ${err}`)
           }
@@ -581,7 +583,7 @@ export default class Blocks {
     if (this.library.base.consensus.hasEnoughVotes(localVotes)) {
       this.modules.transactions.clearUnconfirmed()
       await this.processBlock(block, { local: true, broadcast: true, votes: localVotes })
-      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
       return null
     }
     if (!this.library.config.publicIp) {
@@ -619,7 +621,7 @@ export default class Blocks {
     if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
-        ` round: ${this.modules.round.calc(this.modules.blocks.getLastBlock().height)}` +
+        ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
         ` slot: ${slots.getSlotNumber(block.timestamp)}`)
       return (async () => {
         const pendingTrsMap = new Map()
@@ -758,11 +760,11 @@ public onReceiveVotes = (votes: any) => {
         try {
           this.modules.transactions.clearUnconfirmed()
           await this.processBlock(block, { votes: totalVotes, local: true, broadcast: true })
-          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
         } catch (err) {
           this.library.logger.error(`Failed to process confirmed block height: ${height} id: ${id} error: ${err}`)
         }
-        cb()
+        cb() 
       })()
     }
     return setImmediate(cb)
@@ -790,6 +792,7 @@ public isHealthy = () => {
 
 
   cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/blocks')
     this.loaded = false
     cb()
   }

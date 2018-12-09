@@ -46,7 +46,9 @@ export default class Application {
 
       try {
         for (let key in scope.modules) {
-          scope.modules[key].cleanup(cb);
+          if (scope.modules[key].hasOwnProperty('cleanup')) {
+            scope.modules[key].cleanup(cb);
+          }
         }
         global.app.sdb.close();
         scope.logger.info('Clean up successfully.');

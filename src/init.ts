@@ -4,17 +4,17 @@ import os = require('os');
 import { EventEmitter } from 'events';
 import http = require('http')
 import https = require('https');
-import socketio = require('socket.io');
+import * as socketio from 'socket.io';
 import ZSchema = require('z-schema');
 import ip = require('ip');
-import express = require('express');
+import * as express from 'express';
 import compression = require('compression');
 import cors = require('cors');
 import * as _ from 'lodash';
 import bodyParser = require('body-parser');
 import methodOverride = require('method-override');
-import Sequence = require('./utils/sequence');
-import slots = require('./utils/slots');
+import Sequence from './utils/sequence';
+import Slots from './utils/slots';
 import queryParser = require('./utils/express-query-int');
 import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
@@ -22,6 +22,9 @@ import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
+import { IScope, IMessageEmitter } from './interfaces'
+
+const slots = new Slots()
 
 
 const CIPHERS = `
@@ -56,11 +59,9 @@ function isNumberOrNumberString(value) {
   return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
     || String(parseInt(value, 10)) !== String(value))
 }
-const modules = [];
-
 
 async function init_alt(options: any) {
-  let scope = {};
+  let scope : Partial<IScope> = {};
   const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
@@ -179,13 +180,15 @@ async function init_alt(options: any) {
     scope.connect = scope.network;
   }
 
-  scope.base = {};
-  scope.base.bus = scope.bus;
-  scope.base.scheme = scope.scheme;
-  scope.base.genesisBlock = scope.genesisBlock;
-  scope.base.consensus = new Consensus(scope);
-  scope.base.transaction = new Transaction(scope);
-  scope.base.block = new Block(scope);
+  scope.base = {
+    bus: scope.bus,
+    scheme: scope.scheme,
+    genesisBlock: scope.genesisBlock,
+    consensus: new Consensus(scope),
+    transaction: new Transaction(scope),
+    block: new Block(scope),
+  };
+
 
   global.library = scope;
 
@@ -196,18 +199,13 @@ async function init_alt(options: any) {
     if (err) return console.log(err);
     // console.log(result);
   }
-  scope.modules = {};
 
-  loadedModules.forEach(mod => {
-    scope.logger.debug(`loading Module... ${mod.name}`)
-    let obj = new mod.class(scope);
-    modules.push(obj);
-    scope.modules[mod.name] = obj
-  })
+  scope.modules = loadedModules(scope)
 
-  class Bus extends EventEmitter {
-    message(topic, ...restArgs) {
-      modules.forEach((module) => {
+  class Bus extends EventEmitter implements IMessageEmitter {
+    message(topic: string, ...restArgs) {
+      Object.keys(scope.modules).forEach((moduleName) => {
+        const module = scope.modules[moduleName]
         const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);
