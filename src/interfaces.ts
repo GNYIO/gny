@@ -31,6 +31,7 @@ import * as SocketIO from 'socket.io'
 import { AschCore } from 'asch-smartdb';
 import BalanceManager from './smartdb/balance-manager'
 import AutoIncrement from './smartdb/auto-increment'
+import * as bignumber from 'bignumber'
 
 declare interface IBase {
   bus: any;
@@ -87,8 +88,22 @@ export interface INetwork {
 
 interface IUtil {
   address: any;
-  bignumber: any;
+  bignumber: bignumber;
   transactionMode: any;
+}
+
+interface IValidatorConstraints {
+  length?: number;
+  isEmail?: boolean;
+  url?: boolean;
+  number?: boolean;
+}
+
+interface IValidators {
+  amount: (amount: any) => string;
+  name: (amount: any) => string;
+  publickey: (value: any) => string;
+  string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
 interface IApp {
@@ -96,7 +111,14 @@ interface IApp {
   balances: BalanceManager;
   autoID: AutoIncrement;
   events: EventEmitter;
-  util: IUtil
+  util: IUtil;
+  validators: IValidators;
+  validate: (type: string, value: any, constraints: IValidatorConstraints) => void | never;
+  registerContract: (type: number, name: string) => void;
+  getContractName: (type: string) => any
+  contractTypeMapping: {
+    [type: string]: string;
+  }
 }
 
 

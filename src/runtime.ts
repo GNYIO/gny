@@ -58,7 +58,7 @@ export default async function runtime(options) {
     custom: {},
     logger: options.logger,
   };
-  app.validators = {
+  global.app.validators = {
     amount: (amount) => {
       if (typeof amount !== 'string') return 'Invalid amount type'
       if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer'
@@ -98,16 +98,16 @@ export default async function runtime(options) {
       return null
     },
   }
-  app.validate = (type, value, constraints) => {
-    if (!app.validators[type]) throw new Error(`Validator not found: ${type}`)
-    const error = app.validators[type](value, constraints)
+  global.app.validate = (type, value, constraints) => {
+    if (!global.app.validators[type]) throw new Error(`Validator not found: ${type}`)
+    const error = global.app.validators[type](value, constraints)
     if (error) throw new Error(error)
   }
-  app.registerContract = (type, name) => {
+  global.app.registerContract = (type, name) => {
     // if (type < 1000) throw new Error('Contract types that small than 1000 are reserved')
-    app.contractTypeMapping[type] = name
+    global.app.contractTypeMapping[type] = name
   }
-  app.getContractName = type => app.contractTypeMapping[type]
+  global.app.getContractName = type => global.app.contractTypeMapping[type]
 
   app.registerFee = (type, min, currency) => {
     app.feeMapping[type] = {
@@ -202,16 +202,16 @@ export default async function runtime(options) {
   await loadContracts()
   await loadInterfaces(options.library.network.app)
 
-  app.contractTypeMapping[0] = 'basic.transfer'
-  app.contractTypeMapping[1] = 'basic.setUserName'
-  app.contractTypeMapping[2] = 'basic.setSecondPassphrase'
-  app.contractTypeMapping[3] = 'basic.lock'
-  app.contractTypeMapping[4] = 'basic.vote'
-  app.contractTypeMapping[5] = 'basic.unvote'
-  app.contractTypeMapping[10] = 'basic.registerDelegate'
+  global.app.contractTypeMapping[0] = 'basic.transfer'
+  global.app.contractTypeMapping[1] = 'basic.setUserName'
+  global.app.contractTypeMapping[2] = 'basic.setSecondPassphrase'
+  global.app.contractTypeMapping[3] = 'basic.lock'
+  global.app.contractTypeMapping[4] = 'basic.vote'
+  global.app.contractTypeMapping[5] = 'basic.unvote'
+  global.app.contractTypeMapping[10] = 'basic.registerDelegate'
 
-  app.contractTypeMapping[100] = 'uia.registerIssuer'
-  app.contractTypeMapping[101] = 'uia.registerAsset'
-  app.contractTypeMapping[102] = 'uia.issue'
-  app.contractTypeMapping[103] = 'uia.transfer'
+  global.app.contractTypeMapping[100] = 'uia.registerIssuer'
+  global.app.contractTypeMapping[101] = 'uia.registerAsset'
+  global.app.contractTypeMapping[102] = 'uia.issue'
+  global.app.contractTypeMapping[103] = 'uia.transfer'
 }
