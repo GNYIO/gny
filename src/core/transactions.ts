@@ -164,8 +164,8 @@ class Transactions {
 
     (async () => {
       try {
-        const count = await app.sdb.count('Transaction', condition)
-        let transactions = await app.sdb.find('Transaction', condition, { limit, offset })
+        const count = await global.app.sdb.count('Transaction', condition)
+        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset })
         if (!transactions) transactions = []
         return cb(null, { transactions, count })
       } catch (e) {
@@ -180,7 +180,7 @@ class Transactions {
       try {
         if (!req.params || !req.params.id) return cb('Invalid transaction id')
         const id = req.params.id
-        const trs = await app.sdb.find('Transaction', { id })
+        const trs = await global.app.sdb.find('Transaction', { id })
         if (!trs || !trs.length) return cb('Transaction not found')
         return cb(null, { transaction: trs[0] })
       } catch (e) {
@@ -246,7 +246,7 @@ class Transactions {
       if (this.pool.has(transaction.id)) {
         throw new Error('Transaction already in the pool')
       }
-      const exists = await app.sdb.exists('Transaction', { id: transaction.id })
+      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id })
       if (exists) {
         throw new Error('Transaction already confirmed')
       }
@@ -293,10 +293,10 @@ class Transactions {
     }
 
     let requestor = null
-    let sender = await app.sdb.load('Account', senderId)
+    let sender = await global.app.sdb.load('Account', senderId)
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found')
-      sender = app.sdb.create('Account', {
+      sender = global.app.sdb.create('Account', {
         address: senderId,
         name: null,
         gny: 0,
@@ -308,7 +308,7 @@ class Transactions {
         throw new Error('Invalid requestor address')
       }
 
-      requestor = await app.sdb.load('Account', requestorId)
+      requestor = await global.app.sdb.load('Account', requestorId)
       if (!requestor) {
         throw new Error('Requestor account not found')
       }
@@ -336,11 +336,11 @@ class Transactions {
     }
 
     try {
-      app.sdb.beginContract()
+      global.app.sdb.beginContract()
       await this.library.base.transaction.apply(context)
-      app.sdb.commitContract()
+      global.app.sdb.commitContract()
     } catch (e) {
-      app.sdb.rollbackContract()
+      global.app.sdb.rollbackContract()
       this.library.logger.error(e)
       throw e
     }
@@ -358,7 +358,7 @@ class Transactions {
 
       let transMap = new Map()
       let transIds = transferArray.map(t => t.tid)
-      let transArray = await app.sdb.find('Transaction', { id: { $in: transIds } })
+      let transArray = await global.app.sdb.find('Transaction', { id: { $in: transIds } })
       transArray.forEach((t: any) => transMap.set(t.id, t))
 
       transferArray.forEach(transfer => {
@@ -550,14 +550,14 @@ class Transactions {
           try {
             let block
             if (query.blockId) {
-              block = await app.sdb.getBlockById(query.blockId)
+              block = await global.app.sdb.getBlockById(query.blockId)
               if (block === undefined) {
                 return cb(null, { transactions: [], count: 0 })
               }
               condition.height = block.height
             }
-            const count = await app.sdb.count('Transfer', condition)
-            let transfer = await app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset })
+            const count = await global.app.sdb.count('Transfer', condition)
+            let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset })
             if (!transfer) transfer = []
             block = this.modules.blocks.toAPIV1Block(block)
             const transactions = await this.tranfersToAPIV1Transactions(transfer, block)

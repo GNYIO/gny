@@ -67,7 +67,7 @@ export default class Transport {
       const ids = body.ids
       return (async () => {
         try {
-          let blocks = await app.sdb.getBlocksByHeightRange(min, max)
+          let blocks = await global.app.sdb.getBlocksByHeightRange(min, max)
           // app.logger.trace('find common blocks in database', blocks)
           if (!blocks || !blocks.length) {
             return res.status(500).send({ success: false, error: 'Blocks not found' })
@@ -103,7 +103,7 @@ export default class Transport {
       }
       return (async () => {
         try {
-          const lastBlock = await app.sdb.getBlockById(lastBlockId)
+          const lastBlock = await global.app.sdb.getBlockById(lastBlockId)
           if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`)
 
           const minHeight = lastBlock.height + 1

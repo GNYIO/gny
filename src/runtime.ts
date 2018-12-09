@@ -33,7 +33,7 @@ function adaptSmartDBLogger(config) {
   }
 
   AschCore.LogManager.logFactory = {
-    createLog: () => app.logger,
+    createLog: () => global.app.logger,
     format: false,
     getLevel: () => {
       const appLogLevel = String(config.logLevel).toLocaleLowerCase()

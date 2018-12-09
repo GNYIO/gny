@@ -213,13 +213,13 @@ export class Transaction {
         requestor.gny -= requestorFee
         app.addRoundFee(requestorFee, modules.round.calc(block.height))
         // transaction.executed = 0
-        app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
-        app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address })
+        global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 })
+        global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address })
         return
       }
       if (sender.gny < trs.fee) throw new Error('Insufficient sender balance')
       sender.gny -= trs.fee
-      app.sdb.update('Account', { gny: sender.gny }, { address: sender.address })
+      global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address })
     }
   
     const error = await fn.apply(context, trs.args)

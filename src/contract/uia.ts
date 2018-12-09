@@ -1,6 +1,6 @@
 
 async function isProposalApproved(pid, topic) {
-  const proposal = await app.sdb.load('Proposal', pid)
+  const proposal = await global.app.sdb.load('Proposal', pid)
   if (!proposal) throw new Error('Proposal not found')
 
   if (topic !== proposal.topic) {
@@ -9,7 +9,7 @@ async function isProposalApproved(pid, topic) {
 
   if (proposal.activated) return 'Already activated'
 
-  const votes = await app.sdb.findAll('ProposalVote', { condition: { pid } })
+  const votes = await global.app.sdb.findAll('ProposalVote', { condition: { pid } })
   let validVoteCount = 0
   for (const v of votes) {
     if (app.isCurrentBookkeeper(v.voter)) {
@@ -28,14 +28,14 @@ export default {
     if (descJson.length > 4096) return 'Invalid issuer description'
 
     const senderId = this.sender.address
-    app.sdb.lock(`uia.registerIssuer@${senderId}`)
-    let exists = await app.sdb.exists('Issuer', { name })
+    global.app.sdb.lock(`uia.registerIssuer@${senderId}`)
+    let exists = await global.app.sdb.exists('Issuer', { name })
     if (exists) return 'Issuer name already exists'
 
-    exists = await app.sdb.exists('Issuer', { issuerId: senderId })
+    exists = await global.app.sdb.exists('Issuer', { issuerId: senderId })
     if (exists) return 'Account is already an issuer'
 
-    app.sdb.create('Issuer', {
+    global.app.sdb.create('Issuer', {
       tid: this.trs.id,
       issuerId: senderId,
       name,
@@ -51,16 +51,16 @@ export default {
     if (precision > 16 || precision < 0) return 'Invalid asset precision'
     app.validate('amount', maximum)
 
-    const issuer = await app.sdb.findOne('Issuer', { condition: { issuerId: this.sender.address } })
+    const issuer = await global.app.sdb.findOne('Issuer', { condition: { issuerId: this.sender.address } })
     if (!issuer) return 'Account is not an issuer'
 
     const fullName = `${issuer.name}.${symbol}`
-    app.sdb.lock(`uia.registerAsset@${fullName}`)
+    global.app.sdb.lock(`uia.registerAsset@${fullName}`)
 
-    exists = await app.sdb.exists('Asset', { name: fullName })
+    exists = await global.app.sdb.exists('Asset', { name: fullName })
     if (exists) return 'Asset already exists'
 
-    app.sdb.create('Asset', {
+    global.app.sdb.create('Asset', {
       tid: this.trs.id,
       timestamp: this.trs.timestamp,
       name: fullName,
@@ -75,7 +75,7 @@ export default {
 
   // async issue(name, amount) {
   async issue(pid) {
-    const proposal = await app.sdb.findOne('Proposal', { condition: { tid: pid } })
+    const proposal = await global.app.sdb.findOne('Proposal', { condition: { tid: pid } })
     if (!proposal) return 'Proposal not found'
     if (proposal.activated) return 'Proposal was already activated'
     if (!isProposalApproved(pid, 'asset_issue')) return 'Proposal is not approved'
@@ -85,9 +85,9 @@ export default {
 
     if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name)) return 'Invalid currency'
     app.validate('amount', amount)
-    app.sdb.lock(`uia.issue@${name}`)
+    global.app.sdb.lock(`uia.issue@${name}`)
 
-    const asset = await app.sdb.load('Asset', name)
+    const asset = await global.app.sdb.load('Asset', name)
     if (!asset) return 'Asset not exists'
     if (asset.issuerId !== this.sender.address) return 'Permission denied'
 
@@ -95,10 +95,10 @@ export default {
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit'
 
     asset.quantity = quantity.toString(10)
-    app.sdb.update('Asset', { quantity: asset.quantity }, { name })
+    global.app.sdb.update('Asset', { quantity: asset.quantity }, { name })
 
     app.balances.increase(this.sender.address, name, amount)
-    app.sdb.update('Proposal', { activated: 1 }, { tid: pid })
+    global.app.sdb.update('Proposal', { activated: 1 }, { tid: pid })
     return null
   },
 
@@ -118,13 +118,13 @@ export default {
       recipientAddress = recipient
     } else {
       recipientName = recipient
-      const recipientAccount = await app.sdb.findOne('Account', { condition: { name: recipient } })
+      const recipientAccount = await global.app.sdb.findOne('Account', { condition: { name: recipient } })
       if (!recipientAccount) return 'Recipient name not exist'
       recipientAddress = recipientAccount.address
     }
 
     app.balances.transfer(currency, amount, senderId, recipientAddress)
-    app.sdb.create('Transfer', {
+    global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,
       senderId,
