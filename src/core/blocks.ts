@@ -2,7 +2,7 @@ import assert = require('assert');
 import crypto = require('crypto');
 import async = require('async');
 import PIFY = require('pify')
-import isArray = require('util').isArray;
+import { isArray } from 'util';
 import * as constants from '../utils/constants'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';

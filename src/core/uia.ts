@@ -1,5 +1,5 @@
-import crypto = require('crypto');
-import isArray = require('util').isArray;
+import * as crypto from 'crypto';
+import { isArray } from 'util';
 import jsonSql = require('json-sql');
 
 jsonSql().setDialect('sqlite')

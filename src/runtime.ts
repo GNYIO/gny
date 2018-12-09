@@ -1,6 +1,4 @@
-import fs = require('fs');
-import path = require('path');
-import util = require('util');
+import * as path from 'path';
 import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
@@ -17,7 +15,6 @@ import loadInterfaces from './loadInterfaces'
 import address from './utils/address';
 import * as bignumber from 'bignumber'
 
-const PIFY = util.promisify
 const slots = new Slots()
 
 function adaptSmartDBLogger(config) {

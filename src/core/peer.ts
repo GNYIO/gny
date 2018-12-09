@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
 import Router from '../utils/router';
-const promisify = require('util').promisify;
+import { promisify } from 'util';
 import Database = require('nedb');
 
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000
