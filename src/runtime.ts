@@ -132,8 +132,6 @@ export default async function runtime(options) {
     global.app.hooks[name] = func
   }
 
-  app.verifyBytes = (bytes, pk, signature) => app.api.crypto.verify(pk, signature, bytes);
-
   app.checkMultiSignature = (bytes, allowedKeys, signatures, m) => {
     const keysigs = signatures.split(',')
     const publicKeys = []
