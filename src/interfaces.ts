@@ -160,5 +160,9 @@ declare global {
       modules: Modules;
       app: Partial<IApp>;
     }
+    interface Process {
+      once(event: 'cleanup', listener: () => void): this;
+      emit(event: 'cleanup'): this;
+    }
   }
 }
