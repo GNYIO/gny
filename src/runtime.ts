@@ -134,7 +134,7 @@ export default async function runtime(options) {
 
   global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
 
-  app.AccountRole = {
+  global.app.AccountRole = {
     DELEGATE: 1,
     AGENT: 2,
     GATEWAY_VALIDATOR: 3,

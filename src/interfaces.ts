@@ -141,6 +141,11 @@ interface IApp {
   };
   registerHook: (name: string, func: () => void) => void;
   isCurrentBookkeeper: (addr: string) => boolean;
+  AccountRole: {
+    DELEGATE: number;
+    AGENT: number;
+    GATEWAY_VALIDATOR: number;
+  }
 }
 
 
