@@ -127,6 +127,9 @@ interface IApp {
   contractTypeMapping: {
     [type: string]: string;
   };
+  contract: {
+    [name: string]: any;
+  }
   registerFee: (type: number, min: string, currency: string) => void;
   defaultFee: ICurrencyFee;
   feeMapping: {
