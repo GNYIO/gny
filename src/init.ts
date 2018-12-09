@@ -277,13 +277,13 @@ function network(options: any) {
   let sslServer;
   let sslio;
 
-  const app = express();
+  const expressApp = express();
 
-  app.use(compression({ level: 6 }));
-  app.use(cors());
-  app.options('*', cors());
+  expressApp.use(compression({ level: 6 }));
+  expressApp.use(cors());
+  expressApp.options('*', cors());
 
-  const server = http.createServer(app);
+  const server = http.createServer(expressApp);
   const io = socketio(server);
 
   if (options.appConfig.ssl.enabled) {
@@ -294,13 +294,13 @@ function network(options: any) {
       key: privateKey,
       cert: certificate,
       ciphers: CIPHERS,
-    }, app);
+    }, expressApp);
     sslio = socketio(sslServer);
   }
 
   return {
     express,
-    app,
+    app: expressApp,
     server,
     io,
     sslServer,
