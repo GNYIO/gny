@@ -134,19 +134,6 @@ export default async function runtime(options) {
 
   global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
 
-  app.executeContract = async (context) => {
-    context.activating = 1
-    const error = await library.base.transaction.apply(context)
-    if (!error) {
-      const trs = await app.sdb.get('Transaction', { id: context.trs.id })
-      if (!transactionMode.isRequestMode(context.trs.mode)) throw new Error('Transaction mode is not request mode')
-
-      app.sdb.update('TransactionStatu', { executed: 1 }, { tid: context.trs.id })
-      app.addRoundFee(trs.fee, modules.round.calc(context.block.height))
-    }
-    return error
-  }
-
   app.AccountRole = {
     DELEGATE: 1,
     AGENT: 2,
