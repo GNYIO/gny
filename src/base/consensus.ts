@@ -16,94 +16,94 @@ class Consensus {
   }
 
   createVotes(keypairs, block) {
-    const hash = this.calculateHash(block.height, block.id)
+    const hash = this.calculateHash(block.height, block.id);
     const votes = {
       height: block.height,
       id: block.id,
       signatures: [],
-    }
+    };
     keypairs.forEach((kp) => {
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
         signature: ed.Sign(hash, kp).toString('hex'),
-      })
-    })
-    return votes
+      });
+    });
+    return votes;
   }
 
   verifyVote(height, id, voteItem) {
     try {
-      const hash = this.calculateHash(height, id)
-      const signature = Buffer.from(voteItem.signature, 'hex')
-      const publicKey = Buffer.from(voteItem.publicKey, 'hex')
-      return ed.Verify(hash, signature, publicKey)
+      const hash = this.calculateHash(height, id);
+      const signature = Buffer.from(voteItem.signature, 'hex');
+      const publicKey = Buffer.from(voteItem.publicKey, 'hex');
+      return ed.Verify(hash, signature, publicKey);
     } catch (e) {
-      return false
+      return false;
     }
   }
 
   private calculateHash(height, id) {
-    let byteBuffer = new ByteBuffer()
+    const byteBuffer = new ByteBuffer();
 
-    byteBuffer.writeLong(height)
-    byteBuffer.writeString(id)
-    byteBuffer.flip()
+    byteBuffer.writeLong(height);
+    byteBuffer.writeString(id);
+    byteBuffer.flip();
 
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest()  
+    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
   }
 
   hasEnoughVotes(votes) {
-    return votes && votes.signatures && (votes.signatures.length > slots.delegates * 2 / 3)
+    return votes && votes.signatures && (votes.signatures.length > slots.delegates * 2 / 3);
   }
 
   getPendingBlock() {
-    return this.pendingBlock
+    return this.pendingBlock;
   }
 
   hasPendingBlock(timestamp) {
     if (!this.pendingBlock) {
-      return false
+      return false;
     }
-    return slots.getSlotNumber(this.pendingBlock.timestamp) === slots.getSlotNumber(timestamp)
+    return slots.getSlotNumber(this.pendingBlock.timestamp) === slots.getSlotNumber(timestamp);
   }
 
   setPendingBlock(block) {
-    this.pendingBlock = block
+    this.pendingBlock = block;
   }
 
   clearState() {
-    this.pendingVotes = null
+    this.pendingVotes = null;
     this.votesKeySet = new Set();
-    this.pendingBlock = null
+    this.pendingBlock = null;
   }
 
   addPendingVotes(votes) {
     if (!this.pendingBlock || this.pendingBlock.height !== votes.height
       || this.pendingBlock.id !== votes.id) {
-      return this.pendingVotes
+      return this.pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
-      const item = votes.signatures[i]
+      const item = votes.signatures[i];
       if (this.votesKeySet[item.key]) {
-        continue
+        continue;
       }
       if (this.verifyVote(votes.height, votes.id, item)) {
-        this.votesKeySet[item.key] = true
+        this.votesKeySet[item.key] = true;
         if (!this.pendingVotes) {
           this.pendingVotes = {
             height: votes.height,
             id: votes.id,
             signatures: [],
-          }
+          };
         }
-        this.pendingVotes.signatures.push(item)
+        this.pendingVotes.signatures.push(item);
       }
     }
-    return this.pendingVotes
+    return this.pendingVotes;
   }
 
   createPropose(keypair, block, address) {
-    assert(keypair.publicKey.toString('hex') === block.delegate)
+    assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const propose: any = {
       height: block.height,
@@ -111,33 +111,33 @@ class Consensus {
       timestamp: block.timestamp,
       generatorPublicKey: block.delegate,
       address,
-    }
+    };
 
-    const hash = this.getProposeHash(propose)
-    propose.hash = hash.toString('hex')
-    propose.signature = ed.Sign(hash, keypair).toString('hex')
-    return propose
+    const hash = this.getProposeHash(propose);
+    propose.hash = hash.toString('hex');
+    propose.signature = ed.Sign(hash, keypair).toString('hex');
+    return propose;
   }
 
   getProposeHash(propose) {
-    const byteBuffer = new ByteBuffer()
-    byteBuffer.writeLong(propose.height)
-    byteBuffer.writeString(propose.id)
-  
-    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex')
+    const byteBuffer = new ByteBuffer();
+    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeString(propose.id);
+
+    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
     for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-      byteBuffer.writeByte(generatorPublicKeyBuffer[i])
+      byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
     }
-  
-    byteBuffer.writeInt(propose.timestamp)
-  
-    const parts = propose.address.split(':')
-    assert(parts.length === 2)
-    byteBuffer.writeInt(ip.toLong(parts[0]))
-    byteBuffer.writeInt(Number(parts[1]))
-  
-    byteBuffer.flip()
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest()
+
+    byteBuffer.writeInt(propose.timestamp);
+
+    const parts = propose.address.split(':');
+    assert(parts.length === 2);
+    byteBuffer.writeInt(ip.toLong(parts[0]));
+    byteBuffer.writeInt(Number(parts[1]));
+
+    byteBuffer.flip();
+    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
   }
 
   normalizeVotes(votes) {
@@ -157,27 +157,27 @@ class Consensus {
         },
       },
       required: ['height', 'id', 'signatures'],
-    })
+    });
     if (!report) {
-      throw Error(this.scope.scheme.getLastError())
+      throw Error(this.scope.scheme.getLastError());
     }
-    return votes
+    return votes;
   }
 
   acceptPropose(propose) {
-    const hash = this.getProposeHash(propose)
+    const hash = this.getProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
-      throw Error('Propose hash is not correct.')
+      throw Error('Propose hash is not correct.');
     }
     try {
-      const signature = Buffer.from(propose.signature, 'hex')
-      const publicKey = Buffer.from(propose.generatorPublicKey, 'hex')
+      const signature = Buffer.from(propose.signature, 'hex');
+      const publicKey = Buffer.from(propose.generatorPublicKey, 'hex');
       if (ed.Verify(hash, signature, publicKey)) {
         return 'Verify propose successful.';
       }
-      throw Error('Propose signature verify failed.')
+      throw Error('Propose signature verify failed.');
     } catch (e) {
-      throw Error(`Propose signature exception: ${e.toString()}`)
+      throw Error(`Propose signature exception: ${e.toString()}`);
     }
   }
 }
