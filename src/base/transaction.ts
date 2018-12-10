@@ -6,11 +6,15 @@ import * as constants from '../utils/constants';
 import feeCalculators from '../utils/calculate-fee';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
+import { IScope } from '../interfaces';
 
 const slots = new Slots()
 
 export class Transaction {
-  constructor(public scope: any) {}
+  private scope: IScope;
+  constructor(scope: IScope) {
+    this.scope = scope;
+  }
 
   create(data) {
     const transaction: any = {
