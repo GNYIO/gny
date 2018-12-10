@@ -1,6 +1,6 @@
 import async = require('async');
-import fs = require('fs');
-import path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 import * as _ from 'lodash';
 import Sandbox = require('asch-sandbox');
 import rmdir = require('rimraf');

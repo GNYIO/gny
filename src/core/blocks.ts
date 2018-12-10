@@ -1,5 +1,5 @@
-import assert = require('assert');
-import crypto = require('crypto');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
 import { isArray } from 'util';

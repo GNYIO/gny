@@ -1,4 +1,4 @@
-import crypto = require('crypto');
+import * as crypto from 'crypto';
 import { isArray } from 'util';
 import * as ed from '../utils/ed';
 import Router from '../utils/router';

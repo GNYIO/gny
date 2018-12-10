@@ -1,6 +1,6 @@
-import path = require('path');
-import ip = require('ip');
-import crypto = require('crypto');
+import * as path from 'path';
+import * as ip from 'ip';
+import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');

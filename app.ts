@@ -1,9 +1,9 @@
 import * as program from 'commander'
-import path = require('path');
-import fs = require('fs');
-import ip = require('ip');
+import * as path from 'path';
+import * as fs from 'fs';
+import * as ip from 'ip';
 import daemon = require('daemon');
-import tracer = require('tracer');
+import * as tracer from 'tracer';
 import Application from './index';
 import * as packageJson from './package.json';
 import { IConfig } from './src/interfaces'
