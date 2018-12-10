@@ -171,6 +171,7 @@ export interface IConfig {
     list: { ip: string, port: string | number }[];
   };
   logLevel: ILogLevel;
+  pidFile: string;
 }
 
 declare global {
