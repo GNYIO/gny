@@ -9,12 +9,13 @@ import Router from '../utils/router';
 import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+import { Modules } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;
-  private modules: any;
+  private modules: Modules;
   private readonly library: any;
 
   private lastBlock: any = {};
@@ -997,7 +998,7 @@ public isHealthy = () => {
   // end Shared
 
   // Events
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
 
     this.loaded = true

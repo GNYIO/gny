@@ -7,12 +7,13 @@ jsonSql().setDialect('sqlite')
 import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import addressHelper = require('../utils/address');
+import { Modules } from '../interfaces';
 
 
 // Constructor
 export default class UIA {
   private readonly library: any;
-  private modules: any;
+  private modules: Modules;
 
   constructor (scope: any) {
     this.library = scope
@@ -97,7 +98,7 @@ export default class UIA {
   }
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 

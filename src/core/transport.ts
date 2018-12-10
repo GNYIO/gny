@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router from '../utils/router';
 import Slots from '../utils/slots';
+import { Modules } from '../interfaces';
 
 const slots = new Slots()
 
@@ -10,7 +11,7 @@ export default class Transport {
   private latestBlocksCache: any = new LRU(200)
   private blockHeaderMidCache: any = new LRU(1000)
   
-  private modules: any;
+  private modules: Modules;
 
   private headers: any = {};
   private loaded: boolean = false;
@@ -212,7 +213,7 @@ export default class Transport {
   }
 
   // Events
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
     this.headers = {
       os: this.modules.system.getOS(),

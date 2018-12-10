@@ -5,6 +5,7 @@ import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+import { Modules } from '../interfaces';
 
 class TransactionPool {
   private index: Map<any, any>;
@@ -55,10 +56,10 @@ class TransactionPool {
 // Constructor
 class Transactions {
   private readonly library: any;
-  modules: any;
-  genesisBlock: any;
-  pool: TransactionPool;
-  failedTrsCache: LimitCache;
+  private modules: Modules;
+  private genesisBlock: any;
+  private pool: TransactionPool;
+  private failedTrsCache: LimitCache;
 
   constructor(scope: any) {
     this.library = scope;
@@ -480,7 +481,7 @@ class Transactions {
   getById = (id, cb) => this.getById(id, cb)
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 
