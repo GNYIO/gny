@@ -7,14 +7,14 @@ import request = require('request');
 import Router from '../utils/router';
 import { promisify } from 'util';
 import Database = require('nedb');
-import { Modules } from '../interfaces';
+import { Modules, IScope } from '../interfaces';
 
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000
 const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000
 const MAX_BOOTSTRAP_PEERS = 25
 
 export default class Peer {
-  private readonly library: any;
+  private readonly library: IScope;
   private modules: Modules;
 
   private handlers: any = {};
@@ -23,7 +23,7 @@ export default class Peer {
 
   private shared: any = {};
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope
     this.attachApi()
   }

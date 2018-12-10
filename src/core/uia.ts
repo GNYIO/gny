@@ -7,15 +7,15 @@ jsonSql().setDialect('sqlite')
 import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import addressHelper = require('../utils/address');
-import { Modules } from '../interfaces';
+import { Modules, IScope } from '../interfaces';
 
 
 // Constructor
 export default class UIA {
-  private readonly library: any;
+  private readonly library: IScope;
   private modules: Modules;
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope
     this.attachApi();
   }

@@ -2,12 +2,12 @@ import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import Router from '../utils/router';
 import Slots from '../utils/slots';
-import { Modules } from '../interfaces';
+import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Transport {
-  private readonly library: any;
+  private readonly library: IScope;
   private latestBlocksCache: any = new LRU(200)
   private blockHeaderMidCache: any = new LRU(1000)
   
@@ -16,7 +16,7 @@ export default class Transport {
   private headers: any = {};
   private loaded: boolean = false;
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope;
     this.attachApi();
   }

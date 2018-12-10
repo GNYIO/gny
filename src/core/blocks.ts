@@ -9,14 +9,14 @@ import Router from '../utils/router';
 import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
-import { Modules } from '../interfaces';
+import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;
   private modules: Modules;
-  private readonly library: any;
+  private readonly library: IScope;
 
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();
@@ -29,7 +29,7 @@ export default class Blocks {
 
   private lastVoteTime: any;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = scope.genesisBlock;
     this.attachAPI();

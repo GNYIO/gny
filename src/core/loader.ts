@@ -1,14 +1,14 @@
 import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
-import { Modules } from '../interfaces';
+import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Loader {
   private isLoaded: boolean = false;
   private privSyncing: boolean = false;
-  private readonly library: any;
+  private readonly library: IScope;
   private modules: Modules;
   private genesisBlock: any;
   private loadingLastBlock: any = null;
@@ -18,7 +18,7 @@ export default class Loader {
   
   public shared: any = {};
   
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock;
     this.loadingLastBlock = this.library.genesisBlock;

@@ -1,8 +1,10 @@
+import { IScope } from "../interfaces";
+
 export default class Server {
   private isLoaded = false;
-  private readonly library: any;
+  private readonly library: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 
