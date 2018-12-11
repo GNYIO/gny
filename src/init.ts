@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import os = require('os');
 import { EventEmitter } from 'events';
-import http = require('http')
+import http = require('http');
 import https = require('https');
 import socketio = require('socket.io');
 import ZSchema = require('z-schema');
@@ -21,7 +21,7 @@ import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf = require('./utils/protobuf');
-import loadedModules from './loadModules'
+import loadedModules from './loadModules';
 
 
 const CIPHERS = `
@@ -54,13 +54,13 @@ function getPublicIp() {
 
 function isNumberOrNumberString(value) {
   return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
-    || String(parseInt(value, 10)) !== String(value))
+    || String(parseInt(value, 10)) !== String(value));
 }
 const modules = [];
 
 
 async function init_alt(options: any) {
-  let scope = {};
+  const scope = {};
   const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
@@ -176,7 +176,7 @@ async function init_alt(options: any) {
       if (!err) {
         scope.logger.log(`Error: ${err}`);
       }
-    })
+    });
     scope.connect = scope.network;
   }
 
@@ -200,11 +200,11 @@ async function init_alt(options: any) {
   scope.modules = {};
 
   loadedModules.forEach(mod => {
-    scope.logger.debug(`loading Module... ${mod.name}`)
-    let obj = new mod.class(scope);
+    scope.logger.debug(`loading Module... ${mod.name}`);
+    const obj = new mod.class(scope);
     modules.push(obj);
-    scope.modules[mod.name] = obj
-  })
+    scope.modules[mod.name] = obj;
+  });
 
   class Bus extends EventEmitter {
     message(topic, ...restArgs) {
@@ -213,7 +213,7 @@ async function init_alt(options: any) {
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);
         }
-      })
+      });
       this.emit(topic, ...restArgs);
     }
   }
@@ -225,53 +225,53 @@ async function init_alt(options: any) {
 
 function scheme() {
   ZSchema.registerFormat('hex', (str) => {
-    let b
+    let b;
     try {
-      b = Buffer.from(str, 'hex')
+      b = Buffer.from(str, 'hex');
     } catch (e) {
-      return false
+      return false;
     }
 
-    return b && b.length > 0
-  })
+    return b && b.length > 0;
+  });
 
   ZSchema.registerFormat('publicKey', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const publicKey = Buffer.from(str, 'hex')
+      const publicKey = Buffer.from(str, 'hex');
 
-      return publicKey.length === 32
+      return publicKey.length === 32;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('splitarray', (str) => {
     try {
-      const a = str.split(',')
-      return a.length > 0 && a.length <= 1000
+      const a = str.split(',');
+      return a.length > 0 && a.length <= 1000;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('signature', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const signature = Buffer.from(str, 'hex')
-      return signature.length === 64
+      const signature = Buffer.from(str, 'hex');
+      return signature.length === 64;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
-  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value))
+  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
 
   return new ZSchema();
 }

@@ -55,34 +55,34 @@ export default class BlockReward {
     height = (height - this.rewardOffset) + 1;
 
     for (let i = 0; i < REWARDS.MILESTONES.length; i++) {
-			if (milestone >= i) {
-				multiplier = REWARDS.MILESTONES[i];
+      if (milestone >= i) {
+        multiplier = REWARDS.MILESTONES[i];
 
-				if (height < this.distance) {
-					// Measure this.distance thus far
-					amount = height % this.distance;
-				} else {
-					amount = this.distance; // Assign completed milestone
-					height -= this.distance; // Deduct from total height
+        if (height < this.distance) {
+          // Measure this.distance thus far
+          amount = height % this.distance;
+        } else {
+          amount = this.distance; // Assign completed milestone
+          height -= this.distance; // Deduct from total height
 
-					// After last milestone
-					if (height > 0 && i === REWARDS.MILESTONES.length - 1) {
-						amount += height;
-					}
-				}
+          // After last milestone
+          if (height > 0 && i === REWARDS.MILESTONES.length - 1) {
+            amount += height;
+          }
+        }
 
-				rewards.push([amount, multiplier]);
-			} else {
-				break; // Milestone out of bounds
-			}
-		}
+        rewards.push([amount, multiplier]);
+      } else {
+        break; // Milestone out of bounds
+      }
+    }
 
-		for (let i = 0; i < rewards.length; i++) {
-			const reward = rewards[i];
-			supply = supply.plus(new BigNumber(reward[0]).multipliedBy(reward[1]));
-		}
+    for (let i = 0; i < rewards.length; i++) {
+      const reward = rewards[i];
+      supply = supply.plus(new BigNumber(reward[0]).multipliedBy(reward[1]));
+    }
 
-		return supply;
+    return supply;
   }
 }
 

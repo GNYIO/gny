@@ -36,15 +36,15 @@ export default class Transaction {
   }
 
   sign(keypair, transaction) {
-    const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest();
+    const hash = crypto.createHash('sha256').update(this.serialize(transaction, true, true)).digest();
     return ed.sign(hash, keypair).toString('hex');
   }
 
   getHash(transaction) {
-    return crypto.createHash('sha256').update(this.getBytes(transaction)).digest();
+    return crypto.createHash('sha256').update(this.serialize(transaction)).digest();
   }
 
-  getBytes(transaction, skipSignature, skipSecondSignature) {
+  serialize(transaction, skipSignature?, skipSecondSignature?) {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
@@ -121,7 +121,7 @@ export default class Transaction {
     if (transaction.fee < minFee) return 'Fee not enough';
 
     try {
-      const bytes = this.getBytes(transaction, true, true);
+      const bytes = this.serialize(transaction, true, true);
       if (transaction.senderPublicKey) {
         const error = this.verifyNormalSignature(transaction, requestor, bytes);
         if (error) return error;
@@ -151,7 +151,7 @@ export default class Transaction {
     if (!signature) return false;
 
     try {
-      const bytes = this.getBytes(transaction, true, true);
+      const bytes = this.serialize(transaction, true, true);
       return this.verifyBytes(bytes, publicKey, signature);
     } catch (e) {
       throw Error(e.toString());
@@ -169,7 +169,7 @@ export default class Transaction {
       const hash = crypto.createHash('sha256').update(data2).digest();
       const signatureBuffer = Buffer.from(signature, 'hex');
       const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-      return ed.Verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
+      return ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
     } catch (e) {
       throw Error(e.toString());
     }
@@ -215,7 +215,7 @@ export default class Transaction {
     // transaction.executed = 1
   }
 
-  objectNormalize(transaction) {
+  objectserialize(transaction) {
     for (const i in transaction) {
       if (transaction[i] === null || typeof transaction[i] === 'undefined') {
         delete transaction[i];
@@ -261,7 +261,7 @@ export default class Transaction {
     });
 
     if (!report) {
-      library.logger.error(`Failed to normalize transaction body: ${this.scope.scheme.getLastError().details[0].message}`, transaction);
+      this.scope.logger.error(`Failed to normalize transaction body: ${this.scope.scheme.getLastError().details[0].message}`, transaction);
       throw Error(this.scope.scheme.getLastError());
     }
 
