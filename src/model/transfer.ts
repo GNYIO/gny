@@ -1,7 +1,7 @@
 export default {
   table: 'transfers',
   tableFields: [
-    { name: 'tid', type: 'String', length: 64, not_null: true, primary_key: true },
+    { name: 'transactionId', type: 'String', length: 64, not_null: true, primary_key: true },
     { name: 'senderId', type: 'String', length: 50, not_null: true, index: true },
     { name: 'recipientId', type: 'String', length: 50, not_null: true, index: true },
     { name: 'recipientName', type: 'String', length: 30 },

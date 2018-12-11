@@ -57,7 +57,7 @@ function getPublicIp() {
 
 function isNumberOrNumberString(value) {
   return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
-    || String(parseInt(value, 10)) !== String(value))
+    || String(parseInt(value, 10)) !== String(value));
 }
 
 async function init_alt(options: any) {
@@ -176,7 +176,7 @@ async function init_alt(options: any) {
       if (!err) {
         scope.logger.log(`Error: ${err}`);
       }
-    })
+    });
     scope.connect = scope.network;
   }
 
@@ -210,7 +210,7 @@ async function init_alt(options: any) {
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);
         }
-      })
+      });
       this.emit(topic, ...restArgs);
     }
   }
@@ -222,55 +222,55 @@ async function init_alt(options: any) {
 
 function scheme() {
   ZSchema.registerFormat('hex', (str) => {
-    let b
+    let b;
     try {
-      b = Buffer.from(str, 'hex')
+      b = Buffer.from(str, 'hex');
     } catch (e) {
-      return false
+      return false;
     }
 
-    return b && b.length > 0
-  })
+    return b && b.length > 0;
+  });
 
   ZSchema.registerFormat('publicKey', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const publicKey = Buffer.from(str, 'hex')
+      const publicKey = Buffer.from(str, 'hex');
 
-      return publicKey.length === 32
+      return publicKey.length === 32;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('splitarray', (str) => {
     try {
-      const a = str.split(',')
-      return a.length > 0 && a.length <= 1000
+      const a = str.split(',');
+      return a.length > 0 && a.length <= 1000;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('signature', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const signature = Buffer.from(str, 'hex')
-      return signature.length === 64
+      const signature = Buffer.from(str, 'hex');
+      return signature.length === 64;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
-  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value))
+  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
 
-  return new ZSchema();
+  return new ZSchema({});
 }
 
 function network(options: any) {
