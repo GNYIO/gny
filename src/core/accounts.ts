@@ -4,13 +4,14 @@ import * as Mnemonic from 'bitcore-mnemonic';
 import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import * as addressHelper from '../utils/address';
+import { Modules, IScope } from '../interfaces';
 
 export default class Account {
-  private modules: any;
-  private readonly library: any;
+  private modules: Modules;
+  private readonly library: IScope;
   private shared = {};
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.attachApi();
   }
@@ -52,7 +53,7 @@ export default class Account {
   }
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope;
   }
 

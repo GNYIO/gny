@@ -1,20 +1,21 @@
-import path = require('path');
-import ip = require('ip');
-import crypto = require('crypto');
+import * as path from 'path';
+import * as ip from 'ip';
+import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
 import Router from '../utils/router';
 import { promisify } from 'util';
 import Database = require('nedb');
+import { Modules, IScope } from '../interfaces';
 
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000
 const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000
 const MAX_BOOTSTRAP_PEERS = 25
 
 export default class Peer {
-  private readonly library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
 
   private handlers: any = {};
   private dht: any = null;
@@ -22,7 +23,7 @@ export default class Peer {
 
   private shared: any = {};
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope
     this.attachApi()
   }
@@ -295,7 +296,7 @@ export default class Peer {
   }
 
   // Events
-  onBind = (scope: any) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 

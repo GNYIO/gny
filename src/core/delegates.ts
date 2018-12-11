@@ -1,10 +1,10 @@
 import * as crypto from 'crypto';
-import * as util from 'util';
 import * as ed from '../utils/ed'
 import Router from '../utils/router'
 import Slots from '../utils/slots';
 import BlockStatus from '../utils/block-status';
 import addressHelper from '../utils/address'
+import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
 
@@ -13,13 +13,12 @@ export default class Delegates {
   private blockStatus = new BlockStatus();
   private keyPairs: any = {};
   private isForgingEnabled: boolean = true;
-
-  private readonly library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
 
   private readonly BOOK_KEEPER_NAME = 'round_bookkeeper'
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
 
     this.attachApi();
@@ -414,7 +413,7 @@ export default class Delegates {
 
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 

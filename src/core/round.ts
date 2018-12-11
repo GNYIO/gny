@@ -1,11 +1,12 @@
 import Slots from '../utils/slots';
+import { IScope } from '../interfaces';
 const slots = new Slots()
 
 export default class Round {
-  private readonly library: any;
+  private readonly library: IScope;
   private isloaded: boolean = false;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 

@@ -1,10 +1,11 @@
-import assert = require('assert');
-import crypto = require('crypto');
-import fs = require('fs');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
+import { IScope } from './src/interfaces';
 
-function verifyGenesisBlock(scope, block) {
+function verifyGenesisBlock(scope: Partial<IScope>, block: any) {
   try {
     const payloadHash = crypto.createHash('sha256');
 

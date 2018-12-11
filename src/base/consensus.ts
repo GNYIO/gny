@@ -4,6 +4,7 @@ import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import Slots from '../utils/slots';
 import * as ip from 'ip';
+import { IScope } from '../interfaces';
 
 const slots = new Slots()
 
@@ -11,9 +12,9 @@ export class Consensus {
   public pendingBlock: any = null;
   public pendingVotes: any = null;
   public votesKeySet = new Set();
-  public scope: any;
+  public scope: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.scope = scope;
   }
 

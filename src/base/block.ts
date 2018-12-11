@@ -4,12 +4,13 @@ import * as ed from '../utils/ed';
 import BlockStatus from '../utils/block-status';
 import * as constants from '../utils/constants'
 import * as addressHelper from '../utils/address';
+import { IScope } from '../interfaces';
 
 export class Block {
   private blockStatus = BlockStatus;
-  public scope: any;
+  public scope: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.scope = scope;
   }
 

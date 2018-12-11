@@ -9,7 +9,7 @@ import * as ZSchema from 'z-schema';
 import * as ip from 'ip';
 import * as express from 'express';
 import * as compression from 'compression';
-import cors = require('cors');
+import * as cors from 'cors';
 import * as _ from 'lodash';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';

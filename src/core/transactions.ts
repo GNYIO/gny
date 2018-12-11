@@ -1,10 +1,11 @@
-import crypto = require('crypto');
+import * as crypto from 'crypto';
 import { isArray } from 'util';
 import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+import { Modules, IScope } from '../interfaces';
 
 class TransactionPool {
   private index: Map<any, any>;
@@ -54,13 +55,13 @@ class TransactionPool {
 
 // Constructor
 class Transactions {
-  private readonly library: any;
-  modules: any;
-  genesisBlock: any;
-  pool: TransactionPool;
-  failedTrsCache: LimitCache;
+  private readonly library: IScope;
+  private modules: Modules;
+  private genesisBlock: any;
+  private pool: TransactionPool;
+  private failedTrsCache: LimitCache;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock
     this.pool = new TransactionPool();
@@ -480,7 +481,7 @@ class Transactions {
   getById = (id, cb) => this.getById(id, cb)
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 

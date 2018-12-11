@@ -1,11 +1,12 @@
 import * as os from 'os';
 import Slots from '../utils/slots';
+import { IScope } from '../interfaces';
 const slots = new Slots()
 
 export default class System {
-  private readonly library: any;
+  private readonly library: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 

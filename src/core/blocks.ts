@@ -1,5 +1,5 @@
-import assert = require('assert');
-import crypto = require('crypto');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
 import { isArray } from 'util';
@@ -9,13 +9,14 @@ import Router from '../utils/router';
 import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
+import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;
-  private modules: any;
-  private readonly library: any;
+  private modules: Modules;
+  private readonly library: IScope;
 
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();
@@ -28,7 +29,7 @@ export default class Blocks {
 
   private lastVoteTime: any;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = scope.genesisBlock;
     this.attachAPI();
@@ -997,7 +998,7 @@ public isHealthy = () => {
   // end Shared
 
   // Events
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
 
     this.loaded = true
