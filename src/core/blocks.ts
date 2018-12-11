@@ -375,7 +375,7 @@ export default class Blocks {
 
 
   public increaseRoundData = (modifier, roundNumber) => {
-    global.app.sdb.createOrLoad('Round', { fees: 0, rewards: 0, round: roundNumber })
+    global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber })
     return global.app.sdb.increase('Round', modifier, { round: roundNumber })
   }
 
@@ -396,7 +396,7 @@ export default class Blocks {
     }
   
     const roundNumber = this.modules.round.calculateRound(block.height)
-    const { fees, rewards } = this.increaseRoundData({ fees: transFee, rewards: block.reward }, roundNumber)
+    const { fee, reward } = this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber)
   
     if (block.height % 101 !== 0) return
   
@@ -567,7 +567,7 @@ export default class Blocks {
       reward: this.blockStatus.calcReward(height),
     }
   
-    block.signature = this.library.base.block.sign(block, keypair)
+    block.signature = this.library.base.block.sign(block, keypair.privateKey)
     block.id = this.library.base.block.getId(block)
   
     let activeKeypairs
