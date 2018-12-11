@@ -418,14 +418,14 @@ export default class Blocks {
       address = addressHelper.generateAddress(pk)
       global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
       // TODO should account be all cached?
-      global.app.sdb.increase('Account', { xas: fee + reward }, { address })
+      global.app.sdb.increase('Account', { gny: fee + reward }, { address })
     }
   
     const councilControl = 1
     if (councilControl) {
       const councilAddress = 'GADQ2bozmxjBfYHDQx3uwtpwXmdhafUdkN'
-      global.app.sdb.createOrLoad('Account', { xas: 0, address: councilAddress, name: null })
-      global.app.sdb.increase('Account', { xas: fees + rewards }, { address: councilAddress })
+      global.app.sdb.createOrLoad('Account', { gny: 0, address: councilAddress, name: null })
+      global.app.sdb.increase('Account', { gny: fees + rewards }, { address: councilAddress })
     } else {
       const ratio = 1
   

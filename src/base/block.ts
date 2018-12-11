@@ -14,6 +14,12 @@ export class Block {
     this.scope = scope;
   }
 
+  public getId = (block: any) => {
+    const bytes = this.getBytes(block)
+    const hash = crypto.createHash('sha256').update(bytes).digest()
+    return hash.toString('hex')
+  }
+
   private sortTransactions(data: any) {
     data.transactions.sort((a, b) => {
       if (a.type === b.type) {
@@ -93,40 +99,46 @@ export class Block {
     return crypto.createHash('sha256').update(bytes).digest();
   }
 
-  serialize(block, skipSignature?) {
-    const size = 4 + 4 + 64 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32; // 待纠正
-
-    const byteBuffer = new ByteBuffer(size, true);
-    byteBuffer.writeInt(block.version); // 4
-    byteBuffer.writeLong(block.height); //
-    byteBuffer.writeInt(block.timestamp); // 4
-    byteBuffer.writeString(block.prevBlockId); // 64
-    byteBuffer.writeInt(block.generatorPublicKey); // 32
-    byteBuffer.writeInt(block.numberOfTransactions); // 4
-    byteBuffer.writeInt(block.totalAmount); // 8
-    byteBuffer.writeInt(block.totalFee); // 8
-    byteBuffer.writeLong(block.reward); // 8
-
-    const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex');
-    for (let i = 0; i < payloadHashBuffer.length; i++) {
-      byteBuffer.writeByte(payloadHashBuffer[i]);
+  getBytes = (block: any, skipSignature?: any) => {
+    const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64
+  
+    const bb = new ByteBuffer(size, true)
+    bb.writeInt(block.version)
+    bb.writeInt(block.timestamp)
+    bb.writeLong(block.height)
+    bb.writeInt(block.count)
+    bb.writeLong(block.fees)
+    bb.writeLong(block.reward)
+    bb.writeString(block.delegate)
+  
+    // HARDCODE HOTFIX
+    if (block.height > 6167000 && block.prevBlockId) {
+      bb.writeString(block.prevBlockId)
+    } else {
+      bb.writeString('0')
     }
-
-    byteBuffer.writeInt(block.payloadLength); // 4
-
+  
+    const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex')
+    for (let i = 0; i < payloadHashBuffer.length; i++) {
+      bb.writeByte(payloadHashBuffer[i])
+    }
+  
+  
     if (!skipSignature && block.signature) {
-      const signatureBuffer = Buffer.from(block.signature, 'hex');
+      const signatureBuffer = Buffer.from(block.signature, 'hex')
       for (let i = 0; i < signatureBuffer.length; i++) {
-        byteBuffer.writeByte(signatureBuffer[i]);
+        bb.writeByte(signatureBuffer[i])
       }
     }
-
-    byteBuffer.flip();
-    return byteBuffer.toBuffer();
+  
+    bb.flip()
+    const b = bb.toBuffer()
+  
+    return b
   }
 
   private calculateHash(block) {
-    return crypto.createHash('sha256').update(this.serialize(block)).digest();
+    return crypto.createHash('sha256').update(this.getBytes(block)).digest();
   }
 
   sign(block, keypair) {
@@ -138,7 +150,7 @@ export class Block {
     const remove = 64;
 
     try {
-      const data = this.serialize(block);
+      const data = this.getBytes(block);
       const data2 = Buffer.alloc(data.length - remove);
 
       for (let i = 0; i < data2.length; i++) {

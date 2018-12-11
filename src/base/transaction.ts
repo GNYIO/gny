@@ -61,10 +61,10 @@ export class Transaction {
   }
 
   getHash(transaction) {
-    return crypto.createHash('sha256').update(this.serialize(transaction)).digest();
+    return crypto.createHash('sha256').update(this.getBytes(transaction)).digest();
   }
 
-  serialize(transaction, skipSignature?, skipSecondSignature?) {
+  getBytes(transaction, skipSignature?, skipSecondSignature?) {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
@@ -76,7 +76,7 @@ export class Transaction {
     if (transaction.mode) {
       byteBuffer.writeInt(transaction.mode);
     }
-
+  
     if (transaction.message) byteBuffer.writeString(transaction.message);
     if (transaction.args) {
       let args;
@@ -89,7 +89,7 @@ export class Transaction {
       }
       byteBuffer.writeString(args);
     }
-
+  
     // FIXME
     if (!skipSignature && transaction.signatures) {
       for (const signature of transaction.signatures) {
@@ -99,14 +99,14 @@ export class Transaction {
         }
       }
     }
-
+  
     if (!skipSecondSignature && transaction.secondSignature) {
-      const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
+    const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
       for (let i = 0; i < secondSignatureBuffer.length; i++) {
         byteBuffer.writeByte(secondSignatureBuffer[i]);
       }
     }
-
+  
     byteBuffer.flip();
 
     return byteBuffer.toBuffer();
@@ -141,7 +141,7 @@ export class Transaction {
     if (transaction.fee < minFee) return 'Fee not enough';
 
     try {
-      const bytes = this.serialize(transaction, true, true);
+      const bytes = this.getBytes(transaction, true, true);
       if (transaction.senderPublicKey) {
         const error = this.verifyNormalSignature(transaction, requestor, bytes);
         if (error) return error;
@@ -171,7 +171,7 @@ export class Transaction {
     if (!signature) return false;
 
     try {
-      const bytes = this.serialize(transaction, true, true);
+      const bytes = this.getBytes(transaction, true, true);
       return this.verifyBytes(bytes, publicKey, signature);
     } catch (e) {
       throw Error(e.toString());
@@ -201,7 +201,7 @@ export class Transaction {
     } = context;
     const name = global.app.getContractName(trs.type);
     if (!name) {
-      throw new Error(`Unsupported transaction type: ${transaction.type}`);
+      throw new Error(`Unsupported transaction type: ${trs.type}`);
     }
     const [mod, func] = name.split('.');
     if (!mod || !func) {
@@ -217,7 +217,7 @@ export class Transaction {
         const requestorFee = 20000000;
         if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance');
         requestor.gny -= requestorFee;
-        global.app.addRoundFee(requestorFee, modules.round.calc(block.height));
+        global.app.addRoundFee(String(requestorFee), this.modules.round.calc(block.height));
         // transaction.executed = 0
         global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 });
         global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address });
@@ -228,14 +228,14 @@ export class Transaction {
       global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });
     }
 
-    const error = await fn.apply(context, transaction.args);
+    const error = await fn.apply(context, trs.args);
     if (error) {
       throw new Error(error);
     }
     // transaction.executed = 1
   }
 
-  objectserialize(transaction) {
+  objectNormalize(transaction) {
     for (const i in transaction) {
       if (transaction[i] === null || typeof transaction[i] === 'undefined') {
         delete transaction[i];

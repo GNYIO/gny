@@ -58,11 +58,11 @@ export default {
         recipientAccount = global.app.sdb.create('Account', {
           address: recipient,
           gny: amount,
-          name: null,
+          username: null,
         });
       }
     } else {
-      recipientAccount = await global.app.sdb.load('Account', { name: recipient });
+      recipientAccount = await global.app.sdb.load('Account', { username: recipient });
       if (!recipientAccount) return 'Recipient name not exist';
       global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
     }
@@ -73,7 +73,7 @@ export default {
       height: this.block.height,
       senderId,
       recipientId: recipientAccount.address,
-      recipientName: recipientAccount.name,
+      recipientName: recipientAccount.username,
       currency: 'gny',
       amount: String(amount),
       timestamp: this.trs.timestamp,
@@ -81,17 +81,17 @@ export default {
     return null;
   },
 
-  async setUserName(name) {
-    global.app.validate('name', name);
+  async setUserName(username) {
+    global.app.validate('name', username);
 
     const senderId = this.sender.address;
     global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const exists = await global.app.sdb.load('Account', { name });
+    const exists = await global.app.sdb.load('Account', { username });
     if (exists) return 'Name already registered';
-    if (this.sender.name) return 'Name already set';
-    this.sender.name = name;
-    global.app.sdb.update('Account', { name }, { address: this.sender.address });
+    if (this.sender.username) return 'Name already set';
+    this.sender.username = username;
+    global.app.sdb.update('Account', { username }, { address: this.sender.address });
 
     return null;
   },
@@ -154,21 +154,21 @@ export default {
       global.app.sdb.update('Account', sender, { address: sender.address });
 
       if (sender.agent) {
-        const agentAccount = await global.app.sdb.load('Account', { name: sender.agent });
+        const agentAccount = await global.app.sdb.load('Account', { username: sender.agent });
         if (!agentAccount) return 'Agent account not found';
         global.app.sdb.increase('Account', { agentWeight: amount }, { address: agentAccount.address });
 
         const voteList = await global.app.sdb.findAll('Vote', { condition: { address: agentAccount.address } });
         if (voteList && voteList.length > 0) {
           for (const voteItem of voteList) {
-            global.app.sdb.increase('Delegate', { votes: amount }, { name: voteItem.delegate });
+            global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
           }
         }
       } else {
         const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
         if (voteList && voteList.length > 0) {
           for (const voteItem of voteList) {
-            global.app.sdb.increase('Delegate', { votes: amount }, { name: voteItem.delegate });
+            global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
           }
         }
       }
@@ -187,7 +187,7 @@ export default {
     if (!sender.agent) {
       await doCancelVote(sender);
     } else {
-      const agentAccount = await global.app.sdb.load('Account', { name: sender.agent });
+      const agentAccount = await global.app.sdb.load('Account', { username: sender.agent });
       if (!agentAccount) return 'Agent account not found';
 
       await doCancelAgent(sender, agentAccount);
@@ -329,12 +329,12 @@ export default {
     if (this.block.height > 0) global.app.sdb.lock(`basic.account@${senderId}`)
     const sender = this.sender
     if (!sender) return 'Account not found'
-    if (!sender.name) return 'Account has not a name'
+    if (!sender.username) return 'Account has not a name'
     if (sender.role) return 'Account already have a role'
 
     global.app.sdb.create('Delegate', {
       address: senderId,
-      name: sender.name,
+      username: sender.username,
       tid: this.trs.id,
       publicKey: this.trs.senderPublicKey,
       votes: 0,
