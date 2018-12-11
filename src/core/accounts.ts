@@ -30,7 +30,7 @@ export default class Account {
         ret.account.publicKey = publicKey;
       }
       return ret;
-    })
+    });
   }
 
   openAccount2(publicKey) {
@@ -44,7 +44,7 @@ export default class Account {
         ret.account.publicKey = publicKey;
       }
       return ret;
-    })
+    });
   }
 
   generateAddressByPublicKey(publicKey) {
@@ -279,8 +279,8 @@ export default class Account {
             const unconfirmedAccount = await this.library.sdb.load('Account', { address: account.address });
             accountData = {
               address: account.address,
-              unconfirmedBalance: unconfirmedAccount.aec,
-              balance: account.aec,
+              unconfirmedBalance: unconfirmedAccount.gny,
+              balance: account.gny,
               secondPublicKey: account.secondPublicKey,
               lockHeight: account.lockHeight || 0,
             };
@@ -296,7 +296,7 @@ export default class Account {
           };
           return ret;
         } catch (e) {
-          this.library.logger.error('Failed to get account', e)
+          this.library.logger.error('Failed to get account', e);
           return 'Server Error';
         }
       })();
@@ -330,10 +330,10 @@ export default class Account {
 
     router.get('/count', (req, res) => (async () => {
       try {
-        const count = await this.library.sdb.count('Account')
-        return res.json({ success: true, count })
+        const count = await this.library.sdb.count('Account');
+        return res.json({ success: true, count });
       } catch (e) {
-        return res.status(500).send({ success: false, error: 'Server error' })
+        return res.status(500).send({ success: false, error: 'Server error' });
       }
     })());
 
@@ -341,8 +341,8 @@ export default class Account {
       res.status(500).send({
         success: false,
         error: 'API endpoint not found',
-      })
-    })
+      });
+    });
 
     this.library.network.app.use('/api/accounts', router);
     this.library.network.app.use((err: any, req: any, res: any, next: any) => {

@@ -46,7 +46,7 @@ export default {
     amount = Number(amount);
     const sender = this.sender;
     const senderId = sender.address;
-    if (this.block.height > 0 && sender.aec < amount) return 'Insufficient balance';
+    if (this.block.height > 0 && sender.gny < amount) return 'Insufficient balance';
 
     let recipientAccount;
     // Validate recipient is valid address
@@ -54,20 +54,20 @@ export default {
                     || app.util.address.isGroupAddress(recipient))) {
       recipientAccount = await app.sdb.load('Account', recipient);
       if (recipientAccount) {
-        app.sdb.increase('Account', { aec: amount }, { address: recipientAccount.address });
+        app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
       } else {
         recipientAccount = app.sdb.create('Account', {
           address: recipient,
-          aec: amount,
+          gny: amount,
           name: null,
         });
       }
     } else {
       recipientAccount = await app.sdb.load('Account', { name: recipient });
       if (!recipientAccount) return 'Recipient name not exist';
-      app.sdb.increase('Account', { aec: amount }, { address: recipientAccount.address });
+      app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
     }
-    app.sdb.increase('Account', { aec: -amount }, { address: sender.address });
+    app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
 
     app.sdb.create('Transfer', {
       tid: this.trs.id,
@@ -75,7 +75,7 @@ export default {
       senderId,
       recipientId: recipientAccount.address,
       recipientName: recipientAccount.name,
-      currency: 'AEC',
+      currency: 'gny',
       amount: String(amount),
       timestamp: this.trs.timestamp,
     });
@@ -125,7 +125,7 @@ export default {
     const MIN_LOCK_HEIGHT = 5760 * 30;
     const sender = this.sender;
     if (sender.isAgent) return 'Agent account cannot lock';
-    if (sender.aec - 100000000 < amount) return 'Insufficient balance';
+    if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
       if (height !== 0
         && height < (Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT)) {
@@ -150,7 +150,7 @@ export default {
       sender.lockHeight = height;
     }
     if (amount !== 0) {
-      sender.aec -= amount;
+      sender.gny -= amount;
       sender.weight += amount;
       app.sdb.update('Account', sender, { address: sender.address });
 
@@ -195,7 +195,7 @@ export default {
     }
     sender.isLocked = 0;
     sender.lockHeight = 0;
-    sender.aec += sender.weight;
+    sender.gny += sender.weight;
     sender.weight = 0;
     app.sdb.update('Account', sender, { address: senderId });
 
@@ -232,7 +232,7 @@ export default {
   //     app.sdb.create('Account', {
   //       address,
   //       name,
-  //       aec: 0,
+  //       gny: 0,
   //     })
   //   }
   //   app.sdb.create('Group', {

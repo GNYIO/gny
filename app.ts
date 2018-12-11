@@ -1,4 +1,4 @@
-import program from 'commander'
+import program from 'commander';
 import path = require('path');
 import fs = require('fs');
 import ip = require('ip');
@@ -30,7 +30,7 @@ function main() {
     .option('-g, --genesisblock <path>', 'Genesisblock path')
     .option('-x, --peers [peers...]', 'Peers list')
     .option('-l, --log <level>', 'Log level')
-    .option('-d, --daemon', 'Run asch node as daemon')
+    .option('-d, --daemon', 'Run gny node as daemon')
     .option('--app <dir>', 'App directory')
     .option('--base <dir>', 'Base directory')
     .option('--data <dir>', 'Data directory')
@@ -130,7 +130,7 @@ function main() {
     try {
       await app.run();
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
 
   })();
