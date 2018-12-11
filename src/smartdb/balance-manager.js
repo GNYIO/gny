@@ -1,6 +1,6 @@
 
 function getCurrencyFlag(currency) {
-  if (currency === 'AEC') {
+  if (currency === 'GNY') {
     return 1
   } if (currency.indexOf('.') !== -1) {
     // UIA
