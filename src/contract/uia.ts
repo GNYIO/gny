@@ -20,7 +20,7 @@ async function isProposalApproved(pid, topic) {
   return true
 }
 
-module.exports = {
+export default {
   async registerIssuer(name, desc) {
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name'
     if (!desc) return 'No issuer description was provided'

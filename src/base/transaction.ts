@@ -1,51 +1,43 @@
 import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
+import ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import * as feeCalculators from '../utils/calculate-fee';
-import * as transactionMode from '../utils/transaction-mode';
-import * as addressHelper from '../utils/address';
+import * as addressUtil from '../utils/address';
 
-class Transaction {
-  constructor(public scope: any) {}
+export default class Transaction {
+  private scope: any;
+  constructor(scope: any) {
+    this.scope = scope;
+  }
 
   create(data) {
     const transaction: any = {
       type: data.type,
-      senderId: addressHelper.generateNormalAddress(data.senderPublicKey),
+      senderId: addressUtil.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(),
       message: data.message,
       args: data.args,
       fee: data.fee,
       mode: data.mode,
-    }
+    };
 
-    transaction.signatures = [this.sign(data.keypair, transaction)]
-  
+    transaction.signatures = [this.sign(data.keypair, transaction)];
+
     if (data.secondKeypair) {
-      transaction.secondSignature = this.sign(data.secondKeypair, transaction)
+      transaction.secondSignature = this.sign(data.secondKeypair, transaction);
     }
 
-    transaction.id = this.getId(transaction)
+    transaction.id = this.getHash(transaction).toString('hex');
 
-    return transaction
+    return transaction;
   }
 
   sign(keypair, transaction) {
-    const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
-    return ed.Sign(hash, keypair).toString('hex')
-  }
-
-  multisign(keypair, transaction) {
-    const bytes = this.getBytes(transaction, true, true)
-    const hash = crypto.createHash('sha256').update(bytes).digest()
-    return ed.Sign(hash, keypair).toString('hex');
-  }
-
-  getId(transaction) {
-    return this.getHash(transaction).toString('hex');
+    const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest();
+    return ed.sign(hash, keypair).toString('hex');
   }
 
   getHash(transaction) {
@@ -183,7 +175,7 @@ class Transaction {
     }
   }
 
-  async apply(context) {
+  async apply(context: any) {
     const {
       block, transaction, sender, requestor,
     } = context;
@@ -276,5 +268,3 @@ class Transaction {
     return transaction;
   }
 }
-
-export = Transaction;

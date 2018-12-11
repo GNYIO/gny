@@ -63,13 +63,12 @@
     "dist",
     "test/**/*.spec.ts"
   ],
-  "inclue": [
-    "src/**/*.ts",
-    "src/*.ts",
-    "app.js",
-    "config.json",
-    "genesisBlock.json",
-    "index.js",
+  "include": [
+    "src/**/*[.ts|.js]",
+    "src/*[.ts|.js]",
+    "app.ts",
+    "app-alt.ts",
+    "index.ts",
     "proto",
     "data"
   ]

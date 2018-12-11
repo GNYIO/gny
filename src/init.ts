@@ -10,34 +10,19 @@ import ip = require('ip');
 import express = require('express');
 import compression = require('compression');
 import cors = require('cors');
-import _ = require('lodash');
+import * as _ from 'lodash';
 import bodyParser = require('body-parser');
 import methodOverride = require('method-override');
 import Sequence = require('./utils/sequence');
 import slots = require('./utils/slots');
 import queryParser = require('./utils/express-query-int');
 import ZSchemaExpress = require('./utils/zscheme-express');
-import Transaction = require('./base/transaction');
-import Block = require('./base/block');
-import Consensus = require('./base/consensus');
+import { Transaction } from './base/transaction';
+import { Block } from './base/block';
+import { Consensus } from './base/consensus';
 import protobuf = require('./utils/protobuf');
-import { Round } from './core/round';
-import { Server } from './core/server';
+import loadedModules from './loadModules'
 
-// no chain module
-const moduleNames = [
-  'server',
-  'accounts',
-  'transactions',
-  'loader',
-  'system',
-  'peer',
-  'transport',
-  'delegates',
-  'round',
-  'uia',
-  'blocks',
-];
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
@@ -76,7 +61,7 @@ const modules = [];
 
 async function init_alt(options: any) {
   let scope = {};
-  const { appConfig, genesisblock } = options;
+  const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
@@ -91,8 +76,8 @@ async function init_alt(options: any) {
 
   scope.config = appConfig;
   scope.logger = options.logger;
-  scope.genesisblock = {
-    block: genesisblock,
+  scope.genesisBlock = {
+    block: genesisBlock,
   };
   // scope.protobuf =
 
@@ -198,7 +183,7 @@ async function init_alt(options: any) {
   scope.base = {};
   scope.base.bus = scope.bus;
   scope.base.scheme = scope.scheme;
-  scope.base.genesisblock = scope.genesisblock;
+  scope.base.genesisBlock = scope.genesisBlock;
   scope.base.consensus = new Consensus(scope);
   scope.base.transaction = new Transaction(scope);
   scope.base.block = new Block(scope);
@@ -214,16 +199,12 @@ async function init_alt(options: any) {
   }
   scope.modules = {};
 
-  moduleNames.forEach(name => {
-    let obj;
-    scope.logger.debug('Loading Module...', name);
-    // import * as Klass from `./core-alt/${name}`;
-    const Klass = require(`./core/${name}`);
-    console.log(`${name}  ${Klass}`)
-    obj = new Klass.default(cb, scope);
+  loadedModules.forEach(mod => {
+    scope.logger.debug(`loading Module... ${mod.name}`)
+    let obj = new mod.class(scope);
     modules.push(obj);
-    scope.modules[name] = obj;
-  });
+    scope.modules[mod.name] = obj
+  })
 
   class Bus extends EventEmitter {
     message(topic, ...restArgs) {
@@ -357,4 +338,4 @@ function balancesSequence(options: any) {
   });
 }
 
-export = init_alt;
+export default init_alt;

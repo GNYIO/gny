@@ -1,6 +1,6 @@
 import util = require('util');
 import async = require('async');
-import constants = require('./constants');
+import * as constants from './constants';
 
 // const TASK_TIMEOUT_MS = 10 * 1000
 // const TASK_TIMEOUT_MS = 15 * 1000

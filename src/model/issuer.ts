@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'issuers',
   tableFields: [
     { name: 'tid', type: 'String', length: 64, unique: true },

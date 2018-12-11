@@ -1,20 +1,19 @@
 import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
+import ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import BlockStatus from '../utils/block-status';
+import BlockReward from '../utils/block-reward';
 import * as constants from '../utils/constants';
-import * as addressHelper from '../utils/address';
+import * as addressUtil from '../utils/address';
 
-class Block {
-  private blockStatus = BlockStatus;
-  public scope: any;
+export class Block {
+  private scope: any;
+  private blockReward = new BlockReward();
 
   constructor(scope: any) {
     this.scope = scope;
   }
 
   private sortTransactions(data: any) {
-    // 优先级：二级密码，金额
     data.transactions.sort((a, b) => {
       if (a.type === b.type) {
         if (a.type === 1) {
@@ -32,10 +31,10 @@ class Block {
     });
   }
 
-  create(data: any) {
+  createBlock(data: any) {
     const transactions = this.sortTransactions(data);
     const nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
-    const reward = this.blockStatus.calcReward(nextHeight);
+    const reward = this.blockReward.calculateReward(nextHeight);
 
     let totalFee = 0;
     let totalAmount = 0;
@@ -46,7 +45,7 @@ class Block {
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const bytes = this.scope.transaction.getBytes(transaction);
-      // 小于8M
+      // less than 8M
       if (size + bytes.length > constants.maxPayloadLength) {
         break;
       }
@@ -84,15 +83,6 @@ class Block {
     return block;
   }
 
-  sign(block, keypair) {
-    const hash = this.calculateHash(block);
-    return ed.Sign(hash, keypair).toString('hex');
-  }
-
-  private calculateHash(block) {
-    return crypto.createHash('sha256').update(this.serialize(block)).digest();
-  }
-
   serialize(block, skipSignature?) {
     const size = 4 + 4 + 64 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32; // 待纠正
 
@@ -123,6 +113,15 @@ class Block {
 
     byteBuffer.flip();
     return byteBuffer.toBuffer();
+  }
+
+  private calculateHash(block) {
+    return crypto.createHash('sha256').update(this.serialize(block)).digest();
+  }
+
+  sign(block, keypair) {
+    const hash = this.calculateHash(block);
+    return ed.sign(hash, keypair).toString('hex');
   }
 
   verifySignature(block) {
@@ -208,7 +207,7 @@ class Block {
 
     try {
       for (let i = 0; i < block.transactions.length; i++) {
-        block.transactions[i] = this.scope.transaction.objectNormalize(block.transactions[i]);
+        block.transactions[i] = this.scope.base.transaction.objectNormalize(block.transactions[i]);
       }
     } catch (e) {
       throw Error(e.toString());
@@ -217,13 +216,9 @@ class Block {
     return block;
   }
 
-  calculateFee() {
-    return 1000000;
-  }
-
   dbRead(raw) {
     if (!raw.b_id) {
-      return null;
+      return;
     }
 
     const block: any = {
@@ -239,7 +234,7 @@ class Block {
       reward: parseInt(raw.b_reward, 10),
       payloadHash: raw.b_payloadHash,
       payloadLength: parseInt(raw.b_payloadLength, 10),
-      generatorId: addressHelper.generateNormalAddress(raw.b_generatorPublicKey), // 方法待实现
+      generatorId: addressUtil.generateAddress(raw.b_generatorPublicKey),
       blockSignature: raw.b_blockSignature,
       confirmations: raw.b_confirmations,
     };
@@ -247,6 +242,3 @@ class Block {
     return block;
   }
 }
-
-export = Block;
-

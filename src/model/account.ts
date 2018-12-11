@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'accounts',
   tableFields: [
     { name: 'address', type: 'String', length: 50, primary_key: true, not_null: true },

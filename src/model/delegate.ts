@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'delegates',
   memory: true,
   tableFields: [

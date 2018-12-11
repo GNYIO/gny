@@ -40,7 +40,7 @@ async function getTransactionMap(tids) {
   return trsMap
 }
 
-module.exports = (router) => {
+export default (router) => {
   router.get('/', async (req) => {
     const ownerId = req.query.ownerId
     const currency = req.query.currency

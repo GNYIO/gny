@@ -1,8 +1,8 @@
 import assert = require('assert');
 import crypto = require('crypto');
 import fs = require('fs');
-import initRuntime = require('./src/runtime');
-import initAlt = require('./src/init');
+import initRuntime from './src/runtime';
+import initAlt from './src/init';
 
 function verifyGenesisBlock(scope, block) {
   try {
@@ -84,7 +84,7 @@ class Application {
       process.emit('cleanup')
     })
 
-    verifyGenesisBlock(scope, scope.genesisblock.block)
+    verifyGenesisBlock(scope, scope.genesisBlock.block)
 
     options.library = scope;
 

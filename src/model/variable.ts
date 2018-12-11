@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   table: 'variables',
   memory: true,
   tableFields: [

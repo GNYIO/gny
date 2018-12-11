@@ -20,7 +20,7 @@ export default class Round {
     this.library = scope;
   }
 
-  onBlockChainReady() {
+  onBlockChainReady = () => {
     this.isloaded = true;
   }
 
@@ -29,6 +29,7 @@ export default class Round {
   }
 
   cleanup() {
+    console.log('round.ts cleanup')
     this.isloaded = false;
   }
 }

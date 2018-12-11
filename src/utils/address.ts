@@ -22,4 +22,3 @@ export function isAddress(address: string) {
   return true;
 }
 
-
