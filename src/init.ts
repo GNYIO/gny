@@ -22,6 +22,7 @@ import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
+import loadCoreApi from './loadCoreApi'
 import { IScope, IMessageEmitter } from './interfaces'
 
 const slots = new Slots()
@@ -200,7 +201,8 @@ async function init_alt(options: any) {
     // console.log(result);
   }
 
-  scope.modules = loadedModules(scope)
+  scope.modules = loadedModules(scope);
+  scope.coreApi = loadCoreApi(scope.modules, scope);
 
   class Bus extends EventEmitter implements IMessageEmitter {
     message(topic: string, ...restArgs) {
