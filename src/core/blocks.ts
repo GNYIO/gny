@@ -104,11 +104,6 @@ export default class Blocks {
     return ret.common
   }
 
-  // duplicate
-  public getBlock = (filter, cb) => {
-    this.shared.getBlock({ body: filter }, cb)
-  }
-
   public setLastBlock = (block: any) => {
     this.lastBlock = block
   }
