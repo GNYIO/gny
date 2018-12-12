@@ -20,7 +20,6 @@ export default class Blocks {
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();
   private loaded: boolean = false;
-  private isActive: boolean = false;
   private blockCache = {};
   private proposeCache = {};
   private lastPropose = null;
