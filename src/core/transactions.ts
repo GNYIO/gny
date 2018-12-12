@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import { isArray } from 'util';
 import * as ed from '../utils/ed';
 import Router from '../utils/router';
 import LimitCache from '../utils/limit-cache';
@@ -344,14 +343,14 @@ class Transactions {
   }
 
   toAPIV1Transactions = (transArray, block) => {
-    if (transArray && isArray(transArray) && transArray.length > 0) {
+    if (transArray && Array.isArray(transArray) && transArray.length > 0) {
       return transArray.map(t => this.toAPIV1Transaction(t, block));
     }
     return [];
   }
 
   tranfersToAPIV1Transactions = async (transferArray, block) => {
-    if (transferArray && isArray(transferArray) && transferArray.length > 0) {
+    if (transferArray && Array.isArray(transferArray) && transferArray.length > 0) {
 
       let transMap = new Map()
       let transIds = transferArray.map(t => t.tid)

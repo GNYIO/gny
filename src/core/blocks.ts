@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
-import { isArray } from 'util';
 import * as constants from '../utils/constants'
 import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
@@ -32,41 +31,10 @@ export default class Blocks {
   constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = scope.genesisBlock;
-    this.attachAPI();
   }
 
   // priv methods
-  private attachAPI() {
-    const router1 = new Router();
-    const router = router1.router;
 
-    router.use((req, res, next) => {
-      if (this.modules) return next()
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-    })
-
-    router.map(this.shared, {
-      'get /get': 'getBlock',
-      'get /full': 'getFullBlock',
-      'get /': 'getBlocks',
-      'get /getHeight': 'getHeight',
-      'get /getMilestone': 'getMilestone',
-      'get /getReward': 'getReward',
-      'get /getSupply': 'getSupply',
-      'get /getStatus': 'getStatus',
-    })
-
-    router.use((req, res) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' })
-    })
-
-    this.library.network.app.use('/api/blocks', router)
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).send({ success: false, error: err.toString() });
-    })
-  }
 
   public async getIdSequence2(height: number) {
     try {
@@ -80,13 +48,6 @@ export default class Blocks {
       throw e;
     }
   }
-
-  // public toAPIV1Blocks = (blocks) => {
-  //   if (blocks && isArray(blocks) && blocks.length > 0) {
-  //     return blocks.map(b => self.toAPIV1Block(b))
-  //   }
-  //   return []
-  // }
 
   public toAPIV1Block = (block) => {
     if (!block) return undefined
@@ -502,11 +463,11 @@ export default class Blocks {
             return next('Invalid response for blocks request')
           }
           const blocks = body.blocks
-          if (!isArray(blocks) || blocks.length === 0) {
+          if (!Array.isArray(blocks) || blocks.length === 0) {
             loaded = true
             return next()
           }
-          const num = isArray(blocks) ? blocks.length : 0
+          const num = Array.isArray(blocks) ? blocks.length : 0
           const address = `${peer.host}:${peer.port - 1}`
           library.logger.info(`Loading ${num} blocks from ${address}`)
           return (async () => {
@@ -797,205 +758,6 @@ public isHealthy = () => {
     this.loaded = false
     cb()
   }
-
-  // Shared
-  private shared = {
-
-    getBlock: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            minLength: 1,
-          },
-          height: {
-            type: 'integer',
-            minimum: 0,
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            let block
-            if (query.id) {
-              block = await global.app.sdb.getBlockById(query.id)
-            } else if (query.height !== undefined) {
-              block = await global.app.sdb.getBlockByHeight(query.height)
-            }
-
-            if (!block) {
-              return cb('Block not found')
-            }
-            return cb(null, { block: this.toAPIV1Block(block) })
-          } catch (e) {
-            this.library.logger.error(e)
-            return cb('Server error')
-          }
-        })()
-      })
-    },
-
-    getFullBlock: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            minLength: 1,
-          },
-          height: {
-            type: 'integer',
-            minimum: 0,
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            let block
-            if (query.id) {
-              block = await global.app.sdb.getBlockById(query.id)
-            } else if (query.height !== undefined) {
-              block = await global.app.sdb.getBlockByHeight(query.height)
-            }
-            if (!block) return cb('Block not found')
-
-            const v1Block = this.toAPIV1Block(block)
-            return this.modules.transactions.getBlockTransactionsForV1(v1Block, (error, transactions) => {
-              if (error) return cb(error)
-              v1Block.transactions = transactions
-              v1Block.numberOfTransactions = isArray(transactions) ? transactions.length : 0
-              return cb(null, { block: v1Block })
-            })
-          } catch (e) {
-            this.library.logger.error('Failed to find block', e)
-            return cb(`Server error : ${e.message}`)
-          }
-        })()
-      })
-    },
-
-    getBlocks: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          limit: {
-            type: 'integer',
-            minimum: 0,
-            maximum: 100,
-          },
-          offset: {
-            type: 'integer',
-            minimum: 0,
-          },
-          generatorPublicKey: {
-            type: 'string',
-            format: 'publicKey',
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            const offset = query.offset ? Number(query.offset) : 0
-            const limit = query.limit ? Number(query.limit) : 20
-            let minHeight
-            let maxHeight
-            if (query.orderBy === 'height:desc') {
-              maxHeight = this.lastBlock.height - offset
-              minHeight = (maxHeight - limit) + 1
-            } else {
-              minHeight = offset
-              maxHeight = (offset + limit) - 1
-            }
-
-            // TODO: get by delegate ??
-            // if (query.generatorPublicKey) {
-            //   condition.delegate = query.generatorPublicKey
-            // }
-            const count = global.app.sdb.blocksCount
-            if (!count) throw new Error('Failed to get blocks count')
-
-            const blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
-            if (!blocks || !blocks.length) return cb('No blocks')
-            return cb(null, { count, blocks: this.toAPIV1Blocks(blocks) })
-          } catch (e) {
-            this.library.logger.error('Failed to find blocks', e)
-            return cb('Server error')
-          }
-        })()
-      })
-    },
-
-    getHeight: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      return cb(null, { height: this.lastBlock.height })
-    },
-
-    getMilestone: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { milestone: this.blockStatus.calcMilestone(height) })
-    },
-
-    getReward: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { reward: this.blockStatus.calcReward(height) })
-    },
-
-    getSupply: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { supply: this.blockStatus.calcSupply(height) })
-    },
-
-    getStatus: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, {
-        height,
-        fee: this.library.base.block.calculateFee(),
-        milestone: this.blockStatus.calcMilestone(height),
-        reward: this.blockStatus.calcReward(height),
-        supply: this.blockStatus.calcSupply(height),
-      })
-    }
-  }
-  // end Shared
 
   // Events
   public onBind = (scope: Modules) => {
