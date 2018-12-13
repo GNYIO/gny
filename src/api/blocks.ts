@@ -22,7 +22,7 @@ export default (router) => {
     if (needReverse) {
       blocks = _.reverse(blocks)
     }
-    const count = app.sdb.blocksCount
+    const count = global.app.sdb.blocksCount
     return { count, blocks }
   })
 
@@ -31,16 +31,16 @@ export default (router) => {
     let block
     if (idOrHeight.length === 64) {
       let id = idOrHeight
-      block = await app.sdb.getBlockById(id)
+      block = await global.app.sdb.getBlockById(id)
     } else {
       let height = Number(idOrHeight)
       if (Number.isInteger(height) && height >= 0) {
-        block = await app.sdb.getBlockByHeight(height)
+        block = await global.app.sdb.getBlockByHeight(height)
       }
     }
     if (!block) throw new Error('Block not found')
     if (!!req.query.transactions) {
-      const transactions = await app.sdb.findAll('Transaction', {
+      const transactions = await global.app.sdb.findAll('Transaction', {
         condition: {
           height: block.height,
         },

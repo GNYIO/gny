@@ -7,10 +7,7 @@ import asset from './model/asset';
 import balance from './model/balance';
 import delegate from './model/delegate';
 import issuer from './model/issuer';
-import proposalVote from './model/proposal-vote';
-import proposal from './model/proposal';
 import round from './model/round';
-import transactionStatu from './model/transaction-statu';
 import transaction from './model/transaction';
 import transfer from './model/transfer';
 import variable from './model/variable';
@@ -37,14 +34,11 @@ export default async function loadModels() {
   schemas.push(createModelSchema({ class: balance, name: 'balance' }));
   schemas.push(createModelSchema({ class: delegate, name: 'delegate' }));
   schemas.push(createModelSchema({ class: issuer, name: 'issuer' }));
-  schemas.push(createModelSchema({ class: proposalVote, name: 'proposal-vote' }));
-  schemas.push(createModelSchema({ class: proposal, name: 'proposal' }));
   schemas.push(createModelSchema({ class: round, name: 'round' }));
-  schemas.push(createModelSchema({ class: transactionStatu, name: 'transaction-statu' }));
   schemas.push(createModelSchema({ class: transaction, name: 'transaction' }));
   schemas.push(createModelSchema({ class: transfer, name: 'transfer'}));
   schemas.push(createModelSchema({ class: variable, name: 'variable' }));
   schemas.push(createModelSchema({ class: vote, name: 'vote' }));
 
-  await app.sdb.init(schemas);
+  await global.app.sdb.init(schemas)
 }

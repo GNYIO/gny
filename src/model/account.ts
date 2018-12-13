@@ -3,7 +3,7 @@ export default {
   tableFields: [
     { name: 'address', type: 'String', length: 50, primary_key: true, not_null: true },
     { name: 'username', type: 'String', length: 20, unique: true },
-    { name: 'balance', type: 'BigInt', default: 0 },
+    { name: 'gny', type: 'BigInt', default: 0 },
     { name: 'publicKey', type: 'String', length: 64 },
     { name: 'secondPublicKey', type: 'String', length: 64 },
     { name: 'isDelegate', type: 'Number', default: 0 },

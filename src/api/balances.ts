@@ -6,10 +6,10 @@ export default (router) => {
     if (req.query.flag) {
       condition.flag = Number(req.query.flag)
     }
-    const count = await app.sdb.count('Balance', condition)
+    const count = await global.app.sdb.count('Balance', condition)
     let balances = []
     if (count > 0) {
-      balances = await app.sdb.findAll('Balance', { condition, limit, offset })
+      balances = await global.app.sdb.findAll('Balance', { condition, limit, offset })
       const currencyMap = new Map()
       for (const b of balances) {
         currencyMap.set(b.currency, 1)
@@ -19,7 +19,7 @@ export default (router) => {
       const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1)
 
       if (uiaNameList && uiaNameList.length) {
-        const assets = await app.sdb.findAll('Asset', {
+        const assets = await global.app.sdb.findAll('Asset', {
           condition: {
             name: { $in: uiaNameList },
           },
@@ -29,7 +29,7 @@ export default (router) => {
         }
       }
       if (gaNameList && gaNameList.length) {
-        const gatewayAssets = await app.sdb.findAll('GatewayCurrency', {
+        const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
           condition: {
             symbol: { $in: gaNameList },
           },
@@ -52,12 +52,12 @@ export default (router) => {
       address: req.params.address,
       currency,
     }
-    const balance = await app.sdb.findOne('Balance', { condition })
+    const balance = await global.app.sdb.findOne('Balance', { condition })
     if (!balance) return 'No balance'
     if (currency.indexOf('.') !== -1) {
-      balance.asset = await app.sdb.findOne('Asset', { condition: { name: balance.currency } })
+      balance.asset = await global.app.sdb.findOne('Asset', { condition: { name: balance.currency } })
     } else {
-      balance.asset = await app.sdb.findOne('GatewayCurrency', { condition: { symbol: balance.currency } })
+      balance.asset = await global.app.sdb.findOne('GatewayCurrency', { condition: { symbol: balance.currency } })
     }
 
     return { balance }

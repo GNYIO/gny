@@ -1,25 +1,25 @@
-import assert = require('assert');
-import crypto = require('crypto');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
-import isArray = require('util').isArray;
-import * as constants from '../utils/constants.js'
+import * as constants from '../utils/constants'
 import BlockStatus from '../utils/block-status';
-import Router = require('../utils/router');
-import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
+import Router from '../utils/router';
+import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
+import transactionMode from '../utils/transaction-mode';
+import { Modules, IScope } from '../interfaces';
+
+const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;
-  private modules: any;
-  private library: any;
+  private modules: Modules;
+  private readonly library: IScope;
 
   private lastBlock: any = {};
   private blockStatus = new BlockStatus();
   private loaded: boolean = false;
-  private isActive: boolean = false;
   private blockCache = {};
   private proposeCache = {};
   private lastPropose = null;
@@ -27,49 +27,19 @@ export default class Blocks {
 
   private lastVoteTime: any;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = scope.genesisBlock;
-    this.attachAPI();
   }
 
   // priv methods
-  private attachAPI() {
-    const router = new Router();
 
-    router.use((req, res, next) => {
-      if (this.modules) return next()
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-    })
-
-    router.map(this.shared, {
-      'get /get': 'getBlock',
-      'get /full': 'getFullBlock',
-      'get /': 'getBlocks',
-      'get /getHeight': 'getHeight',
-      'get /getMilestone': 'getMilestone',
-      'get /getReward': 'getReward',
-      'get /getSupply': 'getSupply',
-      'get /getStatus': 'getStatus',
-    })
-
-    router.use((req, res) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' })
-    })
-
-    this.library.network.app.use('/api/blocks', router)
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).send({ success: false, error: err.toString() });
-    })
-  }
 
   public async getIdSequence2(height: number) {
     try {
       const maxHeight = Math.max(height, this.lastBlock.height);
       const minHeight = Math.max(0, maxHeight - 4);
-      let blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
+      let blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
       const ids = blocks.map((b: any) => b.id);
       return { ids, firstHeight: minHeight };
@@ -77,13 +47,6 @@ export default class Blocks {
       throw e;
     }
   }
-
-  // public toAPIV1Blocks = (blocks) => {
-  //   if (blocks && isArray(blocks) && blocks.length > 0) {
-  //     return blocks.map(b => self.toAPIV1Block(b))
-  //   }
-  //   return []
-  // }
 
   public toAPIV1Block = (block) => {
     if (!block) return undefined
@@ -138,11 +101,6 @@ export default class Blocks {
     }
 
     return ret.common
-  }
-
-  // duplicate
-  public getBlock = (filter, cb) => {
-    this.shared.getBlock({ body: filter }, cb)
   }
 
   public setLastBlock = (block: any) => {
@@ -261,7 +219,7 @@ export default class Blocks {
   }
 
   public applyBlock = async (block: any) => {
-    app.logger.trace('enter applyblock')
+   global.app.logger.trace('enter applyblock')
     const appliedTransactions: any = {}
   
     try {
@@ -275,8 +233,8 @@ export default class Blocks {
         appliedTransactions[transaction.id] = transaction
       }
     } catch (e) {
-      app.logger.error(e)
-      await app.sdb.rollbackBlock()
+     global.app.logger.error(e)
+      await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to apply block: ${e}`)
     }
   }
@@ -285,7 +243,7 @@ export default class Blocks {
     if (!this.loaded) throw new Error('Blockchain is loading')
   
     let block = b
-    app.sdb.beginBlock(block)
+    global.app.sdb.beginBlock(block)
   
     if (!block.transactions) block.transactions = []
     if (!options.local) {
@@ -302,7 +260,7 @@ export default class Blocks {
 
       this.library.logger.debug('verify block ok')
       if (block.height !== 0) {
-        const exists = (undefined !== await app.sdb.getBlockById(block.id))
+        const exists = (undefined !== await global.app.sdb.getBlockById(block.id))
         if (exists) throw new Error(`Block already exists: ${block.id}`)
       }
   
@@ -321,15 +279,15 @@ export default class Blocks {
         this.library.base.transaction.objectNormalize(transaction)
       }
       const idList = block.transactions.map(t => t.id)
-      if (await app.sdb.exists('Transaction', { id: { $in: idList } })) {
+      if (await global.app.sdb.exists('Transaction', { id: { $in: idList } })) {
         throw new Error('Block contain already confirmed transaction')
       }
   
-      app.logger.trace('before applyBlock')
+     global.app.logger.trace('before applyBlock')
       try {
         await this.applyBlock(block, options)
       } catch (e) {
-        app.logger.error(`Failed to apply block: ${e}`)
+       global.app.logger.error(`Failed to apply block: ${e}`)
         throw e
       }
     }
@@ -337,9 +295,9 @@ export default class Blocks {
     try {
       this.saveBlockTransactions(block)
       await this.applyRound(block)
-      await app.sdb.commitBlock()
+      await global.app.sdb.commitBlock()
       const trsCount = block.transactions.length
-      app.logger.info(`Block applied correctly with ${trsCount} transactions`)
+     global.app.logger.info(`Block applied correctly with ${trsCount} transactions`)
       this.setLastBlock(block)
   
       if (options.broadcast) {
@@ -348,9 +306,9 @@ export default class Blocks {
       }
       this.library.bus.message('processBlock', block)
     } catch (e) {
-      app.logger.error(block)
-      app.logger.error('save block error: ', e)
-      await app.sdb.rollbackBlock()
+     global.app.logger.error(block)
+     global.app.logger.error('save block error: ', e)
+      await global.app.sdb.rollbackBlock()
       throw new Error(`Failed to save block: ${e}`)
     } finally {
       this.blockCache = {}
@@ -362,18 +320,18 @@ export default class Blocks {
   }
 
   public saveBlockTransactions = (block: any) => {
-    app.logger.trace('Blocks#saveBlockTransactions height', block.height)
+   global.app.logger.trace('Blocks#saveBlockTransactions height', block.height)
     for (const trs of block.transactions) {
       trs.height = block.height
-      app.sdb.create('Transaction', trs)
+      global.app.sdb.create('Transaction', trs)
     }
-    app.logger.trace('Blocks#save transactions')
+   global.app.logger.trace('Blocks#save transactions')
   }
 
 
   public increaseRoundData = (modifier, roundNumber) => {
-    app.sdb.createOrLoad('Round', { fees: 0, rewards: 0, round: roundNumber })
-    return app.sdb.increase('Round', modifier, { round: roundNumber })
+    global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber })
+    return global.app.sdb.increase('Round', modifier, { round: roundNumber })
   }
 
   public applyRound = async (block: any) => {
@@ -382,8 +340,8 @@ export default class Blocks {
       return
     }
   
-    let address = addressHelper.generateNormalAddress(block.delegate)
-    app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
+    let address = addressHelper.generateAddress(block.delegate)
+    global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address })
   
     let transFee = 0
     for (const t of block.transactions) {
@@ -392,37 +350,37 @@ export default class Blocks {
       }
     }
   
-    const roundNumber = this.modules.round.calc(block.height)
-    const { fees, rewards } = this.increaseRoundData({ fees: transFee, rewards: block.reward }, roundNumber)
+    const roundNumber = this.modules.round.calculateRound(block.height)
+    const { fee, reward } = this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber)
   
     if (block.height % 101 !== 0) return
   
-    app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
+   global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`)
   
-    const delegates = modules.delegates.generateDelegateList(block.height)
-    app.logger.debug('delegate length', delegates.length)
+    const delegates = this.modules.delegates.generateDelegateList(block.height)
+   global.app.logger.debug('delegate length', delegates.length)
   
-    const forgedBlocks = await app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
+    const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1)
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate]
   
     const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd))
     missedDelegates.forEach((md) => {
-      address = addressHelper.generateNormalAddress(md)
-      app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
+      address = addressHelper.generateAddress(md)
+      global.app.sdb.increase('Delegate', { missedDelegate: 1 }, { address })
     })
   
     async function updateDelegate(pk, fee, reward) {
-      address = addressHelper.generateNormalAddress(pk)
-      app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
+      address = addressHelper.generateAddress(pk)
+      global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address })
       // TODO should account be all cached?
-      app.sdb.increase('Account', { xas: fee + reward }, { address })
+      global.app.sdb.increase('Account', { gny: fee + reward }, { address })
     }
   
     const councilControl = 1
     if (councilControl) {
       const councilAddress = 'GADQ2bozmxjBfYHDQx3uwtpwXmdhafUdkN'
-      app.sdb.createOrLoad('Account', { xas: 0, address: councilAddress, name: null })
-      app.sdb.increase('Account', { xas: fees + rewards }, { address: councilAddress })
+      global.app.sdb.createOrLoad('Account', { gny: 0, address: councilAddress, name: null })
+      global.app.sdb.increase('Account', { gny: fees + rewards }, { address: councilAddress })
     } else {
       const ratio = 1
   
@@ -448,7 +406,7 @@ export default class Blocks {
   }
 
   public getBlocks = async (minHeight, maxHeight, withTransaction) => {
-    const blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
+    const blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
   
     if (!blocks || !blocks.length) {
       return []
@@ -456,7 +414,7 @@ export default class Blocks {
   
     maxHeight = blocks[blocks.length - 1].height
     if (withTransaction) {
-      const transactions = await app.sdb.findAll('Transaction', {
+      const transactions = await global.app.sdb.findAll('Transaction', {
         condition: {
           height: { $gte: minHeight, $lte: maxHeight },
         },
@@ -491,7 +449,7 @@ export default class Blocks {
           limit,
           lastBlockId: lastCommonBlockId,
         }
-        modules.peer.request('blocks', params, peer, (err, body) => {
+        this.modules.peer.request('blocks', params, peer, (err, body) => {
           if (err) {
             return next(`Failed to request remote peer: ${err}`)
           }
@@ -499,11 +457,11 @@ export default class Blocks {
             return next('Invalid response for blocks request')
           }
           const blocks = body.blocks
-          if (!isArray(blocks) || blocks.length === 0) {
+          if (!Array.isArray(blocks) || blocks.length === 0) {
             loaded = true
             return next()
           }
-          const num = isArray(blocks) ? blocks.length : 0
+          const num = Array.isArray(blocks) ? blocks.length : 0
           const address = `${peer.host}:${peer.port - 1}`
           library.logger.info(`Loading ${num} blocks from ${address}`)
           return (async () => {
@@ -564,7 +522,7 @@ export default class Blocks {
       reward: this.blockStatus.calcReward(height),
     }
   
-    block.signature = this.library.base.block.sign(block, keypair)
+    block.signature = this.library.base.block.sign(block, keypair.privateKey)
     block.id = this.library.base.block.getId(block)
   
     let activeKeypairs
@@ -581,7 +539,7 @@ export default class Blocks {
     if (this.library.base.consensus.hasEnoughVotes(localVotes)) {
       this.modules.transactions.clearUnconfirmed()
       await this.processBlock(block, { local: true, broadcast: true, votes: localVotes })
-      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+      this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
       return null
     }
     if (!this.library.config.publicIp) {
@@ -604,15 +562,6 @@ export default class Blocks {
     return null
   }
 
-  // obsolete
-  public sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
-  }
-
-
-
-
-
   // Events
   public onReceiveBlock = (block: any, votes: any) => {
   if (this.modules.loader.syncing() || !this.loaded) {
@@ -628,7 +577,7 @@ export default class Blocks {
     if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
-        ` round: ${this.modules.round.calc(this.modules.blocks.getLastBlock().height)}` +
+        ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
         ` slot: ${slots.getSlotNumber(block.timestamp)}`)
       return (async () => {
         const pendingTrsMap = new Map()
@@ -638,7 +587,7 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t)
           }
           this.modules.transactions.clearUnconfirmed()
-          await app.sdb.rollbackBlock()
+          await global.app.sdb.rollbackBlock()
           await this.processBlock(block, { votes, broadcast: true })
         } catch (e) {
           this.library.logger.error('Failed to process received block', e)
@@ -767,11 +716,11 @@ public onReceiveVotes = (votes: any) => {
         try {
           this.modules.transactions.clearUnconfirmed()
           await this.processBlock(block, { votes: totalVotes, local: true, broadcast: true })
-          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calc(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
+          this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`)
         } catch (err) {
           this.library.logger.error(`Failed to process confirmed block height: ${height} id: ${id} error: ${err}`)
         }
-        cb()
+        cb() 
       })()
     }
     return setImmediate(cb)
@@ -799,229 +748,31 @@ public isHealthy = () => {
 
 
   cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/blocks')
     this.loaded = false
     cb()
   }
 
-  // Shared
-  private shared = {
-
-    getBlock: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            minLength: 1,
-          },
-          height: {
-            type: 'integer',
-            minimum: 0,
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            let block
-            if (query.id) {
-              block = await app.sdb.getBlockById(query.id)
-            } else if (query.height !== undefined) {
-              block = await app.sdb.getBlockByHeight(query.height)
-            }
-
-            if (!block) {
-              return cb('Block not found')
-            }
-            return cb(null, { block: this.toAPIV1Block(block) })
-          } catch (e) {
-            this.library.logger.error(e)
-            return cb('Server error')
-          }
-        })()
-      })
-    },
-
-    getFullBlock: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            minLength: 1,
-          },
-          height: {
-            type: 'integer',
-            minimum: 0,
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            let block
-            if (query.id) {
-              block = await app.sdb.getBlockById(query.id)
-            } else if (query.height !== undefined) {
-              block = await app.sdb.getBlockByHeight(query.height)
-            }
-            if (!block) return cb('Block not found')
-
-            const v1Block = this.toAPIV1Block(block)
-            return this.modules.transactions.getBlockTransactionsForV1(v1Block, (error, transactions) => {
-              if (error) return cb(error)
-              v1Block.transactions = transactions
-              v1Block.numberOfTransactions = isArray(transactions) ? transactions.length : 0
-              return cb(null, { block: v1Block })
-            })
-          } catch (e) {
-            this.library.logger.error('Failed to find block', e)
-            return cb(`Server error : ${e.message}`)
-          }
-        })()
-      })
-    },
-
-    getBlocks: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const query = req.body
-      return this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          limit: {
-            type: 'integer',
-            minimum: 0,
-            maximum: 100,
-          },
-          offset: {
-            type: 'integer',
-            minimum: 0,
-          },
-          generatorPublicKey: {
-            type: 'string',
-            format: 'publicKey',
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-
-        return (async () => {
-          try {
-            const offset = query.offset ? Number(query.offset) : 0
-            const limit = query.limit ? Number(query.limit) : 20
-            let minHeight
-            let maxHeight
-            if (query.orderBy === 'height:desc') {
-              maxHeight = this.lastBlock.height - offset
-              minHeight = (maxHeight - limit) + 1
-            } else {
-              minHeight = offset
-              maxHeight = (offset + limit) - 1
-            }
-
-            // TODO: get by delegate ??
-            // if (query.generatorPublicKey) {
-            //   condition.delegate = query.generatorPublicKey
-            // }
-            const count = app.sdb.blocksCount
-            if (!count) throw new Error('Failed to get blocks count')
-
-            const blocks = await app.sdb.getBlocksByHeightRange(minHeight, maxHeight)
-            if (!blocks || !blocks.length) return cb('No blocks')
-            return cb(null, { count, blocks: this.toAPIV1Blocks(blocks) })
-          } catch (e) {
-            this.library.logger.error('Failed to find blocks', e)
-            return cb('Server error')
-          }
-        })()
-      })
-    },
-
-    getHeight: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      return cb(null, { height: this.lastBlock.height })
-    },
-
-    getMilestone: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { milestone: this.blockStatus.calcMilestone(height) })
-    },
-
-    getReward: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { reward: this.blockStatus.calcReward(height) })
-    },
-
-    getSupply: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, { supply: this.blockStatus.calcSupply(height) })
-    },
-
-    getStatus: (req, cb) => {
-      if (!this.loaded) {
-        return cb('Blockchain is loading')
-      }
-      const height = this.lastBlock.height
-      return cb(null, {
-        height,
-        fee: this.library.base.block.calculateFee(),
-        milestone: this.blockStatus.calcMilestone(height),
-        reward: this.blockStatus.calcReward(height),
-        supply: this.blockStatus.calcSupply(height),
-      })
-    }
-  }
-  // end Shared
-
   // Events
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
 
     this.loaded = true
 
     return (async () => {
       try {
-        const count = app.sdb.blocksCount
-        app.logger.info('Blocks found:', count)
+        const count = global.app.sdb.blocksCount
+       global.app.logger.info('Blocks found:', count)
         if (!count) {
           this.setLastBlock({ height: -1 })
           await this.processBlock(this.genesisBlock.block, {})
         } else {
-          const block = await app.sdb.getBlockByHeight(count - 1)
+          const block = await global.app.sdb.getBlockByHeight(count - 1)
           this.setLastBlock(block)
         }
         this.library.bus.message('blockchainReady')
       } catch (e) {
-        app.logger.error('Failed to prepare local blockchain', e)
+       global.app.logger.error('Failed to prepare local blockchain', e)
         process.exit(0)
       }
     })()

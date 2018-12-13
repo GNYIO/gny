@@ -1,4 +1,3 @@
-import util = require('util');
 import async = require('async');
 import * as constants from './constants';
 
@@ -35,7 +34,11 @@ function tick(task, cb) {
   }
 }
 
-class Sequence {
+export default class Sequence {
+  private counter: number;
+  private readonly name: string;
+  private queue: async.queue;
+
   constructor(config) {
     this.counter = 1
     this.name = config.name
@@ -52,7 +55,7 @@ class Sequence {
     }
     if (worker && typeof worker === 'function') {
       const task = { worker, done }
-      if (util.isArray(args)) {
+      if (Array.isArray(args)) {
         task.args = args
       }
       task.counter = this.counter++
@@ -64,5 +67,3 @@ class Sequence {
     return this.sequence.length
   }
 }
-
-export = Sequence;

@@ -1,42 +1,37 @@
-import crypto = require('crypto');
-import { isArray } from 'util';
-import ed = require('../utils/ed.js');
-import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
-import LimitCache = require('../utils/limit-cache');
+import * as crypto from 'crypto';
+import * as ed from '../utils/ed';
+import Router from '../utils/router';
+import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
-import transactionMode = require('../utils/transaction-mode');
-
-const priv = {}
-
-priv.unconfirmedNumber = 0
-priv.unconfirmedTransactions = []
-priv.unconfirmedTransactionsIdIndex = {}
+import transactionMode from '../utils/transaction-mode';
+import { Modules, IScope } from '../interfaces';
 
 class TransactionPool {
+  private index: Map<any, any>;
+  private unConfirmed: any[];
   constructor() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  add(trs) {
+  public add(trs: any) {
     this.unConfirmed.push(trs)
     this.index.set(trs.id, this.unConfirmed.length - 1)
   }
 
-  remove(id) {
+  public remove(id: string) {
     const pos = this.index.get(id)
     delete this.index[id]
     this.unConfirmed[pos] = null
   }
 
-  has(id) {
+  public has(id: string) {
     const pos = this.index.get(id)
     return pos !== undefined && !!this.unConfirmed[pos]
   }
 
-  getUnconfirmed() {
-    const a = []
+  public getUnconfirmed() {
+    const a: any[] = []
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {
@@ -46,12 +41,12 @@ class TransactionPool {
     return a
   }
 
-  clear() {
+  public clear() {
     this.index = new Map()
     this.unConfirmed = []
   }
 
-  get(id) {
+  public get(id: string) {
     const pos = this.index.get(id)
     return this.unConfirmed[pos]
   }
@@ -59,13 +54,13 @@ class TransactionPool {
 
 // Constructor
 class Transactions {
-  library: any;
-  modules: any;
-  genesisBlock: any;
-  pool: TransactionPool;
-  failedTrsCache: LimitCache;
+  private readonly library: IScope;
+  private modules: Modules;
+  private genesisBlock: any;
+  private pool: TransactionPool;
+  private failedTrsCache: LimitCache;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock
     this.pool = new TransactionPool();
@@ -78,7 +73,8 @@ class Transactions {
 
   // Private methods
   private attachApi = () => {
-    const router = new Router();
+    const router1 = new Router()
+    const router = router1.router
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -109,7 +105,8 @@ class Transactions {
   }
 
   private attachStorageApi = () => {
-    const router = new Router();
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -163,13 +160,13 @@ class Transactions {
 
     (async () => {
       try {
-        const count = await app.sdb.count('Transaction', condition);
-        let transactions = await app.sdb.find('Transaction', condition, { limit, offset });
-        if (!transactions) transactions = [];
-        return cb(null, { transactions, count });
+        const count = await global.app.sdb.count('Transaction', condition)
+        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset })
+        if (!transactions) transactions = []
+        return cb(null, { transactions, count })
       } catch (e) {
-        app.logger.error('Failed to get transactions', e);
-        return cb(`System error: ${e}`);
+       global.app.logger.error('Failed to get transactions', e)
+        return cb(`System error: ${e}`)
       }
     })();
   }
@@ -177,11 +174,11 @@ class Transactions {
   getTransaction = (req, cb) => {
     (async () => {
       try {
-        if (!req.params || !req.params.id) return cb('Invalid transaction id');
-        const id = req.params.id;
-        const trs = await app.sdb.find('Transaction', { id });
-        if (!trs || !trs.length) return cb('Transaction not found');
-        return cb(null, { transaction: trs[0] });
+        if (!req.params || !req.params.id) return cb('Invalid transaction id')
+        const id = req.params.id
+        const trs = await global.app.sdb.find('Transaction', { id })
+        if (!trs || !trs.length) return cb('Transaction not found')
+        return cb(null, { transaction: trs[0] })
       } catch (e) {
         return cb(`System error: ${e}`);
       }
@@ -245,7 +242,7 @@ class Transactions {
       if (this.pool.has(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
-      const exists = await app.sdb.exists('Transaction', { id: transaction.id });
+      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id })
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
@@ -281,9 +278,9 @@ class Transactions {
       if (requestorId) throw new Error('RequestId should not be provided');
       // HARDCODE_HOT_FIX_BLOCK_6119128
       // if (height > 6119128 &&
-      //     app.util.address.isNormalAddress(senderId) &&
+      //     global.app.util.address.isAddress(senderId) &&
       //     !transaction.senderPublicKey) {
-      if (app.util.address.isNormalAddress(senderId)
+      if (global.app.util.address.isAddress(senderId)
         && !transaction.senderPublicKey) {
         throw new Error('Sender public key not provided');
       }
@@ -291,23 +288,23 @@ class Transactions {
       throw new Error('Unexpected transaction mode');
     }
 
-    let requestor = null;
-    let sender = await app.sdb.load('Account', senderId);
+    let requestor = null
+    let sender = await global.app.sdb.load('Account', senderId)
     if (!sender) {
-      if (height > 0) throw new Error('Sender account not found');
-      sender = app.sdb.create('Account', {
+      if (height > 0) throw new Error('Sender account not found')
+      sender = global.app.sdb.create('Account', {
         address: senderId,
         name: null,
-        GNY: 0,
-      });
+        gny: 0,
+      })
     }
 
     if (requestorId) {
-      if (!app.util.address.isNormalAddress(requestorId)) {
-        throw new Error('Invalid requestor address');
+      if (!global.app.util.address.isAddress(requestorId)) {
+        throw new Error('Invalid requestor address')
       }
 
-      requestor = await app.sdb.load('Account', requestorId);
+      requestor = await global.app.sdb.load('Account', requestorId)
       if (!requestor) {
         throw new Error('Requestor account not found');
       }
@@ -316,9 +313,10 @@ class Transactions {
     }
 
     if (transaction.senderPublicKey) {
-      const signerId = transaction.requestorId || transaction.senderId;
-      if (addressHelper.generateNormalAddress(transaction.senderPublicKey) !== signerId) {
-        throw new Error('Invalid senderPublicKey');
+      const signerId = transaction.requestorId || transaction.senderId
+      let generatedAddress = addressHelper.generateAddress(transaction.senderPublicKey)
+      if (generatedAddress !== signerId) {
+        throw new Error('Invalid senderPublicKey')
       }
     }
 
@@ -334,30 +332,30 @@ class Transactions {
     }
 
     try {
-      app.sdb.beginContract();
-      await this.library.base.transaction.apply(context);
-      app.sdb.commitContract();
+      global.app.sdb.beginContract()
+      await this.library.base.transaction.apply(context)
+      global.app.sdb.commitContract()
     } catch (e) {
-      app.sdb.rollbackContract();
-      this.library.logger.error(e);
-      throw e;
+      global.app.sdb.rollbackContract()
+      this.library.logger.error(e)
+      throw e
     }
   }
 
   toAPIV1Transactions = (transArray, block) => {
-    if (transArray && isArray(transArray) && transArray.length > 0) {
+    if (transArray && Array.isArray(transArray) && transArray.length > 0) {
       return transArray.map(t => this.toAPIV1Transaction(t, block));
     }
     return [];
   }
 
   tranfersToAPIV1Transactions = async (transferArray, block) => {
-    if (transferArray && isArray(transferArray) && transferArray.length > 0) {
+    if (transferArray && Array.isArray(transferArray) && transferArray.length > 0) {
 
-      const transMap = new Map();
-      const transIds = transferArray.map(t => t.tid);
-      const transArray = await app.sdb.find('Transaction', { id: { $in: transIds } });
-      transArray.forEach((t: any) => transMap.set(t.id, t));
+      let transMap = new Map()
+      let transIds = transferArray.map(t => t.tid)
+      let transArray = await global.app.sdb.find('Transaction', { id: { $in: transIds } })
+      transArray.forEach((t: any) => transMap.set(t.id, t))
 
       transferArray.forEach(transfer => {
         const trans = transMap.get(transfer.tid);
@@ -477,17 +475,13 @@ class Transactions {
     this.shared.addTransactionUnsigned({ body: transaction }, cb);
   }
 
-  sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb);
-  }
-
-  list = (query, cb) => this.list(query, cb);
+  list = (query, cb) => this.list(query, cb)
 
   getById = (id, cb) => this.getById(id, cb);
 
   // Events
-  onBind = (scope) => {
-    this.modules = scope;
+  onBind = (scope: Modules) => {
+    this.modules = scope
   }
 
   getTransactionsForV1 = (req, cb) => {
@@ -552,20 +546,20 @@ class Transactions {
           try {
             let block;
             if (query.blockId) {
-              block = await app.sdb.getBlockById(query.blockId);
+              block = await global.app.sdb.getBlockById(query.blockId);
               if (block === undefined) {
                 return cb(null, { transactions: [], count: 0 });
               }
               condition.height = block.height;
             }
-            const count = await app.sdb.count('Transfer', condition);
-            let transfer = await app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset });
+            const count = await global.app.sdb.count('Transfer', condition);
+            let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset });
             if (!transfer) transfer = [];
             block = this.modules.blocks.toAPIV1Block(block);
             const transactions = await this.tranfersToAPIV1Transactions(transfer, block);
             return cb(null, { transactions, count });
           } catch (e) {
-            app.logger.error('Failed to get transactions', e);
+            global.app.logger.error('Failed to get transactions', e);
             return cb(`System error: ${e}`);
           }
         })();
@@ -696,10 +690,10 @@ class Transactions {
         (async () => {
           try {
             const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest();
-            const keypair = ed.MakeKeypair(hash);
+            const keypair = ed.generateKeyPair(hash);
             let secondKeypair = null;
             if (query.secondSecret) {
-              secondKeypair = ed.MakeKeypair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest());
+              secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest());
             }
             const trs = this.library.base.transaction.create({
               secret: query.secret,

@@ -1,6 +1,6 @@
-const parseNums = require('./parse');
+import parseNums from './parse';
 
-module.exports = function(options) {
+export default function(options) {
   options = options || {
     parser: parseInt
   };

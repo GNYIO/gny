@@ -1,27 +1,31 @@
-import fs = require('fs');
-import path = require('path');
-import os = require('os');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { EventEmitter } from 'events';
-import http = require('http');
-import https = require('https');
-import socketio = require('socket.io');
-import ZSchema = require('z-schema');
-import ip = require('ip');
-import express = require('express');
-import compression = require('compression');
-import cors = require('cors');
+import * as http from 'http';
+import * as https from 'https';
+import * as socketio from 'socket.io';
+import * as ZSchema from 'z-schema';
+import * as ip from 'ip';
+import * as express from 'express';
+import * as compression from 'compression';
+import * as cors from 'cors';
 import * as _ from 'lodash';
-import bodyParser = require('body-parser');
-import methodOverride = require('method-override');
-import Sequence = require('./utils/sequence');
-import slots = require('./utils/slots');
-import queryParser = require('./utils/express-query-int');
-import ZSchemaExpress = require('./utils/zscheme-express');
+import * as bodyParser from 'body-parser';
+import * as methodOverride from 'method-override';
+import Sequence from './utils/sequence';
+import Slots from './utils/slots';
+import queryParser from './utils/express-query-int';
+import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
-import protobuf = require('./utils/protobuf');
-import loadedModules from './loadModules';
+import protobuf from './utils/protobuf';
+import loadedModules from './loadModules'
+import loadCoreApi from './loadCoreApi'
+import { IScope, IMessageEmitter } from './interfaces'
+
+const slots = new Slots()
 
 
 const CIPHERS = `
@@ -56,11 +60,9 @@ function isNumberOrNumberString(value) {
   return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
     || String(parseInt(value, 10)) !== String(value));
 }
-const modules = [];
-
 
 async function init_alt(options: any) {
-  const scope = {};
+  let scope : Partial<IScope> = {};
   const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
@@ -72,14 +74,13 @@ async function init_alt(options: any) {
     console.log('Error: Proto file doesn\'t exist!');
     return;
   }
-  scope.protobuf = protobuf.protobufAlt(protoFile);
+  scope.protobuf = protobuf.getSchema(protoFile);
 
   scope.config = appConfig;
   scope.logger = options.logger;
   scope.genesisBlock = {
     block: genesisBlock,
   };
-  // scope.protobuf =
 
   scope.scheme = scheme();
   scope.network = await network(options);
@@ -171,7 +172,7 @@ async function init_alt(options: any) {
       }
     });
 
-    scope.network.server.listen(5098, scope.config.address, (err) => {
+    scope.network.server.listen(scope.config.port, scope.config.address, (err) => {
       scope.logger.log(`Server started: ${scope.config.address}:${scope.config.port}`);
       if (!err) {
         scope.logger.log(`Error: ${err}`);
@@ -180,13 +181,15 @@ async function init_alt(options: any) {
     scope.connect = scope.network;
   }
 
-  scope.base = {};
-  scope.base.bus = scope.bus;
-  scope.base.scheme = scope.scheme;
-  scope.base.genesisBlock = scope.genesisBlock;
-  scope.base.consensus = new Consensus(scope);
-  scope.base.transaction = new Transaction(scope);
-  scope.base.block = new Block(scope);
+  scope.base = {
+    bus: scope.bus,
+    scheme: scope.scheme,
+    genesisBlock: scope.genesisBlock,
+    consensus: new Consensus(scope),
+    transaction: new Transaction(scope),
+    block: new Block(scope),
+  };
+
 
   global.library = scope;
 
@@ -197,18 +200,14 @@ async function init_alt(options: any) {
     if (err) return console.log(err);
     // console.log(result);
   }
-  scope.modules = {};
 
-  loadedModules.forEach(mod => {
-    scope.logger.debug(`loading Module... ${mod.name}`);
-    const obj = new mod.class(scope);
-    modules.push(obj);
-    scope.modules[mod.name] = obj;
-  });
+  scope.modules = loadedModules(scope);
+  scope.coreApi = loadCoreApi(scope.modules, scope);
 
-  class Bus extends EventEmitter {
-    message(topic, ...restArgs) {
-      modules.forEach((module) => {
+  class Bus extends EventEmitter implements IMessageEmitter {
+    message(topic: string, ...restArgs) {
+      Object.keys(scope.modules).forEach((moduleName) => {
+        const module = scope.modules[moduleName]
         const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);
@@ -273,20 +272,20 @@ function scheme() {
 
   ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
 
-  return new ZSchema();
+  return new ZSchema({});
 }
 
 function network(options: any) {
   let sslServer;
   let sslio;
 
-  const app = express();
+  const expressApp = express();
 
-  app.use(compression({ level: 6 }));
-  app.use(cors());
-  app.options('*', cors());
+  expressApp.use(compression({ level: 6 }));
+  expressApp.use(cors());
+  expressApp.options('*', cors());
 
-  const server = http.createServer(app);
+  const server = http.createServer(expressApp);
   const io = socketio(server);
 
   if (options.appConfig.ssl.enabled) {
@@ -297,13 +296,13 @@ function network(options: any) {
       key: privateKey,
       cert: certificate,
       ciphers: CIPHERS,
-    }, app);
+    }, expressApp);
     sslio = socketio(sslServer);
   }
 
   return {
     express,
-    app,
+    app: expressApp,
     server,
     io,
     sslServer,

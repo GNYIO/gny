@@ -1,10 +1,12 @@
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
+import { IScope } from '../interfaces';
+const slots = new Slots()
 
 export default class Round {
-  private library: any;
+  private readonly library: IScope;
   private isloaded: boolean = false;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 
@@ -16,20 +18,18 @@ export default class Round {
     return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
   }
 
-  onBind(scope: any) {
-    this.library = scope;
-  }
-
+  // Events
   onBlockChainReady = () => {
     this.isloaded = true;
   }
 
-  onFinishRound(round: any) {
+  onFinishRound = (round: any) => {
     this.library.network.io.sockets.emit('/round/change', { number: round });
   }
 
-  cleanup() {
-    console.log('round.ts cleanup')
+  cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/round')
     this.isloaded = false;
+    cb()
   }
 }

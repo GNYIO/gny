@@ -1,30 +1,32 @@
 import * as crypto from 'crypto';
-import * as util from 'util';
 import * as ed from '../utils/ed'
 import Router from '../utils/router'
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import BlockStatus from '../utils/block-status';
 import addressHelper from '../utils/address'
+import { Modules, IScope } from '../interfaces';
+
+const slots = new Slots()
 
 export default class Delegates {
   private loaded: boolean = false;
   private blockStatus = new BlockStatus();
   private keyPairs: any = {};
   private isForgingEnabled: boolean = true;
-
-  private library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
 
   private readonly BOOK_KEEPER_NAME = 'round_bookkeeper'
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
 
     this.attachApi();
   }
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
   
     router.use((req, res, next) => {
       if (this.modules && this.loaded) return next()
@@ -78,7 +80,7 @@ export default class Delegates {
           return res.json({ success: false, error: 'Access denied' })
         }
   
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
   
         if (body.publicKey) {
           if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -132,7 +134,7 @@ export default class Delegates {
           return res.json({ success: false, error: 'Access denied' })
         }
   
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
   
         if (body.publicKey) {
           if (keypair.publicKey.toString('hex') !== body.publicKey) {
@@ -186,7 +188,7 @@ export default class Delegates {
     })
   }
 
-  private getBlockSlotData = (slot: any, height: any) => {
+  private getBlockSlotData = (slot: any, height: any) : { time: number, keypair: any } => {
     let activeDelegates: any = this.generateDelegateList(height);
     if (!activeDelegates) {
       return
@@ -207,59 +209,54 @@ export default class Delegates {
     }
   }
 
-  loop = (cb: any) => {
+  public loop = () => {
     if (!this.isForgingEnabled) {
       this.library.logger.trace('Loop:', 'forging disabled')
-      return setImmediate(cb)
+      return null
     }
     if (!Object.keys(this.keyPairs).length) {
       this.library.logger.trace('Loop:', 'no delegates')
-      return setImmediate(cb)
+      return null
     }
 
     if (!this.loaded || this.modules.loader.syncing()) {
       this.library.logger.trace('Loop:', 'node not ready')
-      return setImmediate(cb)
+      return null
     }
 
     const currentSlot = slots.getSlotNumber()
     const lastBlock = this.modules.blocks.getLastBlock()
 
     if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-      return setImmediate(cb)
+      return null
     }
 
     if (Date.now() % 10000 > 5000) {
       this.library.logger.trace('Loop:', 'maybe too late to collect votes')
-      return setImmediate(cb)
+      return null
     }
 
-    return this.getBlockSlotData(currentSlot, lastBlock.height + 1, (err, currentBlockData) => {
-      if (err || currentBlockData === null) {
-        this.library.logger.trace('Loop:', 'skipping slot')
-        return setImmediate(cb)
-      }
+    let currentBlockData = this.getBlockSlotData(currentSlot, lastBlock.height + 1)
+    if (!currentBlockData) {
+      this.library.logger.trace('Loop:', 'skipping slot')
+      return null
+    }
 
-      return library.sequence.add(done => (async () => {
+    // this.library.sequence.add(done => (async () => { }))
+    (async () => {
         try {
-          if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
-            && modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
-            await modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time)
-          }
-          done()
-        } catch (e) {
-          done(e)
+        if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
+          && this.modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
+          await this.modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time)
         }
-      })(), (err2) => {
-        if (err2) {
-          library.logger.error('Failed generate block within slot:', err2)
-        }
-        cb()
-      })
-    })
+      } catch (e) {
+        this.library.logger.error('Failed generate block within slot:', e)
+        return null
+      }
+    })();
   }
 
-  private loadMyDelegates = async () => {
+  private loadMyDelegates = () : void | Error => {
     let secrets = []
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
@@ -267,7 +264,7 @@ export default class Delegates {
     }
   
     try {
-      const delegates = app.sdb.getAll('Delegate')
+      const delegates = global.app.sdb.getAll('Delegate')
       if (!delegates || !delegates.length) {
         return 'Delegates not found in db'
       }
@@ -276,7 +273,7 @@ export default class Delegates {
         delegateMap.set(d.publicKey, d)
       }
       for (const secret of secrets) {
-        const keypair = ed.MakeKeypair(crypto.createHash('sha256').update(secret, 'utf8').digest())
+        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest())
         const publicKey = keypair.publicKey.toString('hex')
         if (delegateMap.has(publicKey)) {
           this.keyPairs[publicKey] = keypair;
@@ -290,19 +287,19 @@ export default class Delegates {
     }
   }
 
-  public getActiveDelegateKeypairs = (height, cb) => {
-    this.generateDelegateList(height, (err, delegates) => {
-      if (err) {
-        return cb(err)
+  public getActiveDelegateKeypairs = (height) => {
+    let delegates = this.generateDelegateList(height)
+    if (!delegates) {
+      return null
+    }
+
+    const results = []
+    for (const key in this.keyPairs) {
+      if (delegates.indexOf(key) !== -1) {
+        results.push(this.keyPairs[key])
       }
-      const results = []
-      for (const key in this.keyPairs) {
-        if (delegates.indexOf(key) !== -1) {
-          results.push(this.keyPairs[key])
-        }
-      }
-      return cb(null, results)
-    })
+    }
+    return results
   }
 
   public validateProposeSlot = (propose, cb) => {
@@ -324,7 +321,7 @@ export default class Delegates {
   public generateDelegateList = (height: any) => {
     try {
       const truncDelegateList = this.getBookkeeper()
-      const seedSource = this.modules.round.calc(height).toString()
+      const seedSource = this.modules.round.calculateRound(height).toString()
   
       let currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest()
       for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
@@ -375,7 +372,7 @@ export default class Delegates {
   
   // fixme ?? : get method should not modify anything....
   public getDelegates = (query, cb) => {
-    let delegates = app.sdb.getAll('Delegate').map(d => Object.assign({}, d))
+    let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d))
     if (!delegates || !delegates.length) return cb('No delegates')
   
     delegates = delegates.sort(this.compare)
@@ -395,7 +392,7 @@ export default class Delegates {
       delegates[i].vote = delegates[i].votes
       delegates[i].missedblocks = delegates[i].missedBlocks
       delegates[i].producedblocks = delegates[i].producedBlocks
-      app.sdb.update('Delegate', delegates[i], { address: delegates[i].address })
+      global.app.sdb.update('Delegate', delegates[i], { address: delegates[i].address })
     }
     return cb(null, delegates)
   }
@@ -416,22 +413,25 @@ export default class Delegates {
 
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 
   public onBlockchainReady = () => {
     this.loaded = true
 
-    this.loadMyDelegates(function nextLoop(err) {
-      if (err) {
-        library.logger.error('Failed to load delegates', err)
-      }
+    let error = this.loadMyDelegates()
+    if (error) {
+      this.library.logger.error('Failed to load delegates', error)
+    }
 
-      this.loop(() => {
-        setTimeout(nextLoop, 100)
-      })
-    })
+    let nextLoop = () => {
+
+      let result = this.loop()
+      setTimeout(nextLoop, 100)
+    }
+
+    setImmediate(nextLoop)
   }
 
   public compare = (l, r) => {
@@ -442,12 +442,13 @@ export default class Delegates {
   }
 
   cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/delegates')
     this.loaded = false
     cb()
   }
 
   getTopDelegates = () => {
-    const allDelegates = app.sdb.getAll('Delegate')
+    const allDelegates = global.app.sdb.getAll('Delegate')
     return allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101)
   }
 
@@ -455,14 +456,14 @@ export default class Delegates {
     const bookkeeper = this.getBookkeeper()
     const addresses = new Set()
     for (const i of bookkeeper) {
-      const address = addressHelper.generateNormalAddress(i)
+      const address = addressHelper.generateAddress(i)
       addresses.add(address)
     }
     return addresses
   }
 
   getBookkeeper = () => {
-    const item = app.sdb.get('Variable', this.BOOK_KEEPER_NAME)
+    const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME)
     if (!item) throw new Error('Bookkeeper variable not found')
 
     // TODO: ?? make field type as JSON
@@ -471,9 +472,9 @@ export default class Delegates {
 
   updateBookkeeper = (delegates) => {
     const value = JSON.stringify(delegates || this.getTopDelegates())
-    const { create } = app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
+    const { create } = global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
     if (!create) {
-      app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME })
+      global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME })
     }
   }
 
@@ -527,7 +528,7 @@ export default class Delegates {
     
     count: (req, cb) => (async () => {
       try {
-        const count = app.sdb.getAll('Delegate').length
+        const count = global.app.sdb.getAll('Delegate').length
         return cb(null, { count })
       } catch (e) {
         this.library.logger.error('get delegate count error', e)
@@ -553,15 +554,15 @@ export default class Delegates {
     
         return (async () => {
           try {
-            const votes = await app.sdb.findAll('Vote', { condition: { delegate: query.name } })
+            const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.name } })
             if (!votes || !votes.length) return cb(null, { accounts: [] })
     
             const addresses = votes.map(v => v.address)
-            const accounts = await app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
+            const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
             const lastBlock = this.modules.blocks.getLastBlock()
             const totalSupply = this.blockStatus.calcSupply(lastBlock.height)
             for (const a of accounts) {
-              a.balance = a.xas
+              a.balance = a.gny
               a.weightRatio = (a.weight * 100) / totalSupply
             }
             return cb(null, { accounts })

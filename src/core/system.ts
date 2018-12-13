@@ -1,10 +1,12 @@
 import * as os from 'os';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
+import { IScope } from '../interfaces';
+const slots = new Slots()
 
 export default class System {
-  private library: any;
+  private readonly library: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 
@@ -37,9 +39,5 @@ export default class System {
         behind: slots.getNextSlot() - (slots.getSlotNumber(lastBlock.timestamp) + 1),
       },
     }
-  }
-
-  onBind(scope: any) {
-    this.library = scope;
   }
 }

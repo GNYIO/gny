@@ -1,28 +1,28 @@
-import crypto = require('crypto');
-import isArray = require('util').isArray;
+import * as crypto from 'crypto';
 import jsonSql = require('json-sql');
 
 jsonSql().setDialect('sqlite')
 
-import ed = require('../utils/ed');
-import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
+import * as ed from '../utils/ed';
+import Router from '../utils/router';
 import addressHelper = require('../utils/address');
+import { Modules, IScope } from '../interfaces';
 
 
 // Constructor
 export default class UIA {
-  private library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope
     this.attachApi();
   }
 
   // Private methods
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -53,19 +53,15 @@ export default class UIA {
   }
 
   // Public methods
-  sandboxApi = (call, args, cb) => {
-    sandboxHelper.callMethod(this, call, args, cb)
-  }
-
   trimPrecision(amount: any, precision: any) {
     const s = amount.toString()
     return String(Number.parseInt(s.substr(0, s.length - precision), 10))
   }
 
   toAPIV1UIABalances = (balances: any) => {
-    if (!(balances && isArray(balances) && balances.length > 0)) return balances
+    if (!(balances && Array.isArray(balances) && balances.length > 0)) return balances
     const assetMap = new Map()
-    app.sdb.getAll('Asset').forEach((asset: any) => assetMap.set(asset.name, this.toAPIV1Asset(asset)))
+    global.app.sdb.getAll('Asset').forEach((asset: any) => assetMap.set(asset.name, this.toAPIV1Asset(asset)))
 
     return balances.map((b: any) => {
       b.balance = String(b.balance)
@@ -73,7 +69,7 @@ export default class UIA {
     })
   }
 
-  toAPIV1Assets = (assets: any) => ((assets && isArray(assets) && assets.length > 0)
+  toAPIV1Assets = (assets: any) => ((assets && Array.isArray(assets) && assets.length > 0)
     ? assets.map((a: any) => this.toAPIV1Asset(a))
     : [])
 
@@ -101,7 +97,7 @@ export default class UIA {
   }
 
   // Events
-  onBind = (scope) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 
@@ -126,8 +122,8 @@ export default class UIA {
       return (async () => {
         try {
           const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 }
-          const count = await app.sdb.count('Issuer', {})
-          const issues = await app.sdb.find('Issuer', {}, limitAndOffset)
+          const count = await global.app.sdb.count('Issuer', {})
+          const issues = await global.app.sdb.find('Issuer', {}, limitAndOffset)
           return cb(null, { count, issues })
         } catch (dbErr) {
           return cb(`Failed to get issuers: ${dbErr}`)
@@ -142,7 +138,7 @@ export default class UIA {
     }
     return (async () => {
       try {
-        const issues = await app.sdb.find('Issuer', { address: req.params.address })
+        const issues = await global.app.sdb.find('Issuer', { address: req.params.address })
         if (!issues || issues.length === 0) return cb('Issuer not found')
         return cb(null, { issuer: issues[0] })
       } catch (dbErr) {
@@ -172,7 +168,7 @@ export default class UIA {
 
       return (async () => {
         try {
-          const issuers = await app.sdb.find('Issuer', { name: req.params.name })
+          const issuers = await global.app.sdb.find('Issuer', { name: req.params.name })
           if (!issuers || issuers.length === 0) return cb('Issuer not found')
           return cb(null, { issuer: issuers[0] })
         } catch (dbErr) {
@@ -209,8 +205,8 @@ export default class UIA {
         try {
           const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 }
           const condition = { issuerName: req.params.name }
-          const count = await app.sdb.count('Asset', condition)
-          const assets = await app.sdb.find('Asset', condition, limitAndOffset)
+          const count = await global.app.sdb.count('Asset', condition)
+          const assets = await global.app.sdb.find('Asset', condition, limitAndOffset)
           return cb(null, { count, assets: this.toAPIV1Assets(assets) })
         } catch (dbErr) {
           return cb(`Failed to get assets: ${dbErr}`)
@@ -240,8 +236,8 @@ export default class UIA {
         try {
           const condition = {}
           const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 }
-          const count = await app.sdb.count('Asset', condition)
-          const assets = await app.sdb.find('Asset', condition, limitAndOffset)
+          const count = await global.app.sdb.count('Asset', condition)
+          const assets = await global.app.sdb.find('Asset', condition, limitAndOffset)
           return cb(null, { count, assets: this.toAPIV1Assets(assets) })
         } catch (dbErr) {
           return cb(`Failed to get assets: ${dbErr}`)
@@ -268,7 +264,7 @@ export default class UIA {
       return (async () => {
         try {
           const condition = { name: query.name }
-          const assets = await app.sdb.find('Asset', condition)
+          const assets = await global.app.sdb.find('Asset', condition)
           if (!assets || assets.length === 0) return cb('Asset not found')
           return cb(null, { asset: this.toAPIV1Asset(assets[0]) })
         } catch (dbErr) {
@@ -303,9 +299,9 @@ export default class UIA {
       return (async () => {
         try {
           const condition = { address: req.params.address }
-          const count = await app.sdb.count('Balance', condition)
+          const count = await global.app.sdb.count('Balance', condition)
           const resultRange = { limit: query.limit, offset: query.offset }
-          const balances = await app.sdb.find('Balance', condition, resultRange)
+          const balances = await global.app.sdb.find('Balance', condition, resultRange)
           return cb(null, { count, balances: this.toAPIV1UIABalances(balances) })
         } catch (dbErr) {
           return cb(`Failed to get balances: ${dbErr}`)
@@ -323,7 +319,7 @@ export default class UIA {
     return (async () => {
       try {
         const condition = { address: req.params.address, currency: req.params.currency }
-        let balances = await app.sdb.find('Balance', condition)
+        let balances = await global.app.sdb.find('Balance', condition)
         if (!balances || balances.length === 0) return cb('Balance info not found')
         balances = this.toAPIV1UIABalances(balances)
         return cb(null, { balance: balances[0] })
@@ -389,10 +385,10 @@ export default class UIA {
       (async () => {
         try {
           const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest()
-          const keypair = ed.MakeKeypair(hash)
+          const keypair = ed.generateKeyPair(hash)
           let secondKeypair = null
           if (query.secondSecret) {
-            secondKeypair = ed.MakeKeypair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
+            secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
           }
           const trs = this.library.base.transaction.create({
             secret: query.secret,

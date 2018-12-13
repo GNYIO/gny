@@ -1,21 +1,21 @@
-import path = require('path');
-import ip = require('ip');
-import crypto = require('crypto');
+import * as path from 'path';
+import * as ip from 'ip';
+import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
-import Router = require('../utils/router');
-import sandboxHelper = require('../utils/sandbox');
-const promisify = require('util').promisify;
+import Router from '../utils/router';
+import { promisify } from 'util';
 import Database = require('nedb');
+import { Modules, IScope } from '../interfaces';
 
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000
 const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000
 const MAX_BOOTSTRAP_PEERS = 25
 
 export default class Peer {
-  private library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
 
   private handlers: any = {};
   private dht: any = null;
@@ -23,7 +23,7 @@ export default class Peer {
 
   private shared: any = {};
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope
     this.attachApi()
   }
@@ -67,9 +67,9 @@ export default class Peer {
       try {
         lastNodes = await promisify(this.initNodesDb)(peerNodesDbPath)
         lastNodes = lastNodes || []
-        app.logger.debug(`load last node peers success, ${JSON.stringify(lastNodes)}`)
+       global.app.logger.debug(`load last node peers success, ${JSON.stringify(lastNodes)}`)
       } catch (e) {
-        app.logger.error('Last nodes not found', e)
+       global.app.logger.error('Last nodes not found', e)
       }
     }
     const bootstrapNodes = this.getBootstrapNodes(
@@ -125,7 +125,7 @@ export default class Peer {
       this.nodesDb = db
       db.persistence.setAutocompactionInterval(SAVE_PEERS_INTERVAL)
 
-      const errorHandler = (err) => err && app.logger.info('peer node index error', err)
+      const errorHandler = (err) => err && global.app.logger.info('peer node index error', err)
       db.ensureIndex({ fieldName: 'id' }, errorHandler)
       db.ensureIndex({ fieldName: 'seen' }, errorHandler)
     }
@@ -140,7 +140,7 @@ export default class Peer {
     let upsertNode = Object.assign({}, node)
     upsertNode.id = nodeId
     this.nodesDb.update({ id: nodeId }, upsertNode, { upsert: true }, (err, data) => {
-      if (err) app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`)
+      if (err) global.app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`)
       callback && callback(err, data)
     })
   }
@@ -149,7 +149,7 @@ export default class Peer {
     if (!nodeId) return
 
     this.nodesDb.remove({ id: nodeId }, (err, numRemoved) => {
-      if (err) app.logger.warn(`faild to remove node id (${nodeId})`)
+      if (err) global.app.logger.warn(`faild to remove node id (${nodeId})`)
       callback && callback(err, numRemoved)
     })
   }
@@ -158,7 +158,8 @@ export default class Peer {
   // --------
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules) return next()
@@ -294,12 +295,8 @@ export default class Peer {
     })
   }
 
-  sandboxApi = (call: any, args: any, cb: any) => {
-    sandboxHelper.callMethod(this.shared, call, args, cb)
-  }
-
   // Events
-  onBind = (scope: any) => {
+  onBind = (scope: Modules) => {
     this.modules = scope
   }
 

@@ -7,10 +7,10 @@ export default (router) => {
       condition.address = req.params.address;
     }
 
-    const account = await app.sdb.findOne('Account', { condition });
+    const account = await global.app.sdb.findOne('Account', { condition });
     let unconfirmedAccount = null;
     if (account) {
-      unconfirmedAccount = await app.sdb.load('Account', account.address);
+      unconfirmedAccount = await global.app.sdb.load('Account', account.address);
     } else {
       unconfirmedAccount = null;
     }

@@ -1,21 +1,27 @@
 import * as crypto from 'crypto';
-import ByteBuffer from 'bytebuffer';
+import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
+import transactionMode from '../utils/transaction-mode';
+import * as addressHelper from '../utils/address';
 import * as feeCalculators from '../utils/calculate-fee';
-import * as addressUtil from '../utils/address';
 
-export default class Transaction {
-  private scope: any;
-  constructor(scope: any) {
+
+import { IScope } from '../interfaces';
+
+const slots = new Slots()
+
+export class Transaction {
+  private scope: IScope;
+  constructor(scope: IScope) {
     this.scope = scope;
   }
 
   create(data) {
     const transaction: any = {
       type: data.type,
-      senderId: addressUtil.generateAddress(data.senderPublicKey),
+      senderId: addressHelper.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(),
       message: data.message,
@@ -36,15 +42,29 @@ export default class Transaction {
   }
 
   sign(keypair, transaction) {
-    const hash = crypto.createHash('sha256').update(this.serialize(transaction, true, true)).digest();
-    return ed.sign(hash, keypair).toString('hex');
+    const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    return ed.sign(hash, privateKeyBuffer).toString('hex')
+  }
+
+  multisign(keypair, transaction) {
+    const bytes = this.getBytes(transaction, true, true)
+    const hash = crypto.createHash('sha256').update(bytes).digest()
+
+    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
+    return ed.sign(hash, privateKeyBuffer).toString('hex')
+  }
+
+  getId(transaction) {
+    return this.getHash(transaction).toString('hex');
   }
 
   getHash(transaction) {
-    return crypto.createHash('sha256').update(this.serialize(transaction)).digest();
+    return crypto.createHash('sha256').update(this.getBytes(transaction)).digest();
   }
 
-  serialize(transaction, skipSignature?, skipSecondSignature?) {
+  getBytes(transaction, skipSignature?, skipSecondSignature?) {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
@@ -56,7 +76,7 @@ export default class Transaction {
     if (transaction.mode) {
       byteBuffer.writeInt(transaction.mode);
     }
-
+  
     if (transaction.message) byteBuffer.writeString(transaction.message);
     if (transaction.args) {
       let args;
@@ -69,7 +89,7 @@ export default class Transaction {
       }
       byteBuffer.writeString(args);
     }
-
+  
     // FIXME
     if (!skipSignature && transaction.signatures) {
       for (const signature of transaction.signatures) {
@@ -79,14 +99,14 @@ export default class Transaction {
         }
       }
     }
-
+  
     if (!skipSecondSignature && transaction.secondSignature) {
-      const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
+    const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
       for (let i = 0; i < secondSignatureBuffer.length; i++) {
         byteBuffer.writeByte(secondSignatureBuffer[i]);
       }
     }
-
+  
     byteBuffer.flip();
 
     return byteBuffer.toBuffer();
@@ -121,13 +141,13 @@ export default class Transaction {
     if (transaction.fee < minFee) return 'Fee not enough';
 
     try {
-      const bytes = this.serialize(transaction, true, true);
+      const bytes = this.getBytes(transaction, true, true);
       if (transaction.senderPublicKey) {
         const error = this.verifyNormalSignature(transaction, requestor, bytes);
         if (error) return error;
       } else if (!transaction.senderPublicKey && transaction.signatures && transaction.signatures.length > 1) {
-        const ADDRESS_TYPE = app.util.address.TYPE;
-        const addrType = app.util.address.getType(transaction.senderId);
+        const ADDRESS_TYPE = global.app.util.address.TYPE
+        const addrType = global.app.util.address.getType(transaction.senderId)
         if (addrType === ADDRESS_TYPE.CHAIN) {
           const error = await this.verifyChainSignature(transaction, sender, bytes);
           if (error) return error;
@@ -151,7 +171,7 @@ export default class Transaction {
     if (!signature) return false;
 
     try {
-      const bytes = this.serialize(transaction, true, true);
+      const bytes = this.getBytes(transaction, true, true);
       return this.verifyBytes(bytes, publicKey, signature);
     } catch (e) {
       throw Error(e.toString());
@@ -177,45 +197,45 @@ export default class Transaction {
 
   async apply(context: any) {
     const {
-      block, transaction, sender, requestor,
+      block, trs, sender, requestor,
     } = context;
-    const name = app.getContractName(transaction.type);
+    const name = global.app.getContractName(trs.type);
     if (!name) {
-      throw new Error(`Unsupported transaction type: ${transaction.type}`);
+      throw new Error(`Unsupported transaction type: ${trs.type}`);
     }
     const [mod, func] = name.split('.');
     if (!mod || !func) {
       throw new Error('Invalid transaction function');
     }
-    const fn = app.contract[mod][func];
+    const fn = global.app.contract[mod][func];
     if (!fn) {
       throw new Error('Contract not found');
     }
 
     if (block.height !== 0) {
-      if (transactionMode.isRequestMode(transaction.mode) && !context.activating) {
+      if (transactionMode.isRequestMode(trs.mode) && !context.activating) {
         const requestorFee = 20000000;
-        if (requestor.xas < requestorFee) throw new Error('Insufficient requestor balance');
-        requestor.xas -= requestorFee;
-        app.addRoundFee(requestorFee, modules.round.calc(block.height));
+        if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance');
+        requestor.gny -= requestorFee;
+        global.app.addRoundFee(String(requestorFee), this.modules.round.calc(block.height));
         // transaction.executed = 0
-        app.sdb.create('TransactionStatu', { tid: transaction.id, executed: 0 });
-        app.sdb.update('Account', { xas: requestor.xas }, { address: requestor.address });
+        global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 });
+        global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address });
         return;
       }
-      if (sender.xas < transaction.fee) throw new Error('Insufficient sender balance');
-      sender.xas -= transaction.fee;
-      app.sdb.update('Account', { xas: sender.xas }, { address: sender.address });
+      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
+      sender.gny -= trs.fee;
+      global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });
     }
 
-    const error = await fn.apply(context, transaction.args);
+    const error = await fn.apply(context, trs.args);
     if (error) {
       throw new Error(error);
     }
     // transaction.executed = 1
   }
 
-  objectserialize(transaction) {
+  objectNormalize(transaction) {
     for (const i in transaction) {
       if (transaction[i] === null || typeof transaction[i] === 'undefined') {
         delete transaction[i];
@@ -264,7 +284,7 @@ export default class Transaction {
       this.scope.logger.error(`Failed to normalize transaction body: ${this.scope.scheme.getLastError().details[0].message}`, transaction);
       throw Error(this.scope.scheme.getLastError());
     }
-
+  
     return transaction;
   }
 }

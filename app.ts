@@ -1,24 +1,16 @@
-import program from 'commander';
-import path = require('path');
-import fs = require('fs');
-import ip = require('ip');
+import * as program from 'commander'
+import * as path from 'path';
+import * as fs from 'fs';
+import * as ip from 'ip';
 import daemon = require('daemon');
-import tracer = require('tracer');
+import * as tracer from 'tracer';
 import Application from './index';
-import packageJson from './package.json';
+import * as packageJson from './package.json';
+import { IConfig } from './src/interfaces'
 
 const version = packageJson.version;
 
 function main() {
-
-  const baseDir = program.base || './';
-  const seedPort = 81;
-  const seeds = [
-    757137132
-  ];
-  let appConfigFile;
-  let genesisBlockFile;
-  let logger;
 
   process.stdin.resume();
 
@@ -36,13 +28,22 @@ function main() {
     .option('--data <dir>', 'Data directory')
     .parse(process.argv);
 
+  const baseDir = program.base || './';
+  const seedPort = 81;
+  const seeds = [
+    757137132
+  ];
+  let appConfigFile;
+  let genesisBlockFile;
+  let logger;
+
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
   } else {
     appConfigFile = path.join(baseDir, 'config.json');
   }
 
-  const appConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
+  const appConfig: IConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
 
   const pidFile = appConfig.pidFile || path.join(baseDir, 'aschd.pid');
 
@@ -125,10 +126,10 @@ function main() {
     pidFile,
   };
 
-  const app = new Application(options);
+  const application = new Application(options);
   (async () => {
     try {
-      await app.run();
+      await application.run();
     } catch (e) {
       console.log(e);
     }

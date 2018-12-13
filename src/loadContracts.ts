@@ -10,13 +10,9 @@ interface ModuleWrapper {
   name: string;
 }
 
-function getContractName(fileName: string) {
-  return changeCase.snakeCase(fileName);
-}
-
 function addContract(contract: ModuleWrapper) {
   if (contract.name !== 'index.js') {
-    app.contract[contract.name] = contract.module;
+    global.app.contract[contract.name] = contract.module
   }
 }
 

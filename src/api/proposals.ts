@@ -26,26 +26,26 @@ export default (router) => {
     } else {
       condition = {}
     }
-    const count = await app.sdb.count('Proposal', condition)
+    const count = await global.app.sdb.count('Proposal', condition)
     let proposals = []
     if (count > 0) {
-      proposals = await app.sdb.findAll('Proposal', { condition, limit, offset })
+      proposals = await global.app.sdb.findAll('Proposal', { condition, limit, offset })
     }
     return { count, proposals }
   })
 
   router.get('/:pid', async (req) => {
-    const proposal = await app.sdb.findOne('Proposal', { condition: { tid: req.params.pid } })
+    const proposal = await global.app.sdb.findOne('Proposal', { condition: { tid: req.params.pid } })
     return { proposal }
   })
 
   router.get('/:pid/votes', async (req) => {
-    const votes = await app.sdb.findAll('ProposalVote', { condition: { pid: req.params.pid } })
+    const votes = await global.app.sdb.findAll('ProposalVote', { condition: { pid: req.params.pid } })
     const totalCount = votes.length
-    const validCount = votes.filter(v => app.isCurrentBookkeeper(v.voter)).length
+    const validCount = votes.filter(v => global.app.isCurrentBookkeeper(v.voter)).length
     if (totalCount > 0) {
       const voterAddresses = votes.map(v => v.voter)
-      const accounts = await app.sdb.findAll('Account', { condition: { address: { $in: voterAddresses } } })
+      const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: voterAddresses } } })
       const accountMap = new Map()
       for (const a of accounts) {
         accountMap.set(a.address, a)

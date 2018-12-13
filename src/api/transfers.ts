@@ -5,7 +5,7 @@ async function getAssetMap(assetNames) {
   const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
 
   if (uiaNameList && uiaNameList.length) {
-    const assets = await app.sdb.findAll('Asset', {
+    const assets = await global.app.sdb.findAll('Asset', {
       condition: {
         name: { $in: uiaNameList },
       },
@@ -15,7 +15,7 @@ async function getAssetMap(assetNames) {
     }
   }
   if (gaNameList && gaNameList.length) {
-    const gatewayAssets = await app.sdb.findAll('GatewayCurrency', {
+    const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
       condition: {
         symbol: { $in: gaNameList },
       },
@@ -28,8 +28,8 @@ async function getAssetMap(assetNames) {
 }
 
 async function getTransactionMap(tids) {
-  const trsMap = new Map();
-  const trs = await app.sdb.findAll('Transaction', {
+  const trsMap = new Map()
+  const trs = await global.app.sdb.findAll('Transaction', {
     condition: {
       id: { $in: tids },
     },
@@ -62,10 +62,10 @@ export default (router) => {
     if (req.query.recipientId) {
       condition.recipientId = req.query.recipientId;
     }
-    const count = await app.sdb.count('Transfer', condition);
-    let transfers = [];
+    const count = await global.app.sdb.count('Transfer', condition)
+    let transfers = []
     if (count > 0) {
-      transfers = await app.sdb.findAll('Transfer', {
+      transfers = await global.app.sdb.findAll('Transfer', {
         condition,
         limit,
         offset,
@@ -107,10 +107,10 @@ export default (router) => {
     }
     condition.currency = 'GNY';
 
-    const count = await app.sdb.count('Transfer', condition);
-    let transfers = [];
+    const count = await global.app.sdb.count('Transfer', condition)
+    let transfers = []
     if (count > 0) {
-      transfers = await app.sdb.findAll('Transfer', {
+      transfers = await global.app.sdb.findAll('Transfer', {
         condition,
         sort: { timestamp: -1 },
       });

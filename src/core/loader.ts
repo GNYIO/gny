@@ -1,12 +1,15 @@
-import * as slots from '../utils/slots';
+import Slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
+import { Modules, IScope } from '../interfaces';
+
+const slots = new Slots()
 
 export default class Loader {
   private isLoaded: boolean = false;
   private privSyncing: boolean = false;
-  private library: any;
-  private modules: any;
+  private readonly library: IScope;
+  private modules: Modules;
   private genesisBlock: any;
   private loadingLastBlock: any = null;
   private syncIntervalId: any;
@@ -15,7 +18,7 @@ export default class Loader {
   
   public shared: any = {};
   
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock;
     this.loadingLastBlock = this.library.genesisBlock;
@@ -24,7 +27,8 @@ export default class Loader {
   }
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
   
     router.map(this.shared, {
       'get /status': 'status',
@@ -90,11 +94,11 @@ export default class Loader {
         try {
           this.modules.transactions.clearUnconfirmed()
           if (toRemove > 0) {
-            await app.sdb.rollbackBlock(commonBlock.height)
-            this.modules.blocks.setLastBlock(app.sdb.lastBlock)
-            this.library.logger.debug('set new last block', app.sdb.lastBlock)
+            await global.app.sdb.rollbackBlock(commonBlock.height)
+            this.modules.blocks.setLastBlock(global.app.sdb.lastBlock)
+            this.library.logger.debug('set new last block', global.app.sdb.lastBlock)
           } else {
-            await app.sdb.rollbackBlock()
+            await global.app.sdb.rollbackBlock()
           }
         } catch (e) {
           this.library.logger.error('Failed to rollback block', e)
@@ -139,13 +143,13 @@ export default class Loader {
         this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${this.library.scheme.getLastError()}`)
       }
   
-      if (app.util.bignumber(lastBlock.height).lt(ret.height)) {
+      if (global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
         this.blocksToSync = ret.height
 
         if (lastBlock.id !== this.genesisBlock.block.id) {
           return this.findUpdate(lastBlock, peer, cb)
         }
-        // return this.loadFullDb(peer, cb)
+        return this.loadFullDb(peer, cb)
       }
       return cb()
     })
@@ -244,7 +248,7 @@ export default class Loader {
       this.privSyncing = true
       const lastBlock = this.modules.blocks.getLastBlock()
       this.modules.transactions.clearUnconfirmed()
-      app.sdb.rollbackBlock().then(() => {
+      global.app.sdb.rollbackBlock().then(() => {
         this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err)
@@ -279,7 +283,7 @@ export default class Loader {
     })
   }
 
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
   }
 
@@ -288,6 +292,7 @@ export default class Loader {
   }
 
   public cleanup = (cb: any) => {
+    this.library.logger.debug('Cleaning up core/loader')
     this.isLoaded = false
     cb()
   }

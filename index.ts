@@ -1,10 +1,11 @@
-import assert = require('assert');
-import crypto = require('crypto');
-import fs = require('fs');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
+import { IScope } from './src/interfaces';
 
-function verifyGenesisBlock(scope, block) {
+function verifyGenesisBlock(scope: Partial<IScope>, block: any) {
   try {
     const payloadHash = crypto.createHash('sha256');
 
@@ -25,15 +26,12 @@ function verifyGenesisBlock(scope, block) {
   }
 }
 
-class Application {
+export default class Application {
   constructor(public options: any) { }
 
   async run() {
     const options = this.options;
     const pidFile = options.pidFile;
-
-    global.featureSwitch = {};
-    global.state = {};
 
     const scope = await initAlt(options);
     function cb(err, result) {
@@ -46,7 +44,9 @@ class Application {
 
       try {
         for (let key in scope.modules) {
-          scope.modules[key].cleanup(cb);
+          if (scope.modules[key].hasOwnProperty('cleanup')) {
+            scope.modules[key].cleanup(cb);
+          }
         }
         global.app.sdb.close();
         scope.logger.info('Clean up successfully.');
@@ -106,5 +106,3 @@ class Application {
     }
   }
 }
-
-export = Application;

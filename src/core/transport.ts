@@ -1,28 +1,30 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
-import Router = require('../utils/router');
-import slots = require('../utils/slots');
-import sandboxHelper = require('../utils/sandbox');
+import Router from '../utils/router';
+import Slots from '../utils/slots';
+import { Modules, IScope } from '../interfaces';
 
+const slots = new Slots()
 
 export default class Transport {
-  private library: any;
+  private readonly library: IScope;
   private latestBlocksCache: any = new LRU(200)
   private blockHeaderMidCache: any = new LRU(1000)
   
-  private modules: any;
+  private modules: Modules;
 
   private headers: any = {};
   private loaded: boolean = false;
 
-  constructor (scope: any) {
+  constructor (scope: IScope) {
     this.library = scope;
     this.attachApi();
   }
 
 
   private attachApi = () => {
-    const router = new Router()
+    const router1 = new Router();
+    const router = router1.router;
 
     router.use((req, res, next) => {
       if (this.modules.loader.syncing()) {
@@ -66,8 +68,7 @@ export default class Transport {
       const ids = body.ids
       return (async () => {
         try {
-          let blocks = await app.sdb.getBlocksByHeightRange(min, max)
-          // app.logger.trace('find common blocks in database', blocks)
+          let blocks = await global.app.sdb.getBlocksByHeightRange(min, max)
           if (!blocks || !blocks.length) {
             return res.status(500).send({ success: false, error: 'Blocks not found' })
           }
@@ -84,7 +85,7 @@ export default class Transport {
           }
           return res.send({ success: true, common: commonBlock })
         } catch (e) {
-          app.logger.error(`Failed to find common block: ${e}`)
+         global.app.logger.error(`Failed to find common block: ${e}`)
           return res.send({ success: false, error: 'Failed to find common block' })
         }
       })()
@@ -102,7 +103,7 @@ export default class Transport {
       }
       return (async () => {
         try {
-          const lastBlock = await app.sdb.getBlockById(lastBlockId)
+          const lastBlock = await global.app.sdb.getBlockById(lastBlockId)
           if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`)
 
           const minHeight = lastBlock.height + 1
@@ -110,7 +111,7 @@ export default class Transport {
           const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true)
           return res.send({ blocks })
         } catch (e) {
-          app.logger.error('Failed to get blocks or transactions', e)
+         global.app.logger.error('Failed to get blocks or transactions', e)
           return res.send({ blocks: [] })
         }
       })()
@@ -211,12 +212,8 @@ export default class Transport {
     this.modules.peer.publish(topic, message, recursive)
   }
 
-  public sandboxApi = (call: any, args: any, cb: any) => {
-    sandboxHelper.callMethod(this, call, args, cb)
-  }
-
   // Events
-  public onBind = (scope: any) => {
+  public onBind = (scope: Modules) => {
     this.modules = scope
     this.headers = {
       os: this.modules.system.getOS(),
@@ -377,6 +374,7 @@ export default class Transport {
   }
 
   public cleanup = (cb: any) => {
+    this.library.logger.debug('Cleaning up core/transport')
     this.loaded = false
     cb()
   }
