@@ -22,7 +22,7 @@ function main() {
     .option('-g, --genesisblock <path>', 'Genesisblock path')
     .option('-x, --peers [peers...]', 'Peers list')
     .option('-l, --log <level>', 'Log level')
-    .option('-d, --daemon', 'Run asch node as daemon')
+    .option('-d, --daemon', 'Run gny node as daemon')
     .option('--app <dir>', 'App directory')
     .option('--base <dir>', 'Base directory')
     .option('--data <dir>', 'Data directory')
@@ -131,7 +131,7 @@ function main() {
     try {
       await application.run();
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
 
   })();

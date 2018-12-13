@@ -562,7 +562,7 @@ export default class Delegates {
             const lastBlock = this.modules.blocks.getLastBlock()
             const totalSupply = this.blockStatus.calcSupply(lastBlock.height)
             for (const a of accounts) {
-              a.balance = a.xas
+              a.balance = a.gny
               a.weightRatio = (a.weight * 100) / totalSupply
             }
             return cb(null, { accounts })

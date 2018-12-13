@@ -1,9 +1,9 @@
 #!/bin/bash
 
 readonly PROG_DIR=$(pwd)
-readonly PID_FILE=$PROG_DIR/asch.pid
+readonly PID_FILE=$PROG_DIR/GNY.pid
 readonly IPS=(
-  "https://www.asch.io/downloads-International"
+  "https://www.GNY.io/downloads-International"
   )
 
 function read_port() {
@@ -16,17 +16,17 @@ function is_running() {
 
 function status() {
   if is_running; then
-    echo "Asch server is running"
+    echo "GNY server is running"
   else
-    echo "Asch server is not running"
+    echo "GNY server is not running"
   fi
 }
 
 function start() {
   if is_running; then
-    echo "Asch server is already started"
+    echo "GNY server is already started"
   else
-    rm -f $PROG_DIR/asch.pid
+    rm -f $PROG_DIR/GNY.pid
     node $PROG_DIR/app.js --base $PROG_DIR --daemon $@
   fi
 }
@@ -43,15 +43,15 @@ function stop() {
     while ps -p $pid > /dev/null; do
       if [ $i == 5 ]; then
         kill -9 $pid
-        echo "Asch server killed"
+        echo "GNY server killed"
       fi
-      echo "Still waiting for asch server to stop ..."
+      echo "Still waiting for GNY server to stop ..."
       sleep 1
       ((i++))
     done
-    echo "Asch server stopped"
+    echo "GNY server stopped"
   else
-    echo "Asch server is not running"
+    echo "GNY server is not running"
   fi
   rm -f $PID_FILE
 }
@@ -72,12 +72,12 @@ function chosenode(){
   num=${num:-0}
 
   if [ $num -ge $length ];then
-    echo "You chosen wrong number,please run aschd again and chose the other node!"
+    echo "You chosen wrong number,please run GNYd again and chose the other node!"
     exit 1
   fi
 
   if [ i${status[$num]} = i"N" ];then
-    echo "This node has no data,please run aschd again and chose the other node!"
+    echo "This node has no data,please run GNYd again and chose the other node!"
     exit 2
   fi
 
@@ -134,11 +134,11 @@ function rebuild() {
         exit
   fi
 
-  ./aschd stop
+  ./GNYd stop
   rm -rf ./data
   echo "Extracting snapshot..."
   tar zxf $Name
-  #./aschd start
+  #./GNYd start
 }
 
 function version() {
@@ -209,10 +209,10 @@ function upgrade() {
 
   echo "Extracting new package ..."
   tar zxf tmp/$Name -C tmp/
-  extractedDir=`find tmp -maxdepth 1 -type d | grep asch |head -n 1`
-  currentVersion=`./aschd version`
-  chmod u+x $extractedDir/aschd
-  ./aschd stop
+  extractedDir=`find tmp -maxdepth 1 -type d | grep GNY |head -n 1`
+  currentVersion=`./GNYd version`
+  chmod u+x $extractedDir/GNYd
+  ./GNYd stop
   echo "Copying new files ..."
   for file in `ls $extractedDir`
   do
@@ -222,9 +222,9 @@ function upgrade() {
     fi
   done
   rm -rf $extractedDir tmp/$latestName
-  newVersion=`./aschd version`
+  newVersion=`./GNYd version`
   echo "Upgrade to $newVersion done."
-  #./aschd start
+  #./GNYd start
 }
 
 function enable() {

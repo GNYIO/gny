@@ -18,7 +18,7 @@ import * as bignumber from 'bignumber'
 const slots = new Slots()
 
 function adaptSmartDBLogger(config) {
-  const { LogLevel } = AschCore
+  const { LogLevel } = AschCore;
   const levelMap = {
     trace: LogLevel.Trace,
     debug: LogLevel.Debug,
@@ -27,16 +27,16 @@ function adaptSmartDBLogger(config) {
     warn: LogLevel.Warn,
     error: LogLevel.Error,
     fatal: LogLevel.Fatal,
-  }
+  };
 
   AschCore.LogManager.logFactory = {
     createLog: () => global.app.logger,
     format: false,
     getLevel: () => {
-      const appLogLevel = String(config.logLevel).toLocaleLowerCase()
-      return levelMap[appLogLevel] || LogLevel.Info
+      const appLogLevel = String(config.logLevel).toLocaleLowerCase();
+      return levelMap[appLogLevel] || LogLevel.Info;
     },
-  }
+  };
 }
 
 export default async function runtime(options) {
@@ -47,7 +47,7 @@ export default async function runtime(options) {
     contractTypeMapping: {},
     feeMapping: {},
     defaultFee: {
-      currency: 'AEC',
+      currency: 'GNY',
       min: '10000000',
     },
     hooks: {},
@@ -55,42 +55,42 @@ export default async function runtime(options) {
   };
   global.app.validators = {
     amount: (amount) => {
-      if (typeof amount !== 'string') return 'Invalid amount type'
-      if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer'
-  
-      let bnAmount
+      if (typeof amount !== 'string') return 'Invalid amount type';
+      if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer';
+
+      let bnAmount;
       try {
         bnAmount = global.app.util.bignumber(amount)
       } catch (e) {
-        return 'Failed to convert'
+        return 'Failed to convert';
       }
-      if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range'
-      return null
+      if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range';
+      return null;
     },
     name: (value) => {
-      const regname = /^[a-z0-9_]{2,20}$/
-      if (!regname.test(value)) return 'Invalid name'
-      return null
+      const regname = /^[a-z0-9_]{2,20}$/;
+      if (!regname.test(value)) return 'Invalid name';
+      return null;
     },
     publickey: (value) => {
-      const reghex = /^[0-9a-fA-F]{64}$/
-      if (!reghex.test(value)) return 'Invalid public key'
-      return null
+      const reghex = /^[0-9a-fA-F]{64}$/;
+      if (!reghex.test(value)) return 'Invalid public key';
+      return null;
     },
     string: (value, constraints) => {
       if (constraints.length) {
-        return JSON.stringify(validate({ data: value }, { data: { length: constraints.length } }))
+        return JSON.stringify(validate({ data: value }, { data: { length: constraints.length } }));
       } if (constraints.isEmail) {
-        return JSON.stringify(validate({ email: value }, { email: { email: true } }))
+        return JSON.stringify(validate({ email: value }, { email: { email: true } }));
       } if (constraints.url) {
-        return JSON.stringify(validate({ url: value }, { url: { url: constraints.url } }))
+        return JSON.stringify(validate({ url: value }, { url: { url: constraints.url } }));
       } if (constraints.number) {
         return JSON.stringify(validate(
           { number: value },
           { number: { numericality: constraints.number } },
-        ))
+        ));
       }
-      return null
+      return null;
     },
   }
   global.app.validate = (type, value, constraints) => {
@@ -137,8 +137,8 @@ export default async function runtime(options) {
 
   const { appDir, dataDir } = options.appConfig
 
-  const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks')
-  const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db')
+  const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks');
+  const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db');
 
   adaptSmartDBLogger(options.appConfig)
   global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)

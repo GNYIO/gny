@@ -13,7 +13,7 @@ import Blocks from './core/blocks'
 import { Modules, IScope } from './interfaces'
 
 
-export default function loadModules(scope: Partial<IScope>) {
+export default function loadModules(scope: IScope) {
 
   let server = new Server(scope)
   let accounts = new Accounts(scope)

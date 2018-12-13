@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import { isArray } from 'util';
 import jsonSql = require('json-sql');
 
 jsonSql().setDialect('sqlite')
@@ -60,7 +59,7 @@ export default class UIA {
   }
 
   toAPIV1UIABalances = (balances: any) => {
-    if (!(balances && isArray(balances) && balances.length > 0)) return balances
+    if (!(balances && Array.isArray(balances) && balances.length > 0)) return balances
     const assetMap = new Map()
     global.app.sdb.getAll('Asset').forEach((asset: any) => assetMap.set(asset.name, this.toAPIV1Asset(asset)))
 
@@ -70,7 +69,7 @@ export default class UIA {
     })
   }
 
-  toAPIV1Assets = (assets: any) => ((assets && isArray(assets) && assets.length > 0)
+  toAPIV1Assets = (assets: any) => ((assets && Array.isArray(assets) && assets.length > 0)
     ? assets.map((a: any) => this.toAPIV1Asset(a))
     : [])
 
