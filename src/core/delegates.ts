@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import * as ed from '../utils/ed'
 import Router from '../utils/router'
 import Slots from '../utils/slots';
-import BlockStatus from '../utils/block-status';
 import addressHelper from '../utils/address'
 import { Modules, IScope } from '../interfaces';
 
@@ -10,7 +9,6 @@ const slots = new Slots()
 
 export default class Delegates {
   private loaded: boolean = false;
-  private blockStatus = new BlockStatus();
   private keyPairs: any = {};
   private isForgingEnabled: boolean = true;
   private readonly library: IScope;
@@ -378,7 +376,7 @@ export default class Delegates {
     delegates = delegates.sort(this.compare)
   
     const lastBlock = this.modules.blocks.getLastBlock()
-    const totalSupply = this.blockStatus.calcSupply(lastBlock.height)
+    const totalSupply = this.library.base.block.calcSupply(lastBlock.height)
     for (let i = 0; i < delegates.length; ++i) {
       // fixme? d === delegates[i] ???
       const d = delegates[i]
@@ -560,7 +558,7 @@ export default class Delegates {
             const addresses = votes.map(v => v.address)
             const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
             const lastBlock = this.modules.blocks.getLastBlock()
-            const totalSupply = this.blockStatus.calcSupply(lastBlock.height)
+            const totalSupply = this.library.base.block.calcSupply(lastBlock.height)
             for (const a of accounts) {
               a.balance = a.gny
               a.weightRatio = (a.weight * 100) / totalSupply

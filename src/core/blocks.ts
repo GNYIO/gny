@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
 import * as constants from '../utils/constants'
-import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
 import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
@@ -18,7 +17,6 @@ export default class Blocks {
   private readonly library: IScope;
 
   private lastBlock: any = {};
-  private blockStatus = new BlockStatus();
   private loaded: boolean = false;
   private blockCache = {};
   private proposeCache = {};
@@ -177,7 +175,7 @@ export default class Blocks {
       throw new Error('Invalid total fees')
     }
   
-    const expectedReward = this.blockStatus.calcReward(block.height)
+    const expectedReward = this.library.base.block.calcReward(block.height)
     if (expectedReward !== block.reward) {
       throw new Error('Invalid block reward')
     }
@@ -519,7 +517,7 @@ export default class Blocks {
       count: unconfirmedList.length,
       fees,
       payloadHash: payloadHash.digest().toString('hex'),
-      reward: this.blockStatus.calcReward(height),
+      reward: this.library.base.block.calcReward(height),
     }
   
     block.signature = this.library.base.block.sign(block, keypair.privateKey)
@@ -729,12 +727,12 @@ public onReceiveVotes = (votes: any) => {
 
 public getSupply = () => {
   const height = this.lastBlock.height
-  return this.blockStatus.calcSupply(height)
+  return this.library.base.block.calcSupply(height)
 }
 
 public getCirculatingSupply = () => {
   const height = this.lastBlock.height
-  return this.blockStatus.calcSupply(height)
+  return this.library.base.block.calcSupply(height)
 }
 
 public isCollectingVotes = () => this.privIsCollectingVotes
