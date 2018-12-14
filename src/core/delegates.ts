@@ -468,7 +468,7 @@ export default class Delegates {
     return JSON.parse(item.value)
   }
 
-  updateBookkeeper = (delegates) => {
+  updateBookkeeper = (delegates?) => {
     const value = JSON.stringify(delegates || this.getTopDelegates())
     const { create } = global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value })
     if (!create) {
