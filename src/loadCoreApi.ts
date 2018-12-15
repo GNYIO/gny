@@ -4,6 +4,7 @@ import AccountsApi from '../packages/api/accountsApi';
 import DelegatesApi from '../packages/api/delgatesApi';
 import PeerApi from '../packages/api/peerApi';
 import TransactionsApi from '../packages/api/transactionsApi';
+import TransportApi from '../packages/api/transportApi';
 import { Modules, IScope } from './interfaces';
 
 export default function loadCoreApi(modules: Modules, scope: IScope) {
@@ -12,6 +13,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   let delgatesApi = new DelegatesApi(modules, scope);
   let peerApi = new PeerApi(modules, scope);
   let transactionsApi = new TransactionsApi(modules, scope);
+  let transportApi = new TransportApi(modules, scope);
 
   return {
     blocksApi,
@@ -19,5 +21,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     delgatesApi,
     peerApi,
     transactionsApi,
+    transportApi,
   };
 }
