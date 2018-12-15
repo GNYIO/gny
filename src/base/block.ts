@@ -7,7 +7,7 @@ import * as addressUtil from '../utils/address';
 import { IScope } from '../interfaces';
 
 export class Block {
-  private scope: any;
+  private scope: IScope;
   private blockReward = new BlockReward();
 
   constructor(scope: IScope) {
@@ -137,14 +137,6 @@ export class Block {
     return b
   }
 
-  private calculateHash(block) {
-    return crypto.createHash('sha256').update(this.getBytes(block)).digest();
-  }
-
-  sign(block, keypair) {
-    const hash = this.calculateHash(block);
-    return ed.sign(hash, keypair).toString('hex');
-  }
 
   verifySignature(block) {
     const remove = 64;

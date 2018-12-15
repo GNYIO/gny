@@ -522,7 +522,7 @@ export default class Blocks {
       reward: this.blockreward.calculateReward(height),
     }
   
-    block.signature = this.library.base.block.sign(block, keypair.privateKey)
+    block.signature = this.library.base.block.sign(block, keypair)
     block.id = this.library.base.block.getId(block)
   
     let activeKeypairs
