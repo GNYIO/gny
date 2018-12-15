@@ -17,6 +17,11 @@ export default class DelegatesApi {
     this.attachApi();
   }
 
+    // Events
+    public onBlockchainReady = () => {
+      this.loaded = true;
+    }
+
   public count = async (req, cb) => {
     try {
       const count = global.app.sdb.getAll('Delegate').length
