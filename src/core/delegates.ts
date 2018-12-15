@@ -3,6 +3,7 @@ import * as ed from '../utils/ed'
 import Router from '../utils/router'
 import Slots from '../utils/slots';
 import addressHelper from '../utils/address'
+import BlockReward from '../utils/block-reward'
 import { Modules, IScope } from '../interfaces';
 
 const slots = new Slots()
@@ -15,6 +16,7 @@ export default class Delegates {
   private modules: Modules;
 
   private readonly BOOK_KEEPER_NAME = 'round_bookkeeper'
+  private blockreward = new BlockReward();
 
   constructor(scope: IScope) {
     this.library = scope;
@@ -376,7 +378,7 @@ export default class Delegates {
     delegates = delegates.sort(this.compare)
   
     const lastBlock = this.modules.blocks.getLastBlock()
-    const totalSupply = this.library.base.block.calcSupply(lastBlock.height)
+    const totalSupply = this.blockreward.calculateSupply(lastBlock.height)
     for (let i = 0; i < delegates.length; ++i) {
       // fixme? d === delegates[i] ???
       const d = delegates[i]
@@ -558,7 +560,7 @@ export default class Delegates {
             const addresses = votes.map(v => v.address)
             const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
             const lastBlock = this.modules.blocks.getLastBlock()
-            const totalSupply = this.library.base.block.calcSupply(lastBlock.height)
+            const totalSupply = this.blockreward.calculateSupply(lastBlock.height)
             for (const a of accounts) {
               a.balance = a.gny
               a.weightRatio = (a.weight * 100) / totalSupply

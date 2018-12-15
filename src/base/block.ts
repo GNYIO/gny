@@ -14,18 +14,6 @@ export class Block {
     this.scope = scope;
   }
 
-  public calcReward(height: number) {
-    if (height === 0) {
-      return 0;
-    } else {
-      return (3.5 * 1e8);
-    }
-  }
-
-  public calcSupply(height: number) {
-    throw new Error('calcSupply not implemented');
-  }
-
   public getId = (block: any) => {
     const bytes = this.getBytes(block)
     const hash = crypto.createHash('sha256').update(bytes).digest()
