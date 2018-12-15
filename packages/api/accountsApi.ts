@@ -304,6 +304,35 @@ export default class AccountsApi {
     });
   }
 
+  private getAddress = async (req) => {
+    const condition: { name?: string; address?: string; } = {};
+    if (req.params.address.length <= 20) {
+      condition.name = req.params.address;
+    } else {
+      condition.address = req.params.address;
+    }
+
+    const account = await global.app.sdb.findOne('Account', { condition });
+    let unconfirmedAccount = null;
+    if (account) {
+      unconfirmedAccount = await global.app.sdb.load('Account', account.address);
+    } else {
+      unconfirmedAccount = null;
+    }
+
+    const lastBlock = this.modules.blocks.getLastBlock();
+    const ret = {
+      account,
+      unconfirmedAccount,
+      latestBlock: {
+        height: lastBlock.height,
+        timestamp: lastBlock.timestamp,
+      },
+      version: this.modules.peer.getVersion(),
+    };
+    return ret;
+  }
+
   private attachApi = () => {
     const router = express.Router();
 
@@ -315,6 +344,9 @@ export default class AccountsApi {
     router.get('/delegates', this.myVotedDelegates);
     router.get('/', this.getAccount);
     router.get('/new', this.newAccount);
+
+    // v2
+    router.get('/:address', this.getAddress);
 
 
     // Configuration
