@@ -13,9 +13,9 @@ import { IScope } from '../interfaces';
 const slots = new Slots()
 
 export class Transaction {
-  private scope: IScope;
+  private readonly library: IScope;
   constructor(scope: IScope) {
-    this.scope = scope;
+    this.library = scope;
   }
 
   create(data) {
@@ -263,7 +263,7 @@ export class Transaction {
     }
 
     // FIXME
-    const report = this.scope.scheme.validate(transaction, {
+    const report = this.library.scheme.validate(transaction, {
       type: 'object',
       properties: {
         id: { type: 'string' },
@@ -281,8 +281,8 @@ export class Transaction {
     });
 
     if (!report) {
-      this.scope.logger.error(`Failed to normalize transaction body: ${this.scope.scheme.getLastError().details[0].message}`, transaction);
-      throw Error(this.scope.scheme.getLastError());
+      this.library.logger.error(`Failed to normalize transaction body: ${this.library.scheme.getLastError().details[0].message}`, transaction);
+      throw Error(this.library.scheme.getLastError());
     }
   
     return transaction;
