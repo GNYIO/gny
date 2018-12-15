@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
 import * as ed from '../utils/ed'
-import Router from '../utils/router'
 import Slots from '../utils/slots';
 import addressHelper from '../utils/address'
 import BlockReward from '../utils/block-reward'
@@ -11,7 +10,7 @@ const slots = new Slots()
 export default class Delegates {
   private loaded: boolean = false;
   private keyPairs: any = {};
-  private isForgingEnabled: boolean = true;
+  private isForgingEnabled = true;
   private readonly library: IScope;
   private modules: Modules;
 
@@ -20,172 +19,21 @@ export default class Delegates {
 
   constructor(scope: IScope) {
     this.library = scope;
-
-    this.attachApi();
   }
 
-  private attachApi = () => {
-    const router1 = new Router();
-    const router = router1.router;
-  
-    router.use((req, res, next) => {
-      if (this.modules && this.loaded) return next()
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' })
-    })
-  
-    router.map(this.shared, {
-      'get /count': 'count',
-      'get /voters': 'getVoters',
-      'get /get': 'getDelegate',
-      'get /': 'getDelegates',
-    })
-  
-    if (process.env.DEBUG) {
-      router.get('/forging/disableAll', (req, res) => {
-        this.disableForging()
-        return res.json({ success: true })
-      })
-  
-      router.get('/forging/enableAll', (req, res) => {
-        this.enableForging()
-        return res.json({ success: true })
-      })
+  public isPublicKeyInKeyPairs = (publicKey: string) => {
+    if (this.keyPairs[publicKey]) {
+      return true;
+    } else {
+      return false;
     }
-  
-    router.post('/forging/enable', (req, res) => {
-      const body = req.body
-      this.library.scheme.validate(body, {
-        type: 'object',
-        properties: {
-          secret: {
-            type: 'string',
-            minLength: 1,
-            maxLength: 100,
-          },
-          publicKey: {
-            type: 'string',
-            format: 'publicKey',
-          },
-        },
-        required: ['secret'],
-      }, (err) => {
-        if (err) {
-          return res.json({ success: false, error: err[0].message })
-        }
-  
-        const ip = req.connection.remoteAddress
-  
-        if (this.library.config.forging.access.whiteList.length > 0
-          && this.library.config.forging.access.whiteList.indexOf(ip) < 0) {
-          return res.json({ success: false, error: 'Access denied' })
-        }
-  
-        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
-  
-        if (body.publicKey) {
-          if (keypair.publicKey.toString('hex') !== body.publicKey) {
-            return res.json({ success: false, error: 'Invalid passphrase' })
-          }
-        }
-  
-        if (this.keyPairs[keypair.publicKey.toString('hex')]) {
-          return res.json({ success: false, error: 'Forging is already enabled' })
-        }
-  
-        return this.modules.accounts.getAccount({ publicKey: keypair.publicKey.toString('hex') }, (err2, account) => {
-          if (err2) {
-            return res.json({ success: false, error: err2.toString() })
-          }
-          if (account && account.isDelegate) {
-            this.keyPairs[keypair.publicKey.toString('hex')] = keypair
-            this.library.logger.info(`Forging enabled on account: ${account.address}`)
-            return res.json({ success: true, address: account.address })
-          }
-          return res.json({ success: false, error: 'Delegate not found' })
-        })
-      })
-    })
-  
-    router.post('/forging/disable', (req, res) => {
-      const body = req.body
-      this.library.scheme.validate(body, {
-        type: 'object',
-        properties: {
-          secret: {
-            type: 'string',
-            minLength: 1,
-            maxLength: 100,
-          },
-          publicKey: {
-            type: 'string',
-            format: 'publicKey',
-          },
-        },
-        required: ['secret'],
-      }, (err) => {
-        if (err) {
-          return res.json({ success: false, error: err[0].message })
-        }
-  
-        const ip = req.connection.remoteAddress
-  
-        if (this.library.config.forging.access.whiteList.length > 0
-            && this.library.config.forging.access.whiteList.indexOf(ip) < 0) {
-          return res.json({ success: false, error: 'Access denied' })
-        }
-  
-        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
-  
-        if (body.publicKey) {
-          if (keypair.publicKey.toString('hex') !== body.publicKey) {
-            return res.json({ success: false, error: 'Invalid passphrase' })
-          }
-        }
-  
-        if (!this.keyPairs[keypair.publicKey.toString('hex')]) {
-          return res.json({ success: false, error: 'Delegate not found' })
-        }
-  
-        return this.modules.accounts.getAccount({ publicKey: keypair.publicKey.toString('hex') }, (err2, account) => {
-          if (err2) {
-            return res.json({ success: false, error: err2.toString() })
-          }
-          if (account && account.isDelegate) {
-            delete this.keyPairs[keypair.publicKey.toString('hex')]
-            this.library.logger.info(`Forging disabled on account: ${account.address}`)
-            return res.json({ success: true, address: account.address })
-          }
-          return res.json({ success: false, error: 'Delegate not found' })
-        })
-      })
-    })
-  
-    router.get('/forging/status', (req, res) => {
-      const query = req.query
-      this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          publicKey: {
-            type: 'string',
-            format: 'publicKey',
-          },
-        },
-        required: ['publicKey'],
-      }, (err) => {
-        if (err) {
-          return res.json({ success: false, error: err[0].message })
-        }
-  
-        return res.json({ success: true, enabled: !!this.keyPairs[query.publicKey] })
-      })
-    })
-  
-    this.library.network.app.use('/api/delegates', router)
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString())
-      return res.status(500).send({ success: false, error: err.toString() })
-    })
+  }
+
+  public setKeyPair = (publicKey: string, keys: { privateKey: any, publicKey: any }) => {
+    this.keyPairs[publicKey] = keys;
+  }
+  public removeKeyPair = (publicKey: string) => {
+    delete this.keyPairs[publicKey];
   }
 
   private getBlockSlotData = (slot: any, height: any) : { time: number, keypair: any } => {
@@ -396,11 +244,7 @@ export default class Delegates {
     }
     return cb(null, delegates)
   }
-  
-  // sandboxApi = (call, args, cb) => {
-  //   sandboxHelper.callMethod(shared, call, args, cb)
-  // }
-  
+
   enableForging = () => {
     this.isForgingEnabled = true
   }
@@ -408,9 +252,6 @@ export default class Delegates {
   disableForging = () => {
     this.isForgingEnabled = false
   }
-  
-
-
 
   // Events
   onBind = (scope: Modules) => {
@@ -478,117 +319,4 @@ export default class Delegates {
     }
   }
 
-  shared = {
-    getDelegate: (req, cb) => {
-      const query = req.body
-      this.library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          publicKey: {
-            type: 'string',
-          },
-          name: {
-            type: 'string',
-          },
-          address: {
-            type: 'string',
-          },
-        },
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-    
-        return modules.delegates.getDelegates(query, (err2, delegates) => {
-          if (err2) {
-            return cb(err2)
-          }
-    
-          const delegate = delegates.find((d) => {
-            if (query.publicKey) {
-              return d.publicKey === query.publicKey
-            }
-            if (query.address) {
-              return d.address === query.address
-            }
-            if (query.name) {
-              return d.name === query.name
-            }
-    
-            return false
-          })
-    
-          if (delegate) {
-            return cb(null, { delegate })
-          }
-          return cb('Delegate not found')
-        })
-      })
-    },
-    
-    count: (req, cb) => (async () => {
-      try {
-        const count = global.app.sdb.getAll('Delegate').length
-        return cb(null, { count })
-      } catch (e) {
-        this.library.logger.error('get delegate count error', e)
-        return cb('Failed to count delegates')
-      }
-    })(),
-    
-    getVoters: (req, cb) => {
-      const query = req.body
-      library.scheme.validate(query, {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            maxLength: 50,
-          },
-        },
-        required: ['name'],
-      }, (err) => {
-        if (err) {
-          return cb(err[0].message)
-        }
-    
-        return (async () => {
-          try {
-            const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.name } })
-            if (!votes || !votes.length) return cb(null, { accounts: [] })
-    
-            const addresses = votes.map(v => v.address)
-            const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } })
-            const lastBlock = this.modules.blocks.getLastBlock()
-            const totalSupply = this.blockreward.calculateSupply(lastBlock.height)
-            for (const a of accounts) {
-              a.balance = a.gny
-              a.weightRatio = (a.weight * 100) / totalSupply
-            }
-            return cb(null, { accounts })
-          } catch (e) {
-            this.library.logger.error('Failed to find voters', e)
-            return cb('Server error')
-          }
-        })()
-      })
-    },
-
-    getDelegates: (req, cb) => {
-      const query = req.body
-      const offset = Number(query.offset || 0)
-      const limit = Number(query.limit || 10)
-      if (Number.isNaN(limit) || Number.isNaN(offset)) {
-        return cb('Invalid params')
-      }
-    
-      return this.getDelegates({}, (err, delegates) => {
-        if (err) return cb(err)
-        return cb(null, {
-          totalCount: delegates.length,
-          delegates: delegates.slice(offset, offset + limit),
-        })
-      })
-    }
-  }
 }
