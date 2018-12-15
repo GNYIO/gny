@@ -23,7 +23,7 @@ export class Transaction {
       type: data.type,
       senderId: addressHelper.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
-      timestamp: slots.getTime(),
+      timestamp: slots.getTime(undefined),
       message: data.message,
       args: data.args,
       fee: data.fee,
@@ -43,14 +43,6 @@ export class Transaction {
 
   sign(keypair, transaction) {
     const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
-
-    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
-    return ed.sign(hash, privateKeyBuffer).toString('hex')
-  }
-
-  multisign(keypair, transaction) {
-    const bytes = this.getBytes(transaction, true, true)
-    const hash = crypto.createHash('sha256').update(bytes).digest()
 
     let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
     return ed.sign(hash, privateKeyBuffer).toString('hex')
@@ -282,7 +274,7 @@ export class Transaction {
 
     if (!report) {
       this.library.logger.error(`Failed to normalize transaction body: ${this.library.scheme.getLastError().details[0].message}`, transaction);
-      throw Error(this.library.scheme.getLastError());
+      throw Error(this.library.scheme.getLastError().toString());
     }
   
     return transaction;
