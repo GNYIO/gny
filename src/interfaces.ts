@@ -158,6 +158,7 @@ type ILogLevel = "trace" | "debug" | "log" | "info" | "warn" | "error" | "fatal"
 
 export interface IConfig {
   version: string;
+  magic: string;
   baseDir: string;
   dataDir: string;
   appDir: string;
