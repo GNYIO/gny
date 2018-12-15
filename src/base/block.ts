@@ -20,6 +20,8 @@ export class Block {
     return hash.toString('hex')
   }
 
+  public calculateFee = () => 10000000;
+
   private sortTransactions(data: any) {
     data.transactions.sort((a, b) => {
       if (a.type === b.type) {
