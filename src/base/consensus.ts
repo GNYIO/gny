@@ -4,7 +4,7 @@ import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
-import { IScope } from '../interfaces';
+import { IScope, KeyPair } from '../interfaces';
 
 export class Consensus {
   public pendingBlock: any = null;
@@ -23,10 +23,11 @@ export class Consensus {
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  normalizeVotes(votes) {
+  public normalizeVotes = (votes) => {
     const report = this.scope.scheme.validate(votes, {
       type: 'object',
       properties: {
@@ -45,26 +46,26 @@ export class Consensus {
       required: ['height', 'id', 'signatures'],
     });
     if (!report) {
-      throw Error(this.scope.scheme.getLastError());
+      throw Error(this.scope.scheme.getLastError().toString());
     }
     return votes;
   }
 
-  createVotes(keypairs: any, block: any) {
+  createVotes(keypairs: KeyPair[], block: any) {
     const hash = this.calculateVoteHash(block.height, block.id);
     const votes = {
       height: block.height,
       id: block.id,
       signatures: [],
     };
-    keypairs.forEach((kp) => {
-      let privateKeyBuffer = Buffer.from(kp.privateKey, 'hex')
+    keypairs.forEach((kp: KeyPair) => {
+      let privateKeyBuffer = Buffer.from(kp.privateKey);
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
         signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
-      })
-    })
-    return votes
+      });
+    });
+    return votes;
   }
 
   verifyVote(height: number, id: string, vote: any) {
@@ -140,10 +141,11 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  createPropose(keypair, block, address) {
+  createPropose(keypair: KeyPair, block, address) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const propose: any = {
@@ -154,13 +156,13 @@ export class Consensus {
       address,
     };
 
-    const hash = this.getProposeHash(propose)
-    propose.hash = hash.toString('hex')
+    const hash = this.getProposeHash(propose);
+    propose.hash = hash.toString('hex');
 
-    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
-    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex')
+    let privateKeyBuffer = Buffer.from(keypair.privateKey);
+    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex');
 
-    return propose
+    return propose;
   }
 
   getProposeHash(propose) {
@@ -181,7 +183,8 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]))
   
     byteBuffer.flip()
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest()
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest()
   }
 
   normalizeVotes(votes) {
