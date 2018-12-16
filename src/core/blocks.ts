@@ -8,7 +8,7 @@ import Slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward'
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, KeyPair } from '../interfaces';
 
 const slots = new Slots()
 
@@ -525,7 +525,7 @@ export default class Blocks {
     block.signature = this.library.base.block.sign(block, keypair)
     block.id = this.library.base.block.getId(block)
   
-    let activeKeypairs
+    let activeKeypairs: KeyPair[]
     try {
       activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(block.height)
     } catch (e) {

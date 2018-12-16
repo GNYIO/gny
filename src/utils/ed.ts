@@ -1,11 +1,12 @@
-const sodium = require('sodium').api;
+import { api as sodium } from 'sodium';
+import { KeyPair } from '../interfaces';
 
-export function generateKeyPair(hash: Buffer) {
+export function generateKeyPair(hash: Buffer): KeyPair {
   const keypair = sodium.crypto_sign_seed_keypair(hash);
-  return {
+  return <KeyPair> {
     publicKey: keypair.publicKey,
     privateKey: keypair.secretKey,
-  };
+  }
 }
 
 export function sign(hash: Buffer, privateKey: Buffer) {

@@ -2,7 +2,7 @@ import * as ed from '../../src/utils/ed';
 import addressHelper from '../../src/utils/address'
 import * as crypto from 'crypto';
 import * as express from 'express';
-import { Modules, IScope } from '../../src/interfaces';
+import { Modules, IScope, KeyPair } from '../../src/interfaces';
 
 export default class UiaApi {
   private modules : Modules;
@@ -283,7 +283,7 @@ export default class UiaApi {
         try {
           const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest()
           const keypair = ed.generateKeyPair(hash)
-          let secondKeypair = null
+          let secondKeypair: KeyPair = null
           if (query.secondSecret) {
             secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest())
           }

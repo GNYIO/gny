@@ -175,6 +175,15 @@ export interface IConfig {
   pidFile: string;
 }
 
+export interface ManyKeyPairs {
+  [publicKey: string]: KeyPair;
+}
+
+export interface KeyPair {
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

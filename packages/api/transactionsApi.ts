@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as ed from '../../src/utils/ed';
 import * as express from 'express';
-import { Modules, IScope } from "../../src/interfaces";
+import { Modules, IScope, KeyPair } from "../../src/interfaces";
 
 export default class TransactionsApi {
   private modules : Modules;
@@ -206,7 +206,7 @@ export default class TransactionsApi {
         try {
           const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest();
           const keypair = ed.generateKeyPair(hash);
-          let secondKeypair = null;
+          let secondKeypair: KeyPair = null;
           if (query.secondSecret) {
             secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest());
           }

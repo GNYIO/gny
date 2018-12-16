@@ -3,13 +3,13 @@ import * as ed from '../utils/ed'
 import Slots from '../utils/slots';
 import addressHelper from '../utils/address'
 import BlockReward from '../utils/block-reward'
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, ManyKeyPairs, KeyPair } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Delegates {
   private loaded: boolean = false;
-  private keyPairs: any = {};
+  private keyPairs: ManyKeyPairs = {};
   private isForgingEnabled = true;
   private readonly library: IScope;
   private modules: Modules;
@@ -29,7 +29,7 @@ export default class Delegates {
     }
   }
 
-  public setKeyPair = (publicKey: string, keys: { privateKey: any, publicKey: any }) => {
+  public setKeyPair = (publicKey: string, keys: KeyPair) => {
     this.keyPairs[publicKey] = keys;
   }
   public removeKeyPair = (publicKey: string) => {
@@ -141,7 +141,7 @@ export default class Delegates {
       return null
     }
 
-    const results = []
+    const results: KeyPair[] = []
     for (const key in this.keyPairs) {
       if (delegates.indexOf(key) !== -1) {
         results.push(this.keyPairs[key])
@@ -166,7 +166,7 @@ export default class Delegates {
     })
   }
 
-  public generateDelegateList = (height: any) => {
+  public generateDelegateList = (height: any): string[] => {
     try {
       const truncDelegateList = this.getBookkeeper()
       const seedSource = this.modules.round.calculateRound(height).toString()
@@ -301,7 +301,7 @@ export default class Delegates {
     return addresses
   }
 
-  getBookkeeper = () => {
+  getBookkeeper = () : string[] => {
     const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME)
     if (!item) throw new Error('Bookkeeper variable not found')
 
