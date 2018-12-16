@@ -3,7 +3,6 @@ import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import BlockReward from '../utils/block-reward';
 import * as constants from '../utils/constants';
-import * as addressUtil from '../utils/address';
 import { IScope } from '../interfaces';
 
 export class Block {
@@ -218,7 +217,7 @@ export class Block {
     });
 
     if (!report) {
-      throw Error(this.scope.scheme.getLastError());
+      throw Error(this.scope.scheme.getLastError().toString());
     }
 
     try {
@@ -229,32 +228,6 @@ export class Block {
       throw Error(e.toString());
     }
 
-    return block;
-  }
-
-  dbRead(raw) {
-    if (!raw.b_id) {
-      return;
-    }
-
-    const block: any = {
-      id: raw.b_id,
-      version: parseInt(raw.b_version, 10),
-      height: parseInt(raw.b_height, 10),
-      timestamp: parseInt(raw.b_timestamp, 10),
-      previousBlockId: raw.b_previousBlock,
-      generatorPublicKey: raw.b_generatorPublicKey,
-      numberOfTransactions: parseInt(raw.b_numberOfTransactions, 10),
-      totalAmount: parseInt(raw.b_totalAmount, 10),
-      totalFee: parseInt(raw.b_totalFee, 10),
-      reward: parseInt(raw.b_reward, 10),
-      payloadHash: raw.b_payloadHash,
-      payloadLength: parseInt(raw.b_payloadLength, 10),
-      generatorId: addressUtil.generateAddress(raw.b_generatorPublicKey), // 方法待实现
-      blockSignature: raw.b_blockSignature,
-      confirmations: raw.b_confirmations,
-    };
-    block.totalForged = (block.totalFee + block.reward);
     return block;
   }
 }
