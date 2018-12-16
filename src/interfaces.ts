@@ -184,6 +184,17 @@ export interface KeyPair {
   privateKey: Uint8Array;
 }
 
+export interface ManyVotes {
+  height: number;
+  id: string;
+  signatures: Signature[];
+}
+
+export interface Signature {
+  publicKey: string;
+  signature: string;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

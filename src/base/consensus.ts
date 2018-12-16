@@ -5,7 +5,7 @@ import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
 import { DELEGATES } from '../utils/constants';
-import { IScope, KeyPair } from '../interfaces';
+import { IScope, KeyPair, ManyVotes, Signature } from '../interfaces';
 
 export class Consensus {
   public pendingBlock: any = null;
@@ -52,9 +52,9 @@ export class Consensus {
     return votes;
   }
 
-  createVotes(keypairs: KeyPair[], block: any) {
+  public createVotes = (keypairs: KeyPair[], block: any): ManyVotes => {
     const hash = this.calculateVoteHash(block.height, block.id);
-    const votes = {
+    const votes: ManyVotes = {
       height: block.height,
       id: block.id,
       signatures: [],
@@ -64,12 +64,12 @@ export class Consensus {
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
         signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
-      });
+      } as Signature);
     });
     return votes;
   }
 
-  verifyVote(height: number, id: string, vote: any) {
+  public verifyVote = (height: number, id: string, vote: Signature) => {
     try {
       const hash = this.calculateVoteHash(height, id);
       const signature = Buffer.from(vote.signature, 'hex');
@@ -80,7 +80,7 @@ export class Consensus {
     }
   }
 
-  addPendingVotes(votes) {
+  public addPendingVotes = (votes) => {
     if (!this.pendingBlock || this.pendingBlock.height !== votes.height
       || this.pendingBlock.id !== votes.id) {
       return this.pendingVotes;
@@ -105,21 +105,21 @@ export class Consensus {
     return this.pendingVotes;
   }
 
-  hasEnoughVotes(votes: any) {
+  public hasEnoughVotes(votes: ManyVotes) {
     return votes && votes.signatures && (votes.signatures.length > DELEGATES * 2 / 3);
   }
 
-  setPendingBlock(block) {
+  public setPendingBlock(block) {
     this.pendingBlock = block;
   }
 
-  hasPendingBlock(timestamp: any) {
+  public hasPendingBlock(timestamp: any) {
     if (!this.pendingBlock) {
       return false;
     }
     return slots.getSlotNumber(this.pendingBlock.timestamp) === slots.getSlotNumber(timestamp);
   }
-  getPendingBlock() {
+  public getPendingBlock() {
     return this.pendingBlock;
   }
 
@@ -145,7 +145,7 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  createPropose(keypair: KeyPair, block, address) {
+  public createPropose(keypair: KeyPair, block, address) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const propose: any = {
@@ -165,7 +165,7 @@ export class Consensus {
     return propose;
   }
 
-  getProposeHash(propose) {
+  private getProposeHash(propose) {
     const byteBuffer = new ByteBuffer()
     byteBuffer.writeLong(propose.height)
     byteBuffer.writeString(propose.id)
@@ -187,7 +187,7 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest()
   }
 
-  acceptPropose(propose) {
+  public acceptPropose(propose) {
     const hash = this.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
       throw Error('Propose hash is not correct.');
@@ -204,7 +204,7 @@ export class Consensus {
     }
   }
 
-  clearState() {
+  public clearState() {
     this.pendingVotes = undefined;
     this.votesKeySet = new Set();
     this.pendingBlock = undefined;
