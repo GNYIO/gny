@@ -39,56 +39,6 @@ export class Block {
     });
   }
 
-  createBlock(data: any) {
-    const transactions = this.sortTransactions(data);
-    const nextHeight = (data.previousBlock) ? data.previousBlock.height + 1 : 1;
-    const reward = this.blockReward.calculateReward(nextHeight);
-
-    let totalFee = 0;
-    let totalAmount = 0;
-    let size = 0;
-    const blockTransactions = [];
-    const payloadHash = crypto.createHash('sha256');
-
-    for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
-      const bytes = this.library.transaction.getBytes(transaction);
-      // less than 8M
-      if (size + bytes.length > constants.maxPayloadLength) {
-        break;
-      }
-
-      size += bytes.length;
-      totalFee += transaction.fee;
-      totalAmount += transaction.amount;
-
-      blockTransactions.push(transaction);
-      payloadHash.update(bytes);
-    }
-
-    let block: any = {
-      version: 0,
-      height: nextHeight,
-      timestamp: data.timestamp,
-      previousBlockId: data.previousBlock.id,
-      generatorPublicKey: data.keypair.publicKey.toString('hex'),
-      numberOfTransactions: blockTransactions.length,
-      totalAmount,
-      totalFee,
-      reward,
-      payloadHash: payloadHash.digest().toString('hex'),
-      payloadLength: size,
-      transactions: blockTransactions,
-    };
-
-    try {
-      block.blockSignature = this.sign(block, data.keypair);
-      block = this.objectNormalize(block);
-    } catch (e) {
-      throw Error(e.toString());
-    }
-  }
-
   sign(block, keypair) {
     const hash = this.calculateHash(block);
     let privateKey = Buffer.from(keypair.privateKey, 'hex')
