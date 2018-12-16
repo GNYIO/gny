@@ -187,30 +187,6 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest()
   }
 
-  normalizeVotes(votes) {
-    const report = this.scope.scheme.validate(votes, {
-      type: 'object',
-      properties: {
-        height: {
-          type: 'integer',
-        },
-        id: {
-          type: 'string',
-        },
-        signatures: {
-          type: 'array',
-          minLength: 1,
-          maxLength: 101,
-        },
-      },
-      required: ['height', 'id', 'signatures'],
-    })
-    if (!report) {
-      throw Error(this.scope.scheme.getLastError())
-    }
-    return votes
-  }
-
   acceptPropose(propose) {
     const hash = this.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
