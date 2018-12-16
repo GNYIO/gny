@@ -6,11 +6,11 @@ import * as constants from '../utils/constants';
 import { IScope } from '../interfaces';
 
 export class Block {
-  private scope: IScope;
+  private library: IScope;
   private blockReward = new BlockReward();
 
   constructor(scope: IScope) {
-    this.scope = scope;
+    this.library = scope;
   }
 
   public getId = (block: any) => {
@@ -52,7 +52,7 @@ export class Block {
 
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
-      const bytes = this.scope.transaction.getBytes(transaction);
+      const bytes = this.library.transaction.getBytes(transaction);
       // less than 8M
       if (size + bytes.length > constants.maxPayloadLength) {
         break;
@@ -170,7 +170,7 @@ export class Block {
       }
     }
 
-    const report = this.scope.scheme.validate(block, {
+    const report = this.library.scheme.validate(block, {
       type: 'object',
       properties: {
         id: {
@@ -217,12 +217,12 @@ export class Block {
     });
 
     if (!report) {
-      throw Error(this.scope.scheme.getLastError().toString());
+      throw Error(this.library.scheme.getLastError().toString());
     }
 
     try {
       for (let i = 0; i < block.transactions.length; i++) {
-        block.transactions[i] = this.scope.base.transaction.objectNormalize(block.transactions[i]);
+        block.transactions[i] = this.library.base.transaction.objectNormalize(block.transactions[i]);
       }
     } catch (e) {
       throw Error(e.toString());
