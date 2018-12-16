@@ -3,13 +3,13 @@ import * as ed from '../utils/ed'
 import Slots from '../utils/slots';
 import addressHelper from '../utils/address'
 import BlockReward from '../utils/block-reward'
-import { Modules, IScope, ManyKeyPairs, KeyPair } from '../interfaces';
+import { Modules, IScope, KeyPairsIndexer, KeyPair } from '../interfaces';
 
 const slots = new Slots()
 
 export default class Delegates {
   private loaded: boolean = false;
-  private keyPairs: ManyKeyPairs = {};
+  private keyPairs: KeyPairsIndexer = {};
   private isForgingEnabled = true;
   private readonly library: IScope;
   private modules: Modules;

@@ -175,7 +175,7 @@ export interface IConfig {
   pidFile: string;
 }
 
-export interface ManyKeyPairs {
+export interface KeyPairsIndexer {
   [publicKey: string]: KeyPair;
 }
 
