@@ -4,6 +4,7 @@ import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
+import { DELEGATES } from '../utils/constants';
 import { IScope, KeyPair } from '../interfaces';
 
 export class Consensus {
@@ -40,7 +41,7 @@ export class Consensus {
         signatures: {
           type: 'array',
           minLength: 1,
-          maxLength: 101, // change to constant variable
+          maxLength: DELEGATES,
         },
       },
       required: ['height', 'id', 'signatures'],
@@ -104,9 +105,8 @@ export class Consensus {
     return this.pendingVotes;
   }
 
-  // TODO change 101 to constant variable
   hasEnoughVotes(votes: any) {
-    return votes && votes.signatures && (votes.signatures.length > 101 * 2 / 3);
+    return votes && votes.signatures && (votes.signatures.length > DELEGATES * 2 / 3);
   }
 
   setPendingBlock(block) {
