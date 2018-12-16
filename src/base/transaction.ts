@@ -1,16 +1,12 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 import * as feeCalculators from '../utils/calculate-fee';
-
-
 import { IScope } from '../interfaces';
-
-const slots = new Slots()
 
 export class Transaction {
   private readonly library: IScope;

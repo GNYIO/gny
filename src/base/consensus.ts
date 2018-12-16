@@ -2,11 +2,9 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import * as ip from 'ip';
 import { IScope } from '../interfaces';
-
-const slots = new Slots()
 
 export class Consensus {
   public pendingBlock: any = null;

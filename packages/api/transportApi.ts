@@ -1,8 +1,6 @@
 import * as express from 'express';
-import Slots from '../../src/utils/slots';
+import slots from '../../src/utils/slots';
 import { Modules, IScope } from "../../src/interfaces";
-
-const slots = new Slots()
 
 export default class TransportApi {
   private modules: Modules;

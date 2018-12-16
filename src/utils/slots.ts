@@ -1,6 +1,6 @@
 import { EPOCH_TIME, INTERVAL, DELEGATES } from './constants';
 
-export default class Slots {
+class Slots {
   public delegates = DELEGATES;
   constructor() {}
 
@@ -48,3 +48,5 @@ export default class Slots {
     return Math.floor(date.getTime() / 1000) * 1000;
   }
 }
+
+export default new Slots();

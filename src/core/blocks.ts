@@ -4,13 +4,11 @@ import async = require('async');
 import PIFY = require('pify')
 import * as constants from '../utils/constants'
 import Router from '../utils/router';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward'
 import { Modules, IScope, KeyPair } from '../interfaces';
-
-const slots = new Slots()
 
 export default class Blocks {
   private genesisBlock: any;

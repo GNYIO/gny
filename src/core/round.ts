@@ -1,6 +1,5 @@
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import { IScope } from '../interfaces';
-const slots = new Slots()
 
 export default class Round {
   private readonly library: IScope;

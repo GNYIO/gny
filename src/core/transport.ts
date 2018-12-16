@@ -1,9 +1,7 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import { Modules, IScope } from '../interfaces';
-
-const slots = new Slots()
 
 export default class Transport {
   private readonly library: IScope;
