@@ -1,13 +1,10 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import BlockReward from '../utils/block-reward';
-import * as constants from '../utils/constants';
 import { IScope, KeyPair } from '../interfaces';
 
 export class Block {
   private library: IScope;
-  private blockReward = new BlockReward();
 
   constructor(scope: IScope) {
     this.library = scope;
@@ -21,7 +18,7 @@ export class Block {
 
   public calculateFee = () => 10000000;
 
-  private sortTransactions(data: any) {
+  private sortTransactions = (data: any) => {
     data.transactions.sort((a, b) => {
       if (a.type === b.type) {
         if (a.type === 1) {
