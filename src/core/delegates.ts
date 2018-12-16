@@ -184,6 +184,7 @@ export default class Delegates {
   
       return truncDelegateList
     } catch (e) {
+      global.app.logger.error('error while generating DelgateList', e);
       return
     }
   }
@@ -202,20 +203,17 @@ export default class Delegates {
     })
   }
   
-  public validateBlockSlot = (block, cb) => {
-    this.generateDelegateList(block.height, (err, activeDelegates) => {
-      if (err) {
-        return cb(err)
-      }
-      const currentSlot = slots.getSlotNumber(block.timestamp)
-      const delegateKey = activeDelegates[currentSlot % 101]
+  public validateBlockSlot = (block): void => {
+    const activeDelegates = this.generateDelegateList(block.height);
+
+    const currentSlot = slots.getSlotNumber(block.timestamp)
+    const delegateKey = activeDelegates[currentSlot % 101]
   
-      if (delegateKey && block.delegate === delegateKey) {
-        return cb()
-      }
+    if (delegateKey && block.delegate === delegateKey) {
+      return
+    }
   
-      return cb(`Failed to verify slot, expected delegate: ${delegateKey}`)
-    })
+    throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
   }
   
   // fixme ?? : get method should not modify anything....

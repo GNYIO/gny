@@ -266,7 +266,7 @@ export default class Blocks {
   
       if (block.height !== 0) {
         try {
-          await this.modules.delegates.validateBlockSlot(block)
+          this.modules.delegates.validateBlockSlot(block)
         } catch (e) {
           this.library.logger.error(e)
           throw new Error(`Can't verify slot: ${e}`)
@@ -463,18 +463,18 @@ export default class Blocks {
           }
           const num = Array.isArray(blocks) ? blocks.length : 0
           const address = `${peer.host}:${peer.port - 1}`
-          library.logger.info(`Loading ${num} blocks from ${address}`)
+          this.library.logger.info(`Loading ${num} blocks from ${address}`)
           return (async () => {
             try {
               for (const block of blocks) {
-                await self.processBlock(block, { syncing: true })
+                await this.processBlock(block, { syncing: true })
                 lastCommonBlockId = block.id
                 lastValidBlock = block
-                library.logger.info(`Block ${block.id} loaded from ${address} at`, block.height)
+                global.app.logger.info(`Block ${block.id} loaded from ${address} at`, block.height)
               }
               return next()
             } catch (e) {
-              library.logger.error('Failed to process synced block', e)
+              global.app.logger.error('Failed to process synced block', e)
               return cb(e)
             }
           })()
@@ -482,7 +482,7 @@ export default class Blocks {
       },
       (err) => {
         if (err) {
-          library.logger.error('load blocks from remote peer error:', err)
+          global.app.logger.error('load blocks from remote peer error:', err)
         }
         setImmediate(cb, err, lastValidBlock)
       },
