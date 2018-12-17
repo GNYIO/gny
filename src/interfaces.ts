@@ -146,7 +146,6 @@ interface IApp {
   isCurrentBookkeeper: (addr: string) => boolean;
   AccountRole: {
     DELEGATE: number;
-    AGENT: number;
     GATEWAY_VALIDATOR: number;
   };
   logger: tracer.Tracer.Logger;
