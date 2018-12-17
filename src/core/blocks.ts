@@ -8,7 +8,7 @@ import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward'
-import { Modules, IScope, KeyPair, IGenesisBlock } from '../interfaces';
+import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache } from '../interfaces';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -17,8 +17,8 @@ export default class Blocks {
 
   private lastBlock: any = {};
   private loaded: boolean = false;
-  private blockCache = {};
-  private proposeCache = {};
+  private blockCache: ISimpleCache = {};
+  private proposeCache: ISimpleCache = {};
   private lastPropose = null;
   private privIsCollectingVotes = false;
 

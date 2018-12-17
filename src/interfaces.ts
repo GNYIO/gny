@@ -220,6 +220,10 @@ export interface Signature {
   signature: string;
 }
 
+export interface ISimpleCache {
+  [id: string]: boolean;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {
