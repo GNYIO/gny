@@ -188,14 +188,6 @@ async function init_alt(options: any) {
 
   global.library = scope;
 
-
-  // const server = new Server(scope);
-  // console.log('20181002', server);
-  function cb(err, result) {
-    if (err) return console.log(err);
-    // console.log(result);
-  }
-
   scope.modules = loadedModules(scope);
   scope.coreApi = loadCoreApi(scope.modules, scope);
 
