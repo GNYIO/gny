@@ -129,7 +129,7 @@ async function init_alt(options: any) {
         return;
       }
 
-      const URI_PREFIXS = ['api', 'api2', 'peer'];
+      const URI_PREFIXS = ['api', 'peer'];
       const isApiOrPeer = parts.length > 1 && (URI_PREFIXS.indexOf(parts[1]) !== -1);
       const { whiteList } = scope.config.api.access;
       const { blackList } = scope.config.peers;
