@@ -176,7 +176,6 @@ async function init_alt(options: any) {
         scope.logger.log(`Error: ${err}`);
       }
     });
-    scope.connect = scope.network;
   }
 
   scope.base = {

@@ -55,7 +55,6 @@ export interface IScope {
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
-  connect: INetwork;
 }
 
 export interface Modules {
