@@ -4,7 +4,6 @@ import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
 import request = require('request');
-import Router from '../utils/router';
 import { promisify } from 'util';
 import Database = require('nedb');
 import { Modules, IScope } from '../interfaces';
@@ -25,7 +24,6 @@ export default class Peer {
 
   constructor (scope: IScope) {
     this.library = scope
-    this.attachApi()
   }
 
   // ----------
@@ -115,7 +113,7 @@ export default class Peer {
   }
 
 
-  findSeenNodesInDb = (callback: any) => {
+  public findSeenNodesInDb = (callback: any) => {
     this.nodesDb.find({ seen: { $exists: true } }).sort({ seen: -1 }).exec(callback)
   }
 
@@ -157,33 +155,6 @@ export default class Peer {
   // end priv
   // --------
 
-  private attachApi = () => {
-    const router1 = new Router();
-    const router = router1.router;
-
-    router.use((req, res, next) => {
-      if (this.modules) return next()
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' })
-    })
-
-    router.map(this.shared, {
-      'get /': 'getPeers',
-      'get /version': 'version',
-      'get /get': 'getPeer',
-    })
-
-    router.use((req, res) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' })
-    })
-
-    this.library.network.app.use('/api/peers', router)
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString())
-      return res.status(500).send({ success: false, error: err.toString() })
-    })
-  }
-
   list = (options: any, cb: any) => {
     // FIXME
     options.limit = options.limit || 100
@@ -196,11 +167,6 @@ export default class Peer {
     if (isFrozenList !== undefined) return cb && cb('Peer in white list')
     // FIXME
     return cb()
-  }
-
-  addChain = (config: any, cb: any) => {
-    // FIXME
-    cb()
   }
 
   getVersion = () => ({
@@ -308,7 +274,7 @@ export default class Peer {
       persistentPeers: this.library.config.peers.persistent === false ? false : true,
       peersDbDir: global.Config.dataDir,
       eventHandlers: {
-        'broadcast': (msg, node) => self.onpublish(msg, node)
+        'broadcast': (msg, node) => this.onpublish(msg, node)
       }
     }).then(() => {
       this.library.bus.message('peerReady')
@@ -316,29 +282,4 @@ export default class Peer {
       this.library.logger.error('Failed to init dht', err)
     })
   }
-
-  getPeers = (req, cb) => {
-    this.findSeenNodesInDb((err, nodes) => {
-      let peers = []
-      if (err) {
-        this.library.logger.error('Failed to find nodes in db', err)
-      } else {
-        peers = nodes
-      }
-      cb(null, { count: peers.length, peers })
-    })
-  }
-
-  getPeer = (req, cb) => {
-    cb(null, {})
-  }
-
-  version = (req, cb) => {
-    cb(null, {
-      version: this.library.config.version,
-      build: this.library.config.buildVersion,
-      net: this.library.config.netVersion,
-    })
-  }
-
 }

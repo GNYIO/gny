@@ -1,19 +1,19 @@
 export default {
   1: () => 0.1,
   2: (trs) => {
-    const len = trs.args[0].length
+    const len = trs.args[0].length;
     if (len === 2) {
-      return 200
+      return 200;
     } else if (len === 3) {
-      return 100
+      return 100;
     } else if (len === 4) {
-      return 80
+      return 80;
     } else if (len === 5) {
-      return 40
+      return 40;
     } else if (len <= 10) {
-      return 10
+      return 10;
     }
-    return 1
+    return 1;
   },
   3: () => 5,
   4: () => 0.1,
@@ -49,4 +49,4 @@ export default {
   501: () => 0,
   502: () => 1,
   503: () => 1,
-}
+};

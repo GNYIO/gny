@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
-import Slots from './utils/slots'
+import slots from './utils/slots'
 import Router = require('./utils/router');
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
@@ -14,8 +14,6 @@ import loadInterfaces from './loadInterfaces'
 
 import address from './utils/address';
 import * as bignumber from 'bignumber'
-
-const slots = new Slots()
 
 function adaptSmartDBLogger(config) {
   const { LogLevel } = AschCore;

@@ -2,11 +2,10 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import * as ip from 'ip';
-import { IScope } from '../interfaces';
-
-const slots = new Slots()
+import { DELEGATES } from '../utils/constants';
+import { IScope, KeyPair, ManyVotes, Signature } from '../interfaces';
 
 export class Consensus {
   public pendingBlock: any = null;
@@ -25,10 +24,11 @@ export class Consensus {
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  normalizeVotes(votes) {
+  public normalizeVotes = (votes) => {
     const report = this.scope.scheme.validate(votes, {
       type: 'object',
       properties: {
@@ -41,35 +41,35 @@ export class Consensus {
         signatures: {
           type: 'array',
           minLength: 1,
-          maxLength: 101, // change to constant variable
+          maxLength: DELEGATES,
         },
       },
       required: ['height', 'id', 'signatures'],
     });
     if (!report) {
-      throw Error(this.scope.scheme.getLastError());
+      throw Error(this.scope.scheme.getLastError().toString());
     }
     return votes;
   }
 
-  createVotes(keypairs: any, block: any) {
+  public createVotes = (keypairs: KeyPair[], block: any): ManyVotes => {
     const hash = this.calculateVoteHash(block.height, block.id);
-    const votes = {
+    const votes: ManyVotes = {
       height: block.height,
       id: block.id,
       signatures: [],
     };
-    keypairs.forEach((kp) => {
-      let privateKeyBuffer = Buffer.from(kp.privateKey, 'hex')
+    keypairs.forEach((kp: KeyPair) => {
+      let privateKeyBuffer = Buffer.from(kp.privateKey);
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
         signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
-      })
-    })
-    return votes
+      } as Signature);
+    });
+    return votes;
   }
 
-  verifyVote(height: number, id: string, vote: any) {
+  public verifyVote = (height: number, id: string, vote: Signature) => {
     try {
       const hash = this.calculateVoteHash(height, id);
       const signature = Buffer.from(vote.signature, 'hex');
@@ -80,7 +80,7 @@ export class Consensus {
     }
   }
 
-  addPendingVotes(votes) {
+  public addPendingVotes = (votes) => {
     if (!this.pendingBlock || this.pendingBlock.height !== votes.height
       || this.pendingBlock.id !== votes.id) {
       return this.pendingVotes;
@@ -105,22 +105,21 @@ export class Consensus {
     return this.pendingVotes;
   }
 
-  // TODO change 101 to constant variable
-  hasEnoughVotes(votes: any) {
-    return votes && votes.signatures && (votes.signatures.length > 101 * 2 / 3);
+  public hasEnoughVotes(votes: ManyVotes) {
+    return votes && votes.signatures && (votes.signatures.length > DELEGATES * 2 / 3);
   }
 
-  setPendingBlock(block) {
+  public setPendingBlock(block) {
     this.pendingBlock = block;
   }
 
-  hasPendingBlock(timestamp: any) {
+  public hasPendingBlock(timestamp: any) {
     if (!this.pendingBlock) {
       return false;
     }
     return slots.getSlotNumber(this.pendingBlock.timestamp) === slots.getSlotNumber(timestamp);
   }
-  getPendingBlock() {
+  public getPendingBlock() {
     return this.pendingBlock;
   }
 
@@ -142,10 +141,11 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest();
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  createPropose(keypair, block, address) {
+  public createPropose(keypair: KeyPair, block, address) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const propose: any = {
@@ -156,16 +156,16 @@ export class Consensus {
       address,
     };
 
-    const hash = this.getProposeHash(propose)
-    propose.hash = hash.toString('hex')
+    const hash = this.getProposeHash(propose);
+    propose.hash = hash.toString('hex');
 
-    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
-    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex')
+    let privateKeyBuffer = Buffer.from(keypair.privateKey);
+    propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex');
 
-    return propose
+    return propose;
   }
 
-  getProposeHash(propose) {
+  private getProposeHash(propose) {
     const byteBuffer = new ByteBuffer()
     byteBuffer.writeLong(propose.height)
     byteBuffer.writeString(propose.id)
@@ -183,34 +183,11 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]))
   
     byteBuffer.flip()
-    return crypto.createHash('sha256').update(byteBuffer.toBuffer()).digest()
+    const buffer = byteBuffer.toBuffer() as Buffer;
+    return crypto.createHash('sha256').update(buffer).digest()
   }
 
-  normalizeVotes(votes) {
-    const report = this.scope.scheme.validate(votes, {
-      type: 'object',
-      properties: {
-        height: {
-          type: 'integer',
-        },
-        id: {
-          type: 'string',
-        },
-        signatures: {
-          type: 'array',
-          minLength: 1,
-          maxLength: 101,
-        },
-      },
-      required: ['height', 'id', 'signatures'],
-    })
-    if (!report) {
-      throw Error(this.scope.scheme.getLastError())
-    }
-    return votes
-  }
-
-  acceptPropose(propose) {
+  public acceptPropose(propose) {
     const hash = this.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
       throw Error('Propose hash is not correct.');
@@ -227,7 +204,7 @@ export class Consensus {
     }
   }
 
-  clearState() {
+  public clearState() {
     this.pendingVotes = undefined;
     this.votesKeySet = new Set();
     this.pendingBlock = undefined;

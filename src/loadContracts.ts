@@ -2,7 +2,6 @@ import changeCase = require('change-case');
 
 // import contracts
 import basic from './contract/basic';
-import proposal from './contract/proposal';
 import uia from './contract/uia';
 
 interface ModuleWrapper {
@@ -18,6 +17,5 @@ function addContract(contract: ModuleWrapper) {
 
 export default async function loadContracts() {
   addContract({ module: basic, name: 'basic' });
-  addContract({ module: proposal, name: 'proposal' });
   addContract({ module: uia, name: 'uia' });
 }

@@ -1,9 +1,7 @@
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
 import { Modules, IScope } from '../interfaces';
-
-const slots = new Slots()
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -11,10 +9,10 @@ export default class Loader {
   private readonly library: IScope;
   private modules: Modules;
   private genesisBlock: any;
-  private loadingLastBlock: any = null;
+  public loadingLastBlock: any = null;
   private syncIntervalId: any;
-  private blocksToSync = 0;
-  private total = 0;
+  public blocksToSync = 0;
+  public total = 0;
   
   public shared: any = {};
   
@@ -22,27 +20,7 @@ export default class Loader {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock;
     this.loadingLastBlock = this.library.genesisBlock;
-
-    this.attachApi()
   }
-
-  private attachApi = () => {
-    const router1 = new Router();
-    const router = router1.router;
-  
-    router.map(this.shared, {
-      'get /status': 'status',
-      'get /status/sync': 'sync',
-    })
-  
-    this.library.network.app.use('/api/loader', router)
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString())
-      return res.status(500).send({ success: false, error: err.toString() })
-    })
-  }
-
 
   syncTrigger(turnOn: boolean) {
     if (turnOn === false && this.syncIntervalId) {
@@ -295,22 +273,5 @@ export default class Loader {
     this.library.logger.debug('Cleaning up core/loader')
     this.isLoaded = false
     cb()
-  }
-
-  // Shared
-  public status = (req, cb) => {
-    cb(null, {
-      loaded: this.isLoaded,
-      now: this.loadingLastBlock.height,
-      blocksCount: this.total,
-    })
-  }
-  
-  public sync = (req, cb) => {
-    cb(null, {
-      syncing: this.syncing(),
-      blocks: this.blocksToSync,
-      height: this.modules.blocks.getLastBlock().height,
-    })
   }
 }

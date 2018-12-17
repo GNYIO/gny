@@ -14,7 +14,7 @@ import * as _ from 'lodash';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';
 import Sequence from './utils/sequence';
-import Slots from './utils/slots';
+import slots from './utils/slots';
 import queryParser from './utils/express-query-int';
 import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
@@ -24,8 +24,6 @@ import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
 import loadCoreApi from './loadCoreApi'
 import { IScope, IMessageEmitter } from './interfaces'
-
-const slots = new Slots()
 
 
 const CIPHERS = `

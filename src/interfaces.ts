@@ -158,6 +158,7 @@ type ILogLevel = "trace" | "debug" | "log" | "info" | "warn" | "error" | "fatal"
 
 export interface IConfig {
   version: string;
+  magic: string;
   baseDir: string;
   dataDir: string;
   appDir: string;
@@ -172,6 +173,26 @@ export interface IConfig {
   };
   logLevel: ILogLevel;
   pidFile: string;
+}
+
+export interface KeyPairsIndexer {
+  [publicKey: string]: KeyPair;
+}
+
+export interface KeyPair {
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+}
+
+export interface ManyVotes {
+  height: number;
+  id: string;
+  signatures: Signature[];
+}
+
+export interface Signature {
+  publicKey: string;
+  signature: string;
 }
 
 declare global {

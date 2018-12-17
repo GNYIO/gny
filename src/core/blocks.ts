@@ -3,14 +3,12 @@ import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify')
 import * as constants from '../utils/constants'
-import BlockStatus from '../utils/block-status';
 import Router from '../utils/router';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
-import { Modules, IScope } from '../interfaces';
-
-const slots = new Slots()
+import Blockreward from '../utils/block-reward'
+import { Modules, IScope, KeyPair } from '../interfaces';
 
 export default class Blocks {
   private genesisBlock: any;
@@ -18,7 +16,6 @@ export default class Blocks {
   private readonly library: IScope;
 
   private lastBlock: any = {};
-  private blockStatus = new BlockStatus();
   private loaded: boolean = false;
   private blockCache = {};
   private proposeCache = {};
@@ -26,6 +23,7 @@ export default class Blocks {
   private privIsCollectingVotes = false;
 
   private lastVoteTime: any;
+  private blockreward = new Blockreward();
 
   constructor(scope: IScope) {
     this.library = scope;
@@ -177,7 +175,7 @@ export default class Blocks {
       throw new Error('Invalid total fees')
     }
   
-    const expectedReward = this.blockStatus.calcReward(block.height)
+    const expectedReward = this.blockreward.calculateReward(block.height);
     if (expectedReward !== block.reward) {
       throw new Error('Invalid block reward')
     }
@@ -266,7 +264,7 @@ export default class Blocks {
   
       if (block.height !== 0) {
         try {
-          await this.modules.delegates.validateBlockSlot(block)
+          this.modules.delegates.validateBlockSlot(block)
         } catch (e) {
           this.library.logger.error(e)
           throw new Error(`Can't verify slot: ${e}`)
@@ -463,18 +461,18 @@ export default class Blocks {
           }
           const num = Array.isArray(blocks) ? blocks.length : 0
           const address = `${peer.host}:${peer.port - 1}`
-          library.logger.info(`Loading ${num} blocks from ${address}`)
+          this.library.logger.info(`Loading ${num} blocks from ${address}`)
           return (async () => {
             try {
               for (const block of blocks) {
-                await self.processBlock(block, { syncing: true })
+                await this.processBlock(block, { syncing: true })
                 lastCommonBlockId = block.id
                 lastValidBlock = block
-                library.logger.info(`Block ${block.id} loaded from ${address} at`, block.height)
+                global.app.logger.info(`Block ${block.id} loaded from ${address} at`, block.height)
               }
               return next()
             } catch (e) {
-              library.logger.error('Failed to process synced block', e)
+              global.app.logger.error('Failed to process synced block', e)
               return cb(e)
             }
           })()
@@ -482,7 +480,7 @@ export default class Blocks {
       },
       (err) => {
         if (err) {
-          library.logger.error('load blocks from remote peer error:', err)
+          global.app.logger.error('load blocks from remote peer error:', err)
         }
         setImmediate(cb, err, lastValidBlock)
       },
@@ -519,13 +517,13 @@ export default class Blocks {
       count: unconfirmedList.length,
       fees,
       payloadHash: payloadHash.digest().toString('hex'),
-      reward: this.blockStatus.calcReward(height),
+      reward: this.blockreward.calculateReward(height),
     }
   
-    block.signature = this.library.base.block.sign(block, keypair.privateKey)
+    block.signature = this.library.base.block.sign(block, keypair)
     block.id = this.library.base.block.getId(block)
   
-    let activeKeypairs
+    let activeKeypairs: KeyPair[]
     try {
       activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(block.height)
     } catch (e) {
@@ -728,16 +726,16 @@ public onReceiveVotes = (votes: any) => {
 }
 
 public getSupply = () => {
-  const height = this.lastBlock.height
-  return this.blockStatus.calcSupply(height)
+  const height = this.lastBlock.height;
+  return this.blockreward.calculateSupply(height);
 }
 
 public getCirculatingSupply = () => {
-  const height = this.lastBlock.height
-  return this.blockStatus.calcSupply(height)
+  const height = this.lastBlock.height;
+  return this.blockreward.calculateSupply(height);
 }
 
-public isCollectingVotes = () => this.privIsCollectingVotes
+public isCollectingVotes = () => this.privIsCollectingVotes;
 
 public isHealthy = () => {
   const lastBlock = this.lastBlock

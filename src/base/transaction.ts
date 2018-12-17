@@ -1,29 +1,25 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import Slots from '../utils/slots';
+import slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 import * as feeCalculators from '../utils/calculate-fee';
-
-
-import { IScope } from '../interfaces';
-
-const slots = new Slots()
+import { IScope, KeyPair } from '../interfaces';
 
 export class Transaction {
-  private scope: IScope;
+  private readonly library: IScope;
   constructor(scope: IScope) {
-    this.scope = scope;
+    this.library = scope;
   }
 
-  create(data) {
+  public create = (data) => {
     const transaction: any = {
       type: data.type,
       senderId: addressHelper.generateAddress(data.senderPublicKey),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
-      timestamp: slots.getTime(),
+      timestamp: slots.getTime(undefined),
       message: data.message,
       args: data.args,
       fee: data.fee,
@@ -41,30 +37,23 @@ export class Transaction {
     return transaction;
   }
 
-  sign(keypair, transaction) {
-    const hash = crypto.createHash('sha256').update(this.getBytes(transaction, true, true)).digest()
+  private sign = (keypair: KeyPair, transaction) => {
+    const bytes = this.getBytes(transaction, true, true);
+    const hash = crypto.createHash('sha256').update(bytes).digest();
 
-    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
-    return ed.sign(hash, privateKeyBuffer).toString('hex')
-  }
-
-  multisign(keypair, transaction) {
-    const bytes = this.getBytes(transaction, true, true)
-    const hash = crypto.createHash('sha256').update(bytes).digest()
-
-    let privateKeyBuffer = Buffer.from(keypair.privateKey, 'hex')
-    return ed.sign(hash, privateKeyBuffer).toString('hex')
+    const privateKeyBuffer = Buffer.from(keypair.privateKey);
+    return ed.sign(hash, privateKeyBuffer).toString('hex');
   }
 
   getId(transaction) {
     return this.getHash(transaction).toString('hex');
   }
 
-  getHash(transaction) {
+  private getHash(transaction) {
     return crypto.createHash('sha256').update(this.getBytes(transaction)).digest();
   }
 
-  getBytes(transaction, skipSignature?, skipSecondSignature?) {
+  public getBytes(transaction, skipSignature?, skipSecondSignature?): Buffer {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
@@ -109,7 +98,7 @@ export class Transaction {
   
     byteBuffer.flip();
 
-    return byteBuffer.toBuffer();
+    return byteBuffer.toBuffer() as Buffer;
   }
 
   verifyNormalSignature(transaction, requestor, bytes) {
@@ -145,37 +134,14 @@ export class Transaction {
       if (transaction.senderPublicKey) {
         const error = this.verifyNormalSignature(transaction, requestor, bytes);
         if (error) return error;
-      } else if (!transaction.senderPublicKey && transaction.signatures && transaction.signatures.length > 1) {
-        const ADDRESS_TYPE = global.app.util.address.TYPE
-        const addrType = global.app.util.address.getType(transaction.senderId)
-        if (addrType === ADDRESS_TYPE.CHAIN) {
-          const error = await this.verifyChainSignature(transaction, sender, bytes);
-          if (error) return error;
-        } else if (addrType === ADDRESS_TYPE.GROUP) {
-          const error = await this.verifyGroupSignature(transaction, sender, bytes);
-          if (error) return error;
-        } else {
-          return 'Invalid account type';
-        }
       } else {
-        return 'Faied to verify signature';
+        return 'Failed to verify signature';
       }
     } catch (e) {
-      library.logger.error('verify signature excpetion', e);
-      return 'Faied to verify signature';
+      this.library.logger.error('verify signature excpetion', e);
+      return 'Failed to verify signature';
     }
     return undefined;
-  }
-
-  verifySignature(transaction, publicKey, signature) {
-    if (!signature) return false;
-
-    try {
-      const bytes = this.getBytes(transaction, true, true);
-      return this.verifyBytes(bytes, publicKey, signature);
-    } catch (e) {
-      throw Error(e.toString());
-    }
   }
 
   verifyBytes(bytes, publicKey, signature) {
@@ -217,7 +183,7 @@ export class Transaction {
         const requestorFee = 20000000;
         if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance');
         requestor.gny -= requestorFee;
-        global.app.addRoundFee(String(requestorFee), this.modules.round.calc(block.height));
+        global.app.addRoundFee(String(requestorFee), this.library.modules.round.calculateRound(block.height));
         // transaction.executed = 0
         global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 });
         global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address });
@@ -263,7 +229,7 @@ export class Transaction {
     }
 
     // FIXME
-    const report = this.scope.scheme.validate(transaction, {
+    const report = this.library.scheme.validate(transaction, {
       type: 'object',
       properties: {
         id: { type: 'string' },
@@ -281,8 +247,8 @@ export class Transaction {
     });
 
     if (!report) {
-      this.scope.logger.error(`Failed to normalize transaction body: ${this.scope.scheme.getLastError().details[0].message}`, transaction);
-      throw Error(this.scope.scheme.getLastError());
+      this.library.logger.error(`Failed to normalize transaction body: ${this.library.scheme.getLastError().details[0].message}`, transaction);
+      throw Error(this.library.scheme.getLastError().toString());
     }
   
     return transaction;

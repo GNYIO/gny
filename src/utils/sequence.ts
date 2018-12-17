@@ -46,7 +46,7 @@ export default class Sequence {
     this.queue = async.queue(tick, 1)
   }
 
-  add(worker, args, cb) {
+  add(worker, args?, cb?) {
     let done
     if (!cb && args && typeof args === 'function') {
       done = args

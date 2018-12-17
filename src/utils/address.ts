@@ -5,7 +5,7 @@ import * as bs58 from 'bs58';
 export default {
   generateAddress,
   isAddress
-}
+};
 
 export function generateAddress(publicKey: string) {
   const PREFIX = 'G';
