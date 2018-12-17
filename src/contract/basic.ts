@@ -123,7 +123,6 @@ export default {
     // 60/15 * 60 * 24 = 5760
     const MIN_LOCK_HEIGHT = 5760 * 30;
     const sender = this.sender;
-    if (sender.isAgent) return 'Agent account cannot lock';
     if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
       if (height !== 0
@@ -266,7 +265,6 @@ export default {
   //   if (voteExist) return 'Account already voted'
 
   //   sender.role = global.app.AccountRole.AGENT
-  //   sender.isAgent = 1
   //   global.app.sdb.create('Agent', {
   //     name: sender.name,
   //     tid: this.trs.id,
@@ -280,7 +278,6 @@ export default {
   //   const senderId = this.sender.address
   //   global.app.sdb.lock(`basic.account@${senderId}`)
   //   const sender = this.sender
-  //   if (sender.isAgent) return 'Agent cannot set agent'
   //   if (sender.agent) return 'Agent already set'
   //   if (!sender.isLocked) return 'Account is not locked'
 
@@ -288,7 +285,6 @@ export default {
 
   //   const agentAccount = await global.app.sdb.load('Account', { name: agent })
   //   if (!agentAccount) return 'Agent account not found'
-  //   if (!agentAccount.isAgent) return 'Not an agent'
 
   //   const voteExist = await global.app.sdb.exists('Vote', { address: senderId })
   //   if (voteExist) return 'Account already voted'
@@ -355,7 +351,7 @@ export default {
     global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
-    if (!sender.isAgent && !sender.isLocked) return 'Account is not locked';
+    if (!sender.isLocked) return 'Account is not locked';
     if (sender.agent) return 'Account already set agent';
 
     delegates = delegates.split(',');
@@ -400,7 +396,7 @@ export default {
     global.app.sdb.lock(`account@${senderId}`);
 
     const sender = this.sender;
-    if (!sender.isAgent && !sender.isLocked) return 'Account is not locked';
+    if (!sender.isLocked) return 'Account is not locked';
     if (sender.agent) return 'Account already set agent';
 
     delegates = delegates.split(',');
