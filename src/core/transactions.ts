@@ -7,13 +7,11 @@ import { Modules, IScope } from '../interfaces';
 export default class Transactions {
   private readonly library: IScope;
   private modules: Modules;
-  private genesisBlock: any;
   private pool: TransactionPool;
   private failedTrsCache: LimitCache;
 
   constructor(scope: IScope) {
     this.library = scope;
-    this.genesisBlock = this.library.genesisBlock
     this.pool = new TransactionPool();
     this.failedTrsCache = new LimitCache();
   }

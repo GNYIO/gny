@@ -1,14 +1,14 @@
 import slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import Router from '../utils/router';
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, IGenesisBlock } from '../interfaces';
 
 export default class Loader {
   private isLoaded: boolean = false;
   private privSyncing: boolean = false;
   private readonly library: IScope;
   private modules: Modules;
-  private genesisBlock: any;
+  private genesisBlock: IGenesisBlock;
   public loadingLastBlock: any = null;
   private syncIntervalId: any;
   public blocksToSync = 0;
@@ -42,7 +42,7 @@ export default class Loader {
   private loadFullDb = (peer, cb) => {
     const peerStr = `${peer.host}:${peer.port - 1}`
   
-    const commonBlockId = this.genesisBlock.block.id
+    const commonBlockId = this.genesisBlock.id
   
     this.library.logger.debug(`Loading blocks from genesis from ${peerStr}`)
 
@@ -124,7 +124,7 @@ export default class Loader {
       if (global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
         this.blocksToSync = ret.height
 
-        if (lastBlock.id !== this.genesisBlock.block.id) {
+        if (lastBlock.id !== this.genesisBlock.id) {
           return this.findUpdate(lastBlock, peer, cb)
         }
         return this.loadFullDb(peer, cb)

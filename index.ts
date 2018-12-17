@@ -3,9 +3,9 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
-import { IScope } from './src/interfaces';
+import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
 
-function verifyGenesisBlock(scope: Partial<IScope>, block: any) {
+function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
   try {
     const payloadHash = crypto.createHash('sha256');
 
@@ -26,8 +26,19 @@ function verifyGenesisBlock(scope: Partial<IScope>, block: any) {
   }
 }
 
+interface LocalOptions {
+  appConfig: IConfig;
+  genesisBlock: IGenesisBlock;
+  logger: ILogger;
+  pidFile: string;
+  library?: Partial<IScope>;
+}
+
 export default class Application {
-  constructor(public options: any) { }
+  private options: LocalOptions;
+  constructor(options: LocalOptions) {
+    this.options = options;
+  }
 
   async run() {
     const options = this.options;
@@ -84,7 +95,7 @@ export default class Application {
       process.emit('cleanup')
     })
 
-    verifyGenesisBlock(scope, scope.genesisBlock.block)
+    verifyGenesisBlock(scope, scope.genesisBlock)
 
     options.library = scope;
 

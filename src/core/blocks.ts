@@ -8,10 +8,10 @@ import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward'
-import { Modules, IScope, KeyPair } from '../interfaces';
+import { Modules, IScope, KeyPair, IGenesisBlock } from '../interfaces';
 
 export default class Blocks {
-  private genesisBlock: any;
+  private genesisBlock: IGenesisBlock;
   private modules: Modules;
   private readonly library: IScope;
 
@@ -763,7 +763,7 @@ public isHealthy = () => {
        global.app.logger.info('Blocks found:', count)
         if (!count) {
           this.setLastBlock({ height: -1 })
-          await this.processBlock(this.genesisBlock.block, {})
+          await this.processBlock(this.genesisBlock, {})
         } else {
           const block = await global.app.sdb.getBlockByHeight(count - 1)
           this.setLastBlock(block)

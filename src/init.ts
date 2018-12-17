@@ -76,9 +76,7 @@ async function init_alt(options: any) {
 
   scope.config = appConfig;
   scope.logger = options.logger;
-  scope.genesisBlock = {
-    block: genesisBlock,
-  };
+  scope.genesisBlock = genesisBlock;
 
   scope.scheme = scheme();
   scope.network = await network(options);
