@@ -9,7 +9,6 @@ import PIFY from 'pify';
 export default class AccountsApi {
   private modules: Modules;
   private library: IScope;
-  private loaded = false;
 
   constructor (modules: Modules, library: IScope) {
     this.modules = modules;
