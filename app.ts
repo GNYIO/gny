@@ -35,7 +35,7 @@ function main() {
   ];
   let appConfigFile;
   let genesisBlockFile;
-  let logger;
+  let logger: tracer.Tracer.Logger;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
