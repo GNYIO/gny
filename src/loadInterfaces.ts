@@ -1,7 +1,6 @@
 import * as util from 'util'
 import Router from './utils/router'
 
-import uia from './api/uia';
 
 
 class RouteWrapper {
@@ -41,7 +40,6 @@ interface Wrapper {
 }
 
 let interfaceFiles: Array<Wrapper> = [
-  { class: uia, name: 'uia' }
 ]
 
 
