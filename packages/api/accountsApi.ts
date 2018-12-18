@@ -59,9 +59,9 @@ export default class AccountsApi {
     });
   }
 
-  private open2(req: any) {
+  private open2 = async (req: any) => {
     const { body } = req;
-    this.library.scheme.validate(body, {
+    const report = this.library.scheme.validate(body, {
       type: 'object',
       properties: {
         publicKey: {
@@ -70,17 +70,17 @@ export default class AccountsApi {
         },
       },
       required: ['publicKey'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-      return this.openAccount2(body.publicKey);
     });
+    if (!report) {
+      return this.library.scheme.getLastError();
+    }
+
+    return await this.openAccount2(body.publicKey);
   }
 
-  private getBalance(req: any) {
+  private getBalance = async (req: any) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
+    const report = this.library.scheme.validate(query, {
       type: 'object',
       properties: {
         address: {
@@ -90,82 +90,29 @@ export default class AccountsApi {
         },
       },
       required: ['address'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-
-      if (!addressHelper.isAddress(query.address)) {
-        return 'Invalid address';
-      }
-
-      return this.getAccount({ body: { address: query.address } }, (err2, ret) => {
-        if (err2) {
-          return err2.toString();
-        }
-        const balance = ret && ret.account ? ret.account.balance : 0;
-        const unconfirmedBalance = ret && ret.account ? ret.account.unconfirmedBalance : 0;
-        return { balance, unconfirmedBalance };
-      });
     });
+    
+    if (!report) {
+      return this.library.scheme.getLastError();
+    }
+
+    if (!addressHelper.isAddress(query.address)) {
+      return 'Invalid address';
+    }
+
+    const accountOverview = await this.modules.accounts.getAccount(query.address);
+    if (typeof accountOverview === 'string') {
+      return accountOverview;
+    }
+
+    const balance = accountOverview && accountOverview.account ? accountOverview.account.balance : 0;
+    const unconfirmedBalance = accountOverview && accountOverview.account ? accountOverview.account.unconfirmedBalance : 0;
+    return {
+      balance,
+      unconfirmedBalance
+    };
   }
 
-
-  getAccount(req) {
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string',
-          minLength: 1,
-          mexLength: 50,
-        },
-      },
-      required: ['address'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-
-      return (async () => {
-        try {
-          const account = await global.app.sdb.findOne('Account', { condition: { address: query.address } });
-          let accountData;
-          if (!account) {
-            accountData = {
-              address: query.address,
-              unconfirmedBalance: 0,
-              balance: 0,
-              secondPublicKey: '',
-              lockHeight: 0,
-            };
-          } else {
-            accountData = {
-              address: account.address,
-              unconfirmedBalance: unconfirmedAccount.gny,
-              balance: account.gny,
-              secondPublicKey: account.secondPublicKey,
-              lockHeight: account.lockHeight || 0,
-            };
-          }
-          const latestBlock = this.modules.blocks.getLastBlock();
-          const ret = {
-            account: accountData,
-            latestBlock: {
-              height: latestBlock.height,
-              timestamp: latestBlock.timestamp,
-            },
-            version: this.modules.peer.getVersion(),
-          };
-          return ret;
-        } catch (e) {
-          this.library.logger.error('Failed to get account', e);
-          return 'Server Error';
-        }
-      })();
-    });
-  }
 
   private newAccount(req: any) {
     let ent = Number(req.body.ent);
@@ -174,7 +121,7 @@ export default class AccountsApi {
     }
     const secret = new Mnemonic(ent).toString();
     const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
-    const address = this.generateAddressByPublicKey(keypair.publicKey);
+    const address = this.modules.accounts.generateAddressByPublicKey(keypair.publicKey.toString('hex'));
     return {
       secret,
       publicKey: keypair.publicKey.toString('hex'),
@@ -184,42 +131,40 @@ export default class AccountsApi {
   }
 
 
-  openAccount(passphrase) {
+  private openAccount = async (passphrase) => {
     const hash = crypto.createHash('sha256').update(passphrase, 'utf8').digest();
     const keyPair = ed.generateKeyPair(hash);
     const publicKey = keyPair.publicKey.toString('hex');
-    const address = this.generateAddressByPublicKey(publicKey);
+    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
 
-    this.getAccount({
-      body: {
-        address
-      }
-    }, (err, ret) => {
-      if (ret && ret.account && !ret.account.publicKey) {
-        ret.account.publicKey = publicKey;
-      }
-      return ret;
-    });
+    let accountInfoOrError = await this.modules.accounts.getAccount(address);
+    if (typeof accountInfoOrError === 'string') {
+      return accountInfoOrError;
+    }
+
+    if (accountInfoOrError && accountInfoOrError.account && !accountInfoOrError.account.publicKey) {
+      accountInfoOrError.account.publicKey = publicKey;
+    }
+    return accountInfoOrError;
   }
 
 
-  private openAccount2 = (publicKey: any) => {
-    const address = this.generateAddressByPublicKey(publicKey);
-    this.getAccount({
-      body: {
-        address
-      }
-    }, (err, ret) => {
-      if (ret && ret.account && !ret.account.publicKey) {
-        ret.account.publicKey = publicKey;
-      }
-      return ret;
-    });
+  private openAccount2 = async (publicKey: string) => {
+    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
+    const accountInfoOrError = await this.modules.accounts.getAccount(address);
+    if (typeof accountInfoOrError === 'string') {
+      return accountInfoOrError;
+    }
+
+    if (accountInfoOrError && accountInfoOrError.account && !accountInfoOrError.account.publicKey) {
+      accountInfoOrError.account.publicKey = publicKey;
+    }
+    return accountInfoOrError;
   }
 
-  private getPublicKey = (req) => {
+  private getPublicKey = async (req) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
+    const report = this.library.scheme.validate(query, {
       type: 'object',
       properties: {
         address: {
@@ -228,26 +173,25 @@ export default class AccountsApi {
         },
       },
       required: ['address'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-
-      return this.getAccount({ address: query.address }, (err2, account) => {
-        if (err2) {
-          return err2.toString();
-        }
-        if (!account || !account.publicKey) {
-          return 'Account does not have a public key';
-        }
-        return { publicKey: account.publicKey };
-      });
     });
+    
+    if (!report) {
+      return this.library.scheme.getLastError();
+    }
+
+    let accountInfoOrError = await this.modules.accounts.getAccount(query.address);
+    if (typeof accountInfoOrError === 'string') {
+      return accountInfoOrError;
+    }
+    if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
+      return 'Account does not have a public key';
+    }
+    return {
+      publicKey: accountInfoOrError.account.publicKey
+    };
   }
 
-  private generateAddressByPublicKey = (publicKey) => {
-    return addressHelper.generateAddress(publicKey);
-  }
+
 
   private myVotedDelegates = (req: any) => {
     const query = req.body;
@@ -301,6 +245,30 @@ export default class AccountsApi {
         }
       })();
     });
+  }
+
+  private getAccount = async (req) => {
+    const query = req.body;
+    const report = this.library.scheme.validate(query, {
+      type: 'object',
+      properties: {
+        address: {
+          type: 'string',
+          minLength: 1,
+        },
+        name: {
+          type: 'string',
+          minLength: 1,
+        },
+      },
+    });
+
+    if (!report) {
+      return this.library.scheme.getLastError();
+    }
+
+    const address = query.address;
+    return await this.modules.accounts.getAccount(address);
   }
 
   private getAddress = async (req) => {
