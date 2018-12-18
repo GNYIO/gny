@@ -1,5 +1,14 @@
-export default (router) => {
-  router.get('/:address', async (req) => {
+import * as express from 'express';
+import { IScope } from '../../src/interfaces';
+
+export default class BalancesApi {
+  private library: IScope;
+  constructor(library: IScope) {
+    this.library = library;
+    this.attachApi();
+  }
+
+  private getBalance = async (req) => {
     const offset = req.query.offset ? Number(req.query.offset) : 0
     const limit = req.query.limit ? Number(req.query.limit) : 20
     const condition = { address: req.params.address }
@@ -44,9 +53,9 @@ export default (router) => {
       }
     }
     return { count, balances }
-  })
+  }
 
-  router.get('/:address/:currency', async (req) => {
+  private getAddressCurrencyBalance = async (req) => {
     const currency = req.params.currency
     const condition = {
       address: req.params.address,
@@ -61,5 +70,22 @@ export default (router) => {
     }
 
     return { balance }
-  })
+  }
+
+  private attachApi = () => {
+    const router = express.Router();
+
+    router.get('/:address', this.getBalance);
+    router.get('/:address/:currency', this.getAddressCurrencyBalance);
+
+    this.library.network.app.use('/api/balances', router);
+    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err);
+      return res.status(500).send({
+        success: false,
+        error: err.toString(),
+      });
+    });
+  }
 }
