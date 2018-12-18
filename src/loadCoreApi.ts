@@ -6,6 +6,7 @@ import PeerApi from '../packages/api/peerApi';
 import TransactionsApi from '../packages/api/transactionsApi';
 import TransportApi from '../packages/api/transportApi';
 import UiaApi from '../packages/api/uiaApi';
+import BalancesApi from '../packages/api/balancesApi';
 import TransfersApi from '../packages/api/transfersApi';
 import { Modules, IScope } from './interfaces';
 
@@ -18,6 +19,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   let transportApi = new TransportApi(modules, scope);
   let uiaApi = new UiaApi(modules, scope);
   let transfersApi = new TransfersApi(modules, scope);
+  let balancesApi = new BalancesApi(scope);
 
   return {
     blocksApi,
@@ -28,5 +30,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     transportApi,
     uiaApi,
     transfersApi,
+    balancesApi,
   };
 }
