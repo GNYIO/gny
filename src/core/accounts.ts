@@ -31,7 +31,6 @@ export default class Account {
       if (!account) {
         accountData = {
           address: address,
-          unconfirmedBalance: 0,
           balance: 0,
           secondPublicKey: '',
           lockHeight: 0,
@@ -39,7 +38,6 @@ export default class Account {
       } else {
         accountData = {
           address: account.address,
-          unconfirmedBalance: account.gny,
           balance: account.gny,
           secondPublicKey: account.secondPublicKey,
           lockHeight: account.lockHeight || 0,

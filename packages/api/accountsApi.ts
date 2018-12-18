@@ -106,10 +106,8 @@ export default class AccountsApi {
     }
 
     const balance = accountOverview && accountOverview.account ? accountOverview.account.balance : 0;
-    const unconfirmedBalance = accountOverview && accountOverview.account ? accountOverview.account.unconfirmedBalance : 0;
     return {
       balance,
-      unconfirmedBalance
     };
   }
 
