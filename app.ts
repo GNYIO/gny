@@ -6,7 +6,7 @@ import daemon = require('daemon');
 import * as tracer from 'tracer';
 import Application from './index';
 import * as packageJson from './package.json';
-import { IConfig } from './src/interfaces'
+import { IConfig, IGenesisBlock, ILogger } from './src/interfaces';
 
 const version = packageJson.version;
 
@@ -33,9 +33,9 @@ function main() {
   const seeds = [
     757137132
   ];
-  let appConfigFile;
-  let genesisBlockFile;
-  let logger;
+  let appConfigFile: string;
+  let genesisBlockFile: string;
+  let logger: ILogger;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
@@ -68,7 +68,7 @@ function main() {
     genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisBlock = JSON.parse(fs.readFileSync(genesisBlockFile, 'utf8'));
+  const genesisBlock: IGenesisBlock = JSON.parse(fs.readFileSync(genesisBlockFile, 'utf8'));
 
   if (program.port) {
     appConfig.port = program.port;
