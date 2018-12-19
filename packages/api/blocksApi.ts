@@ -2,7 +2,9 @@ import * as _ from 'lodash';
 import * as express from 'express';
 import Blockreward from '../../src/utils/block-reward';
 import { Modules, IScope } from '../../src/interfaces';
-
+import { Request, Response } from 'express';
+import { runInNewContext } from 'vm';
+import { resolve } from 'path';
 
 export default class BlocksApi  {
   private modules: Modules;
@@ -32,7 +34,6 @@ export default class BlocksApi  {
 
     // Mapping
     router.get('/get', this.getBlock);
-    router.get('/full', this.getFullBlock);
     router.get('/', this.getBlocks);
     router.get('/getHeight', this.getHeight);
     router.get('/getMilestone', this.getMilestone);
@@ -56,12 +57,13 @@ export default class BlocksApi  {
     })
   }
 
-  private getBlock = (req, cb) => {
-    if (!this.loaded) {
-      return cb('Blockchain is loading')
-    }
-    const query = req.body
-    return this.library.scheme.validate(query, {
+  private getBlock = async (req: Request, res: Response, next) => {
+    // if (!this.loaded) {
+    //   return 'Blockchain is loading'
+    // }
+    const query = req.query;
+
+    const report = this.library.scheme.validate(query, {
       type: 'object',
       properties: {
         id: {
@@ -73,72 +75,31 @@ export default class BlocksApi  {
           minimum: 0,
         },
       },
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message)
-      }
-
-      return (async () => {
-        try {
-          let block
-          if (query.id) {
-            block = await global.app.sdb.getBlockById(query.id)
-          } else if (query.height !== undefined) {
-            block = await global.app.sdb.getBlockByHeight(query.height)
-          }
-
-          if (!block) {
-            return cb('Block not found')
-          }
-          return cb(null, { block: block })
-        } catch (e) {
-          this.library.logger.error(e)
-          return cb('Server error')
-        }
-      })()
-    })
-  }
-
-  private getFullBlock = (req, cb) => {
-    if (!this.loaded) {
-      return cb('Blockchain is loading')
+    });
+    if (!report) {
+      return next(this.library.scheme.getLastError())
     }
-    const query = req.body
-    return this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-          minLength: 1,
-        },
-        height: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message)
+
+    try {
+      let block
+      if (query.id) {
+        block = await global.app.sdb.getBlockById(query.id)
+      } else if (query.height !== undefined) {
+        block = await global.app.sdb.getBlockByHeight(query.height)
+      } else {
+        return next('you need to provide either id or height')
       }
 
-      return (async () => {
-        try {
-          let block
-          if (query.id) {
-            block = await global.app.sdb.getBlockById(query.id)
-          } else if (query.height !== undefined) {
-            block = await global.app.sdb.getBlockByHeight(query.height)
-          }
-          if (!block) return cb('Block not found')
-
-          return cb(null, { block: block })
-        } catch (e) {
-          this.library.logger.error('Failed to find block', e)
-          return cb(`Server error : ${e.message}`)
-        }
-      })()
-    })
+      if (!block) {
+        return next('Block not found')
+      }
+      return res.json({ block: block });
+    } catch (e) {
+      this.library.logger.error(e)
+      return next('Server error')
+    }
   }
+
 
   private getBlocks = (req, cb) => async (req) => {
     const query = req.query
