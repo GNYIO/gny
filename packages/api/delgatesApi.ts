@@ -159,9 +159,9 @@ export default class DelegatesApi {
       })
     }
 
-    router.post('/forging/enable', (req, res) => {
+    router.post('/forging/enable', async (req, res) => {
       const body = req.body
-      this.library.scheme.validate(body, {
+      let report = this.library.scheme.validate(body, {
         type: 'object',
         properties: {
           secret: {
@@ -175,47 +175,48 @@ export default class DelegatesApi {
           },
         },
         required: ['secret'],
-      }, (err) => {
-        if (err) {
-          return res.json({ success: false, error: err[0].message })
+      });
+      if (!report) {
+        return res.json({ success: false, error: this.library.scheme.getLastError() })
+      }
+
+      const ip = req.connection.remoteAddress
+
+      if (this.library.config.forging.access.whiteList.length > 0
+        && this.library.config.forging.access.whiteList.indexOf(ip) < 0) {
+        return res.json({ success: false, error: 'Access denied' })
+      }
+
+      const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
+
+      if (body.publicKey) {
+        if (keypair.publicKey.toString('hex') !== body.publicKey) {
+          return res.json({ success: false, error: 'Invalid passphrase' })
         }
+      }
 
-        const ip = req.connection.remoteAddress
+      let publicKey = keypair.publicKey.toString('hex');
+      if (this.modules.delegates.isPublicKeyInKeyPairs(publicKey)) {
+        return res.json({ success: false, error: 'Forging is already enabled' })
+      }
 
-        if (this.library.config.forging.access.whiteList.length > 0
-          && this.library.config.forging.access.whiteList.indexOf(ip) < 0) {
-          return res.json({ success: false, error: 'Access denied' })
-        }
+      let address = this.modules.accounts.generateAddressByPublicKey(publicKey);
+      let accountInfo = await this.modules.accounts.getAccount(address);
+      if (typeof accountInfo === 'string') {
+        return res.json({ success: false, error: accountInfo.toString() });
+      }
 
-        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest())
-
-        if (body.publicKey) {
-          if (keypair.publicKey.toString('hex') !== body.publicKey) {
-            return res.json({ success: false, error: 'Invalid passphrase' })
-          }
-        }
-
-        if (this.modules.delegates.isPublicKeyInKeyPairs(keypair.publicKey.toString('hex'))) {
-          return res.json({ success: false, error: 'Forging is already enabled' })
-        }
-
-        return this.modules.accounts.getAccount({ publicKey: keypair.publicKey.toString('hex') }, (err2, account) => {
-          if (err2) {
-            return res.json({ success: false, error: err2.toString() })
-          }
-          if (account && account.isDelegate) {
-            this.modules.delegates.setKeyPair(keypair.publicKey.toString('hex'), keypair)
-            this.library.logger.info(`Forging enabled on account: ${account.address}`)
-            return res.json({ success: true, address: account.address })
-          }
-          return res.json({ success: false, error: 'Delegate not found' })
-        })
-      })
+      if (accountInfo && accountInfo.account.isDelegate) {
+        this.modules.delegates.setKeyPair(publicKey, keypair)
+        this.library.logger.info(`Forging enabled on account: ${accountInfo.account.address}`)
+        return res.json({ success: true, address: accountInfo.account.address })
+      }
+      return res.json({ success: false, error: 'Delegate not found' })
     })
 
-    router.post('/forging/disable', (req, res) => {
+    router.post('/forging/disable', async (req, res) => {
       const body = req.body
-      this.library.scheme.validate(body, {
+      let report = this.library.scheme.validate(body, {
         type: 'object',
         properties: {
           secret: {
@@ -229,10 +230,10 @@ export default class DelegatesApi {
           },
         },
         required: ['secret'],
-      }, (err) => {
-        if (err) {
-          return res.json({ success: false, error: err[0].message })
-        }
+      });
+      if (!report) {
+        return res.json({ success: false, error: this.library.scheme.getLastError() })
+      }
 
         const ip = req.connection.remoteAddress
 
@@ -250,21 +251,21 @@ export default class DelegatesApi {
         }
 
         if (!this.modules.delegates.isPublicKeyInKeyPairs(keypair.publicKey.toString('hex'))) {
-          return res.json({ success: false, error: 'Delegate not found' })
+          return res.json({ success: false, error: 'Delegate not found' });
         }
 
-        return this.modules.accounts.getAccount({ publicKey: keypair.publicKey.toString('hex') }, (err2, account) => {
-          if (err2) {
-            return res.json({ success: false, error: err2.toString() })
-          }
-          if (account && account.isDelegate) {
-            this.modules.delegates.removeKeyPair(keypair.publicKey.toString('hex'))
-            this.library.logger.info(`Forging disabled on account: ${account.address}`)
-            return res.json({ success: true, address: account.address })
-          }
-          return res.json({ success: false, error: 'Delegate not found' })
-        })
-      })
+        let accountOverview = await this.modules.accounts.getAccount(keypair.publicKey.toString('hex'));
+      
+        if (typeof accountOverview === 'string') {
+          return res.json({ success: false, error: accountOverview })
+        }
+
+        if (accountOverview.account && accountOverview.account.isDelegate) {
+          this.modules.delegates.removeKeyPair(keypair.publicKey.toString('hex'))
+          this.library.logger.info(`Forging disabled on account: ${accountOverview.account.address}`)
+          return res.json({ success: true, address: accountOverview.account.address });
+        }
+        return res.json({ success: false, error: 'Delegate not found' });
     })
 
     router.get('/forging/status', (req, res) => {

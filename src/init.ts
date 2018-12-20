@@ -2,14 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { EventEmitter } from 'events';
-import * as http from 'http';
-import * as https from 'https';
-import * as socketio from 'socket.io';
 import * as ZSchema from 'z-schema';
 import * as ip from 'ip';
-import * as express from 'express';
-import * as compression from 'compression';
-import * as cors from 'cors';
 import * as _ from 'lodash';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';
@@ -23,15 +17,9 @@ import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
 import loadedModules from './loadModules'
 import loadCoreApi from './loadCoreApi'
+import initNetwork from './initNetwork'
 import { IScope, IMessageEmitter } from './interfaces'
 
-
-const CIPHERS = `
-  ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
-  ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:
-  ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:
-  DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
-  !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
 function getPublicIp() {
   let publicIp;
@@ -76,12 +64,10 @@ async function init_alt(options: any) {
 
   scope.config = appConfig;
   scope.logger = options.logger;
-  scope.genesisBlock = {
-    block: genesisBlock,
-  };
+  scope.genesisBlock = genesisBlock;
 
   scope.scheme = scheme();
-  scope.network = await network(options);
+  scope.network = await initNetwork(options);
   scope.dbSequence = dbSequence(options);
   scope.sequence = sequence(options);
   scope.balancesSequence = balancesSequence(options);
@@ -143,7 +129,7 @@ async function init_alt(options: any) {
         return;
       }
 
-      const URI_PREFIXS = ['api', 'api2', 'peer'];
+      const URI_PREFIXS = ['api', 'peer'];
       const isApiOrPeer = parts.length > 1 && (URI_PREFIXS.indexOf(parts[1]) !== -1);
       const { whiteList } = scope.config.api.access;
       const { blackList } = scope.config.peers;
@@ -176,7 +162,6 @@ async function init_alt(options: any) {
         scope.logger.log(`Error: ${err}`);
       }
     });
-    scope.connect = scope.network;
   }
 
   scope.base = {
@@ -190,14 +175,6 @@ async function init_alt(options: any) {
 
 
   global.library = scope;
-
-
-  // const server = new Server(scope);
-  // console.log('20181002', server);
-  function cb(err, result) {
-    if (err) return console.log(err);
-    // console.log(result);
-  }
 
   scope.modules = loadedModules(scope);
   scope.coreApi = loadCoreApi(scope.modules, scope);
@@ -271,41 +248,6 @@ function scheme() {
   ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
 
   return new ZSchema({});
-}
-
-function network(options: any) {
-  let sslServer;
-  let sslio;
-
-  const expressApp = express();
-
-  expressApp.use(compression({ level: 6 }));
-  expressApp.use(cors());
-  expressApp.options('*', cors());
-
-  const server = http.createServer(expressApp);
-  const io = socketio(server);
-
-  if (options.appConfig.ssl.enabled) {
-    const privateKey = fs.readFileSync(options.appConfig.ssl.options.key);
-    const certificate = fs.readFileSync(options.config.ssl.options.cert);
-
-    sslServer = https.createServer({
-      key: privateKey,
-      cert: certificate,
-      ciphers: CIPHERS,
-    }, expressApp);
-    sslio = socketio(sslServer);
-  }
-
-  return {
-    express,
-    app: expressApp,
-    server,
-    io,
-    sslServer,
-    sslio,
-  };
 }
 
 function dbSequence(options: any) {

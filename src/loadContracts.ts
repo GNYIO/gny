@@ -1,5 +1,3 @@
-import changeCase = require('change-case');
-
 // import contracts
 import basic from './contract/basic';
 import uia from './contract/uia';

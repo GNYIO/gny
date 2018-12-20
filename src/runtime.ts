@@ -129,7 +129,6 @@ export default async function runtime(options) {
 
   global.app.AccountRole = {
     DELEGATE: 1,
-    AGENT: 2,
     GATEWAY_VALIDATOR: 3,
   }
 

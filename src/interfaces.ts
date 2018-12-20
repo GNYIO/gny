@@ -36,7 +36,7 @@ import * as bignumber from 'bignumber'
 declare interface IBase {
   bus: any;
   scheme: zSchema;
-  genesisBlock: any;
+  genesisBlock: IGenesisBlock;
   consensus: BaseConsensus;
   transaction: BaseTransaction;
   block: BaseBlock;
@@ -45,8 +45,8 @@ declare interface IBase {
 export interface IScope {
   protobuf: Protobuf;
   config: any;
-  logger: tracer.Tracer.Logger;
-  genesisBlock: any;
+  logger: ILogger;
+  genesisBlock: IGenesisBlock;
   scheme: zSchema;
   network: INetwork;
   dbSequence: Sequence;
@@ -55,7 +55,6 @@ export interface IScope {
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
-  connect: INetwork;
 }
 
 export interface Modules {
@@ -146,10 +145,36 @@ interface IApp {
   isCurrentBookkeeper: (addr: string) => boolean;
   AccountRole: {
     DELEGATE: number;
-    AGENT: number;
     GATEWAY_VALIDATOR: number;
   };
-  logger: tracer.Tracer.Logger;
+  logger: ILogger;
+}
+
+export type ILogger = tracer.Tracer.Logger;
+
+export interface IGenesisBlock {
+  version: number;
+  payloadHash: string;
+  timestamp: number;
+  previousBlock: null;
+  delegate: string;
+  height: number;
+  count: number;
+  fees: number;
+  reward: number;
+  signature: string;
+  id: string;
+  transactions: {
+    type: number;
+    fee: number;
+    timestamp: number;
+    senderid: string;
+    senderPublicKey: string;
+    signatures: string[];
+    message: string;
+    args: any[];
+    id: string;
+  }[];
 }
 
 
@@ -193,6 +218,10 @@ export interface ManyVotes {
 export interface Signature {
   publicKey: string;
   signature: string;
+}
+
+export interface ISimpleCache {
+  [id: string]: boolean;
 }
 
 declare global {

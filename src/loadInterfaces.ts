@@ -1,12 +1,6 @@
 import * as util from 'util'
 import Router from './utils/router'
 
-import balances from './api/balances';
-import delegates from './api/delegates';
-import proposals from './api/proposals';
-import transactions from './api/transactions';
-import transfers from './api/transfers';
-import uia from './api/uia';
 
 
 class RouteWrapper {
@@ -46,12 +40,6 @@ interface Wrapper {
 }
 
 let interfaceFiles: Array<Wrapper> = [
-  { class: balances, name: 'balances' },
-  { class: delegates, name: 'delegates' },
-  { class: proposals, name: 'proposals' },
-  { class: transactions, name: 'transactions' },
-  { class: transfers, name: 'transfers' },
-  { class: uia, name: 'uia' }
 ]
 
 

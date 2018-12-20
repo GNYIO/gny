@@ -37,6 +37,18 @@ export default class TransactionsApi {
           minLength: 1,
           maxLength: 100,
         },
+        type: {
+          type: 'integer',
+          minimum: 0,
+          maximum: 1000,
+        },
+        height: {
+          type: 'integer',
+          minimum: 0,
+        },
+        message: {
+          type: 'string',
+        }
       },
     }, (err) => {
       if (err) {
@@ -52,12 +64,14 @@ export default class TransactionsApi {
       }
       if (query.type !== undefined) {
         const type = Number(query.type);
-        if (type !== 0 && type !== 14) return cb('invalid transaction type');
 
         condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' };
       }
       if (query.id) {
         condition.tid = query.id;
+      }
+      if (query.message) {
+        condition.message = query.message;
       }
 
       (async () => {

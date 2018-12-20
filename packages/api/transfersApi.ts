@@ -1,47 +1,62 @@
-async function getAssetMap(assetNames) {
-  const assetMap = new Map();
-  const assetNameList = Array.from(assetNames.keys());
-  const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
-  const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
+import * as express from 'express';
+import { IScope, Modules } from '../../src/interfaces';
 
-  if (uiaNameList && uiaNameList.length) {
-    const assets = await global.app.sdb.findAll('Asset', {
+export default class TransfersApi {
+
+  private modules: Modules;
+  private library: IScope;
+  constructor (modules: Modules, library: IScope) {
+    this.modules = modules;
+    this.library = library;
+
+    this.attachApi();
+  }
+
+  // helper function
+  private getAssetMap = async (assetNames) => {
+    const assetMap = new Map();
+    const assetNameList = Array.from(assetNames.keys());
+    const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
+    const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
+  
+    if (uiaNameList && uiaNameList.length) {
+      const assets = await global.app.sdb.findAll('Asset', {
+        condition: {
+          name: { $in: uiaNameList },
+        },
+      });
+      for (const a of assets) {
+        assetMap.set(a.name, a);
+      }
+    }
+    if (gaNameList && gaNameList.length) {
+      const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
+        condition: {
+          symbol: { $in: gaNameList },
+        },
+      });
+      for (const a of gatewayAssets) {
+        assetMap.set(a.symbol, a);
+      }
+    }
+    return assetMap;
+  }
+
+  // helper function
+  private getTransactionMap = async (tids) => {
+    const trsMap = new Map()
+    const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
-        name: { $in: uiaNameList },
+        id: { $in: tids },
       },
     });
-    for (const a of assets) {
-      assetMap.set(a.name, a);
+    for (const t of trs) {
+      trsMap.set(t.id, t);
     }
+    return trsMap;
   }
-  if (gaNameList && gaNameList.length) {
-    const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
-      condition: {
-        symbol: { $in: gaNameList },
-      },
-    });
-    for (const a of gatewayAssets) {
-      assetMap.set(a.symbol, a);
-    }
-  }
-  return assetMap;
-}
 
-async function getTransactionMap(tids) {
-  const trsMap = new Map()
-  const trs = await global.app.sdb.findAll('Transaction', {
-    condition: {
-      id: { $in: tids },
-    },
-  });
-  for (const t of trs) {
-    trsMap.set(t.id, t);
-  }
-  return trsMap;
-}
-
-export default (router) => {
-  router.get('/', async (req) => {
+  private getRoot = async (req) => {
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
     const condition = {};
@@ -77,9 +92,9 @@ export default (router) => {
           assetNames.add(t.currency);
         }
       }
-      const assetMap = await getAssetMap(assetNames);
+      const assetMap = await this.getAssetMap(assetNames);
       const tids = transfers.map(t => t.tid);
-      const trsMap = await getTransactionMap(tids);
+      const trsMap = await this.getTransactionMap(tids);
       for (const t of transfers) {
         if (t.currency !== 'GNY') {
           t.asset = assetMap.get(t.currency);
@@ -96,9 +111,9 @@ export default (router) => {
       }
     }
     return { count, transfers };
-  });
+  }
 
-  router.get('/amount', async (req) => {
+  private getAmount = async (req) => {
     const startTimestamp = req.query.startTimestamp;
     const endTimestamp = req.query.endTimestamp;
     const condition = {};
@@ -120,9 +135,9 @@ export default (router) => {
           assetNames.add(t.currency);
         }
       }
-      const assetMap = await getAssetMap(assetNames);
+      const assetMap = await this.getAssetMap(assetNames);
       const tids = transfers.map(t => t.tid);
-      const trsMap = await getTransactionMap(tids);
+      const trsMap = await this.getTransactionMap(tids);
       for (const t of transfers) {
         if (t.currency !== 'GNY') {
           t.asset = assetMap.get(t.currency);
@@ -142,5 +157,11 @@ export default (router) => {
     }
     const strTotalAmount = String(totalAmount);
     return { count, strTotalAmount };
-  });
-};
+  }
+
+  private attachApi = () => {
+    const router = express.Router();
+    router.get('/', this.getRoot);
+    router.get('/amount', this.getAmount);
+  }
+}

@@ -7,24 +7,6 @@ async function doCancelVote(account) {
   }
 }
 
-async function doCancelAgent(sender, agentAccount) {
-  const agentClienteleKey = { clientele: sender.address };
-  const cancelWeight = sender.weight;
-  agentAccount.agentWeight -= cancelWeight;
-  global.app.sdb.increase('Account', { agentWeight: -cancelWeight }, { address: agentAccount.address });
-
-  sender.agent = '';
-  global.app.sdb.update('Account', { agent: '' }, { address: sender.address });
-  global.app.sdb.del('AgentClientele', agentClienteleKey);
-
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { address: agentAccount.address } });
-  if (voteList && voteList.length > 0 && cancelWeight > 0) {
-    for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -cancelWeight }, { name: voteItem.delegate });
-    }
-  }
-}
-
 function isUniq(arr) {
   const s = new Set();
   for (const i of arr) {
@@ -123,7 +105,6 @@ export default {
     // 60/15 * 60 * 24 = 5760
     const MIN_LOCK_HEIGHT = 5760 * 30;
     const sender = this.sender;
-    if (sender.isAgent) return 'Agent account cannot lock';
     if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
       if (height !== 0
@@ -153,23 +134,10 @@ export default {
       sender.weight += amount;
       global.app.sdb.update('Account', sender, { address: sender.address });
 
-      if (sender.agent) {
-        const agentAccount = await global.app.sdb.load('Account', { username: sender.agent });
-        if (!agentAccount) return 'Agent account not found';
-        global.app.sdb.increase('Account', { agentWeight: amount }, { address: agentAccount.address });
-
-        const voteList = await global.app.sdb.findAll('Vote', { condition: { address: agentAccount.address } });
-        if (voteList && voteList.length > 0) {
-          for (const voteItem of voteList) {
-            global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
-          }
-        }
-      } else {
-        const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
-        if (voteList && voteList.length > 0) {
-          for (const voteItem of voteList) {
-            global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
-          }
+      const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+      if (voteList && voteList.length > 0) {
+        for (const voteItem of voteList) {
+          global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
         }
       }
     }
@@ -184,14 +152,6 @@ export default {
     if (!sender.isLocked) return 'Account is not locked';
     if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
 
-    if (!sender.agent) {
-      await doCancelVote(sender);
-    } else {
-      const agentAccount = await global.app.sdb.load('Account', { username: sender.agent });
-      if (!agentAccount) return 'Agent account not found';
-
-      await doCancelAgent(sender, agentAccount);
-    }
     sender.isLocked = 0;
     sender.lockHeight = 0;
     sender.gny += sender.weight;
@@ -254,75 +214,7 @@ export default {
   //   return null
   // },
 
-  // async registerAgent() {
-  //   const senderId = this.sender.address
-  //   global.app.sdb.lock(`basic.account@${senderId}`)
-  //   const sender = this.sender
-  //   if (sender.role) return 'Agent already have a role'
-  //   if (!sender.name) return 'Agent must have a name'
-  //   if (sender.isLocked) return 'Locked account cannot be agent'
 
-  //   const voteExist = await global.app.sdb.exists('Vote', { address: senderId })
-  //   if (voteExist) return 'Account already voted'
-
-  //   sender.role = global.app.AccountRole.AGENT
-  //   sender.isAgent = 1
-  //   global.app.sdb.create('Agent', {
-  //     name: sender.name,
-  //     tid: this.trs.id,
-  //     timestamp: this.trs.timestamp,
-  //   })
-  //   global.app.sdb.update('Account', sender, { address: senderId })
-  //   return null
-  // },
-
-  // async setAgent(agent) {
-  //   const senderId = this.sender.address
-  //   global.app.sdb.lock(`basic.account@${senderId}`)
-  //   const sender = this.sender
-  //   if (sender.isAgent) return 'Agent cannot set agent'
-  //   if (sender.agent) return 'Agent already set'
-  //   if (!sender.isLocked) return 'Account is not locked'
-
-  //   global.app.validate('name', agent)
-
-  //   const agentAccount = await global.app.sdb.load('Account', { name: agent })
-  //   if (!agentAccount) return 'Agent account not found'
-  //   if (!agentAccount.isAgent) return 'Not an agent'
-
-  //   const voteExist = await global.app.sdb.exists('Vote', { address: senderId })
-  //   if (voteExist) return 'Account already voted'
-
-  //   sender.agent = agent
-  //   global.app.sdb.update('Account', { agent: sender.agent }, { address: senderId })
-  //   global.app.sdb.increase('Account', { agentWeight: sender.weight }, { address: agentAccount.address })
-
-  //   const agentVoteList = await global.app.sdb.findAll('Vote', { condition: { address: agentAccount.address } })
-  //   if (agentVoteList && agentVoteList.length > 0 && sender.weight > 0) {
-  //     for (const voteItem of agentVoteList) {
-  //       global.app.sdb.increase('Delegate', { votes: sender.weight }, { name: voteItem.delegate })
-  //     }
-  //   }
-  //   global.app.sdb.create('AgentClientele', {
-  //     agent,
-  //     clientele: senderId,
-  //     tid: this.trs.id,
-  //   })
-  //   return null
-  // },
-
-  // async cancelAgent() {
-  //   const senderId = this.sender.address
-  //   global.app.sdb.lock(`basic.account@${senderId}`)
-  //   const sender = this.sender
-  //   if (!sender.agent) return 'Agent is not set'
-
-  //   const agentAccount = await global.app.sdb.load('Account', { name: sender.agent })
-  //   if (!agentAccount) return 'Agent account not found'
-
-  //   await doCancelAgent(sender, agentAccount)
-  //   return null
-  // },
 
   async registerDelegate() {
     const senderId = this.sender.address
@@ -355,8 +247,7 @@ export default {
     global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
-    if (!sender.isAgent && !sender.isLocked) return 'Account is not locked';
-    if (sender.agent) return 'Account already set agent';
+    if (!sender.isLocked) return 'Account is not locked';
 
     delegates = delegates.split(',');
     if (!delegates || !delegates.length) return 'Invalid delegates';
@@ -385,7 +276,7 @@ export default {
     }
 
     for (const name of delegates) {
-      const votes = (sender.weight + sender.agentWeight);
+      const votes = (sender.weight);
       global.app.sdb.increase('Delegate', { votes }, { name });
       global.app.sdb.create('Vote', {
         address: senderId,
@@ -400,8 +291,7 @@ export default {
     global.app.sdb.lock(`account@${senderId}`);
 
     const sender = this.sender;
-    if (!sender.isAgent && !sender.isLocked) return 'Account is not locked';
-    if (sender.agent) return 'Account already set agent';
+    if (!sender.isLocked) return 'Account is not locked';
 
     delegates = delegates.split(',');
     if (!delegates || !delegates.length) return 'Invalid delegates';
@@ -427,7 +317,7 @@ export default {
     }
 
     for (const name of delegates) {
-      const votes = -(sender.weight + sender.agentWeight);
+      const votes = -(sender.weight);
       global.app.sdb.increase('Delegate', { votes }, { name });
 
       global.app.sdb.del('Vote', { address: senderId, delegate: name });
