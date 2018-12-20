@@ -3,17 +3,17 @@ import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
-import slots from './utils/slots'
+import slots from './utils/slots';
 import Router = require('./utils/router');
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
 import transactionMode from './utils/transaction-mode';
-import loadModels from './loadModels'
-import loadContracts from './loadContracts'
-import loadInterfaces from './loadInterfaces'
+import loadModels from './loadModels';
+import loadContracts from './loadContracts';
+import loadInterfaces from './loadInterfaces';
 
 import address from './utils/address';
-import * as bignumber from 'bignumber'
+import * as bignumber from 'bignumber';
 
 function adaptSmartDBLogger(config) {
   const { LogLevel } = AschCore;
@@ -58,7 +58,7 @@ export default async function runtime(options) {
 
       let bnAmount;
       try {
-        bnAmount = global.app.util.bignumber(amount)
+        bnAmount = global.app.util.bignumber(amount);
       } catch (e) {
         return 'Failed to convert';
       }
@@ -90,79 +90,79 @@ export default async function runtime(options) {
       }
       return null;
     },
-  }
+  };
   global.app.validate = (type, value, constraints) => {
-    if (!global.app.validators[type]) throw new Error(`Validator not found: ${type}`)
-    const error = global.app.validators[type](value, constraints)
-    if (error) throw new Error(error)
-  }
+    if (!global.app.validators[type]) throw new Error(`Validator not found: ${type}`);
+    const error = global.app.validators[type](value, constraints);
+    if (error) throw new Error(error);
+  };
   global.app.registerContract = (type, name) => {
     // if (type < 1000) throw new Error('Contract types that small than 1000 are reserved')
-    global.app.contractTypeMapping[type] = name
-  }
-  global.app.getContractName = type => global.app.contractTypeMapping[type]
+    global.app.contractTypeMapping[type] = name;
+  };
+  global.app.getContractName = type => global.app.contractTypeMapping[type];
 
   global.app.registerFee = (type, min, currency) => {
     global.app.feeMapping[type] = {
       currency: currency || global.app.defaultFee.currency,
       min,
-    }
-  }
-  global.app.getFee = type => global.app.feeMapping[type]
+    };
+  };
+  global.app.getFee = type => global.app.feeMapping[type];
 
   global.app.setDefaultFee = (min, currency) => {
-    global.app.defaultFee.currency = currency
-    global.app.defaultFee.min = min
-  }
+    global.app.defaultFee.currency = currency;
+    global.app.defaultFee.min = min;
+  };
 
   global.app.addRoundFee = (fee, roundNumber) => {
-    modules.blocks.increaseRoundData({ fees: fee }, roundNumber)
-  }
+    modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
+  };
 
-  global.app.getRealTime = epochTime => slots.getRealTime(epochTime)
+  global.app.getRealTime = epochTime => slots.getRealTime(epochTime);
 
   global.app.registerHook = (name, func) => {
-    global.app.hooks[name] = func
-  }
+    global.app.hooks[name] = func;
+  };
 
-  global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
+  global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr);
 
   global.app.AccountRole = {
     DELEGATE: 1,
     GATEWAY_VALIDATOR: 3,
-  }
+  };
 
-  const { appDir, dataDir } = options.appConfig
+  const { appDir, dataDir } = options.appConfig;
 
   const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks');
   const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db');
 
-  adaptSmartDBLogger(options.appConfig)
-  global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
-  global.app.balances = new BalanceManager(global.app.sdb)
-  global.app.autoID = new AutoIncrement(global.app.sdb)
-  global.app.events = new EventEmitter()
+  adaptSmartDBLogger(options.appConfig);
+  global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR);
+  global.app.balances = new BalanceManager(global.app.sdb);
+  global.app.autoID = new AutoIncrement(global.app.sdb);
+  global.app.events = new EventEmitter();
 
   global.app.util = {
     address: address,
     bignumber: bignumber,
     transactionMode: transactionMode,
-  }
+  };
 
-  await loadModels()
-  await loadContracts()
-  await loadInterfaces(options.library.network.app)
+  await loadModels();
+  await loadContracts();
+  await loadInterfaces(options.library.network.app);
 
-  global.app.contractTypeMapping[0] = 'basic.transfer'
-  global.app.contractTypeMapping[1] = 'basic.setUserName'
-  global.app.contractTypeMapping[2] = 'basic.setSecondPassphrase'
-  global.app.contractTypeMapping[3] = 'basic.lock'
-  global.app.contractTypeMapping[4] = 'basic.vote'
-  global.app.contractTypeMapping[5] = 'basic.unvote'
-  global.app.contractTypeMapping[10] = 'basic.registerDelegate'
+  global.app.contractTypeMapping[0] = 'basic.transfer';
+  global.app.contractTypeMapping[1] = 'basic.setUserName';
+  global.app.contractTypeMapping[2] = 'basic.setSecondPassphrase';
+  global.app.contractTypeMapping[3] = 'basic.lock';
+  global.app.contractTypeMapping[4] = 'basic.vote';
+  global.app.contractTypeMapping[5] = 'basic.unvote';
+  global.app.contractTypeMapping[10] = 'basic.registerDelegate';
 
-  global.app.contractTypeMapping[100] = 'uia.registerIssuer'
-  global.app.contractTypeMapping[101] = 'uia.registerAsset'
-  global.app.contractTypeMapping[102] = 'uia.issue'
-  global.app.contractTypeMapping[103] = 'uia.transfer'
+  global.app.contractTypeMapping[100] = 'uia.registerIssuer';
+  global.app.contractTypeMapping[101] = 'uia.registerAsset';
+  global.app.contractTypeMapping[102] = 'uia.issue';
+  global.app.contractTypeMapping[103] = 'uia.transfer';
 }

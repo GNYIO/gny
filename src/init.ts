@@ -15,10 +15,10 @@ import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
 import protobuf from './utils/protobuf';
-import loadedModules from './loadModules'
-import loadCoreApi from './loadCoreApi'
-import initNetwork from './initNetwork'
-import { IScope, IMessageEmitter } from './interfaces'
+import loadedModules from './loadModules';
+import loadCoreApi from './loadCoreApi';
+import initNetwork from './initNetwork';
+import { IScope, IMessageEmitter } from './interfaces';
 
 
 function getPublicIp() {
@@ -48,7 +48,7 @@ function isNumberOrNumberString(value) {
 }
 
 async function init_alt(options: any) {
-  let scope : Partial<IScope> = {};
+  const scope: Partial<IScope> = {};
   const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
@@ -182,7 +182,7 @@ async function init_alt(options: any) {
   class Bus extends EventEmitter implements IMessageEmitter {
     message(topic: string, ...restArgs) {
       Object.keys(scope.modules).forEach((moduleName) => {
-        const module = scope.modules[moduleName]
+        const module = scope.modules[moduleName];
         const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);

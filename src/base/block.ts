@@ -11,9 +11,9 @@ export class Block {
   }
 
   public getId = (block: any) => {
-    const bytes = this.getBytes(block)
-    const hash = crypto.createHash('sha256').update(bytes).digest()
-    return hash.toString('hex')
+    const bytes = this.getBytes(block);
+    const hash = crypto.createHash('sha256').update(bytes).digest();
+    return hash.toString('hex');
   }
 
   public calculateFee = () => 10000000;
@@ -38,18 +38,18 @@ export class Block {
 
   public sign = (block, keypair: KeyPair) => {
     const hash = this.calculateHash(block);
-    let privateKey = Buffer.from(keypair.privateKey);
+    const privateKey = Buffer.from(keypair.privateKey);
     return ed.sign(hash, privateKey).toString('hex');
   }
 
   private calculateHash = (block) => {
-    let bytes = this.getBytes(block);
+    const bytes = this.getBytes(block);
     return crypto.createHash('sha256').update(bytes).digest();
   }
 
   private getBytes = (block: any, skipSignature?: any): Buffer => {
     const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
-  
+
     const bb = new ByteBuffer(size, true);
     bb.writeInt(block.version);
     bb.writeInt(block.timestamp);
@@ -58,27 +58,26 @@ export class Block {
     bb.writeLong(block.fees);
     bb.writeLong(block.reward);
     bb.writeString(block.delegate);
-  
+
     // HARDCODE HOTFIX
     if (block.height > 6167000 && block.prevBlockId) {
       bb.writeString(block.prevBlockId);
     } else {
       bb.writeString('0');
     }
-  
+
     const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex');
     for (let i = 0; i < payloadHashBuffer.length; i++) {
       bb.writeByte(payloadHashBuffer[i]);
     }
-  
-  
+
     if (!skipSignature && block.signature) {
       const signatureBuffer = Buffer.from(block.signature, 'hex');
       for (let i = 0; i < signatureBuffer.length; i++) {
         bb.writeByte(signatureBuffer[i]);
       }
     }
-  
+
     bb.flip();
     const b = bb.toBuffer();
     return b as Buffer;

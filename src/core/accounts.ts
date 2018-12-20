@@ -14,7 +14,7 @@ export default class Account {
   }
 
   public getAccount = async (address: string) => {
-    let report = this.library.scheme.validate(address, {
+    const report = this.library.scheme.validate(address, {
       type: 'string',
       minLength: 1,
       maxLength: 50,

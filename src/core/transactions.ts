@@ -45,13 +45,13 @@ export default class Transactions {
 
     (async () => {
       try {
-        const count = await global.app.sdb.count('Transaction', condition)
-        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset })
-        if (!transactions) transactions = []
-        return cb(null, { transactions, count })
+        const count = await global.app.sdb.count('Transaction', condition);
+        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset });
+        if (!transactions) transactions = [];
+        return cb(null, { transactions, count });
       } catch (e) {
-       global.app.logger.error('Failed to get transactions', e)
-        return cb(`System error: ${e}`)
+        global.app.logger.error('Failed to get transactions', e);
+        return cb(`System error: ${e}`);
       }
     })();
   }
@@ -59,11 +59,11 @@ export default class Transactions {
   getTransaction = (req, cb) => {
     (async () => {
       try {
-        if (!req.params || !req.params.id) return cb('Invalid transaction id')
-        const id = req.params.id
-        const trs = await global.app.sdb.find('Transaction', { id })
-        if (!trs || !trs.length) return cb('Transaction not found')
-        return cb(null, { transaction: trs[0] })
+        if (!req.params || !req.params.id) return cb('Invalid transaction id');
+        const id = req.params.id;
+        const trs = await global.app.sdb.find('Transaction', { id });
+        if (!trs || !trs.length) return cb('Transaction not found');
+        return cb(null, { transaction: trs[0] });
       } catch (e) {
         return cb(`System error: ${e}`);
       }
@@ -127,7 +127,7 @@ export default class Transactions {
       if (this.pool.has(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
-      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id })
+      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id });
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
@@ -173,23 +173,23 @@ export default class Transactions {
       throw new Error('Unexpected transaction mode');
     }
 
-    let requestor = null
-    let sender = await global.app.sdb.load('Account', senderId)
+    let requestor = null;
+    let sender = await global.app.sdb.load('Account', senderId);
     if (!sender) {
-      if (height > 0) throw new Error('Sender account not found')
+      if (height > 0) throw new Error('Sender account not found');
       sender = global.app.sdb.create('Account', {
         address: senderId,
         name: null,
         gny: 0,
-      })
+      });
     }
 
     if (requestorId) {
       if (!global.app.util.address.isAddress(requestorId)) {
-        throw new Error('Invalid requestor address')
+        throw new Error('Invalid requestor address');
       }
 
-      requestor = await global.app.sdb.load('Account', requestorId)
+      requestor = await global.app.sdb.load('Account', requestorId);
       if (!requestor) {
         throw new Error('Requestor account not found');
       }
@@ -198,10 +198,10 @@ export default class Transactions {
     }
 
     if (transaction.senderPublicKey) {
-      const signerId = transaction.requestorId || transaction.senderId
-      let generatedAddress = addressHelper.generateAddress(transaction.senderPublicKey)
+      const signerId = transaction.requestorId || transaction.senderId;
+      const generatedAddress = addressHelper.generateAddress(transaction.senderPublicKey);
       if (generatedAddress !== signerId) {
-        throw new Error('Invalid senderPublicKey')
+        throw new Error('Invalid senderPublicKey');
       }
     }
 
@@ -233,6 +233,6 @@ export default class Transactions {
 
   // Events
   onBind = (scope: Modules) => {
-    this.modules = scope
+    this.modules = scope;
   }
 }

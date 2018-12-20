@@ -10,7 +10,7 @@ export default class System {
   }
 
   getOS() {
-    return os.platform() + os.release()
+    return os.platform() + os.release();
   }
 
   getVersion() {
@@ -18,11 +18,11 @@ export default class System {
   }
 
   getPort() {
-    return global.Config.port
+    return global.Config.port;
   }
 
   getMagic() {
-    return global.Config.magic
+    return global.Config.magic;
   }
 
   getSystemInfo() {
@@ -37,6 +37,6 @@ export default class System {
         timestamp: slots.getRealTime(lastBlock.timestamp),
         behind: slots.getNextSlot() - (slots.getSlotNumber(lastBlock.timestamp) + 1),
       },
-    }
+    };
   }
 }

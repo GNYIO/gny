@@ -12,16 +12,16 @@ import TransfersApi from '../packages/api/transfersApi';
 import { Modules, IScope } from './interfaces';
 
 export default function loadCoreApi(modules: Modules, scope: IScope) {
-  let blocksApi = new BlocksApi(modules, scope);
-  let accountsApi = new AccountsApi(modules, scope);
-  let delgatesApi = new DelegatesApi(modules, scope);
-  let peerApi = new PeerApi(modules, scope);
-  let transactionsApi = new TransactionsApi(modules, scope);
-  let transportApi = new TransportApi(modules, scope);
-  let uiaApi = new UiaApi(modules, scope);
-  let transfersApi = new TransfersApi(modules, scope);
-  let loaderApi = new LoaderApi(modules, scope);
-  let balancesApi = new BalancesApi(scope);
+  const blocksApi = new BlocksApi(modules, scope);
+  const accountsApi = new AccountsApi(modules, scope);
+  const delgatesApi = new DelegatesApi(modules, scope);
+  const peerApi = new PeerApi(modules, scope);
+  const transactionsApi = new TransactionsApi(modules, scope);
+  const transportApi = new TransportApi(modules, scope);
+  const uiaApi = new UiaApi(modules, scope);
+  const transfersApi = new TransfersApi(modules, scope);
+  const loaderApi = new LoaderApi(modules, scope);
+  const balancesApi = new BalancesApi(scope);
 
   return {
     blocksApi,

@@ -5,8 +5,8 @@ import { Modules, IScope } from '../interfaces';
 
 export default class Transport {
   private readonly library: IScope;
-  public latestBlocksCache: any = new LRU(200)
-  private blockHeaderMidCache: any = new LRU(1000)
+  public latestBlocksCache: any = new LRU(200);
+  private blockHeaderMidCache: any = new LRU(1000);
   private modules: Modules;
 
   constructor (scope: IScope) {
@@ -15,110 +15,110 @@ export default class Transport {
 
 
   public broadcast = (topic: any, message: any, recursive?: any) => {
-    this.modules.peer.publish(topic, message, recursive)
+    this.modules.peer.publish(topic, message, recursive);
   }
 
   // Events
   public onBind = (scope: Modules) => {
-    this.modules = scope
+    this.modules = scope;
   }
 
   public onPeerReady = () => {
     this.modules.peer.subscribe('newBlockHeader', (message, peer) => {
       if (this.modules.loader.syncing()) {
-        return
+        return;
       }
-      const lastBlock = this.modules.blocks.getLastBlock()
+      const lastBlock = this.modules.blocks.getLastBlock();
       if (!lastBlock) {
-        this.library.logger.error('Last block not exists')
-        return
+        this.library.logger.error('Last block not exists');
+        return;
       }
 
-      const body = message.body
+      const body = message.body;
       if (!body || !body.id || !body.height || !body.prevBlockId) {
-        this.library.logger.error('Invalid message body')
-        return
+        this.library.logger.error('Invalid message body');
+        return;
       }
-      const height = body.height
-      const id = body.id.toString('hex')
-      const prevBlockId = body.prevBlockId.toString('hex')
+      const height = body.height;
+      const id = body.id.toString('hex');
+      const prevBlockId = body.prevBlockId.toString('hex');
       if (height !== lastBlock.height + 1 || prevBlockId !== lastBlock.id) {
-        this.library.logger.warn('New block donnot match with last block', message)
+        this.library.logger.warn('New block donnot match with last block', message);
         if (height > lastBlock.height + 5) {
-          this.library.logger.warn('Receive new block header from long fork')
+          this.library.logger.warn('Receive new block header from long fork');
         } else {
-          this.modules.loader.syncBlocksFromPeer(peer)
+          this.modules.loader.syncBlocksFromPeer(peer);
         }
-        return
+        return;
       }
-      this.library.logger.info('Receive new block header', { height, id })
+      this.library.logger.info('Receive new block header', { height, id });
       this.modules.peer.request('newBlock', { id }, peer, (err, result) => {
         if (err) {
-          this.library.logger.error('Failed to get latest block data', err)
-          return
+          this.library.logger.error('Failed to get latest block data', err);
+          return;
         }
         if (!result || !result.block || !result.votes) {
-          this.library.logger.error('Invalid block data', result)
-          return
+          this.library.logger.error('Invalid block data', result);
+          return;
         }
         try {
-          let block = result.block
-          let votes = this.library.protobuf.decodeBlockVotes(Buffer.from(result.votes, 'base64'))
-          block = this.library.base.block.objectNormalize(block)
-          votes = this.library.base.consensus.normalizeVotes(votes)
-          this.latestBlocksCache.set(block.id, result)
-          this.blockHeaderMidCache.set(block.id, message)
-          this.library.bus.message('receiveBlock', block, votes)
+          let block = result.block;
+          let votes = this.library.protobuf.decodeBlockVotes(Buffer.from(result.votes, 'base64'));
+          block = this.library.base.block.objectNormalize(block);
+          votes = this.library.base.consensus.normalizeVotes(votes);
+          this.latestBlocksCache.set(block.id, result);
+          this.blockHeaderMidCache.set(block.id, message);
+          this.library.bus.message('receiveBlock', block, votes);
         } catch (e) {
-          this.library.logger.error(`normalize block or votes object error: ${e.toString()}`, result)
+          this.library.logger.error(`normalize block or votes object error: ${e.toString()}`, result);
         }
-      })
-    })
+      });
+    });
 
     this.modules.peer.subscribe('propose', (message) => {
       try {
-        const propose = this.library.protobuf.decodeBlockPropose(message.body.propose)
-        this.library.bus.message('receivePropose', propose)
+        const propose = this.library.protobuf.decodeBlockPropose(message.body.propose);
+        this.library.bus.message('receivePropose', propose);
       } catch (e) {
-        this.library.logger.error('Receive invalid propose', e)
+        this.library.logger.error('Receive invalid propose', e);
       }
-    })
+    });
 
     this.modules.peer.subscribe('transaction', (message) => {
       if (this.modules.loader.syncing()) {
-        return
+        return;
       }
-      const lastBlock = this.modules.blocks.getLastBlock()
-      const lastSlot = slots.getSlotNumber(lastBlock.timestamp)
+      const lastBlock = this.modules.blocks.getLastBlock();
+      const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 12) {
-        this.library.logger.error('Blockchain is not ready', { getNextSlot: slots.getNextSlot(), lastSlot, lastBlockHeight: lastBlock.height })
-        return
+        this.library.logger.error('Blockchain is not ready', { getNextSlot: slots.getNextSlot(), lastSlot, lastBlockHeight: lastBlock.height });
+        return;
       }
-      let transaction: any
+      let transaction: any;
       try {
-        transaction = message.body.transaction
-        if (Buffer.isBuffer(transaction)) transaction = transaction.toString()
-        transaction = JSON.parse(transaction)
-        transaction = this.library.base.transaction.objectNormalize(transaction)
+        transaction = message.body.transaction;
+        if (Buffer.isBuffer(transaction)) transaction = transaction.toString();
+        transaction = JSON.parse(transaction);
+        transaction = this.library.base.transaction.objectNormalize(transaction);
       } catch (e) {
         this.library.logger.error('Received transaction parse error', {
           message,
           error: e.toString(),
-        })
-        return
+        });
+        return;
       }
 
       this.library.sequence.add((cb) => {
-        this.library.logger.info(`Received transaction ${transaction.id} from remote peer`)
-        this.modules.transactions.processUnconfirmedTransaction(transaction, cb)
+        this.library.logger.info(`Received transaction ${transaction.id} from remote peer`);
+        this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
       }, (err) => {
         if (err) {
-          this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err)
+          this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err);
         } else {
           // library.bus.message('unconfirmedTransaction', transaction, true)
         }
-      })
-    })
+      });
+    });
   }
 
   public onUnconfirmedTransaction = (transaction: any) => {
@@ -126,8 +126,8 @@ export default class Transport {
       body: {
         transaction: JSON.stringify(transaction),
       },
-    }
-    this.broadcast('transaction', message)
+    };
+    this.broadcast('transaction', message);
   }
 
   public onNewBlock = (block, votes) => {
@@ -136,15 +136,15 @@ export default class Transport {
         block,
         votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'),
       }
-    )
+    );
     const message = this.blockHeaderMidCache.get(block.id) || {
       body: {
         id: Buffer.from(block.id, 'hex'),
         height: block.height,
         prevBlockId: Buffer.from(block.prevBlockId, 'hex'),
       },
-    }
-    this.broadcast('newBlockHeader', message, 0)
+    };
+    this.broadcast('newBlockHeader', message, 0);
   }
 
   public onNewPropose = (propose) => {
@@ -152,46 +152,46 @@ export default class Transport {
       body: {
         propose: this.library.protobuf.encodeBlockPropose(propose),
       },
-    }
-    this.broadcast('propose', message)
+    };
+    this.broadcast('propose', message);
   }
 
   public sendVotes = (votes, address) => {
-    const parts = address.split(':')
+    const parts = address.split(':');
     const contact = {
       host: parts[0],
       port: parts[1],
-    }
+    };
     this.modules.peer.request('votes', { votes }, contact, (err) => {
       if (err) {
-        this.library.logger.error('send votes error', err)
+        this.library.logger.error('send votes error', err);
       }
-    })
+    });
   }
 
   public cleanup = (cb: any) => {
-    this.library.logger.debug('Cleaning up core/transport')
-    cb()
+    this.library.logger.debug('Cleaning up core/transport');
+    cb();
   }
 
   public message = (msg, cb) => {
-    msg.timestamp = (new Date()).getTime()
+    msg.timestamp = (new Date()).getTime();
 
     // self.broadcast('chainMessage', msg)
 
-    cb(null, {})
+    cb(null, {});
   }
 
   public request = (req, cb) => {
     if (req.body.peer) {
       this.modules.peer.request('chainRequest', req, req.body.peer, (err, res) => {
         if (res) {
-          res.peer = req.body.peer
+          res.peer = req.body.peer;
         }
-        cb(err, res)
-      })
+        cb(err, res);
+      });
     } else {
-      this.modules.peer.randomRequest('chainRequest', req, cb)
+      this.modules.peer.randomRequest('chainRequest', req, cb);
     }
   }
 }

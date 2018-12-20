@@ -1,5 +1,5 @@
-import * as util from 'util'
-import Router from './utils/router'
+import * as util from 'util';
+import Router from './utils/router';
 
 
 
@@ -39,18 +39,18 @@ interface Wrapper {
   name: string;
 }
 
-let interfaceFiles: Array<Wrapper> = [
-]
+const interfaceFiles: Array<Wrapper> = [
+];
 
 
 export default async function loadInterfaces(routes) {
 
   for (const file of interfaceFiles) {
-   global.app.logger.info('loading interface', file)
-    const rw = new RouteWrapper()
-    file.class(rw)
-    const router1 = new Router()
-    let router = router1.router
+   global.app.logger.info('loading interface', file);
+    const rw = new RouteWrapper();
+    file.class(rw);
+    const router1 = new Router();
+    const router = router1.router;
     for (const h of rw.handlers) {
       router[h.method](h.path, (req, res) => {
         (async () => {
@@ -70,7 +70,7 @@ export default async function loadInterfaces(routes) {
       });
     }
     if (!rw.path) {
-      rw.path = `/api/v2/${file.name}`
+      rw.path = `/api/v2/${file.name}`;
     }
     routes.use(rw.path, router);
   }
