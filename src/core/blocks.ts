@@ -46,30 +46,6 @@ export default class Blocks {
     }
   }
 
-  public toAPIV1Block = (block) => {
-    if (!block) return undefined;
-    return {
-      id: block.id,
-      version: block.version,
-      timestamp: block.timestamp,
-      height: Number(block.height),
-      payloadHash: block.payloadHash,
-      previousBlock: block.prevBlockId,
-      numberOfTransactions: block.count,
-      totalFee: block.fees,
-      generatorPublicKey: block.delegate,
-      blockSignature: block.signature,
-      confirmations: this.getLastBlock().height - block.height,
-      transactions: !block.transactions ? undefined : this.modules.transactions.toAPIV1Transactions(block.transactions.filter(t => t.executed), block),
-
-      // "generatorId":  => missing
-      // "totalAmount" => missing
-      // "reward" => missing
-      // "payloadLength" => missing
-      // "totalForged" => missing
-    };
-  }
-
   // todo look at core/loader
   public getCommonBlock = async (peer, height) => {
     const lastBlockHeight = height;
@@ -78,7 +54,7 @@ export default class Blocks {
     try {
       data = await this.getIdSequence2(lastBlockHeight);
     } catch (e) {
-      return (`Failed to get lthis.ast block id sequence${e}`);
+      return (`Failed to get this.last block id sequence${e}`);
     }
 
     this.library.logger.trace('getIdSequence=========', data);
@@ -217,7 +193,7 @@ export default class Blocks {
   }
 
   public applyBlock = async (block: any) => {
-   global.app.logger.trace('enter applyblock');
+    global.app.logger.trace('enter applyblock');
     const appliedTransactions: any = {};
 
     try {
@@ -231,7 +207,7 @@ export default class Blocks {
         appliedTransactions[transaction.id] = transaction;
       }
     } catch (e) {
-     global.app.logger.error(e);
+      global.app.logger.error(e);
       await global.app.sdb.rollbackBlock();
       throw new Error(`Failed to apply block: ${e}`);
     }
@@ -374,29 +350,22 @@ export default class Blocks {
       global.app.sdb.increase('Account', { gny: fee + reward }, { address });
     }
 
-    const councilControl = 1;
-    if (councilControl) {
-      const councilAddress = 'GADQ2bozmxjBfYHDQx3uwtpwXmdhafUdkN';
-      global.app.sdb.createOrLoad('Account', { gny: 0, address: councilAddress, name: null });
-      global.app.sdb.increase('Account', { gny: fees + rewards }, { address: councilAddress });
-    } else {
-      const ratio = 1;
+    const ratio = 1;
 
-      const actualFees = Math.floor(fees * ratio);
-      const feeAverage = Math.floor(actualFees / delegates.length);
-      const feeRemainder = actualFees - (feeAverage * delegates.length);
-      // let feeFounds = fees - actualFees
+    const actualFees = Math.floor(fees * ratio);
+    const feeAverage = Math.floor(actualFees / delegates.length);
+    const feeRemainder = actualFees - (feeAverage * delegates.length);
+    // let feeFounds = fees - actualFees
 
-      const actualRewards = Math.floor(rewards * ratio);
-      const rewardAverage = Math.floor(actualRewards / delegates.length);
-      const rewardRemainder = actualRewards - (rewardAverage * delegates.length);
-      // let rewardFounds = rewards - actualRewards
+    const actualRewards = Math.floor(rewards * ratio);
+    const rewardAverage = Math.floor(actualRewards / delegates.length);
+    const rewardRemainder = actualRewards - (rewardAverage * delegates.length);
+    // let rewardFounds = rewards - actualRewards
 
-      for (const fd of forgedDelegates) {
-        await updateDelegate(fd, feeAverage, rewardAverage);
-      }
-      await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
+    for (const fd of forgedDelegates) {
+      await updateDelegate(fd, feeAverage, rewardAverage);
     }
+    await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (block.height % 101 === 0) {
       this.modules.delegates.updateBookkeeper();
@@ -487,10 +456,9 @@ export default class Blocks {
     );
   }
 
-
   public generateBlock = async (keypair: any, timestamp: any) => {
     if (this.library.base.consensus.hasPendingBlock(timestamp)) {
-      return null;
+      return;
     }
     const unconfirmedList = this.modules.transactions.getUnconfirmedTransactionList();
     const payloadHash = crypto.createHash('sha256');
@@ -538,11 +506,11 @@ export default class Blocks {
       this.modules.transactions.clearUnconfirmed();
       await this.processBlock(block, { local: true, broadcast: true, votes: localVotes });
       this.library.logger.info(`Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(height)}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${block.reward}`);
-      return null;
+      return;
     }
     if (!this.library.config.publicIp) {
       this.library.logger.error('No public ip');
-      return null;
+      return;
     }
     const serverAddr = `${this.library.config.publicIp}:${this.library.config.peerPort}`;
     let propose;
@@ -550,14 +518,14 @@ export default class Blocks {
       propose = this.library.base.consensus.createPropose(keypair, block, serverAddr);
     } catch (e) {
       this.library.logger.error('Failed to create propose', e);
-      return null;
+      return;
     }
     this.library.base.consensus.setPendingBlock(block);
     this.library.base.consensus.addPendingVotes(localVotes);
     // this.proposeCache[propose.hash] = true
     this.privIsCollectingVotes = true;
     this.library.bus.message('newPropose', propose, true);
-    return null;
+    return;
   }
 
   // Events
@@ -742,8 +710,6 @@ public isHealthy = () => {
   const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
   return slots.getNextSlot() - lastSlot < 3 && !this.modules.loader.syncing();
 }
-
-
 
   cleanup = (cb) => {
     this.library.logger.debug('Cleaning up core/blocks');
