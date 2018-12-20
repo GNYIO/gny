@@ -3,8 +3,6 @@ import * as express from 'express';
 import Blockreward from '../../src/utils/block-reward';
 import { Modules, IScope } from '../../src/interfaces';
 import { Request, Response } from 'express';
-import { runInNewContext } from 'vm';
-import { resolve } from 'path';
 
 export default class BlocksApi  {
   private modules: Modules;
