@@ -619,37 +619,30 @@ public onReceivePropose = (propose: any) => {
     this.library.logger.info(`receive propose height ${propose.height} bid ${propose.id}`);
     return async.waterfall([
       (next) => {
-        this.modules.delegates.validateProposeSlot(propose, (err) => {
-          if (err) {
-            next(`Failed to validate propose slot: ${err}`);
-          } else {
-            next();
-          }
-        });
+        try {
+          this.modules.delegates.validateProposeSlot(propose);
+          next();
+        } catch (err) {
+          next(err.toString());
+        }
       },
       (next) => {
-        this.library.base.consensus.acceptPropose(propose, (err) => {
-          if (err) {
-            next(`Failed to accept propose: ${err}`);
-          } else {
-            next();
-          }
-        });
+        try {
+        let result = this.library.base.consensus.acceptPropose(propose);
+        next();
+        } catch (err) {
+          next(err);
+        }
       },
       (next) => {
-        this.modules.delegates.getActiveDelegateKeypairs(propose.height, (err, activeKeypairs) => {
-          if (err) {
-            next(`Failed to get active keypairs: ${err}`);
-          } else {
-            next(null, activeKeypairs);
-          }
-        });
+        const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
+        next(undefined, activeKeypairs);
       },
-      (activeKeypairs: any, next: any) => {
+      async (activeKeypairs: any, next: any) => {
         if (activeKeypairs && activeKeypairs.length > 0) {
           const votes = this.library.base.consensus.createVotes(activeKeypairs, propose);
           this.library.logger.debug(`send votes height ${votes.height} id ${votes.id} sigatures ${votes.signatures.length}`);
-          this.modules.transport.sendVotes(votes, propose.address);
+          await this.modules.transport.sendVotes(votes, propose.address);
           this.lastVoteTime = Date.now();
           this.lastPropose = propose;
         }

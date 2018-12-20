@@ -148,20 +148,16 @@ export default class Delegates {
     return results;
   }
 
-  public validateProposeSlot = (propose, cb) => {
-    this.generateDelegateList(propose.height, (err, activeDelegates) => {
-      if (err) {
-        return cb(err);
-      }
-      const currentSlot = slots.getSlotNumber(propose.timestamp);
-      const delegateKey = activeDelegates[currentSlot % slots.delegates];
+  public validateProposeSlot = (propose) => {
+    const activeDelegates = this.generateDelegateList(propose.height);
+    const currentSlot = slots.getSlotNumber(propose.timestamp);
+    const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
-      if (delegateKey && propose.generatorPublicKey === delegateKey) {
-        return cb();
-      }
+    if (delegateKey && propose.generatorPublicKey === delegateKey) {
+      return;
+    }
 
-      return cb('Failed to validate propose slot');
-    });
+    throw new Error('Failed to validate propose slot');
   }
 
   public generateDelegateList = (height: any): string[] => {
