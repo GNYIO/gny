@@ -86,12 +86,16 @@ export class Consensus {
       return this.pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
+      interface Signature {
+        publicKey: string;
+        signature: string;
+      }
       const item = votes.signatures[i];
-      if (this.votesKeySet[item.key]) {
+      if (this.votesKeySet[item.publicKey]) {
         continue;
       }
       if (this.verifyVote(votes.height, votes.id, item)) {
-        this.votesKeySet[item.key] = true;
+        this.votesKeySet[item.publicKey] = true;
         if (!this.pendingVotes) {
           this.pendingVotes = {
             height: votes.height,
@@ -108,6 +112,9 @@ export class Consensus {
   public hasEnoughVotes(votes: ManyVotes) {
     return votes && votes.signatures && (votes.signatures.length > DELEGATES * 2 / 3);
   }
+
+  public hasEnoughVotesRemote = (votes) => votes && votes.signatures
+  && votes.signatures.length >= 6
 
   public setPendingBlock(block) {
     this.pendingBlock = block;

@@ -605,7 +605,7 @@ public onReceivePropose = (propose: any) => {
       return setImmediate(cb);
     }
     if (propose.height !== this.lastBlock.height + 1) {
-      this.library.logger.debug('invalid propose height', propose);
+      this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
       if (propose.height > this.lastBlock.height + 1) {
         this.library.logger.info(`receive discontinuous propose height ${propose.height}`);
         this.modules.loader.startSyncBlocks();
