@@ -1,4 +1,4 @@
-import { IScope } from "../interfaces";
+import { IScope } from '../interfaces';
 
 export default class Server {
   private isLoaded = false;
@@ -15,8 +15,8 @@ export default class Server {
   }
 
   cleanup = (cb) => {
-    this.library.logger.debug('Cleaning up core/server')
+    this.library.logger.debug('Cleaning up core/server');
     this.isLoaded = false;
-    cb()
+    cb();
   }
 }

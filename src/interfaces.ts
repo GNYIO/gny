@@ -1,37 +1,37 @@
 
-import server from './core/server'
-import accounts from './core/accounts'
-import transactions from './core/transactions'
-import loader from './core/loader'
-import system from './core/system'
-import peer from './core/peer'
-import transport from './core/transport'
-import delegates from './core/delegates'
-import round from './core/round'
-import uia from './core/uia'
-import blocks from './core/blocks'
+import server from './core/server';
+import accounts from './core/accounts';
+import transactions from './core/transactions';
+import loader from './core/loader';
+import system from './core/system';
+import peer from './core/peer';
+import transport from './core/transport';
+import delegates from './core/delegates';
+import round from './core/round';
+import uia from './core/uia';
+import blocks from './core/blocks';
 
-import { Consensus as BaseConsensus } from './base/consensus'
-import { Transaction as BaseTransaction } from './base/transaction'
-import { Block as BaseBlock } from './base/block'
+import { Consensus as BaseConsensus } from './base/consensus';
+import { Transaction as BaseTransaction } from './base/transaction';
+import { Block as BaseBlock } from './base/block';
 
-import { Protobuf } from './utils/protobuf'
-import * as tracer from 'tracer'
-import * as zSchema from 'z-schema'
+import { Protobuf } from './utils/protobuf';
+import * as tracer from 'tracer';
+import * as zSchema from 'z-schema';
 
-import Sequence from './utils/sequence'
+import Sequence from './utils/sequence';
 import { EventEmitter } from 'events';
 
 // IServer import
-import * as express from 'express'
-import { Server } from 'http'
-import * as SocketIO from 'socket.io'
+import * as express from 'express';
+import { Server } from 'http';
+import * as SocketIO from 'socket.io';
 
 // IApp
 import { AschCore } from 'asch-smartdb';
-import BalanceManager from './smartdb/balance-manager'
-import AutoIncrement from './smartdb/auto-increment'
-import * as bignumber from 'bignumber'
+import BalanceManager from './smartdb/balance-manager';
+import AutoIncrement from './smartdb/auto-increment';
+import * as bignumber from 'bignumber';
 
 declare interface IBase {
   bus: any;
@@ -73,11 +73,11 @@ export interface Modules {
 
 
 export interface IMessageEmitter {
-  message: (topic: string, ...restArgs: any[]) => void
+  message: (topic: string, ...restArgs: any[]) => void;
 }
 
 export interface INetwork {
-  express: typeof express
+  express: typeof express;
   app: express.Application;
   server: Server;
   io: SocketIO.Server;
@@ -105,8 +105,8 @@ interface IValidators {
   string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
-type ICurrency = string
-type IFee = string
+type ICurrency = string;
+type IFee = string;
 
 interface ICurrencyFee {
   currency: ICurrency;
@@ -128,7 +128,7 @@ interface IApp {
   };
   contract: {
     [name: string]: any;
-  }
+  };
   registerFee: (type: number, min: string, currency: string) => void;
   defaultFee: ICurrencyFee;
   feeMapping: {
@@ -178,7 +178,7 @@ export interface IGenesisBlock {
 }
 
 
-type ILogLevel = "trace" | "debug" | "log" | "info" | "warn" | "error" | "fatal"
+type ILogLevel = 'trace' | 'debug' | 'log' | 'info' | 'warn' | 'error' | 'fatal';
 
 
 export interface IConfig {
