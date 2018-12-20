@@ -83,7 +83,8 @@
     "bignumber.js": "^8.0.1",
     "bip39": "^2.5.0",
     "bs58": "^3.0.0",
-    "protobufjs": "^6.8.8"
+    "protobufjs": "^6.8.8",
+    "axios": "^0.18.0"
   },
   "devDependencies": {
     "eslint": "^5.5.0",
