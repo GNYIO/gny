@@ -9,4 +9,4 @@ export default function(options) {
     req.query = parseNums(req.query, options);
     next();
   };
-};
+}

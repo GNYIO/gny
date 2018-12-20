@@ -10,16 +10,16 @@ function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
     const payloadHash = crypto.createHash('sha256');
 
     for (let i = 0; i < block.transactions.length; i++) {
-      const trs = block.transactions[i]
+      const trs = block.transactions[i];
       const bytes = scope.base.transaction.getBytes(trs);
-      payloadHash.update(bytes)
+      payloadHash.update(bytes);
     }
     const id = scope.base.block.getId(block);
     assert.equal(
       payloadHash.digest().toString('hex'),
       block.payloadHash,
       'Unexpected payloadHash',
-    )
+    );
     assert.equal(id, block.id, 'Unexpected block id');
   } catch (e) {
     throw e;
@@ -54,7 +54,7 @@ export default class Application {
       scope.logger.info('Cleaning up...');
 
       try {
-        for (let key in scope.modules) {
+        for (const key in scope.modules) {
           if (scope.modules[key].hasOwnProperty('cleanup')) {
             scope.modules[key].cleanup(cb);
           }
@@ -66,52 +66,52 @@ export default class Application {
       }
 
       if (fs.existsSync(pidFile)) {
-        fs.unlinkSync(pidFile)
+        fs.unlinkSync(pidFile);
       }
-      process.exit(1)
-    })
+      process.exit(1);
+    });
 
     process.once('SIGTERM', () => {
       process.emit('cleanup');
-    })
+    });
 
     process.once('exit', () => {
-      scope.logger.info('process exited')
-    })
+      scope.logger.info('process exited');
+    });
 
     process.once('SIGINT', () => {
-      process.emit('cleanup')
-    })
+      process.emit('cleanup');
+    });
 
     process.on('uncaughtException', (err) => {
       // handle the error safely
-      scope.logger.fatal('uncaughtException', { message: err.message, stack: err.stack })
-      process.emit('cleanup')
-    })
+      scope.logger.fatal('uncaughtException', { message: err.message, stack: err.stack });
+      process.emit('cleanup');
+    });
 
     process.on('unhandledRejection', (err) => {
       // handle the error safely
-      scope.logger.error('unhandledRejection', err)
-      process.emit('cleanup')
-    })
+      scope.logger.error('unhandledRejection', err);
+      process.emit('cleanup');
+    });
 
-    verifyGenesisBlock(scope, scope.genesisBlock)
+    verifyGenesisBlock(scope, scope.genesisBlock);
 
     options.library = scope;
 
     try {
-      await initRuntime(options)
+      await initRuntime(options);
     } catch (e) {
-      scope.logger.error('init runtime error: ', e)
-      process.exit(1)
-      return
+      scope.logger.error('init runtime error: ', e);
+      process.exit(1);
+      return;
     }
 
-    scope.bus.message('bind', scope.modules)
+    scope.bus.message('bind', scope.modules);
 
-    scope.logger.info('Modules ready and launched')
+    scope.logger.info('Modules ready and launched');
     if (!scope.config.publicIp) {
-      scope.logger.warn('Failed to get public ip, block forging MAY not work!')
+      scope.logger.warn('Failed to get public ip, block forging MAY not work!');
     }
   }
 }

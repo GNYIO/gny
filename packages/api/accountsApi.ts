@@ -1,5 +1,5 @@
 import * as express from 'express';
-import * as ed from '../../src/utils/ed'
+import * as ed from '../../src/utils/ed';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as addressHelper from '../../src/utils/address';
 import * as crypto from 'crypto';
@@ -91,7 +91,7 @@ export default class AccountsApi {
       },
       required: ['address'],
     });
-    
+
     if (!report) {
       return this.library.scheme.getLastError();
     }
@@ -135,7 +135,7 @@ export default class AccountsApi {
     const publicKey = keyPair.publicKey.toString('hex');
     const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
 
-    let accountInfoOrError = await this.modules.accounts.getAccount(address);
+    const accountInfoOrError = await this.modules.accounts.getAccount(address);
     if (typeof accountInfoOrError === 'string') {
       return accountInfoOrError;
     }
@@ -172,12 +172,12 @@ export default class AccountsApi {
       },
       required: ['address'],
     });
-    
+
     if (!report) {
       return this.library.scheme.getLastError();
     }
 
-    let accountInfoOrError = await this.modules.accounts.getAccount(query.address);
+    const accountInfoOrError = await this.modules.accounts.getAccount(query.address);
     if (typeof accountInfoOrError === 'string') {
       return accountInfoOrError;
     }

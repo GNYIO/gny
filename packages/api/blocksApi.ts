@@ -28,9 +28,9 @@ export default class BlocksApi  {
     const router = express.Router();
 
     router.use((req, res, next) => {
-      if (this.modules) return next()
+      if (this.modules) return next();
       return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-    })
+    });
 
     // Mapping
     router.get('/get', this.getBlock);
@@ -44,14 +44,14 @@ export default class BlocksApi  {
     // Configuration
     router.use((req: Request, res: Response) => {
       res.status(500).send({ success: false, error: 'API endpoint not found' });
-    })
+    });
 
-    this.library.network.app.use('/api/blocks', router)
+    this.library.network.app.use('/api/blocks', router);
     this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
+      if (!err) return next();
       this.library.logger.error(req.url, err.toString());
       return res.status(500).send({ success: false, error: err.toString() });
-    })
+    });
   }
 
   private getBlock = async (req: Request, res: Response, next) => {

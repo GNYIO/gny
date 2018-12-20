@@ -1,9 +1,9 @@
 function isDirectMode(mode) {
-  return (mode === undefined || mode === null || mode === 0)
+  return (mode === undefined || mode === null || mode === 0);
 }
 
 function isRequestMode(mode) {
-  return mode === 1
+  return mode === 1;
 }
 
 export default {
@@ -11,4 +11,4 @@ export default {
   REQUEST: 1,
   isDirectMode,
   isRequestMode,
-}
+};

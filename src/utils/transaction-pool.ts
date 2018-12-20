@@ -13,34 +13,34 @@ export default class TransactionPool {
   }
 
   public remove(id: string) {
-    const pos = this.index.get(id)
-    delete this.index[id]
-    this.unConfirmed[pos] = null
+    const pos = this.index.get(id);
+    delete this.index[id];
+    this.unConfirmed[pos] = null;
   }
 
   public has(id: string) {
-    const pos = this.index.get(id)
-    return pos !== undefined && !!this.unConfirmed[pos]
+    const pos = this.index.get(id);
+    return pos !== undefined && !!this.unConfirmed[pos];
   }
 
   public getUnconfirmed() {
-    const a: any[] = []
+    const a: any[] = [];
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {
-        a.push(this.unConfirmed[i])
+        a.push(this.unConfirmed[i]);
       }
     }
-    return a
+    return a;
   }
 
   public clear() {
-    this.index = new Map()
-    this.unConfirmed = []
+    this.index = new Map();
+    this.unConfirmed = [];
   }
 
   public get(id: string) {
-    const pos = this.index.get(id)
-    return this.unConfirmed[pos]
+    const pos = this.index.get(id);
+    return this.unConfirmed[pos];
   }
 }

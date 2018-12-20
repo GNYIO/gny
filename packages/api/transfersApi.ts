@@ -18,7 +18,7 @@ export default class TransfersApi {
     const assetNameList = Array.from(assetNames.keys());
     const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
     const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
-  
+
     if (uiaNameList && uiaNameList.length) {
       const assets = await global.app.sdb.findAll('Asset', {
         condition: {
@@ -44,7 +44,7 @@ export default class TransfersApi {
 
   // helper function
   private getTransactionMap = async (tids) => {
-    const trsMap = new Map()
+    const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
         id: { $in: tids },
@@ -77,8 +77,8 @@ export default class TransfersApi {
     if (req.query.recipientId) {
       condition.recipientId = req.query.recipientId;
     }
-    const count = await global.app.sdb.count('Transfer', condition)
-    let transfers = []
+    const count = await global.app.sdb.count('Transfer', condition);
+    let transfers = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,
@@ -122,8 +122,8 @@ export default class TransfersApi {
     }
     condition.currency = 'GNY';
 
-    const count = await global.app.sdb.count('Transfer', condition)
-    let transfers = []
+    const count = await global.app.sdb.count('Transfer', condition);
+    let transfers = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,

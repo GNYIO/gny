@@ -1,10 +1,10 @@
 import * as crypto from 'crypto';
 import * as ed from '../../src/utils/ed';
 import * as express from 'express';
-import { Modules, IScope, KeyPair } from "../../src/interfaces";
+import { Modules, IScope, KeyPair } from '../../src/interfaces';
 
 export default class TransactionsApi {
-  private modules : Modules;
+  private modules: Modules;
   private library: IScope;
   constructor(modules: Modules, scope: IScope) {
     this.modules = modules;
@@ -267,8 +267,8 @@ export default class TransactionsApi {
     const router = express.Router();
 
     router.use((req, res, next) => {
-      if (this.modules) return next()
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' })
+      if (this.modules) return next();
+      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
     });
 
     router.get('/', this.getTransactions);
@@ -287,14 +287,14 @@ export default class TransactionsApi {
     // });
 
     router.use((req: any, res: any) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' })
+      res.status(500).send({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/api/transactions', router);
     this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString())
-      return res.status(500).send({ success: false, error: err.toString() })
+      if (!err) return next();
+      this.library.logger.error(req.url, err.toString());
+      return res.status(500).send({ success: false, error: err.toString() });
     });
   }
 }

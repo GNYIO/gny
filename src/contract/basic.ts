@@ -1,8 +1,8 @@
 async function doCancelVote(account) {
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } })
+  const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } });
   if (voteList && voteList.length > 0 && account.weight > 0) {
     for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -account.weight }, { name: voteItem.delegate })
+      global.app.sdb.increase('Delegate', { votes: -account.weight }, { name: voteItem.delegate });
     }
   }
 }
@@ -217,12 +217,12 @@ export default {
 
 
   async registerDelegate() {
-    const senderId = this.sender.address
-    if (this.block.height > 0) global.app.sdb.lock(`basic.account@${senderId}`)
-    const sender = this.sender
-    if (!sender) return 'Account not found'
-    if (!sender.username) return 'Account has not a name'
-    if (sender.role) return 'Account already have a role'
+    const senderId = this.sender.address;
+    if (this.block.height > 0) global.app.sdb.lock(`basic.account@${senderId}`);
+    const sender = this.sender;
+    if (!sender) return 'Account not found';
+    if (!sender.username) return 'Account has not a name';
+    if (sender.role) return 'Account already have a role';
 
     global.app.sdb.create('Delegate', {
       address: senderId,
@@ -234,7 +234,7 @@ export default {
       missedBlocks: 0,
       fees: 0,
       rewards: 0,
-    })
+    });
     sender.isDelegate = 1;
     sender.role = global.app.AccountRole.DELEGATE;
     global.app.sdb.update('Account', { isDelegate: 1, role: global.app.AccountRole.DELEGATE }, { address: senderId });

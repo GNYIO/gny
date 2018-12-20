@@ -12,7 +12,7 @@ class Slots {
   }
 
   getTime(time: number | undefined) {
-    return this.getEpochTime(time)
+    return this.getEpochTime(time);
   }
 
   getRealTime(epochTime) {

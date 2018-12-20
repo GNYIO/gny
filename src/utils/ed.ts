@@ -6,7 +6,7 @@ export function generateKeyPair(hash: Buffer): KeyPair {
   return <KeyPair> {
     publicKey: keypair.publicKey,
     privateKey: keypair.secretKey,
-  }
+  };
 }
 
 export function sign(hash: Buffer, privateKey: Buffer) {
