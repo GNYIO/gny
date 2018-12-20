@@ -3,11 +3,11 @@ import * as ip from 'ip';
 import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
-import request = require('request');
+import requestLib = require('request');
+import axios from 'axios';
 import { promisify } from 'util';
 import Database = require('nedb');
 import { Modules, IScope } from '../interfaces';
-
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000;
 const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000;
 const MAX_BOOTSTRAP_PEERS = 25;
@@ -219,7 +219,34 @@ export default class Peer {
     this.dht.broadcast(message);
   }
 
-  request = (method: any, params: any, contact: any, cb: any) => {
+  public request = async (endpoint: string, httpParams: any, contact: { host: string; port: number; }, timeout?: number) => {
+    const address = `${contact.host}:${contact.port - 1}`;
+    const uri = `http://${address}/peer/${endpoint}`;
+    this.library.logger.debug(`start to request ${uri}`);
+    const headers = {
+      magic: global.Config.magic,
+      version: global.Config.version,
+    };
+
+    let result;
+    try {
+      const config = {
+        headers: headers,
+        responseType: 'json',
+        timeout: undefined || timeout
+      };
+      result = await axios.post(uri, httpParams, config);
+      if (result.status !== 200) {
+        throw new Error(`Invalid status code: ${result.statusCode}`)
+      }
+      return result.data;
+    } catch (err) {
+      this.library.logger.error(`Failed to request remote peer: ${err}`);
+      throw err;
+    }
+  }
+
+  public requestCB = (method: any, params: any, contact: any, cb: any) => {
     const address = `${contact.host}:${contact.port - 1}`;
     const uri = `http://${address}/peer/${method}`;
     this.library.logger.debug(`start to request ${uri}`);
@@ -233,7 +260,7 @@ export default class Peer {
       },
       json: true,
     };
-    request(reqOptions, (err, response, result) => {
+    requestLib(reqOptions, (err, response, result) => {
       if (err) {
         return cb(`Failed to request remote peer: ${err}`);
       } else if (response.statusCode !== 200) {
@@ -244,7 +271,19 @@ export default class Peer {
     });
   }
 
-  randomRequest = (method: any, params: any, cb: any) => {
+  public randomRequestAsync = async (method: string, params: any) => {
+    const randomNode = this.dht.getRandomNode();
+    if (!randomNode) throw new Error('no contact');
+    this.library.logger.debug('select random contract', randomNode);
+    try {
+      const result = await this.request(method, params, randomNode, 4000);
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  public randomRequest = (method: any, params: any, cb: any) => {
     const randomNode = this.dht.getRandomNode();
     if (!randomNode) return cb('No contact');
     this.library.logger.debug('select random contract', randomNode);
@@ -254,7 +293,7 @@ export default class Peer {
       isCallbacked = true;
       cb('Timeout', undefined, randomNode);
     }, 4000);
-    return this.request(method, params, randomNode, (err, result) => {
+    return this.requestCB(method, params, randomNode, (err, result) => {
       if (isCallbacked) return;
       isCallbacked = true;
       cb(err, result, randomNode);

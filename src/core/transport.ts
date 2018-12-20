@@ -52,7 +52,7 @@ export default class Transport {
         return;
       }
       this.library.logger.info('Receive new block header', { height, id });
-      this.modules.peer.request('newBlock', { id }, peer, (err, result) => {
+      this.modules.peer.requestCB('newBlock', { id }, peer, (err, result) => {
         if (err) {
           this.library.logger.error('Failed to get latest block data', err);
           return;
@@ -156,17 +156,17 @@ export default class Transport {
     this.broadcast('propose', message);
   }
 
-  public sendVotes = (votes, address) => {
+  public sendVotes = async (votes, address) => {
     const parts = address.split(':');
     const contact = {
       host: parts[0],
       port: parts[1],
     };
-    this.modules.peer.request('votes', { votes }, contact, (err) => {
-      if (err) {
-        this.library.logger.error('send votes error', err);
-      }
-    });
+    try {
+      const result = await this.modules.peer.request('votes', { votes }, contact);
+    } catch (err) {
+      this.library.logger.error('send votes error', err);
+    }
   }
 
   public cleanup = (cb: any) => {
@@ -180,18 +180,5 @@ export default class Transport {
     // self.broadcast('chainMessage', msg)
 
     cb(null, {});
-  }
-
-  public request = (req, cb) => {
-    if (req.body.peer) {
-      this.modules.peer.request('chainRequest', req, req.body.peer, (err, res) => {
-        if (res) {
-          res.peer = req.body.peer;
-        }
-        cb(err, res);
-      });
-    } else {
-      this.modules.peer.randomRequest('chainRequest', req, cb);
-    }
   }
 }
