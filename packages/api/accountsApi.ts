@@ -4,7 +4,6 @@ import * as Mnemonic from 'bitcore-mnemonic';
 import * as addressHelper from '../../src/utils/address';
 import * as crypto from 'crypto';
 import { Modules, IScope } from '../../src/interfaces';
-import PIFY from 'pify';
 
 export default class AccountsApi {
   private modules: Modules;
