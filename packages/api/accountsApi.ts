@@ -230,7 +230,7 @@ export default class AccountsApi {
           for (const v of votes) {
             delegateNames.add(v.delegate);
           }
-          const delegates = await PIFY(modules.delegates.getDelegates)({});
+          const delegates = this.modules.delegates.getDelegates();
           if (!delegates || !delegates.length) {
             return { delegates: [] };
           }

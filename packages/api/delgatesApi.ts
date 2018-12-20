@@ -70,9 +70,9 @@ export default class DelegatesApi {
     });
   }
 
-  public getDelegate = (req, cb) => {
+  public getDelegate = (req, res, next) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
+    const report = this.library.scheme.validate(query, {
       type: 'object',
       properties: {
         publicKey: {
@@ -85,36 +85,35 @@ export default class DelegatesApi {
           type: 'string',
         },
       },
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message);
+    });
+
+    if (!report) {
+      return next(this.library.scheme.getLastError());
+    }
+
+    const delegates = this.modules.delegates.getDelegates();
+    if (!delegates) {
+      return next('no delegates');
+    }
+
+    const delegate = delegates.find((d) => {
+      if (query.publicKey) {
+        return d.publicKey === query.publicKey;
+      }
+      if (query.address) {
+        return d.address === query.address;
+      }
+      if (query.name) {
+        return d.name === query.name;
       }
 
-      return this.modules.delegates.getDelegates(query, (err2, delegates) => {
-        if (err2) {
-          return cb(err2);
-        }
-
-        const delegate = delegates.find((d) => {
-          if (query.publicKey) {
-            return d.publicKey === query.publicKey;
-          }
-          if (query.address) {
-            return d.address === query.address;
-          }
-          if (query.name) {
-            return d.name === query.name;
-          }
-
-          return false;
-        });
-
-        if (delegate) {
-          return cb(null, { delegate });
-        }
-        return cb('Delegate not found');
-      });
+      return false;
     });
+
+    if (delegate) {
+      return res.json({ delegate });
+    }
+    return next('Delegate not found');
   }
 
   public getDelegates = (req, cb) => {
