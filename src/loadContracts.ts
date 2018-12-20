@@ -9,7 +9,7 @@ interface ModuleWrapper {
 
 function addContract(contract: ModuleWrapper) {
   if (contract.name !== 'index.js') {
-    global.app.contract[contract.name] = contract.module
+    global.app.contract[contract.name] = contract.module;
   }
 }
 

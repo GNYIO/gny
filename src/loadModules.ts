@@ -1,33 +1,32 @@
-import Server from './core/server'
-import Accounts from './core/accounts'
-import Transactions from './core/transactions'
-import Loader from './core/loader'
-import System from './core/system'
-import Peer from './core/peer'
-import Transport from './core/transport'
-import Delegates from './core/delegates'
-import Round from './core/round'
-import Uia from './core/uia'
-import Blocks from './core/blocks'
+import Server from './core/server';
+import Accounts from './core/accounts';
+import Transactions from './core/transactions';
+import Loader from './core/loader';
+import System from './core/system';
+import Peer from './core/peer';
+import Transport from './core/transport';
+import Delegates from './core/delegates';
+import Round from './core/round';
+import Uia from './core/uia';
+import Blocks from './core/blocks';
 
-import { Modules, IScope } from './interfaces'
-
+import { Modules, IScope } from './interfaces';
 
 export default function loadModules(scope: IScope) {
 
-  let server = new Server(scope)
-  let accounts = new Accounts(scope)
-  let transactions = new Transactions(scope)
-  let loader = new Loader(scope)
-  let system = new System(scope)
-  let peer = new Peer(scope)
-  let transport = new Transport(scope)
-  let delegates = new Delegates(scope)
-  let round = new Round(scope)
-  let uia = new Uia(scope)
-  let blocks = new Blocks(scope)
+  const server = new Server(scope);
+  const accounts = new Accounts(scope);
+  const transactions = new Transactions(scope);
+  const loader = new Loader(scope);
+  const system = new System(scope);
+  const peer = new Peer(scope);
+  const transport = new Transport(scope);
+  const delegates = new Delegates(scope);
+  const round = new Round(scope);
+  const uia = new Uia(scope);
+  const blocks = new Blocks(scope);
 
-  let modules : Modules = {
+  const modules: Modules = {
     server: server,
     accounts: accounts,
     transactions: transactions,
@@ -39,6 +38,6 @@ export default function loadModules(scope: IScope) {
     round: round,
     uia: uia,
     blocks: blocks
-  }
-  return modules
+  };
+  return modules;
 }

@@ -40,5 +40,5 @@ export default async function loadModels() {
   schemas.push(createModelSchema({ class: variable, name: 'variable' }));
   schemas.push(createModelSchema({ class: vote, name: 'vote' }));
 
-  await global.app.sdb.init(schemas)
+  await global.app.sdb.init(schemas);
 }
