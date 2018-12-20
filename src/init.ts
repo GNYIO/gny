@@ -188,6 +188,14 @@ async function init_alt(options: any) {
           module[eventName].apply(module[eventName], [...restArgs]);
         }
       });
+
+      Object.keys(scope.coreApi).forEach((apiName) => {
+        const oneApi = scope.coreApi[apiName];
+        const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
+        if (typeof (oneApi[eventName]) === 'function') {
+          oneApi[eventName].apply(oneApi[eventName], [...restArgs]);
+        }
+      });
       this.emit(topic, ...restArgs);
     }
   }
