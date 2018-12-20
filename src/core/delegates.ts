@@ -58,34 +58,34 @@ export default class Delegates {
   public loop = () => {
     if (!this.isForgingEnabled) {
       this.library.logger.trace('Loop:', 'forging disabled');
-      return null;
+      return;
     }
     if (!Object.keys(this.keyPairs).length) {
       this.library.logger.trace('Loop:', 'no delegates');
-      return null;
+      return;
     }
 
     if (!this.loaded || this.modules.loader.syncing()) {
       this.library.logger.trace('Loop:', 'node not ready');
-      return null;
+      return;
     }
 
     const currentSlot = slots.getSlotNumber();
     const lastBlock = this.modules.blocks.getLastBlock();
 
     if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-      return null;
+      return;
     }
 
     if (Date.now() % 10000 > 5000) {
       this.library.logger.trace('Loop:', 'maybe too late to collect votes');
-      return null;
+      return;
     }
 
     const currentBlockData = this.getBlockSlotData(currentSlot, lastBlock.height + 1);
     if (!currentBlockData) {
       this.library.logger.trace('Loop:', 'skipping slot');
-      return null;
+      return;
     }
 
     // this.library.sequence.add(done => (async () => { }))
@@ -97,7 +97,7 @@ export default class Delegates {
         }
       } catch (e) {
         this.library.logger.error('Failed generate block within slot:', e);
-        return null;
+        return;
       }
     })();
   }
@@ -112,7 +112,7 @@ export default class Delegates {
     try {
       const delegates = global.app.sdb.getAll('Delegate');
       if (!delegates || !delegates.length) {
-        return 'Delegates not found in db';
+        return 'Delegates not found in database';
       }
       const delegateMap = new Map();
       for (const d of delegates) {
@@ -136,7 +136,7 @@ export default class Delegates {
   public getActiveDelegateKeypairs = (height) => {
     const delegates = this.generateDelegateList(height);
     if (!delegates) {
-      return null;
+      return;
     }
 
     const results: KeyPair[] = [];
@@ -187,7 +187,6 @@ export default class Delegates {
     }
   }
 
-
   public fork = (block, cause) => {
     this.library.logger.info('Fork', {
       delegate: block.delegate,
@@ -214,7 +213,6 @@ export default class Delegates {
     throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
   }
 
-  // fixme ?? : get method should not modify anything....
   public getDelegates = (query, cb) => {
     let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d));
     if (!delegates || !delegates.length) return cb('No delegates');
