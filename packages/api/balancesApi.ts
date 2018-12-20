@@ -8,6 +8,23 @@ export default class BalancesApi {
     this.attachApi();
   }
 
+  private attachApi = () => {
+    const router = express.Router();
+
+    router.get('/:address', this.getBalance);
+    router.get('/:address/:currency', this.getAddressCurrencyBalance);
+
+    this.library.network.app.use('/api/balances', router);
+    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err);
+      return res.status(500).send({
+        success: false,
+        error: err.toString(),
+      });
+    });
+  }
+
   private getBalance = async (req) => {
     const offset = req.query.offset ? Number(req.query.offset) : 0
     const limit = req.query.limit ? Number(req.query.limit) : 20
@@ -72,20 +89,5 @@ export default class BalancesApi {
     return { balance }
   }
 
-  private attachApi = () => {
-    const router = express.Router();
 
-    router.get('/:address', this.getBalance);
-    router.get('/:address/:currency', this.getAddressCurrencyBalance);
-
-    this.library.network.app.use('/api/balances', router);
-    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err);
-      return res.status(500).send({
-        success: false,
-        error: err.toString(),
-      });
-    });
-  }
 }
