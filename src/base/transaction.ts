@@ -65,7 +65,7 @@ export class Transaction {
     if (transaction.mode) {
       byteBuffer.writeInt(transaction.mode);
     }
-  
+
     if (transaction.message) byteBuffer.writeString(transaction.message);
     if (transaction.args) {
       let args;
@@ -78,7 +78,7 @@ export class Transaction {
       }
       byteBuffer.writeString(args);
     }
-  
+
     // FIXME
     if (!skipSignature && transaction.signatures) {
       for (const signature of transaction.signatures) {
@@ -88,14 +88,14 @@ export class Transaction {
         }
       }
     }
-  
+
     if (!skipSecondSignature && transaction.secondSignature) {
     const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
       for (let i = 0; i < secondSignatureBuffer.length; i++) {
         byteBuffer.writeByte(secondSignatureBuffer[i]);
       }
     }
-  
+
     byteBuffer.flip();
 
     return byteBuffer.toBuffer() as Buffer;
@@ -250,7 +250,7 @@ export class Transaction {
       this.library.logger.error(`Failed to normalize transaction body: ${this.library.scheme.getLastError().details[0].message}`, transaction);
       throw Error(this.library.scheme.getLastError().toString());
     }
-  
+
     return transaction;
   }
 }

@@ -27,8 +27,8 @@ export default class Round {
   }
 
   cleanup = (cb) => {
-    this.library.logger.debug('Cleaning up core/round')
+    this.library.logger.debug('Cleaning up core/round');
     this.isloaded = false;
-    cb()
+    cb();
   }
 }

@@ -60,7 +60,7 @@ export class Consensus {
       signatures: [],
     };
     keypairs.forEach((kp: KeyPair) => {
-      let privateKeyBuffer = Buffer.from(kp.privateKey);
+      const privateKeyBuffer = Buffer.from(kp.privateKey);
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
         signature: ed.sign(hash, privateKeyBuffer).toString('hex'),
@@ -159,32 +159,32 @@ export class Consensus {
     const hash = this.getProposeHash(propose);
     propose.hash = hash.toString('hex');
 
-    let privateKeyBuffer = Buffer.from(keypair.privateKey);
+    const privateKeyBuffer = Buffer.from(keypair.privateKey);
     propose.signature = ed.sign(hash, privateKeyBuffer).toString('hex');
 
     return propose;
   }
 
   private getProposeHash(propose) {
-    const byteBuffer = new ByteBuffer()
-    byteBuffer.writeLong(propose.height)
-    byteBuffer.writeString(propose.id)
-  
-    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex')
+    const byteBuffer = new ByteBuffer();
+    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeString(propose.id);
+
+    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
     for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-      byteBuffer.writeByte(generatorPublicKeyBuffer[i])
+      byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
     }
-  
-    byteBuffer.writeInt(propose.timestamp)
-  
-    const parts = propose.address.split(':')
-    assert(parts.length === 2)
-    byteBuffer.writeInt(ip.toLong(parts[0]))
-    byteBuffer.writeInt(Number(parts[1]))
-  
-    byteBuffer.flip()
+
+    byteBuffer.writeInt(propose.timestamp);
+
+    const parts = propose.address.split(':');
+    assert(parts.length === 2);
+    byteBuffer.writeInt(ip.toLong(parts[0]));
+    byteBuffer.writeInt(Number(parts[1]));
+
+    byteBuffer.flip();
     const buffer = byteBuffer.toBuffer() as Buffer;
-    return crypto.createHash('sha256').update(buffer).digest()
+    return crypto.createHash('sha256').update(buffer).digest();
   }
 
   public acceptPropose(propose) {
