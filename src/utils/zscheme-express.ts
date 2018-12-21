@@ -11,7 +11,7 @@ export default zscheme => (req, res, next) => {
         },
         value,
       ),
-    )
-  }
-  next()
-}
+    );
+  };
+  next();
+};

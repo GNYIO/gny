@@ -15,7 +15,7 @@ export default class LoaderApi {
 
   // Events
   public onBlockchainReady = () => {
-    this.isLoaded = true
+    this.isLoaded = true;
   }
 
   public status = (req, cb) => {
@@ -23,7 +23,7 @@ export default class LoaderApi {
       loaded: this.isLoaded,
       now: this.modules.loader.loadingLastBlock.height,
       blocksCount: this.modules.loader.total,
-    })
+    });
   }
 
 
@@ -32,7 +32,7 @@ export default class LoaderApi {
       syncing: this.modules.loader.syncing(),
       blocks: this.modules.loader.blocksToSync,
       height: this.modules.blocks.getLastBlock().height,
-    })
+    });
   }
 
   private attachApi = () => {
@@ -40,12 +40,12 @@ export default class LoaderApi {
 
     router.get('/status', this.status);
     router.get('/status/sync', this.sync);
-  
-    this.library.network.app.use('/api/loader', router)
+
+    this.library.network.app.use('/api/loader', router);
     this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next()
-      this.library.logger.error(req.url, err.toString())
-      return res.status(500).send({ success: false, error: err.toString() })
-    })
+      if (!err) return next();
+      this.library.logger.error(req.url, err.toString());
+      return res.status(500).send({ success: false, error: err.toString() });
+    });
   }
 }

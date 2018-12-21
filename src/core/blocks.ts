@@ -63,11 +63,12 @@ export default class Blocks {
       min: data.firstHeight,
       ids: data.ids,
     };
-    debugger;
-    const [err2, ret] = await PIFY(this.modules.peer.request)('commonBlock', params, peer);
 
-    if (err2 || ret.error) {
-      return (err2 || ret.error.toString());
+    let ret;
+    try {
+      ret = await this.modules.peer.request('commonBlock', params, peer);
+    } catch (err) {
+      return err.toString();
     }
 
     if (!ret.common) {
@@ -409,43 +410,42 @@ export default class Blocks {
     let lastCommonBlockId = id;
     async.whilst(
       () => !loaded && count < 30,
-      (next) => {
+      async (next) => {
         count++;
         const limit = 200;
         const params = {
           limit,
           lastBlockId: lastCommonBlockId,
         };
-        this.modules.peer.request('blocks', params, peer, (err, body) => {
-          if (err) {
-            return next(`Failed to request remote peer: ${err}`);
+        let body;
+        try {
+          body = this.modules.peer.request('blocks', params, peer);
+        } catch (err) {
+          return next(`Failed to request remote peer: ${err}`);
+        }
+        if (!body) {
+          return next('Invalid response for blocks request');
+        }
+        const blocks = body.blocks;
+        if (!Array.isArray(blocks) || blocks.length === 0) {
+          loaded = true;
+          return next();
+        }
+        const num = Array.isArray(blocks) ? blocks.length : 0;
+        const address = `${peer.host}:${peer.port - 1}`;
+        this.library.logger.info(`Loading ${num} blocks from ${address}`);
+        try {
+          for (const block of blocks) {
+            await this.processBlock(block, { syncing: true });
+            lastCommonBlockId = block.id;
+            lastValidBlock = block;
+            global.app.logger.info(`Block ${block.id} loaded from ${address} at`, block.height);
           }
-          if (!body) {
-            return next('Invalid response for blocks request');
-          }
-          const blocks = body.blocks;
-          if (!Array.isArray(blocks) || blocks.length === 0) {
-            loaded = true;
-            return next();
-          }
-          const num = Array.isArray(blocks) ? blocks.length : 0;
-          const address = `${peer.host}:${peer.port - 1}`;
-          this.library.logger.info(`Loading ${num} blocks from ${address}`);
-          return (async () => {
-            try {
-              for (const block of blocks) {
-                await this.processBlock(block, { syncing: true });
-                lastCommonBlockId = block.id;
-                lastValidBlock = block;
-                global.app.logger.info(`Block ${block.id} loaded from ${address} at`, block.height);
-              }
-              return next();
-            } catch (e) {
-              global.app.logger.error('Failed to process synced block', e);
-              return cb(e);
-            }
-          })();
-        });
+          return next();
+        } catch (e) {
+          global.app.logger.error('Failed to process synced block', e);
+          return cb(e);
+        }
       },
       (err) => {
         if (err) {
@@ -605,7 +605,7 @@ public onReceivePropose = (propose: any) => {
       return setImmediate(cb);
     }
     if (propose.height !== this.lastBlock.height + 1) {
-      this.library.logger.debug('invalid propose height', propose);
+      this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
       if (propose.height > this.lastBlock.height + 1) {
         this.library.logger.info(`receive discontinuous propose height ${propose.height}`);
         this.modules.loader.startSyncBlocks();
@@ -619,37 +619,30 @@ public onReceivePropose = (propose: any) => {
     this.library.logger.info(`receive propose height ${propose.height} bid ${propose.id}`);
     return async.waterfall([
       (next) => {
-        this.modules.delegates.validateProposeSlot(propose, (err) => {
-          if (err) {
-            next(`Failed to validate propose slot: ${err}`);
-          } else {
-            next();
-          }
-        });
+        try {
+          this.modules.delegates.validateProposeSlot(propose);
+          next();
+        } catch (err) {
+          next(err.toString());
+        }
       },
       (next) => {
-        this.library.base.consensus.acceptPropose(propose, (err) => {
-          if (err) {
-            next(`Failed to accept propose: ${err}`);
-          } else {
-            next();
-          }
-        });
+        try {
+        let result = this.library.base.consensus.acceptPropose(propose);
+        next();
+        } catch (err) {
+          next(err);
+        }
       },
       (next) => {
-        this.modules.delegates.getActiveDelegateKeypairs(propose.height, (err, activeKeypairs) => {
-          if (err) {
-            next(`Failed to get active keypairs: ${err}`);
-          } else {
-            next(null, activeKeypairs);
-          }
-        });
+        const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
+        next(undefined, activeKeypairs);
       },
-      (activeKeypairs: any, next: any) => {
+      async (activeKeypairs: any, next: any) => {
         if (activeKeypairs && activeKeypairs.length > 0) {
           const votes = this.library.base.consensus.createVotes(activeKeypairs, propose);
           this.library.logger.debug(`send votes height ${votes.height} id ${votes.id} sigatures ${votes.signatures.length}`);
-          this.modules.transport.sendVotes(votes, propose.address);
+          await this.modules.transport.sendVotes(votes, propose.address);
           this.lastVoteTime = Date.now();
           this.lastPropose = propose;
         }

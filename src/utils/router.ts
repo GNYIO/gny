@@ -11,7 +11,7 @@ export default class Router {
 
   private map(root: any, config: any) {
     Object.keys(config).forEach((param) => {
-      const params = param.split(' ')
+      const params = param.split(' ');
       const method = params[0];
       const route = params[1];
       if (params.length !== 2 || ['post', 'get', 'put'].indexOf(method) === -1) {
@@ -21,14 +21,14 @@ export default class Router {
         const reqParams = {
           body: method === 'get' ? req.query : req.body,
           params: req.params,
-        }
+        };
         root[config[param]](reqParams, (err: String, res: Response) => {
           if (err) {
-            return res.json({ success: false, error: err })
+            return res.json({ success: false, error: err });
           }
-          return res.json(_.assign({ success: true }, res))
-        })
-      })
-    })
+          return res.json(_.assign({ success: true }, res));
+        });
+      });
+    });
   }
 }

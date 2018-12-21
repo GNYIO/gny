@@ -148,20 +148,16 @@ export default class Delegates {
     return results;
   }
 
-  public validateProposeSlot = (propose, cb) => {
-    this.generateDelegateList(propose.height, (err, activeDelegates) => {
-      if (err) {
-        return cb(err);
-      }
-      const currentSlot = slots.getSlotNumber(propose.timestamp);
-      const delegateKey = activeDelegates[currentSlot % slots.delegates];
+  public validateProposeSlot = (propose) => {
+    const activeDelegates = this.generateDelegateList(propose.height);
+    const currentSlot = slots.getSlotNumber(propose.timestamp);
+    const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
-      if (delegateKey && propose.generatorPublicKey === delegateKey) {
-        return cb();
-      }
+    if (delegateKey && propose.generatorPublicKey === delegateKey) {
+      return;
+    }
 
-      return cb('Failed to validate propose slot');
-    });
+    throw new Error('Failed to validate propose slot');
   }
 
   public generateDelegateList = (height: any): string[] => {
@@ -213,9 +209,12 @@ export default class Delegates {
     throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
   }
 
-  public getDelegates = (query, cb) => {
-    let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d));
-    if (!delegates || !delegates.length) return cb('No delegates');
+  public getDelegates = () => {
+    let delegates: any[] = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d));
+    if (!delegates || !delegates.length) {
+      global.app.logger.info('no delgates');
+      return undefined;
+    }
 
     delegates = delegates.sort(this.compare);
 
@@ -236,7 +235,7 @@ export default class Delegates {
       delegates[i].producedblocks = delegates[i].producedBlocks;
       global.app.sdb.update('Delegate', delegates[i], { address: delegates[i].address });
     }
-    return cb(null, delegates);
+    return delegates;
   }
 
   enableForging = () => {
