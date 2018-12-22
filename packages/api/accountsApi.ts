@@ -3,6 +3,7 @@ import * as ed from '../../src/utils/ed';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as addressHelper from '../../src/utils/address';
 import * as crypto from 'crypto';
+import { Request, Response } from 'express';
 import { Modules, IScope } from '../../src/interfaces';
 
 export default class AccountsApi {
@@ -14,6 +15,38 @@ export default class AccountsApi {
     this.library = library;
 
     this.attachApi();
+  }
+
+  private attachApi = () => {
+    const router = express.Router();
+
+    router.post('/open', this.open);
+    router.post('/open', this.open2);
+    router.get('/getBalance', this.getBalance);
+    router.get('/getPublicKey', this.getPublicKey);
+    router.post('/generatePublicKey', this.generatePublicKey);
+    router.get('/delegates', this.myVotedDelegates);
+    router.get('/', this.getAccount);
+    router.get('/new', this.newAccount);
+    router.get('/count', this.count);
+
+    // Configuration
+    router.use((req: Request, res: Response) => {
+      res.status(500).json({
+        success: false,
+        error: 'API endpoint not found',
+      });
+    });
+
+    this.library.network.app.use('/api/accounts', router);
+    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err);
+      return res.status(500).json({
+        success: false,
+        error: err.toString(),
+      });
+    });
   }
 
   private generatePublicKey(req) {
@@ -111,7 +144,7 @@ export default class AccountsApi {
   }
 
 
-  private newAccount(req: any) {
+  private newAccount = (req: Request, res: Response, next) => {
     let ent = Number(req.body.ent);
     if ([128, 256, 384].indexOf(ent) === -1) {
       ent = 128;
@@ -119,12 +152,12 @@ export default class AccountsApi {
     const secret = new Mnemonic(ent).toString();
     const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
     const address = this.modules.accounts.generateAddressByPublicKey(keypair.publicKey.toString('hex'));
-    return {
+    return res.json({
       secret,
       publicKey: keypair.publicKey.toString('hex'),
       privateKey: keypair.privateKey.toString('hex'),
       address,
-    };
+    });
   }
 
 
@@ -244,7 +277,7 @@ export default class AccountsApi {
     });
   }
 
-  private getAccount = async (req) => {
+  private getAccount = async (req: Request, res: Response, next) => {
     const query = req.body;
     const report = this.library.scheme.validate(query, {
       type: 'object',
@@ -261,14 +294,15 @@ export default class AccountsApi {
     });
 
     if (!report) {
-      return this.library.scheme.getLastError();
+      return next(this.library.scheme.getLastError());
     }
 
     const address = query.address;
-    return await this.modules.accounts.getAccount(address);
+    const account = await this.modules.accounts.getAccount(address);
+    return res.json(account);
   }
 
-  private getAddress = async (req) => {
+  private getAddress = async (req: Request, res: Response, next) => {
     const condition: { name?: string; address?: string; } = {};
     if (req.params.address.length <= 20) {
       condition.name = req.params.address;
@@ -285,7 +319,7 @@ export default class AccountsApi {
     }
 
     const lastBlock = this.modules.blocks.getLastBlock();
-    const ret = {
+    return res.json({
       account,
       unconfirmedAccount,
       latestBlock: {
@@ -293,51 +327,15 @@ export default class AccountsApi {
         timestamp: lastBlock.timestamp,
       },
       version: this.modules.peer.getVersion(),
-    };
-    return ret;
+    });
   }
 
-  private attachApi = () => {
-    const router = express.Router();
-
-    router.post('/open', this.open);
-    router.post('/open', this.open2);
-    router.get('/getBalance', this.getBalance);
-    router.get('/getPublicKey', this.getPublicKey);
-    router.post('/generatePublicKey', this.generatePublicKey);
-    router.get('/delegates', this.myVotedDelegates);
-    router.get('/', this.getAccount);
-    router.get('/new', this.newAccount);
-
-    // v2
-    router.get('/:address', this.getAddress);
-
-
-    // Configuration
-    router.get('/count', (req, res) => (async () => {
-      try {
-        const count = await global.app.sdb.count('Account', {});
-        return res.json({ success: true, count });
-      } catch (e) {
-        return res.status(500).send({ success: false, error: 'Server error' });
-      }
-    })());
-
-    router.use((req, res) => {
-      res.status(500).send({
-        success: false,
-        error: 'API endpoint not found',
-      });
-    });
-
-    this.library.network.app.use('/api/accounts', router);
-    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err);
-      return res.status(500).send({
-        success: false,
-        error: err.toString(),
-      });
-    });
+  private count = async (req: Request, res: Response, next) => {
+    try {
+      const count = await global.app.sdb.count('Account', {});
+      return res.json({ success: true, count });
+    } catch (e) {
+      return next(new Error('server error'));
+    }
   }
 }
