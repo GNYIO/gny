@@ -10,11 +10,12 @@ export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
 }
 
-const newJoi: ExtendedJoi = Joi.extend({
+const stringExtensions: Joi.Extension = {
   base: Joi.string(),
   name: 'string',
   language: {
-    publicKey: 'is not in the format of a 32 char long hex string buffer'
+    publicKey: 'is not in the format of a 32 char long hex string buffer',
+    secret: 'is not BIP39 complient',
   },
   rules: [{
     name: 'publicKey',
@@ -29,14 +30,8 @@ const newJoi: ExtendedJoi = Joi.extend({
         return this.createError('string.publicKey', { v: value }, state, options);
       }
     }
-  }]
-}).extend({
-  base: Joi.string(),
-  name: 'string',
-  language: {
-    secret: 'is not BIP39 complient'
   },
-  rules: [{
+  {
     name: 'secret',
     validate(params, value, state, options) {
       const result = Mnemonic.isValid(value);
@@ -44,6 +39,8 @@ const newJoi: ExtendedJoi = Joi.extend({
       return value;
     }
   }]
-});
+};
+
+const newJoi: ExtendedJoi = Joi.extend(stringExtensions);
 
 export default newJoi;
