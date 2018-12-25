@@ -18,6 +18,7 @@ import protobuf from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import initNetwork from './initNetwork';
+import extendedJoi from './utils/extendedJoi';
 import { IScope, IMessageEmitter } from './interfaces';
 
 
@@ -67,6 +68,7 @@ async function init_alt(options: any) {
   scope.genesisBlock = genesisBlock;
 
   scope.scheme = scheme();
+  scope.joi = extendedJoi;
   scope.network = await initNetwork(options);
   scope.dbSequence = dbSequence(options);
   scope.sequence = sequence(options);

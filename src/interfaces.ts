@@ -33,6 +33,8 @@ import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from './smartdb/auto-increment';
 import * as bignumber from 'bignumber';
 
+import { ExtendedJoi } from './utils/extendedJoi';
+
 declare interface IBase {
   bus: any;
   scheme: zSchema;
@@ -48,6 +50,7 @@ export interface IScope {
   logger: ILogger;
   genesisBlock: IGenesisBlock;
   scheme: zSchema;
+  joi: ExtendedJoi;
   network: INetwork;
   dbSequence: Sequence;
   sequence: Sequence;
