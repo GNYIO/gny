@@ -353,12 +353,12 @@ export default class Blocks {
 
     const ratio = 1;
 
-    const actualFees = Math.floor(fees * ratio);
+    const actualFees = Math.floor(fee * ratio);
     const feeAverage = Math.floor(actualFees / delegates.length);
     const feeRemainder = actualFees - (feeAverage * delegates.length);
     // let feeFounds = fees - actualFees
 
-    const actualRewards = Math.floor(rewards * ratio);
+    const actualRewards = Math.floor(reward * ratio);
     const rewardAverage = Math.floor(actualRewards / delegates.length);
     const rewardRemainder = actualRewards - (rewardAverage * delegates.length);
     // let rewardFounds = rewards - actualRewards
