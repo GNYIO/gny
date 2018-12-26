@@ -13,6 +13,17 @@ export default class Account {
     return addressHelper.generateAddress(publicKey);
   }
 
+  public getAccountByName = async (name: string) => {
+    try {
+      const account = await global.app.sdb.findOne('Account', {
+        condition: { username: name }
+      });
+      return account;
+    } catch (err) {
+      return 'Server Error';
+    }
+  }
+
   public getAccount = async (address: string) => {
     const report = this.library.scheme.validate(address, {
       type: 'string',

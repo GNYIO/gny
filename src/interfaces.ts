@@ -227,6 +227,9 @@ export interface ISimpleCache {
   [id: string]: boolean;
 }
 
+export type Next = (err: string) => any;
+
+
 declare global {
   namespace NodeJS {
     interface Global {
