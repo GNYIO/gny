@@ -18,8 +18,15 @@ export function isAddress(address: string) {
   if (typeof address !== 'string') {
     return false;
   }
-  // TODO check length
-  if (!bs58.decode(address.slice(1))) {
+  try {
+    if (address.length === 0) {
+      return false;
+    }
+
+    if (!bs58.decode(address.slice(1))) {
+      return false;
+    }
+  } catch (err) {
     return false;
   }
   if (address[0] !== 'G') {
