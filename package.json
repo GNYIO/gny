@@ -42,6 +42,7 @@
     "@types/method-override": "=0.0.31",
     "@types/cors": "=2.8.4",
     "@types/shelljs": "=0.8.1",
+    "@types/joi": "=14.0.1",
     "asch-smartdb": "https://github.com/a1300/asch-smartdb-dist.git#9a7954885e6971de4b9604402215a50e0122209b",
     "async": "=1.5.2",
     "babel-eslint": "^9.0.0",
@@ -84,7 +85,8 @@
     "bip39": "^2.5.0",
     "bs58": "^3.0.0",
     "protobufjs": "^6.8.8",
-    "axios": "^0.18.0"
+    "axios": "^0.18.0",
+    "joi": "^14.0.6"
   },
   "devDependencies": {
     "eslint": "^5.5.0",

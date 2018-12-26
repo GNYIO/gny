@@ -1,10 +1,9 @@
 import * as express from 'express';
 import * as ed from '../../src/utils/ed';
 import * as Mnemonic from 'bitcore-mnemonic';
-import * as addressHelper from '../../src/utils/address';
 import * as crypto from 'crypto';
 import { Request, Response } from 'express';
-import { Modules, IScope } from '../../src/interfaces';
+import { Modules, IScope, Next } from '../../src/interfaces';
 
 export default class AccountsApi {
   private modules: Modules;
@@ -20,7 +19,7 @@ export default class AccountsApi {
   private attachApi = () => {
     const router = express.Router();
 
-    router.post('/open', this.open);
+    // for sensitve data use POST request: see https://stackoverflow.com/questions/7562675/proper-way-to-send-username-and-password-from-client-to-server
     router.post('/open', this.open2);
     router.get('/getBalance', this.getBalance);
     router.get('/getPublicKey', this.getPublicKey);
@@ -32,14 +31,14 @@ export default class AccountsApi {
 
     // Configuration
     router.use((req: Request, res: Response) => {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: 'API endpoint not found',
       });
     });
 
     this.library.network.app.use('/api/accounts', router);
-    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
+    this.library.network.app.use((err: string, req: Request, res: Response, next: any) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
       return res.status(500).json({
@@ -49,107 +48,167 @@ export default class AccountsApi {
     });
   }
 
-  private generatePublicKey(req) {
+  private open2 = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    this.library.scheme.validate(body, {
-      type: 'object',
-      properties: {
-        secret: {
-          type: 'string',
-          minLength: 1,
-        },
-      },
-      required: ['secret'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
+    const publicKeyOrSecret = this.library.joi.object().keys({
+      publicKey: this.library.joi.string().publicKey(),
+      secret: this.library.joi.string().secret(),
+    }).xor('publicKey', 'secret');
+    const report = this.library.joi.validate(body, publicKeyOrSecret);
 
-      const kp = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
-      const publicKey = kp.publicKey.toString('hex');
-      return { publicKey };
-    });
-  }
-
-  private open(req: any) {
-    const { body } = req;
-    this.library.scheme.validate(body, {
-      type: 'object',
-      properties: {
-        secret: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-      },
-      required: ['secret'],
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-      return this.openAccount(body.secret);
-    });
-  }
-
-  private open2 = async (req: any) => {
-    const { body } = req;
-    const report = this.library.scheme.validate(body, {
-      type: 'object',
-      properties: {
-        publicKey: {
-          type: 'string',
-          format: 'publicKey',
-        },
-      },
-      required: ['publicKey'],
-    });
-    if (!report) {
-      return this.library.scheme.getLastError();
+    if (report.error) {
+      return next(report.error.message);
     }
 
-    return await this.openAccount2(body.publicKey);
+    if (body.secret) {
+      const result = await this.openAccount(body.secret);
+      if (typeof result === 'string') {
+        return next(result);
+      }
+      return res.json(result);
+    } else {
+      const result2 = await this.openAccount2(body.publicKey);
+      if (typeof result2 === 'string') {
+        return next(result2);
+      }
+      return res.json(result2);
+    }
   }
 
-  private getBalance = async (req: any) => {
+
+
+  private getBalance = async (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    const report = this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 50,
-        },
-      },
-      required: ['address'],
+    const hasAddress = this.library.joi.object().keys({
+      address: this.library.joi.string().address().required()
     });
-
-    if (!report) {
-      return this.library.scheme.getLastError();
-    }
-
-    if (!addressHelper.isAddress(query.address)) {
-      return 'Invalid address';
+    const report = this.library.joi.validate(query, hasAddress);
+    if (report.error) {
+      return next(report.error.message);
     }
 
     const accountOverview = await this.modules.accounts.getAccount(query.address);
     if (typeof accountOverview === 'string') {
-      return accountOverview;
+      return next(accountOverview);
     }
 
     const balance = accountOverview && accountOverview.account ? accountOverview.account.balance : 0;
-    return {
+    return res.json({
       balance,
-    };
+    });
   }
 
-
-  private newAccount = (req: Request, res: Response, next) => {
-    let ent = Number(req.body.ent);
-    if ([128, 256, 384].indexOf(ent) === -1) {
-      ent = 128;
+  private getPublicKey = async (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+    const isAddress = this.library.joi.object().keys({
+      address: this.library.joi.string().address()
+    });
+    const report = this.library.joi.validate(query, isAddress);
+    if (report.error) {
+      return next(report.error.message);
     }
-    const secret = new Mnemonic(ent).toString();
+
+    const accountInfoOrError = await this.modules.accounts.getAccount(query.address);
+    if (typeof accountInfoOrError === 'string') {
+      return res.json(accountInfoOrError);
+    }
+    if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
+      return next('Account does not have a public key');
+    }
+    return res.json({ publicKey: accountInfoOrError.account.publicKey });
+  }
+
+  private generatePublicKey = (req: Request, res: Response, next: Next) => {
+    const { body } = req;
+    const hasSecret = this.library.joi.object().keys({
+      secret: this.library.joi.string().secret().required()
+    });
+    const report = this.library.joi.validate(body, hasSecret);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const kp = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+      const publicKey = kp.publicKey.toString('hex');
+      return res.json({ publicKey });
+    } catch (err) {
+      return next('Server error');
+    }
+  }
+
+  private myVotedDelegates = async (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+    const addressOrAccountName = this.library.joi.object().keys({
+      address: this.library.joi.string().address(),
+      name: this.library.joi.string().name()
+    }).xor('address', 'name');
+    const report = this.library.joi.validate(query, addressOrAccountName);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      let addr;
+      if (query.name) {
+        const account = await global.app.sdb.load('Account', { name: query.name });
+        if (!account) {
+          return next('Account not found');
+        }
+        addr = account.address;
+      } else {
+        addr = query.address;
+      }
+      const votes = await global.app.sdb.findAll('Vote', { condition: { address: addr } });
+      if (!votes || !votes.length) {
+        return res.json({ delegates: [] });
+      }
+      const delegateNames = new Set();
+      for (const v of votes) {
+        delegateNames.add(v.delegate);
+      }
+      const delegates = this.modules.delegates.getDelegates();
+      if (!delegates || !delegates.length) {
+        return res.json({ delegates: [] });
+      }
+
+      const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name));
+      return res.json({ delegates: myVotedDelegates });
+    } catch (e) {
+      this.library.logger.error('get voted delegates error', e);
+      return next('Server error');
+    }
+  }
+
+  private getAccount = async (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+    const addressOrAccountName = this.library.joi.object().keys({
+      address: this.library.joi.string().address(),
+      name: this.library.joi.string().name()
+    }).xor('address', 'name');
+    const report = this.library.joi.validate(query, addressOrAccountName);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    if (query.name) {
+      const account = await this.modules.accounts.getAccountByName(query.name);
+      if (typeof account === 'string') {
+        return next(account);
+      }
+      return res.json(account);
+    }
+
+    const account = await this.modules.accounts.getAccount(query.address);
+    if (typeof account === 'string') {
+      return next(account);
+    }
+    return res.json(account);
+  }
+
+  private newAccount = (req: Request, res: Response, next: Next) => {
+    const entropy = 128;
+    const secret = new Mnemonic(entropy).toString();
     const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
     const address = this.modules.accounts.generateAddressByPublicKey(keypair.publicKey.toString('hex'));
     return res.json({
@@ -160,7 +219,16 @@ export default class AccountsApi {
     });
   }
 
+  private count = async (req: Request, res: Response, next: Next) => {
+    try {
+      const count = await global.app.sdb.count('Account', {});
+      return res.json({ success: true, count });
+    } catch (e) {
+      return next('Server error');
+    }
+  }
 
+  // helper functions
   private openAccount = async (passphrase) => {
     const hash = crypto.createHash('sha256').update(passphrase, 'utf8').digest();
     const keyPair = ed.generateKeyPair(hash);
@@ -178,7 +246,6 @@ export default class AccountsApi {
     return accountInfoOrError;
   }
 
-
   private openAccount2 = async (publicKey: string) => {
     const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
     const accountInfoOrError = await this.modules.accounts.getAccount(address);
@@ -190,152 +257,5 @@ export default class AccountsApi {
       accountInfoOrError.account.publicKey = publicKey;
     }
     return accountInfoOrError;
-  }
-
-  private getPublicKey = async (req) => {
-    const query = req.body;
-    const report = this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string',
-          minLength: 1,
-        },
-      },
-      required: ['address'],
-    });
-
-    if (!report) {
-      return this.library.scheme.getLastError();
-    }
-
-    const accountInfoOrError = await this.modules.accounts.getAccount(query.address);
-    if (typeof accountInfoOrError === 'string') {
-      return accountInfoOrError;
-    }
-    if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
-      return 'Account does not have a public key';
-    }
-    return {
-      publicKey: accountInfoOrError.account.publicKey
-    };
-  }
-
-
-
-  private myVotedDelegates = (req: any) => {
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string',
-          minLength: 1,
-        },
-        name: {
-          type: 'string',
-          minLength: 1,
-        },
-      },
-    }, (err: any) => {
-      if (err) {
-        return err[0].message;
-      }
-
-      return (async () => {
-        try {
-          let addr;
-          if (query.name) {
-            const account = await global.app.sdb.load('Account', { name: query.name });
-            if (!account) {
-              return 'Account not found';
-            }
-            addr = account.address;
-          } else {
-            addr = query.address;
-          }
-          const votes = await global.app.sdb.findAll('Vote', { condition: { address: addr } });
-          if (!votes || !votes.length) {
-            return { delegates: [] };
-          }
-          const delegateNames = new Set();
-          for (const v of votes) {
-            delegateNames.add(v.delegate);
-          }
-          const delegates = this.modules.delegates.getDelegates();
-          if (!delegates || !delegates.length) {
-            return { delegates: [] };
-          }
-
-          const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name));
-          return { delegates: myVotedDelegates };
-        } catch (e) {
-          this.library.logger.error('get voted delegates error', e);
-          return 'Server error';
-        }
-      })();
-    });
-  }
-
-  private getAccount = async (req: Request, res: Response, next) => {
-    const query = req.body;
-    const report = this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        address: {
-          type: 'string',
-          minLength: 1,
-        },
-        name: {
-          type: 'string',
-          minLength: 1,
-        },
-      },
-    });
-
-    if (!report) {
-      return next(this.library.scheme.getLastError());
-    }
-
-    const address = query.address;
-    const account = await this.modules.accounts.getAccount(address);
-    return res.json(account);
-  }
-
-  private getAddress = async (req: Request, res: Response, next) => {
-    const condition: { name?: string; address?: string; } = {};
-    if (req.params.address.length <= 20) {
-      condition.name = req.params.address;
-    } else {
-      condition.address = req.params.address;
-    }
-
-    const account = await global.app.sdb.findOne('Account', { condition });
-    let unconfirmedAccount = null;
-    if (account) {
-      unconfirmedAccount = await global.app.sdb.load('Account', account.address);
-    } else {
-      unconfirmedAccount = null;
-    }
-
-    const lastBlock = this.modules.blocks.getLastBlock();
-    return res.json({
-      account,
-      unconfirmedAccount,
-      latestBlock: {
-        height: lastBlock.height,
-        timestamp: lastBlock.timestamp,
-      },
-      version: this.modules.peer.getVersion(),
-    });
-  }
-
-  private count = async (req: Request, res: Response, next) => {
-    try {
-      const count = await global.app.sdb.count('Account', {});
-      return res.json({ success: true, count });
-    } catch (e) {
-      return next(new Error('server error'));
-    }
   }
 }
