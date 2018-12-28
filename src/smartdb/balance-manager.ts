@@ -2,12 +2,11 @@
 function getCurrencyFlag(currency) {
   if (currency === 'GNY') {
     return 1;
-  } if (currency.indexOf('.') !== -1) {
+  } else if (currency.indexOf('.') !== -1) {
     // UIA
     return 2;
   }
-  // gateway currency
-  return 3;
+  throw new Error('wrong currency type or flag');
 }
 
 export default class BalanceManager {
