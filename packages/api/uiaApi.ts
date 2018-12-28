@@ -2,7 +2,9 @@ import * as ed from '../../src/utils/ed';
 import addressHelper from '../../src/utils/address';
 import * as crypto from 'crypto';
 import * as express from 'express';
-import { Modules, IScope, KeyPair } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
+import { REPL_MODE_STRICT } from 'repl';
 
 export default class UiaApi {
   private modules: Modules;
@@ -14,268 +16,209 @@ export default class UiaApi {
     this.attachApi();
   }
 
-  private getIssuers = (req, cb) => {
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        limit: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 100,
-        },
-        offset: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-    }, (err) => {
-      if (err) return cb(`Invalid parameters: ${err[0]}`);
-      return (async () => {
-        try {
-          const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
-          const count = await global.app.sdb.count('Issuer', {});
-          const issues = await global.app.sdb.find('Issuer', {}, limitAndOffset);
-          return cb(null, { count, issues });
-        } catch (dbErr) {
-          return cb(`Failed to get issuers: ${dbErr}`);
-        }
-      })();
+  private attachApi = () => {
+    const router = express.Router();
+
+    router.use((req: Request, res: Response, next) => {
+      if (this.modules) return next();
+      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+    });
+
+    router.get('/issuers', this.getIssuers);
+    router.get('/issuers/:name', this.getIssuer);
+    router.get('/issuers/:name/assets', this.getIssuerAssets);
+    router.get('/assets', this.getAssets);
+    router.get('/assets/:name', this.getAsset);
+    router.get('/balances/:address', this.getBalances);
+    router.get('/balances/:address/:currency', this.getBalance);
+    router.put('/transfers', this.transferAsset);
+
+    router.use((req: Request, res: Response) => {
+      res.status(500).json({ success: false, error: 'API endpoint not found' });
+    });
+
+    this.library.network.app.use('/api/uia', router);
+    this.library.network.app.use((err, req, res, next) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err);
+      return res.status(500).json({ success: false, error: err.toString() });
     });
   }
 
-  private getIssuer = (req, cb) => {
+  private getIssuers = async (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+    const limitOffset = this.library.joi.object().keys({
+      limit: this.library.joi.number().min(0).max(100),
+      offset: this.library.joi.number().min(0),
+    });
+    const report = this.library.joi.validate(query, limitOffset);
+    if (report.error) {
+      return next(report.error.message);
+    }
+    try {
+      const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
+      const count = await global.app.sdb.count('Issuer', {});
+      const issues = await global.app.sdb.find('Issuer', {}, limitAndOffset);
+      return res.json({ count, issues });
+    } catch (dbErr) {
+      return next(`Failed to get issuers: ${dbErr}`);
+    }
+  }
+
+  private getIssuer = async (req: Request, res: Response, next: Next) => {
     if (req.params && addressHelper.isAddress(req.params.name)) {
       req.params.address = req.params.name;
-      return this.modules.uia.getIssuerByAddress(req, cb);
-    }
-    const query = req.params;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 16,
-        },
-      },
-      required: ['name'],
-    }, (err) => {
-      if (err) return cb(`Invalid parameters: ${err[0]}`);
-
-      return (async () => {
-        try {
-          const issuers = await global.app.sdb.find('Issuer', { name: req.params.name });
-          if (!issuers || issuers.length === 0) return cb('Issuer not found');
-          return cb(null, { issuer: issuers[0] });
-        } catch (dbErr) {
-          return cb(`Failed to get issuers: ${dbErr}`);
-        }
-      })();
-    });
-    return null;
-  }
-
-  getIssuerAssets = (req, cb) => {
-    if (!req.params || !req.params.name || req.params.name.length > 32) {
-      cb(' Invalid parameters');
-      return;
-    }
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        limit: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 100,
-        },
-        offset: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-    }, (err) => {
-      if (err) return cb(`Invalid parameters: ${err[0]}`);
-
-      return (async () => {
-        try {
-          const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
-          const condition = { issuerName: req.params.name };
-          const count = await global.app.sdb.count('Asset', condition);
-          const assets = await global.app.sdb.find('Asset', condition, limitAndOffset);
-          return cb(null, { count, assets: assets });
-        } catch (dbErr) {
-          return cb(`Failed to get assets: ${dbErr}`);
-        }
-      })();
-    });
-  }
-
-  private getAssets = (req, cb) => {
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        limit: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 100,
-        },
-        offset: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-    }, (err) => {
-      if (err) return cb(`Invalid parameters: ${err[0]}`);
-      return (async () => {
-        try {
-          const condition = {};
-          const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
-          const count = await global.app.sdb.count('Asset', condition);
-          const assets = await global.app.sdb.find('Asset', condition, limitAndOffset);
-          return cb(null, { count, assets: assets });
-        } catch (dbErr) {
-          return cb(`Failed to get assets: ${dbErr}`);
-        }
-      })();
-    });
-  }
-
-  private getAsset = (req, cb) => {
-    const query = req.params;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 32,
-        },
-      },
-      required: ['name'],
-    }, (err) => {
-      if (err) cb(`Invalid parameters: ${err[0]}`);
-
-      return (async () => {
-        try {
-          const condition = { name: query.name };
-          const assets = await global.app.sdb.find('Asset', condition);
-          if (!assets || assets.length === 0) return cb('Asset not found');
-          return cb(null, { asset: assets[0] });
-        } catch (dbErr) {
-          return cb(`Failed to get asset: ${dbErr}`);
-        }
-      })();
-    });
-  }
-
-  private getBalances = (req, cb) => {
-    if (!req.params || !addressHelper.isAddress(req.params.address)) {
-      return cb('Invalid address');
-    }
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        limit: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 100,
-        },
-        offset: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-    }, (err) => {
-      if (err) return cb(`Invalid parameters: ${err[0]}`);
-
-      return (async () => {
-        try {
-          const condition = { address: req.params.address };
-          const count = await global.app.sdb.count('Balance', condition);
-          const resultRange = { limit: query.limit, offset: query.offset };
-          const balances = await global.app.sdb.find('Balance', condition, resultRange);
-          return cb(null, { count, balances: balances });
-        } catch (dbErr) {
-          return cb(`Failed to get balances: ${dbErr}`);
-        }
-      })();
-    });
-    return null;
-  }
-
-  getBalance = (req, cb) => {
-    if (!req.params) return cb('Invalid parameters');
-    if (!addressHelper.isAddress(req.params.address)) return cb('Invalid address');
-    if (!req.params.currency || req.params.currency.length > 22) return cb('Invalid currency');
-
-    return (async () => {
       try {
-        const condition = { address: req.params.address, currency: req.params.currency };
-        let balances = await global.app.sdb.find('Balance', condition);
-        if (!balances || balances.length === 0) return cb('Balance info not found');
-        balances = balances;
-        return cb(null, { balance: balances[0] });
-      } catch (dbErr) {
-        return cb(`Failed to get issuers: ${dbErr}`);
+        const issuer = this.modules.uia.getIssuerByAddress(req);
+        return res.json({ issuer });
+      } catch (err) {
+        return next(err.toString());
       }
-    })();
+    }
+    const query = req.params;
+    const nameSchema = this.library.joi.object().keys({
+      name: this.library.joi.string().name().required(),
+    });
+    const report = this.library.joi.validate(query, nameSchema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const issuers = await global.app.sdb.find('Issuer', { username: req.params.name });
+      if (!issuers || issuers.length === 0) return next('Issuer not found');
+      return res.json({ issuer: issuers[0] });
+    } catch (dbErr) {
+      return next(`Failed to get issuers: ${dbErr}`);
+    }
   }
 
-
-  private transferAsset = (req, cb) => {
+  private getIssuerAssets = async (req: Request, res: Response, next: Next) => {
+    if (!req.params || !req.params.name || req.params.name.length > 32) {
+      return next(' Invalid parameters');
+    }
     const query = req.body;
-    const valid = this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        secret: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-        currency: {
-          type: 'string',
-          maxLength: 22,
-        },
-        amount: {
-          type: 'string',
-          maxLength: 50,
-        },
-        recipientId: {
-          type: 'string',
-          minLength: 1,
-        },
-        publicKey: {
-          type: 'string',
-          format: 'publicKey',
-        },
-        secondSecret: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-        multisigAccountPublicKey: {
-          type: 'string',
-          format: 'publicKey',
-        },
-        message: {
-          type: 'string',
-          maxLength: 256,
-        },
-        fee: {
-          type: 'integer',
-          minimum: 10000000,
-        },
-      },
-      required: ['secret', 'amount', 'recipientId', 'currency'],
+    const limitOffset = this.library.joi.object().keys({
+      limit: this.library.joi.number().min(0).max(100),
+      offset: this.library.joi.number().min(0),
     });
+    const report = this.library.joi.validate(query, limitOffset);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
-    if (!valid) {
-      this.library.logger.warn('Failed to validate query params', this.library.scheme.getLastError());
-      return setImmediate(cb, this.library.scheme.getLastError().details[0].message);
+    try {
+      const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
+      const condition = { issuerName: req.params.name };
+      const count = await global.app.sdb.count('Asset', condition);
+      const assets = await global.app.sdb.find('Asset', condition, limitAndOffset);
+      return res.json({ count, assets: assets });
+    } catch (dbErr) {
+      return next(`Failed to get assets: ${dbErr}`);
+    }
+  }
+
+  private getAssets = async (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+    const limitOffset = this.library.joi.object().keys({
+      limit: this.library.joi.number().min(0).max(100),
+      offset: this.library.joi.number().min(0),
+    });
+    const report = this.library.joi.validate(query, limitOffset);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const condition = {};
+      const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
+      const count = await global.app.sdb.count('Asset', condition);
+      const assets = await global.app.sdb.find('Asset', condition, limitAndOffset);
+      return res.json({ count, assets: assets });
+    } catch (dbErr) {
+      return next(`Failed to get assets: ${dbErr}`);
+    }
+  }
+
+  private getAsset = async (req: Request, res: Response, next: Next) => {
+    const query = req.params;
+    const nameSchema = this.library.joi.object().keys({
+      name: this.library.joi.string().name().min(1).max(32).required(), // uiaName
+    });
+    const report = this.library.joi.validate(query, nameSchema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const condition = { name: query.name };
+      const assets = await global.app.sdb.find('Asset', condition);
+      if (!assets || assets.length === 0) return next('Asset not found');
+      return res.json({ asset: assets[0] });
+    } catch (dbErr) {
+      return next(`Failed to get asset: ${dbErr}`);
+    }
+  }
+
+  private getBalances = async (req: Request, res: Response, next: Next) => {
+    if (!req.params || !addressHelper.isAddress(req.params.address)) {
+      return next('Invalid address');
+    }
+    const query = req.body;
+    const limitOffset = this.library.joi.object().keys({
+      limit: this.library.joi.number().min(0).max(100),
+      offset: this.library.joi.number().min(0),
+    });
+    const report = this.library.joi.validate(query, limitOffset);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const condition = { address: req.params.address };
+      const count = await global.app.sdb.count('Balance', condition);
+      const resultRange = { limit: query.limit, offset: query.offset };
+      const balances = await global.app.sdb.find('Balance', condition, resultRange);
+      return res.json({ count, balances: balances });
+    } catch (dbErr) {
+      return next(`Failed to get balances: ${dbErr}`);
+    }
+  }
+
+  private getBalance = async (req: Request, res: Response, next: Next) => {
+    if (!req.params) return next('Invalid parameters');
+    if (!addressHelper.isAddress(req.params.address)) return next('Invalid address');
+    if (!req.params.currency || req.params.currency.length > 22) return next('Invalid currency');
+
+    try {
+      const condition = { address: req.params.address, currency: req.params.currency };
+      let balances = await global.app.sdb.find('Balance', condition);
+      if (!balances || balances.length === 0) return next('Balance info not found');
+      balances = balances;
+      return res.json({ balance: balances[0] });
+    } catch (dbErr) {
+      return next(`Failed to get issuers: ${dbErr}`);
+    }
+  }
+
+  private transferAsset = (req: Request, res: Response, next: Next) => {
+    const query = req.body;
+
+    const schema = this.library.joi.object().keys({
+      secret: this.library.joi.string().secret().required(),
+      currency: this.library.joi.string().max(22).required(),
+      amount: this.library.joi.string().max(50).required(),
+      recipientId: this.library.joi.string().address().required(),
+      publicKey: this.library.joi.string().publicKey(),
+      secondSecret: this.library.joi.string().secret(),
+      message: this.library.joi.string().max(256),
+      fee: this.library.joi.number().min(10000000),
+    });
+    const report = this.library.joi.validate(query, schema);
+
+    if (report.error) {
+      this.library.logger.warn('Failed to validate query params', report.error.message);
+      return next(report.error.message);
     }
 
     return this.library.sequence.add((callback) => {
@@ -305,47 +248,6 @@ export default class UiaApi {
           callback(e.toString());
         }
       })();
-    }, cb);
-  }
-
-
-  private attachApi = () => {
-    const router = express.Router();
-
-    router.use((req, res, next) => {
-      if (this.modules) return next();
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-    });
-
-    router.get('/issuers', this.getIssuers);
-    router.get('/issuers/:name', this.getIssuer);
-    router.get('/issuers/:name/assets', this.getIssuerAssets);
-    router.get('/assets', this.getAssets);
-    router.get('/assets/:name', this.getAsset);
-    router.get('/balances/:address', this.getBalances);
-    router.get('/balances/:address/:currency', this.getBalance);
-    router.put('/transfers', this.transferAsset);
-
-    // router.map(this, {
-    //   'get /issuers': 'getIssuers',
-    //   'get /issuers/:name': 'getIssuer',
-    //   'get /issuers/:name/assets': 'getIssuerAssets',
-    //   'get /assets': 'getAssets',
-    //   'get /assets/:name': 'getAsset',
-    //   'get /balances/:address': 'getBalances',
-    //   'get /balances/:address/:currency': 'getBalance',
-    //   'put /transfers': 'transferAsset',
-    // })
-
-    router.use((req, res) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' });
-    });
-
-    this.library.network.app.use('/api/uia', router);
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err);
-      return res.status(500).send({ success: false, error: err.toString() });
-    });
+    }, res);
   }
 }
