@@ -1,5 +1,6 @@
 import * as express from 'express';
-import { Modules, IScope } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { Modules, IScope, Next } from '../../src/interfaces';
 
 export default class PeerApi {
   private modules: Modules;
@@ -11,7 +12,30 @@ export default class PeerApi {
     this.attachApi();
   }
 
-  private getPeers = (req, cb) => {
+  private attachApi = () => {
+    const router = express.Router();
+
+    router.use((req: Request, res: Response, next) => {
+      if (this.modules) return next();
+      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
+    });
+
+    router.get('/', this.getPeers);
+    router.get('/version', this.version);
+
+    router.use((req: Request, res: Response) => {
+      return res.status(500).send({ success: false, error: 'API endpoint not found' });
+    });
+
+    this.library.network.app.use('/api/peers', router);
+    this.library.network.app.use((err, req, res, next) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err.toString());
+      return res.status(500).send({ success: false, error: err.toString() });
+    });
+  }
+
+  private getPeers = (req: Request, res: Response, next: Next) => {
     this.modules.peer.findSeenNodesInDb((err, nodes) => {
       let peers = [];
       if (err) {
@@ -19,50 +43,15 @@ export default class PeerApi {
       } else {
         peers = nodes;
       }
-      cb(null, { count: peers.length, peers });
+      res.json({ count: peers.length, peers });
     });
   }
 
-  private version = (req, cb) => {
-    cb(null, {
+  private version = (req: Request, res: Response, next: Next) => {
+    return res.json({
       version: this.library.config.version,
       build: this.library.config.buildVersion,
       net: this.library.config.netVersion,
     });
-  }
-
-  private getPeer = (req, cb) => {
-    cb(null, {});
-  }
-
-  private attachApi = () => {
-    {
-      const router = express.Router();
-
-      router.use((req, res, next) => {
-        if (this.modules) return next();
-        return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-      });
-
-      router.get('/', this.getPeers);
-      router.get('/version', this.version);
-      router.get('/get', this.getPeer);
-      // router.map(this.shared, {
-      //   'get /': 'getPeers',
-      //   'get /version': 'version',
-      //   'get /get': 'getPeer',
-      // })
-
-      router.use((req, res) => {
-        res.status(500).send({ success: false, error: 'API endpoint not found' });
-      });
-
-      this.library.network.app.use('/api/peers', router);
-      this.library.network.app.use((err, req, res, next) => {
-        if (!err) return next();
-        this.library.logger.error(req.url, err.toString());
-        return res.status(500).send({ success: false, error: err.toString() });
-      });
-    }
   }
 }
