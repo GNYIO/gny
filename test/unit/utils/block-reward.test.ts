@@ -1,6 +1,5 @@
 import BlockReward from '../../../src/utils/block-reward';
 const BigNumber = require('bignumber.js');
-import { REWARDS, TOTAL_AMOUNT} from '../../../src/utils/constants';
 
 describe('BlockReward', () => {
   let blockReward;
