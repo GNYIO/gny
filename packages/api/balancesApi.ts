@@ -1,5 +1,6 @@
 import * as express from 'express';
-import { IScope } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { IScope, Next } from '../../src/interfaces';
 
 export default class BalancesApi {
   private library: IScope;
@@ -15,7 +16,7 @@ export default class BalancesApi {
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
 
     this.library.network.app.use('/api/balances', router);
-    this.library.network.app.use((err: any, req: any, res: any, next: any) => {
+    this.library.network.app.use((err: string, req: Request, res: Response, next: any) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
       return res.status(500).send({
@@ -25,7 +26,7 @@ export default class BalancesApi {
     });
   }
 
-  private getBalance = async (req) => {
+  private getBalance = async (req: Request, res: Response, next: Next) => {
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
     const condition = { address: req.params.address };
@@ -42,7 +43,6 @@ export default class BalancesApi {
       }
       const assetNameList = Array.from(currencyMap.keys());
       const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
-      const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
 
       if (uiaNameList && uiaNameList.length) {
         const assets = await global.app.sdb.findAll('Asset', {
@@ -54,38 +54,26 @@ export default class BalancesApi {
           currencyMap.set(a.name, a);
         }
       }
-      if (gaNameList && gaNameList.length) {
-        const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
-          condition: {
-            symbol: { $in: gaNameList },
-          },
-        });
-        for (const a of gatewayAssets) {
-          currencyMap.set(a.symbol, a);
-        }
-      }
 
       for (const b of balances) {
         b.asset = currencyMap.get(b.currency);
       }
     }
-    return { count, balances };
+    return res.json({ count, balances });
   }
 
-  private getAddressCurrencyBalance = async (req) => {
+  private getAddressCurrencyBalance = async (req: Request, res: Response, next: Next) => {
     const currency = req.params.currency;
     const condition = {
       address: req.params.address,
       currency,
     };
     const balance = await global.app.sdb.findOne('Balance', { condition });
-    if (!balance) return 'No balance';
+    if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
       balance.asset = await global.app.sdb.findOne('Asset', { condition: { name: balance.currency } });
-    } else {
-      balance.asset = await global.app.sdb.findOne('GatewayCurrency', { condition: { symbol: balance.currency } });
     }
 
-    return { balance };
+    return res.json({ balance });
   }
 }

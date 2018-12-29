@@ -21,18 +21,16 @@ export default class UIA {
   }
 
   // Public Methods
-  public getIssuerByAddress = (req, cb) => {
+  public getIssuerByAddress = async (req) => {
     if (!req.params || !addressHelper.isAddress(req.params.address)) {
-      return cb('Invalid address');
+      throw new Error('Invalid address');
     }
-    return (async () => {
-      try {
-        const issues = await global.app.sdb.find('Issuer', { address: req.params.address });
-        if (!issues || issues.length === 0) return cb('Issuer not found');
-        return cb(null, { issuer: issues[0] });
-      } catch (dbErr) {
-        return cb(`Failed to get issuer: ${dbErr}`);
-      }
-    })();
+    try {
+      const issues = await global.app.sdb.find('Issuer', { address: req.params.address });
+      if (!issues || issues.length === 0) throw new Error('Issuer not found');
+      return { issuer: issues[0] };
+    } catch (dbErr) {
+      throw new Error(`Failed to get issuer: ${dbErr}`);
+    }
   }
 }

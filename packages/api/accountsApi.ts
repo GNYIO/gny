@@ -24,7 +24,7 @@ export default class AccountsApi {
     router.get('/getBalance', this.getBalance);
     router.get('/getPublicKey', this.getPublicKey);
     router.post('/generatePublicKey', this.generatePublicKey);
-    router.get('/delegates', this.myVotedDelegates);
+    router.get('/delegates', this.delegates);
     router.get('/', this.getAccount);
     router.get('/new', this.newAccount);
     router.get('/count', this.count);
@@ -78,7 +78,7 @@ export default class AccountsApi {
 
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const hasAddress = this.library.joi.object().keys({
       address: this.library.joi.string().address().required()
     });
@@ -99,7 +99,7 @@ export default class AccountsApi {
   }
 
   private getPublicKey = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const isAddress = this.library.joi.object().keys({
       address: this.library.joi.string().address()
     });
@@ -137,8 +137,8 @@ export default class AccountsApi {
     }
   }
 
-  private myVotedDelegates = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+  private delegates = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
       name: this.library.joi.string().name()
@@ -151,7 +151,7 @@ export default class AccountsApi {
     try {
       let addr;
       if (query.name) {
-        const account = await global.app.sdb.load('Account', { name: query.name });
+        const account = await global.app.sdb.load('Account', { username: query.name });
         if (!account) {
           return next('Account not found');
         }
@@ -181,7 +181,7 @@ export default class AccountsApi {
   }
 
   private getAccount = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
       name: this.library.joi.string().name()

@@ -227,10 +227,6 @@ export default class Transactions {
     }
   }
 
-  addTransactionUnsigned = (transaction, cb) => {
-    this.shared.addTransactionUnsigned({ body: transaction }, cb);
-  }
-
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;

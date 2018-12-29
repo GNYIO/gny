@@ -1,7 +1,7 @@
 
 import BlocksApi from '../packages/api/blocksApi';
 import AccountsApi from '../packages/api/accountsApi';
-import DelegatesApi from '../packages/api/delgatesApi';
+import DelegatesApi from '../packages/api/delegatesApi';
 import PeerApi from '../packages/api/peerApi';
 import TransactionsApi from '../packages/api/transactionsApi';
 import TransportApi from '../packages/api/transportApi';
@@ -19,7 +19,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   const transactionsApi = new TransactionsApi(modules, scope);
   const transportApi = new TransportApi(modules, scope);
   const uiaApi = new UiaApi(modules, scope);
-  const transfersApi = new TransfersApi(modules, scope);
+  const transfersApi = new TransfersApi(scope);
   const loaderApi = new LoaderApi(modules, scope);
   const balancesApi = new BalancesApi(scope);
 

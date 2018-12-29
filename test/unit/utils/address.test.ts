@@ -20,12 +20,6 @@ describe('address', () => {
       expect(addressUtil.isAddress(address)).toBeTruthy;
     });
 
-    it('should return false if the address does not follow bs58', done => {
-      const address = 'GeVw2DVnLMx4ppcTojqNU7rQPvNO';
-      expect(addressUtil.isAddress(address)).toThrowError('Non-base58 character');
-      done();
-    });
-
     it('should return false if it does not start with G', () => {
       const address = 'AeVw2DVnLMx4ppcTojqNU7rQPvNW';
       expect(addressUtil.isAddress(address)).toBeFalsy;

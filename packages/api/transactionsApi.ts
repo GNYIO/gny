@@ -1,7 +1,8 @@
 import * as crypto from 'crypto';
 import * as ed from '../../src/utils/ed';
 import * as express from 'express';
-import { Modules, IScope, KeyPair } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -13,206 +14,149 @@ export default class TransactionsApi {
     this.attachApi();
   }
 
-  private getTransactions = (req, cb) => {
-    const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        limit: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 100,
-        },
-        offset: {
-          type: 'integer',
-          minimum: 0,
-        },
-        id: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-        blockId: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-        type: {
-          type: 'integer',
-          minimum: 0,
-          maximum: 1000,
-        },
-        height: {
-          type: 'integer',
-          minimum: 0,
-        },
-        message: {
-          type: 'string',
-        }
-      },
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message);
-      }
+  private attachApi = () => {
+    const router = express.Router();
 
-      const limit = query.limit || 100;
-      const offset = query.offset || 0;
+    router.use((req: Request, res: Response, next) => {
+      if (this.modules) return next();
+      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+    });
 
-      const condition = {};
-      if (query.senderId) {
-        condition.senderId = query.senderId;
-      }
-      if (query.type !== undefined) {
-        const type = Number(query.type);
+    router.get('/', this.getTransactions);
+    router.get('/unconfirmed/get', this.getUnconfirmedTransaction);
+    router.get('/unconfirmed', this.getUnconfirmedTransactions);
+    router.put('/', this.addTransactionUnsigned);
+    router.put('/batch', this.addTransactions);
 
-        condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' };
-      }
-      if (query.id) {
-        condition.tid = query.id;
-      }
-      if (query.message) {
-        condition.message = query.message;
-      }
+    router.use((req: Request, res: Response) => {
+      res.status(500).json({ success: false, error: 'API endpoint not found' });
+    });
 
-      (async () => {
-        try {
-          let block;
-          if (query.blockId) {
-            block = await global.app.sdb.getBlockById(query.blockId);
-            if (block === undefined) {
-              return cb(null, { transactions: [], count: 0 });
-            }
-            condition.height = block.height;
-          }
-          const count = await global.app.sdb.count('Transfer', condition);
-          let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset });
-          if (!transfer) transfer = [];
-          return cb(null, { transfer, count });
-        } catch (e) {
-          global.app.logger.error('Failed to get transactions', e);
-          return cb(`System error: ${e}`);
-        }
-      })();
-      return null;
+    this.library.network.app.use('/api/transactions', router);
+    this.library.network.app.use((err: any, req: Request, res: Response, next) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err.toString());
+      return res.status(500).json({ success: false, error: err.toString() });
     });
   }
 
-  private getTransaction = (req, cb) => {
+  private getTransactions = async (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-        },
-      },
-      required: ['id'],
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message);
-      }
-      const callback = (err2, ret) => (async () => {
-        if (err2) return cb(err2);
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi.number().min(0).max(100),
+      offset: this.library.joi.number().min(0),
+      id: this.library.joi.string().min(1).max(100),
+      blockId: this.library.joi.string().min(1).max(100),
+      type: this.library.joi.number().min(0).max(1000),
+      height: this.library.joi.number().min(0),
+      message: this.library.joi.string(),
+    });
 
-        if (!ret || !ret.transactions || ret.transactions.length < 1) {
-          cb('transaction not found', ret);
-        } else {
-          // for exchanges ....
-          const transaction = ret.transactions[0];
-          transaction.height = String(transaction.height);
-          transaction.confirmations = String(transaction.confirmations);
+    const report = this.library.joi.validate(query, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
-          cb(null, { transaction });
+    const limit = query.limit || 100;
+    const offset = query.offset || 0;
+
+    const condition = {};
+    if (query.senderId) {
+      condition.senderId = query.senderId;
+    }
+    if (query.type !== undefined) {
+      const type = Number(query.type);
+
+      condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' };
+    }
+    if (query.id) {
+      condition.tid = query.id;
+    }
+    if (query.message) {
+      condition.message = query.message;
+    }
+
+    try {
+      let block;
+      if (query.blockId) {
+        block = await global.app.sdb.getBlockById(query.blockId);
+        if (block === undefined) {
+          return res.json({ transactions: [], count: 0 });
         }
-      })();
-      return this.getTransactions(req, callback);
-    });
+        condition.height = block.height;
+      }
+      const count = await global.app.sdb.count('Transfer', condition);
+      let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset });
+      if (!transfer) transfer = [];
+      return res.json({ transfer, count });
+    } catch (e) {
+      global.app.logger.error('Failed to get transactions', e);
+      return next(`System error: ${e}`);
+    }
   }
 
-  private getUnconfirmedTransaction = (req, cb) => {
+  private getUnconfirmedTransaction = (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 64,
-        },
-      },
-      required: ['id'],
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message);
-      }
-
-      const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(query.id);
-
-      return !unconfirmedTransaction
-        ? cb('Transaction not found')
-        : cb(null, { transaction: unconfirmedTransaction });
+    const typeSchema = this.library.joi.object().keys({
+      id: this.library.joi.string().min(1).max(64).required(),
     });
+    const report = this.library.joi.validate(query, typeSchema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(query.id);
+
+    return !unconfirmedTransaction
+      ? next('Transaction not found')
+      : res.json({ transaction: unconfirmedTransaction });
   }
 
-  private getUnconfirmedTransactions = (req, cb) => {
+  private getUnconfirmedTransactions = (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        senderPublicKey: {
-          type: 'string',
-          format: 'publicKey',
-        },
-        address: {
-          type: 'string',
-        },
-      },
-    }, (err) => {
-      if (err) {
-        return cb(err[0].message);
-      }
+    const publicKeyAddress = this.library.joi.object().keys({
+      senderPublicKey: this.library.joi.string().publicKey(),
+      address: this.library.joi.string().address(),
+    });
+    const report = this.library.joi.validate(query, publicKeyAddress);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
-      const transactions = this.modules.transactions.getUnconfirmedTransactionList();
-      const toSend: any[] = [];
+    const transactions = this.modules.transactions.getUnconfirmedTransactionList();
+    const toSend: any[] = [];
 
-      if (query.senderPublicKey || query.address) {
-        for (let i = 0; i < transactions.length; i++) {
-          if (transactions[i].senderPublicKey === query.senderPublicKey
-            || transactions[i].recipientId === query.address) {
-            toSend.push(transactions[i]);
-          }
+    if (query.senderPublicKey || query.address) {
+      for (let i = 0; i < transactions.length; i++) {
+        if (transactions[i].senderPublicKey === query.senderPublicKey
+          || transactions[i].recipientId === query.address) {
+          toSend.push(transactions[i]);
         }
-      } else {
-        transactions.forEach(t => toSend.push(t));
       }
+    } else {
+      transactions.forEach(t => toSend.push(t));
+    }
 
-      return cb(null, { transactions: toSend });
-    });
+    return res.json({ transactions: toSend });
   }
 
-  private addTransactionUnsigned = (req, cb) => {
+  private addTransactionUnsigned = (req: Request, res: Response, next: Next) => {
     const query = req.body;
     if (query.type !== undefined) {
       query.type = Number(query.type);
     }
-    const valid = this.library.scheme.validate(query, {
-      type: 'object',
-      properties: {
-        secret: { type: 'string', maxLength: 100 },
-        fee: { type: 'integer', min: 1 },
-        type: { type: 'integer', min: 1 },
-        args: { type: 'array' },
-        message: { type: 'string', maxLength: 50 },
-        senderId: { type: 'string', maxLength: 50 },
-        mode: { type: 'integer', min: 0, max: 1 },
-      },
-      required: ['secret', 'fee', 'type'],
+    const transactionSchema = this.library.joi.object().keys({
+      secret: this.library.joi.string().secret().required(),
+      fee: this.library.joi.number().min(1).required(),
+      type: this.library.joi.number().min(1).required(),
+      args: this.library.joi.array(),
+      message: this.library.joi.string(),
+      senderId: this.library.joi.string().address(),
     });
-    if (!valid) {
-      this.library.logger.warn('Failed to validate query params', this.library.scheme.getLastError());
-      return setImmediate(cb, this.library.scheme.getLastError().details[0].message);
+    const report = this.library.joi.validate(query, transactionSchema);
+    if (report.error) {
+      this.library.logger.warn('Failed to validate query params', report.error.message);
+      return setImmediate(next, (report.error.message));
     }
 
     this.library.sequence.add((callback) => {
@@ -237,18 +181,22 @@ export default class TransactionsApi {
           });
           await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
           this.library.bus.message('unconfirmedTransaction', trs);
-          callback(null, { transactionId: trs.id });
+          callback(() => {
+             res.json({ transactionId: trs.id });
+         });
         } catch (e) {
           this.library.logger.warn('Failed to process unsigned transaction', e);
-          callback(e.toString());
+          callback(() => {
+            next(e.toString());
+          });
         }
       })();
-    }, cb);
+    });
   }
 
-  private addTransactions = (req, cb) => {
+  private addTransactions = (req: Request, res: Response, next: Next) => {
     if (!req.body || !req.body.transactions) {
-      return cb('Invalid params');
+      return next('Invalid params');
     }
     const trs = req.body.transactions;
     try {
@@ -256,45 +204,10 @@ export default class TransactionsApi {
         this.library.base.transaction.objectNormalize(t);
       }
     } catch (e) {
-      return cb(`Invalid transaction body: ${e.toString()}`);
+      return next(`Invalid transaction body: ${e.toString()}`);
     }
     return this.library.sequence.add((callback) => {
       this.modules.transactions.processUnconfirmedTransactions(trs, callback);
-    }, cb);
-  }
-
-  private attachApi = () => {
-    const router = express.Router();
-
-    router.use((req, res, next) => {
-      if (this.modules) return next();
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
-    });
-
-    router.get('/', this.getTransactions);
-    router.get('/get', this.getTransaction);
-    router.get('/unconfirmed/get', this.getUnconfirmedTransaction);
-    router.get('/unconfirmed', this.getUnconfirmedTransactions);
-    router.put('/', this.addTransactionUnsigned);
-    router.put('/batch', this.addTransactions);
-    // router.map(this.shared, {
-    //   'get /': 'getTransactions',
-    //   'get /get': 'getTransaction',
-    //   'get /unconfirmed/get': 'getUnconfirmedTransaction',
-    //   'get /unconfirmed': 'getUnconfirmedTransactions',
-    //   'put /': 'addTransactionUnsigned',
-    //   'put /batch': 'addTransactions',
-    // });
-
-    router.use((req: any, res: any) => {
-      res.status(500).send({ success: false, error: 'API endpoint not found' });
-    });
-
-    this.library.network.app.use('/api/transactions', router);
-    this.library.network.app.use((err, req, res, next) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).send({ success: false, error: err.toString() });
-    });
+    }, res);
   }
 }

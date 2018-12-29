@@ -1,5 +1,6 @@
 import * as express from 'express';
-import { IScope, Modules } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { IScope, Modules, Next } from '../../src/interfaces';
 
 export default class LoaderApi {
   private modules: Modules;
@@ -18,23 +19,6 @@ export default class LoaderApi {
     this.isLoaded = true;
   }
 
-  public status = (req, cb) => {
-    cb(null, {
-      loaded: this.isLoaded,
-      now: this.modules.loader.loadingLastBlock.height,
-      blocksCount: this.modules.loader.total,
-    });
-  }
-
-
-  public sync = (req, cb) => {
-    cb(null, {
-      syncing: this.modules.loader.syncing(),
-      blocks: this.modules.loader.blocksToSync,
-      height: this.modules.blocks.getLastBlock().height,
-    });
-  }
-
   private attachApi = () => {
     const router = express.Router();
 
@@ -46,6 +30,22 @@ export default class LoaderApi {
       if (!err) return next();
       this.library.logger.error(req.url, err.toString());
       return res.status(500).send({ success: false, error: err.toString() });
+    });
+  }
+
+  public status = (req: Request, res: Response, next: Next) => {
+    return res.json({
+      loaded: this.isLoaded,
+      now: this.modules.loader.loadingLastBlock.height,
+      blocksCount: this.modules.loader.total,
+    });
+  }
+
+  public sync = (req: Request, res: Response, next: Next) => {
+    return res.json({
+      syncing: this.modules.loader.syncing(),
+      blocks: this.modules.loader.blocksToSync,
+      height: this.modules.blocks.getLastBlock().height,
     });
   }
 }

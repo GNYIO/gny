@@ -1,65 +1,39 @@
 import * as express from 'express';
-import { IScope, Modules } from '../../src/interfaces';
+import { Request, Response } from 'express';
+import { IScope, Modules, Next } from '../../src/interfaces';
 
 export default class TransfersApi {
 
-  private modules: Modules;
   private library: IScope;
-  constructor (modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor (library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // helper function
-  private getAssetMap = async (assetNames) => {
-    const assetMap = new Map();
-    const assetNameList = Array.from(assetNames.keys());
-    const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
-    const gaNameList = assetNameList.filter(n => n.indexOf('.') === -1);
+  private attachApi = () => {
+    const router = express.Router();
 
-    if (uiaNameList && uiaNameList.length) {
-      const assets = await global.app.sdb.findAll('Asset', {
-        condition: {
-          name: { $in: uiaNameList },
-        },
-      });
-      for (const a of assets) {
-        assetMap.set(a.name, a);
-      }
-    }
-    if (gaNameList && gaNameList.length) {
-      const gatewayAssets = await global.app.sdb.findAll('GatewayCurrency', {
-        condition: {
-          symbol: { $in: gaNameList },
-        },
-      });
-      for (const a of gatewayAssets) {
-        assetMap.set(a.symbol, a);
-      }
-    }
-    return assetMap;
-  }
+    router.get('/', this.getRoot);
+    router.get('/amount', this.getAmount);
 
-  // helper function
-  private getTransactionMap = async (tids) => {
-    const trsMap = new Map();
-    const trs = await global.app.sdb.findAll('Transaction', {
-      condition: {
-        id: { $in: tids },
-      },
+    router.use((req: Request, res: Response) => {
+      return res.status(500).send({ success: false, error: 'API endpoint not found' });
     });
-    for (const t of trs) {
-      trsMap.set(t.id, t);
-    }
-    return trsMap;
+
+    this.library.network.app.use('/api/transfers', router);
+    this.library.network.app.use((err, req, res, next) => {
+      if (!err) return next();
+      this.library.logger.error(req.url, err.toString());
+      return res.status(500).send({ success: false, error: err.toString() });
+    });
   }
 
-  private getRoot = async (req) => {
+  private getRoot = async (req: Request, res: Response, next: Next) => {
+
+    const condition = {};
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
-    const condition = {};
     const limit = Number(req.query.limit) || 10;
     const offset = Number(req.query.offset) || 0;
     if (ownerId) {
@@ -86,7 +60,7 @@ export default class TransfersApi {
         offset,
         sort: { timestamp: -1 },
       });
-      const assetNames = new Set();
+      const assetNames = new Set<string>();
       for (const t of transfers) {
         if (t.currency !== 'GNY') {
           assetNames.add(t.currency);
@@ -110,10 +84,10 @@ export default class TransfersApi {
         }
       }
     }
-    return { count, transfers };
+    return res.json({ count, transfers });
   }
 
-  private getAmount = async (req) => {
+  private getAmount = async (req: Request, res: Response, next: Next) => {
     const startTimestamp = req.query.startTimestamp;
     const endTimestamp = req.query.endTimestamp;
     const condition = {};
@@ -129,7 +103,7 @@ export default class TransfersApi {
         condition,
         sort: { timestamp: -1 },
       });
-      const assetNames = new Set();
+      const assetNames = new Set<string>();
       for (const t of transfers) {
         if (t.currency !== 'GNY') {
           assetNames.add(t.currency);
@@ -156,12 +130,41 @@ export default class TransfersApi {
       }
     }
     const strTotalAmount = String(totalAmount);
-    return { count, strTotalAmount };
+    return res.json({ count, strTotalAmount });
   }
 
-  private attachApi = () => {
-    const router = express.Router();
-    router.get('/', this.getRoot);
-    router.get('/amount', this.getAmount);
+
+
+  // helper function
+  private getAssetMap = async (assetNames: Set<string>) => {
+    const assetMap = new Map();
+    const assetNameList = Array.from(assetNames.keys());
+    const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
+
+    if (uiaNameList && uiaNameList.length) {
+      const assets = await global.app.sdb.findAll('Asset', {
+        condition: {
+          name: { $in: uiaNameList },
+        },
+      });
+      for (const a of assets) {
+        assetMap.set(a.name, a);
+      }
+    }
+    return assetMap;
+  }
+
+  // helper function
+  private getTransactionMap = async (tids) => {
+    const trsMap = new Map();
+    const trs = await global.app.sdb.findAll('Transaction', {
+      condition: {
+        id: { $in: tids },
+      },
+    });
+    for (const t of trs) {
+      trsMap.set(t.id, t);
+    }
+    return trsMap;
   }
 }
