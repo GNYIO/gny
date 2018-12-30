@@ -152,13 +152,11 @@ export default class TransactionsApi {
 
   private addTransactionUnsigned = (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    if (query.type !== undefined) {
-      query.type = Number(query.type);
-    }
     const transactionSchema = this.library.joi.object().keys({
       secret: this.library.joi.string().secret().required(),
+      secondSecret: this.library.joi.string().secret(),
       fee: this.library.joi.number().min(1).required(),
-      type: this.library.joi.number().min(1).required(),
+      type: this.library.joi.number().min(0).required(),
       args: this.library.joi.array(),
       message: this.library.joi.string(),
       senderId: this.library.joi.string().address(),
@@ -168,6 +166,13 @@ export default class TransactionsApi {
       this.library.logger.warn('Failed to validate query params', report.error.message);
       return setImmediate(next, (report.error.message));
     }
+
+    const finishSequence = (err: string, result: any) => {
+      if (err) {
+        return next(err);
+      }
+      res.json(result);
+    };
 
     this.library.sequence.add((callback) => {
       (async () => {
@@ -191,23 +196,26 @@ export default class TransactionsApi {
           });
           await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
           this.library.bus.message('unconfirmedTransaction', trs);
-          callback(() => {
-             res.json({ transactionId: trs.id });
-         });
+          callback(null, { transactionId: trs.id });
         } catch (e) {
           this.library.logger.warn('Failed to process unsigned transaction', e);
-          callback(() => {
-            next(e.toString());
-          });
+          callback(e.toString());
         }
       })();
-    });
+    }, undefined, finishSequence);
   }
 
   private addTransactions = (req: Request, res: Response, next: Next) => {
     if (!req.body || !req.body.transactions) {
       return next('Invalid params');
     }
+    const finishedCallback = (err: string, result: any) => {
+      if (err) {
+        return next(err);
+      }
+      return res.json({ success: true, transactions: result });
+    };
+
     const trs = req.body.transactions;
     try {
       for (const t of trs) {
@@ -218,6 +226,6 @@ export default class TransactionsApi {
     }
     return this.library.sequence.add((callback) => {
       this.modules.transactions.processUnconfirmedTransactions(trs, callback);
-    }, res);
+    }, undefined, finishedCallback);
   }
 }

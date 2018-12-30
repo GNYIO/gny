@@ -5,7 +5,7 @@ import slots from '../utils/slots';
 import * as constants from '../utils/constants';
 import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
-import * as feeCalculators from '../utils/calculate-fee';
+import feeCalculators from '../utils/calculate-fee';
 import { IScope, KeyPair } from '../interfaces';
 
 export class Transaction {
@@ -16,8 +16,9 @@ export class Transaction {
 
   public create = (data) => {
     const transaction: any = {
+      secret: data.secret,
       type: data.type,
-      senderId: addressHelper.generateAddress(data.senderPublicKey),
+      senderId: addressHelper.generateAddress(data.keypair.publicKey.toString('hex')),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(undefined),
       message: data.message,
@@ -115,24 +116,24 @@ export class Transaction {
   }
 
   async verify(context) {
-    const { transaction, sender, requestor } = context;
-    if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+    const { trs, sender, requestor } = context;
+    if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
       return 'Invalid transaction timestamp';
     }
 
-    if (!transaction.type) {
+    if (trs.type === undefined || trs.type === null) {
       return 'Invalid function';
     }
 
-    const feeCalculator = feeCalculators[transaction.type];
+    const feeCalculator = feeCalculators[trs.type];
     if (!feeCalculator) return 'Fee calculator not found';
-    const minFee = 100000000 * feeCalculator(transaction);
-    if (transaction.fee < minFee) return 'Fee not enough';
+    const minFee = 100000000 * feeCalculator(trs);
+    if (trs.fee < minFee) return 'Fee not enough';
 
     try {
-      const bytes = this.getBytes(transaction, true, true);
-      if (transaction.senderPublicKey) {
-        const error = this.verifyNormalSignature(transaction, requestor, bytes);
+      const bytes = this.getBytes(trs, true, true);
+      if (trs.senderPublicKey) {
+        const error = this.verifyNormalSignature(trs, requestor, bytes);
         if (error) return error;
       } else {
         return 'Failed to verify signature';
@@ -201,7 +202,7 @@ export class Transaction {
     // transaction.executed = 1
   }
 
-  objectNormalize(transaction) {
+  public objectNormalize = (transaction) => {
     for (const i in transaction) {
       if (transaction[i] === null || typeof transaction[i] === 'undefined') {
         delete transaction[i];
