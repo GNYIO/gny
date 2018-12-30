@@ -45,6 +45,7 @@ export default class Account {
           balance: 0,
           secondPublicKey: '',
           lockHeight: 0,
+          isDelegate: 0
         };
       } else {
         accountData = {
@@ -52,6 +53,7 @@ export default class Account {
           balance: account.gny,
           secondPublicKey: account.secondPublicKey,
           lockHeight: account.lockHeight || 0,
+          isDelegate: account.isDelegate,
         };
       }
       const latestBlock = this.modules.blocks.getLastBlock();
