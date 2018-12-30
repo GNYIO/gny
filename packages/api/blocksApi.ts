@@ -105,12 +105,17 @@ export default class BlocksApi {
       maxHeight = (offset + limit) - 1;
     }
     const withTransactions = !!query.transactions;
-    let blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, withTransactions);
-    if (needReverse) {
-      blocks = _.reverse(blocks);
+
+    try {
+      let blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, withTransactions);
+      if (needReverse) {
+        blocks = _.reverse(blocks);
+      }
+      const count = global.app.sdb.blocksCount;
+      return res.json({ count, blocks });
+    } catch (err) {
+      return next(err.message);
     }
-    const count = global.app.sdb.blocksCount;
-    return res.json({ count, blocks });
   }
 
   private getHeight = (req: Request, res: Response, next: Next) => {
