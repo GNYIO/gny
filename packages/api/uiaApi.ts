@@ -65,7 +65,7 @@ export default class UiaApi {
     const query = req.params;
     const nameMustBeNameOrAddress = this.library.joi.object().keys({
       name: [
-        this.library.joi.string().publisher(),
+        this.library.joi.string().issuer(),
         this.library.joi.string().address()
       ],
     });
@@ -94,7 +94,7 @@ export default class UiaApi {
 
   private getIssuerAssets = async (req: Request, res: Response, next: Next) => {
     const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi.string().publisher().required(),
+      name: this.library.joi.string().issuer().required(),
     });
     const nameReport = this.library.joi.validate(req.params, nameSchema);
     if (nameReport.error) {

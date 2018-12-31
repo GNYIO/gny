@@ -7,7 +7,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   secret(): this;
   address(): this;
   name(): this;
-  publisher(): this;
+  issuer(): this;
   currency(): this;
 }
 
@@ -23,7 +23,7 @@ const stringExtensions: Joi.Extension = {
     secret: 'is not BIP39 complient',
     address: 'is not a GNY address',
     name: 'is not an GNY username',
-    publisher: 'is not a GNY publisher name',
+    issuer: 'is not a valid GNY issuer name',
     currency: 'is not a valid GNY currency name',
   },
   rules: [{
@@ -67,10 +67,10 @@ const stringExtensions: Joi.Extension = {
     }
   },
   {
-    name: 'publisher',
+    name: 'issuer',
     validate(params, value, state, options) {
       const regname = /^[A-Za-z]{1,16}$/;
-      if (!regname.test(value)) return this.createError('string.publisher', { v: value }, state, options);
+      if (!regname.test(value)) return this.createError('string.issuer', { v: value }, state, options);
       return value;
     }
   },
