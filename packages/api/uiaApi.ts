@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
-import { REPL_MODE_STRICT } from 'repl';
+import { ENTITY_EXTENSION_SYMBOL } from 'asch-smartdb';
 
 export default class UiaApi {
   private modules: Modules;
@@ -46,7 +46,7 @@ export default class UiaApi {
   }
 
   private getIssuers = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const limitOffset = this.library.joi.object().keys({
       limit: this.library.joi.number().min(0).max(100),
       offset: this.library.joi.number().min(0),
@@ -66,30 +66,33 @@ export default class UiaApi {
   }
 
   private getIssuer = async (req: Request, res: Response, next: Next) => {
-    if (req.params && addressHelper.isAddress(req.params.name)) {
-      req.params.address = req.params.name;
-      try {
-        const issuer = this.modules.uia.getIssuerByAddress(req);
-        return res.json({ issuer });
-      } catch (err) {
-        return next(err.toString());
-      }
-    }
     const query = req.params;
-    const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi.string().name().required(),
+    const nameMustBeNameOrAddress = this.library.joi.object().keys({
+      name: [
+        this.library.joi.string().publisher(),
+        this.library.joi.string().address()
+      ],
     });
-    const report = this.library.joi.validate(query, nameSchema);
+    const report = this.library.joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
       return next(report.error.message);
     }
 
+    const name: string = query.name;
     try {
-      const issuers = await global.app.sdb.find('Issuer', { username: req.params.name });
-      if (!issuers || issuers.length === 0) return next('Issuer not found');
-      return res.json({ issuer: issuers[0] });
-    } catch (dbErr) {
-      return next(`Failed to get issuers: ${dbErr}`);
+      if (addressHelper.isAddress(name)) {
+        const issuer = await global.app.sdb.findOne('Issuer', { condition: { issuerId: name }});
+        if (!issuer) {
+          return next('Issuer not found');
+        }
+        return res.json({ issuer });
+      } else {
+        const issuers = await global.app.sdb.find('Issuer', { name: req.params.name });
+        if (!issuers || issuers.length === 0) return next('Issuer not found');
+        return res.json({ issuer: issuers[0] });
+      }
+    } catch (err) {
+      return next(err.toString());
     }
   }
 
