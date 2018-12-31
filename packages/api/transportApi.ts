@@ -165,10 +165,7 @@ export default class TransportApi {
       return next('Invalid transaction body');
     }
 
-    return this.library.sequence.add((cb) => {
-      this.library.logger.info(`Received transaction ${transaction.id} from http client`);
-      this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
-    }, (err) => {
+    const finished = (err) => {
       if (err) {
         this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err);
         const errMsg = err.message ? err.message : err.toString();
@@ -177,7 +174,12 @@ export default class TransportApi {
         this.library.bus.message('unconfirmedTransaction', transaction);
         return res.status(200).json({ success: true, transactionId: transaction.id });
       }
-    });
+    };
+
+    return this.library.sequence.add((cb) => {
+      this.library.logger.info(`Received transaction ${transaction.id} from http client`);
+      this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
+    }, undefined, finished);
   }
 
   // POST
