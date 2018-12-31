@@ -172,10 +172,10 @@ export default class TransportApi {
       if (err) {
         this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err);
         const errMsg = err.message ? err.message : err.toString();
-        next(errMsg);
+        return next(errMsg);
       } else {
         this.library.bus.message('unconfirmedTransaction', transaction);
-        res.status(200).json({ success: true, transactionId: transaction.id });
+        return res.status(200).json({ success: true, transactionId: transaction.id });
       }
     });
   }
