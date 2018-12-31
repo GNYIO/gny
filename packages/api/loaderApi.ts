@@ -25,6 +25,10 @@ export default class LoaderApi {
     router.get('/status', this.status);
     router.get('/status/sync', this.sync);
 
+    router.use((req: Request, res: Response) => {
+      return res.status(500).json({ success: false, error: 'API endpoint not found' });
+    });
+
     this.library.network.app.use('/api/loader', router);
     this.library.network.app.use((err, req, res, next) => {
       if (!err) return next();
@@ -33,7 +37,7 @@ export default class LoaderApi {
     });
   }
 
-  public status = (req: Request, res: Response, next: Next) => {
+  private status = (req: Request, res: Response, next: Next) => {
     return res.json({
       loaded: this.isLoaded,
       now: this.modules.loader.loadingLastBlock.height,
@@ -41,7 +45,7 @@ export default class LoaderApi {
     });
   }
 
-  public sync = (req: Request, res: Response, next: Next) => {
+  private sync = (req: Request, res: Response, next: Next) => {
     return res.json({
       syncing: this.modules.loader.syncing(),
       blocks: this.modules.loader.blocksToSync,
