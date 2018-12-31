@@ -153,7 +153,7 @@ export default class UiaApi {
   private getAsset = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
     const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi.string().currency().required(),
+      name: this.library.joi.string().asset().required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -203,7 +203,7 @@ export default class UiaApi {
   private getBalance = async (req: Request, res: Response, next: Next) => {
     const schema = this.library.joi.object().keys({
       address: this.library.joi.string().address().required(),
-      currency: this.library.joi.string().currency().required(),
+      currency: this.library.joi.string().asset().required(),
     });
     const report = this.library.joi.validate(req.params, schema);
     if (report.error) {

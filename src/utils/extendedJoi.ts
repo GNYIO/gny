@@ -8,7 +8,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   address(): this;
   name(): this;
   issuer(): this;
-  currency(): this;
+  asset(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -24,7 +24,7 @@ const stringExtensions: Joi.Extension = {
     address: 'is not a GNY address',
     name: 'is not an GNY username',
     issuer: 'is not a valid GNY issuer name',
-    currency: 'is not a valid GNY currency name',
+    asset: 'is not a valid GNY asset name',
   },
   rules: [{
     name: 'publicKey',
@@ -75,10 +75,10 @@ const stringExtensions: Joi.Extension = {
     }
   },
   {
-    name: 'currency',
+    name: 'asset',
     validate(params, value, state, options) {
       const regname = /^[A-Za-z]{1,16}.[A-Z]{3,6}$/;
-      if (!regname.test(value)) return this.createError('string.currency', { v: value }, state, options);
+      if (!regname.test(value)) return this.createError('string.asset', { v: value }, state, options);
       return value;
     }
   }]
