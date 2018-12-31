@@ -1,10 +1,7 @@
-import * as ed from '../../src/utils/ed';
 import addressHelper from '../../src/utils/address';
-import * as crypto from 'crypto';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
-import { ENTITY_EXTENSION_SYMBOL } from 'asch-smartdb';
+import { Modules, IScope, Next } from '../../src/interfaces';
 
 export default class UiaApi {
   private modules: Modules;
@@ -31,7 +28,6 @@ export default class UiaApi {
     router.get('/assets/:name', this.getAsset);
     router.get('/balances/:address', this.getBalances);
     router.get('/balances/:address/:currency', this.getBalance);
-    router.put('/transfers', this.transferAsset);
 
     router.use((req: Request, res: Response) => {
       res.status(500).json({ success: false, error: 'API endpoint not found' });
@@ -97,10 +93,15 @@ export default class UiaApi {
   }
 
   private getIssuerAssets = async (req: Request, res: Response, next: Next) => {
-    if (!req.params || !req.params.name || req.params.name.length > 32) {
-      return next(' Invalid parameters');
+    const nameSchema = this.library.joi.object().keys({
+      name: this.library.joi.string().publisher().required(),
+    });
+    const nameReport = this.library.joi.validate(req.params, nameSchema);
+    if (nameReport.error) {
+      return next(nameReport.error.message);
     }
-    const query = req.body;
+
+    const { query } = req;
     const limitOffset = this.library.joi.object().keys({
       limit: this.library.joi.number().min(0).max(100),
       offset: this.library.joi.number().min(0),
@@ -111,8 +112,14 @@ export default class UiaApi {
     }
 
     try {
+      const issuerName = req.params.name;
+      const issuer = await global.app.sdb.findOne('Issuer', { condition: { name: issuerName } });
+      if (!issuer) {
+        return next(`Issuer "${issuer}" not found`);
+      }
+
       const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
-      const condition = { issuerName: req.params.name };
+      const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count('Asset', condition);
       const assets = await global.app.sdb.find('Asset', condition, limitAndOffset);
       return res.json({ count, assets: assets });
@@ -122,7 +129,7 @@ export default class UiaApi {
   }
 
   private getAssets = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const limitOffset = this.library.joi.object().keys({
       limit: this.library.joi.number().min(0).max(100),
       offset: this.library.joi.number().min(0),
@@ -146,7 +153,7 @@ export default class UiaApi {
   private getAsset = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
     const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi.string().name().min(1).max(32).required(), // uiaName
+      name: this.library.joi.string().currency().required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -164,10 +171,15 @@ export default class UiaApi {
   }
 
   private getBalances = async (req: Request, res: Response, next: Next) => {
-    if (!req.params || !addressHelper.isAddress(req.params.address)) {
-      return next('Invalid address');
+    const addressSchema = this.library.joi.object().keys({
+      address: this.library.joi.string().address().required(),
+    });
+    const addressReport = this.library.joi.validate(req.params, addressSchema);
+    if (addressReport.error) {
+      return next(addressReport.error.message);
     }
-    const query = req.body;
+
+    const { query } = req;
     const limitOffset = this.library.joi.object().keys({
       limit: this.library.joi.number().min(0).max(100),
       offset: this.library.joi.number().min(0),
@@ -189,68 +201,22 @@ export default class UiaApi {
   }
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
-    if (!req.params) return next('Invalid parameters');
-    if (!addressHelper.isAddress(req.params.address)) return next('Invalid address');
-    if (!req.params.currency || req.params.currency.length > 22) return next('Invalid currency');
+    const schema = this.library.joi.object().keys({
+      address: this.library.joi.string().address().required(),
+      currency: this.library.joi.string().currency().required(),
+    });
+    const report = this.library.joi.validate(req.params, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
     try {
       const condition = { address: req.params.address, currency: req.params.currency };
-      let balances = await global.app.sdb.find('Balance', condition);
+      const balances = await global.app.sdb.find('Balance', condition);
       if (!balances || balances.length === 0) return next('Balance info not found');
-      balances = balances;
       return res.json({ balance: balances[0] });
     } catch (dbErr) {
       return next(`Failed to get issuers: ${dbErr}`);
     }
-  }
-
-  private transferAsset = (req: Request, res: Response, next: Next) => {
-    const query = req.body;
-
-    const schema = this.library.joi.object().keys({
-      secret: this.library.joi.string().secret().required(),
-      currency: this.library.joi.string().max(22).required(),
-      amount: this.library.joi.string().max(50).required(),
-      recipientId: this.library.joi.string().address().required(),
-      publicKey: this.library.joi.string().publicKey(),
-      secondSecret: this.library.joi.string().secret(),
-      message: this.library.joi.string().max(256),
-      fee: this.library.joi.number().min(10000000),
-    });
-    const report = this.library.joi.validate(query, schema);
-
-    if (report.error) {
-      this.library.logger.warn('Failed to validate query params', report.error.message);
-      return next(report.error.message);
-    }
-
-    return this.library.sequence.add((callback) => {
-      (async () => {
-        try {
-          const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest();
-          const keypair = ed.generateKeyPair(hash);
-          let secondKeypair: KeyPair = null;
-          if (query.secondSecret) {
-            secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest());
-          }
-          const trs = this.library.base.transaction.create({
-            secret: query.secret,
-            fee: query.fee || 10000000,
-            type: 103,
-            senderId: query.senderId || null,
-            args: [query.currency, query.amount, query.recipientId],
-            message: query.message || null,
-            secondKeypair,
-            keypair,
-          });
-          await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
-          this.library.bus.message('unconfirmedTransaction', trs);
-          callback(null, { transactionId: trs.id });
-        } catch (e) {
-          this.library.logger.warn('Failed to process unsigned transaction', e);
-          callback(e.toString());
-        }
-      })();
-    }, res);
   }
 }
