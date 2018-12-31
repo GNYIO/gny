@@ -138,7 +138,7 @@ export default class AccountsApi {
     const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
-      name: this.library.joi.string().name()
+      name: this.library.joi.string().username()
     }).xor('address', 'name');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {
@@ -181,7 +181,7 @@ export default class AccountsApi {
     const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
-      name: this.library.joi.string().name()
+      name: this.library.joi.string().username()
     }).xor('address', 'name');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {

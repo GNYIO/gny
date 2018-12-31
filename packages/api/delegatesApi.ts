@@ -145,7 +145,7 @@ export default class DelegatesApi {
   public getVoters = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const nameSchema = this.library.joi.object().keys({
-      username: this.library.joi.string().name().required(),
+      username: this.library.joi.string().username().required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -175,7 +175,7 @@ export default class DelegatesApi {
     const { query } = req;
     const publicKeyOrNameOrAddress = this.library.joi.object().keys({
       publicKey: this.library.joi.string().publicKey(),
-      username: this.library.joi.string().name(),
+      username: this.library.joi.string().username(),
       address: this.library.joi.string().address(),
     });
     const report = this.library.joi.validate(query, publicKeyOrNameOrAddress);
