@@ -57,10 +57,7 @@ export default class TransportApi {
     router.post('/getHeight', this.getHeight);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).json({
-        success: false,
-        error: 'API endpoint not found'
-      });
+      return res.status(500).json({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/peer', router);

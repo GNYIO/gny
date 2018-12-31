@@ -31,10 +31,7 @@ export default class AccountsApi {
 
     // Configuration
     router.use((req: Request, res: Response) => {
-      return res.status(500).json({
-        success: false,
-        error: 'API endpoint not found',
-      });
+      return res.status(500).json({ success: false, error: 'API endpoint not found', });
     });
 
     this.library.network.app.use('/api/accounts', router);

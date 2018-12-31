@@ -43,8 +43,12 @@ export default class DelegatesApi {
 
     router.post('/forging/enable', this.forgingEnable);
     router.post('/forging/disable', this.forgingDisable);
-
     router.get('/forging/status', this.forgingStatus);
+
+    // Configuration
+    router.use((req: Request, res: Response) => {
+      res.status(500).send({ success: false, error: 'API endpoint not found' });
+    });
 
     this.library.network.app.use('/api/delegates', router);
     this.library.network.app.use((err, req, res, next) => {

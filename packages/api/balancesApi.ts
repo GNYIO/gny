@@ -15,14 +15,15 @@ export default class BalancesApi {
     router.get('/:address', this.getBalance);
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
 
+    router.use((req: Request, res: Response) => {
+      res.status(500).send({ success: false, error: 'API endpoint not found' });
+    });
+
     this.library.network.app.use('/api/balances', router);
     this.library.network.app.use((err: string, req: Request, res: Response, next: any) => {
       if (!err) return next();
       this.library.logger.error(req.url, err);
-      return res.status(500).send({
-        success: false,
-        error: err.toString(),
-      });
+      return res.status(500).send({ success: false, error: err.toString(), });
     });
   }
 
