@@ -51,7 +51,7 @@ export default {
     global.app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
 
     global.app.sdb.create('Transfer', {
-      transactionId: this.trs.id,
+      tid: this.trs.id,
       height: this.block.height,
       senderId,
       recipientId: recipientAccount.address,
