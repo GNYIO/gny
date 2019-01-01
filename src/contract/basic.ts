@@ -161,61 +161,6 @@ export default {
     return null;
   },
 
-  // async registerGroup(name, members, min, max, m, updateInterval) {
-  //   global.app.validate('name', name)
-  //   // rule: min, max, m, updateInterval should be integer
-  //   // rule：min >=3, min < max, updateInterval > 1
-  //   if (!Number.isInteger(min) || min <= 0) return 'Min should be positive integer'
-  //   if (!Number.isInteger(max) || max <= 0) return 'Max should be positive integer'
-  //   if (!Number.isInteger(m) || m <= 0) return 'M should be positive integer'
-  //   if (!Number.isInteger(updateInterval) || updateInterval <= 0) return 'UpdateInterval should be positive integer'
-
-  //   if (min < 3) return 'Min should be greater than 3'
-  //   if (min >= max) return 'Max should be greater than min'
-  //   if (updateInterval < 1) return 'UpdateInterval should be greater than 1'
-
-  //   for (const member of members) {
-  //     // member.weight should be integer
-  //     // member.address should have valid address format
-  //     global.app.validate('name', member.name)
-  //     if (!Number.isInteger(member.weight) || member.weight <= 0) return 'Member weight should be positive integer'
-  //     if (!global.app.util.address.isAddress(member.address)) {
-  //       return 'Invalid member address'
-  //     }
-  //   }
-
-  //   if (await global.app.sdb.load('Account', { name })) return 'Name already registered'
-  //   const address = global.app.util.address.generateGroupAddress(name)
-  //   const account = await global.app.sdb.load('Account', address)
-  //   if (!account) {
-  //     global.app.sdb.create('Account', {
-  //       address,
-  //       name,
-  //       gny: 0,
-  //     })
-  //   }
-  //   global.app.sdb.create('Group', {
-  //     name,
-  //     address,
-  //     tid: this.trs.id,
-  //     min,
-  //     max,
-  //     m,
-  //     updateInterval,
-  //     createTime: this.trs.timestamp,
-  //   })
-  //   for (const member of members) {
-  //     global.app.sdb.create('GroupMember', {
-  //       name,
-  //       member: member.address,
-  //       weight: member.weight,
-  //     })
-  //   }
-  //   return null
-  // },
-
-
-
   async registerDelegate() {
     const senderId = this.sender.address;
     if (this.block.height > 0) global.app.sdb.lock(`basic.account@${senderId}`);
