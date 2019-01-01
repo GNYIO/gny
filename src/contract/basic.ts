@@ -167,7 +167,6 @@ export default {
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.username) return 'Account has not a name';
-    if (sender.role) return 'Account already have a role';
 
     global.app.sdb.create('Delegate', {
       address: senderId,
@@ -181,8 +180,7 @@ export default {
       rewards: 0,
     });
     sender.isDelegate = 1;
-    sender.role = global.app.AccountRole.DELEGATE;
-    global.app.sdb.update('Account', { isDelegate: 1, role: global.app.AccountRole.DELEGATE }, { address: senderId });
+    global.app.sdb.update('Account', { isDelegate: 1 }, { address: senderId });
 
     return null;
   },
