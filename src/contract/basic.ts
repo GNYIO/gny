@@ -1,8 +1,8 @@
 async function doCancelVote(account) {
   const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } });
-  if (voteList && voteList.length > 0 && account.weight > 0) {
+  if (voteList && voteList.length > 0 && account.lockAmount > 0) {
     for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -account.weight }, { name: voteItem.delegate });
+      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { name: voteItem.delegate });
     }
   }
 }
@@ -254,7 +254,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
     if (currentVotes) {
       if (currentVotes.length + delegates.length > 101) {
         return 'Maximum number of votes exceeded';
@@ -265,22 +265,22 @@ export default {
       }
       for (const name of delegates) {
         if (currentVotedDelegates.has(name)) {
-          return `Delegate already voted: ${name}`;
+          return `Already voted for delegate: ${name}`;
         }
       }
     }
 
-    for (const name of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { name });
-      if (!exists) return `Voted delegate not exists: ${name}`;
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists('Delegate', { username });
+      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
-    for (const name of delegates) {
-      const votes = (sender.weight);
-      global.app.sdb.increase('Delegate', { votes }, { name });
+    for (const username of delegates) {
+      const votes = (sender.lockAmount);
+      global.app.sdb.increase('Delegate', { votes }, { username });
       global.app.sdb.create('Vote', {
-        address: senderId,
-        delegate: name,
+        voterAddress: senderId,
+        delegate: username,
       });
     }
     return null;
@@ -317,7 +317,7 @@ export default {
     }
 
     for (const name of delegates) {
-      const votes = -(sender.weight);
+      const votes = -(sender.lockAmount);
       global.app.sdb.increase('Delegate', { votes }, { name });
 
       global.app.sdb.del('Vote', { address: senderId, delegate: name });
