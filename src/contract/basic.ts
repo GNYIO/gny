@@ -298,7 +298,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
     if (currentVotes) {
       const currentVotedDelegates = new Set();
       for (const v of currentVotes) {
@@ -311,16 +311,16 @@ export default {
       }
     }
 
-    for (const name of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { name });
-      if (!exists) return `Voted delegate not exists: ${name}`;
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists('Delegate', { username });
+      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
-    for (const name of delegates) {
+    for (const username of delegates) {
       const votes = -(sender.lockAmount);
-      global.app.sdb.increase('Delegate', { votes }, { name });
+      global.app.sdb.increase('Delegate', { votes }, { username });
 
-      global.app.sdb.del('Vote', { address: senderId, delegate: name });
+      global.app.sdb.del('Vote', { voterAddress: senderId, delegate: username });
     }
     return null;
   },
