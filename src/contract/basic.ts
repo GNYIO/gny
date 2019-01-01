@@ -131,7 +131,7 @@ export default {
     }
     if (amount !== 0) {
       sender.gny -= amount;
-      sender.weight += amount;
+      sender.lockAmount += amount;
       global.app.sdb.update('Account', sender, { address: sender.address });
 
       const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
@@ -154,8 +154,8 @@ export default {
 
     sender.isLocked = 0;
     sender.lockHeight = 0;
-    sender.gny += sender.weight;
-    sender.weight = 0;
+    sender.gny += sender.lockAmount;
+    sender.lockAmount = 0;
     global.app.sdb.update('Account', sender, { address: senderId });
 
     return null;
