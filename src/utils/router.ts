@@ -1,45 +1,34 @@
-import _ = require('lodash');
-import express = require('express');
+import * as _ from 'lodash';
+import * as express from 'express';
+import { Request, Response } from 'express';
 
-function map(root, config) {
-  const router = this
-  Object.keys(config).forEach((params) => {
-    const route = params.split(' ')
-    if (route.length !== 2 || ['post', 'get', 'put'].indexOf(route[0]) === -1) {
-      throw Error('wrong map config')
-    }
-    router[route[0]](route[1], (req, res) => {
-      const reqParams = {
-        body: route[0] === 'get' ? req.query : req.body,
-        params: req.params,
+export default class Router {
+  public router: any = express.Router();
+
+  constructor() {
+    this.router.map = this.map;
+  }
+
+  private map(root: any, config: any) {
+    Object.keys(config).forEach((param) => {
+      const params = param.split(' ');
+      const method = params[0];
+      const route = params[1];
+      if (params.length !== 2 || ['post', 'get', 'put'].indexOf(method) === -1) {
+        throw Error('Wrong router map config');
       }
-      root[config[params]](reqParams, (err, response) => {
-        if (err) {
-          return res.json({ success: false, error: err })
-        }
-        return res.json(_.assign({ success: true }, response))
-      })
-    })
-  })
+      this[method](route, (req: Request, res: Response) => {
+        const reqParams = {
+          body: method === 'get' ? req.query : req.body,
+          params: req.params,
+        };
+        root[config[param]](reqParams, (err: String, res: Response) => {
+          if (err) {
+            return res.json({ success: false, error: err });
+          }
+          return res.json(_.assign({ success: true }, res));
+        });
+      });
+    });
+  }
 }
-
-/**
- * @title Router
- * @overview Router stub
- * @returns {*}
- */
-function Router() {
-  const router = express.Router()
-
-  // router.use(function (req, res, next) {
-  //   res.header("Access-Control-Allow-Origin", "*");
-  //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  //   next();
-  // });
-
-  router.map = map
-
-  return router
-}
-
-export = Router;

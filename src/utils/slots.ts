@@ -1,60 +1,52 @@
-import constants = require('./constants');
+import { EPOCH_TIME, INTERVAL, DELEGATES } from './constants';
 
-function beginEpochTime() {
-  return new Date(Date.UTC(2016, 5, 27, 20, 0, 0, 0))
-}
+class Slots {
+  public delegates = DELEGATES;
+  constructor() {}
 
-function getEpochTime(time) {
-  let t = time
-  if (t === undefined) {
-    t = (new Date()).getTime()
+  getEpochTime(time: number | undefined) {
+    if (time === undefined) {
+      time = Date.now();
+    }
+    return Math.floor((time - EPOCH_TIME.getTime()) / 1000);
   }
-  const t0 = beginEpochTime().getTime()
-  return Math.floor((t - t0) / 1000)
-}
 
-export = {
-
-  // interval: 10,
-  interval: constants.interval,
-
-  delegates: 101,
-
-  getTime(time) {
-    return getEpochTime(time)
-  },
+  getTime(time: number | undefined) {
+    return this.getEpochTime(time);
+  }
 
   getRealTime(epochTime) {
-    let et = epochTime
-    if (et === undefined) {
-      et = this.getTime()
+    if (epochTime === undefined) {
+      epochTime = this.getTime(undefined);
     }
-    const d = beginEpochTime()
-    const t = Math.floor(d.getTime() / 1000) * 1000
-    return t + (et * 1000)
-  },
 
-  getSlotNumber(epochTime) {
-    let et = epochTime
-    if (et === undefined) {
-      et = this.getTime()
+    const start = Math.floor(EPOCH_TIME.getTime() / 1000) * 1000;
+    return start + epochTime * 1000;
+  }
+
+  getSlotNumber(epochTime?: number) {
+    if (epochTime === undefined) {
+      epochTime = this.getTime(undefined);
     }
-    return Math.floor(et / this.interval)
-  },
 
-  getSlotTime(slot) {
-    return slot * this.interval
-  },
+    return Math.floor(epochTime / INTERVAL);
+  }
+
+  getSlotTime(slot: number) {
+    return slot * INTERVAL;
+  }
 
   getNextSlot() {
-    return this.getSlotNumber() + 1
-  },
+    return this.getSlotNumber(undefined) + 1;
+  }
 
-  getLastSlot(nextSlot) {
-    return nextSlot + this.delegates
-  },
+  getLastSlot(nextSlot: number) {
+    return nextSlot + DELEGATES;
+  }
 
-  roundTime(date) {
-    return Math.floor(date.getTime() / 1000) * 1000
-  },
+  roundTime(date: Date) {
+    return Math.floor(date.getTime() / 1000) * 1000;
+  }
 }
+
+export default new Slots();

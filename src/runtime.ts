@@ -1,137 +1,22 @@
-import fs = require('fs');
-import path = require('path');
-import util = require('util');
+import * as path from 'path';
 import { EventEmitter } from 'events';
-import _ = require('lodash');
-import changeCase = require('change-case');
+import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
-import slots = require('./utils/slots');
-import amountHelper = require('./utils/amount');
+import slots from './utils/slots';
 import Router = require('./utils/router');
-import BalanceManager = require('./smartdb/balance-manager');
-import AutoIncrement = require('./smartdb/auto-increment');
-import AccountRole = require('./utils/account-role');
-import transactionMode = require('./utils/transaction-mode');
+import BalanceManager from './smartdb/balance-manager';
+import AutoIncrement from  './smartdb/auto-increment';
+import transactionMode from './utils/transaction-mode';
+import loadModels from './loadModels';
+import loadContracts from './loadContracts';
+import loadInterfaces from './loadInterfaces';
 
-const PIFY = util.promisify
-
-class RouteWrapper {
-  constructor() {
-    this.hands = []
-    this.routePath = null
-  }
-
-  get(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'get', handler })
-  }
-
-  put(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'put', handler })
-  }
-
-  post(routePath, handler) {
-    this.handlers.push({ path: routePath, method: 'post', handler })
-  }
-
-  set path(val) {
-    this.routePath = val
-  }
-
-  get path() {
-    return this.routePath
-  }
-
-  get handlers() {
-    return this.hands
-  }
-}
-
-async function loadModels(dir) {
-  let modelFiles = []
-  try {
-    modelFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`models load error: ${e}`)
-    return
-  }
-  app.logger.debug('models', modelFiles)
-
-  const schemas = []
-  modelFiles.forEach((modelFile) => {
-    app.logger.info('loading model', modelFile)
-    const basename = path.basename(modelFile, '.js')
-    const modelName = _.chain(basename).camelCase().upperFirst().value()
-    const fullpath = path.resolve(dir, modelFile)
-    const schema = require(fullpath)
-    schemas.push(new AschCore.ModelSchema(schema, modelName))
-  })
-
-  await app.sdb.init(schemas)
-
-}
-
-async function loadContracts(dir) {
-  let contractFiles
-  try {
-    contractFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`contracts load error: ${e}`)
-    return
-  }
-  contractFiles.forEach((contractFile) => {
-    app.logger.info('loading contract', contractFile)
-    const basename = path.basename(contractFile, '.js')
-    const contractName = changeCase.snakeCase(basename)
-    const fullpath = path.resolve(dir, contractFile)
-    const contract = require(fullpath)
-    if (contractFile !== 'index.js') {
-      app.contract[contractName] = contract
-    }
-  })
-}
-
-async function loadInterfaces(dir, routes) {
-  let interfaceFiles
-  try {
-    interfaceFiles = await PIFY(fs.readdir)(dir)
-  } catch (e) {
-    app.logger.error(`interfaces load error: ${e}`)
-    return
-  }
-  for (const f of interfaceFiles) {
-    app.logger.info('loading interface', f)
-    const basename = path.basename(f, '.js')
-    const rw = new RouteWrapper()
-    require(path.resolve(dir, f))(rw)
-    const router = new Router()
-    for (const h of rw.handlers) {
-      router[h.method](h.path, (req, res) => {
-        (async () => {
-          try {
-            const result = await h.handler(req)
-            let response = { success: true }
-            if (util.isObject(result) && !Array.isArray(result)) {
-              response = _.assign(response, result)
-            } else if (!util.isNullOrUndefined(result)) {
-              response.data = result
-            }
-            res.send(response)
-          } catch (e) {
-            res.status(500).send({ success: false, error: e.message })
-          }
-        })()
-      })
-    }
-    if (!rw.path) {
-      rw.path = `/api/v2/${basename}`
-    }
-    routes.use(rw.path, router)
-  }
-}
+import address from './utils/address';
+import * as bignumber from 'bignumber';
 
 function adaptSmartDBLogger(config) {
-  const { LogLevel } = AschCore
+  const { LogLevel } = AschCore;
   const levelMap = {
     trace: LogLevel.Trace,
     debug: LogLevel.Debug,
@@ -140,174 +25,140 @@ function adaptSmartDBLogger(config) {
     warn: LogLevel.Warn,
     error: LogLevel.Error,
     fatal: LogLevel.Fatal,
-  }
+  };
 
   AschCore.LogManager.logFactory = {
-    createLog: () => app.logger,
+    createLog: () => global.app.logger,
     format: false,
     getLevel: () => {
-      const appLogLevel = String(config.logLevel).toLocaleLowerCase()
-      return levelMap[appLogLevel] || LogLevel.Info
+      const appLogLevel = String(config.logLevel).toLocaleLowerCase();
+      return levelMap[appLogLevel] || LogLevel.Info;
     },
-  }
+  };
 }
 
-module.exports = async function runtime(options) {
+export default async function runtime(options) {
   global.app = {
     sdb: null,
     balances: null,
-    model: {},
     contract: {},
     contractTypeMapping: {},
     feeMapping: {},
     defaultFee: {
-      currency: 'AEC',
+      currency: 'GNY',
       min: '10000000',
     },
     hooks: {},
-    custom: {},
     logger: options.logger,
   };
-  app.validators = {
-    amount: value => amountHelper.validate(value),
+  global.app.validators = {
+    amount: (amount) => {
+      if (typeof amount !== 'string') return 'Invalid amount type';
+      if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer';
+
+      let bnAmount;
+      try {
+        bnAmount = global.app.util.bignumber(amount);
+      } catch (e) {
+        return 'Failed to convert';
+      }
+      if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range';
+      return null;
+    },
     name: (value) => {
-      const regname = /^[a-z0-9_]{2,20}$/
-      if (!regname.test(value)) return 'Invalid name'
-      return null
+      const regname = /^[a-z0-9_]{2,20}$/;
+      if (!regname.test(value)) return 'Invalid name';
+      return null;
     },
     publickey: (value) => {
-      const reghex = /^[0-9a-fA-F]{64}$/
-      if (!reghex.test(value)) return 'Invalid public key'
-      return null
+      const reghex = /^[0-9a-fA-F]{64}$/;
+      if (!reghex.test(value)) return 'Invalid public key';
+      return null;
     },
     string: (value, constraints) => {
       if (constraints.length) {
-        return JSON.stringify(validate({ data: value }, { data: { length: constraints.length } }))
+        return JSON.stringify(validate({ data: value }, { data: { length: constraints.length } }));
       } if (constraints.isEmail) {
-        return JSON.stringify(validate({ email: value }, { email: { email: true } }))
+        return JSON.stringify(validate({ email: value }, { email: { email: true } }));
       } if (constraints.url) {
-        return JSON.stringify(validate({ url: value }, { url: { url: constraints.url } }))
+        return JSON.stringify(validate({ url: value }, { url: { url: constraints.url } }));
       } if (constraints.number) {
         return JSON.stringify(validate(
           { number: value },
           { number: { numericality: constraints.number } },
-        ))
+        ));
       }
-      return null
+      return null;
     },
-  }
-  app.validate = (type, value, constraints) => {
-    if (!app.validators[type]) throw new Error(`Validator not found: ${type}`)
-    const error = app.validators[type](value, constraints)
-    if (error) throw new Error(error)
-  }
-  app.registerContract = (type, name) => {
+  };
+  global.app.validate = (type, value, constraints) => {
+    if (!global.app.validators[type]) throw new Error(`Validator not found: ${type}`);
+    const error = global.app.validators[type](value, constraints);
+    if (error) throw new Error(error);
+  };
+  global.app.registerContract = (type, name) => {
     // if (type < 1000) throw new Error('Contract types that small than 1000 are reserved')
-    app.contractTypeMapping[type] = name
-  }
-  app.getContractName = type => app.contractTypeMapping[type]
+    global.app.contractTypeMapping[type] = name;
+  };
+  global.app.getContractName = type => global.app.contractTypeMapping[type];
 
-  app.registerFee = (type, min, currency) => {
-    app.feeMapping[type] = {
-      currency: currency || app.defaultFee.currency,
+  global.app.registerFee = (type, min, currency) => {
+    global.app.feeMapping[type] = {
+      currency: currency || global.app.defaultFee.currency,
       min,
-    }
-  }
-  app.getFee = type => app.feeMapping[type]
+    };
+  };
+  global.app.getFee = type => global.app.feeMapping[type];
 
-  app.setDefaultFee = (min, currency) => {
-    app.defaultFee.currency = currency
-    app.defaultFee.min = min
-  }
+  global.app.setDefaultFee = (min, currency) => {
+    global.app.defaultFee.currency = currency;
+    global.app.defaultFee.min = min;
+  };
 
-  app.addRoundFee = (fee, roundNumber) => {
-    modules.blocks.increaseRoundData({ fees: fee }, roundNumber)
-  }
+  global.app.addRoundFee = (fee, roundNumber) => {
+    modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
+  };
 
-  app.getRealTime = epochTime => slots.getRealTime(epochTime)
+  global.app.getRealTime = epochTime => slots.getRealTime(epochTime);
 
-  app.registerHook = (name, func) => {
-    app.hooks[name] = func
-  }
+  global.app.registerHook = (name, func) => {
+    global.app.hooks[name] = func;
+  };
 
-  app.verifyBytes = (bytes, pk, signature) => app.api.crypto.verify(pk, signature, bytes);
+  global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr);
 
-  app.checkMultiSignature = (bytes, allowedKeys, signatures, m) => {
-    const keysigs = signatures.split(',')
-    const publicKeys = []
-    const sigs = []
-    for (const ks of keysigs) {
-      if (ks.length !== 192) throw new Error('Invalid public key or signature')
-      publicKeys.push(ks.substr(0, 64))
-      sigs.push(ks.substr(64, 192))
-    }
-    const uniqPublicKeySet = new Set()
-    for (const pk of publicKeys) {
-      uniqPublicKeySet.add(pk)
-    }
-    if (uniqPublicKeySet.size !== publicKeys.length) throw new Error('Duplicated public key')
 
-    let sigCount = 0
-    for (let i = 0; i < publicKeys.length; ++i) {
-      const pk = publicKeys[i]
-      const sig = sigs[i]
-      if (allowedKeys.indexOf(pk) !== -1 && app.verifyBytes(bytes, pk, sig)) {
-        sigCount++
-      }
-    }
-    if (sigCount < m) throw new Error('Signatures not enough')
-  }
+  const { appDir, dataDir } = options.appConfig;
 
-  app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr)
+  const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks');
+  const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db');
 
-  app.executeContract = async (context) => {
-    context.activating = 1
-    const error = await library.base.transaction.apply(context)
-    if (!error) {
-      const trs = await app.sdb.get('Transaction', { id: context.trs.id })
-      if (!transactionMode.isRequestMode(context.trs.mode)) throw new Error('Transaction mode is not request mode')
+  adaptSmartDBLogger(options.appConfig);
+  global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR);
+  global.app.balances = new BalanceManager(global.app.sdb);
+  global.app.autoID = new AutoIncrement(global.app.sdb);
+  global.app.events = new EventEmitter();
 
-      app.sdb.update('TransactionStatu', { executed: 1 }, { tid: context.trs.id })
-      app.addRoundFee(trs.fee, modules.round.calc(context.block.height))
-    }
-    return error
-  }
+  global.app.util = {
+    address: address,
+    bignumber: bignumber,
+    transactionMode: transactionMode,
+  };
 
-  app.AccountRole = AccountRole
+  await loadModels();
+  await loadContracts();
+  await loadInterfaces(options.library.network.app);
 
-  const { appDir, dataDir } = options.appConfig
+  global.app.contractTypeMapping[0] = 'basic.transfer';
+  global.app.contractTypeMapping[1] = 'basic.setUserName';
+  global.app.contractTypeMapping[2] = 'basic.setSecondPassphrase';
+  global.app.contractTypeMapping[3] = 'basic.lock';
+  global.app.contractTypeMapping[4] = 'basic.vote';
+  global.app.contractTypeMapping[5] = 'basic.unvote';
+  global.app.contractTypeMapping[10] = 'basic.registerDelegate';
 
-  const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks')
-  const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db')
-
-  adaptSmartDBLogger(options.appConfig)
-  app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR)
-  app.balances = new BalanceManager(app.sdb)
-  app.autoID = new AutoIncrement(app.sdb)
-  app.events = new EventEmitter()
-
-  app.util = {
-    address: require('./utils/address.js'),
-    bignumber: require('./utils/bignumber'),
-    transactionMode: require('./utils/transaction-mode.js'),
-  }
-
-  await loadModels(path.join(appDir, 'model'))
-  await loadContracts(path.join(appDir, 'contract'))
-  await loadInterfaces(path.join(appDir, 'interface'), options.library.network.app)
-
-  app.contractTypeMapping[1] = 'basic.transfer'
-  app.contractTypeMapping[2] = 'basic.setName'
-  app.contractTypeMapping[3] = 'basic.setPassword'
-  app.contractTypeMapping[4] = 'basic.lock'
-  app.contractTypeMapping[5] = 'basic.unlock'
-  // app.contractTypeMapping[6] = 'basic.registerGroup'
-  app.contractTypeMapping[10] = 'basic.registerDelegate'
-  app.contractTypeMapping[11] = 'basic.vote'
-  app.contractTypeMapping[12] = 'basic.unvote'
-
-  app.contractTypeMapping[100] = 'uia.registerIssuer'
-  app.contractTypeMapping[101] = 'uia.registerAsset'
-  app.contractTypeMapping[102] = 'uia.issue'
-  app.contractTypeMapping[103] = 'uia.transfer'
+  global.app.contractTypeMapping[100] = 'uia.registerIssuer';
+  global.app.contractTypeMapping[101] = 'uia.registerAsset';
+  global.app.contractTypeMapping[102] = 'uia.issue';
+  global.app.contractTypeMapping[103] = 'uia.transfer';
 }

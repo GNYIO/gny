@@ -1,39 +1,48 @@
-import assert = require('assert');
-import crypto = require('crypto');
-import fs = require('fs');
-import initRuntime = require('./src/runtime');
-import initAlt = require('./src/init');
+import * as assert from 'assert';
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import initRuntime from './src/runtime';
+import initAlt from './src/init';
+import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
 
-function verifyGenesisBlock(scope, block) {
+function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
   try {
     const payloadHash = crypto.createHash('sha256');
 
     for (let i = 0; i < block.transactions.length; i++) {
-      const trs = block.transactions[i]
+      const trs = block.transactions[i];
       const bytes = scope.base.transaction.getBytes(trs);
-      payloadHash.update(bytes)
+      payloadHash.update(bytes);
     }
     const id = scope.base.block.getId(block);
     assert.equal(
       payloadHash.digest().toString('hex'),
       block.payloadHash,
       'Unexpected payloadHash',
-    )
+    );
     assert.equal(id, block.id, 'Unexpected block id');
   } catch (e) {
     throw e;
   }
 }
 
-class Application {
-  constructor(public options: any) { }
+interface LocalOptions {
+  appConfig: IConfig;
+  genesisBlock: IGenesisBlock;
+  logger: ILogger;
+  pidFile: string;
+  library?: Partial<IScope>;
+}
+
+export default class Application {
+  private options: LocalOptions;
+  constructor(options: LocalOptions) {
+    this.options = options;
+  }
 
   async run() {
     const options = this.options;
     const pidFile = options.pidFile;
-
-    global.featureSwitch = {};
-    global.state = {};
 
     const scope = await initAlt(options);
     function cb(err, result) {
@@ -45,8 +54,10 @@ class Application {
       scope.logger.info('Cleaning up...');
 
       try {
-        for (let key in scope.modules) {
-          scope.modules[key].cleanup(cb);
+        for (const key in scope.modules) {
+          if (scope.modules[key].hasOwnProperty('cleanup')) {
+            scope.modules[key].cleanup(cb);
+          }
         }
         global.app.sdb.close();
         scope.logger.info('Clean up successfully.');
@@ -55,56 +66,52 @@ class Application {
       }
 
       if (fs.existsSync(pidFile)) {
-        fs.unlinkSync(pidFile)
+        fs.unlinkSync(pidFile);
       }
-      process.exit(1)
-    })
+      process.exit(1);
+    });
 
     process.once('SIGTERM', () => {
       process.emit('cleanup');
-    })
+    });
 
     process.once('exit', () => {
-      scope.logger.info('process exited')
-    })
+      scope.logger.info('process exited');
+    });
 
     process.once('SIGINT', () => {
-      process.emit('cleanup')
-    })
+      process.emit('cleanup');
+    });
 
     process.on('uncaughtException', (err) => {
       // handle the error safely
-      scope.logger.fatal('uncaughtException', { message: err.message, stack: err.stack })
-      process.emit('cleanup')
-    })
+      scope.logger.fatal('uncaughtException', { message: err.message, stack: err.stack });
+      process.emit('cleanup');
+    });
 
     process.on('unhandledRejection', (err) => {
       // handle the error safely
-      scope.logger.error('unhandledRejection', err)
-      process.emit('cleanup')
-    })
+      scope.logger.error('unhandledRejection', err);
+      process.emit('cleanup');
+    });
 
-    verifyGenesisBlock(scope, scope.genesisblock.block)
+    verifyGenesisBlock(scope, scope.genesisBlock);
 
     options.library = scope;
 
     try {
-      await initRuntime(options)
+      await initRuntime(options);
     } catch (e) {
-      scope.logger.error('init runtime error: ', e)
-      process.exit(1)
-      return
+      scope.logger.error('init runtime error: ', e);
+      process.exit(1);
+      return;
     }
 
-    scope.bus.message('bind', scope.modules)
-    global.modules = scope.modules
-    global.library = scope
+    scope.bus.message('bind', scope.modules);
 
-    scope.logger.info('Modules ready and launched')
+    scope.logger.info('Modules ready and launched');
     if (!scope.config.publicIp) {
-      scope.logger.warn('Failed to get public ip, block forging MAY not work!')
+      scope.logger.warn('Failed to get public ip, block forging MAY not work!');
     }
   }
 }
-
-export = Application;

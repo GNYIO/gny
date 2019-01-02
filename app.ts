@@ -1,27 +1,16 @@
-import program = require('commander');
-import path = require('path');
-import fs = require('fs');
-import ip = require('ip');
+import * as program from 'commander';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as ip from 'ip';
 import daemon = require('daemon');
-import tracer = require('tracer');
-import asch = require('./index');
-import packageJson from './package.json';
-
+import * as tracer from 'tracer';
+import Application from './index';
+import * as packageJson from './package.json';
+import { IConfig, IGenesisBlock, ILogger } from './src/interfaces';
 
 const version = packageJson.version;
-const Application = asch.Application;
-
 
 function main() {
-
-  const baseDir = program.base || './';
-  const seedPort = 81;
-  const seeds = [
-    757137132
-  ];
-  let appConfigFile;
-  let genesisblockFile;
-  let logger;
 
   process.stdin.resume();
 
@@ -33,11 +22,20 @@ function main() {
     .option('-g, --genesisblock <path>', 'Genesisblock path')
     .option('-x, --peers [peers...]', 'Peers list')
     .option('-l, --log <level>', 'Log level')
-    .option('-d, --daemon', 'Run asch node as daemon')
+    .option('-d, --daemon', 'Run gny node as daemon')
     .option('--app <dir>', 'App directory')
     .option('--base <dir>', 'Base directory')
     .option('--data <dir>', 'Data directory')
     .parse(process.argv);
+
+  const baseDir = program.base || './';
+  const seedPort = 81;
+  const seeds = [
+    757137132
+  ];
+  let appConfigFile: string;
+  let genesisBlockFile: string;
+  let logger: ILogger;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
@@ -45,7 +43,7 @@ function main() {
     appConfigFile = path.join(baseDir, 'config.json');
   }
 
-  const appConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
+  const appConfig: IConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
 
   const pidFile = appConfig.pidFile || path.join(baseDir, 'aschd.pid');
 
@@ -65,12 +63,12 @@ function main() {
   global.Config = appConfig;
 
   if (program.genesisblock) {
-    genesisblockFile = path.resolve(process.cwd(), program.genesisblock);
+    genesisBlockFile = path.resolve(process.cwd(), program.genesisblock);
   } else {
-    genesisblockFile = path.join(baseDir, 'genesisBlock.json');
+    genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisblock = JSON.parse(fs.readFileSync(genesisblockFile, 'utf8'));
+  const genesisBlock: IGenesisBlock = JSON.parse(fs.readFileSync(genesisBlockFile, 'utf8'));
 
   if (program.port) {
     appConfig.port = program.port;
@@ -123,13 +121,20 @@ function main() {
 
   const options = {
     appConfig,
-    genesisblock,
+    genesisBlock,
     logger,
     pidFile,
   };
 
-  const app = new Application(options);
-  app.run();
+  const application = new Application(options);
+  (async () => {
+    try {
+      await application.run();
+    } catch (e) {
+      console.log(e);
+    }
+
+  })();
 }
 
 main();

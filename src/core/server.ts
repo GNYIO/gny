@@ -1,20 +1,22 @@
+import { IScope } from '../interfaces';
+
 export default class Server {
   private isLoaded = false;
-  library: any;
+  private readonly library: IScope;
 
-  constructor(scope: any) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 
-  onBind(scope: any) {
-    this.library= scope;
-  }
-
-  onBlockchainReady() {
+  // Events
+    // Events
+  onBlockchainReady = () => {
     this.isLoaded = true;
   }
 
-  cleanup() {
+  cleanup = (cb) => {
+    this.library.logger.debug('Cleaning up core/server');
     this.isLoaded = false;
+    cb();
   }
 }

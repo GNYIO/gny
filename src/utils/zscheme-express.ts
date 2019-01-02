@@ -1,4 +1,4 @@
-export = zscheme => (req, res, next) => {
+export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
     return zscheme.validate(
       value,
@@ -11,7 +11,7 @@ export = zscheme => (req, res, next) => {
         },
         value,
       ),
-    )
-  }
-  next()
-}
+    );
+  };
+  next();
+};

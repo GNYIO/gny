@@ -1,68 +1,69 @@
-import util = require('util');
 import async = require('async');
-import constants = require('./constants');
+import * as constants from './constants';
 
 // const TASK_TIMEOUT_MS = 10 * 1000
 // const TASK_TIMEOUT_MS = 15 * 1000
-const TASK_TIMEOUT_MS = constants.interval * 1000
+const TASK_TIMEOUT_MS = constants.interval * 1000;
 
 function tick(task, cb) {
-  let isCallbacked = false
+  let isCallbacked = false;
   const done = (err, res) => {
     if (isCallbacked) {
-      return
+      return;
     }
-    isCallbacked = true
+    isCallbacked = true;
     if (task.done) {
-      setImmediate(task.done, err, res)
+      setImmediate(task.done, err, res);
     }
-    setImmediate(cb)
-  }
+    setImmediate(cb);
+  };
   setTimeout(() => {
     if (!isCallbacked) {
-      done('Worker task timeout')
+      done('Worker task timeout');
     }
-  }, TASK_TIMEOUT_MS)
-  let args = [done]
+  }, TASK_TIMEOUT_MS);
+  let args = [done];
   if (task.args) {
-    args = args.concat(task.args)
+    args = args.concat(task.args);
   }
   try {
-    task.worker.apply(task.worker, args)
+    task.worker.apply(task.worker, args);
   } catch (e) {
-    library.logger.error('Worker task failed:', e)
-    done(e.toString())
+    library.logger.error('Worker task failed:', e);
+    done(e.toString());
   }
 }
 
-class Sequence {
-  constructor(config) {
-    this.counter = 1
-    this.name = config.name
+export default class Sequence {
+  private counter: number;
+  private readonly name: string;
+  private queue: async.queue;
 
-    this.queue = async.queue(tick, 1)
+  constructor(config) {
+    this.counter = 1;
+    this.name = config.name;
+
+    this.queue = async.queue(tick, 1);
   }
 
-  add(worker, args, cb) {
-    let done
+  add(worker, args?, cb?) {
+    let done;
     if (!cb && args && typeof args === 'function') {
-      done = args
+      done = args;
     } else {
-      done = cb
+      done = cb;
     }
     if (worker && typeof worker === 'function') {
-      const task = { worker, done }
-      if (util.isArray(args)) {
-        task.args = args
+      const task = { worker, done };
+      if (Array.isArray(args)) {
+        task.args = args;
       }
-      task.counter = this.counter++
-      this.queue.push(task)
+      task.counter = this.counter++;
+      this.queue.push(task);
     }
   }
 
   count() {
-    return this.sequence.length
+    return this.sequence.length;
   }
 }
-
-export = Sequence;

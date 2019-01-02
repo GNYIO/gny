@@ -1,50 +1,26 @@
-import fs = require('fs');
-import path = require('path');
-import os = require('os');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { EventEmitter } from 'events';
-import http = require('http');
-import https = require('https');
-import socketio = require('socket.io');
-import ZSchema = require('z-schema');
-import ip = require('ip');
-import express = require('express');
-import compression = require('compression');
-import cors = require('cors');
-import _ = require('lodash');
-import bodyParser = require('body-parser');
-import methodOverride = require('method-override');
-import Sequence = require('./utils/sequence');
-import slots = require('./utils/slots');
-import queryParser = require('./utils/express-query-int');
-import ZSchemaExpress = require('./utils/zscheme-express');
-import Transaction = require('./base/transaction');
-import Block = require('./base/block');
-import Consensus = require('./base/consensus');
-import protobuf = require('./utils/protobuf');
-import { Round } from './core-alt/round';
-import { Server } from './core-alt/server';
+import * as ZSchema from 'z-schema';
+import * as ip from 'ip';
+import * as _ from 'lodash';
+import * as bodyParser from 'body-parser';
+import * as methodOverride from 'method-override';
+import Sequence from './utils/sequence';
+import slots from './utils/slots';
+import queryParser from './utils/express-query-int';
+import ZSchemaExpress from './utils/zscheme-express';
+import { Transaction } from './base/transaction';
+import { Block } from './base/block';
+import { Consensus } from './base/consensus';
+import protobuf from './utils/protobuf';
+import loadedModules from './loadModules';
+import loadCoreApi from './loadCoreApi';
+import initNetwork from './initNetwork';
+import extendedJoi from './utils/extendedJoi';
+import { IScope, IMessageEmitter } from './interfaces';
 
-// no chain module
-const moduleNames = [
-  'server',
-  'accounts',
-  'transactions',
-  'loader',
-  'system',
-  'peer',
-  'transport',
-  'delegates',
-  'round',
-  'uia',
-  'blocks',
-];
-
-const CIPHERS = `
-  ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
-  ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:
-  ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:
-  DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
-  !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
 function getPublicIp() {
   let publicIp;
@@ -69,14 +45,12 @@ function getPublicIp() {
 
 function isNumberOrNumberString(value) {
   return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
-    || String(parseInt(value, 10)) !== String(value))
+    || String(parseInt(value, 10)) !== String(value));
 }
-const modules = [];
-
 
 async function init_alt(options: any) {
-  let scope = {};
-  const { appConfig, genesisblock } = options;
+  const scope: Partial<IScope> = {};
+  const { appConfig, genesisBlock } = options;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
@@ -87,17 +61,15 @@ async function init_alt(options: any) {
     console.log('Error: Proto file doesn\'t exist!');
     return;
   }
-  scope.protobuf = protobuf.protobufAlt(protoFile);
+  scope.protobuf = protobuf.getSchema(protoFile);
 
   scope.config = appConfig;
   scope.logger = options.logger;
-  scope.genesisblock = {
-    block: genesisblock,
-  };
-  // scope.protobuf =
+  scope.genesisBlock = genesisBlock;
 
   scope.scheme = scheme();
-  scope.network = await network(options);
+  scope.joi = extendedJoi;
+  scope.network = await initNetwork(options);
   scope.dbSequence = dbSequence(options);
   scope.sequence = sequence(options);
   scope.balancesSequence = balancesSequence(options);
@@ -159,7 +131,7 @@ async function init_alt(options: any) {
         return;
       }
 
-      const URI_PREFIXS = ['api', 'api2', 'peer'];
+      const URI_PREFIXS = ['api', 'peer'];
       const isApiOrPeer = parts.length > 1 && (URI_PREFIXS.indexOf(parts[1]) !== -1);
       const { whiteList } = scope.config.api.access;
       const { blackList } = scope.config.peers;
@@ -186,52 +158,46 @@ async function init_alt(options: any) {
       }
     });
 
-    scope.network.server.listen(5098, scope.config.address, (err) => {
+    scope.network.server.listen(scope.config.port, scope.config.address, (err) => {
       scope.logger.log(`Server started: ${scope.config.address}:${scope.config.port}`);
       if (!err) {
         scope.logger.log(`Error: ${err}`);
       }
-    })
-    scope.connect = scope.network;
+    });
   }
 
-  scope.base = {};
-  scope.base.bus = scope.bus;
-  scope.base.scheme = scope.scheme;
-  scope.base.genesisblock = scope.genesisblock;
-  scope.base.consensus = new Consensus(scope);
-  scope.base.transaction = new Transaction(scope);
-  scope.base.block = new Block(scope);
+  scope.base = {
+    bus: scope.bus,
+    scheme: scope.scheme,
+    genesisBlock: scope.genesisBlock,
+    consensus: new Consensus(scope),
+    transaction: new Transaction(scope),
+    block: new Block(scope),
+  };
+
 
   global.library = scope;
 
+  scope.modules = loadedModules(scope);
+  scope.coreApi = loadCoreApi(scope.modules, scope);
 
-  // const server = new Server(scope);
-  // console.log('20181002', server);
-  function cb(err, result) {
-    if (err) return console.log(err);
-    // console.log(result);
-  }
-  scope.modules = {};
-
-  moduleNames.forEach(name => {
-    let obj;
-    scope.logger.debug('Loading Module...', name);
-    // import * as Klass from `./core-alt/${name}`;
-    const Klass = require(`./core-alt/${name}`);
-    obj = new Klass.default(cb, scope);
-    modules.push(obj);
-    scope.modules[name] = obj;
-  });
-
-  class Bus extends EventEmitter {
-    message(topic, ...restArgs) {
-      modules.forEach((module) => {
+  class Bus extends EventEmitter implements IMessageEmitter {
+    message(topic: string, ...restArgs) {
+      Object.keys(scope.modules).forEach((moduleName) => {
+        const module = scope.modules[moduleName];
         const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
         if (typeof (module[eventName]) === 'function') {
           module[eventName].apply(module[eventName], [...restArgs]);
         }
-      })
+      });
+
+      Object.keys(scope.coreApi).forEach((apiName) => {
+        const oneApi = scope.coreApi[apiName];
+        const eventName = `on${_.chain(topic).camelCase().upperFirst().value()}`;
+        if (typeof (oneApi[eventName]) === 'function') {
+          oneApi[eventName].apply(oneApi[eventName], [...restArgs]);
+        }
+      });
       this.emit(topic, ...restArgs);
     }
   }
@@ -243,90 +209,55 @@ async function init_alt(options: any) {
 
 function scheme() {
   ZSchema.registerFormat('hex', (str) => {
-    let b
+    let b;
     try {
-      b = Buffer.from(str, 'hex')
+      b = Buffer.from(str, 'hex');
     } catch (e) {
-      return false
+      return false;
     }
 
-    return b && b.length > 0
-  })
+    return b && b.length > 0;
+  });
 
   ZSchema.registerFormat('publicKey', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const publicKey = Buffer.from(str, 'hex')
+      const publicKey = Buffer.from(str, 'hex');
 
-      return publicKey.length === 32
+      return publicKey.length === 32;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('splitarray', (str) => {
     try {
-      const a = str.split(',')
-      return a.length > 0 && a.length <= 1000
+      const a = str.split(',');
+      return a.length > 0 && a.length <= 1000;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
   ZSchema.registerFormat('signature', (str) => {
     if (str.length === 0) {
-      return true
+      return true;
     }
 
     try {
-      const signature = Buffer.from(str, 'hex')
-      return signature.length === 64
+      const signature = Buffer.from(str, 'hex');
+      return signature.length === 64;
     } catch (e) {
-      return false
+      return false;
     }
-  })
+  });
 
-  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value))
+  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
 
-  return new ZSchema();
-}
-
-function network(options: any) {
-  let sslServer;
-  let sslio;
-
-  const app = express();
-
-  app.use(compression({ level: 6 }));
-  app.use(cors());
-  app.options('*', cors());
-
-  const server = http.createServer(app);
-  const io = socketio(server);
-
-  if (options.appConfig.ssl.enabled) {
-    const privateKey = fs.readFileSync(options.appConfig.ssl.options.key);
-    const certificate = fs.readFileSync(options.config.ssl.options.cert);
-
-    sslServer = https.createServer({
-      key: privateKey,
-      cert: certificate,
-      ciphers: CIPHERS,
-    }, app);
-    sslio = socketio(sslServer);
-  }
-
-  return {
-    express,
-    app,
-    server,
-    io,
-    sslServer,
-    sslio,
-  };
+  return new ZSchema({});
 }
 
 function dbSequence(options: any) {
@@ -356,4 +287,4 @@ function balancesSequence(options: any) {
   });
 }
 
-export = init_alt;
+export default init_alt;
