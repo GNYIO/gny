@@ -171,7 +171,7 @@ export default {
     global.app.sdb.create('Delegate', {
       address: senderId,
       username: sender.username,
-      transactionId: this.trs.id,
+      tid: this.trs.id,
       publicKey: this.trs.senderPublicKey,
       votes: 0,
       producedBlocks: 0,
