@@ -1,9 +1,9 @@
 export default {
   table: 'issuers',
   tableFields: [
-    { name: 'transactionId', type: 'String', length: 64, unique: true },
-    { name: 'username', type: 'String', length: 32, primary_key: true },
-    { name: 'issuerId', type: 'String', length: 50, unique: true },
-    { name: 'description', type: 'Text' }
+    { name: 'tid', type: 'String', length: 64, not_null: true, unique: true },
+    { name: 'name', type: 'String', length: 32, not_null: true, primary_key: true },
+    { name: 'issuerId', type: 'String', length: 50, not_null: true, unique: true },
+    { name: 'desc', type: 'Text', not_null: true, length: 4096 }
   ]
 };

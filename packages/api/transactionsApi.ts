@@ -41,12 +41,18 @@ export default class TransactionsApi {
   }
 
   private getTransactions = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const schema = this.library.joi.object().keys({
       limit: this.library.joi.number().min(0).max(100),
       offset: this.library.joi.number().min(0),
       id: this.library.joi.string().min(1).max(100),
-      blockId: this.library.joi.string().min(1).max(100),
+      senderId: this.library.joi.string().address(),
+      senderPublicKey: this.library.joi.string().publicKey(),
+      blockId: this.library.joi.string().min(1).max(100)
+        .when('height', {
+          is: this.library.joi.exist(),
+          then: this.library.joi.forbidden(),
+        }),
       type: this.library.joi.number().min(0).max(1000),
       height: this.library.joi.number().min(0),
       message: this.library.joi.string(),
@@ -64,16 +70,20 @@ export default class TransactionsApi {
     if (query.senderId) {
       condition.senderId = query.senderId;
     }
+    if (query.senderPublicKey) {
+      condition.senderPublicKey = query.senderPublicKey;
+    }
     if (query.type !== undefined) {
-      const type = Number(query.type);
-
-      condition.currency = type === 0 ? 'GNY' : { $ne: 'GNY' };
+      condition.type = query.type;
     }
     if (query.id) {
-      condition.tid = query.id;
+      condition.id = query.id;
     }
     if (query.message) {
       condition.message = query.message;
+    }
+    if (query.height) {
+      condition.height = query.height;
     }
 
     try {
@@ -85,10 +95,10 @@ export default class TransactionsApi {
         }
         condition.height = block.height;
       }
-      const count = await global.app.sdb.count('Transfer', condition);
-      let transfer = await global.app.sdb.find('Transfer', condition, query.unlimited ? {} : { limit, offset });
-      if (!transfer) transfer = [];
-      return res.json({ transfer, count });
+      const count = await global.app.sdb.count('Transaction', condition);
+      let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset });
+      if (!transactions) transactions = [];
+      return res.json({ transactions, count });
     } catch (e) {
       global.app.logger.error('Failed to get transactions', e);
       return next(`System error: ${e}`);
@@ -96,7 +106,7 @@ export default class TransactionsApi {
   }
 
   private getUnconfirmedTransaction = (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const typeSchema = this.library.joi.object().keys({
       id: this.library.joi.string().min(1).max(64).required(),
     });
@@ -113,7 +123,7 @@ export default class TransactionsApi {
   }
 
   private getUnconfirmedTransactions = (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const publicKeyAddress = this.library.joi.object().keys({
       senderPublicKey: this.library.joi.string().publicKey(),
       address: this.library.joi.string().address(),
@@ -142,13 +152,11 @@ export default class TransactionsApi {
 
   private addTransactionUnsigned = (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    if (query.type !== undefined) {
-      query.type = Number(query.type);
-    }
     const transactionSchema = this.library.joi.object().keys({
       secret: this.library.joi.string().secret().required(),
+      secondSecret: this.library.joi.string().secret(),
       fee: this.library.joi.number().min(1).required(),
-      type: this.library.joi.number().min(1).required(),
+      type: this.library.joi.number().min(0).required(),
       args: this.library.joi.array(),
       message: this.library.joi.string(),
       senderId: this.library.joi.string().address(),
@@ -158,6 +166,13 @@ export default class TransactionsApi {
       this.library.logger.warn('Failed to validate query params', report.error.message);
       return setImmediate(next, (report.error.message));
     }
+
+    const finishSequence = (err: string, result: any) => {
+      if (err) {
+        return next(err);
+      }
+      res.json(result);
+    };
 
     this.library.sequence.add((callback) => {
       (async () => {
@@ -181,23 +196,26 @@ export default class TransactionsApi {
           });
           await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
           this.library.bus.message('unconfirmedTransaction', trs);
-          callback(() => {
-             res.json({ transactionId: trs.id });
-         });
+          callback(null, { transactionId: trs.id });
         } catch (e) {
           this.library.logger.warn('Failed to process unsigned transaction', e);
-          callback(() => {
-            next(e.toString());
-          });
+          callback(e.toString());
         }
       })();
-    });
+    }, undefined, finishSequence);
   }
 
   private addTransactions = (req: Request, res: Response, next: Next) => {
     if (!req.body || !req.body.transactions) {
       return next('Invalid params');
     }
+    const finishedCallback = (err: string, result: any) => {
+      if (err) {
+        return next(err);
+      }
+      return res.json({ success: true, transactions: result });
+    };
+
     const trs = req.body.transactions;
     try {
       for (const t of trs) {
@@ -208,6 +226,6 @@ export default class TransactionsApi {
     }
     return this.library.sequence.add((callback) => {
       this.modules.transactions.processUnconfirmedTransactions(trs, callback);
-    }, res);
+    }, undefined, finishedCallback);
   }
 }

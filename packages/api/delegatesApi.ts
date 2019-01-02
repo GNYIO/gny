@@ -37,14 +37,18 @@ export default class DelegatesApi {
     router.get('/', this.getDelegates);
 
     if (process.env.DEBUG) {
-      router.get('/forging/disableAll', this.forgingDisableAll);
       router.get('/forging/enableAll', this.forgingEnableAll);
+      router.get('/forging/disableAll', this.forgingDisableAll);
     }
 
     router.post('/forging/enable', this.forgingEnable);
     router.post('/forging/disable', this.forgingDisable);
-
     router.get('/forging/status', this.forgingStatus);
+
+    // Configuration
+    router.use((req: Request, res: Response) => {
+      res.status(500).send({ success: false, error: 'API endpoint not found' });
+    });
 
     this.library.network.app.use('/api/delegates', router);
     this.library.network.app.use((err, req, res, next) => {
@@ -65,14 +69,14 @@ export default class DelegatesApi {
   }
 
   // only DEBUG
-  public forgingDisableAll = (req: Request, res: Response, next: Next) => {
-    this.modules.delegates.disableForging();
+  public forgingEnableAll = (req: Request, res: Response, next: Next) => {
+    this.modules.delegates.enableForging();
     return res.json({ success: true });
   }
 
   // only DEBUG
-  public forgingEnableAll = (req: Request, res: Response, next: Next) => {
-    this.modules.delegates.enableForging();
+  public forgingDisableAll = (req: Request, res: Response, next: Next) => {
+    this.modules.delegates.disableForging();
     return res.json({ success: true });
   }
 
@@ -116,7 +120,7 @@ export default class DelegatesApi {
     if (accountInfo && accountInfo.account.isDelegate) {
       this.modules.delegates.setKeyPair(publicKey, keypair);
       this.library.logger.info(`Forging enabled on account: ${accountInfo.account.address}`);
-      return res.json({ success: true, address: accountInfo.account.address });
+      return res.json({ success: true });
     }
     return next('Delegate not found');
   }
@@ -139,9 +143,9 @@ export default class DelegatesApi {
   }
 
   public getVoters = async (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const nameSchema = this.library.joi.object().keys({
-      username: this.library.joi.string().name().required(),
+      username: this.library.joi.string().username().required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -168,10 +172,10 @@ export default class DelegatesApi {
   }
 
   public getDelegate = (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const publicKeyOrNameOrAddress = this.library.joi.object().keys({
       publicKey: this.library.joi.string().publicKey(),
-      username: this.library.joi.string().name(),
+      username: this.library.joi.string().username(),
       address: this.library.joi.string().address(),
     });
     const report = this.library.joi.validate(query, publicKeyOrNameOrAddress);
@@ -230,11 +234,13 @@ export default class DelegatesApi {
       }
     }
 
+    const publicKey = keypair.publicKey.toString('hex');
     if (!this.modules.delegates.isPublicKeyInKeyPairs(keypair.publicKey.toString('hex'))) {
       return next('Delegate not found');
     }
 
-    const accountOverview = await this.modules.accounts.getAccount(keypair.publicKey.toString('hex'));
+    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
+    const accountOverview = await this.modules.accounts.getAccount(address);
 
     if (typeof accountOverview === 'string') {
       return next(accountOverview.toString());
@@ -243,13 +249,13 @@ export default class DelegatesApi {
     if (accountOverview.account && accountOverview.account.isDelegate) {
       this.modules.delegates.removeKeyPair(keypair.publicKey.toString('hex'));
       this.library.logger.info(`Forging disabled on account: ${accountOverview.account.address}`);
-      return res.json({ success: true, address: accountOverview.account.address });
+      return res.json({ success: true });
     }
     return next('Delegate not found');
   }
 
   public getDelegates = (req: Request, res: Response, next: Next) => {
-    const query = req.body;
+    const { query } = req;
     const offset = Number(query.offset || 0);
     const limit = Number(query.limit || 10);
     if (Number.isNaN(limit) || Number.isNaN(offset)) {

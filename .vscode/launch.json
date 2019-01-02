@@ -10,7 +10,10 @@
       "name": "Launch Program",
       "program": "${workspaceFolder}/dist/app.js",
       "cwd": "${workspaceFolder}/dist",
-      "args": ["--log", "trace"]
+      "args": ["--log", "trace"],
+      "env": {
+        "DEBUG": "debug"
+      }
     }
   ]
 }

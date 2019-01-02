@@ -57,10 +57,7 @@ export default class TransportApi {
     router.post('/getHeight', this.getHeight);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).json({
-        success: false,
-        error: 'API endpoint not found'
-      });
+      return res.status(500).json({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/peer', router);
@@ -165,19 +162,21 @@ export default class TransportApi {
       return next('Invalid transaction body');
     }
 
-    return this.library.sequence.add((cb) => {
-      this.library.logger.info(`Received transaction ${transaction.id} from http client`);
-      this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
-    }, (err) => {
+    const finished = (err) => {
       if (err) {
         this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err);
         const errMsg = err.message ? err.message : err.toString();
-        next(errMsg);
+        return next(errMsg);
       } else {
         this.library.bus.message('unconfirmedTransaction', transaction);
-        res.status(200).json({ success: true, transactionId: transaction.id });
+        return res.status(200).json({ success: true, transactionId: transaction.id });
       }
-    });
+    };
+
+    return this.library.sequence.add((cb) => {
+      this.library.logger.info(`Received transaction ${transaction.id} from http client`);
+      this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
+    }, undefined, finished);
   }
 
   // POST

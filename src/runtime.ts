@@ -127,10 +127,6 @@ export default async function runtime(options) {
 
   global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr);
 
-  global.app.AccountRole = {
-    DELEGATE: 1,
-    GATEWAY_VALIDATOR: 3,
-  };
 
   const { appDir, dataDir } = options.appConfig;
 

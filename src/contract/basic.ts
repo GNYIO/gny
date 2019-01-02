@@ -1,8 +1,8 @@
 async function doCancelVote(account) {
   const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } });
-  if (voteList && voteList.length > 0 && account.weight > 0) {
+  if (voteList && voteList.length > 0 && account.lockAmount > 0) {
     for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -account.weight }, { name: voteItem.delegate });
+      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { name: voteItem.delegate });
     }
   }
 }
@@ -51,7 +51,7 @@ export default {
     global.app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
 
     global.app.sdb.create('Transfer', {
-      transactionId: this.trs.id,
+      tid: this.trs.id,
       height: this.block.height,
       senderId,
       recipientId: recipientAccount.address,
@@ -131,7 +131,7 @@ export default {
     }
     if (amount !== 0) {
       sender.gny -= amount;
-      sender.weight += amount;
+      sender.lockAmount += amount;
       global.app.sdb.update('Account', sender, { address: sender.address });
 
       const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
@@ -154,67 +154,12 @@ export default {
 
     sender.isLocked = 0;
     sender.lockHeight = 0;
-    sender.gny += sender.weight;
-    sender.weight = 0;
+    sender.gny += sender.lockAmount;
+    sender.lockAmount = 0;
     global.app.sdb.update('Account', sender, { address: senderId });
 
     return null;
   },
-
-  // async registerGroup(name, members, min, max, m, updateInterval) {
-  //   global.app.validate('name', name)
-  //   // rule: min, max, m, updateInterval should be integer
-  //   // rule：min >=3, min < max, updateInterval > 1
-  //   if (!Number.isInteger(min) || min <= 0) return 'Min should be positive integer'
-  //   if (!Number.isInteger(max) || max <= 0) return 'Max should be positive integer'
-  //   if (!Number.isInteger(m) || m <= 0) return 'M should be positive integer'
-  //   if (!Number.isInteger(updateInterval) || updateInterval <= 0) return 'UpdateInterval should be positive integer'
-
-  //   if (min < 3) return 'Min should be greater than 3'
-  //   if (min >= max) return 'Max should be greater than min'
-  //   if (updateInterval < 1) return 'UpdateInterval should be greater than 1'
-
-  //   for (const member of members) {
-  //     // member.weight should be integer
-  //     // member.address should have valid address format
-  //     global.app.validate('name', member.name)
-  //     if (!Number.isInteger(member.weight) || member.weight <= 0) return 'Member weight should be positive integer'
-  //     if (!global.app.util.address.isAddress(member.address)) {
-  //       return 'Invalid member address'
-  //     }
-  //   }
-
-  //   if (await global.app.sdb.load('Account', { name })) return 'Name already registered'
-  //   const address = global.app.util.address.generateGroupAddress(name)
-  //   const account = await global.app.sdb.load('Account', address)
-  //   if (!account) {
-  //     global.app.sdb.create('Account', {
-  //       address,
-  //       name,
-  //       gny: 0,
-  //     })
-  //   }
-  //   global.app.sdb.create('Group', {
-  //     name,
-  //     address,
-  //     tid: this.trs.id,
-  //     min,
-  //     max,
-  //     m,
-  //     updateInterval,
-  //     createTime: this.trs.timestamp,
-  //   })
-  //   for (const member of members) {
-  //     global.app.sdb.create('GroupMember', {
-  //       name,
-  //       member: member.address,
-  //       weight: member.weight,
-  //     })
-  //   }
-  //   return null
-  // },
-
-
 
   async registerDelegate() {
     const senderId = this.sender.address;
@@ -222,7 +167,6 @@ export default {
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.username) return 'Account has not a name';
-    if (sender.role) return 'Account already have a role';
 
     global.app.sdb.create('Delegate', {
       address: senderId,
@@ -236,8 +180,7 @@ export default {
       rewards: 0,
     });
     sender.isDelegate = 1;
-    sender.role = global.app.AccountRole.DELEGATE;
-    global.app.sdb.update('Account', { isDelegate: 1, role: global.app.AccountRole.DELEGATE }, { address: senderId });
+    global.app.sdb.update('Account', { isDelegate: 1 }, { address: senderId });
 
     return null;
   },
@@ -254,7 +197,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
     if (currentVotes) {
       if (currentVotes.length + delegates.length > 101) {
         return 'Maximum number of votes exceeded';
@@ -265,22 +208,22 @@ export default {
       }
       for (const name of delegates) {
         if (currentVotedDelegates.has(name)) {
-          return `Delegate already voted: ${name}`;
+          return `Already voted for delegate: ${name}`;
         }
       }
     }
 
-    for (const name of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { name });
-      if (!exists) return `Voted delegate not exists: ${name}`;
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists('Delegate', { username });
+      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
-    for (const name of delegates) {
-      const votes = (sender.weight);
-      global.app.sdb.increase('Delegate', { votes }, { name });
+    for (const username of delegates) {
+      const votes = (sender.lockAmount);
+      global.app.sdb.increase('Delegate', { votes }, { username });
       global.app.sdb.create('Vote', {
-        address: senderId,
-        delegate: name,
+        voterAddress: senderId,
+        delegate: username,
       });
     }
     return null;
@@ -298,7 +241,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
     if (currentVotes) {
       const currentVotedDelegates = new Set();
       for (const v of currentVotes) {
@@ -311,16 +254,16 @@ export default {
       }
     }
 
-    for (const name of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { name });
-      if (!exists) return `Voted delegate not exists: ${name}`;
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists('Delegate', { username });
+      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
-    for (const name of delegates) {
-      const votes = -(sender.weight);
-      global.app.sdb.increase('Delegate', { votes }, { name });
+    for (const username of delegates) {
+      const votes = -(sender.lockAmount);
+      global.app.sdb.increase('Delegate', { votes }, { username });
 
-      global.app.sdb.del('Vote', { address: senderId, delegate: name });
+      global.app.sdb.del('Vote', { voterAddress: senderId, delegate: username });
     }
     return null;
   },
