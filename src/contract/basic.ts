@@ -231,7 +231,7 @@ export default {
 
   async unvote(delegates) {
     const senderId = this.sender.address;
-    global.app.sdb.lock(`account@${senderId}`);
+    global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';
