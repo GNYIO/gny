@@ -5,6 +5,7 @@ import { AschCore } from 'asch-smartdb';
 import account from './model/account';
 import asset from './model/asset';
 import balance from './model/balance';
+import block from './model/block';
 import delegate from './model/delegate';
 import issuer from './model/issuer';
 import round from './model/round';
@@ -32,6 +33,7 @@ export default async function loadModels() {
   schemas.push(createModelSchema({ class: account, name: 'account' }));
   schemas.push(createModelSchema({ class: asset, name: 'asset' }));
   schemas.push(createModelSchema({ class: balance, name: 'balance' }));
+  schemas.push(createModelSchema({ class: block, name: 'block' })),
   schemas.push(createModelSchema({ class: delegate, name: 'delegate' }));
   schemas.push(createModelSchema({ class: issuer, name: 'issuer' }));
   schemas.push(createModelSchema({ class: round, name: 'round' }));
