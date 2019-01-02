@@ -1,6 +1,6 @@
 import * as express from 'express';
 import * as ed from '../../src/utils/ed';
-import * as Mnemonic from 'bitcore-mnemonic';
+import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
@@ -20,14 +20,14 @@ export default class AccountsApi {
     const router = express.Router();
 
     // for sensitve data use POST request: see https://stackoverflow.com/questions/7562675/proper-way-to-send-username-and-password-from-client-to-server
-    router.post('/open', this.open2);
+    router.get('/generateAccount', this.generateAccount);
+    router.post('/open', this.open);
+    router.get('/', this.getAccount);
     router.get('/getBalance', this.getBalance);
+    router.get('/getVotes', this.getVotedDelegates);
+    router.get('/count', this.count);
     router.get('/getPublicKey', this.getPublicKey);
     router.post('/generatePublicKey', this.generatePublicKey);
-    router.get('/delegates', this.delegates);
-    router.get('/', this.getAccount);
-    router.get('/new', this.newAccount);
-    router.get('/count', this.count);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -45,7 +45,19 @@ export default class AccountsApi {
     });
   }
 
-  private open2 = async (req: Request, res: Response, next: Next) => {
+  private generateAccount = (req: Request, res: Response, next: Next) => {
+    const secret = bip39.generateMnemonic();
+    const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+    const address = this.modules.accounts.generateAddressByPublicKey(keypair.publicKey.toString('hex'));
+    return res.json({
+      secret,
+      publicKey: keypair.publicKey.toString('hex'),
+      privateKey: keypair.privateKey.toString('hex'),
+      address,
+    });
+  }
+
+  private open = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
     const publicKeyOrSecret = this.library.joi.object().keys({
       publicKey: this.library.joi.string().publicKey(),
@@ -72,7 +84,32 @@ export default class AccountsApi {
     }
   }
 
+  private getAccount = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    console.log('query', query);
+    const addressOrAccountName = this.library.joi.object().keys({
+      address: this.library.joi.string().address(),
+      name: this.library.joi.string().username()
+    }).xor('address', 'name');
+    const report = this.library.joi.validate(query, addressOrAccountName);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
+    if (query.name) {
+      const account = await this.modules.accounts.getAccountByName(query.name);
+      if (typeof account === 'string') {
+        return next(account);
+      }
+      return res.json(account);
+    }
+
+    const account = await this.modules.accounts.getAccount(query.address);
+    if (typeof account === 'string') {
+      return next(account);
+    }
+    return res.json(account);
+  }
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
@@ -95,46 +132,7 @@ export default class AccountsApi {
     });
   }
 
-  private getPublicKey = async (req: Request, res: Response, next: Next) => {
-    const { query } = req;
-    const isAddress = this.library.joi.object().keys({
-      address: this.library.joi.string().address()
-    });
-    const report = this.library.joi.validate(query, isAddress);
-    if (report.error) {
-      return next(report.error.message);
-    }
-
-    const accountInfoOrError = await this.modules.accounts.getAccount(query.address);
-    if (typeof accountInfoOrError === 'string') {
-      return res.json(accountInfoOrError);
-    }
-    if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
-      return next('Account does not have a public key');
-    }
-    return res.json({ publicKey: accountInfoOrError.account.publicKey });
-  }
-
-  private generatePublicKey = (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    const hasSecret = this.library.joi.object().keys({
-      secret: this.library.joi.string().secret().required()
-    });
-    const report = this.library.joi.validate(body, hasSecret);
-    if (report.error) {
-      return next(report.error.message);
-    }
-
-    try {
-      const kp = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
-      const publicKey = kp.publicKey.toString('hex');
-      return res.json({ publicKey });
-    } catch (err) {
-      return next('Server error');
-    }
-  }
-
-  private delegates = async (req: Request, res: Response, next: Next) => {
+  private getVotedDelegates = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
@@ -177,50 +175,50 @@ export default class AccountsApi {
     }
   }
 
-  private getAccount = async (req: Request, res: Response, next: Next) => {
-    const { query } = req;
-    const addressOrAccountName = this.library.joi.object().keys({
-      address: this.library.joi.string().address(),
-      name: this.library.joi.string().username()
-    }).xor('address', 'name');
-    const report = this.library.joi.validate(query, addressOrAccountName);
-    if (report.error) {
-      return next(report.error.message);
-    }
-
-    if (query.name) {
-      const account = await this.modules.accounts.getAccountByName(query.name);
-      if (typeof account === 'string') {
-        return next(account);
-      }
-      return res.json(account);
-    }
-
-    const account = await this.modules.accounts.getAccount(query.address);
-    if (typeof account === 'string') {
-      return next(account);
-    }
-    return res.json(account);
-  }
-
-  private newAccount = (req: Request, res: Response, next: Next) => {
-    const entropy = 128;
-    const secret = new Mnemonic(entropy).toString();
-    const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
-    const address = this.modules.accounts.generateAddressByPublicKey(keypair.publicKey.toString('hex'));
-    return res.json({
-      secret,
-      publicKey: keypair.publicKey.toString('hex'),
-      privateKey: keypair.privateKey.toString('hex'),
-      address,
-    });
-  }
-
   private count = async (req: Request, res: Response, next: Next) => {
     try {
       const count = await global.app.sdb.count('Account', {});
       return res.json({ success: true, count });
     } catch (e) {
+      return next('Server error');
+    }
+  }
+
+  private getPublicKey = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    const isAddress = this.library.joi.object().keys({
+      address: this.library.joi.string().address()
+    });
+    const report = this.library.joi.validate(query, isAddress);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    const accountInfoOrError = await this.modules.accounts.getAccount(query.address);
+    if (typeof accountInfoOrError === 'string') {
+      return res.json(accountInfoOrError);
+    }
+    if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
+      return next('Account does not have a public key');
+    }
+    return res.json({ publicKey: accountInfoOrError.account.publicKey });
+  }
+
+  private generatePublicKey = (req: Request, res: Response, next: Next) => {
+    const { body } = req;
+    const hasSecret = this.library.joi.object().keys({
+      secret: this.library.joi.string().secret().required()
+    });
+    const report = this.library.joi.validate(body, hasSecret);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    try {
+      const kp = ed.generateKeyPair(crypto.createHash('sha256').update(body.secret, 'utf8').digest());
+      const publicKey = kp.publicKey.toString('hex');
+      return res.json({ publicKey });
+    } catch (err) {
       return next('Server error');
     }
   }
