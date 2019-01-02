@@ -1,8 +1,8 @@
 async function doCancelVote(account) {
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } });
+  const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: account.address } });
   if (voteList && voteList.length > 0 && account.lockAmount > 0) {
     for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { name: voteItem.delegate });
+      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
     }
   }
 }
@@ -134,7 +134,7 @@ export default {
       sender.lockAmount += amount;
       global.app.sdb.update('Account', sender, { address: sender.address });
 
-      const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+      const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
           global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
