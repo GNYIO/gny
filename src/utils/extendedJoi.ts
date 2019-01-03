@@ -1,4 +1,4 @@
-import * as Mnemonic from 'bitcore-mnemonic';
+import * as bip39 from 'bip39';
 import { isAddress } from './address';
 import * as Joi from 'joi';
 
@@ -43,7 +43,7 @@ const stringExtensions: Joi.Extension = {
   {
     name: 'secret',
     validate(params, value, state, options) {
-      const result = Mnemonic.isValid(value);
+      const result = bip39.validateMnemonic(value);
       if (result === false) return this.createError('string.secret', { v: value }, state, options);
       return value;
     }
