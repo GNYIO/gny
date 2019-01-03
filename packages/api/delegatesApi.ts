@@ -156,7 +156,7 @@ export default class DelegatesApi {
       const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.username } });
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
-      const addresses = votes.map(v => v.address);
+      const addresses = votes.map(v => v.voterAddress);
       const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } });
       const lastBlock = this.modules.blocks.getLastBlock();
       const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
