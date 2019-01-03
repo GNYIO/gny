@@ -1,8 +1,7 @@
-import * as express from 'express';
 import * as ed from '../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
 
 export default class AccountsApi {
@@ -17,13 +16,13 @@ export default class AccountsApi {
   }
 
   private attachApi = () => {
-    const router = express.Router();
+    const router = Router();
 
-    // for sensitve data use POST request: see https://stackoverflow.com/questions/7562675/proper-way-to-send-username-and-password-from-client-to-server
     router.get('/generateAccount', this.generateAccount);
     router.post('/open', this.open);
     router.get('/', this.getAccount);
     router.get('/getBalance', this.getBalance);
+    router.get('/:address/:currency', this.getAddressCurrencyBalance);
     router.get('/getVotes', this.getVotedDelegates);
     router.get('/count', this.count);
     router.get('/getPublicKey', this.getPublicKey);
@@ -86,18 +85,17 @@ export default class AccountsApi {
 
   private getAccount = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    console.log('query', query);
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
-      name: this.library.joi.string().username()
-    }).xor('address', 'name');
+      username: this.library.joi.string().username()
+    }).xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {
       return next(report.error.message);
     }
 
-    if (query.name) {
-      const account = await this.modules.accounts.getAccountByName(query.name);
+    if (query.username) {
+      const account = await this.modules.accounts.getAccountByName(query.username);
       if (typeof account === 'string') {
         return next(account);
       }
@@ -126,18 +124,72 @@ export default class AccountsApi {
       return next(accountOverview);
     }
 
-    const balance = accountOverview && accountOverview.account ? accountOverview.account.balance : 0;
-    return res.json({
-      balance,
+    const gnyBalance = accountOverview && accountOverview.account ? accountOverview.account.balance : 0;
+
+    // get assets balances
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 20;
+    const condition = { address: req.params.address };
+    if (req.query.flag) {
+      condition.flag = Number(req.query.flag);
+    }
+    const count = await global.app.sdb.count('Balance', condition);
+    let balances = [];
+    if (count > 0) {
+      balances = await global.app.sdb.findAll('Balance', { condition, limit, offset });
+      const currencyMap = new Map();
+      for (const b of balances) {
+        currencyMap.set(b.currency, 1);
+      }
+      const assetNameList = Array.from(currencyMap.keys());
+      const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
+
+      if (uiaNameList && uiaNameList.length) {
+        const assets = await global.app.sdb.findAll('Asset', {
+          condition: {
+            name: { $in: uiaNameList },
+          },
+        });
+        for (const a of assets) {
+          currencyMap.set(a.name, a);
+        }
+      }
+
+      for (const b of balances) {
+        b.asset = currencyMap.get(b.currency);
+      }
+    }
+    balances.push({
+      gny: gnyBalance
     });
+
+    return res.json({
+      count: count + 1,
+      balances
+    });
+  }
+
+  private getAddressCurrencyBalance = async (req: Request, res: Response, next: Next) => {
+    const currency = req.params.currency;
+    const condition = {
+      address: req.params.address,
+      currency,
+    };
+    const balance = await global.app.sdb.findOne('Balance', { condition });
+    if (!balance) return next('No balance');
+    if (currency.indexOf('.') !== -1) {
+      balance.asset = await global.app.sdb.findOne('Asset', { condition: { name: balance.currency } });
+    }
+
+    return res.json({ balance });
   }
 
   private getVotedDelegates = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const addressOrAccountName = this.library.joi.object().keys({
       address: this.library.joi.string().address(),
-      name: this.library.joi.string().username()
-    }).xor('address', 'name');
+      username: this.library.joi.string().username()
+    }).xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {
       return next(report.error.message);
@@ -145,8 +197,8 @@ export default class AccountsApi {
 
     try {
       let addr;
-      if (query.name) {
-        const account = await global.app.sdb.load('Account', { username: query.name });
+      if (query.username) {
+        const account = await global.app.sdb.load('Account', { username: query.username });
         if (!account) {
           return next('Account not found');
         }
@@ -199,7 +251,7 @@ export default class AccountsApi {
       return res.json(accountInfoOrError);
     }
     if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
-      return next('Account does not have a public key');
+      return next('Can not find public key');
     }
     return res.json({ publicKey: accountInfoOrError.account.publicKey });
   }
