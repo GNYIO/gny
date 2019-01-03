@@ -1,6 +1,6 @@
 const BigNumber = require('bignumber.js');
 
-import { REWARDS, TOTAL_AMOUNT } from './constants';
+import { REWARDS, INITIAL_AMOUNT } from './constants';
 
 export default class BlockReward {
   public distance;
@@ -41,7 +41,7 @@ export default class BlockReward {
 
   calculateSupply(height: number) {
     height = this.parseHeight(height);
-    let supply = new BigNumber(TOTAL_AMOUNT);
+    let supply = new BigNumber(INITIAL_AMOUNT);
 
     if (height < this.rewardOffset) {
       return supply;

@@ -37,5 +37,5 @@ export const REWARDS: IReward = {
   OFFSET: 2160, // Start rewards at first block of the second round
   DISTANCE: 3000000, // Distance between each milestone
 };
-export const TOTAL_AMOUNT: string = '10000000000000000';
+export const INITIAL_AMOUNT: string = '40000000000000000';
 
