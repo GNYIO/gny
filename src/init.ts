@@ -181,6 +181,10 @@ async function init_alt(options: any) {
   scope.modules = loadedModules(scope);
   scope.coreApi = loadCoreApi(scope.modules, scope);
 
+  scope.network.app.use((req, res) => {
+    return res.status(500).send({ success: false, error: 'API endpoint not found' });
+  });
+
   class Bus extends EventEmitter implements IMessageEmitter {
     message(topic: string, ...restArgs) {
       Object.keys(scope.modules).forEach((moduleName) => {
