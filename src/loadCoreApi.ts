@@ -7,7 +7,6 @@ import TransactionsApi from '../packages/api/transactionsApi';
 import TransportApi from '../packages/api/transportApi';
 import UiaApi from '../packages/api/uiaApi';
 import LoaderApi from '../packages/api/loaderApi';
-import BalancesApi from '../packages/api/balancesApi';
 import TransfersApi from '../packages/api/transfersApi';
 import { Modules, IScope } from './interfaces';
 
@@ -21,7 +20,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   const uiaApi = new UiaApi(modules, scope);
   const transfersApi = new TransfersApi(scope);
   const loaderApi = new LoaderApi(modules, scope);
-  const balancesApi = new BalancesApi(scope);
 
   return {
     blocksApi,
@@ -32,7 +30,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     transportApi,
     uiaApi,
     transfersApi,
-    balancesApi,
     loaderApi,
   };
 }
