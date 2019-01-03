@@ -78,7 +78,7 @@ export default {
     return null;
   },
 
-  async setPassword(publicKey) {
+  async setSecondPassphrase(publicKey) {
     global.app.validate('publickey', publicKey);
 
     if (!global.app.util.address.isAddress(this.sender.address)) {
