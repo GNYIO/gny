@@ -40,8 +40,8 @@ export default class LoaderApi {
   private status = (req: Request, res: Response, next: Next) => {
     return res.json({
       loaded: this.isLoaded,
-      now: this.modules.loader.loadingLastBlock.height,
-      blocksCount: this.modules.loader.total,
+      lastBlockHeight: this.modules.loader.loadingLastBlock.height,
+      count: this.modules.loader.total,
     });
   }
 

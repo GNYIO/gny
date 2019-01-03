@@ -66,7 +66,7 @@ export default class TransactionsApi {
     const limit = query.limit || 100;
     const offset = query.offset || 0;
 
-    const condition = {};
+    const condition: any = {};
     if (query.senderId) {
       condition.senderId = query.senderId;
     }

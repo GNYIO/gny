@@ -1,14 +1,13 @@
 import * as _ from 'lodash';
-import * as express from 'express';
-import Blockreward from '../../src/utils/block-reward';
+import BlockReward from '../../src/utils/block-reward';
 import { Modules, IScope, Next } from '../../src/interfaces';
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
 export default class BlocksApi {
   private modules: Modules;
   private library: IScope;
   private loaded = false;
-  private blockreward = new Blockreward();
+  private blockReward = new BlockReward();
 
   constructor (modules: Modules, library: IScope) {
     this.modules = modules;
@@ -23,7 +22,7 @@ export default class BlocksApi {
   }
 
   private attachApi() {
-    const router = express.Router();
+    const router = Router();
 
     router.use((req: Request, res: Response, next) => {
       if (this.modules && this.loaded === true) return next();
@@ -34,7 +33,7 @@ export default class BlocksApi {
     });
 
     // Mapping
-    router.get('/get', this.getBlock);
+    router.get('/getBlock', this.getBlock);
     router.get('/', this.getBlocks);
     router.get('/getHeight', this.getHeight);
     router.get('/getMilestone', this.getMilestone);
@@ -125,28 +124,28 @@ export default class BlocksApi {
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
-    const milestone = this.blockreward.calculateMilestone(height);
+    const milestone = this.blockReward.calculateMilestone(height);
     return res.json({ milestone });
   }
 
   private getReward = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
-    const reward = this.blockreward.calculateReward(height);
+    const reward = this.blockReward.calculateReward(height);
     return res.json({ reward });
   }
 
   private getSupply = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
-    const supply = this.blockreward.calculateSupply(height);
+    const supply = this.blockReward.calculateSupply(height);
     return res.json({ supply });
   }
 
   private getStatus = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
     const fee = this.library.base.block.calculateFee();
-    const milestone = this.blockreward.calculateMilestone(height);
-    const reward = this.blockreward.calculateReward(height);
-    const supply = this.blockreward.calculateSupply(height);
+    const milestone = this.blockReward.calculateMilestone(height);
+    const reward = this.blockReward.calculateReward(height);
+    const supply = this.blockReward.calculateSupply(height);
     return res.json({
       height,
       fee,
