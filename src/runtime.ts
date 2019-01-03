@@ -4,7 +4,6 @@ import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import slots from './utils/slots';
-import Router = require('./utils/router');
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
 import transactionMode from './utils/transaction-mode';

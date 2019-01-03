@@ -1,6 +1,5 @@
 import slots from '../utils/slots';
 import * as constants from '../utils/constants';
-import Router from '../utils/router';
 import { Modules, IScope, IGenesisBlock } from '../interfaces';
 
 export default class Loader {
