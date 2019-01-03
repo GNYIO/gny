@@ -135,7 +135,7 @@ export default class Loader {
 
 
   // next
-  private async loadUnconfirmedTransactions = (cb) => {
+  private loadUnconfirmedTransactions = (cb) => {
     this.modules.peer.randomRequest('getUnconfirmedTransactions', {}, (err, data, peer) => {
       if (err) {
         return null;

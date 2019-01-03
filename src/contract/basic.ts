@@ -1,8 +1,8 @@
 async function doCancelVote(account) {
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { address: account.address } });
+  const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: account.address } });
   if (voteList && voteList.length > 0 && account.lockAmount > 0) {
     for (const voteItem of voteList) {
-      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { name: voteItem.delegate });
+      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
     }
   }
 }
@@ -78,7 +78,7 @@ export default {
     return null;
   },
 
-  async setPassword(publicKey) {
+  async setSecondPassphrase(publicKey) {
     global.app.validate('publickey', publicKey);
 
     if (!global.app.util.address.isAddress(this.sender.address)) {
@@ -134,7 +134,7 @@ export default {
       sender.lockAmount += amount;
       global.app.sdb.update('Account', sender, { address: sender.address });
 
-      const voteList = await global.app.sdb.findAll('Vote', { condition: { address: senderId } });
+      const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
           global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
@@ -171,7 +171,7 @@ export default {
     global.app.sdb.create('Delegate', {
       address: senderId,
       username: sender.username,
-      transactionId: this.trs.id,
+      tid: this.trs.id,
       publicKey: this.trs.senderPublicKey,
       votes: 0,
       producedBlocks: 0,
@@ -231,7 +231,7 @@ export default {
 
   async unvote(delegates) {
     const senderId = this.sender.address;
-    global.app.sdb.lock(`account@${senderId}`);
+    global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';

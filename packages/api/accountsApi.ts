@@ -156,7 +156,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes = await global.app.sdb.findAll('Vote', { condition: { address: addr } });
+      const votes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: addr } });
       if (!votes || !votes.length) {
         return res.json({ delegates: [] });
       }

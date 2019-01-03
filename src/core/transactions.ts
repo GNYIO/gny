@@ -179,7 +179,7 @@ export default class Transactions {
       if (height > 0) throw new Error('Sender account not found');
       sender = global.app.sdb.create('Account', {
         address: senderId,
-        name: null,
+        username: null,
         gny: 0,
       });
     }
