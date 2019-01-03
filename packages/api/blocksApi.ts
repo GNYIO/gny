@@ -34,7 +34,7 @@ export default class BlocksApi {
     });
 
     // Mapping
-    router.get('/get', this.getBlock);
+    router.get('/getBlock', this.getBlock);
     router.get('/', this.getBlocks);
     router.get('/getHeight', this.getHeight);
     router.get('/getMilestone', this.getMilestone);

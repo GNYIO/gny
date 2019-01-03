@@ -10,6 +10,7 @@ export default class TransportApi {
   constructor(modules: Modules, scope: IScope) {
     this.modules = modules;
     this.library = scope;
+    this.onBind();
     this.attachApi();
   }
 
@@ -108,7 +109,7 @@ export default class TransportApi {
       }
       return res.json({ success: true, common: commonBlock });
     } catch (e) {
-     global.app.logger.error(`Failed to find common block: ${e}`);
+      global.app.logger.error(`Failed to find common block: ${e}`);
       return next('Failed to find common block');
     }
   }
@@ -133,7 +134,7 @@ export default class TransportApi {
       const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true);
       return res.json({ blocks });
     } catch (e) {
-     global.app.logger.error('Failed to get blocks or transactions', e);
+      global.app.logger.error('Failed to get blocks or transactions', e);
       return res.json({ blocks: [] });
     }
   }
