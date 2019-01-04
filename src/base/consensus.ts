@@ -8,10 +8,10 @@ import { DELEGATES } from '../utils/constants';
 import { IScope, KeyPair, ManyVotes, Signature } from '../interfaces';
 
 export class Consensus {
-  public pendingBlock: any = null;
-  public pendingVotes: any = null;
-  public votesKeySet = new Set();
-  public library: IScope;
+  private pendingBlock: any = null;
+  private pendingVotes: any = null;
+  private votesKeySet = new Set();
+  private library: IScope;
 
   constructor(scope: IScope) {
     this.library = scope;
