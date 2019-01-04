@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify');
-import * as constants from '../utils/constants';
+import { maxPayloadLength } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
@@ -467,7 +467,7 @@ export default class Blocks {
       fees += transaction.fee;
       const bytes = this.library.base.transaction.getBytes(transaction);
       // TODO check payload length when process remote block
-      if ((payloadLength + bytes.length) > 8 * 1024 * 1024) {
+      if ((payloadLength + bytes.length) > maxPayloadLength) {
         throw new Error('Playload length outof range');
       }
       payloadHash.update(bytes);
