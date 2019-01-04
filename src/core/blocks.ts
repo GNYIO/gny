@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
 import async = require('async');
-import { maxPayloadLength } from '../utils/constants';
+import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';
@@ -117,7 +117,7 @@ export default class Blocks {
       }
     }
 
-    if (block.transactions.length > constants.maxTxsPerBlock) {
+    if (block.transactions.length > maxTxsPerBlock) {
       throw new Error(`Invalid amount of block assets: ${block.id}`);
     }
     if (block.transactions.length !== block.count) {
