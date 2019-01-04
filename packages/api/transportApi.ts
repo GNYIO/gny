@@ -1,7 +1,8 @@
 import * as express from 'express';
 import slots from '../../src/utils/slots';
+import osInfo from '../../src/utils/osInfo';
 import { Request, Response } from 'express';
-import { Modules, IScope, Next } from '../../src/interfaces';
+import { Modules, IScope, Next, ManyVotes } from '../../src/interfaces';
 
 export default class TransportApi {
   private modules: Modules;
@@ -10,18 +11,13 @@ export default class TransportApi {
   constructor(modules: Modules, scope: IScope) {
     this.modules = modules;
     this.library = scope;
-    this.onBind();
-    this.attachApi();
-  }
-
-  // Events
-  public onBind = () => {
     this.headers = {
-      os: this.modules.system.getOS(),
-      version: this.modules.system.getVersion(),
-      port: this.modules.system.getPort(),
-      magic: this.modules.system.getMagic(),
+      os: osInfo.getOS(),
+      version: osInfo.getVersion(),
+      port: osInfo.getPort(),
+      magic: osInfo.getMagic(),
     };
+    this.attachApi();
   }
 
   private attachApi = () => {
@@ -181,8 +177,22 @@ export default class TransportApi {
   }
 
   // POST
-  private votes = (req: Request, res: Response) => {
-    this.library.bus.message('receiveVotes', req.body.votes);
+  private votes = (req: Request, res: Response, next: Next) => {
+    const votes = req.body.votes;
+    const schema = this.library.joi.object().keys({
+      height: this.library.joi.number().integer().min(0).required(),
+      id: this.library.joi.string().length(64).required(),
+      signatures: this.library.joi.array().items({
+        publicKey: this.library.joi.string().publicKey().required(),
+        signature: this.library.joi.string().required(),
+      }).required(),
+    });
+    const report = this.library.joi.validate(votes, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
+    this.library.bus.message('receiveVotes', req.body.votes as ManyVotes);
     res.json({});
   }
 

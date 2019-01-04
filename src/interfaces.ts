@@ -3,7 +3,6 @@ import server from './core/server';
 import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
-import system from './core/system';
 import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
@@ -65,7 +64,6 @@ export interface Modules {
   accounts: accounts;
   transactions: transactions;
   loader: loader;
-  system: system;
   peer: peer;
   transport: transport;
   delegates: delegates;
