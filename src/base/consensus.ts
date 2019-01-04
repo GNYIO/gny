@@ -24,7 +24,7 @@ export class Consensus {
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
@@ -147,7 +147,7 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
@@ -188,7 +188,7 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 

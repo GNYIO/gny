@@ -98,7 +98,7 @@ export class Transaction {
 
     byteBuffer.flip();
 
-    return byteBuffer.toBuffer() as Buffer;
+    return byteBuffer.toBuffer();
   }
 
   verifyNormalSignature(transaction, requestor, bytes) {

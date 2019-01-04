@@ -79,7 +79,7 @@ export class Block {
 
     bb.flip();
     const b = bb.toBuffer();
-    return b as Buffer;
+    return b;
   }
 
 
