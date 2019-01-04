@@ -3,6 +3,7 @@ import BlocksApi from '../packages/api/blocksApi';
 import AccountsApi from '../packages/api/accountsApi';
 import DelegatesApi from '../packages/api/delegatesApi';
 import PeerApi from '../packages/api/peerApi';
+import SystemApi from '../packages/api/systemApi';
 import TransactionsApi from '../packages/api/transactionsApi';
 import TransportApi from '../packages/api/transportApi';
 import UiaApi from '../packages/api/uiaApi';
@@ -15,6 +16,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   const accountsApi = new AccountsApi(modules, scope);
   const delgatesApi = new DelegatesApi(modules, scope);
   const peerApi = new PeerApi(modules, scope);
+  const systemApi = new SystemApi(scope);
   const transactionsApi = new TransactionsApi(modules, scope);
   const transportApi = new TransportApi(modules, scope);
   const uiaApi = new UiaApi(modules, scope);
@@ -26,6 +28,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     accountsApi,
     delgatesApi,
     peerApi,
+    systemApi,
     transactionsApi,
     transportApi,
     uiaApi,
