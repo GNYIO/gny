@@ -204,8 +204,8 @@ export interface KeyPairsIndexer {
 }
 
 export interface KeyPair {
-  publicKey: Uint8Array;
-  privateKey: Uint8Array;
+  publicKey: Buffer;
+  privateKey: Buffer;
 }
 
 export interface ManyVotes {

@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import async = require('async');
 import PIFY = require('pify');
 import * as constants from '../utils/constants';
-import Router from '../utils/router';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import transactionMode from '../utils/transaction-mode';

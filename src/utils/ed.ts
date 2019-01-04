@@ -9,10 +9,10 @@ export function generateKeyPair(hash: Buffer): KeyPair {
   };
 }
 
-export function sign(hash: Buffer, privateKey: Buffer) {
+export function sign(hash: Buffer, privateKey: Buffer): Buffer {
   return sodium.crypto_sign_detached(hash, privateKey);
 }
 
-export function verify(hash: Buffer, signature: Buffer, publicKey: Buffer) {
+export function verify(hash: Buffer, signature: Buffer, publicKey: Buffer): boolean {
   return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 }

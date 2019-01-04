@@ -36,10 +36,9 @@ export class Block {
     });
   }
 
-  public sign = (block, keypair: KeyPair) => {
+  public sign = (block, keypair: KeyPair): string => {
     const hash = this.calculateHash(block);
-    const privateKey = Buffer.from(keypair.privateKey);
-    return ed.sign(hash, privateKey).toString('hex');
+    return ed.sign(hash, keypair.privateKey).toString('hex');
   }
 
   private calculateHash = (block) => {

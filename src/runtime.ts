@@ -4,13 +4,11 @@ import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import slots from './utils/slots';
-import Router = require('./utils/router');
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
 import transactionMode from './utils/transaction-mode';
 import loadModels from './loadModels';
 import loadContracts from './loadContracts';
-import loadInterfaces from './loadInterfaces';
 
 import address from './utils/address';
 import * as bignumber from 'bignumber';
@@ -147,7 +145,6 @@ export default async function runtime(options) {
 
   await loadModels();
   await loadContracts();
-  await loadInterfaces(options.library.network.app);
 
   global.app.contractTypeMapping[0] = 'basic.transfer';
   global.app.contractTypeMapping[1] = 'basic.setUserName';

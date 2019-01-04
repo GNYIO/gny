@@ -42,8 +42,7 @@ export class Transaction {
     const bytes = this.getBytes(transaction, true, true);
     const hash = crypto.createHash('sha256').update(bytes).digest();
 
-    const privateKeyBuffer = Buffer.from(keypair.privateKey);
-    return ed.sign(hash, privateKeyBuffer).toString('hex');
+    return ed.sign(hash, keypair.privateKey).toString('hex');
   }
 
   getId(transaction) {
