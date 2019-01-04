@@ -11,10 +11,10 @@ export class Consensus {
   public pendingBlock: any = null;
   public pendingVotes: any = null;
   public votesKeySet = new Set();
-  public scope: IScope;
+  public library: IScope;
 
   constructor(scope: IScope) {
-    this.scope = scope;
+    this.library = scope;
   }
 
   private calculateVoteHash(height: number, id: string) {
@@ -29,7 +29,7 @@ export class Consensus {
   }
 
   public normalizeVotes = (votes) => {
-    const report = this.scope.scheme.validate(votes, {
+    const report = this.library.scheme.validate(votes, {
       type: 'object',
       properties: {
         height: {
@@ -47,7 +47,7 @@ export class Consensus {
       required: ['height', 'id', 'signatures'],
     });
     if (!report) {
-      throw Error(this.scope.scheme.getLastError().toString());
+      throw Error(this.library.scheme.getLastError().toString());
     }
     return votes;
   }
