@@ -20,7 +20,7 @@ export class Consensus {
   private calculateVoteHash(height: number, id: string) {
     const byteBuffer = new ByteBuffer();
 
-    byteBuffer.writeLong(height);
+    byteBuffer.writeInt64(height);
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
@@ -131,7 +131,7 @@ export class Consensus {
 
   private calculateProposeHash(propose) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
@@ -172,7 +172,7 @@ export class Consensus {
 
   private getProposeHash(propose) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');

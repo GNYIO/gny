@@ -57,7 +57,7 @@ export class Transaction {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
-    byteBuffer.writeLong(transaction.fee);
+    byteBuffer.writeInt64(transaction.fee);
     byteBuffer.writeString(transaction.senderId);
     if (transaction.requestorId) {
       byteBuffer.writeString(transaction.requestorId);

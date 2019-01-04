@@ -52,10 +52,10 @@ export class Block {
     const bb = new ByteBuffer(size, true);
     bb.writeInt(block.version);
     bb.writeInt(block.timestamp);
-    bb.writeLong(block.height);
+    bb.writeInt64(block.height);
     bb.writeInt(block.count);
-    bb.writeLong(block.fees);
-    bb.writeLong(block.reward);
+    bb.writeInt64(block.fees);
+    bb.writeInt64(block.reward);
     bb.writeString(block.delegate);
 
     // HARDCODE HOTFIX
