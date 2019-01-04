@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
 import async = require('async');
-import PIFY = require('pify');
 import { maxPayloadLength } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
@@ -637,7 +636,7 @@ public onReceivePropose = (propose: any) => {
         const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
         next(undefined, activeKeypairs);
       },
-      async (activeKeypairs: any, next: any) => {
+      async (activeKeypairs: KeyPair[], next: any) => {
         if (activeKeypairs && activeKeypairs.length > 0) {
           const votes = this.library.base.consensus.createVotes(activeKeypairs, propose);
           this.library.logger.debug(`send votes height ${votes.height} id ${votes.id} sigatures ${votes.signatures.length}`);
