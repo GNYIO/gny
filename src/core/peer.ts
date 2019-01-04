@@ -237,7 +237,7 @@ export default class Peer {
       };
       result = await axios.post(uri, httpParams, config);
       if (result.status !== 200) {
-        throw new Error(`Invalid status code: ${result.statusCode}`)
+        throw new Error(`Invalid status code: ${result.statusCode}`);
       }
       return result.data;
     } catch (err) {

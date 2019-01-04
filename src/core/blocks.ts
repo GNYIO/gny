@@ -627,7 +627,7 @@ public onReceivePropose = (propose: any) => {
       },
       (next) => {
         try {
-        let result = this.library.base.consensus.acceptPropose(propose);
+        const result = this.library.base.consensus.acceptPropose(propose);
         next();
         } catch (err) {
           next(err);
