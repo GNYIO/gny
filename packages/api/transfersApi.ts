@@ -31,7 +31,7 @@ export default class TransfersApi {
 
   private getRoot = async (req: Request, res: Response, next: Next) => {
 
-    const condition = {};
+    const condition: any = {};
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;

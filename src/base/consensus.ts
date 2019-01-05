@@ -85,10 +85,6 @@ export class Consensus {
       return this.pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
-      interface Signature {
-        publicKey: string;
-        signature: string;
-      }
       const item = votes.signatures[i];
       if (this.votesKeySet[item.publicKey]) {
         continue;
