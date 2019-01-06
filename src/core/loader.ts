@@ -105,19 +105,13 @@ export default class Loader {
 
       ret.height = Number.parseInt(ret.height, 10);
 
-      const report = this.library.scheme.validate(ret, {
-        type: 'object',
-        properties: {
-          height: {
-            type: 'integer',
-            minimum: 0,
-          },
-        },
-        required: ['height'],
+      const schema = this.library.joi.object().keys({
+        height: this.library.joi.number().integer().min(0).required(),
       });
-
-      if (!report) {
-        this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${this.library.scheme.getLastError()}`);
+      const report = this.library.joi.validate(ret, schema);
+      if (report.error) {
+        this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${report.error.message}`);
+        // todo return callback with error
       }
 
       if (global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
@@ -140,18 +134,11 @@ export default class Loader {
         return null;
       }
 
-      const report = this.library.scheme.validate(data.body, {
-        type: 'object',
-        properties: {
-          transactions: {
-            type: 'array',
-            uniqueItems: true,
-          },
-        },
-        required: ['transactions'],
+      const schema = this.library.joi.object().keys({
+        transactions: this.library.joi.array().unique().required(),
       });
-
-      if (!report) {
+      const report = this.library.joi.validate(data.body, schema);
+      if (report.error) {
         return null;
       }
 

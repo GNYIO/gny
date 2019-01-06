@@ -210,27 +210,25 @@ export class Transaction {
       }
     }
 
-    // FIXME
-    const report = this.library.scheme.validate(transaction, {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        height: { type: 'integer' },
-        type: { type: 'integer' },
-        timestamp: { type: 'integer' },
-        senderId: { type: 'string' },
-        fee: { type: 'integer', minimum: 0, maximum: constants.totalAmount },
-        secondSignature: { type: 'string', format: 'signature' },
-        signatures: { type: 'array' },
-        // args: { type: "array" },
-        message: { type: 'string', maxLength: 256 },
-      },
-      required: ['type', 'timestamp', 'senderId', 'signatures'],
+    const signedTransactionSchema = this.library.joi.object().keys({
+      fee: this.library.joi.number().integer().min(0).required(),
+      type: this.library.joi.number().integer().min(0).required(),
+      timestamp: this.library.joi.number().integer().min(0).required(),
+      args: this.library.joi.array().optional(),
+      message: this.library.joi.string().max(256).allow('').optional(),
+      senderId: this.library.joi.string().address().required(),
+      senderPublicKey: this.library.joi.string().publicKey().required(),
+      signatures: this.library.joi.array().length(1).items(
+        this.library.joi.string().signature().required()
+      ).required().single(),
+      secondSignature: this.library.joi.string().signature().optional(),
+      id: this.library.joi.string().hex().required(),
+      height: this.library.joi.number().integer().optional(),
     });
-
-    if (!report) {
-      this.library.logger.error(`Failed to normalize transaction body: ${this.library.scheme.getLastError().details[0].message}`, transaction);
-      throw Error(this.library.scheme.getLastError().toString());
+    const report = this.library.joi.validate(transaction, signedTransactionSchema);
+    if (report.error) {
+      this.library.logger.error(`Failed to normalize transaction body: ${report.error.message}`, transaction);
+      throw Error(report.error.message);
     }
 
     return transaction;

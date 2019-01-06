@@ -9,6 +9,8 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   username(): this;
   issuer(): this;
   asset(): this;
+  signature(): this;
+  hex(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -25,6 +27,8 @@ const stringExtensions: Joi.Extension = {
     username: 'is not an GNY username',
     issuer: 'is not a valid GNY issuer name',
     asset: 'is not a valid GNY asset name',
+    signature: 'is not a valid GNY signature',
+    hex: 'is not a hex string',
   },
   rules: [{
     name: 'publicKey',
@@ -80,6 +84,38 @@ const stringExtensions: Joi.Extension = {
       const regname = /^[A-Za-z]{1,16}.[A-Z]{3,6}$/;
       if (!regname.test(value)) return this.createError('string.asset', { v: value }, state, options);
       return value;
+    }
+  },
+  {
+    name: 'signature',
+    validate(params, value, state, options) {
+      if (!value) return this.createError('string.signature', { v: value }, state, options);
+
+      try {
+        const signature = Buffer.from(value, 'hex');
+        if (signature.length === 64) {
+          return value;
+        }
+        return this.createError('string.signature', { v: value }, state, options);
+      } catch (e) {
+        return this.createError('string.signature', { v: value }, state, options);
+      }
+    }
+  },
+  {
+    name: 'hex',
+    validate(params, value, state, options) {
+      let b;
+      try {
+        b = Buffer.from(value, 'hex');
+      } catch (e) {
+        return this.createError('string.validate', { v: value }, state, options);
+      }
+
+      if (b && b.length > 0) {
+        return value;
+      }
+      return this.createError('string.validate', { v: value }, state, options);
     }
   }]
 };

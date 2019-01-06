@@ -168,7 +168,6 @@ async function init_alt(options: any) {
 
   scope.base = {
     bus: scope.bus,
-    scheme: scope.scheme,
     genesisBlock: scope.genesisBlock,
     consensus: new Consensus(scope),
     transaction: new Transaction(scope),

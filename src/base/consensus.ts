@@ -28,26 +28,18 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  public normalizeVotes = (votes) => {
-    const report = this.library.scheme.validate(votes, {
-      type: 'object',
-      properties: {
-        height: {
-          type: 'integer',
-        },
-        id: {
-          type: 'string',
-        },
-        signatures: {
-          type: 'array',
-          minLength: 1,
-          maxLength: DELEGATES,
-        },
-      },
-      required: ['height', 'id', 'signatures'],
+  public normalizeVotes = (votes): ManyVotes => {
+    const schema = this.library.joi.object().keys({
+      height: this.library.joi.number().integer().min(0).required(),
+      id: this.library.joi.string().required(),
+      signatures: this.library.joi.array().items({
+        publicKey: this.library.joi.string().publicKey().required(),
+        signature: this.library.joi.string().signature().required(),
+      }).required(),
     });
-    if (!report) {
-      throw Error(this.library.scheme.getLastError().toString());
+    const report = this.library.joi.validate(votes, schema);
+    if (report.error) {
+      throw Error(report.error.message);
     }
     return votes;
   }

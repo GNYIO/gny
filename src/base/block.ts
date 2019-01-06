@@ -113,54 +113,24 @@ export class Block {
       }
     }
 
-    const report = this.library.scheme.validate(block, {
-      type: 'object',
-      properties: {
-        id: {
-          type: 'string',
-        },
-        height: {
-          type: 'integer',
-        },
-        signature: {
-          type: 'string',
-          format: 'signature',
-        },
-        delegate: {
-          type: 'string',
-          format: 'publicKey',
-        },
-        payloadHash: {
-          type: 'string',
-          format: 'hex',
-        },
-        payloadLength: {
-          type: 'integer',
-        },
-        prevBlockId: {
-          type: 'string',
-        },
-        timestamp: {
-          type: 'integer',
-        },
-        transactions: {
-          type: 'array',
-          uniqueItems: true,
-        },
-        version: {
-          type: 'integer',
-          minimum: 0,
-        },
-        reward: {
-          type: 'integer',
-          minimum: 0,
-        },
-      },
-      required: ['signature', 'delegate', 'payloadHash', 'timestamp', 'transactions', 'version', 'reward'],
+    const schema = this.library.joi.object().keys({
+      id: this.library.joi.string(),
+      height: this.library.joi.number().integer().min(0),
+      signature: this.library.joi.string().signature().required(),
+      delegate: this.library.joi.string().publicKey().required(),
+      payloadHash: this.library.joi.string().hex().required(),
+      payloadLength: this.library.joi.number().integer().min(0),
+      prevBlockId: this.library.joi.string(),
+      timestamp: this.library.joi.number().integer().min(0).required(),
+      transactions: this.library.joi.array().required(),
+      version: this.library.joi.number().integer().min(0).required(),
+      reward: this.library.joi.number().integer().min(0).required(),
+      fees: this.library.joi.number().integer().required(),
+      count: this.library.joi.number().integer().min(0).required(),
     });
-
-    if (!report) {
-      throw Error(this.library.scheme.getLastError().toString());
+    const report = this.library.joi.validate(block, schema);
+    if (report.error) {
+      throw Error(report.error.message);
     }
 
     try {

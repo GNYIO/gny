@@ -36,7 +36,6 @@ import { ExtendedJoi } from './utils/extendedJoi';
 
 declare interface IBase {
   bus: any;
-  scheme: zSchema;
   genesisBlock: IGenesisBlock;
   consensus: BaseConsensus;
   transaction: BaseTransaction;
