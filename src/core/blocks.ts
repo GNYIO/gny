@@ -257,7 +257,7 @@ export default class Blocks {
 
       global.app.logger.trace('before applyBlock');
       try {
-        await this.applyBlock(block, options);
+        await this.applyBlock(block);
       } catch (e) {
         global.app.logger.error(`Failed to apply block: ${e}`);
         throw e;
