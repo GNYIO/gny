@@ -247,10 +247,6 @@ function scheme() {
   });
 
   ZSchema.registerFormat('signature', (str) => {
-    if (str.length === 0) {
-      return true;
-    }
-
     try {
       const signature = Buffer.from(str, 'hex');
       return signature.length === 64;
