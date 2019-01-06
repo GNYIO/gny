@@ -1,6 +1,5 @@
 import LimitCache from '../utils/limit-cache';
 import addressHelper = require('../utils/address');
-import transactionMode from '../utils/transaction-mode';
 import TransactionPool from '../utils/transaction-pool';
 import { Modules, IScope } from '../interfaces';
 
@@ -149,31 +148,15 @@ export default class Transactions {
     };
 
     const senderId = transaction.senderId;
-    const requestorId = transaction.requestorId;
     if (!senderId) {
       throw new Error('Missing sender address');
     }
-
-    const mode = transaction.mode;
-    if (transactionMode.isRequestMode(mode)) {
-      if (!requestorId) throw new Error('No requestor provided');
-      if (requestorId === senderId) throw new Error('Sender should not be equal to requestor');
-      if (!transaction.senderPublicKey) throw new Error('Requestor public key not provided');
-    } else if (transactionMode.isDirectMode(mode)) {
-      if (requestorId) throw new Error('RequestId should not be provided');
-      // HARDCODE_HOT_FIX_BLOCK_6119128
-      // if (height > 6119128 &&
-      //     global.app.util.address.isAddress(senderId) &&
-      //     !transaction.senderPublicKey) {
-      if (global.app.util.address.isAddress(senderId)
-        && !transaction.senderPublicKey) {
-        throw new Error('Sender public key not provided');
-      }
-    } else {
-      throw new Error('Unexpected transaction mode');
+    if (global.app.util.address.isAddress(senderId)
+      && !transaction.senderPublicKey) {
+      throw new Error('Sender public key not provided');
     }
 
-    let requestor = null;
+
     let sender = await global.app.sdb.load('Account', senderId);
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found');
@@ -184,32 +167,10 @@ export default class Transactions {
       });
     }
 
-    if (requestorId) {
-      if (!global.app.util.address.isAddress(requestorId)) {
-        throw new Error('Invalid requestor address');
-      }
-
-      requestor = await global.app.sdb.load('Account', requestorId);
-      if (!requestor) {
-        throw new Error('Requestor account not found');
-      }
-    } else {
-      requestor = sender;
-    }
-
-    if (transaction.senderPublicKey) {
-      const signerId = transaction.requestorId || transaction.senderId;
-      const generatedAddress = addressHelper.generateAddress(transaction.senderPublicKey);
-      if (generatedAddress !== signerId) {
-        throw new Error('Invalid senderPublicKey');
-      }
-    }
-
     const context = {
       trs: transaction,
       block,
       sender,
-      requestor,
     };
     if (height > 0) {
       const error = await this.library.base.transaction.verify(context);

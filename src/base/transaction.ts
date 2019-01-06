@@ -3,7 +3,6 @@ import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import slots from '../utils/slots';
 import * as constants from '../utils/constants';
-import transactionMode from '../utils/transaction-mode';
 import * as addressHelper from '../utils/address';
 import feeCalculators from '../utils/calculate-fee';
 import { IScope, KeyPair } from '../interfaces';
@@ -24,7 +23,6 @@ export class Transaction {
       message: data.message,
       args: data.args,
       fee: data.fee,
-      mode: data.mode,
     };
 
     transaction.signatures = [this.sign(data.keypair, transaction)];
@@ -59,12 +57,6 @@ export class Transaction {
     byteBuffer.writeInt(transaction.timestamp);
     byteBuffer.writeInt64(transaction.fee);
     byteBuffer.writeString(transaction.senderId);
-    if (transaction.requestorId) {
-      byteBuffer.writeString(transaction.requestorId);
-    }
-    if (transaction.mode) {
-      byteBuffer.writeInt(transaction.mode);
-    }
 
     if (transaction.message) byteBuffer.writeString(transaction.message);
     if (transaction.args) {
@@ -101,13 +93,13 @@ export class Transaction {
     return byteBuffer.toBuffer();
   }
 
-  verifyNormalSignature(transaction, requestor, bytes) {
+  verifyNormalSignature(transaction, sender, bytes) {
     if (!this.verifyBytes(bytes, transaction.senderPublicKey, transaction.signatures[0])) {
       return 'Invalid signature';
     }
-    if (requestor.secondPublicKey) {
+    if (sender.secondPublicKey) {
       if (!transaction.secondSignature) return 'Second signature not provided';
-      if (!this.verifyBytes(bytes, requestor.secondPublicKey, transaction.secondSignature)) {
+      if (!this.verifyBytes(bytes, sender.secondPublicKey, transaction.secondSignature)) {
         return 'Invalid second signature';
       }
     }
@@ -115,7 +107,7 @@ export class Transaction {
   }
 
   async verify(context) {
-    const { trs, sender, requestor } = context;
+    const { trs, sender } = context;
     if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
       return 'Invalid transaction timestamp';
     }
@@ -132,7 +124,7 @@ export class Transaction {
     try {
       const bytes = this.getBytes(trs, true, true);
       if (trs.senderPublicKey) {
-        const error = this.verifyNormalSignature(trs, requestor, bytes);
+        const error = this.verifyNormalSignature(trs, sender, bytes);
         if (error) return error;
       } else {
         return 'Failed to verify signature';
@@ -163,7 +155,7 @@ export class Transaction {
 
   async apply(context: any) {
     const {
-      block, trs, sender, requestor,
+      block, trs, sender,
     } = context;
     const name = global.app.getContractName(trs.type);
     if (!name) {
@@ -179,16 +171,6 @@ export class Transaction {
     }
 
     if (block.height !== 0) {
-      if (transactionMode.isRequestMode(trs.mode) && !context.activating) {
-        const requestorFee = 20000000;
-        if (requestor.gny < requestorFee) throw new Error('Insufficient requestor balance');
-        requestor.gny -= requestorFee;
-        global.app.addRoundFee(String(requestorFee), this.library.modules.round.calculateRound(block.height));
-        // transaction.executed = 0
-        global.app.sdb.create('TransactionStatu', { tid: trs.id, executed: 0 });
-        global.app.sdb.update('Account', { gny: requestor.gny }, { address: requestor.address });
-        return;
-      }
       if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
       sender.gny -= trs.fee;
       global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });

@@ -89,7 +89,6 @@ export interface INetwork {
 interface IUtil {
   address: any;
   bignumber: bignumber;
-  transactionMode: any;
 }
 
 interface IValidatorConstraints {

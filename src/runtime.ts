@@ -6,7 +6,6 @@ import { AschCore } from 'asch-smartdb';
 import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
-import transactionMode from './utils/transaction-mode';
 import loadModels from './loadModels';
 import loadContracts from './loadContracts';
 
@@ -140,7 +139,6 @@ export default async function runtime(options) {
   global.app.util = {
     address: address,
     bignumber: bignumber,
-    transactionMode: transactionMode,
   };
 
   await loadModels();

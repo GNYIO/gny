@@ -4,7 +4,6 @@ import async = require('async');
 import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
-import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward';
 import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache } from '../interfaces';
 
@@ -318,7 +317,7 @@ export default class Blocks {
 
     let transFee = 0;
     for (const t of block.transactions) {
-      if (transactionMode.isDirectMode(t.mode) && t.fee >= 0) {
+      if (t.fee >= 0) {
         transFee += t.fee;
       }
     }

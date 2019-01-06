@@ -192,7 +192,6 @@ export default class TransactionsApi {
             message: query.message || null,
             secondKeypair,
             keypair,
-            mode: query.mode,
           });
           await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
           this.library.bus.message('unconfirmedTransaction', trs);
