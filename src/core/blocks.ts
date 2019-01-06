@@ -335,10 +335,10 @@ export default class Blocks {
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1);
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate];
 
-    const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd));
+    const missedDelegates = delegates.filter(fd => !forgedDelegates.includes(fd));
     missedDelegates.forEach((md) => {
       address = addressHelper.generateAddress(md);
-      global.app.sdb.increase('Delegate', { missedDelegate: 1 }, { address });
+      global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
     });
 
     async function updateDelegate(pk, fee, reward) {
