@@ -1,5 +1,4 @@
 import LimitCache from '../utils/limit-cache';
-import addressHelper = require('../utils/address');
 import TransactionPool from '../utils/transaction-pool';
 import { Modules, IScope } from '../interfaces';
 
