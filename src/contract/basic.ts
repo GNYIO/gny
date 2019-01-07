@@ -178,6 +178,7 @@ export default {
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.username) return 'Account has not a name';
+    if (sender.isDelegate) return 'Account is already Delegate';
 
     global.app.sdb.create('Delegate', {
       address: senderId,
