@@ -1,11 +1,9 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
 import async = require('async');
-import PIFY = require('pify');
-import * as constants from '../utils/constants';
+import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
-import transactionMode from '../utils/transaction-mode';
 import Blockreward from '../utils/block-reward';
 import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache } from '../interfaces';
 
@@ -118,7 +116,7 @@ export default class Blocks {
       }
     }
 
-    if (block.transactions.length > constants.maxTxsPerBlock) {
+    if (block.transactions.length > maxTxsPerBlock) {
       throw new Error(`Invalid amount of block assets: ${block.id}`);
     }
     if (block.transactions.length !== block.count) {
@@ -259,7 +257,7 @@ export default class Blocks {
 
       global.app.logger.trace('before applyBlock');
       try {
-        await this.applyBlock(block, options);
+        await this.applyBlock(block);
       } catch (e) {
         global.app.logger.error(`Failed to apply block: ${e}`);
         throw e;
@@ -319,7 +317,7 @@ export default class Blocks {
 
     let transFee = 0;
     for (const t of block.transactions) {
-      if (transactionMode.isDirectMode(t.mode) && t.fee >= 0) {
+      if (t.fee >= 0) {
         transFee += t.fee;
       }
     }
@@ -337,10 +335,10 @@ export default class Blocks {
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1);
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate];
 
-    const missedDelegates = forgedDelegates.filter(fd => !delegates.includes(fd));
+    const missedDelegates = delegates.filter(fd => !forgedDelegates.includes(fd));
     missedDelegates.forEach((md) => {
       address = addressHelper.generateAddress(md);
-      global.app.sdb.increase('Delegate', { missedDelegate: 1 }, { address });
+      global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
     });
 
     async function updateDelegate(pk, fee, reward) {
@@ -467,7 +465,7 @@ export default class Blocks {
       fees += transaction.fee;
       const bytes = this.library.base.transaction.getBytes(transaction);
       // TODO check payload length when process remote block
-      if ((payloadLength + bytes.length) > 8 * 1024 * 1024) {
+      if ((payloadLength + bytes.length) > maxPayloadLength) {
         throw new Error('Playload length outof range');
       }
       payloadHash.update(bytes);
@@ -627,7 +625,7 @@ public onReceivePropose = (propose: any) => {
       },
       (next) => {
         try {
-        let result = this.library.base.consensus.acceptPropose(propose);
+        const result = this.library.base.consensus.acceptPropose(propose);
         next();
         } catch (err) {
           next(err);
@@ -637,7 +635,7 @@ public onReceivePropose = (propose: any) => {
         const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
         next(undefined, activeKeypairs);
       },
-      async (activeKeypairs: any, next: any) => {
+      async (activeKeypairs: KeyPair[], next: any) => {
         if (activeKeypairs && activeKeypairs.length > 0) {
           const votes = this.library.base.consensus.createVotes(activeKeypairs, propose);
           this.library.logger.debug(`send votes height ${votes.height} id ${votes.id} sigatures ${votes.signatures.length}`);

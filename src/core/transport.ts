@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import slots from '../utils/slots';
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, ManyVotes } from '../interfaces';
 
 export default class Transport {
   private readonly library: IScope;
@@ -156,11 +156,11 @@ export default class Transport {
     this.broadcast('propose', message);
   }
 
-  public sendVotes = async (votes, address) => {
+  public sendVotes = async (votes: ManyVotes, address: string) => {
     const parts = address.split(':');
     const contact = {
       host: parts[0],
-      port: parts[1],
+      port: Number(parts[1]),
     };
     try {
       const result = await this.modules.peer.request('votes', { votes }, contact);

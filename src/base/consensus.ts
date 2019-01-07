@@ -8,46 +8,38 @@ import { DELEGATES } from '../utils/constants';
 import { IScope, KeyPair, ManyVotes, Signature } from '../interfaces';
 
 export class Consensus {
-  public pendingBlock: any = null;
-  public pendingVotes: any = null;
-  public votesKeySet = new Set();
-  public scope: IScope;
+  private pendingBlock: any = null;
+  private pendingVotes: any = null;
+  private votesKeySet = new Set();
+  private library: IScope;
 
   constructor(scope: IScope) {
-    this.scope = scope;
+    this.library = scope;
   }
 
   private calculateVoteHash(height: number, id: string) {
     const byteBuffer = new ByteBuffer();
 
-    byteBuffer.writeLong(height);
+    byteBuffer.writeInt64(height);
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  public normalizeVotes = (votes) => {
-    const report = this.scope.scheme.validate(votes, {
-      type: 'object',
-      properties: {
-        height: {
-          type: 'integer',
-        },
-        id: {
-          type: 'string',
-        },
-        signatures: {
-          type: 'array',
-          minLength: 1,
-          maxLength: DELEGATES,
-        },
-      },
-      required: ['height', 'id', 'signatures'],
+  public normalizeVotes = (votes): ManyVotes => {
+    const schema = this.library.joi.object().keys({
+      height: this.library.joi.number().integer().min(0).required(),
+      id: this.library.joi.string().required(),
+      signatures: this.library.joi.array().items({
+        publicKey: this.library.joi.string().publicKey().required(),
+        signature: this.library.joi.string().signature().required(),
+      }).required(),
     });
-    if (!report) {
-      throw Error(this.scope.scheme.getLastError().toString());
+    const report = this.library.joi.validate(votes, schema);
+    if (report.error) {
+      throw Error(report.error.message);
     }
     return votes;
   }
@@ -85,10 +77,6 @@ export class Consensus {
       return this.pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
-      interface Signature {
-        publicKey: string;
-        signature: string;
-      }
       const item = votes.signatures[i];
       if (this.votesKeySet[item.publicKey]) {
         continue;
@@ -131,7 +119,7 @@ export class Consensus {
 
   private calculateProposeHash(propose) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
@@ -147,7 +135,7 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
@@ -172,7 +160,7 @@ export class Consensus {
 
   private getProposeHash(propose) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeLong(propose.height);
+    byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
@@ -188,7 +176,7 @@ export class Consensus {
     byteBuffer.writeInt(Number(parts[1]));
 
     byteBuffer.flip();
-    const buffer = byteBuffer.toBuffer() as Buffer;
+    const buffer = byteBuffer.toBuffer();
     return crypto.createHash('sha256').update(buffer).digest();
   }
 

@@ -25,13 +25,10 @@ export default class Account {
   }
 
   public getAccount = async (address: string) => {
-    const report = this.library.scheme.validate(address, {
-      type: 'string',
-      minLength: 1,
-      maxLength: 50,
-    });
-    if (!report) {
-      return 'address must be between 1 and 50 chars long';
+    const schema = this.library.joi.string().address().required();
+    const report = this.library.joi.validate(address, schema);
+    if (report.error) {
+      return 'provided address is not a GNY address';
     }
 
     try {

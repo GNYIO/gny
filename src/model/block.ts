@@ -4,7 +4,7 @@ export default {
     { name: 'id', type: 'String', length: 64, not_null: true, primary_key: true },
     { name: 'timestamp', type: 'Number', not_null: true },
     { name: 'height', type: 'BigInt', not_null: true },
-    { name: 'previousBlockId', type: 'String', length: 64, not_null: true, index: true },
+    { name: 'prevBlockId', type: 'String', length: 64, not_null: true, index: true },
     { name: 'numberOfTransactions', type: 'Number', not_null: true },
     { name: 'totalAmount', type: 'BigInt', not_null: true },
     { name: 'totalFee', type: 'BigInt', not_null: true },

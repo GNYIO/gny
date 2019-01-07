@@ -3,7 +3,6 @@ import server from './core/server';
 import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
-import system from './core/system';
 import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
@@ -37,7 +36,6 @@ import { ExtendedJoi } from './utils/extendedJoi';
 
 declare interface IBase {
   bus: any;
-  scheme: zSchema;
   genesisBlock: IGenesisBlock;
   consensus: BaseConsensus;
   transaction: BaseTransaction;
@@ -65,7 +63,6 @@ export interface Modules {
   accounts: accounts;
   transactions: transactions;
   loader: loader;
-  system: system;
   peer: peer;
   transport: transport;
   delegates: delegates;
@@ -91,7 +88,6 @@ export interface INetwork {
 interface IUtil {
   address: any;
   bignumber: bignumber;
-  transactionMode: any;
 }
 
 interface IValidatorConstraints {

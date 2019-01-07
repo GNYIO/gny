@@ -152,16 +152,16 @@ export default class TransactionsApi {
 
   private addTransactionUnsigned = (req: Request, res: Response, next: Next) => {
     const query = req.body;
-    const transactionSchema = this.library.joi.object().keys({
+    const unsigendTransactionSchema = this.library.joi.object().keys({
       secret: this.library.joi.string().secret().required(),
-      secondSecret: this.library.joi.string().secret(),
+      secondSecret: this.library.joi.string().secret().optional(),
       fee: this.library.joi.number().min(1).required(),
       type: this.library.joi.number().min(0).required(),
-      args: this.library.joi.array(),
-      message: this.library.joi.string(),
-      senderId: this.library.joi.string().address(),
+      args: this.library.joi.array().optional(),
+      message: this.library.joi.string().max(256).optional(),
+      senderId: this.library.joi.string().address().optional(),
     });
-    const report = this.library.joi.validate(query, transactionSchema);
+    const report = this.library.joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
       this.library.logger.warn('Failed to validate query params', report.error.message);
       return setImmediate(next, (report.error.message));
@@ -192,7 +192,6 @@ export default class TransactionsApi {
             message: query.message || null,
             secondKeypair,
             keypair,
-            mode: query.mode,
           });
           await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
           this.library.bus.message('unconfirmedTransaction', trs);

@@ -168,7 +168,6 @@ async function init_alt(options: any) {
 
   scope.base = {
     bus: scope.bus,
-    scheme: scope.scheme,
     genesisBlock: scope.genesisBlock,
     consensus: new Consensus(scope),
     transaction: new Transaction(scope),
@@ -247,10 +246,6 @@ function scheme() {
   });
 
   ZSchema.registerFormat('signature', (str) => {
-    if (str.length === 0) {
-      return true;
-    }
-
     try {
       const signature = Buffer.from(str, 'hex');
       return signature.length === 64;
