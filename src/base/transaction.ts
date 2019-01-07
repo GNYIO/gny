@@ -15,7 +15,6 @@ export class Transaction {
 
   public create = (data) => {
     const transaction: any = {
-      secret: data.secret,
       type: data.type,
       senderId: addressHelper.generateAddress(data.keypair.publicKey.toString('hex')),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
