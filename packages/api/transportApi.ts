@@ -8,6 +8,7 @@ export default class TransportApi {
   private modules: Modules;
   private library: IScope;
   private headers: any;
+  private loaded = false;
   constructor(modules: Modules, scope: IScope) {
     this.modules = modules;
     this.library = scope;
@@ -20,16 +21,21 @@ export default class TransportApi {
     this.attachApi();
   }
 
+  // Events
+  public onBlockchainReady = () => {
+    this.loaded = true;
+  }
+
   private attachApi = () => {
     const router = express.Router();
 
     // Middleware
     router.use((req: Request, res: Response, next) => {
+      if (this.loaded === false) {
+        return res.json({ success: false, error: 'Blockchain is loading' });
+      }
       if (this.modules.loader.syncing()) {
-        return res.status(500).json({
-          success: false,
-          error: 'Blockchain is syncing',
-        });
+        return res.status(500).json({ success: false, error: 'Blockchain is syncing' });
       }
 
       res.set(this.headers);

@@ -26,10 +26,7 @@ export default class BlocksApi {
 
     router.use((req: Request, res: Response, next) => {
       if (this.modules && this.loaded === true) return next();
-      return res.status(500).send({
-        success: false,
-        error: 'Blockchain is loading',
-      });
+      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
     });
 
     // Mapping

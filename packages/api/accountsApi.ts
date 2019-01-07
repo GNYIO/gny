@@ -7,6 +7,7 @@ import { Modules, IScope, Next } from '../../src/interfaces';
 export default class AccountsApi {
   private modules: Modules;
   private library: IScope;
+  private loaded = false;
 
   constructor (modules: Modules, library: IScope) {
     this.modules = modules;
@@ -15,8 +16,18 @@ export default class AccountsApi {
     this.attachApi();
   }
 
+  // Events
+  public onBlockchainReady = () => {
+    this.loaded = true;
+  }
+
   private attachApi = () => {
     const router = Router();
+
+    router.use((req: Request, res: Response, next) => {
+      if (this.modules && this.loaded === true) return next();
+      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
+    });
 
     router.get('/generateAccount', this.generateAccount);
     router.post('/open', this.open);
