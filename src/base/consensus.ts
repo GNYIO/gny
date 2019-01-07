@@ -39,7 +39,7 @@ export class Consensus {
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
-      throw Error(report.error.message);
+      throw new Error(report.error.message);
     }
     return votes;
   }
@@ -183,7 +183,7 @@ export class Consensus {
   public acceptPropose(propose) {
     const hash = this.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
-      throw Error('Propose hash is not correct.');
+      throw new Error('Propose hash is not correct.');
     }
     try {
       const signature = Buffer.from(propose.signature, 'hex');
@@ -191,9 +191,9 @@ export class Consensus {
       if (ed.verify(hash, signature, publicKey)) {
         return 'Verify propose successful.';
       }
-      throw Error('Propose signature verify failed.');
+      throw new Error('Propose signature verify failed.');
     } catch (e) {
-      throw Error(`Propose signature exception: ${e.toString()}`);
+      throw new Error(`Propose signature exception: ${e.toString()}`);
     }
   }
 

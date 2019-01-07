@@ -99,7 +99,7 @@ export class Block {
 
       return ed.verify(hash, blockSignatureBuffer || ' ', generatorPublicKeyBuffer || ' ');
     } catch (e) {
-      throw Error(e.toString());
+      throw new Error(e.toString());
     }
   }
 
@@ -130,7 +130,7 @@ export class Block {
     });
     const report = this.library.joi.validate(block, schema);
     if (report.error) {
-      throw Error(report.error.message);
+      throw new Error(report.error.message);
     }
 
     try {
@@ -138,7 +138,7 @@ export class Block {
         block.transactions[i] = this.library.base.transaction.objectNormalize(block.transactions[i]);
       }
     } catch (e) {
-      throw Error(e.toString());
+      throw new Error(e.toString());
     }
 
     return block;
