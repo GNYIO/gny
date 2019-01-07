@@ -1,8 +1,15 @@
-async function doCancelVote(account) {
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: account.address } });
+async function deleteCreatedVotes(account) {
+  interface Vote {
+    voterAddress: string;
+    delegate: string;
+  }
+  const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: account.address } }) as Vote[];
   if (voteList && voteList.length > 0 && account.lockAmount > 0) {
-    for (const voteItem of voteList) {
+    for (let i = 0; i < voteList.length; ++i) {
+      const voteItem = voteList[i];
+
       global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
+      global.app.sdb.del('Vote', { voterAddress: voteItem.voterAddress, delegate: voteItem.delegate });
     }
   }
 }
@@ -151,6 +158,10 @@ export default {
     if (!sender) return 'Account not found';
     if (!sender.isLocked) return 'Account is not locked';
     if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
+
+    if (this.sender.isDelegate) {
+      await deleteCreatedVotes(this.sender);
+    }
 
     sender.isLocked = 0;
     sender.lockHeight = 0;
