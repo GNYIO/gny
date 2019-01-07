@@ -13,8 +13,6 @@ export default class Loader {
   public blocksToSync = 0;
   public total = 0;
 
-  public shared: any = {};
-
   constructor(scope: IScope) {
     this.library = scope;
     this.genesisBlock = this.library.genesisBlock;
@@ -169,10 +167,6 @@ export default class Loader {
 
   // Public methods
   public syncing = () => this.privSyncing;
-
-  // Loader.prototype.sandboxApi = (call, args, cb) => {
-  //   sandboxHelper.callMethod(shared, call, args, cb)
-  // }
 
   public startSyncBlocks = () => {
     this.library.logger.debug('startSyncBlocks enter');
