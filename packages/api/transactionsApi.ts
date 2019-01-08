@@ -7,18 +7,23 @@ import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
 export default class TransactionsApi {
   private modules: Modules;
   private library: IScope;
+  private loaded = false;
   constructor(modules: Modules, scope: IScope) {
     this.modules = modules;
     this.library = scope;
 
     this.attachApi();
   }
+  // Events
+  public onBlockchainReady = () => {
+    this.loaded = true;
+  }
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules) return next();
+      if (this.modules && this.loaded === true) return next();
       return res.status(500).json({ success: false, error: 'Blockchain is loading' });
     });
 

@@ -5,7 +5,7 @@ import { IScope, Modules, Next } from '../../src/interfaces';
 export default class LoaderApi {
   private modules: Modules;
   private library: IScope;
-  private isLoaded = false;
+  private loaded = false;
 
   constructor (modules: Modules, library: IScope) {
     this.modules = modules;
@@ -16,11 +16,16 @@ export default class LoaderApi {
 
   // Events
   public onBlockchainReady = () => {
-    this.isLoaded = true;
+    this.loaded = true;
   }
 
   private attachApi = () => {
     const router = express.Router();
+
+    router.use((req: Request, res: Response, next) => {
+      if (this.modules && this.loaded === true) return next();
+      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
+    });
 
     router.get('/status', this.status);
     router.get('/status/sync', this.sync);
@@ -39,7 +44,7 @@ export default class LoaderApi {
 
   private status = (req: Request, res: Response, next: Next) => {
     return res.json({
-      loaded: this.isLoaded,
+      loaded: this.loaded,
       lastBlockHeight: this.modules.loader.loadingLastBlock.height,
       count: this.modules.loader.total,
     });

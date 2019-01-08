@@ -5,14 +5,24 @@ import { IScope, Modules, Next } from '../../src/interfaces';
 export default class TransfersApi {
 
   private library: IScope;
+  private loaded = false;
   constructor (library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
+  // Events
+  public onBlockchainReady = () => {
+    this.loaded = true;
+  }
 
   private attachApi = () => {
     const router = express.Router();
+
+    router.use((req: Request, res: Response, next) => {
+      if (this.loaded === true) return next();
+      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+    });
 
     router.get('/', this.getRoot);
     router.get('/amount', this.getAmount);

@@ -15,7 +15,6 @@ export class Transaction {
 
   public create = (data) => {
     const transaction: any = {
-      secret: data.secret,
       type: data.type,
       senderId: addressHelper.generateAddress(data.keypair.publicKey.toString('hex')),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
@@ -149,7 +148,7 @@ export class Transaction {
       const publicKeyBuffer = Buffer.from(publicKey, 'hex');
       return ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
     } catch (e) {
-      throw Error(e.toString());
+      throw new Error(e.toString());
     }
   }
 
@@ -228,7 +227,7 @@ export class Transaction {
     const report = this.library.joi.validate(transaction, signedTransactionSchema);
     if (report.error) {
       this.library.logger.error(`Failed to normalize transaction body: ${report.error.message}`, transaction);
-      throw Error(report.error.message);
+      throw new Error(report.error.message);
     }
 
     return transaction;

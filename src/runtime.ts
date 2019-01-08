@@ -150,6 +150,7 @@ export default async function runtime(options) {
   global.app.contractTypeMapping[3] = 'basic.lock';
   global.app.contractTypeMapping[4] = 'basic.vote';
   global.app.contractTypeMapping[5] = 'basic.unvote';
+  global.app.contractTypeMapping[6] = 'basic.unlock';
   global.app.contractTypeMapping[10] = 'basic.registerDelegate';
 
   global.app.contractTypeMapping[100] = 'uia.registerIssuer';
