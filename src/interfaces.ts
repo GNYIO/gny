@@ -222,6 +222,19 @@ export interface ISimpleCache {
 export type Next = (err: string) => any;
 
 
+export interface PeerNode {
+  host: string;
+  port: number;
+  id?: string;
+}
+
+export interface ProcessBlockOptions {
+  syncing?: boolean;
+  local?: true;
+  broadcast?: true;
+  votes?: ManyVotes;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

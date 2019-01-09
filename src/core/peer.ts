@@ -7,7 +7,7 @@ import requestLib = require('request');
 import axios from 'axios';
 import { promisify } from 'util';
 import Database = require('nedb');
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, PeerNode } from '../interfaces';
 const SAVE_PEERS_INTERVAL = 1 * 60 * 1000;
 const CHECK_BUCKET_OUTDATE = 1 * 60 * 1000;
 const MAX_BOOTSTRAP_PEERS = 25;
@@ -29,14 +29,14 @@ export default class Peer {
   // ----------
   // start priv
   // ----------
-  getNodeIdentity = (node) => {
+  private getNodeIdentity = (node: PeerNode) => {
     const address = `${node.host}:${node.port}`;
     return crypto.createHash('ripemd160').update(address).digest().toString('hex');
   }
 
-  getSeedPeerNodes = (seedPeers) => {
+  private getSeedPeerNodes = (seedPeers) => {
     return seedPeers.map(peer => {
-      const node = {
+      const node: PeerNode = {
         host: peer.ip,
         port: Number(peer.port),
       };
@@ -45,7 +45,7 @@ export default class Peer {
     });
   }
 
-  getBootstrapNodes = (seedPeers: any, lastNodes: any, maxCount: any) => {
+  private getBootstrapNodes = (seedPeers: any[], lastNodes: any[], maxCount: number) => {
     const nodeMap = new Map();
     this.getSeedPeerNodes(seedPeers).forEach(node => nodeMap.set(node.id, node));
     lastNodes.forEach(node => {
@@ -76,15 +76,22 @@ export default class Peer {
       MAX_BOOTSTRAP_PEERS
     );
 
+    const idForThisNode = this.getNodeIdentity({
+      host: p2pOptions.publicIp,
+      port: p2pOptions.peerPort,
+    });
+
     const dht = new DHT({
       timeBucketOutdated: CHECK_BUCKET_OUTDATE,
       bootstrap: true,
-      id: this.getNodeIdentity({ host: p2pOptions.publicIp, port: p2pOptions.peerPort })
+      id: idForThisNode,
     });
     this.dht = dht;
 
     const port = p2pOptions.peerPort;
-    dht.listen(port, () => this.library.logger.info(`p2p server listen on ${port}`));
+    dht.listen(port, () => {
+      this.library.logger.info(`p2p server listen on ${port}`);
+    });
 
     dht.on('node', (node: any) => {
       const nodeId = node.id.toString('hex');
@@ -219,7 +226,7 @@ export default class Peer {
     this.dht.broadcast(message);
   }
 
-  public request = async (endpoint: string, httpParams: any, contact: { host: string; port: number; }, timeout?: number) => {
+  public request = async (endpoint: string, httpParams: any, contact: PeerNode, timeout?: number) => {
     const address = `${contact.host}:${contact.port - 1}`;
     const uri = `http://${address}/peer/${endpoint}`;
     this.library.logger.debug(`start to request ${uri}`);
