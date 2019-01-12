@@ -20,15 +20,10 @@ export default class Peer {
   private dht: any = null;
   private nodesDb: any = undefined;
 
-  private shared: any = {};
-
   constructor (scope: IScope) {
     this.library = scope;
   }
 
-  // ----------
-  // start priv
-  // ----------
   private getNodeIdentity = (node: PeerNode) => {
     const address = `${node.host}:${node.port}`;
     return crypto.createHash('ripemd160').update(address).digest().toString('hex');
@@ -45,7 +40,7 @@ export default class Peer {
     });
   }
 
-  private getBootstrapNodes = (seedPeers: any[], lastNodes: any[], maxCount: number) => {
+  private getBootstrapNodes = (seedPeers: PeerNode[], lastNodes: any[]) => {
     const nodeMap = new Map();
     this.getSeedPeerNodes(seedPeers).forEach(node => nodeMap.set(node.id, node));
     lastNodes.forEach(node => {
@@ -53,10 +48,10 @@ export default class Peer {
         nodeMap.set(node.id, node);
       }
     });
-    return [...nodeMap.values()].slice(0, maxCount);
+    return [...nodeMap.values()].slice(0, MAX_BOOTSTRAP_PEERS) as PeerNode[];
   }
 
-  initDHT = async (p2pOptions: any) => {
+  private initDHT = async (p2pOptions: any) => {
     p2pOptions = p2pOptions || {};
 
     let lastNodes = [];
@@ -73,7 +68,6 @@ export default class Peer {
     const bootstrapNodes = this.getBootstrapNodes(
       p2pOptions.seedPeers,
       lastNodes,
-      MAX_BOOTSTRAP_PEERS
     );
 
     const idForThisNode = this.getNodeIdentity({
@@ -96,12 +90,12 @@ export default class Peer {
     dht.on('node', (node: any) => {
       const nodeId = node.id.toString('hex');
       this.library.logger.info(`add node (${nodeId}) ${node.host}:${node.port}`);
-      this.updateNode(nodeId, node);
+      this.updateNodeInDb(nodeId, node);
     });
 
     dht.on('remove', (nodeId, reason) => {
       this.library.logger.info(`remove node (${nodeId}), reason: ${reason}`);
-      this.removeNode(nodeId);
+      this.removeNodeFromDb(nodeId);
     });
 
     dht.on('error', (err) => {
@@ -124,7 +118,7 @@ export default class Peer {
     this.nodesDb.find({ seen: { $exists: true } }).sort({ seen: -1 }).exec(callback);
   }
 
-  initNodesDb = (peerNodesDbPath: any, cb: any) => {
+  private initNodesDb = (peerNodesDbPath: string, cb: any) => {
     if (!this.nodesDb) {
       const db = new Database({ filename: peerNodesDbPath, autoload: true });
       this.nodesDb = db;
@@ -139,7 +133,8 @@ export default class Peer {
   }
 
 
-  updateNode = (nodeId: any, node: any, callback?: any) => {
+  // DB
+  private updateNodeInDb = (nodeId: any, node: any, callback?: any) => {
     if (!nodeId || !node) return;
 
     const upsertNode = Object.assign({}, node);
@@ -150,7 +145,8 @@ export default class Peer {
     });
   }
 
-  private removeNode = (nodeId: any, callback?: any) => {
+  // DB
+  private removeNodeFromDb = (nodeId: any, callback?: any) => {
     if (!nodeId) return;
 
     this.nodesDb.remove({ id: nodeId }, (err, numRemoved) => {
@@ -158,57 +154,18 @@ export default class Peer {
       callback && callback(err, numRemoved);
     });
   }
-  // --------
-  // end priv
-  // --------
 
-  list = (options: any, cb: any) => {
-    // FIXME
-    options.limit = options.limit || 100;
-    return cb(null, []);
-  }
-
-  remove = (pip: any, port: any, cb: any) => {
-    const peers = this.library.config.peers.list;
-    const isFrozenList = peers.find((peer: any) => peer.ip === ip.fromLong(pip) && peer.port === port);
-    if (isFrozenList !== undefined) return cb && cb('Peer in white list');
-    // FIXME
-    return cb();
-  }
-
-  getVersion = () => ({
+  public getVersion = () => ({
     version: this.library.config.version,
     build: this.library.config.buildVersion,
     net: this.library.config.netVersion,
   })
 
-  isCompatible = (version: any) => {
-    const nums = version.split('.').map(Number);
-    if (nums.length !== 3) {
-      return true;
-    }
-    let compatibleVersion = '0.0.0';
-    if (this.library.config.netVersion === 'testnet') {
-      compatibleVersion = '1.2.3';
-    } else if (this.library.config.netVersion === 'mainnet') {
-      compatibleVersion = '1.3.1';
-    }
-    const numsCompatible = compatibleVersion.split('.').map(Number);
-    for (let i = 0; i < nums.length; ++i) {
-      if (nums[i] < numsCompatible[i]) {
-        return false;
-      } if (nums[i] > numsCompatible[i]) {
-        return true;
-      }
-    }
-    return true;
-  }
-
-  subscribe = (topic: any, handler: any) => {
+  public subscribe = (topic: any, handler: any) => {
     this.handlers[topic] = handler;
   }
 
-  onpublish = (msg: any, peer: any) => {
+  private onpublish = (msg: any, peer: any) => {
     if (!msg || !msg.topic || !this.handlers[msg.topic.toString()]) {
       this.library.logger.debug('Receive invalid publish message topic', msg);
       return;
@@ -216,7 +173,7 @@ export default class Peer {
     this.handlers[msg.topic](msg, peer);
   }
 
-  publish = (topic: any, message: any, recursive = 1) => {
+  public publish = (topic: string, message: any, recursive = 1) => {
     if (!this.dht) {
       this.library.logger.warn('dht network is not ready');
       return;
