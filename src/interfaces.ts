@@ -141,7 +141,6 @@ interface IApp {
     [name: string]: () => void
   };
   registerHook: (name: string, func: () => void) => void;
-  isCurrentBookkeeper: (addr: string) => boolean;
   logger: ILogger;
 }
 

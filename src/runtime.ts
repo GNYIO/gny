@@ -122,9 +122,6 @@ export default async function runtime(options) {
     global.app.hooks[name] = func;
   };
 
-  global.app.isCurrentBookkeeper = addr => options.modules.delegates.getBookkeeperAddresses().has(addr);
-
-
   const { appDir, dataDir } = options.appConfig;
 
   const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks');
