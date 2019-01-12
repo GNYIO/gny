@@ -113,7 +113,7 @@ export default async function runtime(options) {
   };
 
   global.app.addRoundFee = (fee, roundNumber) => {
-    modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
+    options.modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
   };
 
   global.app.getRealTime = epochTime => slots.getRealTime(epochTime);
@@ -122,7 +122,7 @@ export default async function runtime(options) {
     global.app.hooks[name] = func;
   };
 
-  global.app.isCurrentBookkeeper = addr => modules.delegates.getBookkeeperAddresses().has(addr);
+  global.app.isCurrentBookkeeper = addr => options.modules.delegates.getBookkeeperAddresses().has(addr);
 
 
   const { appDir, dataDir } = options.appConfig;
