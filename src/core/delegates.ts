@@ -286,16 +286,6 @@ export default class Delegates {
     return allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101);
   }
 
-  getBookkeeperAddresses = () => {
-    const bookkeeper = this.getBookkeeper();
-    const addresses = new Set();
-    for (const i of bookkeeper) {
-      const address = addressHelper.generateAddress(i);
-      addresses.add(address);
-    }
-    return addresses;
-  }
-
   getBookkeeper = (): string[] => {
     const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME);
     if (!item) throw new Error('Bookkeeper variable not found');
