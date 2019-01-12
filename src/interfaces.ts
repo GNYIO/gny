@@ -136,7 +136,6 @@ interface IApp {
   getFee: (type: string) => ICurrencyFee;
   setDefaultFee: (min: string, currency: string) => void;
   addRoundFee: (fee: IFee, roundNumber: number) => void;
-  getRealTime: (epochTime: number) => number;
   hooks: {
     [name: string]: () => void
   };

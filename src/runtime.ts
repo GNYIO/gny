@@ -116,8 +116,6 @@ export default async function runtime(options) {
     options.modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
   };
 
-  global.app.getRealTime = epochTime => slots.getRealTime(epochTime);
-
   global.app.registerHook = (name, func) => {
     global.app.hooks[name] = func;
   };
