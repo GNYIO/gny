@@ -3,7 +3,7 @@ import * as ed from '../utils/ed';
 import slots from '../utils/slots';
 import addressHelper from '../utils/address';
 import BlockReward from '../utils/block-reward';
-import { Modules, IScope, KeyPairsIndexer, KeyPair } from '../interfaces';
+import { Modules, IScope, KeyPairsIndexer, KeyPair, Delegate, DelegateViewModel } from '../interfaces';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -17,6 +17,28 @@ export default class Delegates {
 
   constructor(scope: IScope) {
     this.library = scope;
+  }
+
+  // Events
+  public onBind = (scope: Modules) => {
+    this.modules = scope;
+  }
+
+  public onBlockchainReady = () => {
+    this.loaded = true;
+
+    const error = this.loadMyDelegates();
+    if (error) {
+      this.library.logger.error('Failed to load delegates', error);
+    }
+
+    const nextLoop = () => {
+
+      const result = this.loop();
+      setTimeout(nextLoop, 100);
+    };
+
+    setImmediate(nextLoop);
   }
 
   public isPublicKeyInKeyPairs = (publicKey: string) => {
@@ -34,8 +56,8 @@ export default class Delegates {
     delete this.keyPairs[publicKey];
   }
 
-  private getBlockSlotData = (slot: any, height: any): { time: number, keypair: any } => {
-    const activeDelegates: any = this.generateDelegateList(height);
+  private getBlockSlotData = (slot: number, height: number): { time: number, keypair: any } => {
+    const activeDelegates = this.generateDelegateList(height);
     if (!activeDelegates) {
       return;
     }
@@ -102,19 +124,19 @@ export default class Delegates {
     })();
   }
 
-  private loadMyDelegates = (): void | Error => {
-    let secrets = [];
+  private loadMyDelegates = () => {
+    let secrets: string[] = [];
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
         ? this.library.config.forging.secret : [this.library.config.forging.secret];
     }
 
     try {
-      const delegates = global.app.sdb.getAll('Delegate');
+      const delegates = global.app.sdb.getAll('Delegate') as Delegate[];
       if (!delegates || !delegates.length) {
         return 'Delegates not found in database';
       }
-      const delegateMap = new Map();
+      const delegateMap = new Map<string, Delegate>();
       for (const d of delegates) {
         delegateMap.set(d.publicKey, d);
       }
@@ -133,7 +155,7 @@ export default class Delegates {
     }
   }
 
-  public getActiveDelegateKeypairs = (height) => {
+  public getActiveDelegateKeypairs = (height: number) => {
     const delegates = this.generateDelegateList(height);
     if (!delegates) {
       return;
@@ -160,7 +182,7 @@ export default class Delegates {
     throw new Error('Failed to validate propose slot');
   }
 
-  public generateDelegateList = (height: any): string[] => {
+  public generateDelegateList = (height: number): string[] => {
     try {
       const truncDelegateList = this.getBookkeeper();
       const seedSource = this.modules.round.calculateRound(height).toString();
@@ -200,7 +222,7 @@ export default class Delegates {
     const activeDelegates = this.generateDelegateList(block.height);
 
     const currentSlot = slots.getSlotNumber(block.timestamp);
-    const delegateKey = activeDelegates[currentSlot % 101];
+    const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
     if (delegateKey && block.delegate === delegateKey) {
       return;
@@ -210,7 +232,7 @@ export default class Delegates {
   }
 
   public getDelegates = () => {
-    let delegates: any[] = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d));
+    let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d)) as Delegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
       return undefined;
@@ -220,73 +242,51 @@ export default class Delegates {
 
     const lastBlock = this.modules.blocks.getLastBlock();
     const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
+
+
     for (let i = 0; i < delegates.length; ++i) {
-      // fixme? d === delegates[i] ???
-      const d = delegates[i];
-      d.rate = i + 1;
-      delegates[i].approval = ((d.votes / totalSupply) * 100);
+      const current = delegates[i] as DelegateViewModel;
+      current.rate = i + 1;
+      current.approval = ((current.votes / totalSupply) * 100);
 
-      let percent = 100 - (d.missedBlocks / (d.producedBlocks + d.missedBlocks) / 100);
+      let percent = 100 - (current.missedBlocks / (current.producedBlocks + current.missedBlocks) / 100);
       percent = percent || 0;
-      delegates[i].productivity = parseFloat(Math.floor(percent * 100) / 100).toFixed(2);
-
-      delegates[i].vote = delegates[i].votes;
-      delegates[i].missedblocks = delegates[i].missedBlocks;
-      delegates[i].producedblocks = delegates[i].producedBlocks;
-      global.app.sdb.update('Delegate', delegates[i], { address: delegates[i].address });
+      current.productivity = parseFloat(Math.floor(percent * 100) / 100).toFixed(2);
+      global.app.sdb.update('Delegate', current, { address: current.address });
     }
-    return delegates;
+    return delegates as DelegateViewModel[];
   }
 
-  enableForging = () => {
+  public enableForging = () => {
     this.isForgingEnabled = true;
   }
 
-  disableForging = () => {
+  public disableForging = () => {
     this.isForgingEnabled = false;
   }
 
-  // Events
-  onBind = (scope: Modules) => {
-    this.modules = scope;
-  }
 
-  public onBlockchainReady = () => {
-    this.loaded = true;
 
-    const error = this.loadMyDelegates();
-    if (error) {
-      this.library.logger.error('Failed to load delegates', error);
+  private compare = (left: Delegate, right: Delegate) => {
+    if (left.votes !== right.votes) {
+      return right.votes - left.votes;
     }
-
-    const nextLoop = () => {
-
-      const result = this.loop();
-      setTimeout(nextLoop, 100);
-    };
-
-    setImmediate(nextLoop);
+    return left.publicKey < right.publicKey ? 1 : -1;
   }
 
-  public compare = (l, r) => {
-    if (l.votes !== r.votes) {
-      return r.votes - l.votes;
-    }
-    return l.publicKey < r.publicKey ? 1 : -1;
-  }
-
-  cleanup = (cb) => {
+  public cleanup = (cb) => {
     this.library.logger.debug('Cleaning up core/delegates');
     this.loaded = false;
     cb();
   }
 
-  getTopDelegates = () => {
-    const allDelegates = global.app.sdb.getAll('Delegate');
-    return allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101);
+  private getTopDelegates = () => {
+    const allDelegates = global.app.sdb.getAll('Delegate') as Delegate[];
+    const sortedPublicKeys = allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101);
+    return sortedPublicKeys;
   }
 
-  getBookkeeper = (): string[] => {
+  private getBookkeeper = (): string[] => {
     const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME);
     if (!item) throw new Error('Bookkeeper variable not found');
 
@@ -294,12 +294,11 @@ export default class Delegates {
     return JSON.parse(item.value);
   }
 
-  updateBookkeeper = (delegates?) => {
-    const value = JSON.stringify(delegates || this.getTopDelegates());
+  public updateBookkeeper = () => {
+    const value = JSON.stringify(this.getTopDelegates());
     const { create } = global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value });
     if (!create) {
       global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME });
     }
   }
-
 }

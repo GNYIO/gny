@@ -233,6 +233,25 @@ export interface ProcessBlockOptions {
   votes?: ManyVotes;
 }
 
+// Models
+export interface Delegate {
+  address: string;
+  tid: string;
+  username: string;
+  publicKey: string;
+  votes: number;
+  producedBlocks: number;
+  missedBlocks: number;
+  fees: number;
+  rewards: number;
+}
+
+export interface DelegateViewModel extends Delegate {
+  rate: number;
+  approval: number;
+  productivity: string;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {
