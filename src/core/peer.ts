@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
-import requestLib = require('request');
 import axios from 'axios';
 import { promisify } from 'util';
 import Database = require('nedb');
@@ -209,31 +208,6 @@ export default class Peer {
     }
   }
 
-  public requestCB = (method: any, params: any, contact: any, cb: any) => {
-    const address = `${contact.host}:${contact.port - 1}`;
-    const uri = `http://${address}/peer/${method}`;
-    this.library.logger.debug(`start to request ${uri}`);
-    const reqOptions = {
-      uri,
-      method: 'POST',
-      body: params,
-      headers: {
-        magic: global.Config.magic,
-        version: global.Config.version,
-      },
-      json: true,
-    };
-    requestLib(reqOptions, (err, response, result) => {
-      if (err) {
-        return cb(`Failed to request remote peer: ${err}`);
-      } else if (response.statusCode !== 200) {
-        this.library.logger.debug('remote service error', result);
-        return cb(`Invalid status code: ${response.statusCode}`);
-      }
-      return cb(null, result);
-    });
-  }
-
   public randomRequestAsync = async (method: string, params: any) => {
     const randomNode = this.dht.getRandomNode();
     if (!randomNode) throw new Error('no contact');
@@ -247,23 +221,6 @@ export default class Peer {
     } catch (err) {
       throw err;
     }
-  }
-
-  public randomRequest = (method: any, params: any, cb: any) => {
-    const randomNode = this.dht.getRandomNode();
-    if (!randomNode) return cb('No contact');
-    this.library.logger.debug('select random contract', randomNode);
-    let isCallbacked = false;
-    setTimeout(() => {
-      if (isCallbacked) return;
-      isCallbacked = true;
-      cb('Timeout', undefined, randomNode);
-    }, 4000);
-    return this.requestCB(method, params, randomNode, (err, result) => {
-      if (isCallbacked) return;
-      isCallbacked = true;
-      cb(err, result, randomNode);
-    });
   }
 
   // Events
