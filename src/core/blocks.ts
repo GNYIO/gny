@@ -154,13 +154,6 @@ export default class Blocks {
       throw new Error('Invalid block reward');
     }
 
-    // HARDCODE_HOT_FIX_BLOCK_6119128
-    // if (block.height > 6119128) {
-    //   if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-    //     throw new Error(`Invalid payload hash: ${block.id}`)
-    //   }
-    // }
-
     if (options.votes) {
       const votes = options.votes;
       if (block.height !== votes.height) {
