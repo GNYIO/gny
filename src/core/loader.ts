@@ -1,5 +1,5 @@
 import slots from '../utils/slots';
-import * as constants from '../utils/constants';
+import { TIMEOUT } from '../utils/constants';
 import { Modules, IScope, IGenesisBlock, PeerNode } from '../interfaces';
 
 export default class Loader {
@@ -219,7 +219,7 @@ export default class Loader {
       if (slots.getNextSlot() - lastSlot >= 3) {
         this.startSyncBlocks();
       }
-      setTimeout(nextSync, constants.interval * 1000);
+      setTimeout(nextSync, TIMEOUT * 1000);
     };
     setImmediate(nextSync);
 
