@@ -39,3 +39,6 @@ export const REWARDS: IReward = {
 };
 export const INITIAL_AMOUNT: string = '40000000000000000';
 
+export const SAVE_PEERS_INTERVAL: number = 1 * 60 * 1000;
+export const CHECK_BUCKET_OUTDATE: number = 1 * 60 * 1000;
+export const MAX_BOOTSTRAP_PEERS: number = 25;
