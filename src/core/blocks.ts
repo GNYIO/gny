@@ -181,8 +181,8 @@ export default class Blocks {
     const delegateList = this.modules.delegates.generateDelegateList(block.height);
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
-      if (!publicKeySet.has(item.key.toString('hex'))) {
-        throw new Error(`Votes key is not in the top list: ${item.key}`);
+      if (!publicKeySet.has(item.publicKey.toString('hex'))) {
+        throw new Error(`Votes key is not in the top list: ${item.publicKey}`);
       }
       if (!this.library.base.consensus.verifyVote(votes.height, votes.id, item)) {
         throw new Error('Failed to verify vote signature');
@@ -419,7 +419,7 @@ export default class Blocks {
         };
         let body;
         try {
-          body = this.modules.peer.request('blocks', params, peer);
+          body = await this.modules.peer.request('blocks', params, peer);
         } catch (err) {
           return next(`Failed to request remote peer: ${err}`);
         }

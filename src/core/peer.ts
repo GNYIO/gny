@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as ip from 'ip';
 import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import DHT = require('bittorrent-dht');
@@ -18,7 +17,7 @@ export default class Peer {
 
   private handlers: any = {};
   private dht: any = null;
-  private nodesDb: any = undefined;
+  private nodesDb: Database = undefined;
 
   constructor (scope: IScope) {
     this.library = scope;
@@ -183,7 +182,7 @@ export default class Peer {
     this.dht.broadcast(message);
   }
 
-  public request = async (endpoint: string, httpParams: any, contact: PeerNode, timeout?: number) => {
+  public request = async (endpoint: string, body: any, contact: PeerNode, timeout?: number) => {
     const address = `${contact.host}:${contact.port - 1}`;
     const uri = `http://${address}/peer/${endpoint}`;
     this.library.logger.debug(`start to request ${uri}`);
@@ -199,7 +198,7 @@ export default class Peer {
         responseType: 'json',
         timeout: undefined || timeout
       };
-      result = await axios.post(uri, httpParams, config);
+      result = await axios.post(uri, body, config);
       if (result.status !== 200) {
         throw new Error(`Invalid status code: ${result.statusCode}`);
       }
@@ -241,7 +240,10 @@ export default class Peer {
     this.library.logger.debug('select random contract', randomNode);
     try {
       const result = await this.request(method, params, randomNode, 4000);
-      return result;
+      return {
+        data: result,
+        node: randomNode,
+      };
     } catch (err) {
       throw err;
     }

@@ -61,7 +61,7 @@ export default class Transport {
 
 
   // peerEvent
-  private peerNewBlockHeader = (message, peer) => {
+  private peerNewBlockHeader = async (message, peer) => {
     if (this.modules.loader.syncing()) {
       return;
     }
@@ -89,27 +89,32 @@ export default class Transport {
       return;
     }
     this.library.logger.info('Receive new block header', { height, id });
-    this.modules.peer.requestCB('newBlock', { id }, peer, (err, result) => {
-      if (err) {
-        this.library.logger.error('Failed to get latest block data', err);
-        return;
-      }
-      if (!result || !result.block || !result.votes) {
-        this.library.logger.error('Invalid block data', result);
-        return;
-      }
-      try {
-        let block = result.block;
-        let votes = this.library.protobuf.decodeBlockVotes(Buffer.from(result.votes, 'base64'));
-        block = this.library.base.block.objectNormalize(block);
-        votes = this.library.base.consensus.normalizeVotes(votes);
-        this.latestBlocksCache.set(block.id, result);
-        this.blockHeaderMidCache.set(block.id, message);
-        this.library.bus.message('receiveBlock', block, votes);
-      } catch (e) {
-        this.library.logger.error(`normalize block or votes object error: ${e.toString()}`, result);
-      }
-    });
+
+    // TODO
+    let result;
+    try {
+      const params = { id };
+      result = await this.modules.peer.request('newBlock', params, peer);
+    } catch (err) {
+      this.library.logger.error('Failed to get latest block data', err);
+      return;
+    }
+
+    if (!result || !result.block || !result.votes) {
+      this.library.logger.error('Invalid block data', result);
+      return;
+    }
+    try {
+      let block = result.block;
+      let votes = this.library.protobuf.decodeBlockVotes(Buffer.from(result.votes, 'base64'));
+      block = this.library.base.block.objectNormalize(block);
+      votes = this.library.base.consensus.normalizeVotes(votes);
+      this.latestBlocksCache.set(block.id, result);
+      this.blockHeaderMidCache.set(block.id, message);
+      this.library.bus.message('receiveBlock', block, votes);
+    } catch (e) {
+      this.library.logger.error(`normalize block or votes object error: ${e.toString()}`, result);
+    }
   }
 
   // peerEvent
