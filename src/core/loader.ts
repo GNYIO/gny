@@ -121,7 +121,7 @@ export default class Loader {
       try {
         result = await this.modules.peer.randomRequestAsync('getUnconfirmedTransactions', {});
       } catch (err) {
-        return cb(err);
+        return cb(err.message);
       }
 
       const data = result.data;

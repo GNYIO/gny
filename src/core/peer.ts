@@ -200,11 +200,11 @@ export default class Peer {
       };
       result = await axios.post(uri, body, config);
       if (result.status !== 200) {
-        throw new Error(`Invalid status code: ${result.statusCode}`);
+        throw new Error(`Invalid status code: ${result.statusCode}, error: ${result.data}`);
       }
       return result.data;
     } catch (err) {
-      this.library.logger.error(`Failed to request remote peer: ${err}`);
+      this.library.logger.error(`Failed to request remote peer: ${err.message}`);
       throw err;
     }
   }
