@@ -94,7 +94,7 @@ export default class Loader {
   private async loadBlocks(lastBlock: any, cb: any) {
     this.modules.peer.randomRequest('getHeight', {}, (err, ret, peer) => {
       if (err) {
-        this.library.logger.error('Failed to request form random peer', err);
+       this.library.logger.error('Failed to request form random peer', err);
         return cb();
       }
 
@@ -140,7 +140,7 @@ export default class Loader {
         return null;
       }
 
-      const transactions = data.body.transactions;
+      const transactions = data.transactions;
       const peerStr = `${peer.host}:${peer.port - 1}`;
 
       for (let i = 0; i < transactions.length; i++) {
