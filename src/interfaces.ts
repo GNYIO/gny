@@ -136,12 +136,10 @@ interface IApp {
   getFee: (type: string) => ICurrencyFee;
   setDefaultFee: (min: string, currency: string) => void;
   addRoundFee: (fee: IFee, roundNumber: number) => void;
-  getRealTime: (epochTime: number) => number;
   hooks: {
     [name: string]: () => void
   };
   registerHook: (name: string, func: () => void) => void;
-  isCurrentBookkeeper: (addr: string) => boolean;
   logger: ILogger;
 }
 
@@ -221,6 +219,38 @@ export interface ISimpleCache {
 
 export type Next = (err: string) => any;
 
+
+export interface PeerNode {
+  host: string;
+  port: number;
+  id?: string;
+}
+
+export interface ProcessBlockOptions {
+  syncing?: boolean;
+  local?: true;
+  broadcast?: true;
+  votes?: ManyVotes;
+}
+
+// Models
+export interface Delegate {
+  address: string;
+  tid: string;
+  username: string;
+  publicKey: string;
+  votes: number;
+  producedBlocks: number;
+  missedBlocks: number;
+  fees: number;
+  rewards: number;
+}
+
+export interface DelegateViewModel extends Delegate {
+  rate: number;
+  approval: number;
+  productivity: string;
+}
 
 declare global {
   namespace NodeJS {

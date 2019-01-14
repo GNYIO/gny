@@ -1,9 +1,5 @@
 import async = require('async');
-import * as constants from './constants';
-
-// const TASK_TIMEOUT_MS = 10 * 1000
-// const TASK_TIMEOUT_MS = 15 * 1000
-const TASK_TIMEOUT_MS = constants.interval * 1000;
+import { TIMEOUT } from './constants';
 
 function tick(task, cb) {
   let isCallbacked = false;
@@ -21,7 +17,7 @@ function tick(task, cb) {
     if (!isCallbacked) {
       done('Worker task timeout');
     }
-  }, TASK_TIMEOUT_MS);
+  }, TIMEOUT * 1000);
   let args = [done];
   if (task.args) {
     args = args.concat(task.args);

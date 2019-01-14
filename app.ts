@@ -108,15 +108,18 @@ function main() {
     fs.writeFileSync(pidFile, process.pid, 'utf8');
   }
 
-  if (program.daemon) {
-    logger = tracer.dailyfile({
-      root: path.join(baseDir, 'logs'),
-      maxLogFiles: 10,
-      allLogsFileName: 'debug',
-    });
-  } else {
-    logger = tracer.colorConsole();
-  }
+  // Logger configuration
+  const stream = fs.createWriteStream('logs/debug.log', { flags: 'a', encoding: 'utf8' });
+  logger = tracer.colorConsole({
+    transport: [
+      function (data) {
+        stream.write(data.rawoutput + '\n');
+      },
+      function(data) {
+        console.log(data.output);
+      }
+    ]
+  });
   tracer.setLevel(appConfig.logLevel);
 
   const options = {

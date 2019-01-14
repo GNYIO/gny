@@ -16,7 +16,7 @@ export const confirmationLength: number = 77;
 export const fixedPoint: number = 10 ** 6;
 export const totalAmount: number = 2500000000000000;
 export const maxTxsPerBlock: number = 20000;
-export const interval: number = 15;
+export const TIMEOUT: number = 15;
 
 export const INTERVAL: number = 10;
 export const DELEGATES: number = 101;
@@ -39,3 +39,6 @@ export const REWARDS: IReward = {
 };
 export const INITIAL_AMOUNT: string = '40000000000000000';
 
+export const SAVE_PEERS_INTERVAL: number = 1 * 60 * 1000;
+export const CHECK_BUCKET_OUTDATE: number = 1 * 60 * 1000;
+export const MAX_BOOTSTRAP_PEERS: number = 25;

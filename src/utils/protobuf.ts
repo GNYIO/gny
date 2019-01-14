@@ -48,8 +48,8 @@ export class Protobuf {
   encodeBlockVotes(obj) {
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];
-      signature.key = Buffer.from(signature.publicKey, 'hex');
-      signature.sig = Buffer.from(signature.signature, 'hex');
+      signature.publicKey = Buffer.from(signature.publicKey, 'hex');
+      signature.signature = Buffer.from(signature.signature, 'hex');
     }
     return this.schema.BlockVotes.encode(obj);
   }
@@ -58,8 +58,8 @@ export class Protobuf {
     const obj = this.schema.BlockVotes.decode(data);
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];
-      signature.key = signature.key.toString('hex');
-      signature.sig = signature.sig.toString('hex');
+      signature.publicKey = signature.publicKey.toString('hex');
+      signature.signature = signature.signature.toString('hex');
     }
     return obj;
   }

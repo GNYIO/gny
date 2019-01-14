@@ -5,7 +5,7 @@ import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
-import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache } from '../interfaces';
+import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache, PeerNode, ProcessBlockOptions } from '../interfaces';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -81,7 +81,7 @@ export default class Blocks {
 
   public getLastBlock = () => this.lastBlock;
 
-  public verifyBlock = async (block: any, options: any) => {
+  public verifyBlock = async (block: any, options: Pick<ProcessBlockOptions, 'votes'>) => {
     try {
       block.id = this.library.base.block.getId(block);
     } catch (e) {
@@ -154,13 +154,6 @@ export default class Blocks {
       throw new Error('Invalid block reward');
     }
 
-    // HARDCODE_HOT_FIX_BLOCK_6119128
-    // if (block.height > 6119128) {
-    //   if (payloadHash.digest().toString('hex') !== block.payloadHash) {
-    //     throw new Error(`Invalid payload hash: ${block.id}`)
-    //   }
-    // }
-
     if (options.votes) {
       const votes = options.votes;
       if (block.height !== votes.height) {
@@ -181,8 +174,8 @@ export default class Blocks {
     const delegateList = this.modules.delegates.generateDelegateList(block.height);
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
-      if (!publicKeySet.has(item.key.toString('hex'))) {
-        throw new Error(`Votes key is not in the top list: ${item.key}`);
+      if (!publicKeySet.has(item.publicKey.toString('hex'))) {
+        throw new Error(`Votes key is not in the top list: ${item.publicKey}`);
       }
       if (!this.library.base.consensus.verifyVote(votes.height, votes.id, item)) {
         throw new Error('Failed to verify vote signature');
@@ -211,7 +204,7 @@ export default class Blocks {
     }
   }
 
-  public processBlock = async (b: any, options: any) => {
+  private processBlock = async (b: IGenesisBlock | any, options: ProcessBlockOptions) => {
     if (!this.loaded) throw new Error('Blockchain is loading');
 
     let block = b;
@@ -330,6 +323,9 @@ export default class Blocks {
     global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`);
 
     const delegates = this.modules.delegates.generateDelegateList(block.height);
+    if (!delegates) {
+      throw new Error('no delegates');
+    }
     global.app.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1);
@@ -400,7 +396,7 @@ export default class Blocks {
     return blocks;
   }
 
-  public loadBlocksFromPeer = (peer, id, cb) => {
+  public loadBlocksFromPeer = (peer: PeerNode, id: string, cb) => {
     let loaded = false;
     let count = 0;
     let lastValidBlock = null;
@@ -416,7 +412,7 @@ export default class Blocks {
         };
         let body;
         try {
-          body = this.modules.peer.request('blocks', params, peer);
+          body = await this.modules.peer.request('blocks', params, peer);
         } catch (err) {
           return next(`Failed to request remote peer: ${err}`);
         }
@@ -453,7 +449,7 @@ export default class Blocks {
     );
   }
 
-  public generateBlock = async (keypair: any, timestamp: any) => {
+  public generateBlock = async (keypair: KeyPair, timestamp: number) => {
     if (this.library.base.consensus.hasPendingBlock(timestamp)) {
       return;
     }
@@ -679,7 +675,7 @@ public onReceiveVotes = (votes: any) => {
         cb();
       })();
     }
-    return setImmediate(cb);
+    return setImmediate(cb); // todo, check if correct. Is not
   });
 }
 

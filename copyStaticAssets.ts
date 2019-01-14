@@ -6,3 +6,4 @@ shell.cp('genesisBlock.json', 'dist');
 shell.cp('config.json', 'dist');
 
 shell.mkdir('-p', 'dist/data/blocks');
+shell.mkdir('-p', 'dist/logs');
