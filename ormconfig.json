@@ -1,0 +1,32 @@
+{
+   "type": "postgres",
+   "host": "localhost",
+   "port": 5432,
+   "username": "postgres",
+   "password": "",
+   "database": "gny_test",
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "src/entity/**/*.js"
+   ],
+   "migrations": [
+      "src/migration/**/*.js"
+   ],
+   "subscribers": [
+      "src/subscriber/**/*.js"
+   ],
+   "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+   },
+   "cache": {
+      "type": "redis",
+      "duration": 10000,
+      "options": {
+        "host": "localhost",
+        "port": 6379
+      }
+   }
+}
