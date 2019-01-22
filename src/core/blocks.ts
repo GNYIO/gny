@@ -290,6 +290,7 @@ export default class Blocks {
     global.app.logger.trace('Blocks#saveBlockTransactions height', block.height);
     for (const trs of block.transactions) {
       trs.height = block.height;
+      // trs.block = block;
       await global.app.sdb.create('Transaction', trs);
     }
     global.app.logger.trace('Blocks#save transactions');

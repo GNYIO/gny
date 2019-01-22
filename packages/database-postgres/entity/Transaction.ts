@@ -64,8 +64,17 @@ export class Transaction {
     })
     public args: any;
 
+    // @ManyToOne(type => Block, block => block.transactions)
+    // public block: Block;
+
     @ManyToOne(type => Block, block => block.transactions)
     public height: number;
+
+    // @Column({
+    //     type: 'bigint',
+    //     nullable: true,
+    // })
+    // public height?: number;
 
     @Column({
         length: 256,
