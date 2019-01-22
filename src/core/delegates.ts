@@ -286,7 +286,7 @@ export default class Delegates {
   }
 
   private getBookkeeper = async (): Promise<string[]> => {
-    const item = await global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME);
+    const item = await global.app.sdb.get('Variable', {key: this.BOOK_KEEPER_NAME});
     if (!item) throw new Error('Bookkeeper variable not found');
 
     // TODO: ?? make field type as JSON

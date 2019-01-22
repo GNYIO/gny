@@ -50,8 +50,6 @@ export class SmartDB {
         this.connection = await createConnection();
     }
 
-    // public lastBlock = this.getLastBlock();
-
     /**
      * Find one item from the given table:
      * Existed repos: Balance, Asset, Issuer, Account
@@ -340,8 +338,6 @@ export class SmartDB {
      * @return {Promise<boolean>}
      */
     public async createOrLoad(table: string, data: any): Promise<boolean> {
-        console.log('createOrLoad...');
-        console.log({table, data});
         const exist = await this.exists(table, data);
         if (!exist) {
             await this.create(table, data);
@@ -358,8 +354,6 @@ export class SmartDB {
      * @return {Promise<any>} result
      */
     public async create(table: string, data: any): Promise<any> {
-        console.log('create...');
-        console.log({table, data});
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const result = await repo.save(data);
@@ -379,8 +373,6 @@ export class SmartDB {
      * @return {Promise<void>}
      */
     public async update(table: string, data: any, condition: any): Promise<void> {
-        console.log('update...');
-        console.log({table, data, condition});
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         await repo.update(condition, data);
@@ -412,7 +404,6 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async beginContract(transaction: any): Promise<any> {
-        console.log('beginContract...');
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
         await queryRunner.connect();
