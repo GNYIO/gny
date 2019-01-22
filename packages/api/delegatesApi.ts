@@ -58,7 +58,7 @@ export default class DelegatesApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const count = global.app.sdb.getAll('Delegate').length;
+      const count = await global.app.sdb.getAll('Delegate').length;
       return res.json({ count });
     } catch (e) {
       this.library.logger.error('Error in counting delegates', e);

@@ -193,12 +193,12 @@ export default class Loader {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add((cb) => {
+    this.library.sequence.add( async (cb) => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
       this.modules.transactions.clearUnconfirmed();
-      global.app.sdb.rollbackBlock().then(() => {
+      await global.app.sdb.rollbackBlock().then(() => {
         this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err);

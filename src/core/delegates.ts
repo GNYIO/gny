@@ -124,7 +124,7 @@ export default class Delegates {
     })();
   }
 
-  private loadMyDelegates = () => {
+  private loadMyDelegates = async () => {
     let secrets: string[] = [];
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
@@ -132,7 +132,7 @@ export default class Delegates {
     }
 
     try {
-      const delegates = global.app.sdb.getAll('Delegate') as Delegate[];
+      const delegates = await global.app.sdb.getAll('Delegate') as Delegate[];
       if (!delegates || !delegates.length) {
         return 'Delegates not found in database';
       }
@@ -231,8 +231,8 @@ export default class Delegates {
     throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
   }
 
-  public getDelegates = () => {
-    let delegates = global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d)) as Delegate[];
+  public getDelegates = async () => {
+    let delegates = await global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d)) as Delegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
       return undefined;
@@ -252,7 +252,7 @@ export default class Delegates {
       let percent = 100 - (current.missedBlocks / (current.producedBlocks + current.missedBlocks) / 100);
       percent = percent || 0;
       current.productivity = parseFloat(Math.floor(percent * 100) / 100).toFixed(2);
-      global.app.sdb.update('Delegate', current, { address: current.address });
+      await global.app.sdb.update('Delegate', current, { address: current.address });
     }
     return delegates as DelegateViewModel[];
   }
@@ -280,25 +280,25 @@ export default class Delegates {
     cb();
   }
 
-  private getTopDelegates = () => {
-    const allDelegates = global.app.sdb.getAll('Delegate') as Delegate[];
+  private getTopDelegates = async () => {
+    const allDelegates = await global.app.sdb.getAll('Delegate') as Delegate[];
     const sortedPublicKeys = allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101);
     return sortedPublicKeys;
   }
 
-  private getBookkeeper = (): string[] => {
-    const item = global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME);
+  private getBookkeeper = async (): string[] => {
+    const item = await global.app.sdb.get('Variable', this.BOOK_KEEPER_NAME);
     if (!item) throw new Error('Bookkeeper variable not found');
 
     // TODO: ?? make field type as JSON
     return JSON.parse(item.value);
   }
 
-  public updateBookkeeper = () => {
+  public updateBookkeeper = async () => {
     const value = JSON.stringify(this.getTopDelegates());
-    const { create } = global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value });
+    const { create } = await global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value });
     if (!create) {
-      global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME });
+      await global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME });
     }
   }
 }

@@ -159,7 +159,7 @@ export default class Transactions {
     let sender = await global.app.sdb.load('Account', senderId);
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found');
-      sender = global.app.sdb.create('Account', {
+      sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
         gny: 0,
@@ -177,11 +177,11 @@ export default class Transactions {
     }
 
     try {
-      global.app.sdb.beginContract();
+      await global.app.sdb.beginContract();
       await this.library.base.transaction.apply(context);
-      global.app.sdb.commitContract();
+      await global.app.sdb.commitContract();
     } catch (e) {
-      global.app.sdb.rollbackContract();
+      await global.app.sdb.rollbackContract();
       this.library.logger.error(e);
       throw e;
     }

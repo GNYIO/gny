@@ -107,7 +107,7 @@ export default class BlocksApi {
       if (needReverse) {
         blocks = _.reverse(blocks);
       }
-      const count = global.app.sdb.blocksCount;
+      const count = await global.app.sdb.blocksCount();
       return res.json({ count, blocks });
     } catch (err) {
       return next(err.message);

@@ -8,8 +8,8 @@ async function deleteCreatedVotes(account) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
-      global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
-      global.app.sdb.del('Vote', { voterAddress: voteItem.voterAddress, delegate: voteItem.delegate });
+      await global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
+      await global.app.sdb.del('Vote', { voterAddress: voteItem.voterAddress, delegate: voteItem.delegate });
     }
   }
 }
@@ -42,9 +42,9 @@ export default {
     if (recipient && global.app.util.address.isAddress(recipient)) {
       recipientAccount = await global.app.sdb.load('Account', recipient);
       if (recipientAccount) {
-        global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
+        await global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
       } else {
-        recipientAccount = global.app.sdb.create('Account', {
+        recipientAccount = await global.app.sdb.create('Account', {
           address: recipient,
           gny: amount,
           username: null,
@@ -53,11 +53,11 @@ export default {
     } else {
       recipientAccount = await global.app.sdb.load('Account', { username: recipient });
       if (!recipientAccount) return 'Recipient name not exist';
-      global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
+      await global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
     }
-    global.app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
+    await global.app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
 
-    global.app.sdb.create('Transfer', {
+    await global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,
       senderId,
@@ -74,13 +74,13 @@ export default {
     global.app.validate('name', username);
 
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
 
     const exists = await global.app.sdb.load('Account', { username });
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
     this.sender.username = username;
-    global.app.sdb.update('Account', { username }, { address: this.sender.address });
+    await global.app.sdb.update('Account', { username }, { address: this.sender.address });
 
     return null;
   },
@@ -92,10 +92,10 @@ export default {
       return 'Invalid account type';
     }
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
     if (this.sender.secondPublicKey) return 'Password already set';
     this.sender.secondPublicKey = publicKey;
-    global.app.sdb.update('Account', { secondPublicKey: publicKey }, { address: this.sender.address });
+    await global.app.sdb.update('Account', { secondPublicKey: publicKey }, { address: this.sender.address });
     return null;
   },
 
@@ -106,7 +106,7 @@ export default {
     height = Number(height);
     amount = Number(amount);
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
 
     // const MIN_LOCK_HEIGHT = 8640 * 30
     // 60/15 * 60 * 24 = 5760
@@ -139,12 +139,12 @@ export default {
     if (amount !== 0) {
       sender.gny -= amount;
       sender.lockAmount += amount;
-      global.app.sdb.update('Account', sender, { address: sender.address });
+      await global.app.sdb.update('Account', sender, { address: sender.address });
 
       const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
-          global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
+          await global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
         }
       }
     }
@@ -153,7 +153,7 @@ export default {
 
   async unlock() {
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.isLocked) return 'Account is not locked';
@@ -167,20 +167,20 @@ export default {
     sender.lockHeight = 0;
     sender.gny += sender.lockAmount;
     sender.lockAmount = 0;
-    global.app.sdb.update('Account', sender, { address: senderId });
+    await global.app.sdb.update('Account', sender, { address: senderId });
 
     return null;
   },
 
   async registerDelegate() {
     const senderId = this.sender.address;
-    if (this.block.height > 0) global.app.sdb.lock(`basic.account@${senderId}`);
+    if (this.block.height > 0) await global.app.sdb.lock(`basic.account@${senderId}`);
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 
-    global.app.sdb.create('Delegate', {
+    await global.app.sdb.create('Delegate', {
       address: senderId,
       username: sender.username,
       tid: this.trs.id,
@@ -192,14 +192,14 @@ export default {
       rewards: 0,
     });
     sender.isDelegate = 1;
-    global.app.sdb.update('Account', { isDelegate: 1 }, { address: senderId });
+    await global.app.sdb.update('Account', { isDelegate: 1 }, { address: senderId });
 
     return null;
   },
 
   async vote(delegates) {
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';
@@ -232,8 +232,8 @@ export default {
 
     for (const username of delegates) {
       const votes = (sender.lockAmount);
-      global.app.sdb.increase('Delegate', { votes }, { username });
-      global.app.sdb.create('Vote', {
+      await global.app.sdb.increase('Delegate', { votes }, { username });
+      await global.app.sdb.create('Vote', {
         voterAddress: senderId,
         delegate: username,
       });
@@ -243,7 +243,7 @@ export default {
 
   async unvote(delegates) {
     const senderId = this.sender.address;
-    global.app.sdb.lock(`basic.account@${senderId}`);
+    await global.app.sdb.lock(`basic.account@${senderId}`);
 
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';
@@ -273,9 +273,9 @@ export default {
 
     for (const username of delegates) {
       const votes = -(sender.lockAmount);
-      global.app.sdb.increase('Delegate', { votes }, { username });
+      await global.app.sdb.increase('Delegate', { votes }, { username });
 
-      global.app.sdb.del('Vote', { voterAddress: senderId, delegate: username });
+      await global.app.sdb.del('Vote', { voterAddress: senderId, delegate: username });
     }
     return null;
   },

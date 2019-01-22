@@ -208,7 +208,7 @@ export default class Blocks {
     if (!this.loaded) throw new Error('Blockchain is loading');
 
     let block = b;
-    global.app.sdb.beginBlock(block);
+    await global.app.sdb.beginBlock(block);
 
     if (!block.transactions) block.transactions = [];
     if (!options.local) {
@@ -284,19 +284,19 @@ export default class Blocks {
     }
   }
 
-  public saveBlockTransactions = (block: any) => {
+  public saveBlockTransactions = async (block: any) => {
     global.app.logger.trace('Blocks#saveBlockTransactions height', block.height);
     for (const trs of block.transactions) {
       trs.height = block.height;
-      global.app.sdb.create('Transaction', trs);
+      await global.app.sdb.create('Transaction', trs);
     }
     global.app.logger.trace('Blocks#save transactions');
   }
 
 
-  public increaseRoundData = (modifier, roundNumber) => {
-    global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
-    return global.app.sdb.increase('Round', modifier, { round: roundNumber });
+  public increaseRoundData = async (modifier, roundNumber) => {
+    await global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
+    return await global.app.sdb.increase('Round', modifier, { round: roundNumber });
   }
 
   public applyRound = async (block: any) => {
@@ -306,7 +306,7 @@ export default class Blocks {
     }
 
     let address = addressHelper.generateAddress(block.delegate);
-    global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address });
+    await global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address });
 
     let transFee = 0;
     for (const t of block.transactions) {
@@ -332,16 +332,16 @@ export default class Blocks {
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate];
 
     const missedDelegates = delegates.filter(fd => !forgedDelegates.includes(fd));
-    missedDelegates.forEach((md) => {
+    missedDelegates.forEach(async (md) => {
       address = addressHelper.generateAddress(md);
-      global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
+      await global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
     });
 
     async function updateDelegate(pk, fee, reward) {
       address = addressHelper.generateAddress(pk);
-      global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address });
+      await global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address });
       // TODO should account be all cached?
-      global.app.sdb.increase('Account', { gny: fee + reward }, { address });
+      await global.app.sdb.increase('Account', { gny: fee + reward }, { address });
     }
 
     const ratio = 1;
@@ -711,7 +711,7 @@ public isHealthy = () => {
 
     return (async () => {
       try {
-        const count = global.app.sdb.blocksCount;
+        const count = await global.app.sdb.blocksCount();
         global.app.logger.info('Blocks found:', count);
         if (!count) {
           this.setLastBlock({ height: -1 });

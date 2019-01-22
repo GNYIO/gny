@@ -8,14 +8,14 @@ export default {
     if (descJson.length > 4096) return 'Invalid issuer description';
 
     const senderId = this.sender.address;
-    global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
+    await global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
     let exists = await global.app.sdb.exists('Issuer', { name });
     if (exists) return 'Issuer name already exists';
 
     exists = await global.app.sdb.exists('Issuer', { issuerId: senderId });
     if (exists) return 'Account is already an issuer';
 
-    global.app.sdb.create('Issuer', {
+    await global.app.sdb.create('Issuer', {
       tid: this.trs.id,
       issuerId: senderId,
       name,
@@ -35,12 +35,12 @@ export default {
     if (!issuer) return 'Account is not an issuer';
 
     const fullName = `${issuer.name}.${symbol}`;
-    global.app.sdb.lock(`uia.registerAsset@${fullName}`);
+    await global.app.sdb.lock(`uia.registerAsset@${fullName}`);
 
     const exists = await global.app.sdb.exists('Asset', { name: fullName });
     if (exists) return 'Asset already exists';
 
-    global.app.sdb.create('Asset', {
+    await global.app.sdb.create('Asset', {
       tid: this.trs.id,
       name: fullName,
       timestamp: this.trs.timestamp,
@@ -60,15 +60,15 @@ export default {
     const asset = await global.app.sdb.findOne('Asset', { condition: { name }});
     if (!asset) return 'Asset not exists';
 
-    global.app.sdb.lock(`uia.issue@${name}`);
+    await global.app.sdb.lock(`uia.issue@${name}`);
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
     const quantity = global.app.util.bignumber(asset.quantity).plus(amount);
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
-    global.app.sdb.update('Asset', { quantity: asset.quantity }, { name });
+    await global.app.sdb.update('Asset', { quantity: asset.quantity }, { name });
 
-    global.app.balances.increase(this.sender.address, name, amount);
+    await global.app.balances.increase(this.sender.address, name, amount);
     return null;
   },
 
@@ -79,7 +79,7 @@ export default {
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
     global.app.validate('amount', String(amount));
     const senderId = this.sender.address;
-    const balance = global.app.balances.get(senderId, currency);
+    const balance = await global.app.balances.get(senderId, currency);
     if (balance.lt(amount)) return 'Insufficient balance';
 
     let recipientAddress;
@@ -94,7 +94,7 @@ export default {
     }
 
     global.app.balances.transfer(currency, amount, senderId, recipientAddress);
-    global.app.sdb.create('Transfer', {
+    await global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,
       senderId,
