@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import slots from '../utils/slots';
-import * as constants from '../utils/constants';
+// import * as constants from '../utils/constants';
 import * as addressHelper from '../utils/address';
 import feeCalculators from '../utils/calculate-fee';
 import { IScope, KeyPair } from '../interfaces';

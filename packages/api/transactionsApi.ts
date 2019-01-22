@@ -68,9 +68,6 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const limit = query.limit || 100;
-    const offset = query.offset || 0;
-
     const condition: any = {};
     if (query.senderId) {
       condition.senderId = query.senderId;
@@ -101,7 +98,8 @@ export default class TransactionsApi {
         condition.height = block.height;
       }
       const count = await global.app.sdb.count('Transaction', condition);
-      let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset });
+      const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
+      let transactions = await global.app.sdb.find('Transaction', condition, limitAndOffset);
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
     } catch (e) {

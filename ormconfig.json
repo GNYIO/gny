@@ -8,18 +8,18 @@
    "synchronize": true,
    "logging": false,
    "entities": [
-      "src/entity/**/*.js"
+      "packages/database-postgres/entity/**/*.js"
    ],
    "migrations": [
-      "src/migration/**/*.js"
+      "packages/database-postgres/migration/**/*.js"
    ],
    "subscribers": [
-      "src/subscriber/**/*.js"
+      "packages/database-postgres/subscriber/**/*.js"
    ],
    "cli": {
-      "entitiesDir": "src/entity",
-      "migrationsDir": "src/migration",
-      "subscribersDir": "src/subscriber"
+      "entitiesDir": "packages/database-postgres/entity",
+      "migrationsDir": "packages/database-postgres/migration",
+      "subscribersDir": "packages/database-postgres/subscriber"
    },
    "cache": {
       "type": "redis",

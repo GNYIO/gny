@@ -13,6 +13,10 @@ import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 
+interface LimitAndOffset {
+    limit: number;
+    offset: number;
+}
 
 const ENTITY: any = {
     'Account': Account,
@@ -30,10 +34,9 @@ const ENTITY: any = {
 
 export class SmartDB {
     connection: Connection;
-    lastBlock: Promise<any>;
+    // lastBlock: Promise<any>;
     blockQueryRunner: any;
     constructor () {
-        this.lastBlock = this.getLastBlock();
         this.blockQueryRunner = undefined;
     }
 
@@ -42,8 +45,12 @@ export class SmartDB {
      * @return {Promise<void>}
      */
     public async init(): Promise<void> {
-        this.connection = await createConnection(); // Default config: ormconfig.json(near package.json)
+
+        // Default config: ormconfig.json(near package.json)
+        this.connection = await createConnection();
     }
+
+    // public lastBlock = this.getLastBlock();
 
     /**
      * Find one item from the given table:
@@ -103,13 +110,13 @@ export class SmartDB {
      * @param {number} offset
      * @return {Promise<any>}
      */
-    public async find(table: string, condition: any, limit: number = 0, offset: number = 0): Promise<any> {
+    public async find(table: string, condition: any, limitAndOffset?: LimitAndOffset): Promise<any> {
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const result = await repo.find({
             where: condition,
-            take: limit,
-            offset: offset,
+            take: limitAndOffset.limit,
+            offset: limitAndOffset.offset,
             cache: {
                 id: 'find' + table,
             },
@@ -333,6 +340,8 @@ export class SmartDB {
      * @return {Promise<boolean>}
      */
     public async createOrLoad(table: string, data: any): Promise<boolean> {
+        console.log('createOrLoad...');
+        console.log({table, data});
         const exist = await this.exists(table, data);
         if (!exist) {
             await this.create(table, data);
@@ -349,6 +358,8 @@ export class SmartDB {
      * @return {Promise<any>} result
      */
     public async create(table: string, data: any): Promise<any> {
+        console.log('create...');
+        console.log({table, data});
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const result = await repo.save(data);
@@ -368,6 +379,8 @@ export class SmartDB {
      * @return {Promise<void>}
      */
     public async update(table: string, data: any, condition: any): Promise<void> {
+        console.log('update...');
+        console.log({table, data, condition});
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         await repo.update(condition, data);
@@ -399,6 +412,7 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async beginContract(transaction: any): Promise<any> {
+        console.log('beginContract...');
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
         await queryRunner.connect();

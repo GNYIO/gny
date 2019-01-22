@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Modules, Next } from '../../src/interfaces';
+import { IScope, Next } from '../../src/interfaces';
 
 export default class TransfersApi {
 
@@ -100,7 +100,7 @@ export default class TransfersApi {
   private getAmount = async (req: Request, res: Response, next: Next) => {
     const startTimestamp = req.query.startTimestamp;
     const endTimestamp = req.query.endTimestamp;
-    const condition = {};
+    const condition: any = {};
     if (startTimestamp && endTimestamp) {
       condition.timestamp = { $between: [startTimestamp, endTimestamp] };
     }

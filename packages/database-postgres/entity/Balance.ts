@@ -1,4 +1,4 @@
-import { Column, Entity, Index , PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Balance {

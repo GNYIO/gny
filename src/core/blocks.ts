@@ -6,6 +6,8 @@ import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
 import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache, PeerNode, ProcessBlockOptions } from '../interfaces';
+import { In } from 'typeorm';
+import { Block } from '../../packages/database-postgres/entity/Block';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -171,7 +173,7 @@ export default class Blocks {
 
   public verifyBlockVotes = async (block: any, votes: any) => {
     // is this working??
-    const delegateList = this.modules.delegates.generateDelegateList(block.height);
+    const delegateList = await this.modules.delegates.generateDelegateList(block.height);
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
       if (!publicKeySet.has(item.publicKey.toString('hex'))) {
@@ -207,7 +209,7 @@ export default class Blocks {
   private processBlock = async (b: IGenesisBlock | any, options: ProcessBlockOptions) => {
     if (!this.loaded) throw new Error('Blockchain is loading');
 
-    let block = b;
+    let block: Block = b;
     await global.app.sdb.beginBlock(block);
 
     if (!block.transactions) block.transactions = [];
@@ -231,7 +233,7 @@ export default class Blocks {
 
       if (block.height !== 0) {
         try {
-          this.modules.delegates.validateBlockSlot(block);
+          await this.modules.delegates.validateBlockSlot(block);
         } catch (e) {
           this.library.logger.error(e);
           throw new Error(`Can't verify slot: ${e}`);
@@ -244,7 +246,7 @@ export default class Blocks {
         this.library.base.transaction.objectNormalize(transaction);
       }
       const idList = block.transactions.map(t => t.id);
-      if (await global.app.sdb.exists('Transaction', { id: { $in: idList } })) {
+      if (await global.app.sdb.exists('Transaction', { id: In(idList) })) {
         throw new Error('Block contain already confirmed transaction');
       }
 
@@ -258,9 +260,9 @@ export default class Blocks {
     }
 
     try {
-      this.saveBlockTransactions(block);
       await this.applyRound(block);
       await global.app.sdb.commitBlock();
+      await this.saveBlockTransactions(block);
       const trsCount = block.transactions.length;
       global.app.logger.info(`Block applied correctly with ${trsCount} transactions`);
       this.setLastBlock(block);
@@ -294,7 +296,7 @@ export default class Blocks {
   }
 
 
-  public increaseRoundData = async (modifier, roundNumber) => {
+  public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
     await global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
     return await global.app.sdb.increase('Round', modifier, { round: roundNumber });
   }
@@ -316,13 +318,13 @@ export default class Blocks {
     }
 
     const roundNumber = this.modules.round.calculateRound(block.height);
-    const { fee, reward } = this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
+    const { fee, reward } = await this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
 
     if (block.height % 101 !== 0) return;
 
     global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`);
 
-    const delegates = this.modules.delegates.generateDelegateList(block.height);
+    const delegates = await this.modules.delegates.generateDelegateList(block.height);
     if (!delegates) {
       throw new Error('no delegates');
     }
@@ -468,7 +470,7 @@ export default class Blocks {
       payloadLength += bytes.length;
     }
     const height = this.lastBlock.height + 1;
-    const block = {
+    const block: any = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
       height,
@@ -611,9 +613,9 @@ public onReceivePropose = (propose: any) => {
     }
     this.library.logger.info(`receive propose height ${propose.height} bid ${propose.id}`);
     return async.waterfall([
-      (next) => {
+      async (next) => {
         try {
-          this.modules.delegates.validateProposeSlot(propose);
+          await this.modules.delegates.validateProposeSlot(propose);
           next();
         } catch (err) {
           next(err.toString());
@@ -627,8 +629,8 @@ public onReceivePropose = (propose: any) => {
           next(err);
         }
       },
-      (next) => {
-        const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
+      async (next) => {
+        const activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(propose.height);
         next(undefined, activeKeypairs);
       },
       async (activeKeypairs: KeyPair[], next: any) => {

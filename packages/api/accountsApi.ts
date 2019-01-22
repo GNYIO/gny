@@ -140,7 +140,7 @@ export default class AccountsApi {
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const condition = { address: req.params.address };
+    const condition: any = { address: req.params.address };
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }
@@ -209,7 +209,7 @@ export default class AccountsApi {
     try {
       let addr;
       if (query.username) {
-        const account = await global.app.sdb.load('Account', { username: query.username });
+        const account: any = await global.app.sdb.load('Account', { username: query.username });
         if (!account) {
           return next('Account not found');
         }
@@ -225,7 +225,7 @@ export default class AccountsApi {
       for (const v of votes) {
         delegateNames.add(v.delegate);
       }
-      const delegates = this.modules.delegates.getDelegates();
+      const delegates: any = this.modules.delegates.getDelegates();
       if (!delegates || !delegates.length) {
         return res.json({ delegates: [] });
       }

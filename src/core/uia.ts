@@ -2,7 +2,7 @@ import jsonSql = require('json-sql');
 
 jsonSql().setDialect('sqlite');
 
-import addressHelper from '../utils/address';
+// import addressHelper from '../utils/address';
 import { Modules, IScope } from '../interfaces';
 
 

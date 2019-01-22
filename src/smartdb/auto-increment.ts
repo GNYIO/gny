@@ -4,19 +4,19 @@ export default class AutoIncrement {
     this.sdb = sdb;
   }
 
-  get(key) {
-    const item = this.sdb.ge('Variable', key);
+  async get(key) {
+    const item = await this.sdb.get('Variable', key);
     const value = item ? item.value : '0';
     return value;
   }
 
-  increment(key) {
-    let item = this.sdb.get('Variable', key);
+  async increment(key) {
+    let item = await this.sdb.get('Variable', key);
     if (item) {
       item.value = global.app.util.bignumber(item.value).plus(1).toString();
-      this.sdb.update('Variable', { value: item.value }, key);
+      await this.sdb.update('Variable', { value: item.value }, key);
     } else {
-      item = this.sdb.create('Variable', { key, value: '1' });
+      item = await this.sdb.create('Variable', { key, value: '1' });
     }
     return item.value;
   }
