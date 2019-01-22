@@ -1,43 +1,34 @@
-import { Column, Entity, PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Issuer {
 
-    @PrimaryGeneratedColumn()
-    public id: number;
-
     @PrimaryColumn({
         length: 32,
         type: 'varchar',
+        nullable: false,
     })
-    public username: string;
+    public name: string;
 
     @Column({
         length: 64,
         type: 'varchar',
         unique: true,
     })
-    public transactionId: string;
+    public tid: string;
 
     @Column({
         length: 50,
         type: 'varchar',
         unique: true,
+        nullable: false,
     })
     public issuerId: string;
 
     @Column({
-        type: 'text',
+        type: 'varchar',
+        nullable: false,
+        length: 4096,
     })
-    public description: string;
+    public desc: string;
 }
-
-// export default {
-//   table: 'issuers',
-//   tableFields: [
-//     { name: 'transactionId', type: 'String', length: 64, unique: true },
-//     { name: 'username', type: 'String', length: 32, primary_key: true },
-//     { name: 'issuerId', type: 'String', length: 50, unique: true },
-//     { name: 'description', type: 'Text' },
-//   ],
-// };

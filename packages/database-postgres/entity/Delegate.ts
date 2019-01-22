@@ -1,10 +1,7 @@
-import { Column, Entity, Index , PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Delegate {
-
-    @PrimaryGeneratedColumn()
-    public id: number;
 
     @PrimaryColumn({
         type: 'varchar',
@@ -18,14 +15,14 @@ export class Delegate {
         length: 64,
         type: 'varchar',
         unique: true,
-        nullable: true,
+        nullable: false,
     })
-    public transactionId: string;
+    public tid: string;
 
     @Column({
         length: 50,
         type: 'varchar',
-        nullable: true,
+        nullable: false,
         unique: true,
     })
     public username: string;
@@ -34,7 +31,7 @@ export class Delegate {
         length: 64,
         type: String,
         unique: true,
-        nullable: true,
+        nullable: false,
     })
     public publicKey: string;
 
@@ -70,19 +67,3 @@ export class Delegate {
     public rewards: number;
 
 }
-
-// export default {
-//   table: 'delegates',
-//   memory: true,
-//   tableFields: [
-//     { name: 'address', type: 'String', length: 50, primary_key: true, not_null: true },
-//     { name: 'transactionId', type: 'String', length: 64, unique: true, not_null: true },
-//     { name: 'username', type: 'String', length: 50, unique: true },
-//     { name: 'publicKey', type: 'String', length: 64, unique: true },
-//     { name: 'votes', type: 'BigInt', index: true },
-//     { name: 'producedBlocks', type: 'BigInt' },
-//     { name: 'missedBlocks', type: 'BigInt' },
-//     { name: 'fees', type: 'BigInt' },
-//     { name: 'rewards', type: 'BigInt' },
-//   ],
-// };

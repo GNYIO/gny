@@ -1,17 +1,14 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Transfer {
-
-    @PrimaryGeneratedColumn()
-    public id: number;
 
     @PrimaryColumn({
         type: 'varchar',
         length: 64,
         nullable: false,
     })
-    public transactionId: string;
+    public tid: string;
 
     @Column({
         type: 'varchar',
@@ -24,14 +21,14 @@ export class Transfer {
     @Column({
         type: 'varchar',
         length: 50,
-        nullable: true,
+        nullable: false,
     })
     @Index()
     public recipientId: string;
 
     @Column({
         length: 30,
-        type: String,
+        type: 'varchar',
         nullable: true,
     })
     public recipientName: string;
@@ -45,13 +42,14 @@ export class Transfer {
     public currency: string;
 
     @Column({
-        type: 'varchar',
-        length: 30,
+        type: 'bigint',
         nullable: false,
     })
-    public amount: string;
+    public amount: number;
 
-    @Column()
+    @Column({
+      type: 'int',
+    })
     @Index()
     public timestamp: number;
 
@@ -63,17 +61,3 @@ export class Transfer {
     public height: number;
 
 }
-
-// export default {
-//   table: 'transfers',
-//   tableFields: [
-//     { name: 'transactionId', type: 'String', length: 64, not_null: true, primary_key: true },
-//     { name: 'senderId', type: 'String', length: 50, not_null: true, index: true },
-//     { name: 'recipientId', type: 'String', length: 50, not_null: true, index: true },
-//     { name: 'recipientName', type: 'String', length: 30 },
-//     { name: 'currency', type: 'String', length: 30, not_null: true, index: true },
-//     { name: 'amount', type: 'String', length: 50, not_null: true },
-//     { name: 'timestamp', type: 'Number', index: true },
-//     { name: 'height', type: 'BigInt', not_null: true, index: true },
-//   ],
-// };

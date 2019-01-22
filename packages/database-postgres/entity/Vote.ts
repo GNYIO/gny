@@ -8,7 +8,7 @@ export class Vote {
         length: 50,
         nullable: false,
     })
-    public address: string;
+    public voterAddress: string;
 
     @PrimaryColumn({
         length: 50,
@@ -16,13 +16,4 @@ export class Vote {
         nullable: false,
     })
     public delegate: string;
-
 }
-
-// export default {
-//   table: 'votes',
-//   tableFields: [
-//     { name: 'address', type: 'String', length: 50, not_null: true, composite_key: true },
-//     { name: 'delegate', type: 'String', length: 50, not_null: true, composite_key: true },
-//   ],
-// };

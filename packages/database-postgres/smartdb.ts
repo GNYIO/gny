@@ -1,8 +1,6 @@
 import 'reflect-metadata';
 import { createConnection, Connection, getConnection } from 'typeorm';
 
-import { BlockRepository } from './repositories/block';
-
 import { Account } from './entity/Account';
 import { Asset } from './entity/Asset';
 import { Balance } from './entity/Balance';
@@ -15,10 +13,6 @@ import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 
-
-const REPO: any = {
-    'Block': new BlockRepository(),
-};
 
 const ENTITY: any = {
     'Account': Account,

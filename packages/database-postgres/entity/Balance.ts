@@ -3,9 +3,6 @@ import { Column, Entity, Index , PrimaryGeneratedColumn, PrimaryColumn } from 't
 @Entity()
 export class Balance {
 
-    @PrimaryGeneratedColumn()
-    public id: number;
-
     @PrimaryColumn({
         type: 'varchar',
         length: 64,
@@ -23,25 +20,13 @@ export class Balance {
     public currency: string;
 
     @Column({
-        length: 50,
-        type: 'varchar',
+        type: 'bigint',
         nullable: false,
     })
-    public balance: string;
+    public balance: number;
 
     @Column()
     @Index()
     public flag: number;
 
 }
-
-// export default {
-//   table: 'balances',
-//   memory: true,
-//   tableFields: [
-//     { name: 'address', type: 'String', length: 64, not_null: true, composite_key: true, index: true },
-//     { name: 'currency', type: 'String', length: 30, not_null: true, composite_key: true, index: true },
-//     { name: 'balance', type: 'String', length: 50, not_null: true },
-//     { name: 'flag', type: 'Number', index: true },
-//   ],
-// };
