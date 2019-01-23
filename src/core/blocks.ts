@@ -299,12 +299,13 @@ export default class Blocks {
 
   public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
     await global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
-    return await global.app.sdb.increase('Round', modifier, { round: roundNumber });
+    await global.app.sdb.increase('Round', modifier, { round: roundNumber });
+    return await global.app.sdb.load('Round', { round: roundNumber });
   }
 
   public applyRound = async (block: any) => {
     if (block.height === 0) {
-      this.modules.delegates.updateBookkeeper();
+      await this.modules.delegates.updateBookkeeper();
       return;
     }
 
@@ -365,7 +366,7 @@ export default class Blocks {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (block.height % 101 === 0) {
-      this.modules.delegates.updateBookkeeper();
+      await this.modules.delegates.updateBookkeeper();
     }
   }
 
