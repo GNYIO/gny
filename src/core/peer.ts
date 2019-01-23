@@ -50,7 +50,7 @@ export default class Peer {
   private initDHT = async (p2pOptions: any) => {
     p2pOptions = p2pOptions || {};
 
-    let lastNodes = [];
+    let lastNodes: any; // = []
     if (p2pOptions.persistentPeers) {
       const peerNodesDbPath = path.join(p2pOptions.peersDbDir, 'peers.db');
       try {

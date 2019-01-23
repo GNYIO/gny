@@ -217,7 +217,6 @@ export default class Loader {
     const nextSync = () => {
       const lastBlock = this.modules.blocks.getLastBlock();
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-      console.log({lastSlot});
       if (slots.getNextSlot() - lastSlot >= 3) {
         this.startSyncBlocks();
       }

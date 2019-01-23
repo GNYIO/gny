@@ -33,7 +33,7 @@ export default class Delegates {
     }
 
     const nextLoop = async () => {
-      const result = await this.loop();
+      await this.loop(); // const result =
       setTimeout(nextLoop, 100);
     };
 
@@ -231,7 +231,8 @@ export default class Delegates {
   }
 
   public getDelegates = async () => {
-    let delegates = await global.app.sdb.getAll('Delegate').map(d => Object.assign({}, d)) as Delegate[];
+    const allDelegates = await global.app.sdb.getAll('Delegate');
+    let delegates = allDelegates.map(d => Object.assign({}, d)) as Delegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
       return undefined;
@@ -294,8 +295,8 @@ export default class Delegates {
   }
 
   public updateBookkeeper = async () => {
-    const value = JSON.stringify(this.getTopDelegates());
-    const create = await global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value });
+    const value = JSON.stringify(await this.getTopDelegates());
+    const create = await global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value: value });
     // It seems there is no need to update
     if (!create) {
       await global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME });

@@ -1,5 +1,6 @@
 
 export default class AutoIncrement {
+  sdb: any;
   constructor(sdb) {
     this.sdb = sdb;
   }
