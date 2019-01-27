@@ -59,15 +59,19 @@ export class SmartDB {
      * @return {Promise<any>} result
      */
     public async findOne(table: string, condition: any): Promise<any> {
+        console.log('findOne....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
+        const id = Object.values(condition)[0];
         const result = await repo.find({
             where: condition,
             take: 1,
             cache: {
-                id: 'findOne' + table,
+                id: id,
             },
         });
+
+        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
         return result[0];
     }
 
@@ -83,6 +87,8 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async findAll(table: string, condition?: any, limit: number = 0, offset: number = 0, sort?: any): Promise<any> {
+        console.log('findAll....');
+        console.log({table, condition});
         // TODO sort
         if (!sort) {
             sort = undefined;
@@ -97,6 +103,8 @@ export class SmartDB {
                 id: 'findAll' + table,
             },
         });
+
+        await this.lock(`basic.` + table.toLowerCase() + '@' + 'GM5CevQY3brUyRtDMng5Co41nWHh');
         return result;
     }
 
@@ -109,6 +117,7 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async find(table: string, condition: any, limitAndOffset?: LimitAndOffset): Promise<any> {
+        console.log('find....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const result = await repo.find({
@@ -119,6 +128,9 @@ export class SmartDB {
                 id: 'find' + table,
             },
         });
+
+        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+
         return result;
     }
 
@@ -129,6 +141,7 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async get(table: string, condition: any): Promise<any> {
+        console.log('get....');
         return await this.findOne(table, condition);
     }
 
@@ -139,6 +152,7 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async getAll(table: string): Promise<any> {
+        console.log('getAll....');
         return await this.findAll(table);
     }
 
@@ -150,6 +164,7 @@ export class SmartDB {
      * @return {Promise<number>} num
      */
     public async count(table: string, condition: any): Promise<number> {
+        console.log('count....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const num = await repo.count({
@@ -158,6 +173,7 @@ export class SmartDB {
                 id: 'count' + table,
             },
         });
+
         return num;
     }
 
@@ -283,7 +299,11 @@ export class SmartDB {
      * @return {Promise<boolean>}
      */
     public async exists(table: string, condition: any): Promise<boolean> {
+        console.log('exists....');
         const data = await this.findOne(table, condition);
+
+        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+
         return data !== undefined;
     }
 
@@ -294,15 +314,20 @@ export class SmartDB {
      * @return {Promise<{}>} data
      */
     public async load(table: string, condition: any): Promise<{}> {
+        console.log('load....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
+        const id = Object.values(condition)[0];
         const result = await repo.find({
             where: condition,
             take: 1,
             cache: {
-                id: 'load_' + table,
+                id: id,
             }
         });
+
+        await this.lock(`basic.` + table.toLowerCase() + '@' + Object.values(condition)[0]);
+
         return result[0];
     }
 
@@ -329,6 +354,12 @@ export class SmartDB {
             cacheData[key] = num;
             await this.update(table, cacheData, condition);
         }
+
+        const id: any = Object.values(condition)[0];
+
+        const connection = getConnection();
+        await connection.queryResultCache.remove([
+            id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
 
     /**
@@ -360,7 +391,7 @@ export class SmartDB {
 
         // Clear the cache
         await connection.queryResultCache.remove([
-            table, 'count' + table, 'load_' + table, 'find' + table, 'findOne' + table, 'findAll' + table]);
+            'count' + table, 'find' + table, 'findAll' + table]);
 
         return result;
     }
@@ -378,8 +409,9 @@ export class SmartDB {
         await repo.update(condition, data);
 
         // Clear the cache
-        await getConnection().queryResultCache.remove([
-            table, 'count' + table, 'load_' + table, 'find' + table, 'findOne' + table, 'findAll' + table]);
+        const id: any = Object.values(condition)[0];
+        await connection.queryResultCache.remove([
+            id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
 
     /**
@@ -394,8 +426,9 @@ export class SmartDB {
         await repo.delete(condition);
 
         // Clear the cache
-        await getConnection().queryResultCache.remove([
-            table, 'count' + table, 'load_' + table, 'find' + table, 'findOne' + table, 'findAll' + table]);
+        const id: any = Object.values(condition)[0];
+        await connection.queryResultCache.remove([
+            id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
 
     /**
@@ -425,7 +458,7 @@ export class SmartDB {
             const connection = getConnection();
             const table = 'Transation';
             await connection.queryResultCache.remove([
-                table, 'count' + table, 'load_' + table, 'find' + table, 'findOne' + table, 'findAll' + table]);
+                'count' + table, 'find' + table, 'findAll' + table]);
         } finally {
             await queryRunner.release();
         }
@@ -443,13 +476,50 @@ export class SmartDB {
 
     /**
      * Lock an account
+     * Entity: account, issuer, asset
      * TODO
-     * @param {string} account
+     * @param {string} id
      */
-    public async lock(account: string) {
+    public async lock(id: string) {
         console.log('In lock');
-        console.log(account);
-        return await undefined;
+        const addressRe = /@(.*)/g;
+        const address = addressRe.exec(id)[1];
+
+        id = id.toLowerCase();
+
+        let table: string;
+        if (id.includes('account')) {
+            table = 'Account';
+        } else if (id.includes('issue')) {
+            table = 'Issuer';
+        } else if (id.includes('asset')) {
+            table = 'Asset';
+        } else {
+            console.log({id});
+            return;
+        }
+
+        const cacheIdList = [address, 'find' + table, 'findAll' + table];
+        const connection = getConnection();
+
+        for (const cacheId of cacheIdList) {
+            const QueryResultCacheOptions = {
+                identifier: cacheId,
+                duration: 30000,
+                query: '',
+            };
+            const cache = await connection.queryResultCache.getFromCache(QueryResultCacheOptions);
+            if (cache) {
+                for (const item of cache.result) {
+                    if (item['address' || 'name' || 'issuerId'] == address) {
+                        console.log('Still in use.');
+                        return;
+                    }
+                }
+            }
+        }
+        console.log('Not in use.');
+        return;
     }
 
     /**

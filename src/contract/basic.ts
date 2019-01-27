@@ -77,6 +77,7 @@ export default {
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
     const exists = await global.app.sdb.load('Account', { username: username});
+
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
     this.sender.username = username;

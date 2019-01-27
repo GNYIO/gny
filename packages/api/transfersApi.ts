@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next } from '../../src/interfaces';
+import { In } from 'typeorm';
 
 export default class TransfersApi {
 
@@ -154,7 +155,7 @@ export default class TransfersApi {
     if (uiaNameList && uiaNameList.length) {
       const assets = await global.app.sdb.findAll('Asset', {
         condition: {
-          name: { $in: uiaNameList },
+          name: In(uiaNameList),
         },
       });
       for (const a of assets) {

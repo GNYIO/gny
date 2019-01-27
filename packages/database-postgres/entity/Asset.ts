@@ -3,14 +3,6 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Entity()
 export class Asset {
 
-    @Column({
-        length: 64,
-        type: 'varchar',
-        nullable: false,
-        unique: true,
-    })
-    public tid: string;
-
     @PrimaryColumn({
         type: 'varchar',
         length: 50,
@@ -22,6 +14,14 @@ export class Asset {
         length: 50,
     })
     public name: string;
+
+    @Column({
+        length: 64,
+        type: 'varchar',
+        nullable: false,
+        unique: true,
+    })
+    public tid: string;
 
     @Column({
         type: 'timestamp',

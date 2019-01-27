@@ -53,14 +53,17 @@ export default {
     return null;
   },
 
-  // async issue(name, amount) {
   async issue(name, amount) {
     if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name)) return 'Invalid currency';
     global.app.validate('amount', amount);
+
+    // Move the lock above the findOne so that first judging if it is in use in lock,
+    // if it is not in use(can not find in cache), it can be updated.
+    await global.app.sdb.lock(`uia.issue@${name}`);
+
     const asset = await global.app.sdb.findOne('Asset', { condition: { name }});
     if (!asset) return 'Asset not exists';
 
-    await global.app.sdb.lock(`uia.issue@${name}`);
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
     const quantity = global.app.util.bignumber(asset.quantity).plus(amount);
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';

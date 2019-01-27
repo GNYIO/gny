@@ -3,6 +3,7 @@ import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
+import { In } from 'typeorm';
 
 export default class AccountsApi {
   private modules: Modules;
@@ -158,7 +159,7 @@ export default class AccountsApi {
       if (uiaNameList && uiaNameList.length) {
         const assets = await global.app.sdb.findAll('Asset', {
           condition: {
-            name: { $in: uiaNameList },
+            name: In(uiaNameList),
           },
         });
         for (const a of assets) {

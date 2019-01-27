@@ -23,7 +23,7 @@
    },
    "cache": {
       "type": "redis",
-      "duration": 10000,
+      "duration": 300000,
       "options": {
         "host": "localhost",
         "port": 6379
