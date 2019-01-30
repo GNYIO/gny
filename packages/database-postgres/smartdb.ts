@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { createConnection, Connection, getConnection } from 'typeorm';
+import { createConnection, Connection, getConnection, MoreThan } from 'typeorm';
 
 import { Account } from './entity/Account';
 import { Asset } from './entity/Asset';
@@ -279,17 +279,16 @@ export class SmartDB {
 
     /**
      * Rollback the block when error is encountered
-     * TODO rollback to given height
      * @param {number?} height
      * @return {Promise<void>}
      */
     public async rollbackBlock(height?: number): Promise<void> {
-        // TODO rollback to given height
         if (!height) {
-            height = undefined;
+            await this.blockQueryRunner.rollbackTransaction();
+            await this.blockQueryRunner.release();
+        } else {
+                await this.del('Block', { height: MoreThan(height)});
         }
-        await this.blockQueryRunner.rollbackTransaction();
-        await this.blockQueryRunner.release();
     }
 
     /**
