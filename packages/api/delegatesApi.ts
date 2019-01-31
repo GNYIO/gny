@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
 import BlockReward from '../../src/utils/block-reward';
+import { In } from 'typeorm';
 
 export default class DelegatesApi {
 
@@ -77,11 +78,11 @@ export default class DelegatesApi {
     }
 
     try {
-      const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.username } });
+      const votes = await global.app.sdb.findAll('Vote', { delegate: query.username });
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } });
+      const accounts = await global.app.sdb.findAll('Account', { address: In(addresses) });
       const lastBlock = this.modules.blocks.getLastBlock();
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {

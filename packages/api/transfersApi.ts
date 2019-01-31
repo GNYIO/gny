@@ -170,7 +170,7 @@ export default class TransfersApi {
     const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
-        id: { $in: tids },
+        id: In(tids),
       },
     });
     for (const t of trs) {

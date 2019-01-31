@@ -187,10 +187,10 @@ export default class AccountsApi {
       address: req.params.address,
       currency,
     };
-    const balance = await global.app.sdb.findOne('Balance', { condition });
+    const balance = await global.app.sdb.findOne('Balance', condition);
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = await global.app.sdb.findOne('Asset', { condition: { name: balance.currency } });
+      balance.asset = await global.app.sdb.findOne('Asset', { name: balance.currency });
     }
 
     return res.json({ balance });
@@ -218,7 +218,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: addr } });
+      const votes = await global.app.sdb.findAll('Vote', { voterAddress: addr });
       if (!votes || !votes.length) {
         return res.json({ delegates: [] });
       }

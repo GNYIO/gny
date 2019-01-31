@@ -59,10 +59,11 @@ export class SmartDB {
      * @return {Promise<any>} result
      */
     public async findOne(table: string, condition: any): Promise<any> {
-        console.log('findOne....');
+
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
-        const id = Object.values(condition)[0];
+        const id = this.createId(table, condition);
+        console.log({id, table, condition});
         const result = await repo.find({
             where: condition,
             take: 1,
@@ -71,7 +72,8 @@ export class SmartDB {
             },
         });
 
-        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+        console.log({result});
         return result[0];
     }
 
@@ -87,8 +89,6 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async findAll(table: string, condition?: any, limit: number = 0, offset: number = 0, sort?: any): Promise<any> {
-        console.log('findAll....');
-        console.log({table, condition});
         // TODO sort
         if (!sort) {
             sort = undefined;
@@ -104,7 +104,7 @@ export class SmartDB {
             },
         });
 
-        await this.lock(`basic.` + table.toLowerCase() + '@' + 'GM5CevQY3brUyRtDMng5Co41nWHh');
+        // await this.lock(`basic.` + table.toLowerCase() + '@' + 'GM5CevQY3brUyRtDMng5Co41nWHh');
         return result;
     }
 
@@ -117,7 +117,6 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async find(table: string, condition: any, limitAndOffset?: LimitAndOffset): Promise<any> {
-        console.log('find....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const result = await repo.find({
@@ -129,7 +128,7 @@ export class SmartDB {
             },
         });
 
-        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
 
         return result;
     }
@@ -141,7 +140,6 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async get(table: string, condition: any): Promise<any> {
-        console.log('get....');
         return await this.findOne(table, condition);
     }
 
@@ -298,10 +296,9 @@ export class SmartDB {
      * @return {Promise<boolean>}
      */
     public async exists(table: string, condition: any): Promise<boolean> {
-        console.log('exists....');
         const data = await this.findOne(table, condition);
 
-        await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
+        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
 
         return data !== undefined;
     }
@@ -313,19 +310,18 @@ export class SmartDB {
      * @return {Promise<{}>} data
      */
     public async load(table: string, condition: any): Promise<{}> {
-        console.log('load....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
-        const id = Object.values(condition)[0];
+        const id = this.createId(table, condition);
         const result = await repo.find({
             where: condition,
             take: 1,
             cache: {
-                id: id,
+                // id: id,
             }
         });
 
-        await this.lock(`basic.` + table.toLowerCase() + '@' + Object.values(condition)[0]);
+        // await this.lock(`basic.` + table.toLowerCase() + '@' + Object.values(condition)[0]);
 
         return result[0];
     }
@@ -341,6 +337,9 @@ export class SmartDB {
         let num: number;
         let item: any = await this.findOne(table, condition);
 
+        console.log('increasing....');
+        console.log({table, condition});
+
         // Maybe this could be deleted.
         if (!item) {
             item = await this.create(table, condition);
@@ -354,7 +353,7 @@ export class SmartDB {
             await this.update(table, cacheData, condition);
         }
 
-        const id: any = Object.values(condition)[0];
+        const id = this.createId(table, condition);
 
         const connection = getConnection();
         await connection.queryResultCache.remove([
@@ -371,10 +370,8 @@ export class SmartDB {
         const exist = await this.exists(table, data);
         if (!exist) {
             await this.create(table, data);
-            return true;
-        } else {
-            return true;
         }
+        return true;
     }
 
     /**
@@ -389,8 +386,11 @@ export class SmartDB {
         const result = await repo.save(data);
 
         // Clear the cache
+        const id = this.createId(table, data);
+        console.log('create...');
+        console.log({id});
         await connection.queryResultCache.remove([
-            'count' + table, 'find' + table, 'findAll' + table]);
+            id, 'count' + table, 'find' + table, 'findAll' + table]);
 
         return result;
     }
@@ -408,7 +408,7 @@ export class SmartDB {
         await repo.update(condition, data);
 
         // Clear the cache
-        const id: any = Object.values(condition)[0];
+        const id = this.createId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
@@ -425,7 +425,7 @@ export class SmartDB {
         await repo.delete(condition);
 
         // Clear the cache
-        const id: any = Object.values(condition)[0];
+        const id = this.createId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
@@ -487,18 +487,22 @@ export class SmartDB {
         id = id.toLowerCase();
 
         let table: string;
+        let idx: string;
         if (id.includes('account')) {
             table = 'Account';
+            idx = this.createId(table, {address: address});
         } else if (id.includes('issue')) {
             table = 'Issuer';
+            idx = this.createId(table, {issuerId: address});
         } else if (id.includes('asset')) {
             table = 'Asset';
+            idx = this.createId(table, {address: address});
         } else {
             console.log({id});
             return;
         }
 
-        const cacheIdList = [address, 'find' + table, 'findAll' + table];
+        const cacheIdList = [idx, 'find' + table, 'findAll' + table];
         const connection = getConnection();
 
         for (const cacheId of cacheIdList) {
@@ -528,6 +532,37 @@ export class SmartDB {
     public async close(): Promise<void> {
         await this.connection.close();
     }
+
+    private createId(table, condition: any) {
+        let id: string;
+        if (table == 'Round') {
+            id = table + '@' + condition.round;
+        } else if (table == 'Account') {
+            id = table + '@' + condition.address;
+        } else if (table == 'Asset') {
+            id = table + '@' + condition['name' || 'issuerId'];
+        } else if (table == 'Balance') {
+            id = table + '@' + condition.address;
+        } else if (table == 'Delegate') {
+            id = table + '@' + condition['username' || 'address'];
+        } else if (table == 'Issuer') {
+            id = table + '@' + condition['name' || 'issuerId'];
+        } else if (table == 'Transaction') {
+            id = table + '@' + condition['id' || 'senderId'];
+        } else if (table == 'Transfer') {
+            id = table + '@' + condition.tid;
+        } else if (table == 'Variable') {
+            id = table + '@' + condition.key;
+        } else if (table == 'Vote') {
+            id = table + '@' + condition['delegate' || 'voterAddress'];
+        } else {
+            id = undefined;
+        }
+
+        return id;
+    }
+
+
 
 }
 
