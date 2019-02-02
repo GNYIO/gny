@@ -62,7 +62,7 @@ export class SmartDB {
 
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
-        const id = this.createId(table, condition);
+        const id = this.createCacheId(table, condition);
         console.log({id, table, condition});
         const result = await repo.find({
             where: condition,
@@ -312,7 +312,7 @@ export class SmartDB {
     public async load(table: string, condition: any): Promise<{}> {
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
-        const id = this.createId(table, condition);
+        const id = this.createCacheId(table, condition);
         const result = await repo.find({
             where: condition,
             take: 1,
@@ -337,9 +337,6 @@ export class SmartDB {
         let num: number;
         let item: any = await this.findOne(table, condition);
 
-        console.log('increasing....');
-        console.log({table, condition});
-
         // Maybe this could be deleted.
         if (!item) {
             item = await this.create(table, condition);
@@ -353,7 +350,7 @@ export class SmartDB {
             await this.update(table, cacheData, condition);
         }
 
-        const id = this.createId(table, condition);
+        const id = this.createCacheId(table, condition);
 
         const connection = getConnection();
         await connection.queryResultCache.remove([
@@ -386,9 +383,7 @@ export class SmartDB {
         const result = await repo.save(data);
 
         // Clear the cache
-        const id = this.createId(table, data);
-        console.log('create...');
-        console.log({id});
+        const id = this.createCacheId(table, data);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
 
@@ -408,7 +403,7 @@ export class SmartDB {
         await repo.update(condition, data);
 
         // Clear the cache
-        const id = this.createId(table, condition);
+        const id = this.createCacheId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
@@ -425,7 +420,7 @@ export class SmartDB {
         await repo.delete(condition);
 
         // Clear the cache
-        const id = this.createId(table, condition);
+        const id = this.createCacheId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
@@ -490,13 +485,13 @@ export class SmartDB {
         let idx: string;
         if (id.includes('account')) {
             table = 'Account';
-            idx = this.createId(table, {address: address});
+            idx = this.createCacheId(table, {address: address});
         } else if (id.includes('issue')) {
             table = 'Issuer';
-            idx = this.createId(table, {issuerId: address});
+            idx = this.createCacheId(table, {issuerId: address});
         } else if (id.includes('asset')) {
             table = 'Asset';
-            idx = this.createId(table, {address: address});
+            idx = this.createCacheId(table, {address: address});
         } else {
             console.log({id});
             return;
@@ -533,7 +528,7 @@ export class SmartDB {
         await this.connection.close();
     }
 
-    private createId(table, condition: any) {
+    private createCacheId(table, condition: any) {
         let id: string;
         if (table == 'Round') {
             id = table + '@' + condition.round;

@@ -61,7 +61,7 @@ export default {
     // if it is not in use(can not find in cache), it can be updated.
     await global.app.sdb.lock(`uia.issue@${name}`);
 
-    const asset = await global.app.sdb.findOne('Asset', { condition: { name }});
+    const asset = await global.app.sdb.findOne('Asset', { name });
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
