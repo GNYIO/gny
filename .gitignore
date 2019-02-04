@@ -2,6 +2,7 @@
 dist
 dist2
 .DS_Store
+dist/p2pKey.json
 
 # Logs
 logs
