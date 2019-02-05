@@ -1,3 +1,9 @@
+message NewBlockMessage {
+  required string id = 1;
+  required int64 height = 2;
+  required string prevBlockId = 3;
+}
+
 message Block {
   required int32 version = 1;
   required int32 timestamp = 2;

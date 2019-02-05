@@ -11,6 +11,7 @@
     }
   },
   "peers": {
+    "bootstrap": null,
     "list": [],
     "blackList": [],
     "options": {

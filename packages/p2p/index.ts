@@ -1,40 +1,101 @@
 
 import { Bundle } from './bundle';
-import { createPeerInfoArgs, createFromJSON } from './createPeerInfo';
-const pull = require('pull-stream');
-const { printPeerBook } = require('./printPeerBook');
-const bootNodeSecret = require('./node.json');
+import * as PeerId from 'peer-id';
+import { extractIpAndPort } from './util';
+import * as fs from 'fs';
+import { createPeerInfoArgs, createFromJSON, } from './createPeerInfo';
 
-const getBootstrapNodes = async function() {
-  const peerId = await createFromJSON(bootNodeSecret);
-  const peerInfo = await createPeerInfoArgs(peerId);
-  const port = process.argv[2] || 4000;
-  peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${port}`);
+export class Peer2Peer {
+  private _bundle: Bundle;
+  constructor () {
+  }
 
-  const node1 = new Bundle({ peerInfo });
-  await node1.startAsync();
+  async start(ip: string, port: number, bootstrapNode: string) {
+    let KEY = fs.readFileSync('./p2p_key.json', { encoding: 'utf8' });
+    KEY = JSON.parse(KEY);
+    const peerId = await createFromJSON(KEY);
+    const peerInfo = await createPeerInfoArgs(peerId);
+    const multi = `/ip4/${ip}/tcp/${port}`;
+    peerInfo.multiaddrs.add(multi);
 
-  node1.handle('/endpoint', (err, connection) => {
-    pull(
-      connection,
-      pull.map((val) => {
-        const parsed = val.toString('utf8');
-        return parsed;
-      }),
-      pull.log(),
-    );
-  });
-  return node1;
-};
+    this._bundle = new Bundle({ peerInfo });
 
-(async () => {
-  const bootNode = await getBootstrapNodes();
+    await this._bundle.startAsync();
+    this._bundle.on('peer:connect', this.addPeerToDb);
+    this._bundle.on('peer:disconnect', this.removePeerFromDb);
 
-  setInterval(() => {
-    // why does bootstrap does not work? -> It works only for IPFS
-    console.log(`BOOT-NODE: ${bootNode.peerInfo.id.toB58String()}`);
-    printPeerBook(bootNode.peerBook);
-  }, 10 * 1000);
+    try {
+      await this._bundle.dialAsync(bootstrapNode);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
-})();
+  subscribe (topic, handler) {
+    // this filters message out which are send to the own onde
+    const preFilteredMessage = (message) => {
+      if (message.from === this._bundle.peerInfo.id.toB58String()) {
+        return;
+      }
+      const id = PeerId.createFromB58String(message.from);
+      this._bundle.peerRouting.findPeer(id, {}, (err, result) => {
+        if (err) {
+          return;
+        }
+        message.peerInfo = result;
 
+        handler(message); // invoke handler
+      });
+    };
+
+    this._bundle.pubsub.subscribe(topic, preFilteredMessage, () => {});
+  }
+
+  broadcastProposeAsync(data): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._bundle.pubsub.publish('propose', data, (err) => {
+        if (err) reject(err.message);
+        else resolve();
+      });
+    });
+  }
+
+  broadcastTransactionAsync(data): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._bundle.pubsub.publish('transaction', data, (err) => {
+        if (err) reject(err.message);
+        else resolve();
+      });
+    });
+  }
+
+  broadcastNewBlockHeaderAsync(data): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this._bundle.pubsub.publish('newBlockHeader', data, (err) => {
+        if (err) reject(err.message);
+        else resolve();
+      });
+    });
+  }
+
+  private addPeerToDb(peer) {
+    // TODO implement
+    console.log(`peer:connect:${peer.id.toB58String()}`);
+  }
+
+  private removePeerFromDb(peer) {
+    // TODO implemnet
+    console.log(`peer:disconnect:${peer.id.toB58String()}`);
+  }
+
+  getRandomNode() {
+    const peerInfo = this._bundle.getRandomPeer();
+    if (peerInfo) {
+      console.log(`getRandomPeer: ${peerInfo.id.toB58String()}`);
+      peerInfo.multiaddrs.forEach((x) => console.log(x.toString()));
+      const extracted = extractIpAndPort(peerInfo);
+      console.log(JSON.stringify(extracted, null, 2));
+      return extracted;
+    }
+  }
+}

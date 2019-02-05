@@ -4,7 +4,6 @@ const libp2p = require('libp2p');
 const DHT = require('libp2p-kad-dht');
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
-const Bootstrap = require('libp2p-bootstrap');
 
 const pull = require('pull-stream');
 const defaultsDeep = require('@nodeutils/defaults-deep');
@@ -18,7 +17,6 @@ export class Bundle extends libp2p {
         transport: [ TCP ],
         streamMuxer: [ Mplex ],
         connEncryption: [ SECIO ],
-        peerDiscovery: [ Bootstrap ],
         dht: DHT,
       },
       config: {
@@ -28,6 +26,7 @@ export class Bundle extends libp2p {
         },
         EXPERIMENTAL: {
           dht: true,
+          pubsub: true,
         },
         peerDiscovery: {
           bootstrap: {
@@ -115,7 +114,7 @@ export class Bundle extends libp2p {
     }
     // TODO: check if every item in bootstrapNodes is a peer-info object
     if (!this.isStarted) {
-      throw new Error('node is not started')
+      throw new Error('node is not started');
     }
 
     for (let i = 0; i < bootstrapNodes.length; ++i) {

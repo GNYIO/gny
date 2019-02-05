@@ -17,13 +17,13 @@ function _createFromJSON(data, cb) {
 
 
 export function createPeerInfo() {
-  return promisify(_createPeerInfo);
+  return promisify(_createPeerInfo)();
 }
 
 export function createPeerInfoArgs(id) {
-  return promisify(_createPeerInfoArgs);
+  return promisify(_createPeerInfoArgs)(id);
 }
 
 export function createFromJSON(data) {
-  return promisify(_createFromJSON);
+  return promisify(_createFromJSON)(data);
 }
