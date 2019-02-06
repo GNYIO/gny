@@ -32,7 +32,7 @@ export class Peer2Peer {
   }
 
   subscribe (topic, handler) {
-    // this filters message out which are send to the own onde
+    // this filters messages out which are published from the own node
     const preFilteredMessage = (message) => {
       if (message.from === this._bundle.peerInfo.id.toB58String()) {
         return;
@@ -40,7 +40,7 @@ export class Peer2Peer {
       const id = PeerId.createFromB58String(message.from);
       this._bundle.peerRouting.findPeer(id, {}, (err, result) => {
         if (err) {
-          return;
+          throw new Error('could not find peer that broadcasted message');
         }
 
         message.peerInfo = extractIpAndPort(result);
