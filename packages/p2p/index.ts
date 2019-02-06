@@ -53,6 +53,9 @@ export class Peer2Peer {
 
   broadcastProposeAsync(data): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (!this._bundle.isStarted()) {
+        resolve();
+      }
       this._bundle.pubsub.publish('propose', data, (err) => {
         if (err) reject(err.message);
         else resolve();
@@ -62,6 +65,9 @@ export class Peer2Peer {
 
   broadcastTransactionAsync(data): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (!this._bundle.isStarted()) {
+        resolve();
+      }
       this._bundle.pubsub.publish('transaction', data, (err) => {
         if (err) reject(err.message);
         else resolve();
@@ -71,6 +77,9 @@ export class Peer2Peer {
 
   broadcastNewBlockHeaderAsync(data): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (!this._bundle.isStarted()) {
+        resolve();
+      }
       this._bundle.pubsub.publish('newBlockHeader', data, (err) => {
         if (err) reject(err.message);
         else resolve();

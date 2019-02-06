@@ -75,29 +75,6 @@ export class Bundle extends libp2p {
     });
   }
 
-  _transformObjectToArray(obj) {
-    return Object.keys(obj).map(key => obj[key]);
-  }
-
-  // broadcast protocal should start with "/broadcast:topic"
-  broadcast(topic, message) {
-    // TODO: on the handler function use a LRU cache
-    let peers = this.peerBook.getAll();
-    peers = this._transformObjectToArray(peers);
-
-    const protocol = `/broadcast:${topic}`;
-
-    // maybe use async parallel?
-    peers.forEach((peer) => {
-      this.dialProtocol(peer, protocol, (err, connection) => {
-        pull(
-          pull.values(message), // is it possible to use pull.values({}) with an object
-          connection,
-        );
-      });
-    });
-  }
-
   dialAsync(peer) {
     return new Promise((resolve, reject) => {
       this.dial(peer, (err, connection) => {
