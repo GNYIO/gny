@@ -42,7 +42,8 @@ export class Peer2Peer {
         if (err) {
           return;
         }
-        message.peerInfo = result;
+
+        message.peerInfo = extractIpAndPort(result);
 
         handler(message); // invoke handler
       });

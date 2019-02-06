@@ -37,15 +37,13 @@ export default class Transport {
         votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'),
       }
     );
-    if (this.blockHeaderMidCache.get(block.id)) {
-      throw new Error('investigate');
-    }
 
-    const message = {
+    const message = this.blockHeaderMidCache.get(block.id) || {
       id: block.id,
       height: block.height,
       prevBlockId: block.prevBlockId,
     };
+    console.log(`message(onNewBlock):${JSON.stringify(message)}`);
     const encodedNewBlockMessage = this.library.protobuf.schema.NewBlockMessage.encode(message);
     await this.modules.peer.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
   }
@@ -86,7 +84,8 @@ export default class Transport {
     const peer = message.peerInfo;
 
     if (height !== lastBlock.height + 1 || prevBlockId !== lastBlock.id) {
-      this.library.logger.warn('New block donnot match with last block', message);
+      this.library.logger.warn('New block donnot match with last block', body);
+      this.library.logger.warn(`lastBlock: ${JSON.stringify(lastBlock, null, 2)}`);
       if (height > lastBlock.height + 5) {
         this.library.logger.warn('Receive new block header from long fork');
       } else {
@@ -116,7 +115,7 @@ export default class Transport {
       block = this.library.base.block.objectNormalize(block);
       votes = this.library.base.consensus.normalizeVotes(votes);
       this.latestBlocksCache.set(block.id, result);
-      this.blockHeaderMidCache.set(block.id, message);
+      this.blockHeaderMidCache.set(block.id, body);
       this.library.bus.message('receiveBlock', block, votes);
     } catch (e) {
       this.library.logger.error(`normalize block or votes object error: ${e.toString()}`, result);
