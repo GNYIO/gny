@@ -67,7 +67,7 @@
     "json-sql": "https://github.com/AschPlatform/json-sql/tarball/v0.2.4+asch.1",
     "libp2p": "^0.24.4",
     "libp2p-bootstrap": "^0.9.7",
-    "libp2p-kad-dht": "^0.14.4",
+    "libp2p-kad-dht": "^0.14.5",
     "libp2p-mdns": "^0.12.2",
     "libp2p-mplex": "^0.8.4",
     "libp2p-secio": "^0.11.1",
