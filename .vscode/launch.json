@@ -32,7 +32,7 @@
       "name": "second Node",
       "program": "${workspaceFolder}/createSecondNode.js",
       "cwd": "${workspaceFolder}",
-      "args": ["3"]
+      "args": ["2"]
     }
   ]
 }
