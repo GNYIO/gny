@@ -1,6 +1,5 @@
 # Dist directory
-dist
-dist2
+dist*
 .DS_Store
 dist/p2pKey.json
 

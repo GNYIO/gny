@@ -31,7 +31,8 @@
       "request": "launch",
       "name": "second Node",
       "program": "${workspaceFolder}/createSecondNode.js",
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "args": ["3"]
     }
   ]
 }
