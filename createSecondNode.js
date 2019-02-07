@@ -78,12 +78,12 @@ for (let i = 0; i < HOW_MANY_NODES; ++i) {
 
 
   if (i === 0) {
-    nthConfig.bootstrap = null;
+    nthConfig.peers.bootstrap = null;
 
     shell.exec('rm ./dist/config.json');
     fs.writeFileSync('./dist/config.json', JSON.stringify(nthConfig, null, 2), { encoding: 'utf8' });
   } else {
-    nthConfig.bootstrap = MULTIADDRS_FIRST;
+    nthConfig.peers.bootstrap = MULTIADDRS_FIRST;
 
     shell.exec(`rm ./dist${i}/config.json`);
     fs.writeFileSync(`./dist${i}/config.json`, JSON.stringify(nthConfig, null, 2), { encoding: 'utf8' });
