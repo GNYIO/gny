@@ -86,7 +86,7 @@ export default class Peer {
     // return own peerId
   })
 
-  public subscribe = (topic: any, handler: any) => {
+  public subscribe = (topic: string, handler: (message: string) => void) => {
     if (!this.p2p) {
       console.log('p2p node not ready');
       return;

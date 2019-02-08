@@ -20,7 +20,7 @@
       "request": "launch",
       "name": "DEBUG_2",
       "program": "${workspaceFolder}/dist2/app.js",
-      "cwd": "${workspaceFolder}/dist2",
+      "cwd": "${workspaceFolder}/dist1",
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"

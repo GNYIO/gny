@@ -25,20 +25,14 @@ message Transaction {
   required int32 type = 1;
   required int32 timestamp = 2;
   required bytes senderPublicKey = 3;
-  required bytes signature = 4;
-  optional string recipientId = 5;
-  optional string senderId = 6;
-  optional int64 amount = 7;
-  optional int64 fee = 8;
-  optional bytes requesterPublicKey = 9;
-  optional bytes signSignature = 10;
-  repeated string signatures = 11;
-  optional string id = 12;
-  optional int64 height = 13;
-  optional string blockId = 14;
-  required Asset asset = 15;
-  repeated string args = 16;
-  optional string message = 17;
+  required bytes signatures = 4;
+  optional string senderId = 5;
+  optional int64 fee = 6;
+  optional bytes secondSignature = 7;
+  optional string id = 8;
+  optional int64 height = 9;
+  repeated bytes args = 10;
+  optional string message = 11;
 }
 
 message Asset {

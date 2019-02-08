@@ -66,6 +66,13 @@ export class Protobuf {
 
   encodeTransaction(trs) {
     const obj = _.cloneDeep(trs);
+    if (typeof obj.signatures !== 'string') {
+      obj.signatures = JSON.stringify(obj.signatures);
+    }
+    if (typeof obj.args !== 'string') {
+      obj.args = JSON.stringify(obj.args);
+    }
+
     return this.schema.Transaction.encode(obj);
   }
 

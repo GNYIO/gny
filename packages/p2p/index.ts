@@ -32,40 +32,33 @@ export class Peer2Peer {
     }
   }
 
-  subscribe (topic, handler) {
-    // this filters messages out which are published from the own node
-    const preFilteredMessage = (message) => {
+  subscribe (topic: string, handler: (message: string) => void) {
+    const filterBroadcasts = (message) => {
+      // this filters messages out which are published from the own node
       if (message.from === this._bundle.peerInfo.id.toB58String()) {
         return;
       }
+
       const id = PeerId.createFromB58String(message.from);
-      this._bundle.peerRouting.findPeer(id, {}, (err, result) => {
+      this._bundle.peerRouting.findPeer(id, {}, (err, result) => { // find peer in routing table
         if (err) {
           throw new Error('could not find peer that broadcasted message');
         }
 
-        // add peer to peerBook on incoming "foreign" broadcasts
-        // if (!this._bundle.peerBook.has(result)) {
-        //   // this._bundle.emit('peer:connect', result);
-        //   // this._bundle.peerBook.put(result);
-        // }
-
-        if (!this._bundle.peerBook.has(result)) {
-
-        }
+        const finish = (peerToAttach) => {
+          message.peerInfo = extractIpAndPort(peerToAttach);
+          handler(message);
+        };
 
         this._bundle.dial(result, (erro, conn) => {
-          if (err) {
-            throw err;
-          }
-          message.peerInfo = extractIpAndPort(result);
-
-          handler(message); // invoke handler
+          return finish(result);
         });
+
+
       });
     };
 
-    this._bundle.pubsub.subscribe(topic, preFilteredMessage, () => {});
+    this._bundle.pubsub.subscribe(topic, filterBroadcasts, () => {});
   }
 
   broadcastProposeAsync(data): Promise<void> {
