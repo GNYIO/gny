@@ -7,8 +7,6 @@ import { createPeerInfoArgs, createFromJSON, } from './createPeerInfo';
 
 export class Peer2Peer {
   private _bundle: Bundle;
-  constructor () {
-  }
 
   async start(ip: string, port: number, bootstrapNode: string) {
     let KEY = fs.readFileSync('./p2p_key.json', { encoding: 'utf8' });
@@ -18,18 +16,23 @@ export class Peer2Peer {
     const multi = `/ip4/${ip}/tcp/${port}`;
     peerInfo.multiaddrs.add(multi);
 
-    this._bundle = new Bundle({ peerInfo });
+    const configuration = {
+      peerInfo,
+      config: {
+        peerDiscovery: {
+          bootstrap: {
+            list: bootstrapNode ? [ bootstrapNode ] : [ undefined ],
+          },
+        },
+      },
+    };
+
+    this._bundle = new Bundle(configuration);
 
     await this._bundle.startAsync();
     this._bundle.on('peer:connect', this.addPeerToDb);
     this._bundle.on('peer:disconnect', this.removePeerFromDb);
     this._bundle.on('peer:discovery', this.peerDiscovery);
-
-    try {
-      await this._bundle.dialAsync(bootstrapNode);
-    } catch (err) {
-      console.log(`could not dial to bootstrapNode "${bootstrapNode}"`);
-    }
   }
 
   subscribe (topic: string, handler: (message: string) => void) {
@@ -99,33 +102,34 @@ export class Peer2Peer {
 
   private addPeerToDb(peer) {
     // TODO implement
-    console.log(`peer:connect:${peer.id.toB58String()}`);
+    global.app.logger.info(`[P2P] peer:connect:${peer.id.toB58String()}`);
   }
 
   private removePeerFromDb = (peer) => {
     // TODO implemnet
-    console.log(`peer:disconnect:${peer.id.toB58String()}`);
+    global.app.logger.info(`[P2P] peer:disconnect:${peer.id.toB58String()}`);
     this._bundle.peerBook.remove(peer);
   }
 
-  private async peerDiscovery(peer) {
-    console.log(`discovered peer: ${peer.id.toB58String()}`);
+  private peerDiscovery = async (peer) => {
+    // do not spam log output: the bootstrap mechanism tries every 30s to connect to the bootstrap node(s)
+    if (!this._bundle.peerBook.has(peer)) {
+      global.app.logger.info(`[P2P] discovered peer: ${peer.id.toB58String()}`);
+    }
     try {
       // this action establishes a __Connection__ to the newly discovered peer
       // this also adds the peer to the peerBook so the pubsub mechanism can publish to this peer
       await this._bundle.dialAsync(peer);
     } catch (err) {
-      console.log(err);
+      global.app.logger.info(`[P2P] could not dial to ${peer.id.toB58String()}`);
     }
   }
 
   getRandomNode() {
     const peerInfo = this._bundle.getRandomPeer();
     if (peerInfo) {
-      console.log(`getRandomPeer: ${peerInfo.id.toB58String()}`);
-      peerInfo.multiaddrs.forEach((x) => console.log(x.toString()));
       const extracted = extractIpAndPort(peerInfo);
-      console.log(JSON.stringify(extracted, null, 2));
+      global.app.logger.info(`[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(extracted)}`);
       return extracted;
     }
   }

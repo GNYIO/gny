@@ -4,8 +4,8 @@ const libp2p = require('libp2p');
 const DHT = require('libp2p-kad-dht');
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
+const Bootstrap = require('libp2p-bootstrap');
 
-const pull = require('pull-stream');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
 
@@ -17,6 +17,7 @@ export class Bundle extends libp2p {
         transport: [ TCP ],
         streamMuxer: [ Mplex ],
         connEncryption: [ SECIO ],
+        peerDiscovery: [ Bootstrap ],
         dht: DHT,
       },
       config: {
@@ -30,7 +31,7 @@ export class Bundle extends libp2p {
         },
         peerDiscovery: {
           bootstrap: {
-            interval: 1000,
+            interval: 10 * 1000,
             enabled: true,
             list: [],
           },
@@ -58,8 +59,9 @@ export class Bundle extends libp2p {
         if (err) {
           reject(err);
         } else {
-          console.log(`started node: ${this.peerInfo.id.toB58String()}`);
-          this.peerInfo.multiaddrs.forEach((adr) => console.log(`\t${adr}`));
+          const addresses = '';
+          this.peerInfo.multiaddrs.forEach((adr) => addresses.concat(`\t${adr}`));
+          global.app.logger.info(`[P2P] started node: ${this.peerInfo.id.toB58String()}\n${addresses}`);
           resolve();
         }
       });
