@@ -59,11 +59,9 @@ export class SmartDB {
      * @return {Promise<any>} result
      */
     public async findOne(table: string, condition: any): Promise<any> {
-
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const id = this.createCacheId(table, condition);
-        console.log({id, table, condition});
         const result = await repo.find({
             where: condition,
             take: 1,
@@ -73,7 +71,6 @@ export class SmartDB {
         });
 
         // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
-        console.log({result});
         return result[0];
     }
 
@@ -510,13 +507,11 @@ export class SmartDB {
             if (cache) {
                 for (const item of cache.result) {
                     if (item['address' || 'name' || 'issuerId'] == address) {
-                        console.log('Still in use.');
-                        return;
+                        throw new Error('Cannot be modified');
                     }
                 }
             }
         }
-        console.log('Not in use.');
         return;
     }
 
