@@ -43,7 +43,6 @@ export default class Transport {
       height: block.height,
       prevBlockId: block.prevBlockId,
     };
-    console.log(`message(onNewBlock):${JSON.stringify(message)}`);
     const encodedNewBlockMessage = this.library.protobuf.schema.NewBlockMessage.encode(message);
     await this.modules.peer.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
   }

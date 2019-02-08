@@ -23,11 +23,12 @@ export class Peer2Peer {
     await this._bundle.startAsync();
     this._bundle.on('peer:connect', this.addPeerToDb);
     this._bundle.on('peer:disconnect', this.removePeerFromDb);
+    this._bundle.on('peer:discovery', this.peerDiscovery);
 
     try {
       await this._bundle.dialAsync(bootstrapNode);
     } catch (err) {
-      console.log(err);
+      console.log(`could not dial to bootstrapNode "${bootstrapNode}"`);
     }
   }
 
@@ -43,9 +44,24 @@ export class Peer2Peer {
           throw new Error('could not find peer that broadcasted message');
         }
 
-        message.peerInfo = extractIpAndPort(result);
+        // add peer to peerBook on incoming "foreign" broadcasts
+        // if (!this._bundle.peerBook.has(result)) {
+        //   // this._bundle.emit('peer:connect', result);
+        //   // this._bundle.peerBook.put(result);
+        // }
 
-        handler(message); // invoke handler
+        if (!this._bundle.peerBook.has(result)) {
+
+        }
+
+        this._bundle.dial(result, (erro, conn) => {
+          if (err) {
+            throw err;
+          }
+          message.peerInfo = extractIpAndPort(result);
+
+          handler(message); // invoke handler
+        });
       });
     };
 
@@ -93,9 +109,21 @@ export class Peer2Peer {
     console.log(`peer:connect:${peer.id.toB58String()}`);
   }
 
-  private removePeerFromDb(peer) {
+  private removePeerFromDb = (peer) => {
     // TODO implemnet
     console.log(`peer:disconnect:${peer.id.toB58String()}`);
+    this._bundle.peerBook.remove(peer);
+  }
+
+  private async peerDiscovery(peer) {
+    console.log(`discovered peer: ${peer.id.toB58String()}`);
+    try {
+      // this action establishes a __Connection__ to the newly discovered peer
+      // this also adds the peer to the peerBook so the pubsub mechanism can publish to this peer
+      await this._bundle.dialAsync(peer);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   getRandomNode() {
