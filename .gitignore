@@ -1,7 +1,6 @@
 # Dist directory
 dist*
 .DS_Store
-dist/p2pKey.json
 
 # Logs
 logs
@@ -9,9 +8,7 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-dist/ 
-package-lock.json
-yarn.lock
+dist/
 
 # Runtime data
 pids
