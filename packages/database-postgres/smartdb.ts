@@ -147,7 +147,6 @@ export class SmartDB {
      * @return {Promise<any>}
      */
     public async getAll(table: string): Promise<any> {
-        console.log('getAll....');
         return await this.findAll(table);
     }
 
@@ -472,7 +471,6 @@ export class SmartDB {
      * @param {string} id
      */
     public async lock(id: string) {
-        console.log('In lock');
         const addressRe = /@(.*)/g;
         const address = addressRe.exec(id)[1];
 
@@ -551,8 +549,5 @@ export class SmartDB {
 
         return id;
     }
-
-
-
 }
 
