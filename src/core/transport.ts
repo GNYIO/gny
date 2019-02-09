@@ -19,15 +19,15 @@ export default class Transport {
   }
 
   public onPeerReady = () => {
-    this.modules.peer.subscribe('newBlockHeader', this.peerNewBlockHeader);
-    this.modules.peer.subscribe('propose', this.peerPropose);
-    this.modules.peer.subscribe('transaction', this.peerTransaction);
+    this.modules.peer.p2p.subscribe('newBlockHeader', this.peerNewBlockHeader);
+    this.modules.peer.p2p.subscribe('propose', this.peerPropose);
+    this.modules.peer.p2p.subscribe('transaction', this.peerTransaction);
   }
 
   public onUnconfirmedTransaction = async (transaction: any) => {
 
     const encodedTransaction = this.library.protobuf.encodeTransaction(transaction);
-    await this.modules.peer.broadcastTransaction(encodedTransaction);
+    await this.modules.peer.p2p.broadcastTransactionAsync(encodedTransaction);
   }
 
   public onNewBlock = async (block, votes) => {
@@ -44,12 +44,12 @@ export default class Transport {
       prevBlockId: block.prevBlockId,
     };
     const encodedNewBlockMessage = this.library.protobuf.schema.NewBlockMessage.encode(message);
-    await this.modules.peer.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
+    await this.modules.peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
   }
 
   public onNewPropose = async (propose) => {
     const encodedBlockPropose = this.library.protobuf.encodeBlockPropose(propose);
-    await this.modules.peer.broadcastProposeAsync(encodedBlockPropose);
+    await this.modules.peer.p2p.broadcastProposeAsync(encodedBlockPropose);
   }
 
 

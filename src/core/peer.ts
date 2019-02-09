@@ -1,18 +1,12 @@
-import * as path from 'path';
-import * as crypto from 'crypto';
 import * as _ from 'lodash';
 import axios from 'axios';
-import { promisify } from 'util';
-import Database = require('nedb');
+import * as Database from 'nedb';
 import { Peer2Peer } from '../../packages/p2p/index';
 import { Modules, IScope, PeerNode } from '../interfaces';
-import { SAVE_PEERS_INTERVAL, CHECK_BUCKET_OUTDATE, MAX_BOOTSTRAP_PEERS } from '../utils/constants';
 
 export default class Peer {
   private readonly library: IScope;
   private modules: Modules;
-
-  private handlers: any = {};
   private nodesDb: Database = undefined;
 
   public p2p: Peer2Peer;
@@ -20,90 +14,15 @@ export default class Peer {
     this.library = scope;
   }
 
-  private getNodeIdentity = (node: PeerNode) => {
-    const address = `${node.host}:${node.port}`;
-    return crypto.createHash('ripemd160').update(address).digest().toString('hex');
-  }
-
-  private getSeedPeerNodes = (seedPeers) => {
-    return seedPeers.map(peer => {
-      const node: PeerNode = {
-        host: peer.ip,
-        port: Number(peer.port),
-      };
-      node.id = this.getNodeIdentity(node);
-      return node;
-    });
-  }
-
-
   public findSeenNodesInDb = (callback: any) => {
     this.nodesDb.find({ seen: { $exists: true } }).sort({ seen: -1 }).exec(callback);
-  }
-
-  private initNodesDb = (peerNodesDbPath: string, cb: any) => {
-    if (!this.nodesDb) {
-      const db = new Database({ filename: peerNodesDbPath, autoload: true });
-      this.nodesDb = db;
-      db.persistence.setAutocompactionInterval(SAVE_PEERS_INTERVAL);
-
-      const errorHandler = (err) => err && global.app.logger.info('peer node index error', err);
-      db.ensureIndex({ fieldName: 'id' }, errorHandler);
-      db.ensureIndex({ fieldName: 'seen' }, errorHandler);
-    }
-
-    this.findSeenNodesInDb(cb);
-  }
-
-
-  // DB
-  private updateNodeInDb = (nodeId: any, node: any, callback?: any) => {
-    if (!nodeId || !node) return;
-
-    const upsertNode = Object.assign({}, node);
-    upsertNode.id = nodeId;
-    this.nodesDb.update({ id: nodeId }, upsertNode, { upsert: true }, (err, data) => {
-      if (err) global.app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`);
-      callback && callback(err, data);
-    });
-  }
-
-  // DB
-  private removeNodeFromDb = (nodeId: any, callback?: any) => {
-    if (!nodeId) return;
-
-    this.nodesDb.remove({ id: nodeId }, (err, numRemoved) => {
-      if (err) global.app.logger.warn(`faild to remove node id (${nodeId})`);
-      callback && callback(err, numRemoved);
-    });
   }
 
   public getVersion = () => ({
     version: this.library.config.version,
     build: this.library.config.buildVersion,
     net: this.library.config.netVersion,
-    // return own peerId
   })
-
-  public subscribe = (topic: string, handler: (message: string) => void) => {
-    if (!this.p2p) {
-      console.log('p2p node not ready');
-      return;
-    }
-    this.p2p.subscribe(topic, handler);
-  }
-
-  public async broadcastNewBlockHeaderAsync(data) {
-    await this.p2p.broadcastNewBlockHeaderAsync(data);
-  }
-
-  public async broadcastProposeAsync(data) {
-    await this.p2p.broadcastProposeAsync(data);
-  }
-
-  public async broadcastTransaction(data) {
-    await this.p2p.broadcastTransactionAsync;
-  }
 
   public request = async (endpoint: string, body: any, contact: PeerNode, timeout?: number) => {
     const address = `${contact.host}:${contact.port - 1}`;
@@ -155,14 +74,20 @@ export default class Peer {
   onBlockchainReady = async () => {
     // TODO persist peerBook of node
     this.p2p = new Peer2Peer();
-    this.p2p.start(
+    this.p2p.startAsync(
       this.library.config.publicIp,
       this.library.config.peerPort,
       this.library.config.peers.bootstrap,
+      this.library.config.peers.p2pKeyFile,
     ).then(() => {
       this.library.bus.message('peerReady');
     }).catch((err) => {
       this.library.logger.error('Failed to init dht', err);
     });
+  }
+
+  cleanup = (cb) => {
+    this.p2p.stop(cb);
+    this.library.logger.debug('Cleaning up core/peer');
   }
 }
