@@ -30,3 +30,18 @@ cd dist
 node app
 ```
 
+
+## 5 Run many Nodes
+
+Specify the amount of `[nodes]` you want to create. You can create up to 101.
+
+Example create `10` nodes:
+```bash
+node createSecondNode.js 10
+```
+
+After we have created the nodes launch them:
+
+```bash
+node launchAllNodes.js
+```

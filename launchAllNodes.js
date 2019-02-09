@@ -29,6 +29,7 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
       console.log('starting boot node')
       await DELAY(10000);
     } else {
+      await DELAY(1000);
       console.log(`starting node in: ${dir}`);
     }
 
@@ -36,7 +37,12 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
       cwd: dir,
      }, (err, stdout, stderr) => {
        console.log(`${i} node started`);
+
      });
+
+     proc.stdout.on('data', (data) => {
+      console.log(`[${i}] ${data.toString()}`);
+     })
      processes.push(proc);
   }
 
