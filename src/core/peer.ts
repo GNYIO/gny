@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as _ from 'lodash';
-import DHT = require('bittorrent-dht');
 import axios from 'axios';
 import { promisify } from 'util';
 import Database = require('nedb');
