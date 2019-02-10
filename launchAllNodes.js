@@ -29,7 +29,7 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
       console.log('starting boot node')
       await DELAY(10000);
     } else {
-      await DELAY(1000);
+      await DELAY(100);
       console.log(`starting node in: ${dir}`);
     }
 

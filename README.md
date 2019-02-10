@@ -9,9 +9,9 @@ git clone https://github.com/gnyio/gny-experiment
 
 ## 2 Install Dependencies
 
-Execute:
+Install exactly the dependencies from `package-lock.json` with `npm ci`:
 ```bash
-npm install
+npm ci
 ```
 
 ## 3 Transpile Files with TypeScript
