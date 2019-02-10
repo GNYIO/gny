@@ -1,32 +1,12 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
-const protocolBuffers = require('protocol-buffers');
+import * as protocolBuffers from 'protocol-buffers';
 
 export class Protobuf {
   public schema;
 
   constructor(schema) {
     this.schema = schema;
-  }
-
-  encodeBlock(block) {
-    const obj = _.cloneDeep(block);
-    obj.payloadHash = Buffer.from(obj.payloadHash, 'hex');
-    obj.generatorPublicKey = Buffer.from(obj.generatorPublicKey, 'hex');
-    if (obj.blockSignature) {
-      obj.blockSignature = Buffer.from(obj.blockSignature, 'hex');
-    }
-    return this.schema.Block.encode(obj);
-  }
-
-  decodeBlock(data) {
-    const obj = this.schema.Block.decode(data);
-    obj.payloadHash = obj.payloadHash.toString('hex');
-    obj.generatorPublicKey = obj.generatorPublicKey.toString('hex');
-    if (obj.blockSignature) {
-      obj.blockSignature = obj.blockSignature.toString('hex');
-    }
-    return obj;
   }
 
   encodeBlockPropose(propose) {
@@ -80,12 +60,20 @@ export class Protobuf {
     const obj = this.schema.Transaction.decode(data);
     return obj;
   }
+
+  encodeNewBlockMessage(msg) {
+    const obj = _.cloneDeep(msg);
+    return this.schema.NewBlockMessage.encode(obj);
+  }
+
+  decodeNewBlockMessage(data) {
+    const obj = this.schema.NewBlockMessage.decode(data);
+    return obj;
+  }
 }
 
-export default {
-  getSchema: (schemaFile) => {
-    const data = fs.readFileSync(schemaFile);
-    const schema = protocolBuffers(data);
-    return new Protobuf(schema);
-  }
-};
+export function getSchema (schemaFile) {
+  const data = fs.readFileSync(schemaFile);
+  const schema = protocolBuffers(data);
+  return new Protobuf(schema);
+}

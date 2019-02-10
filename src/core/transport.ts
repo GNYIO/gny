@@ -43,7 +43,7 @@ export default class Transport {
       height: block.height,
       prevBlockId: block.prevBlockId,
     };
-    const encodedNewBlockMessage = this.library.protobuf.schema.NewBlockMessage.encode(message);
+    const encodedNewBlockMessage = this.library.protobuf.encodeNewBlockMessage(message);
     await this.modules.peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
   }
 
@@ -67,7 +67,7 @@ export default class Transport {
 
     let body: NewBlockMessage;
     try {
-      body = this.library.protobuf.schema.NewBlockMessage.decode(message.data);
+      body = this.library.protobuf.decodeNewBlockMessage(message.data);
     } catch (err) {
       this.library.logger.warn('received wrong NewBlockMessage');
       return;
