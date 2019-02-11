@@ -14,7 +14,7 @@ import ZSchemaExpress from './utils/zscheme-express';
 import { Transaction } from './base/transaction';
 import { Block } from './base/block';
 import { Consensus } from './base/consensus';
-import protobuf from './utils/protobuf';
+import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import initNetwork from './initNetwork';
@@ -61,7 +61,7 @@ async function init_alt(options: any) {
     console.log('Error: Proto file doesn\'t exist!');
     return;
   }
-  scope.protobuf = protobuf.getSchema(protoFile);
+  scope.protobuf = getSchema(protoFile);
 
   scope.config = appConfig;
   scope.logger = options.logger;

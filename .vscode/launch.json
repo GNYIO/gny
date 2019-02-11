@@ -7,13 +7,32 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "DEBUG_1",
       "program": "${workspaceFolder}/dist/app.js",
       "cwd": "${workspaceFolder}/dist",
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
       }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "DEBUG_2",
+      "program": "${workspaceFolder}/dist1/app.js",
+      "cwd": "${workspaceFolder}/dist1",
+      "args": ["--log", "trace"],
+      "env": {
+        "DEBUG": "debug"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "second Node",
+      "program": "${workspaceFolder}/createSecondNode.js",
+      "cwd": "${workspaceFolder}",
+      "args": ["2"]
     }
   ]
 }

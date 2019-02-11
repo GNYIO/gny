@@ -207,6 +207,8 @@ export default class Blocks {
   private processBlock = async (b: IGenesisBlock | any, options: ProcessBlockOptions) => {
     if (!this.loaded) throw new Error('Blockchain is loading');
 
+    this.library.logger.info(`processBlock, options: ${Object.keys(options)}`);
+
     let block = b;
     global.app.sdb.beginBlock(block);
 
@@ -265,7 +267,7 @@ export default class Blocks {
       global.app.logger.info(`Block applied correctly with ${trsCount} transactions`);
       this.setLastBlock(block);
 
-      if (options.broadcast) {
+      if (options.broadcast && options.local) {
         options.votes.signatures = options.votes.signatures.slice(0, 6);
         this.library.bus.message('newBlock', block, options.votes);
       }
