@@ -162,7 +162,6 @@ export class SmartDB {
      * @return {Promise<number>} num
      */
     public async count(table: string, condition: any): Promise<number> {
-        console.log('count....');
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const num = await repo.count({
@@ -261,6 +260,7 @@ export class SmartDB {
         await this.blockQueryRunner.connect();
         await this.blockQueryRunner.startTransaction();
         await this.blockQueryRunner.manager.save(Block, block);
+        logger.info('Begin a block');
     }
 
     /**
@@ -270,6 +270,7 @@ export class SmartDB {
     public async commitBlock(): Promise<void> {
         try {
             await this.blockQueryRunner.commitTransaction();
+            logger.info('Commit the block');
         } finally {
             await this.blockQueryRunner.release();
         }
@@ -284,8 +285,10 @@ export class SmartDB {
         if (!height) {
             await this.blockQueryRunner.rollbackTransaction();
             await this.blockQueryRunner.release();
+            logger.info('Rollback the block');
         } else {
-                await this.del('Block', { height: MoreThan(height)});
+            await this.del('Block', { height: MoreThan(height)});
+            logger.info('Rollback to height:' + height);
         }
     }
 
@@ -321,8 +324,6 @@ export class SmartDB {
             }
         });
 
-        // await this.lock(`basic.` + table.toLowerCase() + '@' + Object.values(condition)[0]);
-
         return result[0];
     }
 
@@ -348,6 +349,7 @@ export class SmartDB {
             const cacheData: any = {};
             cacheData[key] = num;
             await this.update(table, cacheData, condition);
+            logger.info(table + '.' + key + ' is increased by ' + data[key]);
         }
 
         const id = this.createCacheId(table, condition);
@@ -387,6 +389,8 @@ export class SmartDB {
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
 
+        logger.info('Create an item in table: ' + table);
+
         return result;
     }
 
@@ -423,6 +427,7 @@ export class SmartDB {
         const id = this.createCacheId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
+        logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
     }
 
     /**
@@ -436,6 +441,7 @@ export class SmartDB {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         await queryRunner.manager.save(Transaction, transaction);
+        logger.info('Begin a contract');
         return queryRunner;
 }
 
@@ -453,6 +459,7 @@ export class SmartDB {
             const table = 'Transation';
             await connection.queryResultCache.remove([
                 'count' + table, 'find' + table, 'findAll' + table]);
+            logger.info('Commit the contract');
         } finally {
             await queryRunner.release();
         }
@@ -465,6 +472,7 @@ export class SmartDB {
      */
     public async rollbackContract(queryRunner: any): Promise<void> {
         await queryRunner.rollbackTransaction();
+        logger.info('Rollback the contract');
         await queryRunner.release();
     }
 
@@ -509,6 +517,7 @@ export class SmartDB {
             if (cache) {
                 for (const item of cache.result) {
                     if (item['address' || 'name' || 'issuerId'] == address) {
+                        logger.error('Found in cache');
                         throw new Error('Cannot be modified');
                     }
                 }
@@ -523,6 +532,7 @@ export class SmartDB {
      */
     public async close(): Promise<void> {
         await this.connection.close();
+        logger.info('Close smartdb');
     }
 
     private createCacheId(table, condition: any) {

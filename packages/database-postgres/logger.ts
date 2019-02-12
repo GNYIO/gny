@@ -16,7 +16,6 @@ const stream = fs.createWriteStream('logs/debug.log', { flags: 'a', encoding: 'u
 const config = '';
 
 
-
 export class Logger {
   static createlogger: () => tracer.Tracer.Logger;
 
@@ -32,8 +31,11 @@ export class Logger {
         return levelMap[config];
     }
 
+
+    /*
+    * Create a logger
+    */
     public createlogger = () => {
-        console.log('Not be changed to global.app.logger');
         const logger = tracer.colorConsole({
             transport: [
                 function (data) {
