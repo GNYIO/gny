@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { Logger } from './logger';
 import { createConnection, Connection, getConnection, MoreThan } from 'typeorm';
 
 import { Account } from './entity/Account';
@@ -32,6 +33,8 @@ const ENTITY: any = {
     'Transfer': Transfer
 };
 
+const logger = new Logger().createlogger();
+
 export class SmartDB {
     connection: Connection;
     // lastBlock: Promise<any>;
@@ -48,6 +51,7 @@ export class SmartDB {
 
         // Default config: ormconfig.json(near package.json)
         this.connection = await createConnection();
+        logger.info('Initialize smartdb');
     }
 
     /**

@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import validate = require('validate.js');
 import { AschCore } from 'asch-smartdb';
 import { SmartDB } from '../packages/database-postgres/smartdb';
+import { Logger } from '../packages/database-postgres/logger';
 // import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from  './smartdb/auto-increment';
@@ -13,27 +14,27 @@ import loadContracts from './loadContracts';
 import address from './utils/address';
 import * as bignumber from 'bignumber';
 
-function adaptSmartDBLogger(config) {
-  const { LogLevel } = AschCore;
-  const levelMap = {
-    trace: LogLevel.Trace,
-    debug: LogLevel.Debug,
-    log: LogLevel.Log,
-    info: LogLevel.Info,
-    warn: LogLevel.Warn,
-    error: LogLevel.Error,
-    fatal: LogLevel.Fatal,
-  };
+// function adaptSmartDBLogger(config) {
+//   const { LogLevel } = AschCore;
+//   const levelMap = {
+//     trace: LogLevel.Trace,
+//     debug: LogLevel.Debug,
+//     log: LogLevel.Log,
+//     info: LogLevel.Info,
+//     warn: LogLevel.Warn,
+//     error: LogLevel.Error,
+//     fatal: LogLevel.Fatal,
+//   };
 
-  AschCore.LogManager.logFactory = {
-    createLog: () => global.app.logger,
-    format: false,
-    getLevel: () => {
-      const appLogLevel = String(config.logLevel).toLocaleLowerCase();
-      return levelMap[appLogLevel] || LogLevel.Info;
-    },
-  };
-}
+//   AschCore.LogManager.logFactory = {
+//     createLog: () => global.app.logger,
+//     format: false,
+//     getLevel: () => {
+//       const appLogLevel = String(config.logLevel).toLocaleLowerCase();
+//       return levelMap[appLogLevel] || LogLevel.Info;
+//     },
+//   };
+// }
 
 export default async function runtime(options) {
   global.app = {
@@ -126,7 +127,7 @@ export default async function runtime(options) {
   // const BLOCK_HEADER_DIR = path.resolve(dataDir, 'blocks');
   // const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db');
 
-  adaptSmartDBLogger(options.appConfig);
+  // adaptSmartDBLogger(options.appConfig);
   // global.app.sdb = new AschCore.SmartDB(BLOCK_DB_PATH, BLOCK_HEADER_DIR);
   global.app.sdb = new SmartDB();
   await global.app.sdb.init();
