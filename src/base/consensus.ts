@@ -5,7 +5,7 @@ import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
 import { DELEGATES } from '../utils/constants';
-import { IScope, KeyPair, ManyVotes, Signature } from '../interfaces';
+import { IScope, KeyPair, ManyVotes, Signature, BlockPropose } from '../interfaces';
 
 export class Consensus {
   private pendingBlock: any = null;
@@ -117,7 +117,7 @@ export class Consensus {
     return this.pendingBlock;
   }
 
-  private calculateProposeHash(propose) {
+  private calculateProposeHash(propose: BlockPropose) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
@@ -139,10 +139,10 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  public createPropose(keypair: KeyPair, block, address) {
+  public createPropose(keypair: KeyPair, block, address: string) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
-    const propose: any = {
+    const basePropose: Pick<BlockPropose, 'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'> = {
       height: block.height,
       id: block.id,
       timestamp: block.timestamp,
@@ -150,15 +150,18 @@ export class Consensus {
       address,
     };
 
-    const hash = this.getProposeHash(propose);
-    propose.hash = hash.toString('hex');
+    const hash = this.getProposeHash(basePropose);
 
-    propose.signature = ed.sign(hash, keypair.privateKey).toString('hex');
+    const finalPropose: BlockPropose = {
+      ...basePropose,
+      hash: hash.toString('hex'),
+      signature: ed.sign(hash, keypair.privateKey).toString('hex'),
+    };
 
-    return propose;
+    return finalPropose;
   }
 
-  private getProposeHash(propose) {
+  private getProposeHash(propose: Pick<BlockPropose, 'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'>) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
@@ -180,7 +183,7 @@ export class Consensus {
     return crypto.createHash('sha256').update(buffer).digest();
   }
 
-  public acceptPropose(propose) {
+  public acceptPropose(propose: BlockPropose) {
     const hash = this.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
       throw new Error('Propose hash is not correct.');

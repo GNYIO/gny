@@ -4,6 +4,7 @@ import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
 import * as fs from 'fs';
 import { createPeerInfoArgs, createFromJSON, } from './createPeerInfo';
+import { P2PMessage } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
@@ -39,34 +40,42 @@ export class Peer2Peer {
     this.bundle.stop(cb);
   }
 
-  subscribe (topic: string, handler: (message: string) => void) {
-    const filterBroadcasts = (message) => {
+  subscribe (topic: string, handler: any) {
+    const filterBroadcastsEventHandler = (message: P2PMessage) => {
       // this filters messages out which are published from the own node
       if (message.from === this.bundle.peerInfo.id.toB58String()) {
         return;
       }
 
       const id = PeerId.createFromB58String(message.from);
-      this.bundle.peerRouting.findPeer(id, {}, (err, result) => { // find peer in routing table
+      this.bundle.peerRouting.findPeer(id, {}, (err, result) => { // find peer in routing table that broadcasted message
         if (err) {
-          throw new Error('could not find peer that broadcasted message');
+          global.app.logger.warn('could not find peer that broadcasted message');
+          return;
         }
 
         const finish = (peerToAttach) => {
-          message.peerInfo = extractIpAndPort(peerToAttach);
-          handler(message);
+          const extendedMsg: P2PMessage = {
+            ...message,
+            peerInfo: extractIpAndPort(peerToAttach),
+          };
+          handler(extendedMsg);
         };
 
-        this.bundle.dial(result, (erro, conn) => {
+        this.bundle.dial(result, (erro, conn) => { // dial to peer that broadcasted message
+          if (erro) {
+            global.app.logger.warn(`could not dial peer ${id}`);
+            return;
+          }
           return finish(result);
         });
       });
     };
 
-    this.bundle.pubsub.subscribe(topic, filterBroadcasts, () => {});
+    this.bundle.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
   }
 
-  broadcastProposeAsync(data): Promise<void> {
+  broadcastProposeAsync(data: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.bundle.isStarted()) {
         resolve();
@@ -78,7 +87,7 @@ export class Peer2Peer {
     });
   }
 
-  broadcastTransactionAsync(data): Promise<void> {
+  broadcastTransactionAsync(data: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.bundle.isStarted()) {
         resolve();
@@ -90,7 +99,7 @@ export class Peer2Peer {
     });
   }
 
-  broadcastNewBlockHeaderAsync(data): Promise<void> {
+  broadcastNewBlockHeaderAsync(data: Buffer): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.bundle.isStarted()) {
         resolve();
