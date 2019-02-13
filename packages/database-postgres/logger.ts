@@ -1,5 +1,6 @@
 import * as tracer from 'tracer';
 import * as fs from 'fs';
+import * as path from 'path';
 
 // Logger configuration
 const levelMap =  {
@@ -13,24 +14,24 @@ const levelMap =  {
 };
 
 const stream = fs.createWriteStream('logs/debug.log', { flags: 'a', encoding: 'utf8' });
-const config = '';
-
+const baseDir = './';
+const configFile = path.join(baseDir, 'config.json');
+const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
 
 export class Logger {
-  static createlogger: () => tracer.Tracer.Logger;
+    static createlogger: () => tracer.Tracer.Logger;
+    logLevel: string;
 
     constructor() {
-        const logLevel = this.getLevel(config);
+        this.logLevel = this.getLevel(config);
     }
-
 
     /*
     * TODO
     */
     public getLevel(config) {
-        return levelMap[config];
+        return levelMap[config.logLevel];
     }
-
 
     /*
     * Create a logger
@@ -46,7 +47,8 @@ export class Logger {
                 }
             ]
         });
-        //   tracer.setLevel(logLevel);
+        tracer.setLevel(this.logLevel);
+
         return logger;
     }
 

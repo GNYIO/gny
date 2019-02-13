@@ -320,7 +320,7 @@ export class SmartDB {
             where: condition,
             take: 1,
             cache: {
-                // id: id,
+                id: id,
             }
         });
 
@@ -459,6 +459,7 @@ export class SmartDB {
             const table = 'Transation';
             await connection.queryResultCache.remove([
                 'count' + table, 'find' + table, 'findAll' + table]);
+
             logger.info('Commit the contract');
         } finally {
             await queryRunner.release();
@@ -523,7 +524,6 @@ export class SmartDB {
                 }
             }
         }
-        return;
     }
 
     /**
