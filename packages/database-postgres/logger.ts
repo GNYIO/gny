@@ -2,28 +2,28 @@ import * as tracer from 'tracer';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Logger configuration
 const levelMap =  {
-    trace: 64,
-    debug: 32,
-    log: 16,
-    info: 8,
+    log: 0,
+    trace: 1,
+    debug: 2,
+    info: 3,
     warn: 4,
-    error: 2,
-    fatal: 1,
+    error: 5,
+    fatal: 6,
 };
 
+// Logger configuration
 const stream = fs.createWriteStream('logs/debug.log', { flags: 'a', encoding: 'utf8' });
 const baseDir = './';
 const configFile = path.join(baseDir, 'config.json');
 const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
 
 export class Logger {
-    static createlogger: () => tracer.Tracer.Logger;
     logLevel: string;
 
     constructor() {
         this.logLevel = this.getLevel(config);
+        console.log(this.logLevel);
     }
 
     /*
