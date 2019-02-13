@@ -22,7 +22,7 @@ export class Peer2Peer {
       config: {
         peerDiscovery: {
           bootstrap: {
-            list: bootstrapNode ? [ bootstrapNode ] : [ undefined ],
+            list: bootstrapNode ? [ bootstrapNode ] : [],
           },
         },
       },
@@ -30,10 +30,24 @@ export class Peer2Peer {
 
     this.bundle = new Bundle(configuration);
 
-    await this.bundle.startAsync();
+    this.bundle.on('stop', this.stopped);
+    this.bundle.on('error', this.errorOccurred);
     this.bundle.on('peer:connect', this.addPeerToDb);
     this.bundle.on('peer:disconnect', this.removePeerFromDb);
     this.bundle.on('peer:discovery', this.peerDiscovery);
+    await this.bundle.startAsync();
+  }
+
+  private stopped = (err) => {
+    global.app.logger.info('[P2P] p2p node stopped');
+  }
+
+  private errorOccurred = (err) => {
+    global.app.logger.error(`[P2P] error occurred: ${err.message}`);
+    if (typeof err.message === 'string' && err.message.includes('EADDRINUSE')) {
+      global.app.logger.warn('port is already in use, shutting down...');
+      throw new Error(err);
+    }
   }
 
   public stop = (cb) => {
