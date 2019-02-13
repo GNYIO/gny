@@ -76,21 +76,4 @@ export class Bundle extends libp2p {
       });
     });
   }
-
-  // ts reference misunderstand if argument is spelled exactly the same as the function name!
-  async bootstrapPeerNodes(bootstrapNodes) {
-    if (!Array.isArray(bootstrapNodes)) {
-      throw new Error('bootstrap nodes need to be an array');
-    }
-    // TODO: check if every item in bootstrapNodes is a peer-info object
-    if (!this.isStarted) {
-      throw new Error('node is not started');
-    }
-
-    for (let i = 0; i < bootstrapNodes.length; ++i) {
-      const boot = bootstrapNodes[i];
-      // TODO: Add error handling!
-      await this.dialAsync(boot);
-    }
-  }
 }
