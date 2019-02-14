@@ -58,7 +58,7 @@ export default class Transport {
   }
 
   // broadcast to peers Propose
-  public onNewPropose = async (propose) => {
+  public onNewPropose = async (propose: BlockPropose) => {
     let encodedBlockPropose: Buffer;
     try {
       encodedBlockPropose = this.library.protobuf.encodeBlockPropose(propose);
@@ -86,7 +86,7 @@ export default class Transport {
     try {
       body = this.library.protobuf.decodeNewBlockMessage(message.data);
     } catch (err) {
-      this.library.logger.warn('received wrong NewBlockMessage');
+      this.library.logger.warn(`could not decode NewBlockMessage with protobuf from ${message.from}`);
       return;
     }
 
@@ -151,9 +151,25 @@ export default class Transport {
     try {
       propose = this.library.protobuf.decodeBlockPropose(message.data);
     } catch (e) {
-      this.library.logger.error('Receive invalid propose', e);
+      this.library.logger.warn(`could not decode Propose with protobuf from ${message.from}`);
       return;
     }
+
+    const schema = this.library.joi.object().keys({
+      address: this.library.joi.string().ipv4PlusPort().required(),
+      generatorPublicKey: this.library.joi.string().hex().required(),
+      hash: this.library.joi.string().hex().required(),
+      height: this.library.joi.number().integer().positive().required(),
+      id: this.library.joi.string().hex().required(),
+      signature: this.library.joi.string().hex().required(),
+      timestamp: this.library.joi.number().integer().positive().required(),
+    });
+    const report = this.library.joi.validate(propose, schema);
+    if (report.error) {
+      this.library.logger.error('Failed to validate propose ', report.error.message);
+      return;
+    }
+
     this.library.bus.message('receivePropose', propose);
   }
 
@@ -168,9 +184,17 @@ export default class Transport {
       this.library.logger.error('Blockchain is not ready', { getNextSlot: slots.getNextSlot(), lastSlot, lastBlockHeight: lastBlock.height });
       return;
     }
+
     let transaction: any;
     try {
       transaction = this.library.protobuf.decodeTransaction(message.data);
+    } catch (e) {
+      this.library.logger.warn(`could not decode Transaction with protobuf from ${message.from}`);
+      return;
+    }
+
+    try {
+      // normalize and validate
       transaction = this.library.base.transaction.objectNormalize(transaction);
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
