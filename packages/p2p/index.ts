@@ -2,21 +2,13 @@
 import { Bundle } from './bundle';
 import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
-import * as fs from 'fs';
-import { createPeerInfoArgs, createFromJSON, } from './createPeerInfo';
+
 import { P2PMessage } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
 
-  public startAsync = async (ip: string, port: number, bootstrapNode: string, p2pKeyFile: string) => {
-    let KEY = fs.readFileSync(p2pKeyFile, { encoding: 'utf8' });
-    KEY = JSON.parse(KEY);
-    const peerId = await createFromJSON(KEY);
-    const peerInfo = await createPeerInfoArgs(peerId);
-    const multi = `/ip4/${ip}/tcp/${port}`;
-    peerInfo.multiaddrs.add(multi);
-
+  public startAsync = async (peerInfo: any, bootstrapNode: string) => {
     const configuration = {
       peerInfo,
       config: {
