@@ -89,11 +89,11 @@ export default class Peer {
     const peerInfo = await this.preparePeerInfo();
 
     // TODO persist peerBook of node
-    this.p2p = new Peer2Peer();
-    this.p2p.startAsync(
+    this.p2p = new Peer2Peer(
       peerInfo,
       this.library.config.peers.bootstrap,
-    ).then(() => {
+    );
+    this.p2p.startAsync().then(() => {
       this.library.bus.message('peerReady');
     }).catch((err) => {
       this.library.logger.error('Failed to init dht', err);

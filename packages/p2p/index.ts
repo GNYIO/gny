@@ -7,14 +7,22 @@ import { P2PMessage } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
+  private peerInfo = null;
+  private bootstrapNode: string;
 
-  public startAsync = async (peerInfo: any, bootstrapNode: string) => {
+  constructor (peerInfo: any, bootstrapNode: string) {
+    this.peerInfo = peerInfo;
+    this.bootstrapNode = bootstrapNode;
+  }
+
+  public startAsync = async () => {
+    const peerInfo = this.peerInfo;
     const configuration = {
       peerInfo,
       config: {
         peerDiscovery: {
           bootstrap: {
-            list: bootstrapNode ? [ bootstrapNode ] : [],
+            list: this.bootstrapNode ? [ this.bootstrapNode ] : [],
           },
         },
       },
