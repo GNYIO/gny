@@ -45,7 +45,7 @@ function main() {
 
   const appConfig: IConfig = JSON.parse(fs.readFileSync(appConfigFile, 'utf8'));
 
-  const pidFile = appConfig.pidFile || path.join(baseDir, 'aschd.pid');
+  const pidFile = appConfig.pidFile || path.join(baseDir, 'GNY.pid');
 
   if (fs.existsSync(pidFile)) {
     console.log('Error: Server has already started.');
