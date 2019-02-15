@@ -1,154 +1,21 @@
-import * as path from 'path';
-import * as crypto from 'crypto';
 import * as _ from 'lodash';
-import DHT = require('bittorrent-dht');
 import axios from 'axios';
-import { promisify } from 'util';
-import Database = require('nedb');
+import * as Database from 'nedb';
+import { Peer2Peer } from '../../packages/p2p/index';
 import { Modules, IScope, PeerNode } from '../interfaces';
-import { SAVE_PEERS_INTERVAL, CHECK_BUCKET_OUTDATE, MAX_BOOTSTRAP_PEERS } from '../utils/constants';
 
 export default class Peer {
   private readonly library: IScope;
   private modules: Modules;
-
-  private handlers: any = {};
-  private dht: any = null;
   private nodesDb: Database = undefined;
 
+  public p2p: Peer2Peer;
   constructor (scope: IScope) {
     this.library = scope;
   }
 
-  private getNodeIdentity = (node: PeerNode) => {
-    const address = `${node.host}:${node.port}`;
-    return crypto.createHash('ripemd160').update(address).digest().toString('hex');
-  }
-
-  private getSeedPeerNodes = (seedPeers) => {
-    return seedPeers.map(peer => {
-      const node: PeerNode = {
-        host: peer.ip,
-        port: Number(peer.port),
-      };
-      node.id = this.getNodeIdentity(node);
-      return node;
-    });
-  }
-
-  private getBootstrapNodes = (seedPeers: PeerNode[], lastNodes: any[]) => {
-    const nodeMap = new Map();
-    this.getSeedPeerNodes(seedPeers).forEach(node => nodeMap.set(node.id, node));
-    lastNodes.forEach(node => {
-      if (!nodeMap.has(node.id)) {
-        nodeMap.set(node.id, node);
-      }
-    });
-    return [...nodeMap.values()].slice(0, MAX_BOOTSTRAP_PEERS) as PeerNode[];
-  }
-
-  private initDHT = async (p2pOptions: any) => {
-    p2pOptions = p2pOptions || {};
-
-    let lastNodes: any; // = []
-    if (p2pOptions.persistentPeers) {
-      const peerNodesDbPath = path.join(p2pOptions.peersDbDir, 'peers.db');
-      try {
-        lastNodes = await promisify(this.initNodesDb)(peerNodesDbPath);
-        lastNodes = lastNodes || [];
-        global.app.logger.debug(`load last node peers success, ${JSON.stringify(lastNodes)}`);
-      } catch (e) {
-        global.app.logger.error('Last nodes not found', e);
-      }
-    }
-    const bootstrapNodes = this.getBootstrapNodes(
-      p2pOptions.seedPeers,
-      lastNodes,
-    );
-
-    const idForThisNode = this.getNodeIdentity({
-      host: p2pOptions.publicIp,
-      port: p2pOptions.peerPort,
-    });
-
-    const dht = new DHT({
-      timeBucketOutdated: CHECK_BUCKET_OUTDATE,
-      bootstrap: true,
-      id: idForThisNode,
-    });
-    this.dht = dht;
-
-    const port = p2pOptions.peerPort;
-    dht.listen(port, () => {
-      this.library.logger.info(`p2p server listen on ${port}`);
-    });
-
-    dht.on('node', (node: any) => {
-      const nodeId = node.id.toString('hex');
-      this.library.logger.info(`add node (${nodeId}) ${node.host}:${node.port}`);
-      this.updateNodeInDb(nodeId, node);
-    });
-
-    dht.on('remove', (nodeId, reason) => {
-      this.library.logger.info(`remove node (${nodeId}), reason: ${reason}`);
-      this.removeNodeFromDb(nodeId);
-    });
-
-    dht.on('error', (err) => {
-      this.library.logger.warn('dht error message', err);
-    });
-
-    dht.on('warning', (msg: any) => {
-      this.library.logger.warn('dht warning message', msg);
-    });
-
-    if (p2pOptions.eventHandlers) Object.keys(p2pOptions.eventHandlers).forEach(eventName =>
-      dht.on(eventName, p2pOptions.eventHandlers[eventName])
-    );
-
-    bootstrapNodes.forEach(n => dht.addNode(n));
-  }
-
-
   public findSeenNodesInDb = (callback: any) => {
     this.nodesDb.find({ seen: { $exists: true } }).sort({ seen: -1 }).exec(callback);
-  }
-
-  private initNodesDb = (peerNodesDbPath: string, cb: any) => {
-    if (!this.nodesDb) {
-      const db = new Database({ filename: peerNodesDbPath, autoload: true });
-      this.nodesDb = db;
-      db.persistence.setAutocompactionInterval(SAVE_PEERS_INTERVAL);
-
-      const errorHandler = (err) => err && global.app.logger.info('peer node index error', err);
-      db.ensureIndex({ fieldName: 'id' }, errorHandler);
-      db.ensureIndex({ fieldName: 'seen' }, errorHandler);
-    }
-
-    this.findSeenNodesInDb(cb);
-  }
-
-
-  // DB
-  private updateNodeInDb = (nodeId: any, node: any, callback?: any) => {
-    if (!nodeId || !node) return;
-
-    const upsertNode = Object.assign({}, node);
-    upsertNode.id = nodeId;
-    this.nodesDb.update({ id: nodeId }, upsertNode, { upsert: true }, (err, data) => {
-      if (err) global.app.logger.warn(`faild to update node (${nodeId}) ${node.host}:${node.port}`);
-      callback && callback(err, data);
-    });
-  }
-
-  // DB
-  private removeNodeFromDb = (nodeId: any, callback?: any) => {
-    if (!nodeId) return;
-
-    this.nodesDb.remove({ id: nodeId }, (err, numRemoved) => {
-      if (err) global.app.logger.warn(`faild to remove node id (${nodeId})`);
-      callback && callback(err, numRemoved);
-    });
   }
 
   public getVersion = () => ({
@@ -156,28 +23,6 @@ export default class Peer {
     build: this.library.config.buildVersion,
     net: this.library.config.netVersion,
   })
-
-  public subscribe = (topic: any, handler: any) => {
-    this.handlers[topic] = handler;
-  }
-
-  private onpublish = (msg: any, peer: any) => {
-    if (!msg || !msg.topic || !this.handlers[msg.topic.toString()]) {
-      this.library.logger.debug('Receive invalid publish message topic', msg);
-      return;
-    }
-    this.handlers[msg.topic](msg, peer);
-  }
-
-  public publish = (topic: string, message: any, recursive = 1) => {
-    if (!this.dht) {
-      this.library.logger.warn('dht network is not ready');
-      return;
-    }
-    message.topic = topic;
-    message.recursive = recursive;
-    this.dht.broadcast(message);
-  }
 
   public request = async (endpoint: string, body: any, contact: PeerNode, timeout?: number) => {
     const address = `${contact.host}:${contact.port - 1}`;
@@ -207,7 +52,7 @@ export default class Peer {
   }
 
   public randomRequestAsync = async (method: string, params: any) => {
-    const randomNode = this.dht.getRandomNode();
+    const randomNode = this.p2p.getRandomNode();
     if (!randomNode) throw new Error('no contact');
     this.library.logger.debug('select random contract', randomNode);
     try {
@@ -226,20 +71,23 @@ export default class Peer {
     this.modules = scope;
   }
 
-  onBlockchainReady = () => {
-    this.initDHT({
-      publicIp: this.library.config.publicIp,
-      peerPort: this.library.config.peerPort,
-      seedPeers: this.library.config.peers.list,
-      persistentPeers: this.library.config.peers.persistent === false ? false : true,
-      peersDbDir: global.Config.dataDir,
-      eventHandlers: {
-        'broadcast': (msg, node) => this.onpublish(msg, node)
-      }
-    }).then(() => {
+  onBlockchainReady = async () => {
+    // TODO persist peerBook of node
+    this.p2p = new Peer2Peer();
+    this.p2p.startAsync(
+      this.library.config.publicIp,
+      this.library.config.peerPort,
+      this.library.config.peers.bootstrap,
+      this.library.config.peers.p2pKeyFile,
+    ).then(() => {
       this.library.bus.message('peerReady');
-    }).catch(err => {
+    }).catch((err) => {
       this.library.logger.error('Failed to init dht', err);
     });
+  }
+
+  cleanup = (cb) => {
+    this.p2p.stop(cb);
+    this.library.logger.debug('Cleaning up core/peer');
   }
 }

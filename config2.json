@@ -11,11 +11,8 @@
     }
   },
   "peers": {
-    "list": [      
-      {
-      "ip": "127.0.0.1",
-      "port":"5001"
-    }],
+    "bootstrap": null,
+    "list": [],
     "blackList": [],
     "options": {
       "timeout": 4000

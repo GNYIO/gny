@@ -252,6 +252,12 @@ export interface DelegateViewModel extends Delegate {
   productivity: string;
 }
 
+export interface NewBlockMessage {
+  id: string;
+  height: number;
+  prevBlockId: string;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

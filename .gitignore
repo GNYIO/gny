@@ -1,6 +1,5 @@
 # Dist directory
-dist
-dist2
+dist*
 .DS_Store
 
 # Logs
@@ -9,9 +8,7 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-dist/ 
-package-lock.json
-yarn.lock
+dist/
 
 # Runtime data
 pids
