@@ -26,10 +26,12 @@ export class Logger {
         console.log(this.logLevel);
     }
 
-    /*
-    * TODO
-    */
-    public getLevel(config) {
+    /**
+     * Get logger level config
+     * @param {any} config
+     * @return {string}
+     */
+    public getLevel(config: any): string {
         return levelMap[config.logLevel];
     }
 
