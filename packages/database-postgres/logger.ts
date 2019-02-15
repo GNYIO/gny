@@ -23,7 +23,6 @@ export class Logger {
 
     constructor() {
         this.logLevel = this.getLevel(config);
-        console.log(this.logLevel);
     }
 
     /**
