@@ -2,15 +2,16 @@
 import { Bundle } from './bundle';
 import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
-
-import { P2PMessage } from '../../src/interfaces';
+import { P2PMessage, PeerInfo, ILogger } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
+  private logger: ILogger;
   private peerInfo = null;
   private bootstrapNode: string;
 
-  constructor (peerInfo: any, bootstrapNode: string) {
+  constructor (logger, peerInfo: any, bootstrapNode: string) {
+    this.logger = logger,
     this.peerInfo = peerInfo;
     this.bootstrapNode = bootstrapNode;
   }
@@ -36,16 +37,23 @@ export class Peer2Peer {
     this.bundle.on('peer:disconnect', this.removePeerFromDb);
     this.bundle.on('peer:discovery', this.peerDiscovery);
     await this.bundle.startAsync();
+    this.printOwnPeerInfo();
+  }
+
+  private printOwnPeerInfo = () => {
+    let addresses = '';
+    this.bundle.peerInfo.multiaddrs.forEach((adr) => addresses += `\t${adr.toString()}\n`);
+    this.logger.info(`\n[P2P] started node: ${this.bundle.peerInfo.id.toB58String()}\n${addresses}`);
   }
 
   private stopped = (err) => {
-    global.app.logger.info('[P2P] p2p node stopped');
+    this.logger.info('[P2P] p2p node stopped');
   }
 
   private errorOccurred = (err) => {
-    global.app.logger.error(`[P2P] error occurred: ${err.message}`);
+    this.logger.error(`[P2P] error occurred: ${err.message}`);
     if (typeof err.message === 'string' && err.message.includes('EADDRINUSE')) {
-      global.app.logger.warn('port is already in use, shutting down...');
+      this.logger.warn('port is already in use, shutting down...');
       throw new Error(err);
     }
   }
@@ -64,7 +72,7 @@ export class Peer2Peer {
       const id = PeerId.createFromB58String(message.from);
       this.bundle.peerRouting.findPeer(id, {}, (err, result) => { // find peer in routing table that broadcasted message
         if (err) {
-          global.app.logger.warn('could not find peer that broadcasted message');
+          this.logger.warn('could not find peer that broadcasted message');
           return;
         }
 
@@ -78,7 +86,7 @@ export class Peer2Peer {
 
         this.bundle.dial(result, (erro, conn) => { // dial to peer that broadcasted message
           if (erro) {
-            global.app.logger.warn(`could not dial peer ${id}`);
+            this.logger.warn(`could not dial peer ${id}`);
             return;
           }
           return finish(result);
@@ -125,36 +133,36 @@ export class Peer2Peer {
     });
   }
 
-  private addPeerToDb(peer) {
+  private addPeerToDb = (peer) => {
     // TODO implement
-    global.app.logger.info(`[P2P] peer:connect:${peer.id.toB58String()}`);
+    this.logger.info(`[P2P] peer:connect:${peer.id.toB58String()}`);
   }
 
   private removePeerFromDb = (peer) => {
     // TODO implemnet
-    global.app.logger.info(`[P2P] peer:disconnect:${peer.id.toB58String()}`);
+    this.logger.info(`[P2P] peer:disconnect:${peer.id.toB58String()}`);
     this.bundle.peerBook.remove(peer);
   }
 
   private peerDiscovery = async (peer) => {
     // do not spam log output: the bootstrap mechanism tries every 30s to connect to the bootstrap node(s)
     if (!this.bundle.peerBook.has(peer)) {
-      global.app.logger.info(`[P2P] discovered peer: ${peer.id.toB58String()}`);
+      this.logger.info(`[P2P] discovered peer: ${peer.id.toB58String()}`);
     }
     try {
       // this action establishes a __Connection__ to the newly discovered peer
       // this also adds the peer to the peerBook so the pubsub mechanism can publish to this peer
       await this.bundle.dialAsync(peer);
     } catch (err) {
-      global.app.logger.info(`[P2P] could not dial to ${peer.id.toB58String()}`);
+      this.logger.info(`[P2P] could not dial to ${peer.id.toB58String()}`);
     }
   }
 
   public getRandomNode = () => {
-    const peerInfo = this.bundle.getRandomPeer();
+    const peerInfo = this.bundle.getRandomPeer() as PeerInfo;
     if (peerInfo) {
       const extracted = extractIpAndPort(peerInfo);
-      global.app.logger.info(`[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(extracted)}`);
+      this.logger.info(`[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(extracted)}`);
       return extracted;
     }
   }

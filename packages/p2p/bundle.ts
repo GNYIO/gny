@@ -59,9 +59,7 @@ export class Bundle extends libp2p {
         if (err) {
           reject(err);
         } else {
-          let addresses = '';
-          this.peerInfo.multiaddrs.forEach((adr) => addresses += `\t${adr.toString()}\n`);
-          global.app.logger.info(`\n[P2P] started node: ${this.peerInfo.id.toB58String()}\n${addresses}`);
+
           resolve();
         }
       });
