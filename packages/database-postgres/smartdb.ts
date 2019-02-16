@@ -66,6 +66,8 @@ export class SmartDB {
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const id = this.createCacheId(table, condition);
+        console.log('findOne....');
+        console.log({id});
         const result = await repo.find({
             where: condition,
             take: 1,
@@ -299,6 +301,7 @@ export class SmartDB {
      * @return {Promise<boolean>}
      */
     public async exists(table: string, condition: any): Promise<boolean> {
+        console.log('exists...');
         const data = await this.findOne(table, condition);
 
         // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
@@ -316,6 +319,8 @@ export class SmartDB {
         const connection = getConnection();
         const repo = connection.getRepository(ENTITY[table]);
         const id = this.createCacheId(table, condition);
+        console.log('load....');
+        console.log({id});
         const result = await repo.find({
             where: condition,
             take: 1,
@@ -353,6 +358,8 @@ export class SmartDB {
         }
 
         const id = this.createCacheId(table, condition);
+        console.log('increase....');
+        console.log({id});
 
         const connection = getConnection();
         await connection.queryResultCache.remove([
@@ -537,29 +544,35 @@ export class SmartDB {
 
     private createCacheId(table, condition: any) {
         let id: string;
-        if (table == 'Round') {
-            id = table + '@' + condition.round;
-        } else if (table == 'Account') {
-            id = table + '@' + condition.address;
-        } else if (table == 'Asset') {
-            id = table + '@' + condition['name' || 'issuerId'];
-        } else if (table == 'Balance') {
-            id = table + '@' + condition.address;
-        } else if (table == 'Delegate') {
-            id = table + '@' + condition['username' || 'address'];
-        } else if (table == 'Issuer') {
-            id = table + '@' + condition['name' || 'issuerId'];
-        } else if (table == 'Transaction') {
-            id = table + '@' + condition['id' || 'senderId'];
-        } else if (table == 'Transfer') {
-            id = table + '@' + condition.tid;
-        } else if (table == 'Variable') {
-            id = table + '@' + condition.key;
-        } else if (table == 'Vote') {
-            id = table + '@' + condition['delegate' || 'voterAddress'];
-        } else {
-            id = undefined;
-        }
+        id = table + '@' + Object.values(condition)[0];
+
+        // if (table == 'Round') {
+        //     id = table + '@' + condition.round;
+        // } else if (table == 'Account') {
+        //     id = table + '@' + condition.address;
+        // } else if (table == 'Asset') {
+        //     if (condition.hasOwnProperty('name')) {
+        //         id = table + '@' + condition['name'];
+        //     } else if (condition.hasOwnProperty('issuerId')) {
+        //         id = table + '@' + condition['issuerId'];
+        //     }
+        // } else if (table == 'Balance') {
+        //     id = table + '@' + condition.address;
+        // } else if (table == 'Delegate') {
+        //     id = table + '@' + condition['username' || 'address'];
+        // } else if (table == 'Issuer') {
+        //     id = table + '@' + condition['name' || 'issuerId'];
+        // } else if (table == 'Transaction') {
+        //     id = table + '@' + condition['id' || 'senderId'];
+        // } else if (table == 'Transfer') {
+        //     id = table + '@' + condition.tid;
+        // } else if (table == 'Variable') {
+        //     id = table + '@' + condition.key;
+        // } else if (table == 'Vote') {
+        //     id = table + '@' + condition['delegate' || 'voterAddress'];
+        // } else {
+        //     id = undefined;
+        // }
 
         return id;
     }
