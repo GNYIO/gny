@@ -306,18 +306,12 @@ export default class Blocks {
   }
 
   public applyRound = async (block: any) => {
-    console.log('.........1');
     if (block.height === 0) {
       await this.modules.delegates.updateBookkeeper();
       return;
     }
 
-    console.log('.........2');
-
-    console.log(block.delegate);
-
     let address = addressHelper.generateAddress(block.delegate);
-    console.log({address});
     await global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address });
 
     let transFee = 0;
@@ -327,18 +321,12 @@ export default class Blocks {
       }
     }
 
-    console.log('.........3');
-
     const roundNumber = this.modules.round.calculateRound(block.height);
-    const result = await this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
-    console.log({result});
     const { fee, reward } = await this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
 
     if (block.height % 101 !== 0) return;
 
     global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`);
-
-    console.log('.........4');
 
     const delegates = await this.modules.delegates.generateDelegateList(block.height);
     if (!delegates) {
@@ -346,12 +334,8 @@ export default class Blocks {
     }
     global.app.logger.debug('delegate length', delegates.length);
 
-    console.log('.........5');
-
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(block.height - 100, block.height - 1);
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate];
-
-    console.log('.........6');
 
     const missedDelegates = delegates.filter(fd => !forgedDelegates.includes(fd));
     missedDelegates.forEach(async (md) => {
@@ -359,16 +343,12 @@ export default class Blocks {
       await global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
     });
 
-    console.log('.........7');
-
     async function updateDelegate(pk, fee, reward) {
       address = addressHelper.generateAddress(pk);
       await global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address });
       // TODO should account be all cached?
       await global.app.sdb.increase('Account', { gny: fee + reward }, { address });
     }
-
-    console.log('.........5');
 
     const ratio = 1;
 
