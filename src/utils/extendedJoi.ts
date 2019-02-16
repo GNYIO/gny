@@ -11,6 +11,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   asset(): this;
   signature(): this;
   hex(): this;
+  ipv4PlusPort(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -29,6 +30,7 @@ const stringExtensions: Joi.Extension = {
     asset: 'is not a valid GNY asset name',
     signature: 'is not a valid GNY signature',
     hex: 'is not a hex string',
+    ipv4PlusPort: 'is not a ipv4:port',
   },
   rules: [{
     name: 'publicKey',
@@ -109,13 +111,21 @@ const stringExtensions: Joi.Extension = {
       try {
         b = Buffer.from(value, 'hex');
       } catch (e) {
-        return this.createError('string.validate', { v: value }, state, options);
+        return this.createError('string.hex', { v: value }, state, options);
       }
 
       if (b && b.length > 0) {
         return value;
       }
-      return this.createError('string.validate', { v: value }, state, options);
+      return this.createError('string.hex', { v: value }, state, options);
+    }
+  },
+  {
+    name: 'ipv4PlusPort',
+    validate(params, value, state, options) {
+      const regname = /^((([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])\.){3}([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])|[a-zA-Z0-9]*):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})$/;
+      if (!regname.test(value)) return this.createError('string.ipv4PlusPort', { v: value }, state, options);
+      return value;
     }
   }]
 };

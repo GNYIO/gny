@@ -187,7 +187,7 @@ export default class Loader {
     });
   }
 
-  public syncBlocksFromPeer = (peer) => {
+  public syncBlocksFromPeer = (peer: PeerNode) => {
     this.library.logger.debug('syncBlocksFromPeer enter');
     if (!this.isLoaded || this.privSyncing) {
       this.library.logger.debug('blockchain is already syncing');
