@@ -1,29 +1,29 @@
 
-import * as  PeerInfo from 'peer-info';
+import * as PeerInfo from 'peer-info';
 import * as PeerId from 'peer-id';
 import { promisify } from 'util';
 
-function _createPeerInfo (cb) {
+function _createPeerInfo (cb: PeerInfo.CreateCb) {
   PeerInfo.create(cb);
 }
 
-function _createPeerInfoArgs (id, cb) {
+function _createPeerInfoArgs (id, cb: PeerInfo.CreateCb) {
   PeerInfo.create(id, cb);
 }
 
-function _createFromJSON(data, cb) {
+function _createFromJSON(data: PeerId.JSON, cb: PeerId.CreateCb) {
   PeerId.createFromJSON(data, cb);
 }
 
 
-export function createPeerInfo() {
+export function createPeerInfo(): Promise<PeerInfo> {
   return promisify(_createPeerInfo)();
 }
 
-export function createPeerInfoArgs(id) {
+export function createPeerInfoArgs(id): Promise<PeerInfo> {
   return promisify(_createPeerInfoArgs)(id);
 }
 
-export function createFromJSON(data) {
+export function createFromJSON(data): Promise<PeerId> {
   return promisify(_createFromJSON)(data);
 }
