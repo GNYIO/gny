@@ -2,7 +2,7 @@
 import { Bundle } from './bundle';
 import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
-import { P2PMessage, PeerInfo, ILogger } from '../../src/interfaces';
+import { P2PMessage, ILogger } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
@@ -10,7 +10,7 @@ export class Peer2Peer {
   private peerInfo = null;
   private bootstrapNode: string;
 
-  constructor (logger, peerInfo: any, bootstrapNode: string) {
+  constructor (logger: ILogger, peerInfo: any, bootstrapNode: string) {
     this.logger = logger,
     this.peerInfo = peerInfo;
     this.bootstrapNode = bootstrapNode;
@@ -159,7 +159,7 @@ export class Peer2Peer {
   }
 
   public getRandomNode = () => {
-    const peerInfo = this.bundle.getRandomPeer() as PeerInfo;
+    const peerInfo = this.bundle.getRandomPeer();
     if (peerInfo) {
       const extracted = extractIpAndPort(peerInfo);
       this.logger.info(`[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(extracted)}`);
