@@ -84,7 +84,7 @@ export class Peer2Peer {
           handler(extendedMsg);
         };
 
-        this.bundle.dial(result, (erro, conn) => { // dial to peer that broadcasted message
+        this.bundle.dial(result, (erro) => { // dial to peer that broadcasted message
           if (erro) {
             this.logger.warn(`could not dial peer ${id}`);
             return;

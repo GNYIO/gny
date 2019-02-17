@@ -1,6 +1,6 @@
 
 const TCP = require('libp2p-tcp');
-const libp2p = require('libp2p');
+import * as libp2p from 'libp2p';
 const DHT = require('libp2p-kad-dht');
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -68,9 +68,9 @@ export class Bundle extends libp2p {
 
   dialAsync(peer) {
     return new Promise((resolve, reject) => {
-      this.dial(peer, (err, connection) => {
+      this.dial(peer, (err) => {
         if (err) reject(err);
-        else resolve(connection);
+        else resolve();
       });
     });
   }
