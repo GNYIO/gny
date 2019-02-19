@@ -536,11 +536,19 @@ export class SmartDB {
         logger.info('Close smartdb');
     }
 
+    /**
+     * Create cache id
+     * @return {string}
+     */
     private createCacheId(table, condition: any) {
         const id = table + '@' + Object.values(condition)[0];
         return id;
     }
 
+    /**
+     * Judge an address if in the cache result
+     * @return {boolean}
+     */
     private inCacheResult(item: an, address) {
         const keys = ['address', 'name', 'issuerId'];
 
