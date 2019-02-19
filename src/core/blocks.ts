@@ -261,7 +261,6 @@ export default class Blocks {
     }
 
     try {
-      console.log('begin to applyclock....');
       await this.applyRound(block);
       await global.app.sdb.commitBlock();
       await this.saveBlockTransactions(block);

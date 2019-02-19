@@ -74,7 +74,6 @@ export class SmartDB {
             },
         });
 
-        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
         return result[0];
     }
 
@@ -105,7 +104,6 @@ export class SmartDB {
             },
         });
 
-        // await this.lock(`basic.` + table.toLowerCase() + '@' + 'GM5CevQY3brUyRtDMng5Co41nWHh');
         return result;
     }
 
@@ -128,8 +126,6 @@ export class SmartDB {
                 id: 'find' + table,
             },
         });
-
-        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
 
         return result;
     }
@@ -300,8 +296,6 @@ export class SmartDB {
      */
     public async exists(table: string, condition: any): Promise<boolean> {
         const data = await this.findOne(table, condition);
-
-        // await this.lock(`basic.` + table + '@' + Object.values(condition)[0]);
 
         return data !== undefined;
     }
@@ -517,7 +511,7 @@ export class SmartDB {
             };
             const cache = await connection.queryResultCache.getFromCache(QueryResultCacheOptions);
             if (cache) {
-                for (item of cache.result) {
+                for (item of JSON.parse(cache.result)) {
                     if (this.inCacheResult(item, address)) {
                         logger.error('Found in cache');
                         throw new Error('Cannot be modified');
@@ -549,11 +543,11 @@ export class SmartDB {
      * Judge an address if in the cache result
      * @return {boolean}
      */
-    private inCacheResult(item: an, address) {
-        const keys = ['address', 'name', 'issuerId'];
+    private inCacheResult(item: any, address) {
+        const keys = ['Account_address', 'Asset_name', 'Issuer_issuerId', 'Issuer_name'];
 
         let key: string;
-        for (key in keys) {
+        for (key of keys) {
             if (item.hasOwnProperty(key)) {
                 if (item[key] === address) {
                     return true;
