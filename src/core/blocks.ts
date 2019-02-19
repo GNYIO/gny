@@ -5,7 +5,7 @@ import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
-import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache, PeerNode, ProcessBlockOptions } from '../interfaces';
+import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache, PeerNode, ProcessBlockOptions, BlockPropose } from '../interfaces';
 import { In } from 'typeorm';
 
 export default class Blocks {
@@ -17,7 +17,7 @@ export default class Blocks {
   private loaded: boolean = false;
   private blockCache: ISimpleCache = {};
   private proposeCache: ISimpleCache = {};
-  private lastPropose = null;
+  private lastPropose: BlockPropose = null;
   private privIsCollectingVotes = false;
 
   private lastVoteTime: any;
@@ -511,7 +511,7 @@ export default class Blocks {
       return;
     }
     const serverAddr = `${this.library.config.publicIp}:${this.library.config.peerPort}`;
-    let propose;
+    let propose: BlockPropose;
     try {
       propose = this.library.base.consensus.createPropose(keypair, block, serverAddr);
     } catch (e) {
@@ -586,7 +586,7 @@ export default class Blocks {
   });
 }
 
-public onReceivePropose = (propose: any) => {
+public onReceivePropose = (propose: BlockPropose) => {
   if (this.modules.loader.syncing() || !this.loaded) {
     return;
   }

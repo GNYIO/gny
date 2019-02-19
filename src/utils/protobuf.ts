@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as protocolBuffers from 'protocol-buffers';
+import { NewBlockMessage, BlockPropose } from '../interfaces';
 
 export class Protobuf {
   public schema;
@@ -9,23 +10,17 @@ export class Protobuf {
     this.schema = schema;
   }
 
-  encodeBlockPropose(propose) {
+  encodeBlockPropose(propose: BlockPropose): Buffer {
     const obj = _.cloneDeep(propose);
-    obj.generatorPublicKey = Buffer.from(obj.generatorPublicKey, 'hex');
-    obj.hash = Buffer.from(obj.hash, 'hex');
-    obj.signature = Buffer.from(obj.signature, 'hex');
     return this.schema.BlockPropose.encode(obj);
   }
 
-  decodeBlockPropose(data) {
+  decodeBlockPropose(data: Buffer): BlockPropose {
     const obj = this.schema.BlockPropose.decode(data);
-    obj.generatorPublicKey = obj.generatorPublicKey.toString('hex');
-    obj.hash = obj.hash.toString('hex');
-    obj.signature = obj.signature.toString('hex');
     return obj;
   }
 
-  encodeBlockVotes(obj) {
+  encodeBlockVotes(obj): Buffer {
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];
       signature.publicKey = Buffer.from(signature.publicKey, 'hex');
@@ -34,7 +29,7 @@ export class Protobuf {
     return this.schema.BlockVotes.encode(obj);
   }
 
-  decodeBlockVotes(data) {
+  decodeBlockVotes(data: Buffer) {
     const obj = this.schema.BlockVotes.decode(data);
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];
@@ -44,7 +39,7 @@ export class Protobuf {
     return obj;
   }
 
-  encodeTransaction(trs) {
+  encodeTransaction(trs): Buffer {
     const obj = _.cloneDeep(trs);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
@@ -56,23 +51,23 @@ export class Protobuf {
     return this.schema.Transaction.encode(obj);
   }
 
-  decodeTransaction(data) {
+  decodeTransaction(data: Buffer) {
     const obj = this.schema.Transaction.decode(data);
     return obj;
   }
 
-  encodeNewBlockMessage(msg) {
+  encodeNewBlockMessage(msg): Buffer {
     const obj = _.cloneDeep(msg);
     return this.schema.NewBlockMessage.encode(obj);
   }
 
-  decodeNewBlockMessage(data) {
+  decodeNewBlockMessage(data: Buffer): NewBlockMessage {
     const obj = this.schema.NewBlockMessage.decode(data);
     return obj;
   }
 }
 
-export function getSchema (schemaFile) {
+export function getSchema (schemaFile: string) {
   const data = fs.readFileSync(schemaFile);
   const schema = protocolBuffers(data);
   return new Protobuf(schema);

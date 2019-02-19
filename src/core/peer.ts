@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import axios from 'axios';
 import * as Database from 'nedb';
+import * as fs from 'fs';
+import { createPeerInfoArgs, createFromJSON, } from '../../packages/p2p/createPeerInfo';
 import { Peer2Peer } from '../../packages/p2p/index';
 import { Modules, IScope, PeerNode } from '../interfaces';
 
@@ -66,20 +68,32 @@ export default class Peer {
     }
   }
 
+  private preparePeerInfo = async () => {
+    let KEY = fs.readFileSync(this.library.config.peers.p2pKeyFile, { encoding: 'utf8' });
+    KEY = JSON.parse(KEY);
+
+    const peerId = await createFromJSON(KEY);
+    const peerInfo = await createPeerInfoArgs(peerId);
+
+    const multi = `/ip4/${this.library.config.publicIp}/tcp/${this.library.config.peerPort}`;
+    peerInfo.multiaddrs.add(multi);
+    return peerInfo;
+  }
+
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;
   }
 
   onBlockchainReady = async () => {
+    const peerInfo = await this.preparePeerInfo();
+
     // TODO persist peerBook of node
-    this.p2p = new Peer2Peer();
-    this.p2p.startAsync(
-      this.library.config.publicIp,
-      this.library.config.peerPort,
+    this.p2p = new Peer2Peer(
+      peerInfo,
       this.library.config.peers.bootstrap,
-      this.library.config.peers.p2pKeyFile,
-    ).then(() => {
+    );
+    this.p2p.startAsync().then(() => {
       this.library.bus.message('peerReady');
     }).catch((err) => {
       this.library.logger.error('Failed to init dht', err);

@@ -223,7 +223,6 @@ export type Next = (err: string) => any;
 export interface PeerNode {
   host: string;
   port: number;
-  id?: string;
 }
 
 export interface ProcessBlockOptions {
@@ -256,6 +255,25 @@ export interface NewBlockMessage {
   id: string;
   height: number;
   prevBlockId: string;
+}
+
+export interface P2PMessage {
+  data: Buffer;
+  from: string;
+  seqno: Buffer;
+  topicIDs: string[];
+  peerInfo: PeerNode;
+}
+
+
+export interface BlockPropose {
+  address: string;
+  generatorPublicKey: string;
+  hash: string;
+  height: number;
+  id: string;
+  signature: string;
+  timestamp: number;
 }
 
 declare global {

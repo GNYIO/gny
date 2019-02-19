@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
 import slots from '../utils/slots';
-import { Modules, IScope, ManyVotes, PeerNode, NewBlockMessage } from '../interfaces';
+import { Modules, IScope, ManyVotes, PeerNode, NewBlockMessage, P2PMessage, BlockPropose } from '../interfaces';
 
 export default class Transport {
   private readonly library: IScope;
@@ -18,23 +18,26 @@ export default class Transport {
     this.modules = scope;
   }
 
+  // subscribe to peer events
   public onPeerReady = () => {
-    this.modules.peer.p2p.subscribe('newBlockHeader', this.peerNewBlockHeader);
-    this.modules.peer.p2p.subscribe('propose', this.peerPropose);
-    this.modules.peer.p2p.subscribe('transaction', this.peerTransaction);
+    this.modules.peer.p2p.subscribe('newBlockHeader', this.receivePeer_NewBlockHeader);
+    this.modules.peer.p2p.subscribe('propose', this.receivePeer_Propose);
+    this.modules.peer.p2p.subscribe('transaction', this.receivePeer_Transaction);
   }
 
+  // broadcast to peers Transaction
   public onUnconfirmedTransaction = async (transaction: any) => {
 
     const encodedTransaction = this.library.protobuf.encodeTransaction(transaction);
     await this.modules.peer.p2p.broadcastTransactionAsync(encodedTransaction);
   }
 
+  // broadcast to peers NewBlockMessage
   public onNewBlock = async (block, votes) => {
     this.latestBlocksCache.set(block.id,
       {
         block,
-        votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'),
+        votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'), // TODO, try/catch
       }
     );
 
@@ -43,18 +46,32 @@ export default class Transport {
       height: block.height,
       prevBlockId: block.prevBlockId,
     };
-    const encodedNewBlockMessage = this.library.protobuf.encodeNewBlockMessage(message);
+
+    let encodedNewBlockMessage: Buffer;
+    try {
+      encodedNewBlockMessage = this.library.protobuf.encodeNewBlockMessage(message);
+    } catch (err) {
+      this.library.logger.warn('could not encode NewBlockMessage with protobuf');
+      return;
+    }
     await this.modules.peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
   }
 
-  public onNewPropose = async (propose) => {
-    const encodedBlockPropose = this.library.protobuf.encodeBlockPropose(propose);
+  // broadcast to peers Propose
+  public onNewPropose = async (propose: BlockPropose) => {
+    let encodedBlockPropose: Buffer;
+    try {
+      encodedBlockPropose = this.library.protobuf.encodeBlockPropose(propose);
+    } catch (err) {
+      this.library.logger.warn('could not encode Propose with protobuf');
+      return;
+    }
     await this.modules.peer.p2p.broadcastProposeAsync(encodedBlockPropose);
   }
 
 
   // peerEvent
-  private peerNewBlockHeader = async (message) => {
+  private receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     if (this.modules.loader.syncing()) {
       return;
     }
@@ -69,14 +86,21 @@ export default class Transport {
     try {
       body = this.library.protobuf.decodeNewBlockMessage(message.data);
     } catch (err) {
-      this.library.logger.warn('received wrong NewBlockMessage');
+      this.library.logger.warn(`could not decode NewBlockMessage with protobuf from ${message.from}`);
       return;
     }
 
-    if (!body || !body.id || !body.height || !body.prevBlockId) {
-      this.library.logger.error('Invalid message body');
+    const schema = this.library.joi.object({
+      id: this.library.joi.string().hex().required(),
+      height: this.library.joi.number().integer().positive().required(),
+      prevBlockId: this.library.joi.string().hex().required(),
+    });
+    const report = this.library.joi.validate(body, schema);
+    if (report.error) {
+      this.library.logger.error(`Invalid message body: ${report.error.message}`);
       return;
     }
+
     const height = body.height;
     const id = body.id;
     const prevBlockId = body.prevBlockId;
@@ -94,7 +118,7 @@ export default class Transport {
     }
     this.library.logger.info('Receive new block header', { height, id });
 
-    // TODO
+    // TODO add type information
     let result;
     try {
       const params = { id };
@@ -122,17 +146,35 @@ export default class Transport {
   }
 
   // peerEvent
-  private peerPropose = (message) => {
+  private receivePeer_Propose = (message: P2PMessage) => {
+    let propose: BlockPropose;
     try {
-      const propose = this.library.protobuf.decodeBlockPropose(message.data);
-      this.library.bus.message('receivePropose', propose);
+      propose = this.library.protobuf.decodeBlockPropose(message.data);
     } catch (e) {
-      this.library.logger.error('Receive invalid propose', e);
+      this.library.logger.warn(`could not decode Propose with protobuf from ${message.from}`);
+      return;
     }
+
+    const schema = this.library.joi.object().keys({
+      address: this.library.joi.string().ipv4PlusPort().required(),
+      generatorPublicKey: this.library.joi.string().hex().required(),
+      hash: this.library.joi.string().hex().required(),
+      height: this.library.joi.number().integer().positive().required(),
+      id: this.library.joi.string().hex().required(),
+      signature: this.library.joi.string().hex().required(),
+      timestamp: this.library.joi.number().integer().positive().required(),
+    });
+    const report = this.library.joi.validate(propose, schema);
+    if (report.error) {
+      this.library.logger.error('Failed to validate propose ', report.error.message);
+      return;
+    }
+
+    this.library.bus.message('receivePropose', propose);
   }
 
   // peerEvent
-  private peerTransaction = (message) => {
+  private receivePeer_Transaction = (message: P2PMessage) => {
     if (this.modules.loader.syncing()) {
       return;
     }
@@ -142,9 +184,17 @@ export default class Transport {
       this.library.logger.error('Blockchain is not ready', { getNextSlot: slots.getNextSlot(), lastSlot, lastBlockHeight: lastBlock.height });
       return;
     }
+
     let transaction: any;
     try {
       transaction = this.library.protobuf.decodeTransaction(message.data);
+    } catch (e) {
+      this.library.logger.warn(`could not decode Transaction with protobuf from ${message.from}`);
+      return;
+    }
+
+    try {
+      // normalize and validate
       transaction = this.library.base.transaction.objectNormalize(transaction);
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {

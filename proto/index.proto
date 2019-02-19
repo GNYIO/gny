@@ -39,10 +39,10 @@ message BlockPropose {
   required int64 height = 1;
   required string id = 2;
   required int32 timestamp = 3;
-  required bytes generatorPublicKey = 4;
+  required string generatorPublicKey = 4;
   required string address = 5;
-  required bytes hash = 6;
-  required bytes signature = 7;
+  required string hash = 6;
+  required string signature = 7;
 }
 
 message BlockVotes {

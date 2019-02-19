@@ -1,9 +1,8 @@
 import * as crypto from 'crypto';
 import * as ed from '../utils/ed';
 import slots from '../utils/slots';
-// import addressHelper from '../utils/address';
 import BlockReward from '../utils/block-reward';
-import { Modules, IScope, KeyPairsIndexer, KeyPair, Delegate, DelegateViewModel } from '../interfaces';
+import { Modules, IScope, KeyPairsIndexer, KeyPair, Delegate, DelegateViewModel, BlockPropose } from '../interfaces';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -169,8 +168,13 @@ export default class Delegates {
     return results;
   }
 
+<<<<<<< HEAD
   public validateProposeSlot = async (propose) => {
     const activeDelegates = await this.generateDelegateList(propose.height);
+=======
+  public validateProposeSlot = (propose: BlockPropose) => {
+    const activeDelegates = this.generateDelegateList(propose.height);
+>>>>>>> develop
     const currentSlot = slots.getSlotNumber(propose.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
