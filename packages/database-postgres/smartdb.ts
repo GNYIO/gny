@@ -507,6 +507,8 @@ export class SmartDB {
         const cacheIdList = [idx, 'find' + table, 'findAll' + table];
         const connection = getConnection();
 
+        let item: any;
+
         for (const cacheId of cacheIdList) {
             const QueryResultCacheOptions = {
                 identifier: cacheId,
@@ -515,8 +517,8 @@ export class SmartDB {
             };
             const cache = await connection.queryResultCache.getFromCache(QueryResultCacheOptions);
             if (cache) {
-                for (const item of cache.result) {
-                    if (item['address' || 'name' || 'issuerId'] == address) {
+                for (item of cache.result) {
+                    if (this.inCacheResult(item, address)) {
                         logger.error('Found in cache');
                         throw new Error('Cannot be modified');
                     }
@@ -537,6 +539,19 @@ export class SmartDB {
     private createCacheId(table, condition: any) {
         const id = table + '@' + Object.values(condition)[0];
         return id;
+    }
+
+    private inCacheResult(item: an, address) {
+        const keys = ['address', 'name', 'issuerId'];
+
+        let key: string;
+        for (key in keys) {
+            if (item.hasOwnProperty(key)) {
+                if (item[key] === address) {
+                    return true;
+                }
+            }
+        }
     }
 }
 
