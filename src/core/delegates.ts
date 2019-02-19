@@ -168,13 +168,8 @@ export default class Delegates {
     return results;
   }
 
-<<<<<<< HEAD
-  public validateProposeSlot = async (propose) => {
+  public validateProposeSlot = async (propose: BlockPropose) => {
     const activeDelegates = await this.generateDelegateList(propose.height);
-=======
-  public validateProposeSlot = (propose: BlockPropose) => {
-    const activeDelegates = this.generateDelegateList(propose.height);
->>>>>>> develop
     const currentSlot = slots.getSlotNumber(propose.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
