@@ -6,6 +6,7 @@
    "password": "",
    "database": "gny_test",
    "synchronize": true,
+   "dropSchema": true,
    "logging": false,
    "entities": [
       "packages/database-postgres/entity/**/*.js"

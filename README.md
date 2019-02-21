@@ -14,14 +14,32 @@ Install exactly the dependencies from `package-lock.json` with `npm ci`:
 npm ci
 ```
 
-## 3 Transpile Files with TypeScript
+## 3 Create database and cache
+
+Create a database with the user `postgres`. 
+
+```bash
+psql --u postgres
+CEATEDB gny_test;
+```
+
+- Edit database config file `ormconfig.json`
+  -  You could also modify this file to deploy your own database connection or edit `SmartDB.init()` with configOptions in `smartdb.ts`.
+
+Run cache database on `Redis`, the default port is 6379.
+
+```bash
+redis-server
+```
+
+## 4 Transpile Files with TypeScript
 
 Execute:
 ```bash
 npm run tsc
 ```
 
-## 4 Start Blockchain
+## 5 Start Blockchain
 
 Change directory to the `dist` dir and start the Blockchain:
 ```
@@ -31,7 +49,7 @@ node app
 ```
 
 
-## 5 Run many Nodes
+## 6 Run many Nodes
 
 Specify the amount of `[nodes]` you want to create. You can create up to 101.
 
@@ -45,3 +63,4 @@ After we have created the nodes launch them:
 ```bash
 node launchAllNodes.js
 ```
+
