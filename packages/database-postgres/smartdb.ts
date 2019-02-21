@@ -258,7 +258,7 @@ export class SmartDB {
         const repo = connection.getRepository(Block);
         const data = await repo.createQueryBuilder('block')
                 .where('block.height >= :min', { min: min })
-                .andWhere('block.height < :max', { max: max })
+                .andWhere('block.height <= :max', { max: max })
                 .getMany();
         return data;
     }

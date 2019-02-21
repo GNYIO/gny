@@ -109,16 +109,16 @@ export default class Delegates {
     }
 
     // this.library.sequence.add(done => (async () => { }))
-    (async () => {
+    await (async () => {
         try {
-        if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
-          && this.modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
-          await this.modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time);
+          if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
+            && this.modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
+            await this.modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time);
+          }
+        } catch (e) {
+          this.library.logger.error('Failed generate block within slot:', e);
+          return;
         }
-      } catch (e) {
-        this.library.logger.error('Failed generate block within slot:', e);
-        return;
-      }
     })();
   }
 
