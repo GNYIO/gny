@@ -86,14 +86,14 @@ export class SmartDB {
               'migrationsDir': 'packages/database-postgres/migration',
               'subscribersDir': 'packages/database-postgres/subscriber'
            },
-            cache: {
-              'type': 'redis',
-              'duration': 30000,
-              'options': {
-                'host': 'localhost',
-                'port': 6379
-              }
-           }
+        //     cache: {
+        //       'type': 'redis',
+        //       'duration': 30000,
+        //       'options': {
+        //         'host': 'localhost',
+        //         'port': 6379
+        //       }
+        //    }
         };
 
         this.connection = await createConnection(configOptions);
@@ -398,8 +398,8 @@ export class SmartDB {
         const id = this.createCacheId(table, condition);
 
         const connection = getConnection();
-        await connection.queryResultCache.remove([
-            id, 'count' + table, 'find' + table, 'findAll' + table]);
+        // await connection.queryResultCache.remove([
+        //     id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
 
     /**
@@ -429,8 +429,8 @@ export class SmartDB {
 
         // Clear the cache
         const id = this.createCacheId(table, data);
-        await connection.queryResultCache.remove([
-            id, 'count' + table, 'find' + table, 'findAll' + table]);
+        // await connection.queryResultCache.remove([
+        //     id, 'count' + table, 'find' + table, 'findAll' + table]);
 
         // logger.info('Created an item in table: ' + table);
 
@@ -451,8 +451,8 @@ export class SmartDB {
 
         // Clear the cache
         const id = this.createCacheId(table, condition);
-        await connection.queryResultCache.remove([
-            id, 'count' + table, 'find' + table, 'findAll' + table]);
+        // await connection.queryResultCache.remove([
+        //     id, 'count' + table, 'find' + table, 'findAll' + table]);
     }
 
     /**
@@ -468,8 +468,8 @@ export class SmartDB {
 
         // Clear the cache
         const id = this.createCacheId(table, condition);
-        await connection.queryResultCache.remove([
-            id, 'count' + table, 'find' + table, 'findAll' + table]);
+        // await connection.queryResultCache.remove([
+        //     id, 'count' + table, 'find' + table, 'findAll' + table]);
         logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
     }
 
@@ -500,8 +500,8 @@ export class SmartDB {
             // Clear the cache of transaction
             const connection = getConnection();
             const table = 'Transation';
-            await connection.queryResultCache.remove([
-                'count' + table, 'find' + table, 'findAll' + table]);
+            // await connection.queryResultCache.remove([
+            //     'count' + table, 'find' + table, 'findAll' + table]);
 
             // logger.info('Commit the contract');
         } finally {
@@ -559,7 +559,7 @@ export class SmartDB {
                 duration: 30000,
                 query: '',
             };
-            const cache = await connection.queryResultCache.getFromCache(QueryResultCacheOptions);
+            const cache = 0; // await connection.queryResultCache.getFromCache(QueryResultCacheOptions);
             if (cache) {
                 for (item of JSON.parse(cache.result)) {
                     if (this.inCacheResult(item, address)) {
