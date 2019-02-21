@@ -74,4 +74,14 @@ describe('p2p', () => {
     // should stop node with callback
     // should stop if on tcp-port is already in use from an http-server
     // should stop if tcp-port is already in use from other p2p-node
+  // broadcast
+    // node 1, 2, 3; nodes 1 -> 2; and 2 -> 3 are connected. If I broadcast a message from node 1; node 3 should get the message with the "from" field from node 1
+    // like the test before, only that node 2 and 3 should have the node 1 in their peerBook
+    // broadcasts shouldn't get "notified" if broadcasted from own server
+    // (normally) we only receive the "from" (simple string) from a broadcasted message; test that the message.peerInfo is correctly applied to the message
+    // node that broadcasted message should be in the peerInfo
+    // same broadcasted message should be "notified" just once
+  // bootstrap
+    // connect periodically to "bootstrap" node
+    // reconnect periodically to the "bootstrap" node, even if the bootstrap node is down for a few seconds
 });
