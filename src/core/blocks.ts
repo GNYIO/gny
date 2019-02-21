@@ -299,7 +299,9 @@ export default class Blocks {
 
 
   public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
+    console.log('increaseRoundData.............');
     await global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
+    console.log({modifier, roundNumber});
     await global.app.sdb.increase('Round', modifier, { round: roundNumber });
     return await global.app.sdb.load('Round', { round: roundNumber });
   }

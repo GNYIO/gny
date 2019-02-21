@@ -51,7 +51,7 @@ export class SmartDB {
 
         // Default config: ormconfig.json(near package.json)
         this.connection = await createConnection();
-        logger.info('Initialize smartdb');
+        logger.info('Initialized smartdb');
     }
 
     /**
@@ -256,7 +256,7 @@ export class SmartDB {
         await this.blockQueryRunner.connect();
         await this.blockQueryRunner.startTransaction();
         await this.blockQueryRunner.manager.save(Block, block);
-        logger.info('Begin a block');
+        logger.info('Began a block');
     }
 
     /**
@@ -266,7 +266,7 @@ export class SmartDB {
     public async commitBlock(): Promise<void> {
         try {
             await this.blockQueryRunner.commitTransaction();
-            logger.info('Commit the block');
+            logger.info('Commited the block');
         } finally {
             await this.blockQueryRunner.release();
         }
@@ -318,6 +318,10 @@ export class SmartDB {
             }
         });
 
+        if (table === 'Round') {
+            console.log({table, condition, result});
+        }
+
         return result[0];
     }
 
@@ -343,10 +347,13 @@ export class SmartDB {
             const cacheData: any = {};
             cacheData[key] = num;
             await this.update(table, cacheData, condition);
-            logger.info(table + '.' + key + ' is increased by ' + data[key]);
+            logger.info(table + '.' + key + ' was increased by ' + data[key]);
         }
 
         const id = this.createCacheId(table, condition);
+
+        console.log({id});
+
         const connection = getConnection();
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
@@ -360,6 +367,7 @@ export class SmartDB {
      */
     public async createOrLoad(table: string, data: any): Promise<boolean> {
         const exist = await this.exists(table, data);
+        console.log({exist});
         if (!exist) {
             await this.create(table, data);
         }
@@ -382,7 +390,7 @@ export class SmartDB {
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
 
-        logger.info('Create an item in table: ' + table);
+        logger.info('Created an item in table: ' + table);
 
         return result;
     }
@@ -535,7 +543,34 @@ export class SmartDB {
      * @return {string}
      */
     private createCacheId(table, condition: any) {
-        const id = table + '@' + Object.values(condition)[0];
+        let value: string;
+
+        if (table == 'Round') {
+            value = condition.round;
+        } else if (table == 'Account') {
+            value = condition.address;
+        } else if (table == 'Asset') {
+            value = this.getConditionValue(condition, ['name', 'issuerId']);
+        } else if (table == 'Balance') {
+            value = condition.address;
+        } else if (table == 'Delegate') {
+            value = this.getConditionValue(condition, ['username', 'address']);
+        } else if (table == 'Issuer') {
+            value = this.getConditionValue(condition, ['name', 'issuerId']);
+        } else if (table == 'Transaction') {
+            value = this.getConditionValue(condition, ['id', 'senderId']);
+        } else if (table == 'Transfer') {
+            value = condition.tid;
+        } else if (table == 'Variable') {
+            value = condition.key;
+        } else if (table == 'Vote') {
+            value = this.getConditionValue(condition, ['delegate', 'voterAddress']);
+        } else {
+            value = undefined;
+        }
+
+        const id = table + '@' + value;
+
         return id;
     }
 
@@ -552,6 +587,15 @@ export class SmartDB {
                 if (item[key] === address) {
                     return true;
                 }
+            }
+        }
+    }
+
+    private getConditionValue(condition, keys) {
+        let key: string;
+        for (key of keys) {
+            if (condition.hasOwnProperty(key)) {
+                return condition[key];
             }
         }
     }
