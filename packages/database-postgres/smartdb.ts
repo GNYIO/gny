@@ -305,17 +305,17 @@ export class SmartDB {
         await this.blockQueryRunner.connect();
         await this.blockQueryRunner.startTransaction();
         await this.blockQueryRunner.manager.save(Block, block);
-        logger.info('Began a block');
+        logger.info('Began a block height: ' + block.height);
     }
 
     /**
      * Commit the Block from the memory
      * @return {Promise<void>}
      */
-    public async commitBlock(): Promise<void> {
+    public async commitBlock(height): Promise<void> {
         try {
             await this.blockQueryRunner.commitTransaction();
-            logger.info('Commited the block');
+            logger.info('Commited the block height: ' + height);
         } finally {
             await this.blockQueryRunner.release();
         }
@@ -392,7 +392,7 @@ export class SmartDB {
             const cacheData: any = {};
             cacheData[key] = num;
             await this.update(table, cacheData, condition);
-            logger.info(table + '.' + key + ' was increased by ' + data[key]);
+            // logger.info(table + '.' + key + ' was increased by ' + data[key]);
         }
 
         const id = this.createCacheId(table, condition);
@@ -432,7 +432,7 @@ export class SmartDB {
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
 
-        logger.info('Created an item in table: ' + table);
+        // logger.info('Created an item in table: ' + table);
 
         return result;
     }
@@ -484,7 +484,7 @@ export class SmartDB {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         await queryRunner.manager.save(Transaction, transaction);
-        logger.info('Begin a contract');
+        // logger.info('Begin a contract');
         return queryRunner;
 }
 
@@ -503,7 +503,7 @@ export class SmartDB {
             await connection.queryResultCache.remove([
                 'count' + table, 'find' + table, 'findAll' + table]);
 
-            logger.info('Commit the contract');
+            // logger.info('Commit the contract');
         } finally {
             await queryRunner.release();
         }
@@ -516,7 +516,7 @@ export class SmartDB {
      */
     public async rollbackContract(queryRunner: any): Promise<void> {
         await queryRunner.rollbackTransaction();
-        logger.info('Rollback the contract');
+        // logger.info('Rollback the contract');
         await queryRunner.release();
     }
 
@@ -579,6 +579,8 @@ export class SmartDB {
         await this.connection.close();
         logger.info('Close smartdb');
     }
+
+    // Private methods
 
     /**
      * Create cache id

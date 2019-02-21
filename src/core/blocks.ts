@@ -262,7 +262,7 @@ export default class Blocks {
 
     try {
       await this.applyRound(block);
-      await global.app.sdb.commitBlock();
+      await global.app.sdb.commitBlock(block.height);
       await this.saveBlockTransactions(block);
       const trsCount = block.transactions.length;
       global.app.logger.info(`Block applied correctly with ${trsCount} transactions`);
