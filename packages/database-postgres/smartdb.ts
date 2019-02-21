@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Logger } from './logger';
-import { createConnection, Connection, getConnection, MoreThan } from 'typeorm';
+import { createConnection, Connection, getConnection, MoreThan, ConnectionOptions } from 'typeorm';
 
 import { Account } from './entity/Account';
 import { Asset } from './entity/Asset';
@@ -33,49 +33,7 @@ const ENTITY: any = {
     'Transfer': Transfer
 };
 
-// const configOptions = {
-//     type: 'postgres',
-//     host: 'localhost',
-//     port: 5432,
-//     username: 'postgres',
-//     password: '',
-//     database: 'gny_test',
-//     synchronize: true,
-//     dropSchema: true, // Only for debug and development.
-//     logging: false,
-//     entities: [
-//         Account,
-//         Asset,
-//         Balance,
-//         Block,
-//         Delegate,
-//         Issuer,
-//         Round,
-//         Transaction,
-//         Variable,
-//         Vote,
-//         Transfer,
-//     ],
-//     migrations: [
-//       'packages/database-postgres/migration/**/*.js'
-//    ],
-//     subscribers: [
-//       'packages/database-postgres/subscriber/**/*.js'
-//    ],
-//     cli: {
-//       'entitiesDir': 'packages/database-postgres/entity',
-//       'migrationsDir': 'packages/database-postgres/migration',
-//       'subscribersDir': 'packages/database-postgres/subscriber'
-//    },
-//     cache: {
-//       'type': 'redis',
-//       'duration': 30000,
-//       'options': {
-//         'host': 'localhost',
-//         'port': 6379
-//       }
-//    }
-// };
+
 
 const logger = new Logger().createlogger();
 
@@ -92,10 +50,56 @@ export class SmartDB {
      * @return {Promise<void>}
      */
     public async init(): Promise<void> {
-        // this.connection = await createConnection(configOptions);
+
+        // Config for database
+        const configOptions: ConnectionOptions = {
+            type: 'postgres',
+            host: 'localhost',
+            port: 5432,
+            username: 'postgres',
+            password: '',
+            database: 'gny_test',
+            synchronize: true,
+            dropSchema: true, // Only for debug and development.
+            logging: false,
+            entities: [
+                Account,
+                Asset,
+                Balance,
+                Block,
+                Delegate,
+                Issuer,
+                Round,
+                Transaction,
+                Variable,
+                Vote,
+                Transfer,
+            ],
+            migrations: [
+              'packages/database-postgres/migration/**/*.js'
+           ],
+            subscribers: [
+              'packages/database-postgres/subscriber/**/*.js'
+           ],
+            cli: {
+              'entitiesDir': 'packages/database-postgres/entity',
+              'migrationsDir': 'packages/database-postgres/migration',
+              'subscribersDir': 'packages/database-postgres/subscriber'
+           },
+            cache: {
+              'type': 'redis',
+              'duration': 30000,
+              'options': {
+                'host': 'localhost',
+                'port': 6379
+              }
+           }
+        };
+
+        this.connection = await createConnection(configOptions);
 
         // Default config: ormconfig.json(near package.json)
-        this.connection = await createConnection();
+        // this.connection = await createConnection();
         logger.info('Initialized smartdb');
     }
 
@@ -363,10 +367,6 @@ export class SmartDB {
             }
         });
 
-        if (table === 'Round') {
-            console.log({table, condition, result});
-        }
-
         return result[0];
     }
 
@@ -397,8 +397,6 @@ export class SmartDB {
 
         const id = this.createCacheId(table, condition);
 
-        console.log({id});
-
         const connection = getConnection();
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
@@ -412,7 +410,6 @@ export class SmartDB {
      */
     public async createOrLoad(table: string, data: any): Promise<boolean> {
         const exist = await this.exists(table, data);
-        console.log({exist});
         if (!exist) {
             await this.create(table, data);
         }
