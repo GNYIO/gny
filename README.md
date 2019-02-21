@@ -25,7 +25,7 @@ CEATEDB gny_test;
 
 - Edit database config file `ormconfig.json`
   - You could also modify this file to deploy your own database connection or edit `SmartDB.init()` with configOptions.
-  - For testing some nodes, you should use `configOptions` so that several database config can be established and you should first create the corresponding database such as `gny_test1`, `gny_test2`...
+  - For testing some nodes, you should use `configOptions` so that several database configs can be established and you should first create the corresponding database such as `gny_test1`, `gny_test2`...
 
 Run cache database on `Redis`, the default port is 6379.
 
