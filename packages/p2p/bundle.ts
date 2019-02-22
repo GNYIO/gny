@@ -53,13 +53,24 @@ export class Bundle extends libp2p {
     }
   }
 
-  startAsync () {
+  startAsync (): Promise<void> {
     return new Promise((resolve, reject) => {
       this.start((err) => {
         if (err) {
           reject(err);
         } else {
+          resolve();
+        }
+      });
+    });
+  }
 
+  stopAsync (): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.stop((err) => {
+        if (err) {
+          reject(err);
+        } else {
           resolve();
         }
       });
