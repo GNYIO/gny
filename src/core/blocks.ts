@@ -146,12 +146,12 @@ export default class Blocks {
       payloadHash.update(bytes);
     }
 
-    if (totalFee !== block.fees) {
+    if (Number(totalFee) !== Number(block.fees)) {
       throw new Error('Invalid total fees');
     }
 
     const expectedReward = this.blockreward.calculateReward(block.height);
-    if (expectedReward !== block.reward) {
+    if (expectedReward !== Number(block.reward)) {
       throw new Error('Invalid block reward');
     }
 
@@ -228,7 +228,11 @@ export default class Blocks {
 
       this.library.logger.debug('verify block ok');
       if (block.height !== 0) {
+        console.log('getblockid......');
+        const result = await global.app.sdb.exists('Block', {id: block.id});
+        console.log({result});
         const exists = (undefined !== await global.app.sdb.getBlockById(block.id));
+        console.log({exists});
         if (exists) throw new Error(`Block already exists: ${block.id}`);
       }
 
@@ -247,7 +251,8 @@ export default class Blocks {
         this.library.base.transaction.objectNormalize(transaction);
       }
       const idList = block.transactions.map(t => t.id);
-      if (await global.app.sdb.exists('Transaction', { id: In(idList) })) {
+
+      if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: In(idList) })) {
         throw new Error('Block contain already confirmed transaction');
       }
 
@@ -551,7 +556,7 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t);
           }
           this.modules.transactions.clearUnconfirmed();
-          await global.app.sdb.rollbackBlock();
+          // await global.app.sdb.rollbackBlock(); // why here want to rollback
           await this.processBlock(block, { votes, broadcast: true });
         } catch (e) {
           this.library.logger.error('Failed to process received block', e);
