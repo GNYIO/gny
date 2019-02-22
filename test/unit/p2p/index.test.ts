@@ -2,7 +2,10 @@ import { Peer2Peer } from '../../../packages/p2p/index';
 import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
 import { ILogger } from '../../../src/interfaces';
 
-async function createNewPeer2PeerNode (port: number = 0, bootstrapNode?: string) {
+
+const delay = (x: number): Promise<void> => new Promise((resolve) => setInterval(resolve, x));
+
+async function createNewPeer2PeerNode (port: number = 0, bootstrapNode?: string, bootstrapInterval?: number) {
   const logger: ILogger = {
     log: (x) => x,
     trace: (x) => x,
@@ -20,51 +23,63 @@ async function createNewPeer2PeerNode (port: number = 0, bootstrapNode?: string)
     logger,
     peerInfo,
     bootstrapNode,
+    bootstrapInterval,
   );
   return node;
 }
 
 describe('p2p', () => {
-  let node1;
-  let node2;
-  beforeEach(async (done) => {
-    node1 = await createNewPeer2PeerNode();
-    node2 = await createNewPeer2PeerNode();
 
+  it('after starting node with startAsync() it should be started', async (done) => {
+    const node1 = await createNewPeer2PeerNode();
+    await node1.startAsync();
+    expect(node1.bundle.isStarted()).toBeTruthy();
+    await node1.stopAsync();
     done();
   });
 
-  it('after starting node isStarted() should be true', async (done) => {
+  it('after stopping node with stopAsync() it should be stopped', async (done) => {
+    const node1 = await createNewPeer2PeerNode();
     await node1.startAsync();
-    expect(node1.isStarted()).toBeTruthy();
+    await node1.stopAsync();
+    expect(node1.bundle.isStarted()).toBeFalsy();
     done();
   });
 
   it.skip('starting two p2p-nodes on the same port results in a EADDRINUSE in use error', async (done) => {
-    node1 = await createNewPeer2PeerNode(6000);
-    try {
-      node2 = await createNewPeer2PeerNode(6000);
-    } catch (err) {
-      done();
-    }
-  });
-
-  it.only('node2 should dial to node1 on bootstrap', async (done) => {
-
-    node2 = await createNewPeer2PeerNode(undefined, node1.peerInfo);
+    const node1 = await createNewPeer2PeerNode(6000);
+    const node2 = await createNewPeer2PeerNode(6000);
 
     await node1.startAsync();
     await node2.startAsync();
-
-    console.log(JSON.stringify(node1.peer));
-
-    // TODO: add checks if the two are connected
-    done();
-
-    // TODO: REAd ----> https://medium.com/@mtiller/debugging-with-typescript-jest-ts-jest-and-visual-studio-code-ef9ca8644132
-
-    // thread: https://github.com/kulshekhar/ts-jest/issues/46
   });
+
+  it('node2 should dial to node1 on bootstrap', async (done) => {
+    const node1 = await createNewPeer2PeerNode(5010);
+    await node1.startAsync();
+
+    const BOOTSTRAP_INTERVAL = 2000; // ms
+    const node1_address = node1.peerInfo.multiaddrs.toArray()[0].toString();
+    const node2 = await createNewPeer2PeerNode(5011, node1_address, BOOTSTRAP_INTERVAL);
+    await node2.startAsync();
+
+    // wait for periodically bootstrap method to run at least one time
+    await delay(5000);
+
+    const info2 = node2.bundle.peerInfo;
+    const node1_know_about_node2 = node1.bundle.peerBook.has(info2);
+    expect(node1_know_about_node2).toBeTruthy();
+
+    const info1 = node1.bundle.peerInfo;
+    const node2_knows_about_node1 = node2.bundle.peerBook.has(info1);
+    expect(node2_knows_about_node1).toBeTruthy();
+
+    await node1.stopAsync();
+    await node2.stopAsync();
+    done();
+  }, 20000);
+
+
 
 
   // node creation

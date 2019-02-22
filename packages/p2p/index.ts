@@ -5,31 +5,30 @@ import { extractIpAndPort } from './util';
 import { P2PMessage, ILogger } from '../../src/interfaces';
 
 export class Peer2Peer {
-  private bundle: Bundle;
+  public bundle: Bundle;
+  public peerInfo: PeerInfo;
   private logger: ILogger;
-  private peerInfo = null;
-  private bootstrapNode: string;
 
-  constructor (logger: ILogger, peerInfo: any, bootstrapNode: string) {
-    this.logger = logger,
+  constructor (logger: ILogger, peerInfo: any, bootstrapNode: string, bootStrapInterval: number = 30000) {
+    this.logger = logger;
     this.peerInfo = peerInfo;
-    this.bootstrapNode = bootstrapNode;
-  }
 
-  public startAsync = async () => {
-    const peerInfo = this.peerInfo;
     const configuration = {
       peerInfo,
       config: {
         peerDiscovery: {
           bootstrap: {
-            list: this.bootstrapNode ? [ this.bootstrapNode ] : [],
+            list: bootstrapNode ? [ bootstrapNode ] : [],
+            interval: bootStrapInterval,
           },
         },
       },
     };
 
     this.bundle = new Bundle(configuration);
+  }
+
+  public startAsync = async () => {
 
     this.bundle.on('stop', this.stopped);
     this.bundle.on('error', this.errorOccurred);
@@ -38,6 +37,10 @@ export class Peer2Peer {
     this.bundle.on('peer:discovery', this.peerDiscovery);
     await this.bundle.startAsync();
     this.printOwnPeerInfo();
+  }
+
+  public stopAsync = async () => {
+    await this.bundle.stopAsync();
   }
 
   private printOwnPeerInfo = () => {
@@ -145,9 +148,13 @@ export class Peer2Peer {
   }
 
   private peerDiscovery = async (peer) => {
-    // do not spam log output: the bootstrap mechanism tries every 30s to connect to the bootstrap node(s)
+    // do not spam log output: the bootstrap mechanism tries every x seconds to connect to the bootstrap node(s)
     if (!this.bundle.peerBook.has(peer)) {
       this.logger.info(`[P2P] discovered peer: ${peer.id.toB58String()}`);
+    }
+    if (!this.bundle.isStarted()) {
+      this.logger.warn(`[P2P] own node not started, can not dial to peer: ${peer.id.toB58String()}`);
+      return;
     }
     try {
       // this action establishes a __Connection__ to the newly discovered peer
