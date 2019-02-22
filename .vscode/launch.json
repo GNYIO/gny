@@ -47,7 +47,7 @@
       "runtimeArgs": [
           "--nolazy"
       ],
-      "console": "internalConsole",
+      "console": "integratedTerminal",
       "env": {
           "NODE_ENV": "test"
       }

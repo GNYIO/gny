@@ -42,18 +42,7 @@ export class Bundle extends libp2p {
     super(finalConfig);
   }
 
-  getRandomPeer () {
-    const allPeers = this.peerBook.getAll();
-    if (allPeers) {
-      const arr = Object.values(allPeers);
-      const index = Math.floor(Math.random() * arr.length);
-      return arr[index];
-    } else {
-      return undefined;
-    }
-  }
-
-  startAsync (): Promise<void> {
+  startAsync () {
     return new Promise((resolve, reject) => {
       this.start((err) => {
         if (err) {

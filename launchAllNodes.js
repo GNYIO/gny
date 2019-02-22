@@ -29,14 +29,14 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
       console.log('starting boot node')
       await DELAY(10000);
     } else {
-      await DELAY(100);
+      await DELAY(1000);
       console.log(`starting node in: ${dir}`);
     }
 
     const proc = exec('node app.js', {
       cwd: dir,
      }, (err, stdout, stderr) => {
-       console.log(`${i} node started`);
+       console.log(`[${i}] node started; err: ${err}; stdout: ${stdout}; stderr: ${stderr}`);
 
      });
 

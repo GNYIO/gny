@@ -265,6 +265,8 @@ export interface P2PMessage {
   peerInfo: PeerNode;
 }
 
+export type P2PSubscribeHandler = (message: P2PMessage) => void;
+
 
 export interface BlockPropose {
   address: string;
