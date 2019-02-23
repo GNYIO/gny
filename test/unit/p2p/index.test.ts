@@ -230,22 +230,43 @@ describe('p2p', () => {
       await node1.stopAsync();
       done();
     }, 2000);
-  });
 
-  describe('dht', () => {
-    it.skip('discover peer via periodically DHT random walk', async (done) => {
+    it.skip('node that broadcasted message should be in the peerInfo', async (done) => {
       done();
     });
   });
-  // node creation
-    // should start node async
-    // should start node with callback
-    // should stop node async
-    // should stop node with callback
-    // should stop if on tcp-port is already in use from an http-server
-    // should stop if tcp-port is already in use from other p2p-node
-  // broadcast
-    // broadcasts shouldn't get "notified" if broadcasted from own server
-    // node that broadcasted message should be in the peerInfo
-    // same broadcasted message should be "notified" just once
+
+  describe('dht', () => {
+    // waiting for new js-libp2p-kad-dht release
+    it.skip('discover peer via periodically DHT random walk', async (done) => {
+      expect.assertions(3);
+
+      const BOOTSTRAP_INTERVAL = 1000;
+      // const RANDOM_WALK_INTERVAL = 1000;
+
+      const node1 = await createNewPeer2PeerNode(undefined, undefined, undefined/*, RANDOM_WALK_INTERVAL*/);
+      await node1.startAsync();
+
+      const bootstrap_for_node2 = getMultiAddr(node1.peerInfo);
+      const node2 = await createNewPeer2PeerNode(undefined, bootstrap_for_node2, BOOTSTRAP_INTERVAL/*, RANDOM_WALK_INTERVAL*/);
+      await node2.startAsync();
+
+      const bootstrap_for_node3 = getMultiAddr(node2.peerInfo);
+      const node3 = await createNewPeer2PeerNode(undefined, bootstrap_for_node3, BOOTSTRAP_INTERVAL/*, RANDOM_WALK_INTERVAL*/);
+      await node3.startAsync();
+
+      // wait for all nodes to connect to each other via DHT randomWalk
+      await delay(10000);
+
+      // check if all nodes are connected
+      expect(node1.peerBook.getAllArray().length).toEqual(2);
+      expect(node2.peerBook.getAllArray().length).toEqual(2);
+      expect(node3.peerBook.getAllArray().length).toEqual(2);
+
+      await node1.stopAsync();
+      await node2.stopAsync();
+      await node3.stopAsync();
+      done();
+    }, 15000);
+  });
 });
