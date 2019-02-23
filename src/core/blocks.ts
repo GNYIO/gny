@@ -228,11 +228,8 @@ export default class Blocks {
 
       this.library.logger.debug('verify block ok');
       if (block.height !== 0) {
-        console.log('getblockid......');
-        const result = await global.app.sdb.exists('Block', {id: block.id});
-        console.log({result});
-        const exists = (undefined !== await global.app.sdb.getBlockById(block.id));
-        console.log({exists});
+        const exists = await global.app.sdb.exists('Block', {id: block.id});
+        // const exists = (undefined !== await global.app.sdb.getBlockById(block.id));
         if (exists) throw new Error(`Block already exists: ${block.id}`);
       }
 
@@ -542,13 +539,13 @@ export default class Blocks {
   }
   this.blockCache[block.id] = true;
 
-  this.library.sequence.add((cb) => {
+  this.library.sequence.add( async (cb) => {
     if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
         ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
         ` slot: ${slots.getSlotNumber(block.timestamp)}`);
-      return (async () => {
+      return await (async () => {
         const pendingTrsMap = new Map();
         try {
           const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
@@ -556,7 +553,7 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t);
           }
           this.modules.transactions.clearUnconfirmed();
-          // await global.app.sdb.rollbackBlock(); // why here want to rollback
+          await global.app.sdb.rollbackBlock(this.lastBlock.height);
           await this.processBlock(block, { votes, broadcast: true });
         } catch (e) {
           this.library.logger.error('Failed to process received block', e);

@@ -329,13 +329,13 @@ export class SmartDB {
      * @return {Promise<void>}
      */
     public async rollbackBlock(height?: number): Promise<void> {
-        if (!height) {
+        if (height >= 0) {
+            await this.del('Block', { height: MoreThan(height)});
+            logger.info('Rollback to height:' + height);
+        } else {
             await this.blockQueryRunner.rollbackTransaction();
             await this.blockQueryRunner.release();
             logger.info('Rollback the block');
-        } else {
-            await this.del('Block', { height: MoreThan(height)});
-            logger.info('Rollback to height:' + height);
         }
     }
 
@@ -611,6 +611,8 @@ export class SmartDB {
             value = condition.key;
         } else if (table == 'Vote') {
             value = this.getConditionValue(condition, ['delegate', 'voterAddress']);
+        } else if (table == 'Block') {
+            value = condition.id;
         } else {
             value = undefined;
         }
