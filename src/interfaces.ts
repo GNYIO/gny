@@ -27,7 +27,7 @@ import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
 // IApp
-import { AschCore } from 'asch-smartdb';
+import { SmartDB } from '../packages/database-postgres/smartdb';
 import BalanceManager from './smartdb/balance-manager';
 import AutoIncrement from './smartdb/auto-increment';
 import * as bignumber from 'bignumber';
@@ -113,7 +113,7 @@ interface ICurrencyFee {
 }
 
 interface IApp {
-  sdb: AschCore.SmartDB;
+  sdb: SmartDB;
   balances: BalanceManager;
   autoID: AutoIncrement;
   events: EventEmitter;

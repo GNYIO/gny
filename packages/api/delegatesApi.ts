@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
 import BlockReward from '../../src/utils/block-reward';
+import { In } from 'typeorm';
 
 export default class DelegatesApi {
 
@@ -58,7 +59,7 @@ export default class DelegatesApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const count = global.app.sdb.getAll('Delegate').length;
+      const count = await global.app.sdb.getAll('Delegate')['length'];
       return res.json({ count });
     } catch (e) {
       this.library.logger.error('Error in counting delegates', e);
@@ -77,11 +78,11 @@ export default class DelegatesApi {
     }
 
     try {
-      const votes = await global.app.sdb.findAll('Vote', { condition: { delegate: query.username } });
+      const votes = await global.app.sdb.findAll('Vote', { delegate: query.username });
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = await global.app.sdb.findAll('Account', { condition: { address: { $in: addresses } } });
+      const accounts = await global.app.sdb.findAll('Account', { address: In(addresses) });
       const lastBlock = this.modules.blocks.getLastBlock();
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {
@@ -95,7 +96,7 @@ export default class DelegatesApi {
     }
   }
 
-  private getDelegate = (req: Request, res: Response, next: Next) => {
+  private getDelegate = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const publicKeyOrNameOrAddress = this.library.joi.object().keys({
       publicKey: this.library.joi.string().publicKey(),
@@ -107,7 +108,7 @@ export default class DelegatesApi {
       return next(report.error.message);
     }
 
-    const delegates = this.modules.delegates.getDelegates();
+    const delegates = await this.modules.delegates.getDelegates();
     if (!delegates) {
       return next('no delegates');
     }
@@ -132,7 +133,7 @@ export default class DelegatesApi {
     return next('Can not find delegate');
   }
 
-  private getDelegates = (req: Request, res: Response, next: Next) => {
+  private getDelegates = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const offset = Number(query.offset || 0);
     const limit = Number(query.limit || 10);
@@ -140,7 +141,7 @@ export default class DelegatesApi {
       return next('Invalid params');
     }
 
-    const delegates = this.modules.delegates.getDelegates();
+    const delegates: any = await this.modules.delegates.getDelegates();
     if (!delegates) return next('No delegates found');
     return res.json({
       totalCount: delegates.length,

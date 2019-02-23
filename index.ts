@@ -50,7 +50,7 @@ export default class Application {
       // console.log(result);
     }
 
-    process.once('cleanup', () => {
+    process.once('cleanup', async () => {
       scope.logger.info('Cleaning up...');
 
       try {
@@ -59,7 +59,7 @@ export default class Application {
             scope.modules[key].cleanup(cb);
           }
         }
-        global.app.sdb.close();
+        await global.app.sdb.close();
         scope.logger.info('Clean up successfully.');
       } catch (e) {
         scope.logger.error(`Error while cleaning up: ${e}`);

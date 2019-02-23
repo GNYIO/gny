@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import slots from '../utils/slots';
-import * as constants from '../utils/constants';
+// import * as constants from '../utils/constants';
 import * as addressHelper from '../utils/address';
 import feeCalculators from '../utils/calculate-fee';
 import { IScope, KeyPair } from '../interfaces';
@@ -172,7 +172,7 @@ export class Transaction {
     if (block.height !== 0) {
       if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
       sender.gny -= trs.fee;
-      global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });
+      await global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });
     }
 
     const error = await fn.apply(context, trs.args);

@@ -14,21 +14,21 @@ export default class BalanceManager {
     this.sdb = sdb;
   }
 
-  get(address, currency) {
-    const item = this.sdb.get('Balance', { address, currency });
+  async get(address, currency) {
+    const item = await this.sdb.get('Balance', { address, currency });
     const balance = item ? item.balance : '0';
     return global.app.util.bignumber(balance);
   }
 
-  increase(address, currency, amount) {
+  async increase(address, currency, amount) {
     if (global.app.util.bignumber(amount).eq(0)) return;
     const key = { address, currency };
-    let item = this.sdb.get('Balance', key);
+    let item = await this.sdb.get('Balance', key);
     if (item) {
       item.balance = global.app.util.bignumber(item.balance).plus(amount).toString(10);
-      global.app.sdb.update('Balance', { balance: item.balance }, key);
+      await global.app.sdb.update('Balance', { balance: item.balance }, key);
     } else {
-      item = this.sdb.create('Balance', {
+      item = await this.sdb.create('Balance', {
         address,
         currency,
         balance: amount,
@@ -37,12 +37,12 @@ export default class BalanceManager {
     }
   }
 
-  decrease(address, currency, amount) {
-    this.increase(address, currency, `-${amount}`);
+  async decrease(address, currency, amount) {
+    await this.increase(address, currency, `-${amount}`);
   }
 
-  transfer(currency, amount, from, to) {
-    this.decrease(from, currency, amount);
-    this.increase(to, currency, amount);
+  async transfer(currency, amount, from, to) {
+    await this.decrease(from, currency, amount);
+    await this.increase(to, currency, amount);
   }
 }

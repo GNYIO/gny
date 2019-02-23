@@ -3,6 +3,7 @@ import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../src/interfaces';
+import { In } from 'typeorm';
 
 export default class AccountsApi {
   private modules: Modules;
@@ -140,7 +141,7 @@ export default class AccountsApi {
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const condition = { address: req.params.address };
+    const condition: any = { address: req.params.address };
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }
@@ -158,7 +159,7 @@ export default class AccountsApi {
       if (uiaNameList && uiaNameList.length) {
         const assets = await global.app.sdb.findAll('Asset', {
           condition: {
-            name: { $in: uiaNameList },
+            name: In(uiaNameList),
           },
         });
         for (const a of assets) {
@@ -186,10 +187,10 @@ export default class AccountsApi {
       address: req.params.address,
       currency,
     };
-    const balance = await global.app.sdb.findOne('Balance', { condition });
+    const balance = await global.app.sdb.findOne('Balance', condition);
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = await global.app.sdb.findOne('Asset', { condition: { name: balance.currency } });
+      balance.asset = await global.app.sdb.findOne('Asset', { name: balance.currency });
     }
 
     return res.json({ balance });
@@ -209,7 +210,7 @@ export default class AccountsApi {
     try {
       let addr;
       if (query.username) {
-        const account = await global.app.sdb.load('Account', { username: query.username });
+        const account: any = await global.app.sdb.load('Account', { username: query.username });
         if (!account) {
           return next('Account not found');
         }
@@ -217,7 +218,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: addr } });
+      const votes = await global.app.sdb.findAll('Vote', { voterAddress: addr });
       if (!votes || !votes.length) {
         return res.json({ delegates: [] });
       }
@@ -225,7 +226,7 @@ export default class AccountsApi {
       for (const v of votes) {
         delegateNames.add(v.delegate);
       }
-      const delegates = this.modules.delegates.getDelegates();
+      const delegates: any = this.modules.delegates.getDelegates();
       if (!delegates || !delegates.length) {
         return res.json({ delegates: [] });
       }

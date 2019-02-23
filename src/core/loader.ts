@@ -41,7 +41,7 @@ export default class Loader {
 
     this.library.logger.info(`Found common block ${commonBlock.id} (at ${commonBlock.height}) with peer ${peerStr}, last block height is ${lastBlock.height}`);
 
-    const toRemove = lastBlock.height - commonBlock.height;
+    const toRemove = Number(lastBlock.height) - commonBlock.height;
 
     if (toRemove >= 5) {
       this.library.logger.error(`long fork with peer ${peerStr}`);
@@ -53,8 +53,8 @@ export default class Loader {
         this.modules.transactions.clearUnconfirmed();
         if (toRemove > 0) {
           await global.app.sdb.rollbackBlock(commonBlock.height);
-          this.modules.blocks.setLastBlock(global.app.sdb.lastBlock);
-          this.library.logger.debug('set new last block', global.app.sdb.lastBlock);
+          this.modules.blocks.setLastBlock(await global.app.sdb.getLastBlock());
+          this.library.logger.debug('set new last block', global.app.sdb.getLastBlock());
         } else {
           await global.app.sdb.rollbackBlock();
         }
@@ -171,11 +171,12 @@ export default class Loader {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add((cb) => {
+    this.library.sequence.add(async (cb) => {
       this.library.logger.debug('startSyncBlocks enter sequence');
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
-      this.loadBlocks(lastBlock, (err) => {
+
+      await this.loadBlocks(lastBlock, (err) => {
         if (err) {
           this.library.logger.error('loadBlocks error:', err);
         }
@@ -193,12 +194,12 @@ export default class Loader {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add((cb) => {
+    this.library.sequence.add( async (cb) => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
       this.modules.transactions.clearUnconfirmed();
-      global.app.sdb.rollbackBlock().then(() => {
+      await global.app.sdb.rollbackBlock().then(() => {
         this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err);

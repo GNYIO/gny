@@ -44,7 +44,7 @@ export default class Transactions {
     (async () => {
       try {
         const count = await global.app.sdb.count('Transaction', condition);
-        let transactions = await global.app.sdb.find('Transaction', condition, { limit, offset });
+        let transactions = await global.app.sdb.find('Transaction', condition, { limit: limit, offset: offset });
         if (!transactions) transactions = [];
         return cb(null, { transactions, count });
       } catch (e) {
@@ -59,7 +59,7 @@ export default class Transactions {
       try {
         if (!req.params || !req.params.id) return cb('Invalid transaction id');
         const id = req.params.id;
-        const trs = await global.app.sdb.find('Transaction', { id });
+        const trs = await global.app.sdb.find('Transaction', { 'id': id });
         if (!trs || !trs.length) return cb('Transaction not found');
         return cb(null, { transaction: trs[0] });
       } catch (e) {
@@ -141,7 +141,7 @@ export default class Transactions {
   applyUnconfirmedTransactionAsync = async (transaction) => {
     this.library.logger.debug('apply unconfirmed trs', transaction);
 
-    const height = this.modules.blocks.getLastBlock().height;
+    const height = await this.modules.blocks.getLastBlock().height;
     const block = {
       height: height + 1,
     };
@@ -156,10 +156,10 @@ export default class Transactions {
     }
 
 
-    let sender = await global.app.sdb.load('Account', senderId);
+    let sender = await global.app.sdb.load('Account', {address: senderId});
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found');
-      sender = global.app.sdb.create('Account', {
+      sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
         gny: 0,
@@ -176,12 +176,14 @@ export default class Transactions {
       if (error) throw new Error(error);
     }
 
+    let queryRunner = undefined;
     try {
-      global.app.sdb.beginContract();
+      queryRunner = await global.app.sdb.beginContract(transaction);
+      // await global.app.sdb.beginContract();
       await this.library.base.transaction.apply(context);
-      global.app.sdb.commitContract();
+      await global.app.sdb.commitContract(queryRunner);
     } catch (e) {
-      global.app.sdb.rollbackContract();
+      await global.app.sdb.rollbackContract(queryRunner);
       this.library.logger.error(e);
       throw e;
     }

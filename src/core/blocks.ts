@@ -6,6 +6,7 @@ import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
 import { Modules, IScope, KeyPair, IGenesisBlock, ISimpleCache, PeerNode, ProcessBlockOptions, BlockPropose } from '../interfaces';
+import { In } from 'typeorm';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -145,12 +146,12 @@ export default class Blocks {
       payloadHash.update(bytes);
     }
 
-    if (totalFee !== block.fees) {
+    if (Number(totalFee) !== Number(block.fees)) {
       throw new Error('Invalid total fees');
     }
 
     const expectedReward = this.blockreward.calculateReward(block.height);
-    if (expectedReward !== block.reward) {
+    if (expectedReward !== Number(block.reward)) {
       throw new Error('Invalid block reward');
     }
 
@@ -171,7 +172,7 @@ export default class Blocks {
 
   public verifyBlockVotes = async (block: any, votes: any) => {
     // is this working??
-    const delegateList = this.modules.delegates.generateDelegateList(block.height);
+    const delegateList = await this.modules.delegates.generateDelegateList(block.height);
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
       if (!publicKeySet.has(item.publicKey.toString('hex'))) {
@@ -210,59 +211,65 @@ export default class Blocks {
     this.library.logger.info(`processBlock, options: ${Object.keys(options)}`);
 
     let block = b;
-    global.app.sdb.beginBlock(block);
+    await global.app.sdb.beginBlock(block);
 
-    if (!block.transactions) block.transactions = [];
-    if (!options.local) {
-      try {
-        block = this.library.base.block.objectNormalize(block);
-      } catch (e) {
-        this.library.logger.error(`Failed to normalize block: ${e}`, block);
-        throw e;
-      }
-
-      // TODO sort transactions
-      // block.transactions = library.base.block.sortTransactions(block)
-      await this.verifyBlock(block, options);
-
-      this.library.logger.debug('verify block ok');
-      if (block.height !== 0) {
-        const exists = (undefined !== await global.app.sdb.getBlockById(block.id));
-        if (exists) throw new Error(`Block already exists: ${block.id}`);
-      }
-
-      if (block.height !== 0) {
+    try {
+      if (!block.transactions) block.transactions = [];
+      if (!options.local) {
         try {
-          this.modules.delegates.validateBlockSlot(block);
+          block = this.library.base.block.objectNormalize(block);
         } catch (e) {
-          this.library.logger.error(e);
-          throw new Error(`Can't verify slot: ${e}`);
+          this.library.logger.error(`Failed to normalize block: ${e}`, block);
+          throw e;
         }
-        this.library.logger.debug('verify block slot ok');
-      }
 
-      // TODO use bloomfilter
-      for (const transaction of block.transactions) {
-        this.library.base.transaction.objectNormalize(transaction);
-      }
-      const idList = block.transactions.map(t => t.id);
-      if (await global.app.sdb.exists('Transaction', { id: { $in: idList } })) {
-        throw new Error('Block contain already confirmed transaction');
-      }
+        // TODO sort transactions
+        // block.transactions = library.base.block.sortTransactions(block)
+        await this.verifyBlock(block, options);
 
-      global.app.logger.trace('before applyBlock');
-      try {
-        await this.applyBlock(block);
-      } catch (e) {
-        global.app.logger.error(`Failed to apply block: ${e}`);
-        throw e;
+        this.library.logger.debug('verify block ok');
+        if (block.height !== 0) {
+          const exists = await global.app.sdb.exists('Block', {id: block.id});
+          if (exists) throw new Error(`Block already exists: ${block.id}`);
+        }
+
+        if (block.height !== 0) {
+          try {
+            await this.modules.delegates.validateBlockSlot(block);
+          } catch (e) {
+            this.library.logger.error(e);
+            throw new Error(`Can't verify slot: ${e}`);
+          }
+          this.library.logger.debug('verify block slot ok');
+        }
+
+        // TODO use bloomfilter
+        for (const transaction of block.transactions) {
+          this.library.base.transaction.objectNormalize(transaction);
+        }
+        const idList = block.transactions.map(t => t.id);
+
+        if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: In(idList) })) {
+          throw new Error('Block contain already confirmed transaction');
+        }
+
+        global.app.logger.trace('before applyBlock');
+        try {
+          await this.applyBlock(block);
+        } catch (e) {
+          global.app.logger.error(`Failed to apply block: ${e}`);
+          throw e;
+        }
       }
+    } catch (e) {
+      await global.app.sdb.rollbackBlock();
+      throw e;
     }
 
     try {
-      this.saveBlockTransactions(block);
       await this.applyRound(block);
-      await global.app.sdb.commitBlock();
+      await global.app.sdb.commitBlock(block.height);
+      await this.saveBlockTransactions(block);
       const trsCount = block.transactions.length;
       global.app.logger.info(`Block applied correctly with ${trsCount} transactions`);
       this.setLastBlock(block);
@@ -286,29 +293,31 @@ export default class Blocks {
     }
   }
 
-  public saveBlockTransactions = (block: any) => {
+  public saveBlockTransactions = async (block: any) => {
     global.app.logger.trace('Blocks#saveBlockTransactions height', block.height);
     for (const trs of block.transactions) {
       trs.height = block.height;
-      global.app.sdb.create('Transaction', trs);
+      // trs.block = block;
+      await global.app.sdb.create('Transaction', trs);
     }
     global.app.logger.trace('Blocks#save transactions');
   }
 
 
-  public increaseRoundData = (modifier, roundNumber) => {
-    global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
-    return global.app.sdb.increase('Round', modifier, { round: roundNumber });
+  public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
+    await global.app.sdb.createOrLoad('Round', { fee: 0, reward: 0, round: roundNumber });
+    await global.app.sdb.increase('Round', modifier, { round: roundNumber });
+    return await global.app.sdb.load('Round', { round: roundNumber });
   }
 
   public applyRound = async (block: any) => {
     if (block.height === 0) {
-      this.modules.delegates.updateBookkeeper();
+      await this.modules.delegates.updateBookkeeper();
       return;
     }
 
     let address = addressHelper.generateAddress(block.delegate);
-    global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address });
+    await global.app.sdb.increase('Delegate', { producedBlocks: 1 }, { address });
 
     let transFee = 0;
     for (const t of block.transactions) {
@@ -318,13 +327,13 @@ export default class Blocks {
     }
 
     const roundNumber = this.modules.round.calculateRound(block.height);
-    const { fee, reward } = this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
+    const { fee, reward } = await this.increaseRoundData({ fee: transFee, reward: block.reward }, roundNumber);
 
     if (block.height % 101 !== 0) return;
 
     global.app.logger.debug(`----------------------on round ${roundNumber} end-----------------------`);
 
-    const delegates = this.modules.delegates.generateDelegateList(block.height);
+    const delegates = await this.modules.delegates.generateDelegateList(block.height);
     if (!delegates) {
       throw new Error('no delegates');
     }
@@ -334,16 +343,16 @@ export default class Blocks {
     const forgedDelegates = [...forgedBlocks.map(b => b.delegate), block.delegate];
 
     const missedDelegates = delegates.filter(fd => !forgedDelegates.includes(fd));
-    missedDelegates.forEach((md) => {
+    missedDelegates.forEach(async (md) => {
       address = addressHelper.generateAddress(md);
-      global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
+      await global.app.sdb.increase('Delegate', { missedBlocks: 1 }, { address });
     });
 
     async function updateDelegate(pk, fee, reward) {
       address = addressHelper.generateAddress(pk);
-      global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address });
+      await global.app.sdb.increase('Delegate', { fees: fee, rewards: reward }, { address });
       // TODO should account be all cached?
-      global.app.sdb.increase('Account', { gny: fee + reward }, { address });
+      await global.app.sdb.increase('Account', { gny: fee + reward }, { address });
     }
 
     const ratio = 1;
@@ -364,7 +373,7 @@ export default class Blocks {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (block.height % 101 === 0) {
-      this.modules.delegates.updateBookkeeper();
+      await this.modules.delegates.updateBookkeeper();
     }
   }
 
@@ -469,8 +478,8 @@ export default class Blocks {
       payloadHash.update(bytes);
       payloadLength += bytes.length;
     }
-    const height = this.lastBlock.height + 1;
-    const block = {
+    const height = Number(this.lastBlock.height) + 1;
+    const block: any = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
       height,
@@ -534,13 +543,13 @@ export default class Blocks {
   }
   this.blockCache[block.id] = true;
 
-  this.library.sequence.add((cb) => {
-    if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
+  this.library.sequence.add( async (cb) => {
+    if (block.prevBlockId === this.lastBlock.id && Number(this.lastBlock.height) + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
         ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
         ` slot: ${slots.getSlotNumber(block.timestamp)}`);
-      return (async () => {
+      return await (async () => {
         const pendingTrsMap = new Map();
         try {
           const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
@@ -548,7 +557,7 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t);
           }
           this.modules.transactions.clearUnconfirmed();
-          await global.app.sdb.rollbackBlock();
+          await global.app.sdb.rollbackBlock(this.lastBlock.height);
           await this.processBlock(block, { votes, broadcast: true });
         } catch (e) {
           this.library.logger.error('Failed to process received block', e);
@@ -566,15 +575,15 @@ export default class Blocks {
         }
       })();
     } if (block.prevBlockId !== this.lastBlock.id
-      && this.lastBlock.height + 1 === block.height) {
+      && Number(this.lastBlock.height) + 1 === block.height) {
       this.modules.delegates.fork(block, 1);
       return cb('Fork');
     } if (block.prevBlockId === this.lastBlock.prevBlockId
-      && block.height === this.lastBlock.height
+      && block.height === Number(this.lastBlock.height)
       && block.id !== this.lastBlock.id) {
       this.modules.delegates.fork(block, 5);
       return cb('Fork');
-    } if (block.height > this.lastBlock.height + 1) {
+    } if (block.height > Number(this.lastBlock.height) + 1) {
       this.library.logger.info(`receive discontinuous block height ${block.height}`);
       this.modules.loader.startSyncBlocks();
       return cb();
@@ -599,9 +608,9 @@ public onReceivePropose = (propose: BlockPropose) => {
         this.library.logger.warn(`generate different block with the same height, generator: ${propose.generatorPublicKey}`);
       return setImmediate(cb);
     }
-    if (propose.height !== this.lastBlock.height + 1) {
+    if (propose.height !== Number(this.lastBlock.height) + 1) {
       this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
-      if (propose.height > this.lastBlock.height + 1) {
+      if (propose.height > Number(this.lastBlock.height) + 1) {
         this.library.logger.info(`receive discontinuous propose height ${propose.height}`);
         this.modules.loader.startSyncBlocks();
       }
@@ -613,15 +622,15 @@ public onReceivePropose = (propose: BlockPropose) => {
     }
     this.library.logger.info(`receive propose height ${propose.height} bid ${propose.id}`);
     return async.waterfall([
-      (next) => {
+      async (next) => {
         try {
-          this.modules.delegates.validateProposeSlot(propose);
+          await this.modules.delegates.validateProposeSlot(propose);
           next();
         } catch (err) {
           next(err.toString());
         }
       },
-      (next) => {
+      async (next) => {
         try {
         const result = this.library.base.consensus.acceptPropose(propose);
         next();
@@ -629,8 +638,8 @@ public onReceivePropose = (propose: BlockPropose) => {
           next(err);
         }
       },
-      (next) => {
-        const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(propose.height);
+      async (next) => {
+        const activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(propose.height);
         next(undefined, activeKeypairs);
       },
       async (activeKeypairs: KeyPair[], next: any) => {
@@ -713,7 +722,7 @@ public isHealthy = () => {
 
     return (async () => {
       try {
-        const count = global.app.sdb.blocksCount;
+        const count = await global.app.sdb.blocksCount();
         global.app.logger.info('Blocks found:', count);
         if (!count) {
           this.setLastBlock({ height: -1 });
