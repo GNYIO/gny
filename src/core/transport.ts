@@ -106,10 +106,10 @@ export default class Transport {
     const prevBlockId = body.prevBlockId;
     const peer = message.peerInfo;
 
-    if (height !== lastBlock.height + 1 || prevBlockId !== lastBlock.id) {
-      this.library.logger.warn('New block donnot match with last block', body);
+    if (height !== Number(lastBlock.height) + 1 || prevBlockId !== lastBlock.id) {
+      this.library.logger.warn('New block does not match with last block', body);
       this.library.logger.warn(`lastBlock: ${JSON.stringify(lastBlock, null, 2)}`);
-      if (height > lastBlock.height + 5) {
+      if (height > Number(lastBlock.height) + 5) {
         this.library.logger.warn('Receive new block header from long fork');
       } else {
         this.modules.loader.syncBlocksFromPeer(peer);

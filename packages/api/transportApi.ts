@@ -131,7 +131,7 @@ export default class TransportApi {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
 
-      const minHeight = lastBlock.height + 1;
+      const minHeight = Number(lastBlock.height) + 1;
       const maxHeight = (minHeight + blocksLimit) - 1;
       const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true);
       return res.json({ blocks });

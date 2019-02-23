@@ -213,52 +213,57 @@ export default class Blocks {
     let block = b;
     await global.app.sdb.beginBlock(block);
 
-    if (!block.transactions) block.transactions = [];
-    if (!options.local) {
-      try {
-        block = this.library.base.block.objectNormalize(block);
-      } catch (e) {
-        this.library.logger.error(`Failed to normalize block: ${e}`, block);
-        throw e;
-      }
-
-      // TODO sort transactions
-      // block.transactions = library.base.block.sortTransactions(block)
-      await this.verifyBlock(block, options);
-
-      this.library.logger.debug('verify block ok');
-      if (block.height !== 0) {
-        const exists = await global.app.sdb.exists('Block', {id: block.id});
-        if (exists) throw new Error(`Block already exists: ${block.id}`);
-      }
-
-      if (block.height !== 0) {
+    try {
+      if (!block.transactions) block.transactions = [];
+      if (!options.local) {
         try {
-          await this.modules.delegates.validateBlockSlot(block);
+          block = this.library.base.block.objectNormalize(block);
         } catch (e) {
-          this.library.logger.error(e);
-          throw new Error(`Can't verify slot: ${e}`);
+          this.library.logger.error(`Failed to normalize block: ${e}`, block);
+          throw e;
         }
-        this.library.logger.debug('verify block slot ok');
-      }
 
-      // TODO use bloomfilter
-      for (const transaction of block.transactions) {
-        this.library.base.transaction.objectNormalize(transaction);
-      }
-      const idList = block.transactions.map(t => t.id);
+        // TODO sort transactions
+        // block.transactions = library.base.block.sortTransactions(block)
+        await this.verifyBlock(block, options);
 
-      if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: In(idList) })) {
-        throw new Error('Block contain already confirmed transaction');
-      }
+        this.library.logger.debug('verify block ok');
+        if (block.height !== 0) {
+          const exists = await global.app.sdb.exists('Block', {id: block.id});
+          if (exists) throw new Error(`Block already exists: ${block.id}`);
+        }
 
-      global.app.logger.trace('before applyBlock');
-      try {
-        await this.applyBlock(block);
-      } catch (e) {
-        global.app.logger.error(`Failed to apply block: ${e}`);
-        throw e;
+        if (block.height !== 0) {
+          try {
+            await this.modules.delegates.validateBlockSlot(block);
+          } catch (e) {
+            this.library.logger.error(e);
+            throw new Error(`Can't verify slot: ${e}`);
+          }
+          this.library.logger.debug('verify block slot ok');
+        }
+
+        // TODO use bloomfilter
+        for (const transaction of block.transactions) {
+          this.library.base.transaction.objectNormalize(transaction);
+        }
+        const idList = block.transactions.map(t => t.id);
+
+        if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: In(idList) })) {
+          throw new Error('Block contain already confirmed transaction');
+        }
+
+        global.app.logger.trace('before applyBlock');
+        try {
+          await this.applyBlock(block);
+        } catch (e) {
+          global.app.logger.error(`Failed to apply block: ${e}`);
+          throw e;
+        }
       }
+    } catch (e) {
+      await global.app.sdb.rollbackBlock();
+      throw e;
     }
 
     try {
@@ -473,7 +478,7 @@ export default class Blocks {
       payloadHash.update(bytes);
       payloadLength += bytes.length;
     }
-    const height = this.lastBlock.height + 1;
+    const height = Number(this.lastBlock.height) + 1;
     const block: any = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
@@ -539,7 +544,7 @@ export default class Blocks {
   this.blockCache[block.id] = true;
 
   this.library.sequence.add( async (cb) => {
-    if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
+    if (block.prevBlockId === this.lastBlock.id && Number(this.lastBlock.height) + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
         ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
@@ -570,15 +575,15 @@ export default class Blocks {
         }
       })();
     } if (block.prevBlockId !== this.lastBlock.id
-      && this.lastBlock.height + 1 === block.height) {
+      && Number(this.lastBlock.height) + 1 === block.height) {
       this.modules.delegates.fork(block, 1);
       return cb('Fork');
     } if (block.prevBlockId === this.lastBlock.prevBlockId
-      && block.height === this.lastBlock.height
+      && block.height === Number(this.lastBlock.height)
       && block.id !== this.lastBlock.id) {
       this.modules.delegates.fork(block, 5);
       return cb('Fork');
-    } if (block.height > this.lastBlock.height + 1) {
+    } if (block.height > Number(this.lastBlock.height) + 1) {
       this.library.logger.info(`receive discontinuous block height ${block.height}`);
       this.modules.loader.startSyncBlocks();
       return cb();
@@ -603,9 +608,15 @@ public onReceivePropose = (propose: BlockPropose) => {
         this.library.logger.warn(`generate different block with the same height, generator: ${propose.generatorPublicKey}`);
       return setImmediate(cb);
     }
-    if (propose.height !== this.lastBlock.height + 1) {
+    console.log(propose.height);
+    console.log(this.lastBlock.height);
+
+    console.log(typeof propose.height);
+    console.log(typeof this.lastBlock.height);
+
+    if (propose.height !== Number(this.lastBlock.height) + 1) {
       this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
-      if (propose.height > this.lastBlock.height + 1) {
+      if (propose.height > Number(this.lastBlock.height) + 1) {
         this.library.logger.info(`receive discontinuous propose height ${propose.height}`);
         this.modules.loader.startSyncBlocks();
       }
@@ -625,7 +636,7 @@ public onReceivePropose = (propose: BlockPropose) => {
           next(err.toString());
         }
       },
-      (next) => {
+      async (next) => {
         try {
         const result = this.library.base.consensus.acceptPropose(propose);
         next();

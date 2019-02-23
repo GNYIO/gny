@@ -41,7 +41,7 @@ export default class Loader {
 
     this.library.logger.info(`Found common block ${commonBlock.id} (at ${commonBlock.height}) with peer ${peerStr}, last block height is ${lastBlock.height}`);
 
-    const toRemove = lastBlock.height - commonBlock.height;
+    const toRemove = Number(lastBlock.height) - commonBlock.height;
 
     if (toRemove >= 5) {
       this.library.logger.error(`long fork with peer ${peerStr}`);

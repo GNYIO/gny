@@ -102,7 +102,7 @@ export default class Delegates {
       return;
     }
 
-    const currentBlockData = await this.getBlockSlotData(currentSlot, lastBlock.height + 1);
+    const currentBlockData = await this.getBlockSlotData(currentSlot, Number(lastBlock.height) + 1);
     if (!currentBlockData) {
       this.library.logger.trace('Loop:', 'skipping slot');
       return;

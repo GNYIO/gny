@@ -472,7 +472,7 @@ export class SmartDB {
         const id = this.createCacheId(table, condition);
         await connection.queryResultCache.remove([
             id, 'count' + table, 'find' + table, 'findAll' + table]);
-        logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
+        // logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
     }
 
     /**
