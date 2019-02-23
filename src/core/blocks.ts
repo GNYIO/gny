@@ -608,12 +608,6 @@ public onReceivePropose = (propose: BlockPropose) => {
         this.library.logger.warn(`generate different block with the same height, generator: ${propose.generatorPublicKey}`);
       return setImmediate(cb);
     }
-    console.log(propose.height);
-    console.log(this.lastBlock.height);
-
-    console.log(typeof propose.height);
-    console.log(typeof this.lastBlock.height);
-
     if (propose.height !== Number(this.lastBlock.height) + 1) {
       this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
       if (propose.height > Number(this.lastBlock.height) + 1) {
