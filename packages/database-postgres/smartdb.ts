@@ -51,52 +51,7 @@ export class SmartDB {
      */
     public async init(): Promise<void> {
 
-        // Config for database
-        const configOptions: ConnectionOptions = {
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: '',
-            database: 'gny_test',
-            synchronize: true,
-            dropSchema: true, // Only for debug and development.
-            logging: false,
-            entities: [
-                Account,
-                Asset,
-                Balance,
-                Block,
-                Delegate,
-                Issuer,
-                Round,
-                Transaction,
-                Variable,
-                Vote,
-                Transfer,
-            ],
-            migrations: [
-              'packages/database-postgres/migration/**/*.js'
-           ],
-            subscribers: [
-              'packages/database-postgres/subscriber/**/*.js'
-           ],
-            cli: {
-              'entitiesDir': 'packages/database-postgres/entity',
-              'migrationsDir': 'packages/database-postgres/migration',
-              'subscribersDir': 'packages/database-postgres/subscriber'
-           },
-            cache: {
-              'type': 'redis',
-              'duration': 30000,
-              'options': {
-                'host': 'localhost',
-                'port': 6379
-              }
-           }
-        };
-
-        this.connection = await createConnection(configOptions);
+        this.connection = await createConnection();
 
         // Default config: ormconfig.json(near package.json)
         // this.connection = await createConnection();
