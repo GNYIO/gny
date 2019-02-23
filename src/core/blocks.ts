@@ -229,7 +229,6 @@ export default class Blocks {
       this.library.logger.debug('verify block ok');
       if (block.height !== 0) {
         const exists = await global.app.sdb.exists('Block', {id: block.id});
-        // const exists = (undefined !== await global.app.sdb.getBlockById(block.id));
         if (exists) throw new Error(`Block already exists: ${block.id}`);
       }
 
