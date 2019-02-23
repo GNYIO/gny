@@ -58,6 +58,7 @@ Example create `10` nodes:
 ```bash
 node createSecondNode.js 10
 ```
+- Before launching the nodes, you need to create corresponding databases(PostgreSQL) and cache databases(Redis) and modify the configOptions in `dist*/packages/database-postgres/smartdb.ts`.
 
 After we have created the nodes launch them:
 
