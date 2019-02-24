@@ -1,5 +1,5 @@
 import * as shell from 'shelljs';
-import * as PeerId from 'peer-id';
+import * as PeerInfo from 'peer-info';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -14,9 +14,8 @@ shell.cp('docker-compose.yml', 'dist');
 shell.mkdir('-p', 'dist/data/blocks');
 shell.mkdir('-p', 'dist/logs');
 
-PeerId.create({}, (err, id) => {
-  if (err) { throw err; }
-  const jsonId = JSON.stringify(id.toJSON(), null, 2);
+PeerInfo.create((err, peerInfo) => {
+  const jsonId = JSON.stringify(peerInfo.id.toJSON());
   fs.writeFile('./dist/p2p_key.json', jsonId, (err) => {
     if (err) { throw err; }
   });

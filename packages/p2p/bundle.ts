@@ -1,6 +1,6 @@
 
 const TCP = require('libp2p-tcp');
-const libp2p = require('libp2p');
+import * as libp2p from 'libp2p';
 const DHT = require('libp2p-kad-dht');
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -42,26 +42,24 @@ export class Bundle extends libp2p {
     super(finalConfig);
   }
 
-  getRandomPeer () {
-    const allPeers = this.peerBook.getAll();
-    if (allPeers) {
-      const arr = Object.values(allPeers);
-      const index = Math.floor(Math.random() * arr.length);
-      return arr[index];
-    } else {
-      return undefined;
-    }
-  }
-
   startAsync () {
     return new Promise((resolve, reject) => {
       this.start((err) => {
         if (err) {
           reject(err);
         } else {
-          let addresses = '';
-          this.peerInfo.multiaddrs.forEach((adr) => addresses += `\t${adr.toString()}\n`);
-          global.app.logger.info(`\n[P2P] started node: ${this.peerInfo.id.toB58String()}\n${addresses}`);
+          resolve();
+        }
+      });
+    });
+  }
+
+  stopAsync (): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.stop((err) => {
+        if (err) {
+          reject(err);
+        } else {
           resolve();
         }
       });
@@ -70,9 +68,9 @@ export class Bundle extends libp2p {
 
   dialAsync(peer) {
     return new Promise((resolve, reject) => {
-      this.dial(peer, (err, connection) => {
+      this.dial(peer, (err) => {
         if (err) reject(err);
-        else resolve(connection);
+        else resolve();
       });
     });
   }

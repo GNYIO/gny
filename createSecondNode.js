@@ -88,7 +88,7 @@ if (!isRoot()) {
 
 
 
-  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.peerPort}/ipfs/${firstKey.id}`;
+  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.port + 1}/ipfs/${firstKey.id}`;
 
   const INTIAL_SECRETS = firstConfig.forging.secret;
   const count = INTIAL_SECRETS.length;
@@ -98,7 +98,6 @@ if (!isRoot()) {
 
     const nthConfig = _.cloneDeep(firstConfig);
     nthConfig.port += (i * 2);
-    nthConfig.peerPort += (i * 2);
 
     const from = i * onePart;
     let to = (i + 1) * onePart;

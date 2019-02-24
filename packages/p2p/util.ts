@@ -12,7 +12,7 @@ export function extractIpAndPort(peerInfo): PeerNode {
       const y = multi.nodeAddress();
       result = {
         host: y.address,
-        port: y.port,
+        port: Number(y.port),
       };
       break;
     }
