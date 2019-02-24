@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Logger } from './logger';
 import { createConnection, Connection, getConnection, MoreThan, ConnectionOptions } from 'typeorm';
 
@@ -51,7 +53,10 @@ export class SmartDB {
      */
     public async init(): Promise<void> {
 
-        this.connection = await createConnection();
+        const configPath = path.join(process.cwd(), 'ormconfig.json');
+        const optionsRaw = fs.readFileSync(configPath, { encoding: 'utf8' });
+        const options: ConnectionOptions = JSON.parse(optionsRaw);
+        this.connection = await createConnection(options);
 
         // Default config: ormconfig.json(near package.json)
         // this.connection = await createConnection();

@@ -2,6 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').exec;
 const axios = require('axios');
+const dockerCompose = require('docker-compose');
+const isRoot = require('is-root');
+
+
+if (!isRoot()) {
+  console.log('please start this script as "sudo"');
+  process.exit(1);
+}
+
 
 const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
@@ -24,14 +33,13 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
   for (let i = 0; i < distDirectories.length; ++i) {
     const dir = distDirectories[i];
 
-    // give the first node more time to start
-    if (i === 0) {
-      console.log('starting boot node')
-      await DELAY(10000);
-    } else {
-      await DELAY(100);
-      console.log(`starting node in: ${dir}`);
-    }
+
+    console.log(`starting docker services in: "${dir}`);
+    await dockerCompose.down({ cwd: dir, log: true, });
+    await dockerCompose.upAll({ cwd: dir, log: true, });
+
+    await DELAY(5000);
+    console.log(`starting node in: ${dir}`);
 
     const proc = exec('node app.js', {
       cwd: dir,
@@ -41,14 +49,14 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
      });
 
      proc.stdout.on('data', (data) => {
-      console.log(`[${i}] ${data.toString()}`);
+      // console.log(`[${i}] ${data.toString()}`);
      })
      processes.push(proc);
   }
 
 
 
-  setInterval(async () => {
+  const interval = setInterval(async () => {
     try {
       const result = await axios.get('http://localhost:4096/api/blocks/getHeight');
       console.log(result.data);
@@ -56,5 +64,18 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
       console.log('error while requesting /blocks/getHeight')
     }
   }, 10 * 1000);
+
+  process.on('SIGINT', async () => {
+    clearInterval(interval);
+    console.log('received SIGTERM signal');
+    const dirs = distDirectories;
+    for (let i = 0; i < dirs.length; ++i) {
+      const executionDir = dirs[i];
+      await dockerCompose.stop({
+        cwd: executionDir,
+        log: true,
+      });
+    }
+  });
 
 })();

@@ -8,6 +8,7 @@ shell.cp('genesisBlock.json', 'dist');
 shell.cp('config.json', 'dist');
 shell.cp('gnyd', 'dist');
 shell.cp('ormconfig.json', 'dist');
+shell.cp('docker-compose.yml', 'dist');
 
 shell.mkdir('-p', 'dist/data/blocks');
 shell.mkdir('-p', 'dist/logs');

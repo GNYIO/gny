@@ -1,20 +1,18 @@
-version: '3'
+version: '3.3'
 services:
   postgres:
     image: "postgres:9.6.12"
-    container_name: postgres
+    container_name: 'postgres_${POSTGRES_PORT}'
     restart: always
     ports:
-      - '5432:5432'
-    volumes:
-      - '/srv/docker/postgresql:/var/lib/postgresql'
+      - '${POSTGRES_PORT}:5432'
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
   redis:
     image: "redis:4-alpine3.9"
-    container_name: redis
+    container_name: 'redis_${REDIS_PORT}'
     restart: always
     ports:
-      - '6379:6379'
+      - '${REDIS_PORT}:6379'
