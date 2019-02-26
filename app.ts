@@ -3,10 +3,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as ip from 'ip';
 import daemon = require('daemon');
-import * as tracer from 'tracer';
+import { createLogger } from './packages/logger/logger';
+
 import Application from './index';
 import * as packageJson from './package.json';
-import { IConfig, IGenesisBlock, ILogger } from './src/interfaces';
+import { IConfig, IGenesisBlock } from './src/interfaces';
 
 const version = packageJson.version;
 
@@ -35,7 +36,6 @@ function main() {
   ];
   let appConfigFile: string;
   let genesisBlockFile: string;
-  let logger: ILogger;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
@@ -101,6 +101,7 @@ function main() {
   if (program.log) {
     appConfig.logLevel = program.log;
   }
+  const logger = createLogger('logs/debug.log', appConfig.logLevel);
 
   if (program.daemon) {
     console.log('Server started as daemon...');
@@ -108,19 +109,6 @@ function main() {
     fs.writeFileSync(pidFile, process.pid, 'utf8');
   }
 
-  // Logger configuration
-  const stream = fs.createWriteStream('logs/debug.log', { flags: 'a', encoding: 'utf8' });
-  logger = tracer.colorConsole({
-    transport: [
-      function (data) {
-        stream.write(data.rawoutput + '\n');
-      },
-      function(data) {
-        console.log(data.output);
-      }
-    ]
-  });
-  tracer.setLevel(appConfig.logLevel);
 
   const options = {
     appConfig,

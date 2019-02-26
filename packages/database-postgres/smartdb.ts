@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from './logger';
 import { createConnection, Connection, getConnection, MoreThan, ConnectionOptions } from 'typeorm';
 
 import { Account } from './entity/Account';
@@ -15,6 +14,7 @@ import { Transaction } from './entity/Transaction';
 import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
+import { ILogger } from '../../src/interfaces';
 
 interface LimitAndOffset {
     limit: number;
@@ -37,13 +37,13 @@ const ENTITY: any = {
 
 
 
-const logger = new Logger().createlogger();
-
 export class SmartDB {
     connection: Connection;
     // lastBlock: Promise<any>;
     blockQueryRunner: any;
-    constructor () {
+    private logger: ILogger;
+    constructor (logger: ILogger) {
+        this.logger = logger;
         this.blockQueryRunner = undefined;
     }
 
@@ -60,7 +60,7 @@ export class SmartDB {
 
         // Default config: ormconfig.json(near package.json)
         // this.connection = await createConnection();
-        logger.info('Initialized smartdb');
+        this.logger.info('Initialized smartdb');
     }
 
     /**
@@ -267,7 +267,7 @@ export class SmartDB {
         await this.blockQueryRunner.connect();
         await this.blockQueryRunner.startTransaction();
         await this.blockQueryRunner.manager.save(Block, block);
-        logger.info('Began a block height: ' + block.height);
+        this.logger.info('Began a block height: ' + block.height);
     }
 
     /**
@@ -277,7 +277,7 @@ export class SmartDB {
     public async commitBlock(height): Promise<void> {
         try {
             await this.blockQueryRunner.commitTransaction();
-            logger.info('Commited the block height: ' + height);
+            this.logger.info('Commited the block height: ' + height);
         } finally {
             await this.blockQueryRunner.release();
         }
@@ -291,11 +291,11 @@ export class SmartDB {
     public async rollbackBlock(height?: number): Promise<void> {
         if (height >= 0) {
             await this.del('Block', { height: MoreThan(height)});
-            logger.info('Rollback to height:' + height);
+            this.logger.info('Rollback to height:' + height);
         } else {
             await this.blockQueryRunner.rollbackTransaction();
             await this.blockQueryRunner.release();
-            logger.info('Rollback the block');
+            this.logger.info('Rollback the block');
         }
     }
 
@@ -525,7 +525,7 @@ export class SmartDB {
             if (cache) {
                 for (item of JSON.parse(cache.result)) {
                     if (this.inCacheResult(item, address)) {
-                        logger.error('Found in cache');
+                        this.logger.error('Found in cache');
                         throw new Error('Cannot be modified');
                     }
                 }
@@ -539,7 +539,7 @@ export class SmartDB {
      */
     public async close(): Promise<void> {
         await this.connection.close();
-        logger.info('Close smartdb');
+        this.logger.info('Close smartdb');
     }
 
     // Private methods
