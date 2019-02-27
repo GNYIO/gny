@@ -51,7 +51,6 @@ export interface IScope {
   network: INetwork;
   dbSequence: Sequence;
   sequence: Sequence;
-  balancesSequence: Sequence;
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
