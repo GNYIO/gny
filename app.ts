@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as ip from 'ip';
 import daemon = require('daemon');
-import { createLogger } from './packages/logger/logger';
+import { createLogger, LogLevel } from './packages/logger/logger';
 
 import Application from './index';
 import * as packageJson from './package.json';
@@ -101,7 +101,7 @@ function main() {
   if (program.log) {
     appConfig.logLevel = program.log;
   }
-  const logger = createLogger('logs/debug.log', appConfig.logLevel);
+  const logger = createLogger('logs/debug.log', LogLevel[appConfig.logLevel]);
 
   if (program.daemon) {
     console.log('Server started as daemon...');
