@@ -6,7 +6,7 @@
    "password": "docker",
    "database": "postgres",
    "synchronize": true,
-   "dropSchema": true,
+   "dropSchema": false,
    "logging": false,
    "entities": [
       "packages/database-postgres/entity/**/*.js"
