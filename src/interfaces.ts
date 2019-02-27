@@ -29,7 +29,6 @@ import * as SocketIO from 'socket.io';
 // IApp
 import { SmartDB } from '../packages/database-postgres/smartdb';
 import BalanceManager from './smartdb/balance-manager';
-import AutoIncrement from './smartdb/auto-increment';
 import * as bignumber from 'bignumber';
 
 import { ExtendedJoi } from './utils/extendedJoi';
@@ -115,7 +114,6 @@ interface ICurrencyFee {
 interface IApp {
   sdb: SmartDB;
   balances: BalanceManager;
-  autoID: AutoIncrement;
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
