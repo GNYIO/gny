@@ -2,11 +2,11 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Asset {
-  @PrimaryColumn({
-    type: 'varchar',
-    length: 50,
-  })
-  public organization: string;
+  // @PrimaryColumn({
+  //   type: 'varchar',
+  //   length: 50,
+  // })
+  // public organization: string;
 
   @PrimaryColumn({
     type: 'varchar',
@@ -23,7 +23,7 @@ export class Asset {
   public tid: string;
 
   @Column({
-    type: 'timestamp',
+    type: 'bigint',
     nullable: false,
   })
   @Index()
