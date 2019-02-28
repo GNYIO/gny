@@ -13,7 +13,10 @@
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
-      }
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -24,7 +27,10 @@
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
-      }
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "type": "node",
