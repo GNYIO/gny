@@ -110,7 +110,7 @@ export default class Application {
       return;
     }
 
-    scope.bus.message('bind', scope.modules);
+    scope.bus.message('onBind', scope.modules);
 
     scope.logger.info('Modules ready and launched');
     if (!scope.config.publicIp) {

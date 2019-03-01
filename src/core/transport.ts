@@ -187,7 +187,7 @@ export default class Transport {
       votes = this.library.base.consensus.normalizeVotes(votes);
       this.latestBlocksCache.set(block.id, result);
       this.blockHeaderMidCache.set(block.id, body);
-      this.library.bus.message('receiveBlock', block, votes);
+      this.library.bus.message('onReceiveBlock', block, votes);
     } catch (e) {
       this.library.logger.error(
         `normalize block or votes object error: ${e.toString()}`,
@@ -249,7 +249,7 @@ export default class Transport {
       return;
     }
 
-    this.library.bus.message('receivePropose', propose);
+    this.library.bus.message('onReceivePropose', propose);
   };
 
   // peerEvent

@@ -92,23 +92,15 @@ async function init_alt(options: IOptions) {
     message(topic: string, ...restArgs) {
       Object.keys(scope.modules).forEach(moduleName => {
         const module = scope.modules[moduleName];
-        const eventName = `on${_.chain(topic)
-          .camelCase()
-          .upperFirst()
-          .value()}`;
-        if (typeof module[eventName] === 'function') {
-          module[eventName].apply(module[eventName], [...restArgs]);
+        if (typeof module[topic] === 'function') {
+          module[topic].apply(module[topic], [...restArgs]);
         }
       });
 
       Object.keys(scope.coreApi).forEach(apiName => {
         const oneApi = scope.coreApi[apiName];
-        const eventName = `on${_.chain(topic)
-          .camelCase()
-          .upperFirst()
-          .value()}`;
-        if (typeof oneApi[eventName] === 'function') {
-          oneApi[eventName].apply(oneApi[eventName], [...restArgs]);
+        if (typeof oneApi[topic] === 'function') {
+          oneApi[topic].apply(oneApi[topic], [...restArgs]);
         }
       });
       this.emit(topic, ...restArgs);

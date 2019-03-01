@@ -320,9 +320,9 @@ export default class Blocks {
 
       if (options.broadcast && options.local) {
         options.votes.signatures = options.votes.signatures.slice(0, 6);
-        this.library.bus.message('newBlock', block, options.votes);
+        this.library.bus.message('onNewBlock', block, options.votes);
       }
-      this.library.bus.message('processBlock', block);
+      this.library.bus.message('onProcessBlock', block);
     } catch (e) {
       global.app.logger.error(block);
       global.app.logger.error('save block error: ', e);
@@ -649,7 +649,7 @@ export default class Blocks {
     this.library.base.consensus.addPendingVotes(localVotes);
     this.proposeCache[propose.hash] = true;
     this.privIsCollectingVotes = true;
-    this.library.bus.message('newPropose', propose, true);
+    this.library.bus.message('onNewPropose', propose, true);
     return;
   };
 
@@ -901,7 +901,7 @@ export default class Blocks {
           const block = await global.app.sdb.getBlockByHeight(count - 1);
           this.setLastBlock(block);
         }
-        this.library.bus.message('blockchainReady');
+        this.library.bus.message('onBlockchainReady');
       } catch (e) {
         global.app.logger.error('Failed to prepare local blockchain', e);
         process.exit(0);
