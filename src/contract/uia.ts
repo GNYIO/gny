@@ -96,7 +96,7 @@ export default {
       recipientAddress = recipientAccount.address;
     }
 
-    global.app.balances.transfer(currency, amount, senderId, recipientAddress);
+    await global.app.balances.transfer(currency, amount, senderId, recipientAddress);
     await global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,

@@ -3,10 +3,8 @@ import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
 import { SmartDB } from '../packages/database-postgres/smartdb';
-// import { Logger } from '../packages/database-postgres/logger';
 // import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
-import AutoIncrement from  './smartdb/auto-increment';
 // import loadModels from './loadModels';
 import loadContracts from './loadContracts';
 
@@ -99,10 +97,9 @@ export default async function runtime(options) {
     global.app.hooks[name] = func;
   };
 
-  global.app.sdb = new SmartDB();
+  global.app.sdb = new SmartDB(options.logger);
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);
-  global.app.autoID = new AutoIncrement(global.app.sdb);
   global.app.events = new EventEmitter();
 
   global.app.util = {

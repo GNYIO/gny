@@ -1,12 +1,12 @@
 {
    "type": "postgres",
    "host": "localhost",
-   "port": 5432,
+   "port": 3000,
    "username": "postgres",
-   "password": "",
-   "database": "gny_test",
+   "password": "docker",
+   "database": "postgres",
    "synchronize": true,
-   "dropSchema": true,
+   "dropSchema": false,
    "logging": false,
    "entities": [
       "packages/database-postgres/entity/**/*.js"
@@ -27,7 +27,7 @@
       "duration": 30000,
       "options": {
         "host": "localhost",
-        "port": 6379
+        "port": 3001
       }
    }
 }

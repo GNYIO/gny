@@ -1,20 +1,25 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/bower_components": true,
-        "**/dist": true,
-        "**/coverge": true
-    },
-    "typescript.referencesCodeLens.enabled": true,
-    "typescript.implementationsCodeLens.enabled": true,
-    "tslint.ignoreDefinitionFiles": false,
-    "tslint.autoFixOnSave": true,
-    "tslint.exclude": "**/node_modules/**/*",
-    "cSpell.words": [
-        "csrf",
-        "definitelytyped",
-        "promisified"
-    ],
-    "typescript.surveys.enabled": false
+  "search.exclude": {
+      "**/node_modules": true,
+      "**/bower_components": true,
+      "**/dist": true,
+      "**/coverge": true
+  },
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.implementationsCodeLens.enabled": true,
+  "tslint.ignoreDefinitionFiles": false,
+  "tslint.autoFixOnSave": true,
+  "tslint.exclude": "**/node_modules/**/*",
+  "cSpell.words": [
+      "csrf",
+      "definitelytyped",
+      "promisified"
+  ],
+  "typescript.surveys.enabled": false,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.renderWhitespace": "boundary",
+  "editor.insertSpaces": true
 }

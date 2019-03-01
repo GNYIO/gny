@@ -72,7 +72,6 @@ async function init_alt(options: any) {
   scope.network = await initNetwork(options);
   scope.dbSequence = dbSequence(options);
   scope.sequence = sequence(options);
-  scope.balancesSequence = balancesSequence(options);
 
   {
     const PAYLOAD_LIMIT_SIZE = '8mb';
@@ -273,15 +272,6 @@ function sequence(options: any) {
     name: 'normal',
     onWarning: (current: any) => {
       options.logger.warn(`Main sequence ${current}`);
-    },
-  });
-}
-
-function balancesSequence(options: any) {
-  return new Sequence({
-    name: 'balance',
-    onWarning: (current: any) => {
-      options.logger.warn(`Balance sequence ${current}`);
     },
   });
 }

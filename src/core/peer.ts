@@ -90,6 +90,7 @@ export default class Peer {
 
     // TODO persist peerBook of node
     this.p2p = new Peer2Peer(
+      global.app.logger,
       peerInfo,
       this.library.config.peers.bootstrap,
     );

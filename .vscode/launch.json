@@ -13,7 +13,10 @@
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
-      }
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -24,7 +27,10 @@
       "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
-      }
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -33,6 +39,24 @@
       "program": "${workspaceFolder}/createSecondNode.js",
       "cwd": "${workspaceFolder}",
       "args": ["2"]
+    },
+    {
+      "type": "node",
+      "runtimeVersion": "8.13.0",
+      "request": "launch",
+      "name": "Jest Tests",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+          "--verbose",
+          "--runInBand"
+      ],
+      "runtimeArgs": [
+          "--nolazy"
+      ],
+      "console": "integratedTerminal",
+      "env": {
+          "NODE_ENV": "test"
+      }
     }
   ]
 }

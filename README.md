@@ -1,5 +1,26 @@
 # GNY Blockchain
 
+__Dependencies__
+```
+sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential -y
+
+sudo apt-get install libtool libtool-bin -y
+
+# Install nvm
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+# This loads nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+nvm install 8.13
+```
+__Important__  
+> Follow [this Tutorial](https://docs.docker.com/install/linux/docker-ce/ubuntu/) to install __Docker__ and [this Tutorial](https://docs.docker.com/compose/install/) to install __Docker-Compose__.
+
+<br/>
+<br/>
+
 ## 1 Install
 
 Clone this repository:
@@ -7,62 +28,66 @@ Clone this repository:
 git clone https://github.com/gnyio/gny-experiment
 ```
 
-## 2 Install Dependencies
+## 2 Install Node Dependencies
 
 Install exactly the dependencies from `package-lock.json` with `npm ci`:
 ```bash
 npm ci
 ```
 
-## 3 Create database and cache
-
-Create a database with the user `postgres`. 
-
-```bash
-psql --u postgres
-CEATEDB gny_test;
-```
-
-- Edit database config file `ormconfig.json`
-  - You could also modify this file to deploy your own database connection or edit `SmartDB.init()` with configOptions.
-  - For testing some nodes, you should use `configOptions` so that several database configs can be established and you should first create the corresponding database such as `gny_test1`, `gny_test2`...
-
-Run cache database on `Redis`, the default port is 6379.
-
-```bash
-redis-server
-```
-
-## 4 Transpile Files with TypeScript
+## 3 Transpile Files with TypeScript
 
 Execute:
 ```bash
 npm run tsc
 ```
 
-## 5 Start Blockchain
+## 4 Start ONE Node
 
-Change directory to the `dist` dir and start the Blockchain:
+Change directory to the `dist` directory and start the docker containers of postgresql and redis and then the Blockchain:
 ```
-
+# change directory
 cd dist
+
+# start postgres and redis
+sudo docker-compose up --detach
+
+# start blockchain
 node app
 ```
 
+Default ports:
+| Service | Port | Where to change |
+| :--: | :--: | :--: |
+| Postgres | 3000 | `ormconfig.json` |
+| Redis | 3001 | `ormconfig.json` |
+| Blockchain-API | 4096 | `config.json` |
+| Blockchain-P2P | 4096+1 | Can't be changed! Always API-Port +1 |
 
-## 6 Run many Nodes
+> __Attention__
+> After changing ports be sure to rebuild the project with `npm run tsc`
+
+
+## 5 Start MANY Nodes
+
+First delete the `dist/` directory:
+```
+rm -rf dist
+```
+
+Next make a clean build:
+```
+npm run tsc
+```
 
 Specify the amount of `[nodes]` you want to create. You can create up to 101.
 
 Example create `10` nodes:
 ```bash
-node createSecondNode.js 10
+sudo node createSecondNode.js 10
 ```
-- Before launching the nodes, you need to create corresponding databases(PostgreSQL) and cache databases(Redis) and modify the configOptions in `dist*/packages/database-postgres/smartdb.ts`.
 
-After we have created the nodes launch them:
-
+After we have created the nodes launch all of them:
 ```bash
-node launchAllNodes.js
+sudo node launchAllNodes.js
 ```
-

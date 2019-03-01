@@ -29,7 +29,6 @@ import * as SocketIO from 'socket.io';
 // IApp
 import { SmartDB } from '../packages/database-postgres/smartdb';
 import BalanceManager from './smartdb/balance-manager';
-import AutoIncrement from './smartdb/auto-increment';
 import * as bignumber from 'bignumber';
 
 import { ExtendedJoi } from './utils/extendedJoi';
@@ -52,7 +51,6 @@ export interface IScope {
   network: INetwork;
   dbSequence: Sequence;
   sequence: Sequence;
-  balancesSequence: Sequence;
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
@@ -115,7 +113,6 @@ interface ICurrencyFee {
 interface IApp {
   sdb: SmartDB;
   balances: BalanceManager;
-  autoID: AutoIncrement;
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
@@ -264,6 +261,8 @@ export interface P2PMessage {
   topicIDs: string[];
   peerInfo: PeerNode;
 }
+
+export type P2PSubscribeHandler = (message: P2PMessage) => void;
 
 
 export interface BlockPropose {

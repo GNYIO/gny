@@ -5,8 +5,14 @@ const path = require('path');
 const _ = require('lodash');
 const crypto = require('crypto');
 const { promisify } = require('util');
+const isRoot = require('is-root');
 
 const createPeerIdAsync = promisify(PeerId.create);
+
+if (!isRoot()) {
+  console.log('please start this script as "sudo"');
+  process.exit(1);
+}
 
 (async () => {
 
@@ -40,13 +46,13 @@ const createPeerIdAsync = promisify(PeerId.create);
     shell.exec(`cp -r ./dist ./dist${i}`);
   }
 
-  // read dist/ data
+  // read configuration
   let firstConfig = fs.readFileSync('./config.json', { encoding: 'utf8' });
   firstConfig = JSON.parse(firstConfig);
   let firstKey = fs.readFileSync('./dist/p2p_key.json', { encoding: 'utf8' });
   firstKey = JSON.parse(firstKey);
-
-
+  let ormconfig = fs.readFileSync('./ormconfig.json', { encoding: 'utf8' });
+  ormconfig = JSON.parse(ormconfig);
 
   for (let i = 1; i < HOW_MANY_NODES; ++i) {
     const id = await createPeerIdAsync();
@@ -55,9 +61,34 @@ const createPeerIdAsync = promisify(PeerId.create);
     fs.writeFileSync(`./dist${i}/p2p_key.json`, JSON.stringify(id, null, 2), { encoding: 'utf8' });
   }
 
+  let postgresPort = 3000;
+  let redisPort = 3001;
+  // docker-compose .env
+  for (let i = 0; i < HOW_MANY_NODES; ++i) {
+    
+    const envContent = `POSTGRES_PORT=${postgresPort}\nREDIS_PORT=${redisPort}`;
+    const tempOrmConfig = JSON.parse(JSON.stringify(ormconfig));
+    tempOrmConfig.port = postgresPort;
+    tempOrmConfig.cache.options.port = redisPort;
+
+    let distDir = '';
+    if (i === 0) {
+      distDir = `./dist`;
+    } else {
+      distDir = `./dist${i}`;
+    }
+
+    fs.writeFileSync(`${distDir}/.env`, envContent, { encoding: 'utf8' });
+    shell.exec(`rm ${distDir}/ormconfig.json`);
+    fs.writeFileSync(`${distDir}/ormconfig.json`, JSON.stringify(tempOrmConfig, null, 2), { encoding: 'utf8' });
+
+    postgresPort += 2;
+    redisPort +=2;
+  }
 
 
-  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.peerPort}/ipfs/${firstKey.id}`;
+
+  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.port + 1}/ipfs/${firstKey.id}`;
 
   const INTIAL_SECRETS = firstConfig.forging.secret;
   const count = INTIAL_SECRETS.length;
@@ -67,7 +98,6 @@ const createPeerIdAsync = promisify(PeerId.create);
 
     const nthConfig = _.cloneDeep(firstConfig);
     nthConfig.port += (i * 2);
-    nthConfig.peerPort += (i * 2);
 
     const from = i * onePart;
     let to = (i + 1) * onePart;
