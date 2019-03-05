@@ -48,7 +48,6 @@
     "async": "=1.5.2",
     "axios": "^0.18.0",
     "babel-eslint": "^9.0.0",
-    "bignumber": "https://github.com/AschPlatform/bignumber/tarball/v1.3.0-2+asch.1",
     "bignumber.js": "^8.0.1",
     "bip39": "^2.5.0",
     "body-parser": "=1.18.3",

@@ -9,7 +9,7 @@ import BalanceManager from './smartdb/balance-manager';
 import loadContracts from './loadContracts';
 
 import address from './utils/address';
-import * as bignumber from 'bignumber';
+import { BigNumber } from 'bignumber.js';
 
 export default async function runtime(options) {
   global.app = {
@@ -32,7 +32,7 @@ export default async function runtime(options) {
 
       let bnAmount;
       try {
-        bnAmount = global.app.util.bignumber(amount);
+        bnAmount = new global.app.util.bignumber(amount);
       } catch (e) {
         return 'Failed to convert';
       }
@@ -104,7 +104,7 @@ export default async function runtime(options) {
 
   global.app.util = {
     address: address,
-    bignumber: bignumber,
+    bignumber: BigNumber,
   };
 
 
