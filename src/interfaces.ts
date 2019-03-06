@@ -31,6 +31,7 @@ import { SmartDB } from '../packages/database-postgres/smartdb';
 import BalanceManager from './smartdb/balance-manager';
 
 import { ExtendedJoi } from './utils/extendedJoi';
+import { BigNumber } from 'bignumber.js';
 
 declare interface IBase {
   bus: any;
@@ -84,7 +85,7 @@ export interface INetwork {
 
 interface IUtil {
   address: any;
-  bignumber: any;
+  bignumber: typeof BigNumber;
 }
 
 interface IValidatorConstraints {
