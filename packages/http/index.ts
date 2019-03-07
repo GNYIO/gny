@@ -11,7 +11,8 @@ import * as ZSchema from 'z-schema';
 import * as ip from 'ip';
 import slots from '../../src/utils/slots';
 import queryParser from '../../src/utils/express-query-int';
-import ZSchemaExpress from '../../src/utils/zscheme-express';
+import ZSchemaExpress from './util';
+import { IConfig, Modules, ILogger } from '../../src/interfaces';
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
@@ -20,12 +21,7 @@ const CIPHERS = `
   DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
   !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
-function isNumberOrNumberString(value) {
-    return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
-      || String(parseInt(value, 10)) !== String(value));
-  }
-
-export default async function intNetwork(appConfig: any, modules: any, logger: any) {
+export default async function intNetwork(appConfig: IConfig, modules: Modules, logger: ILogger) {
   let sslServer;
   let sslio;
 
@@ -150,6 +146,11 @@ export default async function intNetwork(appConfig: any, modules: any, logger: a
     sslServer,
     sslio,
   };
+}
+
+function isNumberOrNumberString(value) {
+  return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
+    || String(parseInt(value, 10)) !== String(value));
 }
 
 function scheme() {

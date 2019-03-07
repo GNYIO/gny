@@ -16,7 +16,6 @@ import { Block as BaseBlock } from './base/block';
 
 import { Protobuf } from './utils/protobuf';
 import * as tracer from 'tracer';
-import * as zSchema from 'z-schema';
 
 import Sequence from './utils/sequence';
 import { EventEmitter } from 'events';
@@ -46,7 +45,6 @@ export interface IScope {
   config: any;
   logger: ILogger;
   genesisBlock: IGenesisBlock;
-  scheme: zSchema;
   joi: ExtendedJoi;
   network: INetwork;
   dbSequence: Sequence;
