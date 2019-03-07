@@ -97,8 +97,7 @@ export default class Loader {
       this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${report.error.message}`);
       return cb();
     }
-
-    if (global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
+    if (new global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
       this.blocksToSync = ret.height;
 
       if (lastBlock.id !== this.genesisBlock.id) {

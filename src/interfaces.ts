@@ -29,9 +29,9 @@ import * as SocketIO from 'socket.io';
 // IApp
 import { SmartDB } from '../packages/database-postgres/smartdb';
 import BalanceManager from './smartdb/balance-manager';
-import * as bignumber from 'bignumber';
 
 import { ExtendedJoi } from './utils/extendedJoi';
+import { BigNumber } from 'bignumber.js';
 
 declare interface IBase {
   bus: any;
@@ -85,7 +85,7 @@ export interface INetwork {
 
 interface IUtil {
   address: any;
-  bignumber: bignumber;
+  bignumber: typeof BigNumber;
 }
 
 interface IValidatorConstraints {

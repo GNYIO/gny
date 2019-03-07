@@ -65,7 +65,7 @@ export default {
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
-    const quantity = global.app.util.bignumber(asset.quantity).plus(amount);
+    const quantity = new global.app.util.bignumber(asset.quantity).plus(amount);
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
