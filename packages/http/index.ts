@@ -25,7 +25,7 @@ function isNumberOrNumberString(value) {
       || String(parseInt(value, 10)) !== String(value));
   }
 
-export default async function intNetwork(appConfig: any, config: any, modules: any, logger: any) {
+export default async function intNetwork(appConfig: any, modules: any, logger: any) {
   let sslServer;
   let sslio;
 
@@ -40,7 +40,7 @@ export default async function intNetwork(appConfig: any, config: any, modules: a
 
   if (appConfig.ssl.enabled) {
     const privateKey = fs.readFileSync(appConfig.ssl.options.key);
-    const certificate = fs.readFileSync(config.ssl.options.cert);
+    const certificate = fs.readFileSync(appConfig.ssl.options.cert);
 
     sslServer = https.createServer({
       key: privateKey,
@@ -54,8 +54,8 @@ export default async function intNetwork(appConfig: any, config: any, modules: a
     const PAYLOAD_LIMIT_SIZE = '8mb';
     expressApp.engine('html', require('ejs').renderFile);
     expressApp.set('view engine', 'ejs');
-    expressApp.set('views', config.publicDir);
-    expressApp.use(express.static(config.publicDir));
+    expressApp.set('views', appConfig.publicDir);
+    expressApp.use(express.static(appConfig.publicDir));
     expressApp.use(bodyParser.raw({ limit: PAYLOAD_LIMIT_SIZE }));
     expressApp.use(bodyParser.urlencoded({
       extended: true,
@@ -109,8 +109,8 @@ export default async function intNetwork(appConfig: any, config: any, modules: a
 
       const URI_PREFIXS = ['api', 'peer'];
       const isApiOrPeer = parts.length > 1 && (URI_PREFIXS.indexOf(parts[1]) !== -1);
-      const { whiteList } = config.api.access;
-      const { blackList } = config.peers;
+      const { whiteList } = appConfig.api.access;
+      const { blackList } = appConfig.peers;
 
       const forbidden = isApiOrPeer && (
         (whiteList.length > 0 && whiteList.indexOf(ip) < 0)
@@ -134,8 +134,8 @@ export default async function intNetwork(appConfig: any, config: any, modules: a
       }
     });
 
-    server.listen(config.port, config.address, (err) => {
-      logger.log(`Server started: ${config.address}:${config.port}`);
+    server.listen(appConfig.port, appConfig.address, (err) => {
+      logger.log(`Server started: ${appConfig.address}:${appConfig.port}`);
       if (!err) {
         logger.log(`Error: ${err}`);
       }
