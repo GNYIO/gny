@@ -1,7 +1,7 @@
-import addressHelper from '../../src/utils/address';
+import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Modules, IScope, Next } from '../../src/interfaces';
+import { Modules, IScope, Next } from '../../../src/interfaces';
 
 export default class UiaApi {
   private modules: Modules;

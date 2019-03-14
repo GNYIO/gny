@@ -1,8 +1,8 @@
 import * as express from 'express';
-import slots from '../../src/utils/slots';
-import osInfo from '../../src/utils/osInfo';
+import slots from '../../../src/utils/slots';
+import osInfo from '../../../src/utils/osInfo';
 import { Request, Response } from 'express';
-import { Modules, IScope, Next, ManyVotes } from '../../src/interfaces';
+import { Modules, IScope, Next, ManyVotes } from '../../../src/interfaces';
 
 export default class TransportApi {
   private modules: Modules;

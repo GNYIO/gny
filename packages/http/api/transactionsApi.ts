@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
-import * as ed from '../../src/utils/ed';
+import * as ed from '../../../src/utils/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Modules, IScope, KeyPair, Next } from '../../src/interfaces';
+import { Modules, IScope, KeyPair, Next } from '../../../src/interfaces';
 
 export default class TransactionsApi {
   private modules: Modules;

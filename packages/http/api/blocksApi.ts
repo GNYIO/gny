@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import BlockReward from '../../src/utils/block-reward';
-import { Modules, IScope, Next } from '../../src/interfaces';
+import BlockReward from '../../../src/utils/block-reward';
+import { Modules, IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 
 export default class BlocksApi {

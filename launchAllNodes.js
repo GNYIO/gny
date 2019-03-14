@@ -49,7 +49,7 @@ const DELAY = (ms = 5000) => new Promise((resolve, reject) => setTimeout(resolve
      });
 
      proc.stdout.on('data', (data) => {
-      console.log(`[${i}] ${data.toString()}`);
+      // console.log(`[${i}] ${data.toString()}`);
      })
      processes.push(proc);
   }
