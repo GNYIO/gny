@@ -54,9 +54,9 @@ export default class Loader {
         if (toRemove > 0) {
           await global.app.sdb.rollbackBlock(commonBlock.height);
           this.modules.blocks.setLastBlock(await global.app.sdb.getLastBlock());
-          this.library.logger.debug('set new last block', global.app.sdb.getLastBlock());
+          this.library.logger.debug('set new last block', await global.app.sdb.getLastBlock());
         } else {
-          await global.app.sdb.rollbackBlock();
+          await global.app.sdb.rollbackBlock(lastBlock.height);
         }
       } catch (e) {
         this.library.logger.error('Failed to rollback block', e);
@@ -198,7 +198,7 @@ export default class Loader {
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
       this.modules.transactions.clearUnconfirmed();
-      await global.app.sdb.rollbackBlock().then(() => {
+      await global.app.sdb.rollbackBlock(lastBlock.height).then(() => {
         this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err);

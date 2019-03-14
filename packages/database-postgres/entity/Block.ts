@@ -10,6 +10,12 @@ export class Block {
   })
   public id: string;
 
+  @PrimaryColumn({
+    nullable: false,
+    type: 'bigint',
+  })
+  public height: number;
+
   @Column({
     type: 'int',
     nullable: false,
@@ -22,12 +28,6 @@ export class Block {
   })
   @Index()
   public timestamp: number;
-
-  @PrimaryColumn({
-    nullable: false,
-    type: 'bigint',
-  })
-  public height: number;
 
   @Column({
     length: 64,

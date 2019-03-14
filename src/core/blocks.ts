@@ -77,6 +77,9 @@ export default class Blocks {
   }
 
   public setLastBlock = (block: any) => {
+    if (typeof block.height === 'string') {
+      block.height = Number(block.height);
+    }
     this.lastBlock = block;
   }
 
@@ -478,7 +481,7 @@ export default class Blocks {
       payloadHash.update(bytes);
       payloadLength += bytes.length;
     }
-    const height = Number(this.lastBlock.height) + 1;
+    const height = this.lastBlock.height + 1;
     const block: any = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
@@ -544,7 +547,7 @@ export default class Blocks {
   this.blockCache[block.id] = true;
 
   this.library.sequence.add( async (cb) => {
-    if (block.prevBlockId === this.lastBlock.id && Number(this.lastBlock.height) + 1 === block.height) {
+    if (block.prevBlockId === this.lastBlock.id && this.lastBlock.height + 1 === block.height) {
       this.library.logger.info(`Received new block id: ${block.id}` +
         ` height: ${block.height}` +
         ` round: ${this.modules.round.calculateRound(this.modules.blocks.getLastBlock().height)}` +
@@ -575,15 +578,15 @@ export default class Blocks {
         }
       })();
     } if (block.prevBlockId !== this.lastBlock.id
-      && Number(this.lastBlock.height) + 1 === block.height) {
+      && this.lastBlock.height + 1 === block.height) {
       this.modules.delegates.fork(block, 1);
       return cb('Fork');
     } if (block.prevBlockId === this.lastBlock.prevBlockId
-      && block.height === Number(this.lastBlock.height)
+      && block.height === this.lastBlock.height
       && block.id !== this.lastBlock.id) {
       this.modules.delegates.fork(block, 5);
       return cb('Fork');
-    } if (block.height > Number(this.lastBlock.height) + 1) {
+    } if (block.height > this.lastBlock.height + 1) {
       this.library.logger.info(`receive discontinuous block height ${block.height}`);
       this.modules.loader.startSyncBlocks();
       return cb();
@@ -608,9 +611,9 @@ public onReceivePropose = (propose: BlockPropose) => {
         this.library.logger.warn(`generate different block with the same height, generator: ${propose.generatorPublicKey}`);
       return setImmediate(cb);
     }
-    if (propose.height !== Number(this.lastBlock.height) + 1) {
+    if (propose.height !== this.lastBlock.height + 1) {
       this.library.logger.debug(`invalid propose height, proposed height: "${propose.height}", lastBlock.height: "${this.lastBlock.height}"`, propose);
-      if (propose.height > Number(this.lastBlock.height) + 1) {
+      if (propose.height > this.lastBlock.height + 1) {
         this.library.logger.info(`receive discontinuous propose height ${propose.height}`);
         this.modules.loader.startSyncBlocks();
       }
