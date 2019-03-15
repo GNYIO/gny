@@ -1,21 +1,27 @@
-const { EventEmitter } = require('events');
-const { isString } = require('util');
-const { CodeContract } = require('./codeContract');
-const { DbSession } = require('./dbSession');
-const { SqliteConnection } = require('./sqliteConnection');
-const { LogManager } = require('./logger');
-const { BlockCache } = require('./blockCache');
-const performance = require('./performance');
-const _ = require('lodash');
+import { EventEmitter } from 'events';
+import { isString } from 'util';
+import { CodeContract } from './codeContract';
+import { DbSession } from './dbSession';
+import { SqliteConnection } from './sqliteConnection';
+import { LogManager } from './logger';
+import { BlockCache } from './blockCache';
+import * as performance from './performance';
+import * as _ from 'lodash';
 
-class SmartDB extends EventEmitter {
+export class SmartDB extends EventEmitter {
+
+  public static readonly TRANSACTION_MODEL_NAME = 'Transaction';
+  private options: any;
   /**
    * @param {!Storage} dbPath
    * @param {!Object} options
    * @return {?}
    */
-  constructor(dbPath, options) {
+  constructor(dbPath: string, options, logger) {
     super();
+
+    LogManager.setLogger(logger);
+
     CodeContract.argument("dbPath", function() {
       return CodeContract.notNullOrWhitespace(dbPath);
     });
@@ -45,7 +51,7 @@ class SmartDB extends EventEmitter {
     var o = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     var id = isString(obj) ? String(obj) : obj.name;
     var modelSchema = this.schemas.get(id);
-    
+
     t && CodeContract.verify(undefined !== modelSchema, "unregistered model '" + id + "'");
     o && CodeContract.verify(!modelSchema.isReadonly, "model '" + id + "' is readonly");
     return modelSchema;
@@ -585,10 +591,4 @@ class SmartDB extends EventEmitter {
   get lastBlock() {
     return this.cachedBlocks.get(this.lastBlockHeight);
   }
-}
-
-SmartDB.TRANSACTION_MODEL_NAME = "Transaction";
-
-module.exports = {
-  SmartDB,
 }

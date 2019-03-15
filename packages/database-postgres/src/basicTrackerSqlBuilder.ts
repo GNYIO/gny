@@ -1,28 +1,27 @@
-const codeContract = require('./codeContract');
-const enumerations = require('./entityChangeType');
+import * as codeContract from './codeContract';
+import * as enumerations from './entityChangeType';
 
-class BasicTrackerSqlBuilder {
+export class BasicTrackerSqlBuilder {
   /**
-   * @param {?} data
+   * @param {?} tracker
    * @param {string} schemas
    * @param {?} options
    * @return {undefined}
    */
-  constructor(data, schemas, options) {
-    this.tracker = data;
+  constructor(tracker, schemas, options) {
+    this.tracker = tracker;
     this.schemas = schemas;
     this.sqlBuilder = options;
   }
-
 
   buildChangeSqls() {
     return this.tracker.getConfimedChanges().map((change) => {
       return this.buildSqlAndParameters(this.schemas.get(change.model), change.primaryKey, change);
     });
   }
-  
+
   async buildRollbackChangeSqls(historyVersion) {
-    var array = [];
+    const array = [];
     var incoming_value = await this.tracker.getChangesUntil(historyVersion);
     var definition = undefined;
     for (; undefined !== (definition = incoming_value.pop());) {
@@ -48,7 +47,7 @@ class BasicTrackerSqlBuilder {
 
 
   buildRollbackSqlAndParameters(fn, delay, params) {
-    var requests = BasicTrackerSqlBuilder.fieldValuesFromChanges(params, true);
+    const requests = BasicTrackerSqlBuilder.fieldValuesFromChanges(params, true);
     switch(params.type) {
       case enumerations.EntityChangeType.New:
         return this.sqlBuilder.buildDelete(fn, delay);
@@ -64,13 +63,12 @@ class BasicTrackerSqlBuilder {
     }
   }
 
-
   get entityTracker() {
     return this.tracker;
   }
 
   static fieldValuesFromChanges(value) {
-    var t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    const t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     return t ? codeContract.makeJsonObject(value.propertyChanges, function(engineDiscovery) {
       return engineDiscovery.name;
     }, function(vOffset) {
@@ -81,8 +79,4 @@ class BasicTrackerSqlBuilder {
       return $tour.current;
     });
   }
-}
-
-module.exports = {
-  BasicTrackerSqlBuilder,
 }

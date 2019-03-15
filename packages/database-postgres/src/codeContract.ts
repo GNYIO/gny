@@ -1,13 +1,63 @@
 const { isFunction, isString, isNumber } = require('util');
 
 
+export class CodeContract {
+  static verify(message, callback) {
+    if (undefined === message || null === message) {
+      throw new Error("Invalid verify condition");
+    }
+    const messageObject = isFunction(message) ? message() : message;
+    const errors = isFunction(callback) ? callback() : callback;
+    if (!messageObject) {
+      throw new Error(errors); // before: UnsubscriptionError
+    }
+  }
+
+  static argument(data, key, password?: any) {
+    if (!data || !key) {
+      throw new Error("argName or verify can not be null or undefined");
+    }
+    if (password) {
+      CodeContract.verify(key, password);
+    } else {
+      const obj = key();
+      CodeContract.verify(obj.result, "argument '" + data + "' " + obj.message);
+    }
+  }
+
+  static notNull(prop) {
+    /** @type {boolean} */
+    const request = null !== prop && undefined !== prop;
+    return {
+      result : request,
+      message : request ? undefined : "cannot be null or undefined"
+    };
+  }
+
+  static notNullOrEmpty(key) {
+    const request = CodeContract.notNull(key) && "" !== key;
+    return {
+      result : request,
+      message : request ? undefined : "cannot be null or undefined or empty"
+    };
+  }
+
+  static notNullOrWhitespace(text) {
+    const request = CodeContract.notNullOrEmpty(text) && "" !== text.trim();
+    return {
+      result : request,
+      message : request ? undefined : "cannot be null or undefined or whitespace"
+    };
+  }
+}
+
 /**
  * @param {?} value
  * @param {!Function} store
  * @param {!Function} action
  * @return {?}
  */
-const makeJsonObject = function(value, store, action) {
+export function makeJsonObject(value, store, action) {
   CodeContract.argument("iterable", function() {
     return CodeContract.notNull(value);
   });
@@ -17,9 +67,9 @@ const makeJsonObject = function(value, store, action) {
   CodeContract.argument("getValue", function() {
     return CodeContract.notNull(action);
   });
-  var dataArray = {};
+  const dataArray = {};
   /** @type {boolean} */
-  var _iteratorNormalCompletion3 = true;
+  const _iteratorNormalCompletion3 = true;
   /** @type {boolean} */
   var _didIteratorError = false;
   var _iteratorError = undefined;
@@ -46,21 +96,21 @@ const makeJsonObject = function(value, store, action) {
     }
   }
   return dataArray;
-};
-/**
- * @param {?} thing
- * @return {?}
- */
-const deepCopy = function(thing) {
+}
+
+
+export function deepCopy(thing) {
   return thing ? JSON.parse(JSON.stringify(thing)) : thing;
-};
+}
+
+
 /**
  * @param {!Object} obj
  * @param {!Array} value
  * @param {number} test
  * @return {?}
  */
-const partialCopy = function(source, props, target) {
+export function partialCopy(source, props, target) {
   CodeContract.argument("src", function() {
     return CodeContract.notNull(source);
   });
@@ -99,78 +149,16 @@ const partialCopy = function(source, props, target) {
     }
   }
   return copy;
-};
-/**
- * @param {!Object} str
- * @return {?}
- */
-const isPrimitiveKey = function(str) {
-  return !!str && (isString(str) || isNumber(str));
-};
+}
 
-class NotImplementError extends Error {
+
+export function isPrimitiveKey(str) {
+  return !!str && (isString(str) || isNumber(str));
+}
+
+export class NotImplementError extends Error {
   constructor(props) {
     super(props);
   }
 }
 
-class CodeContract {
-
-
-  static verify(message, callback) {
-    if (undefined === message || null === message) {
-      throw new Error("Invalid verify condition");
-    }
-    var messageObject = isFunction(message) ? message() : message;
-    var errors = isFunction(callback) ? callback() : callback;
-    if (!messageObject) {
-      throw new UnsubscriptionError(errors);
-    }
-  }
-
-  static argument(data, key, password) {
-    if (!data || !key) {
-      throw new Error("argName or verify can not be null or undefined");
-    }
-    if (password) {
-      CodeContract.verify(key, password);
-    } else {
-      var obj = key();
-      CodeContract.verify(obj.result, "argument '" + data + "' " + obj.message);
-    }
-  }
-  
-  static notNull(prop) {
-    /** @type {boolean} */
-    var request = null !== prop && undefined !== prop;
-    return {
-      result : request,
-      message : request ? undefined : "cannot be null or undefined"
-    };
-  }
-
-  static notNullOrEmpty(key) {
-    var request = CodeContract.notNull(key) && "" !== key;
-    return {
-      result : request,
-      message : request ? undefined : "cannot be null or undefined or empty"
-    };
-  }
-
-  static notNullOrWhitespace(text) {
-    var request = CodeContract.notNullOrEmpty(text) && "" !== text.trim();
-    return {
-      result : request,
-      message : request ? undefined : "cannot be null or undefined or whitespace"
-    };
-  }
-}
-
-module.exports = {
-  makeJsonObject,
-  deepCopy,
-  partialCopy,
-  isPrimitiveKey,
-  NotImplementError,
-  CodeContract,
-};

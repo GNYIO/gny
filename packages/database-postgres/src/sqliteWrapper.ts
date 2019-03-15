@@ -1,8 +1,8 @@
-const { promisify } = require('util');
-const { LogManager } = require('./logger');
-const betterSqlite3 = require('better-sqlite3');
+import { promisify } from 'util';
+import { LogManager } from './logger';
+import betterSqlite3 from 'better-sqlite3';
 
-class SqliteWrapper {
+export class SqliteWrapper {
 
   constructor() {
     this.log = LogManager.getLogger("SqliteWrapper");
@@ -141,9 +141,4 @@ class SqliteWrapper {
   get isConnected() {
     return this.db.open;
   }
-};
-
-
-module.exports = {
-  SqliteWrapper,
 }

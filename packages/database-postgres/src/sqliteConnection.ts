@@ -1,5 +1,5 @@
-const { SqliteWrapper } = require('./sqliteWrapper');
-const { MULTI_SQL_SEPARATOR } = require('./jsonSQLBuilder');
+import { SqliteWrapper } from './sqliteWrapper';
+import { MULTI_SQL_SEPARATOR } from './jsonSQLBuilder';
 
 class DBTransaction {
   /**
@@ -16,9 +16,9 @@ class DBTransaction {
   async rollback() {
     await this.connection.execute("ROLLBACK;");
   }
-};
+}
 
-class SqliteConnection {
+export class SqliteConnection {
   /**
    * @param {!Object} opts
    * @return {undefined}
@@ -90,8 +90,4 @@ class SqliteConnection {
   get isConnected() {
     return this.sqlite.isConnected;
   }
-};
-
-module.exports = {
-  SqliteConnection,
 }

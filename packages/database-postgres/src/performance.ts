@@ -16,10 +16,11 @@ class PerformanceHelper {
       this.uptime = uptime;
     }
   }
-    /**
-     * @param {string} no
-     * @return {undefined}
-   */
+
+  /**
+   * @param {string} no
+   * @return {undefined}
+ */
   doRestartTime(no) {
     this.doEndtime(true);
     /** @type {string} */
@@ -50,14 +51,9 @@ class PerformanceHelper {
   }
 }
 
-class Utils {
+export class Utils {
+  private static _performance = new PerformanceHelper;
   static get Performace() {
     return Utils._performance;
   }
-};
-
-Utils._performance = new PerformanceHelper;
-
-module.exports = {
-  Utils,
-};
+}

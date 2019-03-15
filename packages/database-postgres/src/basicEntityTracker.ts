@@ -1,10 +1,10 @@
-const codeContractXX = require('./codeContract');
-const enumerations = require('./entityChangeType');
-const { isFunction } = require('util');
-const lodash = require('lodash');
-const { toArray, } = require('./helpers/index');
+import * as codeContractXX from './codeContract';
+import * as enumerations from './entityChangeType';
+import { isFunction } from 'util';
+import * as lodash from 'lodash';
+import { toArray } from './helpers/index';
 
-class BasicEntityTracker {
+export class BasicEntityTracker {
   /**
    * @param {string} sessionCache
    * @param {string} schemas
@@ -384,7 +384,3 @@ class BasicEntityTracker {
     };
   }
 }
-
-module.exports = {
-  BasicEntityTracker,
-};

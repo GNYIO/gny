@@ -1,25 +1,22 @@
-const { FieldTypes } = require('./fieldTypes');
-const { deepCopy } = require('./codeContract');
-const { isString, isArray, isNumber } = require('util');
+import { FieldTypes } from './fieldTypes';
+import { deepCopy } from './codeContract';
+import { isString, isArray, isNumber } from 'util';
 const jsonSQL = require('json-sql')({
   separatedValues : false
 });
-const lodash = require('lodash');
+import * as lodash from 'lodash';
 
-var output = {};
-var d;
-/** @type {string} */
-const MULTI_SQL_SEPARATOR = ";";
-(function(result) {
-  result[result.Schema = 0] = "Schema";
-  result[result.Select = 1] = "Select";
-  result[result.Insert = 2] = "Insert";
-  result[result.Update = 3] = "Update";
-  result[result.Delete = 4] = "Delete";
-  result[result.Other = 9] = "Other";
-})(d = output.SqlType || (output.SqlType = {}));
+export const MULTI_SQL_SEPARATOR = ';';
+export enum SqlType {
+  Schema = 0,
+  Select = 1,
+  Insert = 2,
+  Update = 3,
+  Delete = 4,
+  Other = 9,
+}
 
-class JsonSqlBuilder {
+export class JsonSqlBuilder {
 
   getTableName(key) {
     return lodash.snakeCase(key) + "s";
@@ -88,7 +85,7 @@ class JsonSqlBuilder {
 
   buildInsert(args, key) {
     var i = {
-      type : d.Insert
+      type : SqlType.Insert
     };
     return Object.assign(i, jsonSQL.build({
       type : "insert",
@@ -99,7 +96,7 @@ class JsonSqlBuilder {
 
   buildDelete(args, params) {
     var i = {
-      type : d.Delete
+      type : SqlType.Delete
     };
     return Object.assign(i, jsonSQL.build({
       type : "remove",
@@ -113,7 +110,7 @@ class JsonSqlBuilder {
     var func = this.getPrimaryKeyCondition(args, environment);
     func._version_ = selector;
     var a = {
-      type : d.Update
+      type : SqlType.Update
     };
     return Object.assign(a, jsonSQL.build({
       type : "update",
@@ -182,7 +179,7 @@ class JsonSqlBuilder {
       }, show);
     }
     var static_events = {
-      type : d.Select
+      type : SqlType.Select
     };
     return Object.assign(static_events, jsonSQL.build(options));
   }
@@ -201,10 +198,4 @@ class JsonSqlBuilder {
     });
     return extractedTargets;
   }
-};
-
-module.exports = {
-  JsonSqlBuilder,
-  MULTI_SQL_SEPARATOR,
-  SqlType: output.SqlType,
 }

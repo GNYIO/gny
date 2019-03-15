@@ -1,17 +1,10 @@
 
-class BlockCache {
-  /**
-   * @param {number} maxCached
-   * @return {undefined}
-   */
-  constructor(maxCached) {
-    /** @type {!Map} */
+export class BlockCache {
+
+  constructor(maxCached: number) {
     this.cache = new Map;
-    /** @type {number} */
     this.minHeight = -1;
-    /** @type {number} */
     this.maxHeight = -1;
-    /** @type {number} */
     this.maxCachedCount = maxCached;
   }
 
@@ -92,7 +85,3 @@ class BlockCache {
     };
   }
 }
-
-module.exports = {
-  BlockCache,
-};

@@ -1,31 +1,27 @@
-const { toArray, } = require('./helpers/index');
-var { isBoolean, isString, isObject, } = require('util');
-var codeContract = require('./codeContract');
-var { ENTITY_VERSION_PROPERTY } = require('./entityChangeType');
-var lodash = require('lodash');
+import { toArray, } from './helpers/index';
+import { isBoolean, isString, isObject, } from 'util';
+import * as codeContract from './codeContract';
+import { ENTITY_VERSION_PROPERTY } from './entityChangeType';
+import * as lodash from 'lodash';
 
-var res;
-var output = {};
-!function(exports) {
-  /** @type {string} */
-  exports.String = "String";
-  /** @type {string} */
-  exports.Number = "Number";
-  /** @type {string} */
-  exports.BigInt = "BigInt";
-  /** @type {string} */
-  exports.Text = "Text";
-  /** @type {string} */
-  exports.JSON = "Json";
-}(res = output.FieldTypes || (output.FieldTypes = {}));
+export enum FieldTypes {
+  String = 'String',
+  Number = 'Number',
+  BigInt = 'BigInt',
+  Text = 'Text',
+  JSON = 'Json',
+}
 
-class InvalidEntityKeyError extends Error {
+
+export class InvalidEntityKeyError extends Error {
   constructor(context, props) {
     super("Invalid entity key\uff0c( model = " + context + ", key = '" + JSON.stringify(props) + "' ) ");
   }
 }
 
-class ModelSchema {
+export class ModelSchema {
+  public static readonly PRIMARY_KEY_NAME = '__PrimaryKey__';
+
   /**
    * @param {!Object} obj
    * @param {string} name
@@ -314,12 +310,4 @@ class ModelSchema {
   get memCached() {
     return this.memory;
   }
-};
-
-ModelSchema.PRIMARY_KEY_NAME = "__PrimaryKey__";
-
-module.exports = {
-  FieldTypes: output.FieldTypes,
-  InvalidEntityKeyError,
-  ModelSchema,
-};
+}

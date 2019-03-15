@@ -1,15 +1,18 @@
-var { LogManager } = require('./logger');
-var { isArray } = require('util');
-var { LRUEntityCache } = require('./lruEntityCache');
-var _fieldTypes = require('./fieldTypes');
-var _jsonSqlBuilder = require('./jsonSQLBuilder');
-var codeContract = require('./codeContract');
-var { BasicTrackerSqlBuilder } = require('./basicTrackerSqlBuilder');
-var { BasicEntityTracker } = require('./basicEntityTracker');
-var performance = require('./performance');
-const { toArray, } = require('./helpers/index');
+import { LogManager } from './logger';
+import { isArray } from 'util';
+import { LRUEntityCache } from './lruEntityCache';
+import * as _fieldTypes from './fieldTypes';
+import * as _jsonSqlBuilder from './jsonSQLBuilder';
+import * as codeContract from './codeContract';
+import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
+import { BasicEntityTracker } from './basicEntityTracker';
+import * as performance from './performance';
+import { toArray } from './helpers/index';
 
-class DbSession {
+export class DbSession {
+
+  public DEFAULT_HISTORY_VERSION_HOLD = 10;
+
   /**
    * @param {!Object} connection
    * @param {?} historyChanges
@@ -321,18 +324,18 @@ class DbSession {
     return false;
   }
 
-  async saveChanges(optArgs) {
-    var withArgs_ = optArgs || ++this.sessionSerial;
+  async saveChanges(height) {
+    var withArgs_ = height || ++this.sessionSerial;
     this.log.trace("BEGIN saveChanges ( serial = " + withArgs_ + " )");
 
     this.commitEntityTransaction();
     performance.Utils.Performace.time("Build sqls");
     var value = this.trackerSqlBuilder.buildChangeSqls();
     performance.Utils.Performace.restartTime("Execute sqls (" + value.length + ")");
-    var rulemodel = await this.connection.beginTrans();
+    var trans = await this.connection.beginTrans();
     try {
       await this.connection.executeBatch(value);
-      await rulemodel.commit();
+      await trans.commit();
       performance.Utils.Performace.restartTime("Accept changes");
       this.entityTracker.acceptChanges(withArgs_);
       performance.Utils.Performace.endTime();
@@ -342,7 +345,7 @@ class DbSession {
       return withArgs_;
     } catch (expectedCommand) {
        this.log.error("FAILD saveChanges ( serial = " + withArgs_ + " )", expectedCommand);
-       await rulemodel.rollback();
+       await trans.rollback();
        this.entityTracker.rejectChanges();
        throw expectedCommand;
     }
@@ -474,8 +477,4 @@ class DbSession {
   }
 }
 
-DbSession.DEFAULT_HISTORY_VERSION_HOLD = 10;
 
-module.exports = {
-  DbSession,
-};

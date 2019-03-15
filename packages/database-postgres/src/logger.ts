@@ -1,6 +1,9 @@
+import { ILogger } from '../../../src/interfaces';
 
 class LoggerWrapper {
-  constructor(name, logger) {
+  private name: string;
+  private logger: ILogger;
+  constructor(name: string, logger: ILogger) {
     if (!name) {
       throw new Error('name');
     }
@@ -22,7 +25,6 @@ class LoggerWrapper {
   warn(message) {
     this.logger.warn(`[${this.name}] ${message}`);
   }
-
   error(message) {
     this.logger.error(`[${this.name}] ${message}`);
   }
@@ -31,8 +33,9 @@ class LoggerWrapper {
   }
 }
 
-class LogManager {
-  static getLogger(name) {
+export class LogManager {
+  private static defaultLogger: ILogger;
+  static getLogger(name: string) {
     if (!LogManager.defaultLogger) {
       throw new Error('first set LogManager.setLogger = logger');
     }
@@ -42,8 +45,5 @@ class LogManager {
   static setLogger(logger) {
     LogManager.defaultLogger = logger;
   }
-};
-
-module.exports = {
-  LogManager,
 }
+

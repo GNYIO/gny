@@ -1,16 +1,16 @@
-const codeContract = require('./codeContract');
-const { isString } = require('util');
-const { toArray, } = require('./helpers/index');
+import * as codeContract from './codeContract';
+import { isString } from 'util';
+import { toArray } from './helpers/index';
 
-class DefaultEntityUniqueIndex {
+export class DefaultEntityUniqueIndex {
   /**
-   * @param {!Object} data
-   * @param {!Object} columns
+   * @param {!Object} name
+   * @param {!Object} indexFields
    * @return {undefined}
    */
-  constructor(data, columns) {
-    this.name = data;
-    this.indexFields = columns;
+  constructor(name, indexFields) {
+    this.name = name;
+    this.indexFields = indexFields;
     this.indexMap = new Map;
   }
   getIndexKey(storedComponents) {
@@ -44,10 +44,10 @@ class DefaultEntityUniqueIndex {
   get fields() {
     return this.indexFields;
   }
-};
+}
 
 
-class UniquedCache {
+export class UniquedCache {
   /**
    * @param {string} data
    * @param {!Array} reducers
@@ -120,10 +120,10 @@ class UniquedCache {
       return this.evit(args);
     });
   }
-};
+}
 
 
-class UniquedEntityCache {
+export class UniquedEntityCache {
   /**
    * @param {!Object} emitter
    * @param {string} model
@@ -152,14 +152,14 @@ class UniquedEntityCache {
     this.modelCaches.delete(marketID);
   }
 
-  getModelCache(e) { // e = modelString
-    var ed = this.modelSchemas.get(e); // ed= schema
-    if (undefined === ed) {
-      throw new Error("Model schema ( name = '" + e + "' )  does not exists");
+  getModelCache(model) {
+    var schema = this.modelSchemas.get(model);
+    if (undefined === schema) {
+      throw new Error("Model schema ( name = '" + model + "' )  does not exists");
     }
     // TODO: check logic
-    this.modelCaches.has(e) || this.registerModel(ed, ed.uniqueIndexes);
-    return this.modelCaches.get(e);
+    this.modelCaches.has(model) || this.registerModel(schema, schema.uniqueIndexes);
+    return this.modelCaches.get(model);
   }
 
   getCacheKey(text) {
@@ -289,10 +289,4 @@ class UniquedEntityCache {
     // TODO: refactor
     return new (Function.prototype.bind.apply(Array, [null].concat(toArray(this.modelSchemas.values()))));
   }
-};
-
-module.exports = {
-  DefaultEntityUniqueIndex,
-  UniquedCache,
-  UniquedEntityCache,
 }

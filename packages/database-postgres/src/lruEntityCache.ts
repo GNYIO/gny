@@ -1,6 +1,6 @@
-const LRU = require('lru-cache');
-const { UniquedEntityCache } = require('./defaultEntityUniqueIndex');
-const customLogger = require('./logger');
+import * as LRU from 'lru-cache';
+import { UniquedEntityCache } from './defaultEntityUniqueIndex';
+import * as customLogger from './logger';
 
 class CustomCache {
   /**
@@ -60,13 +60,12 @@ class CustomCache {
   get model() {
     return this.modelSchema;
   }
-};
+}
 
-class LRUEntityCache extends UniquedEntityCache {
-  /**
-   * @param {?} server
-   * @return {?}
-   */
+export class LRUEntityCache extends UniquedEntityCache {
+  public static readonly MIN_CACHED_COUNT = 100;
+  public static readonly DEFULT_MAX_CACHED_COUNT = 5e4;
+
   constructor(server) {
     const logger = customLogger.LogManager.getLogger("LRUEntityCache");
     super(logger, server);
@@ -80,11 +79,4 @@ class LRUEntityCache extends UniquedEntityCache {
   createCache(e) {
     return new CustomCache(e, this.getMaxCachedCount(e));
   }
-};
-
-LRUEntityCache.MIN_CACHED_COUNT = 100;
-LRUEntityCache.DEFULT_MAX_CACHED_COUNT = 5e4;
-
-module.exports = {
-  LRUEntityCache,
-};
+}
