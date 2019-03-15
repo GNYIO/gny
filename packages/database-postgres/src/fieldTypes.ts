@@ -172,7 +172,15 @@ export class ModelSchema {
     if (!this.isValidPrimaryKey(id)) {
       throw new Error("Invalid PrimaryKey of model '" + this.modelName + "', key=''" + JSON.stringify(id));
     }
-    return !this.isCompsiteKey && codeContract.isPrimitiveKey(id) ? val[this.primaryKey] = id : this.isCompsiteKey ? codeContract.partialCopy(id, this.compositeKeys, val) : codeContract.partialCopy(id, [this.primaryKey], val), val;
+    if (!this.isCompsiteKey && codeContract.isPrimitiveKey(id)) {
+      val[this.primaryKey] = id;
+    } else if (this.isCompsiteKey) {
+      codeContract.partialCopy(id, this.compositeKeys, val);
+    } else {
+      codeContract.partialCopy(id, [this.primaryKey], val);
+    }
+    return val;
+    // return !this.isCompsiteKey && codeContract.isPrimitiveKey(id) ? val[this.primaryKey] = id : this.isCompsiteKey ? codeContract.partialCopy(id, this.compositeKeys, val) : , val;
   }
 
   getPrimaryKey(val) {
@@ -200,7 +208,6 @@ export class ModelSchema {
     if (this.isValidPrimaryKey(y)) {
       return ModelSchema.PRIMARY_KEY_NAME;
     }
-    /** @type {!Array<string>} */
     var col = Object.keys(y);
     if (1 === col.length && col[0] === this.primaryKey) {
       return ModelSchema.PRIMARY_KEY_NAME;
@@ -221,20 +228,27 @@ export class ModelSchema {
     });
   }
 
-  resolveKey(name) {
-    var up = this.getUniqueName(name);
-    if (undefined !== up) {
-      return this.isPrimaryKeyUniqueName(up) ? {
-        isPrimaryKey : true,
-        uniqueName : up,
-        key : this.setPrimaryKey({}, name)
-      } : {
-        isUniqueKey : true,
-        uniqueName : up,
-        key : name
-      };
-    }
-  }
+  // moved to helpers/index
+  // resolveKey(name/*: EntityKey*/)/*:ResolvedEntiytKey*/ {
+  //   const up = this.getUniqueName(name);
+  //   if (undefined !== up) {
+  //     if (this.isPrimaryKeyUniqueName(up)) {
+  //       const result = {
+  //         isPrimaryKey : true,
+  //         uniqueName : up,
+  //         key : this.setPrimaryKey({}, name),
+  //       };
+  //       return result;
+  //     } else {
+  //       const result = {
+  //         isUniqueKey : true,
+  //         uniqueName : up,
+  //         key : name,
+  //       };
+  //       return result;
+  //     }
+  //   }
+  // }
 
   copyProperties(output) {
     var style = this;

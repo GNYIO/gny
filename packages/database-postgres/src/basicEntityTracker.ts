@@ -3,8 +3,38 @@ import * as enumerations from './entityChangeType';
 import { isFunction } from 'util';
 import * as lodash from 'lodash';
 import { toArray } from './helpers/index';
+import { ILogger } from '../../../src/interfaces';
+import { resolveKey } from './helpers/index';
+
+export type NormalizedEntityKey<E> = Partial<E>;
+
+export interface PropertyChange<E extends object> {
+  name: string & ((keyof E) | '_version_');
+  original?: any;
+  current?: any;
+}
+
+export interface EntityChanges<E extends object> {
+  type: enumerations.EntityChangeType;
+  dbVersion: number;
+  model: string;
+  primaryKey: NormalizedEntityKey<E>;
+  propertyChanges: PropertyChange<E>[];
+}
+
+
 
 export class BasicEntityTracker {
+  private log: ILogger;
+  private cache: any;
+  private confirming: boolean;
+  private schemas: any;
+  private doLoadHistory: any;
+  private history: Map<any, any>;
+  private allTrackingEntities: Map<any, any>;
+  private unconfirmedChanges: Array<any>;
+  private confirmedChanges: Array<any>;
+
   /**
    * @param {string} sessionCache
    * @param {string} schemas
@@ -127,9 +157,14 @@ export class BasicEntityTracker {
   }
 
   getTrackingEntity(schema, key) {
-    var result = schema.resolveKey(key);
+    const result = resolveKey(schema, key);
     if (undefined !== result) {
-      return result.isPrimaryKey ? this.cache.get(schema.modelName, result.key) : this.cache.getUnique(schema.modelName, result.uniqueName, result.key);
+      if (result.isPrimaryKey) {
+        return this.cache.get(schema.modelName, result.key);
+      } else {
+        return this.cache.getUnique(schema.modelName, result.uniqueName, result.key);
+      }
+      // return result.isPrimaryKey ? this.cache.get(schema.modelName, result.key) : this.cache.getUnique(schema.modelName, result.uniqueName, result.key);
     }
   }
 
@@ -168,7 +203,7 @@ export class BasicEntityTracker {
   }
 
   buildModifyChanges(schema, currentObj, changes, version) {
-    var results = new Array; // []
+    let results = new Array; // []
     changes.forEach(function(data) {
       return results.push({
         name : data.name,

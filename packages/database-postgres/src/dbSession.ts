@@ -1,13 +1,13 @@
 import { LogManager, LoggerWrapper } from './logger';
 import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache';
-import * as _fieldTypes from './fieldTypes';
+import { InvalidEntityKeyError } from './fieldTypes';
 import * as _jsonSqlBuilder from './jsonSQLBuilder';
 import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker } from './basicEntityTracker';
 import * as performance from './performance';
-import { toArray } from './helpers/index';
+import { toArray, resolveKey } from './helpers/index';
 import { Connection } from 'typeorm';
 
 
@@ -55,7 +55,7 @@ export class DbSession {
   }
 
   makeByKeyCondition(table, key) {
-    return table.resolveKey(key).key;
+    return resolveKey(table, key).key;
   }
 
   trackPersistentEntities(data, remove) {
@@ -262,21 +262,21 @@ export class DbSession {
     return this.entityTracker.getConfimedChanges();
   }
 
-  normalizeEntityKey(table, key) { // { address: "afebefe" }
-    const primarykeys = this.connection.getRepository(Account).metadata.primaryColumns;
-    console.log(primarykeys);
-    var exists = table.resolveKey(key);
-    if (undefined === exists) {
-      throw new _fieldTypes.InvalidEntityKeyError(table.modelName, key);
-    }
-    return exists;
+  normalizeEntityKey(table, key /* id | { id }?? */) { // { address: "afebefe" }
+    const result = resolveKey(table, key);
+    return result;
   }
 
-  getCached(e, mode) { // e = modelClass, mode = keyValue
-    var result = this.normalizeEntityKey(e, mode); // result = primaryKeyMetadata
-    var this_area = this.entityTracker.getTrackingEntity(e, result.key);
+  // isPrimaryKey:true
+  // key:Object {address: "G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
+  // uniqueName:"__PrimaryKey__"
+
+  getCached(modelClass, keyvalue) {
+    const primaryKeyMetadata = this.normalizeEntityKey(modelClass, keyvalue); // isPrimaryKey: true, key: { address: "" }, uniqueName: "__PrimaryKey__"
+    const this_area = this.entityTracker.getTrackingEntity(modelClass, primaryKeyMetadata.key);
+
     // TODO: refactor return
-    return this_area || (result.isPrimaryKey ? this.sessionCache.get(e.modelName, result.key) : this.sessionCache.getUnique(e.modelName, result.uniqueName, result.key));
+    return this_area || (primaryKeyMetadata.isPrimaryKey ? this.sessionCache.get(modelClass.modelName, primaryKeyMetadata.key) : this.sessionCache.getUnique(modelClass.modelName, primaryKeyMetadata.uniqueName, primaryKeyMetadata.key));
   }
 
   getTrackingOrCachedEntity(url, id) {
@@ -284,8 +284,8 @@ export class DbSession {
     return undefined === cached ? undefined : this.undefinedIfDeleted(cached);
   }
 
-  getCachedEntity(url, id) {
-    var cached = this.getCached(url, id);
+  getCachedEntity(schema, key) {
+    const cached = this.getCached(schema, key);
     return undefined === cached ? undefined : this.undefinedIfDeleted(cached);
   }
 
