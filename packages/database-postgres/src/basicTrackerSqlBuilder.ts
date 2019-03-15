@@ -8,7 +8,7 @@ export class BasicTrackerSqlBuilder {
    * @param {?} options
    * @return {undefined}
    */
-  constructor(tracker, schemas, options) {
+  constructor(tracker, schemas, options) { // options = sqlbuilder
     this.tracker = tracker;
     this.schemas = schemas;
     this.sqlBuilder = options;

@@ -1,6 +1,6 @@
 import { ILogger } from '../../../src/interfaces';
 
-class LoggerWrapper {
+export class LoggerWrapper {
   private name: string;
   private logger: ILogger;
   constructor(name: string, logger: ILogger) {

@@ -1,9 +1,41 @@
+import 'reflect-metadata';
+import { Connection, getConnection, MoreThan } from 'typeorm';
+
+import { Account } from '../entity/Account';
+import { Asset } from '../entity/Asset';
+import { Balance } from '../entity/Balance';
+import { Block } from '../entity/Block';
+import { Delegate } from '../entity/Delegate';
+import { Issuer } from '../entity/Issuer';
+import { Round } from '../entity/Round';
+import { Transaction } from '../entity/Transaction';
+import { Transfer } from '../entity/Transfer';
+import { Variable } from '../entity/Variable';
+import { Vote } from '../entity/Vote';
+
+import { loadConfig } from '../loadConfig';
+import { ILogger } from '../../../src/interfaces';
+
+const ENTITY: any = {
+  'Account': Account,
+  'Asset': Asset,
+  'Balance': Balance,
+  'Block': Block,
+  'Delegate': Delegate,
+  'Issuer': Issuer,
+  'Round': Round,
+  'Transaction': Transaction,
+  'Variable': Variable,
+  'Vote': Vote,
+  'Transfer': Transfer
+};
+
+
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import { CodeContract } from './codeContract';
 import { DbSession } from './dbSession';
-import { SqliteConnection } from './sqliteConnection';
-import { LogManager } from './logger';
+import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
 import * as performance from './performance';
 import * as _ from 'lodash';
@@ -12,48 +44,65 @@ export class SmartDB extends EventEmitter {
 
   public static readonly TRANSACTION_MODEL_NAME = 'Transaction';
   private options: any;
-  /**
-   * @param {!Storage} dbPath
-   * @param {!Object} options
-   * @return {?}
-   */
-  constructor(dbPath: string, options, logger) {
+  originalLogger: ILogger; // TODO: refactor
+  private commitBlockHooks: Array<any>;
+  private rollbackBlockHooks: Array<any>;
+  private schemas: Map<any, any>;
+  private log: LoggerWrapper;
+  private cachedBlocks: BlockCache;
+  connection: Connection;
+  private _lastBlockHeight?: number;
+  private blockSession: DbSession;
+
+  constructor(logger: ILogger, options?) {
     super();
 
+    this.originalLogger = logger;
     LogManager.setLogger(logger);
 
-    CodeContract.argument("dbPath", function() {
-      return CodeContract.notNullOrWhitespace(dbPath);
-    });
     this.options = options || {
       cachedBlockCount : 10,
       maxBlockHistoryHold : 10
     };
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
-    this.schemas = new Map;
-    this.log = LogManager.getLogger("SmartDB");
-    this.cachedBlocks = new BlockCache(this.options.cachedBlockCount);
-    this.connection = new SqliteConnection({
-      storage : dbPath
+    this.schemas = new Map<string, {}>();
+
+    Object.keys(ENTITY).forEach((name) => {
+      this.schemas.set(name, ENTITY[name]);
     });
 
-    // TODO: fix loadHistoryFromLevelDB
-    this.blockSession = new DbSession(this.connection, new Map(), {
-      name : "Block"
-    });
+    this.log = LogManager.getLogger("SmartDB");
+    this.cachedBlocks = new BlockCache(this.options.cachedBlockCount);
 
     this._lastBlockHeight = undefined;
   }
 
-  getSchema(obj) { // private, obj = model
-    var t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    var o = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    var id = isString(obj) ? String(obj) : obj.name;
-    var modelSchema = this.schemas.get(id);
+  async init() {
+    this.connection = await loadConfig(this.originalLogger);
 
-    t && CodeContract.verify(undefined !== modelSchema, "unregistered model '" + id + "'");
-    o && CodeContract.verify(!modelSchema.isReadonly, "model '" + id + "' is readonly");
+    // TODO: fix loadHistoryFromLevelDB
+    const history = new Map();
+    this.blockSession = new DbSession(this.connection, history);
+
+    await this.loadMaxBlockHeight();
+    await this.ensureLastBlockLoaded();
+
+    await this.blockSession.initSerial(this.lastBlockHeight);
+
+    this.emit("ready", this);
+  }
+
+  getSchema(model: string | { name: string }, verifyIfRegistered = false, verifyIfReadonly = false) {
+    const id = isString(model) ? String(model) : model.name;
+    const modelSchema = this.schemas.get(id);
+
+    if (verifyIfRegistered) {
+      CodeContract.verify(undefined !== modelSchema, "unregistered model '" + id + "'");
+    }
+    if (verifyIfReadonly) { // remove this check and parameter
+      CodeContract.verify(!modelSchema.isReadonly, "model '" + id + "' is readonly");
+    }
     return modelSchema;
   }
 
@@ -61,7 +110,7 @@ export class SmartDB extends EventEmitter {
   //   return await this.blockDB.getHistoryChanges(e, exceptionLevel);
   // }
 
-  getSession(s) { // private
+  getSession() { // private
     // return s.isLocal ? this.localSession : this.blockSession;
     return this.blockSession;
   }
@@ -143,66 +192,6 @@ export class SmartDB extends EventEmitter {
     if (forTokenLength >= 0) {
       this.rollbackBlockHooks.slice(forTokenLength);
     }
-  }
-
-  async init(schemas) {
-    CodeContract.argument("schemas", function() {
-      return CodeContract.notNull(schemas);
-    });
-    await this.connection.connect();
-    await this.syncSchemas(schemas);
-
-    await this.loadMaxBlockHeight();
-    await this.ensureLastBlockLoaded();
-
-    await this.blockSession.initSerial(this.lastBlockHeight);
-
-    this.emit("ready", this);
-  }
-
-  async syncSchemas(pars) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError6 = false;
-    var _iteratorError6 = undefined;
-    try {
-      var _iterator3 = pars[Symbol.iterator]();
-      var _step6;
-      for (; !(_iteratorNormalCompletion3 = (_step6 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var key = _step6.value;
-        this.schemas.set(key.modelName, key);
-        var data = this.getSession(key);
-        if (data.registerSchema(key), data.syncSchema(key), this.log.info("sync schema model = " + key.modelName + " "), key.memCached) {
-          var expRecords = await data.getMany(key, {}, true);
-          this.log.info("model " + key.modelName + " cached " + expRecords.length + " entities ");
-        }
-      }
-    } catch (err) {
-      _didIteratorError6 = true;
-      _iteratorError6 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
-        }
-      } finally {
-        if (_didIteratorError6) {
-          throw _iteratorError6;
-        }
-      }
-    }
-    if (undefined === this.transactionSchema) {
-      throw new Error("Transaction model is not found");
-    }
-  }
-
-  async updateSchema(schema) {
-    CodeContract.argument("schema", function() {
-      return CodeContract.notNull(schema);
-    });
-    var sessionId = this.getSchema(schema.modelName);
-    var session = this.getSession(sessionId);
-    await session.updateSchema(schema);
-    this.log.info("model " + schema.modelName + " schema updated ");
   }
 
   async close() {
@@ -308,7 +297,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(entity);
     });
     var context = this.getSchema(model, true, true);
-    return this.getSession(context).create(context, entity);
+    return this.getSession().create(context, entity);
   }
 
   createOrLoad(model, entity) {
@@ -337,7 +326,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(key);
     });
     var sessionId = this.getSchema(model, true, true);
-    return this.getSession(sessionId).increase(sessionId, key, obj);
+    return this.getSession().increase(sessionId, key, obj);
   }
 
   update(model, value, record) {
@@ -360,7 +349,7 @@ export class SmartDB extends EventEmitter {
         throw new Error("modifier or entity contains property which is not defined in model (" + JSON.stringify(train1or) + ")");
       }
     }
-    this.getSession(config).update(config, record, value);
+    this.getSession().update(config, record, value);
   }
 
   del(model, condition) {
@@ -371,7 +360,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(condition);
     });
     var url = this.getSchema(model, true, true);
-    this.getSession(url).delete(url, condition);
+    this.getSession().delete(url, condition);
   }
   async load(model, condition) {
     CodeContract.argument("model", function() {
@@ -381,7 +370,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(condition);
     });
     var schema = this.getSchema(model, true);
-    return await this.getSession(schema).load(schema, condition);
+    return await this.getSession().load(schema, condition);
   }
 
   loadSync(key, value) {
@@ -392,7 +381,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(value);
     });
     var request = this.getSchema(key, true);
-    return this.getSession(request).loadSync(request, value);
+    return this.getSession().loadSync(request, value);
   }
 
   async loadMany(record, strategy) {
@@ -401,7 +390,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(record);
     });
     var options = this.getSchema(record, true);
-    return await this.getSession(options).getMany(options, strategy, callback);
+    return await this.getSession().getMany(options, strategy, callback);
   }
 
   get(model, key) {
@@ -412,7 +401,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(key);
     });
     var promise = this.getSchema(model, true);
-    return this.getSession(promise).getCachedEntity(promise, key);
+    return this.getSession().getCachedEntity(promise, key);
   }
 
   getAll(model, callback) {
@@ -420,7 +409,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(model);
     });
     var query = this.getSchema(model, true);
-    return CodeContract.argument("model", query.memCached, "getAll only support for memory model"), this.getSession(query).getAll(query, callback);
+    return CodeContract.argument("model", query.memCached, "getAll only support for memory model"), this.getSession().getAll(query, callback);
   }
 
   async find(record, data, args, user, callback, pageSize) {
@@ -428,7 +417,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(record);
     });
     var url = this.getSchema(record, true);
-    return await this.getSession(url).query(url, data, args, user, callback, pageSize);
+    return await this.getSession().query(url, data, args, user, callback, pageSize);
   }
 
   async findOne(model, condition) {
@@ -445,15 +434,15 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(model);
     });
     var sessionId = this.getSchema(model, true);
-    return await this.getSession(sessionId).queryByJson(sessionId, condition);
+    return await this.getSession().queryByJson(sessionId, condition);
   }
 
   async exists(key, val) {
     CodeContract.argument("model", function() {
       return CodeContract.notNull(key);
     });
-    var file = this.getSchema(key, true);
-    return await this.getSession(file).exists(file, val);
+    const file = this.getSchema(key, true);
+    return await this.getSession().exists(file, val);
   }
 
 
@@ -462,7 +451,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(key);
     });
     var url = this.getSchema(key, true);
-    return await this.getSession(url).count(url, callback);
+    return await this.getSession().count(url, callback);
   }
 
   async loadMaxBlockHeight() {

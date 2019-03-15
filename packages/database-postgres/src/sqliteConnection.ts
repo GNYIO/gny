@@ -1,12 +1,12 @@
-import { SqliteWrapper } from './sqliteWrapper';
 import { MULTI_SQL_SEPARATOR } from './jsonSQLBuilder';
 
 class DBTransaction {
+  private connection: SqliteConnection;
   /**
    * @param {!Object} connection
    * @return {undefined}
    */
-  constructor(connection) {
+  constructor(connection: SqliteConnection) {
     this.connection = connection;
   }
   async commit() {
@@ -25,7 +25,6 @@ export class SqliteConnection {
    */
   constructor(opts) {
     this.options = opts;
-    this.sqlite = new SqliteWrapper;
   }
 
   async connect() {
@@ -65,7 +64,7 @@ export class SqliteConnection {
     return t;
   }
 
-  async execute(hash, params) {
+  async execute(hash, params?) {
     var e = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     var t = await this.sqlite.asynExecute(hash, params);
     e && this.ensureExecuteEffected(t);

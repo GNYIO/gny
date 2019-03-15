@@ -12,7 +12,7 @@ export class BasicEntityTracker {
    * @param {!Object} logger
    * @param {?} historyChanges
    */
-  constructor(sessionCache, schemas, message, logger, historyChanges) {
+  constructor(sessionCache, schemas, message, logger, historyChanges) { // message: maxHistoryVersionsHold
     this.log = logger;
     this.cache = sessionCache;
     this.confirming = false;

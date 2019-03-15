@@ -99,9 +99,8 @@ export default async function runtime(options) {
   };
 
   const { dataDir } = options.appConfig;
-  const BLOCK_DB_PATH = path.resolve(dataDir, 'blockchain.db');
 
-  global.app.sdb = new SmartDB(BLOCK_DB_PATH, undefined, options.logger);
+  global.app.sdb = new SmartDB(options.logger);
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);
   global.app.events = new EventEmitter();

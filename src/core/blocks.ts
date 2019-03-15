@@ -249,7 +249,7 @@ export default class Blocks {
         }
         const idList = block.transactions.map(t => t.id);
 
-        if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: In(idList) })) {
+        if (idList.length !== 0 && await global.app.sdb.exists('Transaction', { id: idList })) {
           throw new Error('Block contain already confirmed transaction');
         }
 
@@ -722,7 +722,7 @@ public isHealthy = () => {
 
     return (async () => {
       try {
-        const count = await global.app.sdb.blocksCount();
+        const count = global.app.sdb.blocksCount;
         global.app.logger.info('Blocks found:', count);
         if (!count) {
           this.setLastBlock({ height: -1 });

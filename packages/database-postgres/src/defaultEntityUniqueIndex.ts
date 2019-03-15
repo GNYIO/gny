@@ -1,6 +1,7 @@
 import * as codeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
+import { LoggerWrapper } from './logger';
 
 export class DefaultEntityUniqueIndex {
   /**
@@ -124,28 +125,29 @@ export class UniquedCache {
 
 
 export class UniquedEntityCache {
-  /**
-   * @param {!Object} emitter
-   * @param {string} model
-   * @return {undefined}
-   */
-  constructor(emitter, model) {
-    this.log = emitter;
-    this.modelSchemas = model;
+
+  private log: LoggerWrapper;
+  private modelSchemas: any;
+  private modelCaches: Map<any, any>;
+
+
+  constructor(logger: LoggerWrapper, modelSchemas) {
+    this.log = logger;
+    this.modelSchemas = modelSchemas;
     this.modelCaches = new Map;
   }
 
   createCache(options) {
-    throw new codeContract.NotImplementError;
+    throw new codeContract.NotImplementError([]);
   }
 
   registerModel(name, index) {
-    var m = name.modelName;
-    if (this.modelCaches.has(m)) {
-      throw new Error("model '" + m + "' exists already");
+    const modelName = name.modelName;
+    if (this.modelCaches.has(modelName)) {
+      throw new Error("model '" + modelName + "' exists already");
     }
-    var data = this.createCache(name);
-    this.modelCaches.set(m, new UniquedCache(data, index));
+    const data = this.createCache(name);
+    this.modelCaches.set(modelName, new UniquedCache(data, index));
   }
 
   unRegisterModel(marketID) {

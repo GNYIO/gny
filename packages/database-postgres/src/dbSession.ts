@@ -1,4 +1,4 @@
-import { LogManager } from './logger';
+import { LogManager, LoggerWrapper } from './logger';
 import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache';
 import * as _fieldTypes from './fieldTypes';
@@ -8,35 +8,47 @@ import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker } from './basicEntityTracker';
 import * as performance from './performance';
 import { toArray } from './helpers/index';
+import { Connection } from 'typeorm';
+
+
+import { Account } from '../entity/Account';
+import { Asset } from '../entity/Asset';
+import { Balance } from '../entity/Balance';
+import { Block } from '../entity/Block';
+import { Delegate } from '../entity/Delegate';
+import { Issuer } from '../entity/Issuer';
+import { Round } from '../entity/Round';
+import { Transaction } from '../entity/Transaction';
+import { Transfer } from '../entity/Transfer';
+import { Variable } from '../entity/Variable';
+import { Vote } from '../entity/Vote';
 
 export class DbSession {
 
-  public DEFAULT_HISTORY_VERSION_HOLD = 10;
+  public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;
 
-  /**
-   * @param {!Object} connection
-   * @param {?} historyChanges
-   * @param {?} f
-   * @return {undefined}
-   */
-  constructor(connection, historyChanges, f) {
-    /** @type {!Object} */
-    var key = Object.assign({}, f);
-    var i = key.name;
-    this.log = LogManager.getLogger('DbSession' + (undefined === i ? "" : "_" + i));
-    /** @type {number} */
+  private log: LoggerWrapper;
+  private sessionSerial: number;
+  private connection: Connection;
+  private unconfirmedLocks: Set<any>;
+  private confirmedLocks: Set<any>;
+  private schemas: Map<any, any>;
+  private sessionCache: LRUEntityCache;
+  private sqlBuilder: _jsonSqlBuilder.JsonSqlBuilder;
+  private entityTracker: BasicEntityTracker;
+  private trackerSqlBuilder: BasicTrackerSqlBuilder;
+
+
+  constructor(connection: Connection, historyChanges, options = {}) {
+    this.log = LogManager.getLogger('DbSession');
     this.sessionSerial = -1;
-    /** @type {!Object} */
     this.connection = connection;
-    /** @type {!Set} */
     this.unconfirmedLocks = new Set;
-    /** @type {!Set} */
     this.confirmedLocks = new Set;
-    /** @type {!Map} */
     this.schemas = new Map;
     this.sessionCache = new LRUEntityCache(this.schemas);
     this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder;
-    var message = key.maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD;
+    const message = options.maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD; // how many versions to hold
 
     this.entityTracker = new BasicEntityTracker(this.sessionCache, this.schemas, message, LogManager.getLogger('BasicEntityTracker'), historyChanges);
     this.trackerSqlBuilder = new BasicTrackerSqlBuilder(this.entityTracker, this.schemas, this.sqlBuilder);
@@ -47,9 +59,8 @@ export class DbSession {
   }
 
   trackPersistentEntities(data, remove) {
-    var props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    /** @type {!Array} */
-    var list = new Array;
+    const props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+    const list = new Array;
     remove.forEach((val) => {
       var end = data.getPrimaryKey(val);
       var height = this.entityTracker.getTrackingEntity(data, end);
@@ -83,47 +94,12 @@ export class DbSession {
     return this.replaceEntitiesJsonPropertis(expr, i);
   }
 
-
-  syncSchema(e) {
-    this.sqlBuilder.buildSchema(e).forEach((sync) => {
-      this.connection.executeSync(sync);
-    });
-  }
-
-  async updateSchema(val) {
-    if (await this.exists(val, {})) {
-      throw new Error("Can not update schema(" + val.modelName + ") because table is not empty");
-    }
-    var query = this.sqlBuilder.buildDropSchema(val);
-    await this.connection.execute(query);
-    this.syncSchema(val);
-    this.registerSchema(val);
-  }
-
-  registerSchema() {
-    /** @type {number} */
-    var _len8 = arguments.length;
-    /** @type {!Array} */
-    var storeNames = Array(_len8);
-    /** @type {number} */
-    var _key8 = 0;
-    for (; _key8 < _len8; _key8++) {
-      storeNames[_key8] = arguments[_key8];
-    }
-    storeNames.forEach((metadata) => {
-      this.schemas.set(metadata.modelName, metadata);
-    });
-  }
-
-
-  async initSerial(conid) {
-    this.sessionSerial = conid;
-    var self = this.entityTracker;
-    if (conid >= 0) {
-      await self.initVersion(conid);
+  async initSerial(serial: number) {
+    this.sessionSerial = serial;
+    if (serial >= 0) {
+      await this.entityTracker.initVersion(serial);
     }
   }
-
 
   async close() {
     this.reset(true);
@@ -174,14 +150,27 @@ export class DbSession {
     return await this.queryEntities(data, type);
   }
 
-  async exists(data, options) {
-    var request = this.sqlBuilder.buildSelect(data, [], options);
-    var q = request.query;
-    var params = request.parameters;
-    /** @type {string} */
-    q = "select exists(" + q.replace(_jsonSqlBuilder.MULTI_SQL_SEPARATOR, "") + ") as exist";
-    var result = await this.connection.query(q, params);
-    return isArray(result) && parseInt(result[0].exist) > 0;
+  async exists(modelClass, whereClause) {
+    // look at the In operator, think of something other differentf
+    let queryBuilder = this.connection.createQueryBuilder()
+      .select('x')
+      .from(modelClass, 'x');
+
+    const whereKeys = Object.keys(whereClause);
+    if (whereKeys.length > 1) {
+      throw new Error('only one property is allowed on WHERE clause');
+    }
+
+    const propName = whereKeys[0];
+    const propValue = whereClause[propName];
+    if (Array.isArray(propValue)) {
+      queryBuilder = queryBuilder.where(`x.${propName} IN (:...${propName})`, whereClause);
+    } else {
+      queryBuilder = queryBuilder.where(`x.${propName} = :${propName}`, whereClause);
+    }
+
+    const count = await queryBuilder.getCount();
+    return count > 0;
   }
 
   async count(newLabels, data) {
@@ -273,7 +262,9 @@ export class DbSession {
     return this.entityTracker.getConfimedChanges();
   }
 
-  normalizeEntityKey(table, key) {
+  normalizeEntityKey(table, key) { // { address: "afebefe" }
+    const primarykeys = this.connection.getRepository(Account).metadata.primaryColumns;
+    console.log(primarykeys);
     var exists = table.resolveKey(key);
     if (undefined === exists) {
       throw new _fieldTypes.InvalidEntityKeyError(table.modelName, key);
@@ -281,8 +272,8 @@ export class DbSession {
     return exists;
   }
 
-  getCached(e, mode) {
-    var result = this.normalizeEntityKey(e, mode);
+  getCached(e, mode) { // e = modelClass, mode = keyValue
+    var result = this.normalizeEntityKey(e, mode); // result = primaryKeyMetadata
     var this_area = this.entityTracker.getTrackingEntity(e, result.key);
     // TODO: refactor return
     return this_area || (result.isPrimaryKey ? this.sessionCache.get(e.modelName, result.key) : this.sessionCache.getUnique(e.modelName, result.uniqueName, result.key));
@@ -435,20 +426,23 @@ export class DbSession {
    * @returns -1 -> (no blocks); 0 -> genesisBlock; 1... -> normal blocks
    */
   async getMaxBlockHeight() {
-    const result = await this.connection.query('select max(height) as maxHeight from blocks;');
-    const value = result[0].maxHeight;
+    const result = await this.connection.query('select max(height) as maxheight from block;');
+    const value = result[0].maxheight;
 
     if (value === undefined || value == null) {
       return -1;
     } else {
-      return value;
+      return Number(value);
     }
   }
 
-  async getBlockByHeight(height) {
-    // TODO: remove possible SQL injection
-    const result = await this.connection.query(`select * from blocks where height = ${height}`);
-    return result[0];
+  async getBlockByHeight(height) { // TODO, add overload that also loads transactions
+    const result = await this.connection.createQueryBuilder()
+      .select('b')
+      .from(Block, 'b')
+      .where('b.height = :height', { height })
+      .getOne();
+    return result;
   }
 
   async getBlockById(id) {
@@ -463,8 +457,11 @@ export class DbSession {
   }
 
   async getTransactionsByBlockHeight(height) {
-    // TODO: remove possible SQL injection
-    const trans = await this.connection.query(`select * from transactions where height = ${height}`);
+    const trans = await this.connection.createQueryBuilder()
+      .select('t')
+      .from(Transaction, 't')
+      .where('t.heightHeight = :height', { height: Number(height) })
+      .getSql(); // .getMany();
     return trans;
   }
 
@@ -476,5 +473,3 @@ export class DbSession {
     return JSON.stringify(new (Function.prototype.bind.apply(Array, [null].concat(toArray(orderedBranch.keys())))));
   }
 }
-
-
