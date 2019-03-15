@@ -1,8 +1,8 @@
-import * as ed from '../../src/utils/ed';
+import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { Modules, IScope, Next } from '../../src/interfaces';
-import BlockReward from '../../src/utils/block-reward';
+import { Modules, IScope, Next } from '../../../src/interfaces';
+import BlockReward from '../../../src/utils/block-reward';
 import { In } from 'typeorm';
 
 export default class DelegatesApi {

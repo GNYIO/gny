@@ -1,12 +1,11 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Modules, Next } from '../../src/interfaces';
+import { Modules, IScope, Next } from '../../../src/interfaces';
 
-export default class LoaderApi {
+export default class PeerApi {
   private modules: Modules;
   private library: IScope;
   private loaded = false;
-
   constructor (modules: Modules, library: IScope) {
     this.modules = modules;
     this.library = library;
@@ -27,14 +26,14 @@ export default class LoaderApi {
       return res.status(500).send({ success: false, error: 'Blockchain is loading' });
     });
 
-    router.get('/status', this.status);
-    router.get('/status/sync', this.sync);
+    router.get('/', this.getPeers);
+    router.get('/version', this.version);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).json({ success: false, error: 'API endpoint not found' });
+      return res.status(500).send({ success: false, error: 'API endpoint not found' });
     });
 
-    this.library.network.app.use('/api/loader', router);
+    this.library.network.app.use('/api/peers', router);
     this.library.network.app.use((err, req, res, next) => {
       if (!err) return next();
       this.library.logger.error(req.url, err.toString());
@@ -42,19 +41,23 @@ export default class LoaderApi {
     });
   }
 
-  private status = (req: Request, res: Response, next: Next) => {
-    return res.json({
-      loaded: this.loaded,
-      lastBlockHeight: this.modules.loader.loadingLastBlock.height,
-      count: this.modules.loader.total,
+  private getPeers = (req: Request, res: Response, next: Next) => {
+    this.modules.peer.findSeenNodesInDb((err, nodes) => {
+      let peers = [];
+      if (err) {
+        this.library.logger.error('Failed to find nodes in db', err);
+      } else {
+        peers = nodes;
+      }
+      res.json({ count: peers.length, peers });
     });
   }
 
-  private sync = (req: Request, res: Response, next: Next) => {
+  private version = (req: Request, res: Response, next: Next) => {
     return res.json({
-      syncing: this.modules.loader.syncing(),
-      blocks: this.modules.loader.blocksToSync,
-      height: this.modules.blocks.getLastBlock().height,
+      version: this.library.config.version,
+      build: this.library.config.buildVersion,
+      net: this.library.config.netVersion,
     });
   }
 }

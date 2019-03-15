@@ -248,21 +248,17 @@ export class SmartDB {
   public async getLastBlock(): Promise<any> {
     const connection = getConnection();
     const repo = connection.getRepository(Block);
-    const timestamp = await repo
+    const height = await repo
       .createQueryBuilder('block')
-      .select('MAX(block.timestamp)', 'lastTimestamp')
+      .select('MAX(block.height)', 'maxHeight')
       .getRawOne();
-    if (!timestamp.lastTimestamp) {
-      const block = await repo
-        .createQueryBuilder('block')
-        .where('block.timestamp = :timestamp', {
-          timestamp: timestamp.lastTimestamp
-        })
-        .getOne();
-      return block;
-    } else {
-      return undefined;
-    }
+    const block = await repo
+          .createQueryBuilder('block')
+          .where('block.height = :height', {
+            height: height.maxHeight
+          })
+          .getOne();
+    return block;
   }
 
   /**

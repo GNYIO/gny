@@ -1,8 +1,8 @@
-import * as ed from '../../src/utils/ed';
+import * as ed from '../../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { Modules, IScope, Next } from '../../src/interfaces';
+import { Modules, IScope, Next } from '../../../src/interfaces';
 import { In } from 'typeorm';
 
 export default class AccountsApi {
