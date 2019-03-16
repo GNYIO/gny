@@ -27,4 +27,15 @@ export class Balance {
   @Column()
   @Index()
   public flag: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
+
+  public static meta: {
+    memory: true,
+  };
 }

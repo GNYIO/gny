@@ -20,4 +20,11 @@ export class Round {
     default: 0,
   })
   public reward: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

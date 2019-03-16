@@ -62,4 +62,11 @@ export class Account {
     type: 'bigint',
   })
   public lockAmount: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

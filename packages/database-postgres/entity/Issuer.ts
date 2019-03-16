@@ -30,4 +30,11 @@ export class Issuer {
     length: 4096,
   })
   public desc: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

@@ -58,4 +58,11 @@ export class Transfer {
   })
   @Index()
   public height: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

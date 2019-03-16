@@ -59,4 +59,15 @@ export class Asset {
     nullable: false,
   })
   public issuerId: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
+
+  public static meta: {
+    memory: true,
+  };
 }

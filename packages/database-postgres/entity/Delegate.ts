@@ -64,4 +64,15 @@ export class Delegate {
     nullable: true,
   })
   public rewards: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
+
+  public static meta: {
+    memory: true,
+  };
 }

@@ -81,4 +81,11 @@ export class Block {
     cascade: ['remove'],
   })
   public transactions: Transaction[];
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

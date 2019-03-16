@@ -73,4 +73,11 @@ export class Transaction {
   })
   @Index()
   public message?: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

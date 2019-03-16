@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 @Entity()
 export class Vote {
@@ -15,4 +15,11 @@ export class Vote {
     nullable: false,
   })
   public delegate: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }
