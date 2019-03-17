@@ -4,7 +4,7 @@ describe('orm - defaultEntityUniqueIndex', () => {
   it('sets correct properties', (done) => {
     const sut = new DefaultEntityUniqueIndex('username', ['username']); // system under test
     expect(sut.indexName).toBe('username');
-    expect(sut.indexFields).toEqual(['username']);
+    expect(sut.fields).toEqual(['username']);
     expect(sut.indexMap).toBeInstanceOf(Map);
     expect(sut.indexMap.size).toBe(0);
     done();
@@ -30,6 +30,31 @@ describe('orm - defaultEntityUniqueIndex', () => {
 
     const result = sut.get(value);
     expect(result).toEqual(key);
+    done();
+  });
+  it('delete', (done) => {
+    const sut = new DefaultEntityUniqueIndex('username', ['username']);
+    const value = { username: 'liangpeili' };
+    const key = JSON.stringify({ address: 'G3SXME2YejaCw9a7f8hwi1yCBLEH' });
+
+    sut.add(value, key);
+    expect(sut.get(value)).toEqual(key);
+
+    sut.delete(value);
+    expect(sut.get(value)).toBeUndefined();
+    done();
+  });
+  it('exists', (done) => {
+    const sut = new DefaultEntityUniqueIndex('username', ['username']);
+    const value = { username: 'a1300' };
+    const key = JSON.stringify({ address: 'GW25gtEZx43SzWNpn9Ntggv65yTZ' });
+
+    expect(sut.exists(value)).toBeFalsy();
+
+    sut.add(value, key);
+
+    expect(sut.exists(value)).toBeTruthy();
+
     done();
   });
 });
