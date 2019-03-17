@@ -2,121 +2,191 @@ import * as codeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
 import { LoggerWrapper } from './logger';
+import { CustomCache } from './lruEntityCache';
 
+/**
+ * Class that represents an UNIQUE index for an Entity
+ * Gets called for every UNIQUE index of a Model.
+ * Example: Delegate has UNIQUE Constraints: tid, username, publicKey
+ */
 export class DefaultEntityUniqueIndex {
+  private name: string;
+  private indexFields: string[];
+  indexMap: Map<string, string>;
+
   /**
-   * @param {!Object} name
-   * @param {!Object} indexFields
-   * @return {undefined}
+   * @constructor
+   * @param {string} name - Name of unique index - Example: "username"
+   * @param {string[]} columns - Columns of that unique index - Example - ["username"]
    */
-  constructor(name, indexFields) {
+  constructor(name: string, indexFields: string[]) {
     this.name = name;
     this.indexFields = indexFields;
-    this.indexMap = new Map;
-  }
-  getIndexKey(storedComponents) {
-    return JSON.stringify(storedComponents);
+    this.indexMap = new Map<string, string>();
   }
 
-  exists(event) {
+  /**
+   * @param {Object} key - can be for instance: { username:"gny_d1" }
+   */
+  private getIndexKey(key) {
+    return JSON.stringify(key);
+  }
+
+  public exists(event) {
     return this.indexMap.has(this.getIndexKey(event));
   }
 
-  get(opt_key) {
-    return this.indexMap.get(this.getIndexKey(opt_key));
+  /**
+   * @param {Object} key - Object - Example: { username:"gny_d1" }
+   */
+  public get(key) {
+    return this.indexMap.get(this.getIndexKey(key));
   }
 
-  add(match, url) {
-    var key = this.getIndexKey(match);
+  /**
+   * Usage: this.indexMap.set('{"username":"gny_d1"}', '{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}')
+   * @param {Object} uniqueColumnValue - Example: { username:"gny_d1" }
+   * @param {string} keyStringified - Exapmle: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}"
+   */
+  public add(uniqueColumnValue, keyStringified: string) {
+    const key = this.getIndexKey(uniqueColumnValue);
     if (this.indexMap.has(key)) {
       throw new Error("Unique named '" + this.name + "' key = '" + key + "' exists already");
     }
-    this.indexMap.set(key, url);
+    this.indexMap.set(key, keyStringified);
   }
 
-  delete(url) {
-    this.indexMap.delete(this.getIndexKey(url));
+  /**
+   * @param {Object} key - Example: { username: null }
+   */
+  public delete(key: any) {
+    this.indexMap.delete(this.getIndexKey(key));
   }
 
-  get indexName() {
+  public get indexName() {
     return this.name;
   }
 
-  get fields() {
+  public get fields() {
     return this.indexFields;
   }
 }
 
+export type ModelIndex = {
+  name: string,
+  properties: string[];
+};
+
+
 
 export class UniquedCache {
+  private cache: CustomCache;
+  private indexes: Map<string, DefaultEntityUniqueIndex>;
+
   /**
-   * @param {string} data
-   * @param {!Array} reducers
-   * @return {undefined}
+   * @constructor
+   * @param {string} cache
+   * @param {Array} modelIndex
    */
-  constructor(data, reducers) {
-    this.cache = data;
+  constructor(cache: CustomCache, modelIndex: ModelIndex[]) {
+    this.cache = cache;
     this.cache.onEvit = this.afterEvit.bind(this);
-    this.indexes = new Map;
-    reducers.forEach((value) => {
-      return this.indexes.set(value.name, this.createUniqueIndex(value));
+    this.indexes = new Map<string, DefaultEntityUniqueIndex>();
+    modelIndex.forEach((one) => {
+      return this.indexes.set(one.name, this.createUniqueIndex(one));
     });
   }
 
-  createUniqueIndex(task) {
+  /**
+   * helper function
+   */
+  private createUniqueIndex(task: ModelIndex) {
     return new DefaultEntityUniqueIndex(task.name, task.properties);
   }
 
-  afterEvit(component, test) {
-    this.indexes.forEach(function(e) {
-      var handler = codeContract.partialCopy(test, e.fields);
-      e.delete(handler);
+  /**
+   * @param {string} component - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}"
+   * @param {Object} test - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh","username":null,"gny":0,"isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"_version_":2}"
+   */
+  private afterEvit(component: string, test) {
+    this.indexes.forEach(function(index) {
+      const handler = codeContract.partialCopy(test, index.fields);
+      index.delete(handler);
     });
   }
 
-  has(i) {
-    return this.cache.has(i);
+  /**
+   * directly acccesses cache
+   * @param key - Example: "{"address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}"
+   */
+  public has(key: any) {
+    return this.cache.has(key);
   }
 
-  set(key, obj) {
+  /**
+   * @param {string} key - Example: '{"address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}'
+   * @param {Object} obj - Example: "{
+   * "address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5",
+   * "username":null,
+   * "gny":0,
+   * "isDelegate":0,
+   * "isLocked":0,
+   * "lockHeight":0,
+   * "lockAmount":0,
+   * "_version_":1
+   * }"
+   */
+  public set(key: string, obj: any) {
     if (this.cache.has(key)) {
       this.evit(key);
     }
     this.cache.set(key, obj);
-    this.indexes.forEach(function(res) {
-      if (res.fields.some(function(attrPropertyName) {
-        return !obj[attrPropertyName];
-      })) {
+    this.indexes.forEach(function(oneIndex) {
+      if (oneIndex.fields.some((prop) => !obj[prop])) { // inverts falsey value
         return;
       }
-      var r = codeContract.partialCopy(obj, res.fields);
-      res.add(r, String(key));
+      const r = codeContract.partialCopy(obj, oneIndex.fields);
+      oneIndex.add(r, String(key));
     });
   }
 
-  get(query) {
-    return this.cache.get(query);
+  /**
+   * directly accesses cache
+   * @param key
+   */
+  public get(key) {
+    return this.cache.get(key);
   }
 
-  forEach(array) {
+  private forEach(array) {
     this.cache.forEach(array);
   }
 
-  evit(e) {
-    var parsed_expression = this.cache.get(e);
-    if (undefined !== parsed_expression) {
-      this.cache.evit(e);
-      this.afterEvit(e, parsed_expression);
+  /**
+   * @param {Object} key - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}"
+   */
+  private evit(key) {
+    const result = this.cache.get(key);
+    if (undefined !== result) {
+      this.cache.evit(key);
+      this.afterEvit(key, result);
     }
   }
 
-
-  getUnique(key, db) {
-    var i = this.indexes.get(key).get(db);
-    return undefined === i ? undefined : this.cache.get(i);
+  /**
+   * @param {string} index - Example: "username"
+   * @param {Object} value - Example: { username:"gny_d1" }
+   */
+  public getUnique(index, value) {
+    const result = this.indexes.get(index).get(value);
+    if (undefined === result) {
+      return undefined;
+    } else {
+      return this.cache.get(result);
+    }
   }
 
-  clear() {
+  public clear() {
     this.forEach((canCreateDiscussions, args) => {
       return this.evit(args);
     });
@@ -127,11 +197,11 @@ export class UniquedCache {
 export class UniquedEntityCache {
 
   private log: LoggerWrapper;
-  private modelSchemas: any;
+  private modelSchemas: Map<any, any>;
   private modelCaches: Map<any, any>;
 
 
-  constructor(logger: LoggerWrapper, modelSchemas) {
+  constructor(logger: LoggerWrapper, modelSchemas: Map<any, any>) {
     this.log = logger;
     this.modelSchemas = modelSchemas;
     this.modelCaches = new Map;
@@ -141,21 +211,21 @@ export class UniquedEntityCache {
     throw new codeContract.NotImplementError([]);
   }
 
-  registerModel(name, index) {
-    const modelName = name.modelName;
-    if (this.modelCaches.has(modelName)) {
-      throw new Error("model '" + modelName + "' exists already");
+  registerModel(schema, uniqueIndexes) {
+    const na = schema.name;
+    if (this.modelCaches.has(na)) {
+      throw new Error("model '" + na + "' exists already");
     }
-    const data = this.createCache(name);
-    this.modelCaches.set(modelName, new UniquedCache(data, index));
+    const data = this.createCache(schema);
+    this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
   unRegisterModel(marketID) {
     this.modelCaches.delete(marketID);
   }
 
-  getModelCache(model) {
-    var schema = this.modelSchemas.get(model);
+  getModelCache(model: string) {
+    const schema = this.modelSchemas.get(model);
     if (undefined === schema) {
       throw new Error("Model schema ( name = '" + model + "' )  does not exists");
     }
@@ -164,8 +234,12 @@ export class UniquedEntityCache {
     return this.modelCaches.get(model);
   }
 
-  getCacheKey(text) {
-    return codeContract.isPrimitiveKey(text) ? String(text) : JSON.stringify(text);
+  getCacheKey(text: string | number | {}) {
+    if (codeContract.isPrimitiveKey(text)) {
+      return String(text);
+    } else {
+      JSON.stringify(text);
+    }
   }
 
   clear(name) {
@@ -204,10 +278,14 @@ export class UniquedEntityCache {
     this.modelCaches.clear();
   }
 
-  get(table, key) {
-    var cacheConf = this.getModelCache(table);
-    var cacheKey = this.getCacheKey(key);
-    return this.modelCaches.has(table) && cacheConf.has(cacheKey) ? cacheConf.get(cacheKey) : undefined;
+  get(table: string, key: any) {
+    const cacheConf = this.getModelCache(table);
+    const cacheKey = this.getCacheKey(key);
+    if (this.modelCaches.has(table) && cacheConf.has(cacheKey)) {
+      return cacheConf.get(cacheKey);
+    } else {
+      return undefined;
+    }
   }
 
   getUnique(e, label, exception) {
@@ -235,16 +313,14 @@ export class UniquedEntityCache {
     }), false);
   }
 
-  getAll(members, callback) {
-    var layer = new Array;
+  getAll(members) {
+    var result = [];
     var keys = this.getModelCache(members);
     if (undefined !== keys) {
       keys.forEach(function(err) {
-        if (!callback || callback && callback(err)) {
-          layer.push(err);
-        }
+        result.push(err);
       });
-      return layer;
+      return result;
     }
   }
 
