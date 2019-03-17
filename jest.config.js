@@ -17,6 +17,7 @@ module.exports = {
   collectCoverage: true,
   globals: {
     'ts-jest': {
+      diagnostics: false,
       tsConfig: {
         target: 'ES2016',
         module: 'commonjs',
