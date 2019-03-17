@@ -2,7 +2,8 @@ import * as codeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
 import { LoggerWrapper } from './logger';
-import { CustomCache } from './lruEntityCache';
+import { CustomCache } from './customCache';
+import { ModelSchema } from './modelSchema';
 
 /**
  * Class that represents an UNIQUE index for an Entity
@@ -177,7 +178,7 @@ export class UniquedCache {
    * @param {string} index - Example: "username"
    * @param {Object} value - Example: { username:"gny_d1" }
    */
-  public getUnique(index, value) {
+  public getUnique(index: string, value) {
     const result = this.indexes.get(index).get(value);
     if (undefined === result) {
       return undefined;
@@ -197,21 +198,21 @@ export class UniquedCache {
 export class UniquedEntityCache {
 
   private log: LoggerWrapper;
-  private modelSchemas: Map<any, any>;
-  private modelCaches: Map<any, any>;
+  private modelSchemas: Map<string, ModelSchema>;
+  private modelCaches: Map<string, UniquedCache>;
 
 
-  constructor(logger: LoggerWrapper, modelSchemas: Map<any, any>) {
+  constructor(logger: LoggerWrapper, modelSchemas: Map<string, ModelSchema>) {
     this.log = logger;
     this.modelSchemas = modelSchemas;
     this.modelCaches = new Map;
   }
 
-  createCache(options) {
+  createCache(options: ModelSchema) {
     throw new codeContract.NotImplementError([]);
   }
 
-  registerModel(schema, uniqueIndexes) {
+  registerModel(schema: ModelSchema, uniqueIndexes: ModelIndex[]) {
     const na = schema.name;
     if (this.modelCaches.has(na)) {
       throw new Error("model '" + na + "' exists already");
@@ -220,8 +221,8 @@ export class UniquedEntityCache {
     this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
-  unRegisterModel(marketID) {
-    this.modelCaches.delete(marketID);
+  unRegisterModel(model: string) {
+    this.modelCaches.delete(model);
   }
 
   getModelCache(model: string) {
@@ -230,27 +231,30 @@ export class UniquedEntityCache {
       throw new Error("Model schema ( name = '" + model + "' )  does not exists");
     }
     // TODO: check logic
-    this.modelCaches.has(model) || this.registerModel(schema, schema.uniqueIndexes);
+    if (!this.modelCaches.has(model)) {
+      this.registerModel(schema, schema.uniqueIndexes);
+    }
     return this.modelCaches.get(model);
   }
 
-  getCacheKey(text: string | number | {}) {
-    if (codeContract.isPrimitiveKey(text)) {
-      return String(text);
+  /**
+   * @param objOrString - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
+   */
+  getCacheKey(objOrString: string | number | {}) {
+    if (codeContract.isPrimitiveKey(objOrString)) {
+      return String(objOrString);
     } else {
-      JSON.stringify(text);
+      return JSON.stringify(objOrString);
     }
   }
 
-  clear(name) {
+  clear(name?: string) {
     if (isString(name)) {
       this.getModelCache(name).clear();
       this.modelCaches.delete(name);
       return undefined;
     }
-    /** @type {boolean} */
     var _iteratorNormalCompletion3 = true;
-    /** @type {boolean} */
     var _didIteratorError5 = false;
     var _iteratorError5 = undefined;
     try {
@@ -261,7 +265,6 @@ export class UniquedEntityCache {
         item.clear();
       }
     } catch (err) {
-      /** @type {boolean} */
       _didIteratorError5 = true;
       _iteratorError5 = err;
     } finally {
@@ -278,44 +281,57 @@ export class UniquedEntityCache {
     this.modelCaches.clear();
   }
 
-  get(table: string, key: any) {
-    const cacheConf = this.getModelCache(table);
+  /**
+   * @param {string} model - Example: 'Account'
+   * @param {Object} key - Example: { address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5" }
+   */
+  get(model: string, key: any) {
+    const cache = this.getModelCache(model);
     const cacheKey = this.getCacheKey(key);
-    if (this.modelCaches.has(table) && cacheConf.has(cacheKey)) {
-      return cacheConf.get(cacheKey);
+    if (this.modelCaches.has(model) && cache.has(cacheKey)) {
+      return cache.get(cacheKey);
     } else {
       return undefined;
     }
   }
 
-  getUnique(e, label, exception) {
-    return this.getModelCache(e).getUnique(label, exception);
+  getUnique(model: string, indexName: string, value: any) {
+    return this.getModelCache(model).getUnique(indexName, value);
   }
 
-  existsUnique(e, label, exception) {
-    return undefined !== this.getUnique(e, label, exception);
+  existsUnique(model: string, indexName: string, value: any) {
+    return undefined !== this.getUnique(model, indexName, value);
   }
 
-  refreshCached(key, value, remoteData) {
-    var componentRef;
-    var element = this.get(key, value);
+  /**
+   * @param {String} model - Example: 'Account'
+   * @param {Object} value - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
+   * @param {Object[]} data - Example: [{ name:"gny", value:-40000000000000000 }]
+   */
+  refreshCached(model: string, value, data) {
+    let componentRef;
+    const element = this.get(model, value);
     if (undefined === element) {
       return false;
     }
-    var fixedDims = remoteData.map(function(engineDiscovery) {
+    const fixedDims = data.map(function(engineDiscovery) {
       return engineDiscovery.name;
     });
     // TODO: refactor
-    return (componentRef = this.modelSchemas.get(key)).hasUniqueProperty.apply(componentRef, toArray(fixedDims)) ? (this.log.trace("refresh cached with uniqued index, key = " + JSON.stringify(value) + " modifier = " + JSON.stringify(remoteData)), this.evit(key, value), remoteData.forEach(function(attr) {
+    return (componentRef = this.modelSchemas.get(model)).hasUniqueProperty.apply(componentRef, toArray(fixedDims)) ? (this.log.trace('refresh cached with uniqued index, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), this.evit(model, value), data.forEach(function(attr) {
       return element[attr.name] = attr.value;
-    }), this.put(key, value, element), true) : (this.log.trace("refresh cached entity, key = " + JSON.stringify(value) + " modifier = " + JSON.stringify(remoteData)), remoteData.forEach(function(attr) {
+    }), this.put(model, value, element), true) : (this.log.trace('refresh cached entity, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), data.forEach(function(attr) {
       return element[attr.name] = attr.value;
     }), false);
   }
 
-  getAll(members) {
-    var result = [];
-    var keys = this.getModelCache(members);
+  /**
+   * 
+   * @param {string} model - Example: 'Delegate'
+   */
+  getAll(model: string) { // TODO: checkout
+    const result = [];
+    const keys = this.getModelCache(model);
     if (undefined !== keys) {
       keys.forEach(function(err) {
         result.push(err);
@@ -324,43 +340,41 @@ export class UniquedEntityCache {
     }
   }
 
-  put(data, id, todos) {
-    this.log.trace("put cache, model = " + data + ", key = " + JSON.stringify(id) + ", entity = " + JSON.stringify(todos));
+  /**
+   * @param {string} model - Example: 'Account'
+   * @param {Object} key - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
+   * @param {Object} data - Example: "{"username":null,"gny":0,"isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5","_version_":1}"
+   */
+  put(model: string, key: any, data: any) {
+    this.log.trace('put cache, model = ' + model + ', key = ' + JSON.stringify(key) + ', entity = ' + JSON.stringify(data));
 
-    this.getModelCache(data).set(this.getCacheKey(id), todos);
+    this.getModelCache(model).set(this.getCacheKey(key), data);
   }
 
-  evit(data, id) {
-    var key = this.getCacheKey(id);
-    this.log.trace("evit cache, model = " + data + ", key = " + key);
+  /**
+   * @param {string} model - Example: 'Delegate'
+   * @param {Object} id - Example: {address:"GM5CevQY3brUyRtDMng5Co41nWHh" }
+   */
+  evit(model: string, id) {
+    const key = this.getCacheKey(id);
+    this.log.trace('evit cache, model = ' + model + ', key = ' + key);
 
-    var elements = this.getModelCache(data);
+    const elements = this.getModelCache(model);
     if (elements) {
       elements.evit(key);
     }
   }
 
-  exists(group, key) {
-    return undefined !== this.get(group, this.getCacheKey(key));
+  /**
+   * @param {string} model - Example: 'Account'
+   * @param {Object} key - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
+   */
+  exists(model: string, key) {
+    return undefined !== this.get(model, this.getCacheKey(key));
   }
 
-  existsModel(typeName) {
-    return this.modelCaches.has(typeName);
-  }
-
-  dumpCache() {
-    /** @type {string} */
-    var ret = "--------------  DUMP CACHE  ----------------\n\n";
-    this.modelCaches.forEach((wrappersTemplates, i) => {
-      ret = ret + ("--------------Model " + i + "----------------\n");
-      wrappersTemplates.forEach((storedComponents, params) => {
-        ret = ret + ("key = " + this.getCacheKey(params) + ", entity = {" + JSON.stringify(storedComponents) + "} \n");
-      });
-      /** @type {string} */
-      ret = ret + "\n";
-    });
-    ret = ret + "--------------   END   DUMP  ----------------\n";
-    return ret;
+  existsModel(model: string) {
+    return this.modelCaches.has(model);
   }
 
   get models() {
