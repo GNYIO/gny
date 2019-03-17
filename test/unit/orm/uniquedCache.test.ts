@@ -11,7 +11,7 @@ describe('orm UniquedCache', () => {
         memory: true,
       },
     };
-    const modelSchema = new ModelSchema(oldSchema, 'Delegate');
+    const modelSchema = new ModelSchema(oldSchema, 'Account');
     const cache = new CustomCache(modelSchema, LRUEntityCache.DEFULT_MAX_CACHED_COUNT);
     const modelIndex: ModelIndex = {
       name: 'username',
@@ -52,7 +52,94 @@ describe('orm UniquedCache', () => {
     expect(sut.get(key)).toBeUndefined();
     done();
   });
-  it.skip('test max cached items', (done) => {
+  it('getUniqued()', (done) => {
+    const key = JSON.stringify({ address: 'G2Av9Fzma9svmj8hD1X76Ar5FHY1z' });
+
+    sut.set(key, {
+      address: 'G2Av9Fzma9svmj8hD1X76Ar5FHY1z',
+      username: 'gny_d1',
+      gny: 700000,
+    });
+
+    const uniqueColumnName = 'username';
+    const uniqueColumnValue = { username: 'gny_d1' };
+    const result = sut.getUnique(uniqueColumnName, uniqueColumnValue);
+    expect(result).toEqual({
+      address: 'G2Av9Fzma9svmj8hD1X76Ar5FHY1z',
+      username: 'gny_d1',
+      gny: 700000,
+    });
+
+    done();
+  });
+  it('update cached item', (done) => {
+    const key = JSON.stringify({ address: 'G4X3t9GWrPU65U3nZzqR6z5LQdfP1' });
+    const value = {
+      address: 'G4X3t9GWrPU65U3nZzqR6z5LQdfP1',
+      isDelegate: 0,
+    };
+
+    sut.set(key, value);
+
+    value.isDelegate = 1; // change
+
+    sut.set(key, value);
+
+    const expectedResult = {
+      address: 'G4X3t9GWrPU65U3nZzqR6z5LQdfP1',
+      isDelegate: 1,
+    };
+    expect(sut.get(key)).toEqual(expectedResult);
+
+    done();
+  });
+  it('clear() all items', (done) => {
+    const key1 = JSON.stringify({ address: 'G3oCLYRv6Z9AzD35w8RvbpNeWqpvL' });
+    const key2 = JSON.stringify({ address: 'G2yY6XpLzt1Zx69QJX1t6mhJeGZyH' });
+    const value1 = {
+      address: 'G3oCLYRv6Z9AzD35w8RvbpNeWqpvL',
+      gny: 3000000000,
+    };
+    const value2 = {
+      address: 'G2yY6XpLzt1Zx69QJX1t6mhJeGZyH',
+      gny: 20000000,
+    };
+    sut.set(key1, value1);
+    sut.set(key2, value2);
+
+    expect(sut.get(key1)).toBe(value1);
+    expect(sut.get(key2)).toBe(value2);
+
+    sut.clear();
+
+    expect(sut.get(key1)).toBeUndefined();
+    expect(sut.get(key2)).toBeUndefined();
+
+    done();
+  });
+  it('max cached items', (done) => {
+    const customSchema = {
+      meta: {
+        memory: true,
+      },
+    };
+    const modelSchema = new ModelSchema(customSchema, 'Account');
+
+    const MAX_ONE = 1;
+    const customCache = new CustomCache(modelSchema, 1);
+
+    const customModelIndex: ModelIndex = {
+      name: 'username',
+      properties: ['username'],
+    };
+    const custom = new UniquedCache(customCache, [customModelIndex]);
+
+    custom.set('test', { hello: 2 });
+    expect(custom.get('test')).toEqual({ hello: 2 });
+
+    custom.set('second', { x: 4 });
+    expect(custom.get('test')).toBeUndefined();
+
     done();
   });
 });
