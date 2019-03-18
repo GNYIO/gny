@@ -1,4 +1,3 @@
-var output = {};
 
 export enum EntityState {
   Transient = -1,
@@ -8,8 +7,8 @@ export enum EntityState {
   Deleted = 3,
 }
 
-export const ENTITY_VERSION_PROPERTY = "_version_";
-export const ENTITY_EXTENSION_SYMBOL = "__extension__";
+export const ENTITY_VERSION_PROPERTY = '_version_';
+export const ENTITY_EXTENSION_SYMBOL = '__extension__';
 
 export enum EntityChangeType {
   New = 1,
