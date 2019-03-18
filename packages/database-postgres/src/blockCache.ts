@@ -1,6 +1,5 @@
 import { Block } from '../entity/Block';
 
-
 export class BlockCache {
   private cache: Map<number, Block>;
   private minHeight: number;
@@ -8,6 +7,10 @@ export class BlockCache {
   private maxCachedCount: number;
 
   constructor(maxCached: number) {
+    if (!Number.isInteger(maxCached) || !(maxCached > 0)) {
+      throw new Error('please provide a positive integer');
+    }
+
     this.cache = new Map<number, Block>();
     this.minHeight = -1;
     this.maxHeight = -1;
