@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: true })
 @Entity()
 export class Delegate {
   @PrimaryColumn({
@@ -71,8 +73,4 @@ export class Delegate {
     nullable: false,
   })
   public _version_: number;
-
-  public static meta: {
-    memory: true,
-  };
 }

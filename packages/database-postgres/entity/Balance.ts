@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: true })
 @Entity()
 export class Balance {
   @PrimaryColumn({
@@ -34,8 +36,4 @@ export class Balance {
     nullable: false,
   })
   public _version_: number;
-
-  public static meta: {
-    memory: true,
-  };
 }
