@@ -1,22 +1,26 @@
+import { Block } from '../entity/Block';
+
 
 export class BlockCache {
+  private cache: Map<number, Block>;
+  private minHeight: number;
+  private maxHeight: number;
+  private maxCachedCount: number;
 
   constructor(maxCached: number) {
-    this.cache = new Map;
+    this.cache = new Map<number, Block>();
     this.minHeight = -1;
     this.maxHeight = -1;
     this.maxCachedCount = maxCached;
   }
 
-
-  isCached(height) {
+  public isCached(height: number) {
     return height > 0 && height >= this.minHeight && height <= this.maxHeight;
   }
 
-
-  push(block) {
+  push(block: Block) {
     if (this.maxHeight >= 0 && block.height !== this.maxHeight + 1) {
-      throw new Error("invalid block height, expected : " + (this.maxHeight + 1) + " actual : " + block.height);
+      throw new Error('invalid block height, expected : ' + (this.maxHeight + 1) + ' actual : ' + block.height);
     }
     this.cache.set(block.height, block);
     this.maxHeight = block.height;
@@ -26,11 +30,11 @@ export class BlockCache {
     }
   }
 
-  get(height) {
+  get(height: number) {
     return this.cache.get(height);
   }
 
-  getById(blockId) {
+  getById(blockId: string) {
     var _iteratorNormalCompletion4 = true;
     var _didIteratorError4 = false;
     var _iteratorError4 = undefined;
@@ -44,7 +48,6 @@ export class BlockCache {
         }
       }
     } catch (err) {
-      /** @type {boolean} */
       _didIteratorError4 = true;
       _iteratorError4 = err;
     } finally {
@@ -61,22 +64,18 @@ export class BlockCache {
   }
 
 
-  evitUntil(minEvitHeight) {
+  evitUntil(minEvitHeight: number) {
     if (minEvitHeight > this.maxHeight) {
       return;
     }
-    /** @type {number} */
-    var h = Math.max(minEvitHeight, this.minHeight);
-    /** @type {number} */
-    var type = h + 1;
+    const height = Math.max(minEvitHeight, this.minHeight);
+    let type = height + 1;
     for (; type <= this.maxHeight; type++) {
       this.cache.delete(type);
     }
-    this.minHeight = h === this.minHeight ? -1 : this.minHeight;
-    /** @type {number} */
-    this.maxHeight = -1 === this.minHeight ? -1 : h;
+    this.minHeight = height === this.minHeight ? -1 : this.minHeight;
+    this.maxHeight = -1 === this.minHeight ? -1 : height;
   }
-
 
   get cachedHeightRange() {
     return {
