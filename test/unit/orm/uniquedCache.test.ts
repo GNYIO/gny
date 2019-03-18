@@ -1,7 +1,8 @@
 
 import { UniquedCache, ModelIndex } from '../../../packages/database-postgres/src/defaultEntityUniqueIndex';
-import { CustomCache, LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
+import { LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
 import { ModelSchema } from '../../../packages/database-postgres/src/modelSchema';
+import { CustomCache } from '../../../packages/database-postgres/src/customCache';
 
 describe('orm UniquedCache', () => {
   let sut: UniquedCache;

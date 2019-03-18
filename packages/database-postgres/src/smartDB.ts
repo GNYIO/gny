@@ -1,35 +1,7 @@
 import 'reflect-metadata';
-import { Connection, getConnection, MoreThan } from 'typeorm';
-
-import { Account } from '../entity/Account';
-import { Asset } from '../entity/Asset';
-import { Balance } from '../entity/Balance';
-import { Block } from '../entity/Block';
-import { Delegate } from '../entity/Delegate';
-import { Issuer } from '../entity/Issuer';
-import { Round } from '../entity/Round';
-import { Transaction } from '../entity/Transaction';
-import { Transfer } from '../entity/Transfer';
-import { Variable } from '../entity/Variable';
-import { Vote } from '../entity/Vote';
-
+import { Connection } from 'typeorm';
 import { loadConfig } from '../loadConfig';
 import { ILogger } from '../../../src/interfaces';
-
-const ENTITY: any = {
-  'Account': Account,
-  'Asset': Asset,
-  'Balance': Balance,
-  'Block': Block,
-  'Delegate': Delegate,
-  'Issuer': Issuer,
-  'Round': Round,
-  'Transaction': Transaction,
-  'Variable': Variable,
-  'Vote': Vote,
-  'Transfer': Transfer
-};
-
 
 import { EventEmitter } from 'events';
 import { isString } from 'util';
@@ -39,6 +11,8 @@ import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
 import * as performance from './performance';
 import * as _ from 'lodash';
+import { loadSchemas } from './helpers';
+import { ModelSchema } from './modelSchema';
 
 export class SmartDB extends EventEmitter {
 
@@ -47,12 +21,13 @@ export class SmartDB extends EventEmitter {
   originalLogger: ILogger; // TODO: refactor
   private commitBlockHooks: Array<any>;
   private rollbackBlockHooks: Array<any>;
-  private schemas: Map<any, any>;
+  private schemas: Map<string, ModelSchema>;
   private log: LoggerWrapper;
   private cachedBlocks: BlockCache;
   connection: Connection;
   private _lastBlockHeight?: number;
   private blockSession: DbSession;
+  currentBlock: any;
 
   constructor(logger: ILogger, options?) {
     super();
@@ -66,13 +41,9 @@ export class SmartDB extends EventEmitter {
     };
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
-    this.schemas = new Map<string, {}>();
+    this.schemas = loadSchemas();
 
-    Object.keys(ENTITY).forEach((name) => {
-      this.schemas.set(name, ENTITY[name]);
-    });
-
-    this.log = LogManager.getLogger("SmartDB");
+    this.log = LogManager.getLogger('SmartDB');
     this.cachedBlocks = new BlockCache(this.options.cachedBlockCount);
 
     this._lastBlockHeight = undefined;
@@ -90,7 +61,7 @@ export class SmartDB extends EventEmitter {
 
     await this.blockSession.initSerial(this.lastBlockHeight);
 
-    this.emit("ready", this);
+    this.emit('ready', this);
   }
 
   getSchema(model: string | { name: string }, verifyIfRegistered = false, verifyIfReadonly = false) {
@@ -122,7 +93,7 @@ export class SmartDB extends EventEmitter {
   }
 
   postCommitBlock(selector) {
-    this.emit("newBlock", selector);
+    this.emit('newBlock', selector);
   }
 
   preRollbackBlock(name, callback) {
@@ -132,20 +103,20 @@ export class SmartDB extends EventEmitter {
   }
 
   postRollbackBlock(user, output) {
-    this.emit("rollbackBlock", {
+    this.emit('rollbackBlock', {
       from : user,
       to : output
     });
   }
 
   registerCommitBlockHook(name, hookFunc) {
-    CodeContract.argument("hookFunc", function() {
+    CodeContract.argument('hookFunc', function() {
       return CodeContract.notNull(hookFunc);
     });
-    CodeContract.argument("name", function() {
+    CodeContract.argument('name', function() {
       return CodeContract.notNullOrWhitespace(name);
     });
-    CodeContract.argument("name", this.commitBlockHooks.every(function(engineDiscovery) {
+    CodeContract.argument('name', this.commitBlockHooks.every(function(engineDiscovery) {
       return engineDiscovery.name !== name.trim();
     }), "hook named '" + name + "' exist already");
     this.commitBlockHooks.push({
@@ -155,10 +126,10 @@ export class SmartDB extends EventEmitter {
   }
 
   unregisterCommitBlockHook(name) {
-    CodeContract.argument("name", function() {
+    CodeContract.argument('name', function() {
       return CodeContract.notNullOrWhitespace(name);
     });
-    var forTokenLength = this.commitBlockHooks.findIndex(function(engineDiscovery) {
+    const forTokenLength = this.commitBlockHooks.findIndex(function(engineDiscovery) {
       return engineDiscovery.name === name.trim();
     });
     if (forTokenLength >= 0) {
@@ -167,13 +138,13 @@ export class SmartDB extends EventEmitter {
   }
 
   registerRollbackBlockHook(name, hookFunc) {
-    CodeContract.argument("hookFunc", function() {
+    CodeContract.argument('hookFunc', function() {
       return CodeContract.notNull(hookFunc);
     });
-    CodeContract.argument("name", function() {
+    CodeContract.argument('name', function() {
       return CodeContract.notNullOrWhitespace(name);
     });
-    CodeContract.argument("name", this.rollbackBlockHooks.some(function(engineDiscovery) {
+    CodeContract.argument('name', this.rollbackBlockHooks.some(function(engineDiscovery) {
       return engineDiscovery.name === name.trim();
     }), "hook named '" + name + "' exist already");
     this.rollbackBlockHooks.push({
@@ -183,7 +154,7 @@ export class SmartDB extends EventEmitter {
   }
 
   unregisterRollbackBlockHook(name) {
-    CodeContract.argument("name", function() {
+    CodeContract.argument('name', function() {
       return CodeContract.notNullOrWhitespace(name);
     });
     var forTokenLength = this.rollbackBlockHooks.findIndex(function(engineDiscovery) {
@@ -196,11 +167,10 @@ export class SmartDB extends EventEmitter {
 
   async close() {
     await this.blockSession.close();
-    this.emit("closed", this);
+    this.emit('closed', this);
   }
 
-  lockInCurrentBlock(lockName) {
-    var artistTrack = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  lockInCurrentBlock(lockName, artistTrack = false) { // artistTrack =
     return this.blockSession.lockInThisSession(lockName, artistTrack);
   }
 
@@ -226,28 +196,27 @@ export class SmartDB extends EventEmitter {
 
 
   beginBlock(block) {
-    CodeContract.argument("block", function() {
+    CodeContract.argument('block', function() {
       return CodeContract.notNull(block);
     });
-    CodeContract.argument("block", block.height === this.lastBlockHeight + 1, "invalid block height " + block.height + ", last = " + this.lastBlockHeight);
+    CodeContract.argument('block', block.height === this.lastBlockHeight + 1, 'invalid block height ' + block.height + ', last = ' + this.lastBlockHeight);
 
-    this.log.info("BEGIN block height = " + block.height);
+    this.log.info('BEGIN block height = ' + block.height);
 
-    /** @type {!Object} */
     this.currentBlock = block;
   }
 
   async commitBlock() {
     if (!this.currentBlock) {
-      throw new Error("Current block is null");
+      throw new Error('Current block is null');
     }
 
-    this.log.trace("BEGIN commitBlock height = " + this.currentBlock.height);
+    this.log.trace('BEGIN commitBlock height = ' + this.currentBlock.height);
 
     this.preCommitBlock(this.currentBlock);
-    var value = Object.assign({}, this.currentBlock);
-    Reflect.deleteProperty(value, "transactions");
-    performance.Utils.Performace.time("Append block");
+    const value = Object.assign({}, this.currentBlock);
+    Reflect.deleteProperty(value, 'transactions');
+    performance.Utils.Performace.time('Append block');
     // await this.blockDB.appendBlock(value, this.blockSession.getChanges());
 
     this._lastBlockHeight++;
@@ -258,19 +227,19 @@ export class SmartDB extends EventEmitter {
        this.cachedBlocks.push(this.currentBlock);
        this.currentBlock = null;
        this.postCommitBlock(this.lastBlock);
-       this.log.info("SUCCESS commitBlock height = " + this.lastBlockHeight);
+       this.log.info('SUCCESS commitBlock height = ' + this.lastBlockHeight);
        return this.lastBlockHeight;
     } catch (err) {
-       this.log.error("FAILD commitBlock ( height = " + this.currentBlock.height + " )", err);
+       this.log.error('FAILD commitBlock ( height = ' + this.currentBlock.height + ' )', err);
        throw err;
     }
   }
 
   async rollbackBlock(height) {
-    CodeContract.argument("height", !height || height <= this.lastBlockHeight, "height must less or equal lastBlockHeight " + this.lastBlockHeight);
+    CodeContract.argument('height', !height || height <= this.lastBlockHeight, 'height must less or equal lastBlockHeight ' + this.lastBlockHeight);
     var currentHeight = this.currentBlock ? this.currentBlock.height : this.lastBlockHeight;
     var targetHeight = undefined === height ? this.lastBlockHeight : height;
-    this.log.trace("BEGIN rollbackBlock ( height : " + currentHeight + " -> " + targetHeight + " )");
+    this.log.trace('BEGIN rollbackBlock ( height : ' + currentHeight + ' -> ' + targetHeight + ' )');
     this.preRollbackBlock(currentHeight, targetHeight);
     try {
       await this.blockSession.rollbackChanges(targetHeight);
@@ -279,36 +248,35 @@ export class SmartDB extends EventEmitter {
         this.cachedBlocks.evitUntil(this.lastBlockHeight);
       }
       await this.ensureLastBlockLoaded();
-      /** @type {null} */
       this.currentBlock = null;
       this.postRollbackBlock(currentHeight, targetHeight);
 
-      this.log.info("SUCCESS rollbackBlock ( height : " + currentHeight + " -> " + targetHeight + " )");
+      this.log.info('SUCCESS rollbackBlock ( height : ' + currentHeight + ' -> ' + targetHeight + ' )');
     } catch (errorExpectedCommand) {
-      throw this.log.error("FAILD rollbackBlock ( height : " + currentHeight + " -> " + targetHeight + " )", errorExpectedCommand), errorExpectedCommand;
+      throw this.log.error('FAILD rollbackBlock ( height : ' + currentHeight + ' -> ' + targetHeight + ' )', errorExpectedCommand), errorExpectedCommand;
     }
   }
 
   create(model, entity) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("entity", function() {
+    CodeContract.argument('entity', function() {
       return CodeContract.notNull(entity);
     });
-    var context = this.getSchema(model, true, true);
+    const context = this.getSchema(model, true, true);
     return this.getSession().create(context, entity);
   }
 
   createOrLoad(model, entity) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("entity", function() {
+    CodeContract.argument('entity', function() {
       return CodeContract.notNull(entity);
     });
-    var promise = this.getSchema(model, true, true);
-    var result = this.loadSync(model, promise.getNormalizedPrimaryKey(entity));
+    var schema = this.getSchema(model, true, true);
+    var result = this.loadSync(model, schema.getNormalizedPrimaryKey(entity));
     return {
       create : undefined === result,
       entity : result || this.create(model, entity)
@@ -316,13 +284,13 @@ export class SmartDB extends EventEmitter {
   }
 
   increase(model, obj, key) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("increasements", function() {
+    CodeContract.argument('increasements', function() {
       return CodeContract.notNull(obj);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(key);
     });
     var sessionId = this.getSchema(model, true, true);
@@ -330,54 +298,53 @@ export class SmartDB extends EventEmitter {
   }
 
   update(model, value, record) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("modifier", function() {
+    CodeContract.argument('modifier', function() {
       return CodeContract.notNull(value);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(record);
     });
     var config = this.getSchema(model, true, true);
     if (true === this.options.checkModifier) {
       var type;
-      /** @type {!Array<string>} */
       var values = Object.keys(value);
       var train1or = _.without(values, ...config.properties);
       if (train1or.length > 0) {
-        throw new Error("modifier or entity contains property which is not defined in model (" + JSON.stringify(train1or) + ")");
+        throw new Error('modifier or entity contains property which is not defined in model (' + JSON.stringify(train1or) + ')');
       }
     }
     this.getSession().update(config, record, value);
   }
 
   del(model, condition) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(condition);
     });
     var url = this.getSchema(model, true, true);
     this.getSession().delete(url, condition);
   }
   async load(model, condition) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(condition);
     });
-    var schema = this.getSchema(model, true);
+    const schema = this.getSchema(model, true);
     return await this.getSession().load(schema, condition);
   }
 
   loadSync(key, value) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(key);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(value);
     });
     var request = this.getSchema(key, true);
@@ -386,7 +353,7 @@ export class SmartDB extends EventEmitter {
 
   async loadMany(record, strategy) {
     var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(record);
     });
     var options = this.getSchema(record, true);
@@ -394,35 +361,36 @@ export class SmartDB extends EventEmitter {
   }
 
   get(model, key) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    CodeContract.argument("key", function() {
+    CodeContract.argument('key', function() {
       return CodeContract.notNull(key);
     });
     var promise = this.getSchema(model, true);
     return this.getSession().getCachedEntity(promise, key);
   }
 
-  getAll(model, callback) {
-    CodeContract.argument("model", function() {
+  async getAll(model: string) {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    var query = this.getSchema(model, true);
-    return CodeContract.argument("model", query.memCached, "getAll only support for memory model"), this.getSession().getAll(query, callback);
+    const schema = this.getSchema(model, true);
+    CodeContract.argument('model', schema.memCached, 'getAll only support for memory model');
+    return await this.getSession().getAll(schema);
   }
 
   async find(record, data, args, user, callback, pageSize) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(record);
     });
-    var url = this.getSchema(record, true);
+    const url = this.getSchema(record, true);
     return await this.getSession().query(url, data, args, user, callback, pageSize);
   }
 
   async findOne(model, condition) {
-    var expRecords = await this.findAll(model, condition);
-    var schema = this.getSchema(model, true);
+    const expRecords = await this.findAll(model, condition);
+    const schema = this.getSchema(model, true);
     if (expRecords.length > 1) {
       throw new Error("many entities found ( model = '" + schema.modelName + "' , params = '" + JSON.stringify(condition) + "' )");
     }
@@ -430,15 +398,15 @@ export class SmartDB extends EventEmitter {
   }
 
   async findAll(model, condition) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    var sessionId = this.getSchema(model, true);
+    const sessionId = this.getSchema(model, true);
     return await this.getSession().queryByJson(sessionId, condition);
   }
 
   async exists(key, val) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(key);
     });
     const file = this.getSchema(key, true);
@@ -447,7 +415,7 @@ export class SmartDB extends EventEmitter {
 
 
   async count(key, callback) {
-    CodeContract.argument("model", function() {
+    CodeContract.argument('model', function() {
       return CodeContract.notNull(key);
     });
     var url = this.getSchema(key, true);
@@ -462,21 +430,20 @@ export class SmartDB extends EventEmitter {
   async ensureLastBlockLoaded() {
     if (undefined === this.lastBlock && this.lastBlockHeight >= 0) {
       var loadedBlock = await this.getBlockByHeight(this.lastBlockHeight, true);
-      this.log.info("SUCCESS load last block (height = " + loadedBlock.height + ", id = '" + loadedBlock.id + "')");
+      this.log.info('SUCCESS load last block (height = ' + loadedBlock.height + ", id = '" + loadedBlock.id + "')");
       this.cachedBlocks.push(loadedBlock);
     }
   }
 
-  async getBlockByHeight(height) {
-    var withTransactions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    CodeContract.argument("height", height >= 0, "height must great or equal zero");
-    var cachedBlock = this.copyCachedBlock(() => {
+  async getBlockByHeight(height, withTransactions = false) {
+    CodeContract.argument('height', height >= 0, 'height must great or equal zero');
+    const cachedBlock = this.copyCachedBlock(() => {
       return this.cachedBlocks.get(height);
     }, withTransactions);
     if (cachedBlock) {
       return cachedBlock;
     }
-    var block = await this.blockSession.getBlockByHeight(height);
+    const block = await this.blockSession.getBlockByHeight(height);
     if (block) {
       delete block._version_;
     }
@@ -487,19 +454,18 @@ export class SmartDB extends EventEmitter {
   }
 
 
-  async getBlockById(parentId) {
-    var withTransactions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    CodeContract.argument("blockId", function() {
+  async getBlockById(parentId, withTransactions = false) {
+    CodeContract.argument('blockId', function() {
       return CodeContract.notNullOrWhitespace(parentId);
     });
-    var cachedBlock = this.copyCachedBlock(() => {
+    const cachedBlock = this.copyCachedBlock(() => {
       return this.cachedBlocks.getById(parentId);
     }, withTransactions);
     if (cachedBlock) {
       delete cachedBlock._version_;
       return cachedBlock;
     }
-    var block = await this.blockSession.getBlockById(parentId);
+    const block = await this.blockSession.getBlockById(parentId);
     if (block) {
       delete block._version_;
     }
@@ -510,11 +476,10 @@ export class SmartDB extends EventEmitter {
     return await this.attachTransactions([block]);
   }
 
-  async getBlocksByHeightRange(min, max) {
-    var withTransactions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    CodeContract.argument("minHeight, maxHeight", min >= 0 && max >= min, "minHeight or maxHeight is invalid");
+  async getBlocksByHeightRange(min, max, withTransactions = false) {
+    CodeContract.argument('minHeight, maxHeight', min >= 0 && max >= min, 'minHeight or maxHeight is invalid');
     // var off = await this.blockDB.getBlocksByHeightRange(min, max);
-    var result = await this.blockSession.getBlocksByHeightRange(min, max);
+    const result = await this.blockSession.getBlocksByHeightRange(min, max);
     if (result) {
       result.forEach((item) => {
         delete item._version_;
@@ -527,9 +492,8 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  async getBlocksByIds(blockIds) {
-    var withTransactions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    CodeContract.argument("blockIds", function() {
+  async getBlocksByIds(blockIds, withTransactions = false) {
+    CodeContract.argument('blockIds', function() {
       return CodeContract.notNull(blockIds);
     });
     const result = [];
@@ -561,7 +525,7 @@ export class SmartDB extends EventEmitter {
       return;
     }
     var key = Object.assign({}, result);
-    return packageJson || Reflect.deleteProperty(key, "transactions"), key;
+    return packageJson || Reflect.deleteProperty(key, 'transactions'), key;
   }
 
   get transactionSchema() {

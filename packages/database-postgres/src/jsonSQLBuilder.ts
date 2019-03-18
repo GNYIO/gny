@@ -5,6 +5,7 @@ const jsonSQL = require('json-sql')({
   separatedValues : false
 });
 import * as lodash from 'lodash';
+import { ModelSchema } from './modelSchema';
 
 export const MULTI_SQL_SEPARATOR = ';';
 export enum SqlType {
@@ -19,15 +20,15 @@ export enum SqlType {
 export class JsonSqlBuilder {
 
   getTableName(key) {
-    return lodash.snakeCase(key) + "s";
+    return lodash.snakeCase(key) + 's';
   }
 
   getPrimaryKeyCondition(diagramModel, columnName) {
     return diagramModel.setPrimaryKey({}, columnName);
   }
 
-  buildDropSchema(module) {
-    return 'drop table "' + this.getTableName(module.modelName) + '"';
+  buildDropSchema(schema: ModelSchema) {
+    return 'drop table "' + this.getTableName(schema.modelName) + '"';
   }
 
   buildSchema(response) {
@@ -35,7 +36,7 @@ export class JsonSqlBuilder {
     var t = new Array;
     /** @type {!Object} */
     var obj = Object.assign({
-      type : "create"
+      type : 'create'
     }, deepCopy(response.schemaObject));
     response.jsonProperties.forEach(function(name) {
       return obj.tableFields.find(function(functionImport) {
@@ -45,17 +46,17 @@ export class JsonSqlBuilder {
     obj.tableFields.filter(function(object) {
       return isString(object.unique);
     }).forEach(function(obj) {
-      return Reflect.deleteProperty(obj, "unique");
+      return Reflect.deleteProperty(obj, 'unique');
     });
     var a = jsonSQL.build(obj);
     t.push(a.query);
     var tableName = this.getTableName(response.modelName);
     response.indexes.forEach(function(f) {
       t.push(jsonSQL.build({
-        type : "index",
+        type : 'index',
         table : tableName,
-        name : tableName + "_" + f.name,
-        indexOn : f.properties.join(",")
+        name : tableName + '_' + f.name,
+        indexOn : f.properties.join(',')
       }).query);
     });
     var transferArr = obj.tableFields.filter(function(studiesList) {
@@ -69,15 +70,15 @@ export class JsonSqlBuilder {
       }));
     });
     response.isCompsiteKey && _eventQueue.push({
-      name : "composite_primary_key",
+      name : 'composite_primary_key',
       properties : response.compositeKeys
     });
     _eventQueue.forEach(function(f) {
       t.push(jsonSQL.build({
-        type : "unique",
+        type : 'unique',
         table : tableName,
-        name : tableName + "_" + f.name,
-        uniqueOn : f.properties.join(",")
+        name : tableName + '_' + f.name,
+        uniqueOn : f.properties.join(',')
       }).query);
     });
     return t;
@@ -88,7 +89,7 @@ export class JsonSqlBuilder {
       type : SqlType.Insert
     };
     return Object.assign(i, jsonSQL.build({
-      type : "insert",
+      type : 'insert',
       table : this.getTableName(args.modelName),
       values : this.replaceJsonFields(args, key)
     }));
@@ -99,7 +100,7 @@ export class JsonSqlBuilder {
       type : SqlType.Delete
     };
     return Object.assign(i, jsonSQL.build({
-      type : "remove",
+      type : 'remove',
       table : this.getTableName(args.modelName),
       condition : this.getPrimaryKeyCondition(args, params)
     }));
@@ -113,7 +114,7 @@ export class JsonSqlBuilder {
       type : SqlType.Update
     };
     return Object.assign(a, jsonSQL.build({
-      type : "update",
+      type : 'update',
       table : tableName,
       modifier : this.replaceJsonFields(args, type),
       condition : func
@@ -125,7 +126,7 @@ export class JsonSqlBuilder {
     var options = undefined;
     if (isArray(index)) {
       var result = index || args.properties.map(function(canCreateDiscussions) {
-        return args.schemaObject.table + "." + canCreateDiscussions;
+        return args.schemaObject.table + '.' + canCreateDiscussions;
       });
       var query = isNumber(size) ? {
         limit : size
@@ -142,7 +143,7 @@ export class JsonSqlBuilder {
         for (; !(_iteratorNormalCompletion3 = ($__6 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var item = $__6.value;
           var order = obj[item] || -1;
-          obj[item] = "ASC" === order ? 1 : "DESC" === order ? -1 : order;
+          obj[item] = 'ASC' === order ? 1 : 'DESC' === order ? -1 : order;
         }
       } catch (err) {
         /** @type {boolean} */
@@ -160,7 +161,7 @@ export class JsonSqlBuilder {
         }
       }
       options = {
-        type : "select",
+        type : 'select',
         table : tableName,
         fields : result,
         condition : condition,
@@ -174,7 +175,7 @@ export class JsonSqlBuilder {
       var show = index;
       /** @type {!Object} */
       options = Object.assign({
-        type : "select",
+        type : 'select',
         table : tableName
       }, show);
     }

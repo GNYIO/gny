@@ -7,7 +7,7 @@ import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker } from './basicEntityTracker';
 import * as performance from './performance';
-import { toArray, resolveKey } from './helpers/index';
+import { toArray, resolveKey, loadSchemas } from './helpers/index';
 import { Connection } from 'typeorm';
 
 
@@ -22,6 +22,7 @@ import { Transaction } from '../entity/Transaction';
 import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
 import { Vote } from '../entity/Vote';
+import { ModelSchema } from './modelSchema';
 
 export class DbSession {
 
@@ -45,7 +46,7 @@ export class DbSession {
     this.connection = connection;
     this.unconfirmedLocks = new Set;
     this.confirmedLocks = new Set;
-    this.schemas = new Map;
+    this.schemas = loadSchemas();
     this.sessionCache = new LRUEntityCache(this.schemas);
     this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder;
     const message = options.maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD; // how many versions to hold
@@ -107,33 +108,23 @@ export class DbSession {
   }
 
 
-  getAll(d, t) {
-    if (!d.memCached) {
-      throw new Error("getAll only support in memory model");
+  getAll(modelClass: ModelSchema) {
+    if (!modelClass.memCached) {
+      throw new Error('getAll only support in memory model');
     }
-    /**
-     * @param {?} n
-     * @return {?}
-     */
-    var color = (n) => {
-      return undefined !== this.undefinedIfDeleted(n);
-    };
-    /** @type {function(?): ?} */
-    var c = t ? function(s) {
-      return t(s) && color(s);
-    } : color;
-    return this.sessionCache.getAll(d.modelName, c);
+
+    return this.sessionCache.getAll(modelClass.modelName);
   }
 
-  loadAll(context) {
-    if (context.memCached && this.sessionCache.existsModel(context.modelName)) {
-      var artistTrack = this.sessionCache.getAll(context.modelName) || [];
-      return this.trackPersistentEntities(context, artistTrack, true);
+  loadAll(schema: ModelSchema) {
+    if (schema.memCached && this.sessionCache.existsModel(schema.modelName)) {
+      const artistTrack = this.sessionCache.getAll(schema.modelName) || [];
+      return this.trackPersistentEntities(schema, artistTrack, true);
     }
     return [];
   }
 
-  async getMany(data, s) {
+  async getMany(data, s) { // TODO, refactor
     var _nodeMustDisplay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     var options = this.sqlBuilder.buildSelect(data, data.properties, s);
     var _animateProperties = await this.queryEntities(data, options);
@@ -141,7 +132,7 @@ export class DbSession {
   }
 
   async query (component, options, width, height, props, styleObject) {
-    var a = this.sqlBuilder.buildSelect(component, props || component.properties, options, width, height, styleObject);
+    const a = this.sqlBuilder.buildSelect(component, props || component.properties, options, width, height, styleObject);
     return await this.queryEntities(component, a);
   }
 
@@ -181,8 +172,8 @@ export class DbSession {
     return isArray(range) ? parseInt(range[0].count) : 0;
   }
 
-  create(schema, modelObj) {
-    var mapData = schema.getNormalizedPrimaryKey(modelObj);
+  create(schema: ModelSchema, modelObj) {
+    const mapData = schema.getNormalizedPrimaryKey(modelObj);
     if (undefined === mapData) {
       throw new Error("entity must contains primary key ( model = '" + schema.modelName + "' entity = '" + modelObj + "' )");
     }
@@ -192,22 +183,22 @@ export class DbSession {
     return codeContract.deepCopy(this.entityTracker.trackNew(schema, modelObj));
   }
 
-  loadEntityByKeySync(data, version) {
-    var results = this.makeByKeyCondition(data, version);
-    var options = this.sqlBuilder.buildSelect(data, data.properties, results);
-    var dataPerSeries = this.queryEntitiesSync(data, options);
+  loadEntityByKeySync(schema: ModelSchema, version) {
+    const results = this.makeByKeyCondition(schema, version);
+    const options = this.sqlBuilder.buildSelect(schema, schema.properties, results);
+    const dataPerSeries = this.queryEntitiesSync(schema, options);
     if (dataPerSeries.length > 1) {
-      throw new Error("entity key is duplicated ( model = '" + data.modelName + "' key = '" + JSON.stringify(version) + "' )");
+      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(version) + "' )");
     }
     return 1 === dataPerSeries.length ? dataPerSeries[0] : undefined;
   }
 
-  async loadEntityByKey(data, key) {
-    var params = this.makeByKeyCondition(data, key);
-    var options = this.sqlBuilder.buildSelect(data, data.properties, params);
-    var expRecords = await this.queryEntities(data, options);
+  async loadEntityByKey(schema: ModelSchema, key) {
+    const params = this.makeByKeyCondition(schema, key);
+    const options = this.sqlBuilder.buildSelect(schema, schema.properties, params);
+    const expRecords = await this.queryEntities(schema, options);
     if (expRecords.length > 1) {
-      throw new Error("entity key is duplicated ( model = '" + data.modelName + "' key = '" + JSON.stringify(key) + "' )");
+      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(key) + "' )");
     }
     return 1 === expRecords.length ? expRecords[0] : undefined;
   }
@@ -271,12 +262,12 @@ export class DbSession {
   // key:Object {address: "G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
   // uniqueName:"__PrimaryKey__"
 
-  getCached(modelClass, keyvalue) {
-    const primaryKeyMetadata = this.normalizeEntityKey(modelClass, keyvalue); // isPrimaryKey: true, key: { address: "" }, uniqueName: "__PrimaryKey__"
-    const this_area = this.entityTracker.getTrackingEntity(modelClass, primaryKeyMetadata.key);
+  getCached(schema: ModelSchema, keyvalue) {
+    const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue); // isPrimaryKey: true, key: { address: "" }, uniqueName: "__PrimaryKey__"
+    const this_area = this.entityTracker.getTrackingEntity(schema, primaryKeyMetadata.key);
 
     // TODO: refactor return
-    return this_area || (primaryKeyMetadata.isPrimaryKey ? this.sessionCache.get(modelClass.modelName, primaryKeyMetadata.key) : this.sessionCache.getUnique(modelClass.modelName, primaryKeyMetadata.uniqueName, primaryKeyMetadata.key));
+    return this_area || (primaryKeyMetadata.isPrimaryKey ? this.sessionCache.get(schema.modelName, primaryKeyMetadata.key) : this.sessionCache.getUnique(schema.modelName, primaryKeyMetadata.uniqueName, primaryKeyMetadata.key));
   }
 
   getTrackingOrCachedEntity(url, id) {
@@ -367,14 +358,14 @@ export class DbSession {
     }
   }
 
-  ensureEntityTracking(model, id) {
-    var promise = this.getCached(model, id);
+  ensureEntityTracking(schema: ModelSchema, id) {
+    let promise = this.getCached(schema, id);
     if (undefined === promise) {
-      var data = this.loadEntityByKeySync(model, id);
+      var data = this.loadEntityByKeySync(schema, id);
       if (undefined === data) {
-        throw Error("Entity not found ( model = '" + model.modelName + "', key = '" + JSON.stringify(id) + "' )");
+        throw Error("Entity not found ( model = '" + schema.modelName + "', key = '" + JSON.stringify(id) + "' )");
       }
-      promise = this.entityTracker.trackPersistent(model, data);
+      promise = this.entityTracker.trackPersistent(schema, data);
     }
     return promise;
   }
