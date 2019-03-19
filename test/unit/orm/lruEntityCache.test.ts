@@ -171,17 +171,61 @@ describe('orm - LRUEntityCache', () => {
     done();
   });
 
-  it('put(Account) without Round ModelSchema throws error', (done) => {
+  it('put(Round) without Round ModelSchema throws error', (done) => {
     const key = { address: generateAddress(createHexString(32)) };
     const data = { test: 3 };
     expect(() => sut.put('Round', key, data)).toThrow();
     done();
   });
 
-  it.skip('put({ address: "dfefjijief" })', (done) => {
+  it('simple put({ address: "G2S8FueDjrk3jN7pkeui7VmrA8eMU" })', (done) => {
+    const delegate = createDelegate('liangpeili');
+    const key = {
+      address: delegate.address,
+    };
+
+    sut.put('Delegate', key, delegate);
+
+    expect(sut.get('Delegate', key)).toEqual(delegate);
     done();
   });
-  it.skip('put("dfefjijief")', (done) => {
+
+  it('direct put("G2S8FueDjrk3jN7pkeui7VmrA8eMU")', (done) => {
+    const delegate = createDelegate('liangpeili');
+    const specialkey = delegate.address;
+
+    sut.put('Delegate', specialkey, delegate);
+
+    expect(sut.get('Delegate', specialkey)).toEqual(delegate);
+    done();
+  });
+
+  it('simple key ({ key: "key" }) can not access direct key ("key")', (done) => {
+    const delegate = createDelegate('xpgeng');
+    const specialkey = delegate.address;
+
+    sut.put('Delegate', specialkey, delegate);
+
+    const simpleKey = {
+      address: delegate.address,
+    };
+
+    expect(sut.get('Delegate', simpleKey)).toBeUndefined();
+    done();
+  });
+
+  it('direct key ("key") can not access simple key ({ key: "key" })', (done) => {
+    const delegate = createDelegate('xpgeng');
+    const simplekey = {
+      address: delegate.address,
+    };
+
+    sut.put('Delegate', simplekey, delegate);
+
+    const directKey = delegate.address;
+
+    expect(sut.get('Delegate', directKey)).toBeUndefined();
+    done();
   });
 
   it('simple get()', (done) => {
@@ -337,18 +381,74 @@ describe('orm - LRUEntityCache', () => {
     done();
   });
 
-  it.skip('refreshCache - are all uniquedColumn caches also updated???', (done) => {
+  it('refreshCached() - are all uniquedColumn caches also updated???', (done) => {
+    const delegateData = createDelegate('liangpeili');
+    const delegateKey = {
+      address: delegateData.address,
+    };
+
+    sut.put('Delegate', delegateKey, delegateData);
+
+    const addressUnique = {
+      address: delegateData.address,
+    };
+    const tidUnique = {
+      tid: delegateData.tid,
+    };
+    const usernameUnique = {
+      username: delegateData.username,
+    };
+    const publicKeyUnique = {
+      publicKey: delegateData.publicKey,
+    };
+
+    expect(sut.getUnique('Delegate', 'address', addressUnique)).toEqual(delegateData);
+    expect(sut.getUnique('Delegate', 'tid', tidUnique)).toEqual(delegateData);
+    expect(sut.getUnique('Delegate', 'username', usernameUnique)).toEqual(delegateData);
+    expect(sut.getUnique('Delegate', 'publicKey', publicKeyUnique)).toEqual(delegateData);
+
+    const updates: PropertyValue[] = [{
+      name: 'votes',
+      value: 100,
+    }];
+
+    // update
+    sut.refreshCached('Delegate', delegateKey, updates);
+
+    expect(sut.getUnique('Delegate', 'address', addressUnique).votes).toEqual(100);
+    expect(sut.getUnique('Delegate', 'tid', tidUnique).votes).toEqual(100);
+    expect(sut.getUnique('Delegate', 'username', usernameUnique).votes).toEqual(100);
+    expect(sut.getUnique('Delegate', 'publicKey', publicKeyUnique).votes).toEqual(100);
+
     done();
   });
 
-  it.skip('getUnique() throws if model not found', (done) => {
-    done();
-  });
-  it.skip('getUnique() throws if model found, but unique column not found', (done) => {
+  it('getUnique() throws if Model Schema not found', (done) => {
+    expect(() => sut.getUnique('Issuer', 'tid', { tid: '0747e1ba3d28a15c0300e83553a44092db' })).toThrow();
     done();
   });
 
-  it.skip('getAll()', (done) => {
+  it('getUnique() throws if model found, but unique column not found', (done) => {
+    expect(() => sut.getUnique('Delegate', 'missedBlocks', { missedBlocks: 2 })).toThrow();
+    done();
+  });
+
+  it('getAll()', (done) => {
+    const oneData = createDelegate('xpgeng');
+    const secondData = createDelegate('a1300');
+
+    const oneKey = {
+      address: oneData.address,
+    };
+    const secondKey = {
+      address: secondData.address,
+    };
+
+    sut.put('Delegate', oneKey, oneData);
+    sut.put('Delegate', secondKey, secondData);
+
+    const result = sut.getAll('Delegate');
+    expect(result).toEqual([secondData, oneData]);
     done();
   });
 });

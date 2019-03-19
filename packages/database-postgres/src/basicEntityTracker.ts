@@ -6,6 +6,7 @@ import { toArray } from './helpers/index';
 import { ILogger } from '../../../src/interfaces';
 import { resolveKey } from './helpers/index';
 import { ModelSchema } from './modelSchema';
+import { LRUEntityCache } from './lruEntityCache';
 
 export type NormalizedEntityKey<E> = Partial<E>;
 
@@ -27,7 +28,7 @@ export interface EntityChanges<E extends object> {
 
 export class BasicEntityTracker {
   private log: ILogger;
-  private cache: any;
+  private cache: LRUEntityCache;
   private confirming: boolean;
   private schemas: any;
   private doLoadHistory: any;
@@ -45,7 +46,7 @@ export class BasicEntityTracker {
    * @param {!Object} logger
    * @param {?} historyChanges
    */
-  constructor(sessionCache, schemas, message, logger, historyChanges) { // message: maxHistoryVersionsHold
+  constructor(sessionCache: LRUEntityCache, schemas, message, logger, historyChanges) { // message: maxHistoryVersionsHold
     this.log = logger;
     this.cache = sessionCache;
     this.confirming = false;
@@ -248,14 +249,14 @@ export class BasicEntityTracker {
   }
 
   undoEntityChanges(update) {
-    switch(update.type) {
+    switch (update.type) {
       case enumerations.EntityChangeType.New:
         if (this.cache.get(update.model, update.primaryKey)) {
           this.cache.evit(update.model, update.primaryKey);
         }
         break;
       case enumerations.EntityChangeType.Modify:
-        var data = update.propertyChanges.map(function(association) {
+        const data = update.propertyChanges.map(function(association) {
           return {
             name : association.name,
             value : association.original

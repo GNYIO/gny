@@ -157,7 +157,7 @@ export class LRUEntityCache {
   /**
    * @param {string} model - Example: 'Delegate'
    */
-  getAll(model: string) { // TODO: checkout
+  public getAll(model: string) { // TODO: checkout
     const result = [];
     const keys = this.getModelCache(model);
     if (undefined !== keys) {
