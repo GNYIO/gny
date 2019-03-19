@@ -7,6 +7,10 @@ import * as codeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
 
+export interface PropertyValue {
+  name: string;
+  value: any;
+}
 
 export class LRUEntityCache {
 
@@ -47,7 +51,7 @@ export class LRUEntityCache {
     this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
-  private unRegisterModel(model: string) {
+  private unRegisterModel(model: string) { // can be deleted? clear('Account') is the same
     this.modelCaches.delete(model);
   }
 
@@ -74,7 +78,7 @@ export class LRUEntityCache {
     }
   }
 
-  clear(name?: string) {
+  public clear(name?: string) {
     if (isString(name)) {
       this.getModelCache(name).clear();
       this.modelCaches.delete(name);
@@ -134,17 +138,16 @@ export class LRUEntityCache {
    * @param {Object} value - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
    * @param {Object[]} data - Example: [{ name:"gny", value:-40000000000000000 }]
    */
-  refreshCached(model: string, value, data) {
+  refreshCached(model: string, value: Object, data: PropertyValue[]) {
     let componentRef;
     const element = this.get(model, value);
     if (undefined === element) {
       return false;
     }
-    const fixedDims = data.map(function(engineDiscovery) {
-      return engineDiscovery.name;
-    });
+    const columns = data.map((column) => column.name);
+
     // TODO: refactor
-    return (componentRef = this.modelSchemas.get(model)).hasUniqueProperty.apply(componentRef, toArray(fixedDims)) ? (this.log.trace('refresh cached with uniqued index, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), this.evit(model, value), data.forEach(function(attr) {
+    return (componentRef = this.modelSchemas.get(model)).hasUniqueProperty.apply(componentRef, toArray(columns)) ? (this.log.trace('refresh cached with uniqued index, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), this.evit(model, value), data.forEach(function(attr) {
       return element[attr.name] = attr.value;
     }), this.put(model, value, element), true) : (this.log.trace('refresh cached entity, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), data.forEach(function(attr) {
       return element[attr.name] = attr.value;
@@ -194,11 +197,11 @@ export class LRUEntityCache {
    * @param {string} model - Example: 'Account'
    * @param {Object} key - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
    */
-  exists(model: string, key) {
+  public exists(model: string, key) {
     return undefined !== this.get(model, this.getCacheKey(key));
   }
 
-  existsModel(model: string) {
+  public existsModel(model: string) {
     return this.modelCaches.has(model);
   }
 
