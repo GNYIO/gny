@@ -1,24 +1,37 @@
 
-import { UniquedCache, ModelIndex } from '../../../packages/database-postgres/src/defaultEntityUniqueIndex';
+import { ModelIndex } from '../../../packages/database-postgres/src/defaultEntityUniqueIndex';
+import { UniquedCache } from '../../../packages/database-postgres/src/uniquedCache';
 import { LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
-import { ModelSchema } from '../../../packages/database-postgres/src/modelSchema';
+import { ModelSchema, MetaSchema } from '../../../packages/database-postgres/src/modelSchema';
 import { CustomCache } from '../../../packages/database-postgres/src/customCache';
 
 describe('orm UniquedCache', () => {
   let sut: UniquedCache;
   beforeEach(() => {
-    const oldSchema = {
-      meta: {
-        memory: true,
+    const metaSchema: MetaSchema = {
+      memory: false,
+      name: 'Account',
+      indices: [{
+        isUnique: false,
+        columns: [{
+         propertyName: 'address',
+        }],
+      }, {
+        isUnique: true,
+        columns: [{
+          propertyName: 'username'
+        }]
+      }],
+      propertiesMap: {
+        address: 'address',
+        username: 'username',
       },
     };
-    const modelSchema = new ModelSchema(oldSchema, 'Account');
+    const modelSchema = new ModelSchema(metaSchema);
     const cache = new CustomCache(modelSchema, LRUEntityCache.DEFULT_MAX_CACHED_COUNT);
-    const modelIndex: ModelIndex = {
-      name: 'username',
-      properties: ['username'],
-    };
-    sut = new UniquedCache(cache, [modelIndex]);
+
+    const modelIndex = modelSchema.allUniqueIndexes;
+    sut = new UniquedCache(cache, modelIndex);
   });
 
   afterEach(() => {
@@ -119,21 +132,32 @@ describe('orm UniquedCache', () => {
     done();
   });
   it('max cached items', (done) => {
-    const customSchema = {
-      meta: {
-        memory: true,
+    const customMetaSchema: MetaSchema = {
+      memory: false,
+      name: 'Account',
+      indices: [{
+        isUnique: false,
+        columns: [{
+         propertyName: 'address',
+        }],
+      }, {
+        isUnique: true,
+        columns: [{
+          propertyName: 'username'
+        }]
+      }],
+      propertiesMap: {
+        address: 'address',
+        username: 'username',
       },
     };
-    const modelSchema = new ModelSchema(customSchema, 'Account');
+    const modelSchema = new ModelSchema(customMetaSchema);
 
     const MAX_ONE = 1;
     const customCache = new CustomCache(modelSchema, 1);
+    const customModelIndex = modelSchema.uniqueIndexes;
 
-    const customModelIndex: ModelIndex = {
-      name: 'username',
-      properties: ['username'],
-    };
-    const custom = new UniquedCache(customCache, [customModelIndex]);
+    const custom = new UniquedCache(customCache, customModelIndex);
 
     custom.set('test', { hello: 2 });
     expect(custom.get('test')).toEqual({ hello: 2 });

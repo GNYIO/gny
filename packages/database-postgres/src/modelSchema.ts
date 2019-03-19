@@ -34,9 +34,11 @@ export class ModelSchema {
   public propertiesSet: Set<string>;
   public uniquePropertiesSet: Set<any>;
   public allProperties: string[];
+  private allJsonProperties: any[];
   public allNormalIndexes: ModelIndex[];
   public allUniqueIndexes: ModelIndex[];
   private primaryKeyProperty: string;
+  private compositKeyProperties: any[];
 
 
   /**
@@ -86,6 +88,8 @@ export class ModelSchema {
     });
 
     this.primaryKeyProperty = this.allNormalIndexes[0] ? this.allNormalIndexes[0].name : undefined;
+
+    this.compositKeyProperties = [];
   }
 
   hasUniqueProperty(...args: string[]) {
@@ -226,7 +230,6 @@ export class ModelSchema {
   }
 
   get jsonProperties() {
-    throw new Error();
     return this.allJsonProperties;
   }
 
@@ -244,7 +247,6 @@ export class ModelSchema {
   }
 
   get compositeKeys() {
-    throw new Error('no compisiteKeys implemented');
     return this.compositKeyProperties;
   }
 
