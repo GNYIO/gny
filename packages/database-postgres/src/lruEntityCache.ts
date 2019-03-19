@@ -1,7 +1,8 @@
 import { CustomCache } from './customCache';
 import { LoggerWrapper, LogManager } from './logger';
 import { ModelSchema } from './modelSchema';
-import { UniquedCache, ModelIndex } from './defaultEntityUniqueIndex';
+import { ModelIndex } from './defaultEntityUniqueIndex';
+import { UniquedCache } from './uniquedCache';
 import * as codeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
@@ -25,21 +26,20 @@ export class LRUEntityCache {
   constructor(modelSchemas: Map<string, ModelSchema>) {
     this.log = LogManager.getLogger('LRUEntityCache');
     this.modelSchemas = modelSchemas;
-    this.modelCaches = new Map;
+    this.modelCaches = new Map<string, UniquedCache>();
   }
 
-  getMaxCachedCount(schema) {
+  private getMaxCachedCount(schema: ModelSchema) {
     const maxPrimaryDepth = schema.maxCached || LRUEntityCache.DEFULT_MAX_CACHED_COUNT;
     return Math.max(LRUEntityCache.MIN_CACHED_COUNT, maxPrimaryDepth);
   }
 
-  createCache(schema: ModelSchema) {
+  private createCache(schema: ModelSchema) {
     return new CustomCache(schema, this.getMaxCachedCount(schema));
   }
 
-
-  registerModel(schema: ModelSchema, uniqueIndexes: ModelIndex[]) {
-    const na = schema.name;
+  private registerModel(schema: ModelSchema, uniqueIndexes: ModelIndex[]) {
+    const na = schema.modelName;
     if (this.modelCaches.has(na)) {
       throw new Error("model '" + na + "' exists already");
     }
@@ -47,11 +47,11 @@ export class LRUEntityCache {
     this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
-  unRegisterModel(model: string) {
+  private unRegisterModel(model: string) {
     this.modelCaches.delete(model);
   }
 
-  getModelCache(model: string) {
+  private getModelCache(model: string) {
     const schema = this.modelSchemas.get(model);
     if (undefined === schema) {
       throw new Error("Model schema ( name = '" + model + "' )  does not exists");
@@ -66,7 +66,7 @@ export class LRUEntityCache {
   /**
    * @param objOrString - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
    */
-  getCacheKey(objOrString: string | number | {}) {
+  private getCacheKey(objOrString: string | number | {}) {
     if (codeContract.isPrimitiveKey(objOrString)) {
       return String(objOrString);
     } else {
