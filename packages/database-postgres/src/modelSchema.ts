@@ -1,37 +1,60 @@
-import { toArray, } from './helpers/index';
-import { isBoolean, isString, isObject, } from 'util';
 import * as codeContract from './codeContract';
 import { ENTITY_VERSION_PROPERTY } from './entityChangeType';
 import * as lodash from 'lodash';
-import { getConnection } from 'typeorm';
+import { ObjectLiteral } from 'typeorm';
 import { ModelIndex } from './defaultEntityUniqueIndex';
+import { isObject } from 'util';
+import { IndexMetadata } from 'typeorm/metadata/IndexMetadata';
+
+// export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;
+
+export type MetaColumn = {
+  propertyName: string;
+};
+export type OneIndex = {
+  isUnique: boolean;
+  columns: MetaColumn[];
+};
+export type MetaSchema = {
+  name: string;
+  indices: OneIndex[];
+  propertiesMap: ObjectLiteral;
+
+  memory: boolean;
+  maxCachedCount: number;
+};
 
 export class ModelSchema {
   public static readonly PRIMARY_KEY_NAME = '__PrimaryKey__';
 
-  private schemas: Map<string, any>;
-  private _modelName: string;
+  public modelSchemaMetadata: MetaSchema;
+  public name: string;
   public memory: boolean;
   public maxCachedCount: boolean;
-  public propertiesSet: Set<any>;
+  public propertiesSet: Set<string>;
   public uniquePropertiesSet: Set<any>;
   public allProperties: string[];
-  public allNormalIndexes: any[];
+  public allNormalIndexes: ModelIndex[];
   public allUniqueIndexes: ModelIndex[];
 
-  constructor(schema: any, name: string) {
-    this._modelName = name;
-    this.memory = true === schema.meta.memory;
-    this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : schema.meta.maxCached;
-    this.propertiesSet = new Set;
-    this.uniquePropertiesSet = new Set;
-    if (process.env.NODE_ENV !== 'test') {
-      this.parseProperties();
-    }
+  /**
+   * @param {EntityMetadata} modelSchemaMetadata - An TypeORM EntityMetadat object from which all other properties can be derived from
+   */
+  constructor(modelSchemaMetadata: MetaSchema) {
+    this.modelSchemaMetadata = modelSchemaMetadata;
+    this.parseProperties();
+
+    // this.memory = true === config.memory;
+    // this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : config.maxCached;
+    // this.propertiesSet = new Set<string>();
+    // this.uniquePropertiesSet = new Set;
+    // if (process.env.NODE_ENV !== 'test') {
+    //   this.parseProperties();
+    // }
   }
 
   parseProperties() {
-    const meta = getConnection().getRepository(this.modelName).metadata;
+    const meta = this.modelSchemaMetadata;
 
     this.allUniqueIndexes = meta.indices
       .filter(x => x.isUnique)
@@ -57,7 +80,7 @@ export class ModelSchema {
   }
 
   hasUniqueProperty() {
-    throw new Error('not implemneted yet')
+    throw new Error('not implemneted yet');
     /** @type {number} */
     var _len8 = arguments.length;
     /** @type {!Array} */
@@ -111,16 +134,19 @@ export class ModelSchema {
   getNormalizedPrimaryKey(err) {
     return this.isCompsiteKey ? codeContract.partialCopy(err, this.compositeKeys) : codeContract.partialCopy(err, [this.primaryKey]);
   }
+
   normalizePrimaryKey(result) {
     if (!codeContract.isPrimitiveKey(result)) {
       return result;
     }
-    var item = {};
-    return item[this.primaryKey] = result, item;
+    const item = {};
+    item[this.primaryKey] = result;
+    return item;
   }
   isValidPrimaryKey(val) {
     return !this.isCompsiteKey && (codeContract.isPrimitiveKey(val) || this.isNormalizedPrimaryKey(val)) || 0 === lodash.xor(Object.keys(val), this.compositeKeys).length;
   }
+
   isValidUniqueKey(name) {
     return undefined !== this.getUniqueName(name);
   }
@@ -129,11 +155,11 @@ export class ModelSchema {
     if (this.isValidPrimaryKey(y)) {
       return ModelSchema.PRIMARY_KEY_NAME;
     }
-    var col = Object.keys(y);
+    const col = Object.keys(y);
     if (1 === col.length && col[0] === this.primaryKey) {
       return ModelSchema.PRIMARY_KEY_NAME;
     }
-    var value = this.uniqueIndexes.find(function(other) {
+    const value = this.uniqueIndexes.find(function(other) {
       return 0 === lodash.xor(other.properties, col).length;
     });
     return undefined === value ? undefined : value.name;
@@ -188,7 +214,7 @@ export class ModelSchema {
   }
 
   splitEntityAndVersion(obj) {
-    var result = obj[ENTITY_VERSION_PROPERTY];
+    const result = obj[ENTITY_VERSION_PROPERTY];
     return Reflect.deleteProperty(obj, ENTITY_VERSION_PROPERTY), {
       version : result,
       entity : obj
@@ -200,10 +226,12 @@ export class ModelSchema {
   }
 
   get jsonProperties() {
+    throw new Error();
     return this.allJsonProperties;
   }
 
   get schemaObject() {
+    throw new Error('not ready');
     return this.schema;
   }
 
@@ -216,6 +244,7 @@ export class ModelSchema {
   }
 
   get compositeKeys() {
+    throw new Error('no compisiteKeys implemented');
     return this.compositKeyProperties;
   }
 
@@ -232,16 +261,9 @@ export class ModelSchema {
   }
 
   get modelName() {
-    return this._modelName;
+    return this.name;
   }
 
-  get isLocal() {
-    return this.local;
-  }
-
-  get isReadonly() {
-    return this.readonly;
-  }
   get memCached() {
     return this.memory;
   }
