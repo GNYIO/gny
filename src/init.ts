@@ -13,7 +13,7 @@ import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 // import initNetwork from './initNetwork';
 import extendedJoi from './utils/extendedJoi';
-import { IScope, IMessageEmitter } from './interfaces';
+import { IScope, IMessageEmitter, IConfig, ILogger } from './interfaces';
 
 
 import initNetwork from '../packages/http/index';
@@ -42,11 +42,15 @@ function getPublicIp() {
 
 async function init_alt(options: any) {
   const scope: Partial<IScope> = {};
-  const { appConfig, genesisBlock } = options;
+  const genesisBlock = options.genesisBlock;
+  let appConfig = options.appConfig;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
   }
+
+  appConfig = validateConfig(appConfig, options.logger);
+
 
   const protoFile = path.join(__dirname, '..', 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
@@ -122,6 +126,62 @@ function sequence(options: any) {
       options.logger.warn(`Main sequence ${current}`);
     },
   });
+}
+
+function validateConfig(config: IConfig, logger: ILogger) {
+
+  const schema = extendedJoi.object().keys({
+    port: extendedJoi.number().integer().min(0).max(65535).required(),
+    address: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
+    publicIp: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
+    logLevel: extendedJoi.string(),
+    magic: extendedJoi.string(),
+    api: extendedJoi.object().keys({
+      access: extendedJoi.object().keys({
+        whiteList: extendedJoi.array(),
+      })
+    }),
+    peers: extendedJoi.object().keys({
+      bootstrap: extendedJoi.string().allow(null),
+      p2pKeyFile: extendedJoi.string(),
+      options: extendedJoi.object().keys({
+        timeout: extendedJoi.number().integer().min(0),
+      })
+    }),
+    forging: extendedJoi.object().keys({
+      secret: extendedJoi.array().items(extendedJoi.string().secret().required()),
+      access: extendedJoi.object().keys({
+        whiteList: extendedJoi.array().items(
+          extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/)
+        ).required(),
+      })
+    }),
+    ssl: extendedJoi.object().keys({
+      enabled: extendedJoi.boolean(),
+      options: extendedJoi.object().keys({
+        port: extendedJoi.number().integer().min(0).max(65535).required(),
+        address: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
+        key: extendedJoi.string(),
+        cert: extendedJoi.string(),
+      })
+    }),
+
+    version: extendedJoi.string(),
+    baseDir: extendedJoi.string(),
+    dataDir: extendedJoi.string(),
+    appDir: extendedJoi.string(),
+    buildVersion: extendedJoi.string(),
+    netVersion: extendedJoi.string(),
+    publicDir: extendedJoi.string(),
+    peerPort: extendedJoi.number().integer().min(0).max(65535).required()
+  });
+
+  const report = extendedJoi.validate(config, schema);
+  if (report.error) {
+    logger.error(report.error.message);
+  }
+
+  return config;
 }
 
 export default init_alt;
