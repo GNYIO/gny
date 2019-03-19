@@ -4,7 +4,7 @@ import { ModelSchema } from './modelSchema';
 export class CustomCache {
   private modelSchema: ModelSchema;
   private lruCache: LRU.Cache<string, Object>;
-  postEvit: any; // callback
+  private postEvit: (key: string, obj: Object) => void; // callback
 
   /**
    * @constructor
@@ -23,12 +23,15 @@ export class CustomCache {
    * @param {string} key - Example: "{"address":"G2yY6XpLzt1Zx69QJX1t6mhJeGZyH"}"
    * @param {Object} obj - Example: "{"tid":"5f612493b10b79a8262a0b64c7a29f4d21d07d55f737e1612de671d39eace479","username":"gny_d47","address":"G2yY6XpLzt1Zx69QJX1t6mhJeGZyH","publicKey":"712ee616912efaf95e94157f6b5e6681fdf7cc7a3bc4caa7cd8359ee8c4c33b6","votes":0,"producedBlocks":1,"missedBlocks":0,"fees":0,"rewards":0,"_version_":2}" 
    */
-  doEvit(key, obj) {
+  doEvit(key: string, obj: Object) {
     if (this.postEvit) {
       this.postEvit(key, obj);
     }
   }
 
+  /**
+   * Clears the whole cache
+   */
   clear() {
     this.lruCache.reset();
   }
