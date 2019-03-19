@@ -5,6 +5,7 @@ import { ObjectLiteral } from 'typeorm';
 import { ModelIndex } from './defaultEntityUniqueIndex';
 import { isObject } from 'util';
 import { IndexMetadata } from 'typeorm/metadata/IndexMetadata';
+import { string } from 'joi';
 
 // export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;
 
@@ -42,6 +43,7 @@ export class ModelSchema {
    */
   constructor(modelSchemaMetadata: MetaSchema) {
     this.modelSchemaMetadata = modelSchemaMetadata;
+    this.uniquePropertiesSet = new Set<string>();
     this.parseProperties();
 
     // this.memory = true === config.memory;
@@ -77,19 +79,15 @@ export class ModelSchema {
     this.allProperties.forEach((item) => {
       this.propertiesSet.add(item);
     });
+
+    this.allUniqueIndexes.forEach(unique => {
+      unique.properties.forEach((uniqueColumn) => {
+        this.uniquePropertiesSet.add(uniqueColumn);
+      });
+    });
   }
 
-  hasUniqueProperty() {
-    throw new Error('not implemneted yet');
-    /** @type {number} */
-    var _len8 = arguments.length;
-    /** @type {!Array} */
-    var args = Array(_len8);
-    /** @type {number} */
-    var _key8 = 0;
-    for (; _key8 < _len8; _key8++) {
-      args[_key8] = arguments[_key8];
-    }
+  hasUniqueProperty(...args: string[]) {
     return args.some((geomData) => {
       return this.uniquePropertiesSet.has(geomData);
     });
