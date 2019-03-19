@@ -129,16 +129,15 @@ function sequence(options: any) {
 }
 
 function validateConfig(config: IConfig, logger: ILogger) {
-
   const schema = extendedJoi.object().keys({
-    port: extendedJoi.number().integer().min(0).max(65535).required(),
-    address: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
-    publicIp: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
+    port: extendedJoi.number().port(),
+    address: extendedJoi.string().ip(),
+    publicIp: extendedJoi.string().ip(),
     logLevel: extendedJoi.string(),
     magic: extendedJoi.string(),
     api: extendedJoi.object().keys({
       access: extendedJoi.object().keys({
-        whiteList: extendedJoi.array(),
+        whiteList: extendedJoi.array().items(extendedJoi.string().ip()).required(),
       })
     }),
     peers: extendedJoi.object().keys({
@@ -151,16 +150,14 @@ function validateConfig(config: IConfig, logger: ILogger) {
     forging: extendedJoi.object().keys({
       secret: extendedJoi.array().items(extendedJoi.string().secret().required()),
       access: extendedJoi.object().keys({
-        whiteList: extendedJoi.array().items(
-          extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/)
-        ).required(),
+        whiteList: extendedJoi.array().items(extendedJoi.string().ip()).required(),
       })
     }),
     ssl: extendedJoi.object().keys({
       enabled: extendedJoi.boolean(),
       options: extendedJoi.object().keys({
-        port: extendedJoi.number().integer().min(0).max(65535).required(),
-        address: extendedJoi.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/).required(),
+        port: extendedJoi.number().port(),
+        address: extendedJoi.string().ip(),
         key: extendedJoi.string(),
         cert: extendedJoi.string(),
       })
@@ -173,7 +170,7 @@ function validateConfig(config: IConfig, logger: ILogger) {
     buildVersion: extendedJoi.string(),
     netVersion: extendedJoi.string(),
     publicDir: extendedJoi.string(),
-    peerPort: extendedJoi.number().integer().min(0).max(65535).required()
+    peerPort: extendedJoi.number().port()
   });
 
   const report = extendedJoi.validate(config, schema);
