@@ -5,7 +5,6 @@ import { ObjectLiteral } from 'typeorm';
 import { ModelIndex } from './defaultEntityUniqueIndex';
 import { isObject } from 'util';
 import { IndexMetadata } from 'typeorm/metadata/IndexMetadata';
-import { string } from 'joi';
 
 // export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;
 
@@ -22,21 +21,23 @@ export type MetaSchema = {
   propertiesMap: ObjectLiteral;
 
   memory: boolean;
-  maxCachedCount: number;
+  maxCachedCount?: number;
 };
 
 export class ModelSchema {
   public static readonly PRIMARY_KEY_NAME = '__PrimaryKey__';
 
   public modelSchemaMetadata: MetaSchema;
-  public name: string;
-  public memory: boolean;
-  public maxCachedCount: boolean;
+  private name: string;
+  private memory: boolean;
+  private maxCachedCount: number;
   public propertiesSet: Set<string>;
   public uniquePropertiesSet: Set<any>;
   public allProperties: string[];
   public allNormalIndexes: ModelIndex[];
   public allUniqueIndexes: ModelIndex[];
+  private primaryKeyProperty: string;
+
 
   /**
    * @param {EntityMetadata} modelSchemaMetadata - An TypeORM EntityMetadat object from which all other properties can be derived from
@@ -44,19 +45,17 @@ export class ModelSchema {
   constructor(modelSchemaMetadata: MetaSchema) {
     this.modelSchemaMetadata = modelSchemaMetadata;
     this.uniquePropertiesSet = new Set<string>();
+    this.propertiesSet = new Set<string>();
     this.parseProperties();
-
-    // this.memory = true === config.memory;
-    // this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : config.maxCached;
-    // this.propertiesSet = new Set<string>();
-    // this.uniquePropertiesSet = new Set;
-    // if (process.env.NODE_ENV !== 'test') {
-    //   this.parseProperties();
-    // }
   }
 
-  parseProperties() {
+  private parseProperties() {
     const meta = this.modelSchemaMetadata;
+
+    this.name = meta.name;
+    this.memory = true === meta.memory;
+    this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : meta.maxCachedCount;
+
 
     this.allUniqueIndexes = meta.indices
       .filter(x => x.isUnique)
@@ -85,6 +84,8 @@ export class ModelSchema {
         this.uniquePropertiesSet.add(uniqueColumn);
       });
     });
+
+    this.primaryKeyProperty = this.allNormalIndexes[0] ? this.allNormalIndexes[0].name : undefined;
   }
 
   hasUniqueProperty(...args: string[]) {
@@ -111,6 +112,7 @@ export class ModelSchema {
   }
 
   setPrimaryKey(val, id) {
+    throw new Error('not implemented');
     if (!this.isValidPrimaryKey(id)) {
       throw new Error("Invalid PrimaryKey of model '" + this.modelName + "', key=''" + JSON.stringify(id));
     }
