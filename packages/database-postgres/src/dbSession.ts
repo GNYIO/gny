@@ -6,7 +6,7 @@ import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker, LoadChangesHistoryAction } from './basicEntityTracker';
 import * as performance from './performance';
-import { toArray, loadSchemas } from './helpers/index';
+import { toArray } from './helpers/index';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
@@ -29,13 +29,13 @@ export class DbSession {
   private trackerSqlBuilder: BasicTrackerSqlBuilder;
 
 
-  constructor(connection: Connection, historyChanges: LoadChangesHistoryAction, maxHistoryVersionsHold?: number) {
+  constructor(connection: Connection, historyChanges: LoadChangesHistoryAction, schemas: Map<string, ModelSchema>, maxHistoryVersionsHold?: number) {
     this.log = LogManager.getLogger('DbSession');
     this.sessionSerial = -1;
     this.connection = connection;
     this.unconfirmedLocks = new Set<string>();
     this.confirmedLocks = new Set<string>();
-    this.schemas = loadSchemas();
+    this.schemas = schemas;
     this.sessionCache = new LRUEntityCache(this.schemas);
     this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder;
     const howManyVersionsToHold = maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD;
@@ -400,7 +400,7 @@ export class DbSession {
     }
   }
 
-  public async getBlockByHeight(height) {
+  public async getBlockByHeight(height: number) {
     const result = await this.connection.createQueryBuilder()
       .select('b')
       .from(Block, 'b')
@@ -409,7 +409,7 @@ export class DbSession {
     return result;
   }
 
-  public async getBlockById(id) {
+  public async getBlockById(id: string) {
     // TODO: remove possible SQL injection
     const result = await this.connection.query(`select * from blocks where id = '${id}'`);
     return result[0];
@@ -420,12 +420,12 @@ export class DbSession {
     return blocks;
   }
 
-  public async getTransactionsByBlockHeight(height) {
+  public async getTransactionsByBlockHeight(height: number) {
     const trans = await this.connection.createQueryBuilder()
       .select('t')
       .from(Transaction, 't')
       .where('t.heightHeight = :height', { height: Number(height) })
-      .getSql();
+      .getMany();
     return trans;
   }
 

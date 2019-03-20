@@ -1,5 +1,3 @@
-import { getConnection } from 'typeorm';
-
 export function toArray(arr) {
   if (Array.isArray(arr)) {
     let i = 0;
@@ -44,15 +42,6 @@ const ENTITY: any = {
 };
 
 
-export function loadSchemas () {
-  const schemas = new Map<string, ModelSchema>();
-  Object.keys(ENTITY).forEach((name) => {
-    const newSchema = new ModelSchema(ENTITY[name], name);
-    schemas.set(name, newSchema);
-  });
-
-  return schemas;
-}
 
 
 // {

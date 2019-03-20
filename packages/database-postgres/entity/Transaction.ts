@@ -1,6 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn, ManyToOne } from 'typeorm';
 import { Block } from './Block';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Transaction {
   @PrimaryColumn({

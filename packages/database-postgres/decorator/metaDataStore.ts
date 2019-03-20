@@ -1,25 +1,24 @@
-import { MemoryOptions, MaxCachedOptions } from './config';
+import { ConfigOptions } from './config';
 
 export class MetaDataStore {
-  private static store: Map<string, MemoryOptions | MaxCachedOptions>;
+  private static store: Map<string, ConfigOptions>;
 
-  public static add(model: string, option: MemoryOptions | MaxCachedOptions) {
+  public static add(model: string, option: ConfigOptions) {
     if (!MetaDataStore.store) {
-      MetaDataStore.store = new Map<string, MemoryOptions | MaxCachedOptions>();
+      MetaDataStore.store = new Map<string, ConfigOptions>();
     }
 
     if (!MetaDataStore.store.has(model)) {
       MetaDataStore.store.set(model, undefined); // default
     }
 
-    if (option) {
-      const modelObj = MetaDataStore.store.get(model);
-      Object.assign(modelObj || {}, option);
-      MetaDataStore.store.set(model, modelObj);
-    }
+    let modelObj = MetaDataStore.store.get(model);
+    modelObj = option;
+
+    MetaDataStore.store.set(model, modelObj);
   }
 
-  public static getAllOptionsFor(model: string) {
+  public static getOptionsFor(model: string) {
     return MetaDataStore.store.get(model);
   }
 

@@ -11,10 +11,10 @@ import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
 import * as performance from './performance';
 import * as _ from 'lodash';
-import { loadSchemas } from './helpers';
 import { ModelSchema } from './modelSchema';
 import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 import { Block } from '../entity/Block';
+import { createMetaSchema } from './createMetaSchema';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -56,7 +56,6 @@ export class SmartDB extends EventEmitter {
     };
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
-    this.schemas = loadSchemas();
 
     this.log = LogManager.getLogger('SmartDB');
     this.cachedBlocks = new BlockCache(this.options.cachedBlockCount);
@@ -67,11 +66,13 @@ export class SmartDB extends EventEmitter {
   async init() {
     this.connection = await loadConfig(this.originalLogger);
 
+    this.schemas = createMetaSchema();
+
     const history: LoadChangesHistoryAction = async (fromVersion: number, toVersion: number) => {
       // TODO load history HistoryDB
       return Promise.resolve(new Map<number, EntityChanges[]>());
     };
-    this.blockSession = new DbSession(this.connection, history);
+    this.blockSession = new DbSession(this.connection, history, this.schemas);
 
     await this.loadMaxBlockHeight();
     await this.ensureLastBlockLoaded();

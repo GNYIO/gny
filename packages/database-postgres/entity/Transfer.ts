@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Transfer {
   @PrimaryColumn({

@@ -1,17 +1,12 @@
 import { MetaDataStore } from './metaDataStore';
 
-export interface MemoryOptions {
+export interface ConfigOptions {
   memory: boolean;
+  maxCachedCount?: number;
 }
 
-export interface MaxCachedOptions {
-  maxCached: number;
-}
-
-export function Config(options: MemoryOptions | MaxCachedOptions) {
+export function Config(options: ConfigOptions) {
   return function (target: Function) {
-    if (options) {
-      MetaDataStore.add(target.name, options);
-    }
+    MetaDataStore.add(target.name, options);
   };
 }
