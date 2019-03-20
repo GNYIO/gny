@@ -10,7 +10,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   issuer(): this;
   asset(): this;
   signature(): this;
-  hex(): this;
+  hex(bufferLength?: any): this;
   ipv4PlusPort(): this;
 }
 
@@ -29,7 +29,7 @@ const stringExtensions: Joi.Extension = {
     issuer: 'is not a valid GNY issuer name',
     asset: 'is not a valid GNY asset name',
     signature: 'is not a valid GNY signature',
-    hex: 'is not a hex string',
+    hex: 'is not a hex string{{q}}',
     ipv4PlusPort: 'is not a ipv4:port',
   },
   rules: [{
@@ -106,18 +106,28 @@ const stringExtensions: Joi.Extension = {
   },
   {
     name: 'hex',
+    params: {
+      bufferLength: Joi.number()
+    },
     validate(params, value, state, options) {
       let b;
       try {
         b = Buffer.from(value, 'hex');
       } catch (e) {
-        return this.createError('string.hex', { v: value }, state, options);
+        return this.createError('string.hex', { v: value, q: '' }, state, options);
       }
+
+      if (params.bufferLength && params.bufferLength > 0)
+        if (b.length === params.bufferLength)
+          return value;
+        else
+          return this.createError('string.hex', { v: value, q: ` with a buffer length ${params.bufferLength}` }, state, options);
 
       if (b && b.length > 0) {
         return value;
       }
-      return this.createError('string.hex', { v: value }, state, options);
+
+      return this.createError('string.hex', { v: value, q: '' }, state, options);
     }
   },
   {
