@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Connection } from 'typeorm';
+import { Connection, ObjectLiteral } from 'typeorm';
 import { loadConfig } from '../loadConfig';
 import { ILogger } from '../../../src/interfaces';
 
@@ -170,15 +170,15 @@ export class SmartDB extends EventEmitter {
     this.emit('closed', this);
   }
 
-  lockInCurrentBlock(lockName, artistTrack = false) { // artistTrack =
-    return this.blockSession.lockInThisSession(lockName, artistTrack);
+  private lockInCurrentBlock(lockName: string, option = false) {
+    return this.blockSession.lockInThisSession(lockName, option);
   }
 
-  lock(lockName) {
+  lock(lockName: string) {
     this.lockInCurrentBlock(lockName, false);
   }
 
-  tryLock(lockName) {
+  tryLock(lockName: string) { // unused
     return this.lockInCurrentBlock(lockName, true);
   }
 
@@ -193,7 +193,6 @@ export class SmartDB extends EventEmitter {
   rollbackContract() {
     this.blockSession.rollbackEntityTransaction();
   }
-
 
   beginBlock(block) {
     CodeContract.argument('block', function() {
@@ -257,15 +256,15 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  create(model, entity) {
+  public create(model: string, entity: ObjectLiteral) {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
     CodeContract.argument('entity', function() {
       return CodeContract.notNull(entity);
     });
-    const context = this.getSchema(model, true);
-    return this.getSession().create(context, entity);
+    const schema = this.getSchema(model, true);
+    return this.getSession().create(schema, entity);
   }
 
   createOrLoad(model, entity) {
@@ -356,8 +355,8 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(record);
     });
-    const options = this.getSchema(record, true);
-    return await this.getSession().getMany(options, strategy, callback);
+    const schema = this.getSchema(record, true);
+    return await this.getSession().getMany(schema, strategy, callback);
   }
 
   get(model, key) {

@@ -259,4 +259,7 @@ describe('orm - BasicEntityTracker', () => {
   it.skip('getConfirmedChanges', (done) => {
     done();
   });
+  it.skip('simulate contract -> check() -> simulate contract -> check()', (done) => {
+    done();
+  });
 });

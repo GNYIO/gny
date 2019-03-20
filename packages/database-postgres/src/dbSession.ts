@@ -1,29 +1,17 @@
 import { LogManager, LoggerWrapper } from './logger';
 import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache';
-import { InvalidEntityKeyError } from './fieldTypes';
 import * as _jsonSqlBuilder from './jsonSQLBuilder';
 import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker, LoadChangesHistoryAction } from './basicEntityTracker';
 import * as performance from './performance';
-import { toArray, resolveKey, loadSchemas } from './helpers/index';
-import { Connection } from 'typeorm';
-
-
-import { Account } from '../entity/Account';
-import { Asset } from '../entity/Asset';
-import { Balance } from '../entity/Balance';
-import { Block } from '../entity/Block';
-import { Delegate } from '../entity/Delegate';
-import { Issuer } from '../entity/Issuer';
-import { Round } from '../entity/Round';
-import { Transaction } from '../entity/Transaction';
-import { Transfer } from '../entity/Transfer';
-import { Variable } from '../entity/Variable';
-import { Vote } from '../entity/Vote';
+import { toArray, loadSchemas } from './helpers/index';
+import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
+import { Block } from '../entity/Block';
+import { Transaction } from '../entity/Transaction';
 
 export class DbSession {
 
@@ -32,8 +20,8 @@ export class DbSession {
   private log: LoggerWrapper;
   private sessionSerial: number;
   private connection: Connection;
-  private unconfirmedLocks: Set<any>;
-  private confirmedLocks: Set<any>;
+  private unconfirmedLocks: Set<string>;
+  private confirmedLocks: Set<string>;
   private schemas: Map<string, ModelSchema>;
   private sessionCache: LRUEntityCache;
   private sqlBuilder: _jsonSqlBuilder.JsonSqlBuilder;
@@ -45,8 +33,8 @@ export class DbSession {
     this.log = LogManager.getLogger('DbSession');
     this.sessionSerial = -1;
     this.connection = connection;
-    this.unconfirmedLocks = new Set;
-    this.confirmedLocks = new Set;
+    this.unconfirmedLocks = new Set<string>();
+    this.confirmedLocks = new Set<string>();
     this.schemas = loadSchemas();
     this.sessionCache = new LRUEntityCache(this.schemas);
     this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder;
@@ -56,60 +44,51 @@ export class DbSession {
     this.trackerSqlBuilder = new BasicTrackerSqlBuilder(this.entityTracker, this.schemas, this.sqlBuilder);
   }
 
-  makeByKeyCondition(table, key) {
-    return resolveKey(table, key).key;
+  private makeByKeyCondition(schema: ModelSchema, key: ObjectLiteral) {
+    return schema.resolveKey(key).key;
   }
 
-  trackPersistentEntities(schema: ModelSchema, remove) {
-    const props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    const list = new Array;
+  private trackPersistentEntities(schema: ModelSchema, remove, props = false) {
+    const result = [];
     remove.forEach((val) => {
       const end = schema.getPrimaryKey(val);
       const height = this.entityTracker.getTrackingEntity(schema, end);
       const param = props && undefined !== height ? height : this.entityTracker.trackPersistent(schema, val);
-      list.push(schema.copyProperties(param, true));
+      result.push(schema.copyProperties(param, true));
     });
-    return list;
+    return result;
   }
 
-  reset() {
-    const e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-    if (e) {
+  private reset(clearCache = false) {
+    if (clearCache) {
       this.sessionCache.clear();
     }
   }
 
-
-  undefinedIfDeleted(v) {
-    return codeContract.deepCopy(v);
+  private async queryEntities(schema: ModelSchema, queryObject) {
+    const result = await this.connection.query(queryObject.query, queryObject.parameters);
+    return this.replaceEntitiesJsonPropertis(schema, result);
   }
 
-
-  async queryEntities(schema, queryObject) {
-    var i = await this.connection.query(queryObject.query, queryObject.parameters);
-    return this.replaceEntitiesJsonPropertis(schema, i);
+  // TODO: remove sync methods
+  private queryEntitiesSync(expr, options) {
+    const result = this.connection.querySync(options.query, options.parameters);
+    return this.replaceEntitiesJsonPropertis(expr, result);
   }
 
-
-  queryEntitiesSync(expr, options) {
-    var i = this.connection.querySync(options.query, options.parameters);
-    return this.replaceEntitiesJsonPropertis(expr, i);
-  }
-
-  async initSerial(serial: number) {
+  public async initSerial(serial: number) {
     this.sessionSerial = serial;
     if (serial >= 0) {
       await this.entityTracker.initVersion(serial);
     }
   }
 
-  async close() {
+  public async close() {
     this.reset(true);
-    await this.connection.disconnect();
+    await this.connection.close();
   }
 
-
-  getAll(modelClass: ModelSchema) {
+  public getAll(modelClass: ModelSchema) {
     if (!modelClass.memCached) {
       throw new Error('getAll only support in memory model');
     }
@@ -117,7 +96,7 @@ export class DbSession {
     return this.sessionCache.getAll(modelClass.modelName);
   }
 
-  loadAll(schema: ModelSchema) {
+  private loadAll(schema: ModelSchema) {
     if (schema.memCached && this.sessionCache.existsModel(schema.modelName)) {
       const artistTrack = this.sessionCache.getAll(schema.modelName) || [];
       return this.trackPersistentEntities(schema, artistTrack, true);
@@ -125,117 +104,117 @@ export class DbSession {
     return [];
   }
 
-  async getMany(data, s) { // TODO, refactor
-    var _nodeMustDisplay = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var options = this.sqlBuilder.buildSelect(data, data.properties, s);
-    var _animateProperties = await this.queryEntities(data, options);
-    return _nodeMustDisplay ? this.trackPersistentEntities(data, _animateProperties, true) : _animateProperties;
+  public async getMany(schema: ModelSchema, condition, cache = true) { // TODO, refactor
+    const options = this.sqlBuilder.buildSelect(schema, schema.properties, condition);
+    const result = await this.queryEntities(schema, options);
+    return cache ? this.trackPersistentEntities(schema, result, true) : result;
   }
 
-  async query (component, options, width, height, props, styleObject) {
-    const a = this.sqlBuilder.buildSelect(component, props || component.properties, options, width, height, styleObject);
-    return await this.queryEntities(component, a);
+  public async query(schema: ModelSchema, condition, resultRange, sort, fields, join) {
+    const a = this.sqlBuilder.buildSelect(schema, fields || schema.properties, condition, resultRange, sort, join);
+    return await this.queryEntities(schema, a);
   }
 
-  async queryByJson(data, column) {
-    var type = this.sqlBuilder.buildSelect(data, column);
-    return await this.queryEntities(data, type);
+  public async queryByJson(schema: ModelSchema, obj: ObjectLiteral) {
+    const type = this.sqlBuilder.buildSelect(schema, obj);
+    return await this.queryEntities(schema, type);
   }
 
-  async exists(modelClass, whereClause) {
+  public async exists(schema: ModelSchema, condition: ObjectLiteral) {
     // look at the In operator, think of something other differentf
     let queryBuilder = this.connection.createQueryBuilder()
       .select('x')
-      .from(modelClass, 'x');
+      .from(schema.modelName, 'x');
 
-    const whereKeys = Object.keys(whereClause);
+    const whereKeys = Object.keys(condition);
     if (whereKeys.length > 1) {
       throw new Error('only one property is allowed on WHERE clause');
     }
 
     const propName = whereKeys[0];
-    const propValue = whereClause[propName];
+    const propValue = condition[propName];
     if (Array.isArray(propValue)) {
-      queryBuilder = queryBuilder.where(`x.${propName} IN (:...${propName})`, whereClause);
+      queryBuilder = queryBuilder.where(`x.${propName} IN (:...${propName})`, condition);
     } else {
-      queryBuilder = queryBuilder.where(`x.${propName} = :${propName}`, whereClause);
+      queryBuilder = queryBuilder.where(`x.${propName} = :${propName}`, condition);
     }
 
     const count = await queryBuilder.getCount();
     return count > 0;
   }
 
-  async count(newLabels, data) {
-    var range = await this.queryByJson(newLabels, {
-      fields : "count(*) as count",
-      condition : data
+  public async count(schema: ModelSchema, condition: ObjectLiteral) {
+    const range = await this.queryByJson(schema, {
+      fields : 'count(*) as count',
+      condition : condition
     });
     return isArray(range) ? parseInt(range[0].count) : 0;
   }
 
-  create(schema: ModelSchema, modelObj) {
-    const mapData = schema.getNormalizedPrimaryKey(modelObj);
+  public create(schema: ModelSchema, entity: ObjectLiteral) {
+    const mapData = schema.getNormalizedPrimaryKey(entity);
     if (undefined === mapData) {
-      throw new Error("entity must contains primary key ( model = '" + schema.modelName + "' entity = '" + modelObj + "' )");
+      throw new Error("entity must contains primary key ( model = '" + schema.modelName + "' entity = '" + entity + "' )");
     }
     if (this.sessionCache.exists(schema.modelName, mapData)) {
       throw new Error("entity exists already ( model = '" + schema.modelName + "' key = '" + JSON.stringify(mapData) + "' )");
     }
-    return codeContract.deepCopy(this.entityTracker.trackNew(schema, modelObj));
+    return codeContract.deepCopy(this.entityTracker.trackNew(schema, entity));
   }
 
-  loadEntityByKeySync(schema: ModelSchema, version) {
-    const results = this.makeByKeyCondition(schema, version);
+  private loadEntityByKeySync(schema: ModelSchema, obj: ObjectLiteral) {
+    const results = this.makeByKeyCondition(schema, obj);
     const options = this.sqlBuilder.buildSelect(schema, schema.properties, results);
     const dataPerSeries = this.queryEntitiesSync(schema, options);
     if (dataPerSeries.length > 1) {
-      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(version) + "' )");
+      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(obj) + "' )");
     }
     return 1 === dataPerSeries.length ? dataPerSeries[0] : undefined;
   }
 
-  async loadEntityByKey(schema: ModelSchema, key) {
-    const params = this.makeByKeyCondition(schema, key);
+  private async loadEntityByKey(schema: ModelSchema, obj: ObjectLiteral) {
+    const params = this.makeByKeyCondition(schema, obj);
     const options = this.sqlBuilder.buildSelect(schema, schema.properties, params);
     const expRecords = await this.queryEntities(schema, options);
     if (expRecords.length > 1) {
-      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(key) + "' )");
+      throw new Error("entity key is duplicated ( model = '" + schema.modelName + "' key = '" + JSON.stringify(obj) + "' )");
     }
     return 1 === expRecords.length ? expRecords[0] : undefined;
   }
 
-  replaceJsonProperties(value: ModelSchema, args) {
+  private replaceJsonProperties(value: ModelSchema, obj: ObjectLiteral) {
     if (0 === value.jsonProperties.length) {
-      return args;
+      return obj;
     }
-    const inner = Object.assign({}, args);
-    value.jsonProperties.forEach(function(key) {
+    const inner = Object.assign({}, obj);
+    value.jsonProperties.forEach((key) => {
       if (Reflect.has(inner, key)) {
-        inner[key] = JSON.parse(String(args[key])); // deepCopy
+        inner[key] = JSON.parse(String(obj[key])); // deepCopy
       }
     });
     return inner;
   }
 
-  replaceEntitiesJsonPropertis(updated: ModelSchema, recorded) {
+  private replaceEntitiesJsonPropertis(updated: ModelSchema, recorded: ObjectLiteral) {
     return 0 === updated.jsonProperties.length ? recorded : recorded.map((whilstNext) => {
       return this.replaceJsonProperties(updated, whilstNext);
     });
   }
-  async load(schema: ModelSchema, key) {
-    const entity = this.getCachedEntity(schema, key);
+
+  public async load(schema: ModelSchema, obj: ObjectLiteral) {
+    const entity = this.getCachedEntity(schema, obj);
     if (undefined !== entity) {
       return entity;
     }
-    const loadedEntity = await this.loadEntityByKey(schema, key);
+    const loadedEntity = await this.loadEntityByKey(schema, obj);
     if (undefined === loadedEntity) {
-      return;
+      return undefined;
     }
     const data = this.entityTracker.trackPersistent(schema, loadedEntity);
     return schema.copyProperties(data, true);
   }
 
-  loadSync(schema: ModelSchema, key) {
+  public loadSync(schema: ModelSchema, key: ObjectLiteral) {
     const entity = this.getCachedEntity(schema, key);
     if (undefined !== entity) {
       return entity;
@@ -248,174 +227,169 @@ export class DbSession {
     return schema.copyProperties(data, true);
   }
 
-  getChanges() {
-    return this.entityTracker.getConfimedChanges();
+  public getChanges() {
+    return this.entityTracker.getConfirmedChanges();
   }
 
-  normalizeEntityKey(table, key /* id | { id }?? */) { // { address: "afebefe" }
-    const result = resolveKey(table, key);
+  private normalizeEntityKey(schema: ModelSchema, key: ObjectLiteral) {
+    const result = schema.resolveKey(key);
     return result;
   }
 
-  // isPrimaryKey:true
-  // key:Object {address: "G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
-  // uniqueName:"__PrimaryKey__"
-
-  getCached(schema: ModelSchema, keyvalue) {
-    const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue); // isPrimaryKey: true, key: { address: "" }, uniqueName: "__PrimaryKey__"
+  private getCached(schema: ModelSchema, keyvalue: ObjectLiteral) {
+    const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue);
     const this_area = this.entityTracker.getTrackingEntity(schema, primaryKeyMetadata.key);
 
     // TODO: refactor return
     return this_area || (primaryKeyMetadata.isPrimaryKey ? this.sessionCache.get(schema.modelName, primaryKeyMetadata.key) : this.sessionCache.getUnique(schema.modelName, primaryKeyMetadata.uniqueName, primaryKeyMetadata.key));
   }
 
-  getTrackingOrCachedEntity(url, id) {
-    var cached = this.getCached(url, id);
-    return undefined === cached ? undefined : this.undefinedIfDeleted(cached);
+  private getTrackingOrCachedEntity(url, id) {
+    const cached = this.getCached(url, id);
+    return undefined === cached ? undefined : codeContract.deepCopy(cached);
   }
 
-  getCachedEntity(schema, key) {
+  public getCachedEntity(schema: ModelSchema, key: ObjectLiteral) {
     const cached = this.getCached(schema, key);
-    return undefined === cached ? undefined : this.undefinedIfDeleted(cached);
+    return undefined === cached ? undefined : codeContract.deepCopy(cached);
   }
 
-  clearLocks() {
+  private clearLocks() {
     this.unconfirmedLocks.clear();
     this.confirmedLocks.clear();
   }
 
-  confirmLocks() {
+  private confirmLocks() {
     this.unconfirmedLocks.forEach((e) => {
       return this.confirmedLocks.add(e);
     });
   }
 
-  lockInThisSession(part) {
-    var t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    if (!(this.confirmedLocks.has(part) || this.unconfirmedLocks.has(part))) {
+  public lockInThisSession(lockname: string, option = false) {
+    if (!(this.confirmedLocks.has(lockname) || this.unconfirmedLocks.has(lockname))) {
       // check logic
-      (this.entityTracker.isConfirming ? this.unconfirmedLocks : this.confirmedLocks).add(part);
-      this.log.trace("SUCCESS lock name = '" + part + "'");
+      (this.entityTracker.isConfirming ? this.unconfirmedLocks : this.confirmedLocks).add(lockname);
+      this.log.trace("SUCCESS lock name = '" + lockname + "'");
       return true;
     }
     // TODO check
-    if (this.log.warn("FAILD lock " + part), !t) {
-      throw new Error("Lock name = " + part + " exists already");
+    if (this.log.warn('FAILD lock ' + lockname), !option) {
+      throw new Error('Lock name = ' + lockname + ' exists already');
     }
     return false;
   }
 
-  async saveChanges(height) {
-    var withArgs_ = height || ++this.sessionSerial;
-    this.log.trace("BEGIN saveChanges ( serial = " + withArgs_ + " )");
+  public async saveChanges(height?: number) {
+    const withArgs_ = height || ++this.sessionSerial;
+    this.log.trace('BEGIN saveChanges ( serial = ' + withArgs_ + ' )');
 
     this.commitEntityTransaction();
-    performance.Utils.Performace.time("Build sqls");
-    var value = this.trackerSqlBuilder.buildChangeSqls();
-    performance.Utils.Performace.restartTime("Execute sqls (" + value.length + ")");
-    var trans = await this.connection.beginTrans();
+    performance.Utils.Performace.time('Build sqls');
+    const value = this.trackerSqlBuilder.buildChangeSqls();
+    performance.Utils.Performace.restartTime('Execute sqls (' + value.length + ')');
+    const trans = await this.connection.beginTrans();
     try {
       await this.connection.executeBatch(value);
       await trans.commit();
-      performance.Utils.Performace.restartTime("Accept changes");
+      performance.Utils.Performace.restartTime('Accept changes');
       this.entityTracker.acceptChanges(withArgs_);
       performance.Utils.Performace.endTime();
       this.clearLocks();
       this.sessionSerial = withArgs_;
-      this.log.trace("SUCCESS saveChanges ( serial = " + withArgs_ + " )");
+      this.log.trace('SUCCESS saveChanges ( serial = ' + withArgs_ + ' )');
       return withArgs_;
     } catch (expectedCommand) {
-       this.log.error("FAILD saveChanges ( serial = " + withArgs_ + " )", expectedCommand);
+       this.log.error('FAILD saveChanges ( serial = ' + withArgs_ + ' )', expectedCommand);
        await trans.rollback();
        this.entityTracker.rejectChanges();
        throw expectedCommand;
     }
   }
 
-  async rollbackChanges(allOrId) {
-    if (this.sessionSerial < allOrId) {
+  public async rollbackChanges(height) {
+    if (this.sessionSerial < height) {
       return this.sessionSerial;
     }
-    var t = this.sessionSerial;
+    const t = this.sessionSerial;
 
-    this.log.trace("BEGIN rollbackChanges ( serial = " + allOrId + " )");
-    var sysupgradeCommand = await this.trackerSqlBuilder.buildRollbackChangeSqls(allOrId + 1);
-    var transaction = await this.connection.beginTrans();
+    this.log.trace('BEGIN rollbackChanges ( serial = ' + height + ' )');
+    const rollbackSql = await this.trackerSqlBuilder.buildRollbackChangeSqls(height + 1);
+    const transaction = await this.connection.beginTrans();
     try {
-       await this.connection.executeBatch(sysupgradeCommand);
+       await this.connection.executeBatch(rollbackSql);
        await transaction.commit();
        this.entityTracker.rejectChanges();
-       await this.entityTracker.rollbackChanges(allOrId + 1);
+       await this.entityTracker.rollbackChanges(height + 1);
        this.clearLocks();
-       this.sessionSerial = allOrId;
-       this.log.trace("SUCCESS rollbackChanges (serial : " + t + " -> " + this.sessionSerial + ")");
+       this.sessionSerial = height;
+       this.log.trace('SUCCESS rollbackChanges (serial : ' + t + ' -> ' + this.sessionSerial + ')');
        return this.sessionSerial;
     } catch (expectedCommand) {
-       this.log.error("FAILD rollbackChanges (serial : " + t + " -> " + this.sessionSerial + ")", expectedCommand);
+       this.log.error('FAILD rollbackChanges (serial : ' + t + ' -> ' + this.sessionSerial + ')', expectedCommand);
        await transaction.rollback();
        throw expectedCommand;
     }
   }
 
-  ensureEntityTracking(schema: ModelSchema, id) {
-    let promise = this.getCached(schema, id);
-    if (undefined === promise) {
-      var data = this.loadEntityByKeySync(schema, id);
+  private ensureEntityTracking(schema: ModelSchema, key: ObjectLiteral) {
+    let cachedObj = this.getCached(schema, key);
+    if (undefined === cachedObj) {
+      const data = this.loadEntityByKeySync(schema, key);
       if (undefined === data) {
-        throw Error("Entity not found ( model = '" + schema.modelName + "', key = '" + JSON.stringify(id) + "' )");
+        throw Error("Entity not found ( model = '" + schema.modelName + "', key = '" + JSON.stringify(key) + "' )");
       }
-      promise = this.entityTracker.trackPersistent(schema, data);
+      cachedObj = this.entityTracker.trackPersistent(schema, data);
     }
-    return promise;
+    return cachedObj;
   }
 
-  update(e, label, exception) {
-    var x = this.ensureEntityTracking(e, label);
-    this.entityTracker.trackModify(e, x, exception);
+  public update(schema: ModelSchema, obj: ObjectLiteral, modifier: ObjectLiteral) {
+    const tracked = this.ensureEntityTracking(schema, obj);
+    this.entityTracker.trackModify(schema, tracked, modifier);
   }
 
-  increase(schema, keyObj, obj) {
-    var end = this.ensureEntityTracking(schema, keyObj);
-    var endColorCoords = {};
-    Object.keys(obj).forEach(function(i) {
+  public increase(schema: ModelSchema, keyObj: ObjectLiteral, obj: ObjectLiteral) {
+    const end = this.ensureEntityTracking(schema, keyObj);
+    const endColorCoords = {};
+    Object.keys(obj).forEach((i) => {
       endColorCoords[i] = undefined === end[i] ? obj[i] : obj[i] + end[i];
     });
     this.entityTracker.trackModify(schema, end, endColorCoords);
     return endColorCoords;
   }
 
-  delete(e, exceptionLevel) {
-    var parsed_expression = this.ensureEntityTracking(e, exceptionLevel);
-    this.entityTracker.trackDelete(e, parsed_expression);
+  public delete(schema: ModelSchema, condition: ObjectLiteral) {
+    const tracked = this.ensureEntityTracking(schema, condition);
+    this.entityTracker.trackDelete(schema, tracked);
   }
 
-  async beginTransaction() {
+  private async beginTransaction() {
     return await this.connection.beginTrans();
   }
 
-  beginEntityTransaction() {
+  public beginEntityTransaction() {
     this.entityTracker.beginConfirm();
   }
 
-  commitEntityTransaction() {
+  public commitEntityTransaction() {
     this.entityTracker.confirm();
 
-    this.log.trace("commit locks " + DbSession.setToString(this.unconfirmedLocks));
+    this.log.trace('commit locks ' + DbSession.setToString(this.unconfirmedLocks));
     this.unconfirmedLocks.forEach((e) => {
       return this.confirmedLocks.add(e);
     });
   }
 
-  rollbackEntityTransaction() {
+  public rollbackEntityTransaction() {
     this.entityTracker.cancelConfirm();
-    this.log.trace("rollback locks " + DbSession.setToString(this.unconfirmedLocks));
+    this.log.trace('rollback locks ' + DbSession.setToString(this.unconfirmedLocks));
     this.unconfirmedLocks.clear();
   }
 
   /**
    * @returns -1 -> (no blocks); 0 -> genesisBlock; 1... -> normal blocks
    */
-  async getMaxBlockHeight() {
+  public async getMaxBlockHeight() {
     const result = await this.connection.query('select max(height) as maxheight from block;');
     const value = result[0].maxheight;
 
@@ -426,7 +400,7 @@ export class DbSession {
     }
   }
 
-  async getBlockByHeight(height) { // TODO, add overload that also loads transactions
+  public async getBlockByHeight(height) {
     const result = await this.connection.createQueryBuilder()
       .select('b')
       .from(Block, 'b')
@@ -435,31 +409,31 @@ export class DbSession {
     return result;
   }
 
-  async getBlockById(id) {
+  public async getBlockById(id) {
     // TODO: remove possible SQL injection
     const result = await this.connection.query(`select * from blocks where id = '${id}'`);
     return result[0];
   }
 
-  getBlocksByHeightRange(min, max) {
+  public getBlocksByHeightRange(min: number, max: number) {
     const blocks = this.connection.query(`select * from blocks where height >= ${min} AND height <= ${max}`);
     return blocks;
   }
 
-  async getTransactionsByBlockHeight(height) {
+  public async getTransactionsByBlockHeight(height) {
     const trans = await this.connection.createQueryBuilder()
       .select('t')
       .from(Transaction, 't')
       .where('t.heightHeight = :height', { height: Number(height) })
-      .getSql(); // .getMany();
+      .getSql();
     return trans;
   }
 
-  get isOpen() {
+  private get isOpen() {
     return this.connection && this.connection.isConnected;
   }
 
-  static setToString(orderedBranch) {
+  private static setToString(orderedBranch) {
     return JSON.stringify(new (Function.prototype.bind.apply(Array, [null].concat(toArray(orderedBranch.keys())))));
   }
 }
