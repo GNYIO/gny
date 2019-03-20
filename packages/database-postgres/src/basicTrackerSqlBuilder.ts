@@ -2,7 +2,7 @@ import * as codeContract from './codeContract';
 import * as enumerations from './entityChangeType';
 import { BasicEntityTracker, EntityChanges } from './basicEntityTracker';
 import { ModelSchema } from './modelSchema';
-import { JsonSqlBuilder } from './jsonSQLBuilder';
+import { JsonSqlBuilder, SqlAndParameters } from './jsonSQLBuilder';
 import { ObjectLiteral } from 'typeorm';
 
 export class BasicTrackerSqlBuilder {
@@ -31,10 +31,10 @@ export class BasicTrackerSqlBuilder {
     });
   }
 
-  async buildRollbackChangeSqls(height: number) {
-    const result = [];
+  public async buildRollbackChangeSqls(height: number) {
+    const result: SqlAndParameters[] = [];
     const changesUntil = await this.tracker.getChangesUntil(height);
-    let one = undefined;
+    let one: EntityChanges = undefined;
     for (; undefined !== (one = changesUntil.pop());) {
       const schema = this.schemas.get(one.model);
       const sql = this.buildRollbackSqlAndParameters(schema, one.primaryKey, one);
@@ -58,21 +58,20 @@ export class BasicTrackerSqlBuilder {
     }
   }
 
-
-  buildRollbackSqlAndParameters(fn, delay, params) {
-    const requests = BasicTrackerSqlBuilder.fieldValuesFromChanges(params, true);
-    switch(params.type) {
+  private buildRollbackSqlAndParameters(schema: ModelSchema, delay: ObjectLiteral, entityChanges: EntityChanges) {
+    const requests = BasicTrackerSqlBuilder.fieldValuesFromChanges(entityChanges, true);
+    switch (entityChanges.type) {
       case enumerations.EntityChangeType.New:
-        return this.sqlBuilder.buildDelete(fn, delay);
+        return this.sqlBuilder.buildDelete(schema, delay);
       case enumerations.EntityChangeType.Modify: {
         // TODO: check
-        requests[enumerations.ENTITY_VERSION_PROPERTY] = params.dbVersion - 1;
-        return this.sqlBuilder.buildUpdate(fn, delay, requests, params.dbVersion);
+        requests[enumerations.ENTITY_VERSION_PROPERTY] = entityChanges.dbVersion - 1;
+        return this.sqlBuilder.buildUpdate(schema, delay, requests, entityChanges.dbVersion);
       }
       case enumerations.EntityChangeType.Delete:
-        return this.sqlBuilder.buildInsert(fn, requests);
+        return this.sqlBuilder.buildInsert(schema, requests);
       default:
-        throw new Error("Invalid EntityChangeType '" + params.type + "'");
+        throw new Error("Invalid EntityChangeType '" + entityChanges.type + "'");
     }
   }
 
@@ -80,16 +79,19 @@ export class BasicTrackerSqlBuilder {
     return this.tracker;
   }
 
-  static fieldValuesFromChanges(value) {
-    const t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    return t ? codeContract.makeJsonObject(value.propertyChanges, function(engineDiscovery) {
-      return engineDiscovery.name;
-    }, function(vOffset) {
-      return vOffset.original;
-    }) : codeContract.makeJsonObject(value.propertyChanges, function(engineDiscovery) {
-      return engineDiscovery.name;
-    }, function($tour) {
-      return $tour.current;
-    });
+  private static fieldValuesFromChanges(entityChanges: EntityChanges, option = false) {
+    if (option) {
+      return codeContract.makeJsonObject(entityChanges.propertyChanges, function(engineDiscovery) {
+        return engineDiscovery.name;
+      }, function(vOffset) {
+        return vOffset.original;
+      });
+    } else {
+      codeContract.makeJsonObject(entityChanges.propertyChanges, function(engineDiscovery) {
+        return engineDiscovery.name;
+      }, function($tour) {
+        return $tour.current;
+      });
+    }
   }
 }
