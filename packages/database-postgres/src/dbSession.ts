@@ -5,7 +5,7 @@ import { InvalidEntityKeyError } from './fieldTypes';
 import * as _jsonSqlBuilder from './jsonSQLBuilder';
 import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
-import { BasicEntityTracker } from './basicEntityTracker';
+import { BasicEntityTracker, LoadChangesHistoryAction } from './basicEntityTracker';
 import * as performance from './performance';
 import { toArray, resolveKey, loadSchemas } from './helpers/index';
 import { Connection } from 'typeorm';
@@ -41,7 +41,7 @@ export class DbSession {
   private trackerSqlBuilder: BasicTrackerSqlBuilder;
 
 
-  constructor(connection: Connection, historyChanges, maxHistoryVersionsHold?: number) {
+  constructor(connection: Connection, historyChanges: LoadChangesHistoryAction, maxHistoryVersionsHold?: number) {
     this.log = LogManager.getLogger('DbSession');
     this.sessionSerial = -1;
     this.connection = connection;
@@ -60,14 +60,14 @@ export class DbSession {
     return resolveKey(table, key).key;
   }
 
-  trackPersistentEntities(data: ModelSchema, remove) {
+  trackPersistentEntities(schema: ModelSchema, remove) {
     const props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     const list = new Array;
     remove.forEach((val) => {
-      var end = data.getPrimaryKey(val);
-      var height = this.entityTracker.getTrackingEntity(data, end);
-      var param = props && undefined !== height ? height : this.entityTracker.trackPersistent(data, val);
-      list.push(data.copyProperties(param, true));
+      const end = schema.getPrimaryKey(val);
+      const height = this.entityTracker.getTrackingEntity(schema, end);
+      const param = props && undefined !== height ? height : this.entityTracker.trackPersistent(schema, val);
+      list.push(schema.copyProperties(param, true));
     });
     return list;
   }
@@ -222,30 +222,30 @@ export class DbSession {
       return this.replaceJsonProperties(updated, whilstNext);
     });
   }
-  async load(schema, key) {
-    var threads_element = this.getCachedEntity(schema, key);
-    if (undefined !== threads_element) {
-      return threads_element;
+  async load(schema: ModelSchema, key) {
+    const entity = this.getCachedEntity(schema, key);
+    if (undefined !== entity) {
+      return entity;
     }
-    var keyReads = await this.loadEntityByKey(schema, key);
-    if (undefined === keyReads) {
+    const loadedEntity = await this.loadEntityByKey(schema, key);
+    if (undefined === loadedEntity) {
       return;
     }
-    var data = this.entityTracker.trackPersistent(schema, keyReads);
+    const data = this.entityTracker.trackPersistent(schema, loadedEntity);
     return schema.copyProperties(data, true);
   }
 
-  loadSync(self, key) {
-    var currentDescriptor = this.getCachedEntity(self, key);
-    if (undefined !== currentDescriptor) {
-      return currentDescriptor;
+  loadSync(schema: ModelSchema, key) {
+    const entity = this.getCachedEntity(schema, key);
+    if (undefined !== entity) {
+      return entity;
     }
-    var value = this.loadEntityByKeySync(self, key);
-    if (undefined === value) {
+    const loadedEntity = this.loadEntityByKeySync(schema, key);
+    if (undefined === loadedEntity) {
       return;
     }
-    var data = this.entityTracker.trackPersistent(self, value);
-    return self.copyProperties(data, true);
+    const data = this.entityTracker.trackPersistent(schema, loadedEntity);
+    return schema.copyProperties(data, true);
   }
 
   getChanges() {

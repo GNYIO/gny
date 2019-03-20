@@ -31,12 +31,12 @@ export class JsonSqlBuilder {
     return 'drop table "' + this.getTableName(schema.modelName) + '"';
   }
 
-  buildSchema(response: ModelSchema) {
-    var t = new Array;
-    var obj = Object.assign({
+  buildSchema(schema: ModelSchema) {
+    const t = new Array;
+    const obj = Object.assign({
       type : 'create'
-    }, deepCopy(response.schemaObject));
-    response.jsonProperties.forEach(function(name) {
+    }, deepCopy(schema.schemaObject));
+    schema.jsonProperties.forEach(function(name) {
       return obj.tableFields.find(function(functionImport) {
         return functionImport.name === name;
       }).type = FieldTypes.Text;
@@ -46,10 +46,10 @@ export class JsonSqlBuilder {
     }).forEach(function(obj) {
       return Reflect.deleteProperty(obj, 'unique');
     });
-    var a = jsonSQL.build(obj);
+    const a = jsonSQL.build(obj);
     t.push(a.query);
-    var tableName = this.getTableName(response.modelName);
-    response.indexes.forEach(function(f) {
+    const tableName = this.getTableName(schema.modelName);
+    schema.indexes.forEach(function(f) {
       t.push(jsonSQL.build({
         type : 'index',
         table : tableName,
@@ -57,19 +57,19 @@ export class JsonSqlBuilder {
         indexOn : f.properties.join(',')
       }).query);
     });
-    var transferArr = obj.tableFields.filter(function(studiesList) {
+    const transferArr = obj.tableFields.filter(function(studiesList) {
       return true === studiesList.unique;
     }).map(function(engineDiscovery) {
       return engineDiscovery.name;
     });
-    var _eventQueue = response.uniqueIndexes.filter(function(oldnode) {
+    const _eventQueue = schema.uniqueIndexes.filter(function(oldnode) {
       return !(1 === oldnode.properties.length && transferArr.some(function(canCreateDiscussions) {
         return canCreateDiscussions === oldnode.properties[0];
       }));
     });
-    response.isCompsiteKey && _eventQueue.push({
+    schema.isCompsiteKey && _eventQueue.push({
       name : 'composite_primary_key',
-      properties : response.compositeKeys
+      properties : schema.compositeKeys
     });
     _eventQueue.forEach(function(f) {
       t.push(jsonSQL.build({

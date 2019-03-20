@@ -1,52 +1,41 @@
-import * as codeContractXX from './codeContract';
+import * as codeContract from './codeContract';
 import * as enumerations from './entityChangeType';
 import { isFunction } from 'util';
 import * as lodash from 'lodash';
 import { toArray } from './helpers/index';
-import { ILogger } from '../../../src/interfaces';
-import { resolveKey } from './helpers/index';
 import { ModelSchema } from './modelSchema';
-import { LRUEntityCache } from './lruEntityCache';
+import { LRUEntityCache, PropertyValue } from './lruEntityCache';
+import { LoggerWrapper } from './logger';
+import { ObjectLiteral } from 'typeorm';
 
-export type NormalizedEntityKey<E> = Partial<E>;
-
-export interface PropertyChange<E extends object> {
-  name: string & ((keyof E) | '_version_');
+export interface PropertyChange {
+  name: string;
   original?: any;
   current?: any;
 }
 
-export interface EntityChanges<E extends object> {
+export interface EntityChanges {
   type: enumerations.EntityChangeType;
   dbVersion: number;
   model: string;
-  primaryKey: NormalizedEntityKey<E>;
-  propertyChanges: PropertyChange<E>[];
+  primaryKey: ObjectLiteral;
+  propertyChanges: PropertyChange[];
 }
 
-
-// resolveKey({ address: "G3VU8VKndrpzDVbKzNTExoBrDAnw5" })
-// returns:
-// "{
-//   "isPrimaryKey": true,
-//   "uniqueName": "__PrimaryKey__",
-//   "key": {
-//     "address": "G3VU8VKndrpzDVbKzNTExoBrDAnw5"
-//   }
-// }"
+export type LoadChangesHistoryAction = (fromVersion: number, toVersion: number) => Promise<Map<number, EntityChanges[]>>;
 
 
 
 export class BasicEntityTracker {
-  private log: ILogger;
+  private log: LoggerWrapper;
   private cache: LRUEntityCache;
   private confirming: boolean;
   private schemas: Map<string, ModelSchema>;
-  private doLoadHistory: any;
-  private history: Map<any, any>;
+  private doLoadHistory: LoadChangesHistoryAction;
+  private history: Map<number, EntityChanges[]>;
   private allTrackingEntities: Map<any, any>;
-  private unconfirmedChanges: Array<any>;
-  private confirmedChanges: Array<any>;
+  private unconfirmedChanges: EntityChanges[];
+  private confirmedChanges: EntityChanges[];
   minVersion: number;
   currentVersion: number;
   private maxHistoryVersionsHold: number;
@@ -57,35 +46,38 @@ export class BasicEntityTracker {
    * @param {string} schemas
    * @param {number} maxHistoryVersionsHold
    * @param {!Object} logger
-   * @param {?} historyChanges
+   * @param {?} onLoadHistory
    */
-  constructor(sessionCache: LRUEntityCache, schemas: Map<string, ModelSchema>, maxHistoryVersionsHold, logger, historyChanges) {
+  constructor(sessionCache: LRUEntityCache, schemas: Map<string, ModelSchema>, maxHistoryVersionsHold: number, logger: LoggerWrapper, onLoadHistory: LoadChangesHistoryAction) {
     this.log = logger;
     this.cache = sessionCache;
     this.confirming = false;
     this.schemas = schemas;
-    this.doLoadHistory = historyChanges;
-    this.history = new Map;
+    this.doLoadHistory = onLoadHistory;
+    this.history = new Map<number, EntityChanges[]>();
     this.allTrackingEntities = new Map;
-    this.unconfirmedChanges = new Array;
-    this.confirmedChanges = new Array;
+    this.unconfirmedChanges = [];
+    this.confirmedChanges = [];
     this.minVersion = -1;
     this.currentVersion = -1;
     this.maxHistoryVersionsHold = maxHistoryVersionsHold;
   }
 
-  async loadHistory (klass, klasses) {
-    return isFunction(this.doLoadHistory) ? await this.doLoadHistory(klass, klasses) : new Map;
+  private async loadHistory(height, minHeight) {
+    if (isFunction(this.doLoadHistory)) {
+      await this.doLoadHistory(height, minHeight);
+    }
+    return Promise.resolve(new Map<number, EntityChanges[]>());
   }
 
-  async initVersion(version) {
+  public async initVersion(version: number) {
     if (-1 === this.currentVersion) {
-      const artistTrack = await this.loadHistory(version, version);
-      this.attachHistory(artistTrack);
+      const history = await this.loadHistory(version, version);
+      this.attachHistory(history);
     }
   }
 
-  makeModelAndKey(schema: ModelSchema, key) {
+  private makeModelAndKey(schema: ModelSchema, key: ObjectLiteral) {
     const b = {
       m : schema.modelName,
       k : key
@@ -93,7 +85,7 @@ export class BasicEntityTracker {
     return JSON.stringify(b);
   }
 
-  splitModelAndKey(modelAndKey) {
+  private splitModelAndKey(modelAndKey: string) {
     const params = JSON.parse(modelAndKey);
     return {
       model : params.m,
@@ -101,48 +93,48 @@ export class BasicEntityTracker {
     };
   }
 
-  isTracking(schema, key) {
+  private isTracking(schema, key) {
     const uniqueSchemaKeyString = this.makeModelAndKey(schema, key);
     return this.allTrackingEntities.has(uniqueSchemaKeyString);
   }
 
-  getConfimedChanges() {
+  public getConfimedChanges() {
     return this.confirmedChanges;
   }
 
-  buildTrackingEntity(index, isSlidingUp, $cont) {
-    return isSlidingUp;
+  private buildTrackingEntity(model: ModelSchema, data: ObjectLiteral, state: enumerations.EntityState) {
+    return data;
   }
 
-  ensureNotracking(schema: ModelSchema, value) {
-    if (undefined !== this.getTrackingEntity(schema, value)) {
-      throw Error("Entity (model='" + schema.modelName + "', key='" + JSON.stringify(value) + "') is tracking already");
+  private ensureNotracking(schema: ModelSchema, primaryKey: ObjectLiteral) {
+    if (undefined !== this.getTrackingEntity(schema, primaryKey)) {
+      throw Error("Entity (model='" + schema.modelName + "', key='" + JSON.stringify(primaryKey) + "') is tracking already");
     }
   }
 
-  getTracking(schema: ModelSchema, version) {
-    const info = this.getTrackingEntity(schema, version);
+  private getTracking(schema: ModelSchema, primaryKey: ObjectLiteral) {
+    const info = this.getTrackingEntity(schema, primaryKey);
     if (undefined === info) {
-      throw Error("Entity (model='" + schema.modelName + "', key='" + JSON.stringify(version) + "') is not tracking");
+      throw Error("Entity (model='" + schema.modelName + "', key='" + JSON.stringify(primaryKey) + "') is not tracking");
     }
     return info;
   }
 
-  trackNew(schema: ModelSchema, entity) {
-    const val = schema.getNormalizedPrimaryKey(entity); // val = primaryKey
-    this.ensureNotracking(schema, val);
-    const data = lodash.cloneDeep(entity);
-    schema.setDefaultValues(data);
+  public trackNew(schema: ModelSchema, entity: ObjectLiteral) {
+    const primaryKey = schema.getNormalizedPrimaryKey(entity);
+    this.ensureNotracking(schema, primaryKey);
+    const entityCopy = lodash.cloneDeep(entity);
+    schema.setDefaultValues(entityCopy);
 
-    data[enumerations.ENTITY_VERSION_PROPERTY] = 1;
-    const options = this.buildTrackingEntity(schema, data, enumerations.EntityState.New);
-    this.cache.put(schema.modelName, val, options);
-    this.changesStack.push(this.buildCreateChanges(schema, data));
-    return options;
+    entityCopy[enumerations.ENTITY_VERSION_PROPERTY] = 1;
+    const data = this.buildTrackingEntity(schema, entityCopy, enumerations.EntityState.New);
+    this.cache.put(schema.modelName, primaryKey, data);
+    const changes = this.buildCreateChanges(schema, entityCopy);
+    this.changesStack.push(changes);
+    return data;
   }
 
-
-  trackPersistent(schema: ModelSchema, entity) {
+  public trackPersistent(schema: ModelSchema, entity) {
     const key = schema.getNormalizedPrimaryKey(entity); // returns Partial<E>
     this.ensureNotracking(schema, key);
     const copy = lodash.cloneDeep(entity);
@@ -151,30 +143,32 @@ export class BasicEntityTracker {
     return data;
   }
 
-
-  trackDelete(schema: ModelSchema, trackingEntity) {
+  public trackDelete(schema: ModelSchema, trackingEntity: ObjectLiteral) {
     this.changesStack.push(this.buildDeleteChanges(schema, trackingEntity, trackingEntity._version_));
     this.cache.evit(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity));
   }
 
-  trackModify(schema: ModelSchema, trackingEntity, modifier) {
-    const result = Object.keys(modifier).filter(function(attr) {
-      // TODO refactor
-      return schema.isValidProperty(attr) && attr !== enumerations.ENTITY_VERSION_PROPERTY && !lodash.isEqual(trackingEntity[attr], modifier[attr]);
-    }).map(function(region) {
-      return {
-        name : region,
-        value : modifier[region]
-      };
-    });
+  public trackModify(schema: ModelSchema, trackingEntity, modifier) {
+    const result: PropertyValue[] = Object.keys(modifier)
+      .filter((attr) => {
+        // TODO refactor
+        return schema.isValidProperty(attr) && attr !== enumerations.ENTITY_VERSION_PROPERTY && !lodash.isEqual(trackingEntity[attr], modifier[attr]);
+      })
+      .map((region) => {
+        return {
+          name : region,
+          value : modifier[region]
+        };
+      });
+
     if (0 !== result.length) {
       this.changesStack.push(this.buildModifyChanges(schema, trackingEntity, result, ++trackingEntity._version_));
       this.cache.refreshCached(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity), result);
     }
   }
 
-  getTrackingEntity(schema: ModelSchema, key) {
-    const result = resolveKey(schema, key);
+  public getTrackingEntity(schema: ModelSchema, key: ObjectLiteral) {
+    const result = schema.resolveKey(key);
     if (undefined !== result) {
       if (result.isPrimaryKey) {
         return this.cache.get(schema.modelName, result.key);
@@ -185,11 +179,11 @@ export class BasicEntityTracker {
     }
   }
 
-  acceptChanges(height: number) {
+  public acceptChanges(height: number) {
     this.log.trace('BEGIN acceptChanges Version = ' + height);
 
     this.history.set(height, this.confirmedChanges);
-    this.confirmedChanges = new Array;
+    this.confirmedChanges = [];
     this.removeExpiredHistory();
     this.allTrackingEntities.clear();
     this.minVersion = -1 === this.minVersion ? height : this.minVersion;
@@ -198,7 +192,7 @@ export class BasicEntityTracker {
     this.log.trace('SUCCESS acceptChanges Version = ' + height);
   }
 
-  buildCreateChanges(schema: ModelSchema, obj) {
+  private buildCreateChanges(schema: ModelSchema, obj) {
     const result = new Array;
     let key;
     for (key in obj) {
@@ -215,12 +209,12 @@ export class BasicEntityTracker {
       primaryKey : schema.getNormalizedPrimaryKey(obj),
       dbVersion : 1,
       propertyChanges : result
-    };
+    } as EntityChanges;
   }
 
-  buildModifyChanges(schema: ModelSchema, currentObj, changes, version) {
-    const results = new Array; // []
-    changes.forEach(function(data) {
+  private buildModifyChanges(schema: ModelSchema, currentObj: ObjectLiteral, changes, version) {
+    const results: PropertyChange[] = [];
+    changes.forEach((data) => {
       return results.push({
         name : data.name,
         current : data.value,
@@ -238,15 +232,15 @@ export class BasicEntityTracker {
       primaryKey : schema.getNormalizedPrimaryKey(currentObj),
       dbVersion : version,
       propertyChanges : results
-    };
+    } as EntityChanges;
   }
 
-  buildDeleteChanges(schema, value, version) {
-    const prev = new Array;
+  private buildDeleteChanges(schema: ModelSchema, value: ObjectLiteral, dbVersion: number) {
+    const propertyChanges = [];
     let name;
     for (name in value) {
       if (schema.isValidProperty(name)) {
-        prev.push({
+        propertyChanges.push({
           name : name,
           original : value[name]
         });
@@ -256,155 +250,145 @@ export class BasicEntityTracker {
       type : enumerations.EntityChangeType.Delete,
       model : schema.modelName,
       primaryKey : schema.getNormalizedPrimaryKey(value),
-      dbVersion : version,
-      propertyChanges : prev
-    };
+      dbVersion : dbVersion,
+      propertyChanges : propertyChanges
+    } as EntityChanges;
   }
 
-  undoEntityChanges(update) {
-    switch (update.type) {
+  private undoEntityChanges(change: EntityChanges) {
+    switch (change.type) {
       case enumerations.EntityChangeType.New:
-        if (this.cache.get(update.model, update.primaryKey)) {
-          this.cache.evit(update.model, update.primaryKey);
+        if (this.cache.get(change.model, change.primaryKey)) {
+          this.cache.evit(change.model, change.primaryKey);
         }
         break;
       case enumerations.EntityChangeType.Modify:
-        const data = update.propertyChanges.map(function(association) {
+        const propertyValues: PropertyValue[] = change.propertyChanges.map((onePropChange) => {
           return {
-            name : association.name,
-            value : association.original
+            name : onePropChange.name,
+            value : onePropChange.original
           };
         });
-        this.cache.refreshCached(update.model, update.primaryKey, data);
+        this.cache.refreshCached(change.model, change.primaryKey, propertyValues);
         break;
       case enumerations.EntityChangeType.Delete:
-        const elementCssSelector = codeContractXX.makeJsonObject(update.propertyChanges, function(engineDiscovery) {
-          return engineDiscovery.name;
-        }, function(vOffset) {
-          return vOffset.original;
-        });
-        const schema = this.schemas.get(update.model);
-        const _a = this.buildTrackingEntity(schema, elementCssSelector, enumerations.EntityState.Persistent);
-        this.trackPersistent(schema, _a);
+        const obj: ObjectLiteral = codeContract.makeJsonObject(change.propertyChanges, (engineDiscovery) => engineDiscovery.name, (vOffset) => vOffset.original);
+        const schema = this.schemas.get(change.model);
+        const result: ObjectLiteral = this.buildTrackingEntity(schema, obj, enumerations.EntityState.Persistent);
+        this.trackPersistent(schema, result);
     }
   }
 
-
-  undoChanges(width) {
-    var artistTrack = undefined;
-    for (; undefined !== (artistTrack = width.pop());) {
-      this.undoEntityChanges(artistTrack);
+  private undoChanges(entityChanges: EntityChanges[]) {
+    let oneChange: EntityChanges = undefined;
+    for (; undefined !== (oneChange = entityChanges.pop());) {
+      this.undoEntityChanges(oneChange);
     }
   }
 
-  rejectChanges() {
+  public rejectChanges() {
     this.cancelConfirm();
     this.undoChanges(this.confirmedChanges);
   }
 
-
-  async rollbackChanges(toBlockHeight) {
+  public async rollbackChanges(toBlockHeight: number) {
     if (toBlockHeight > this.currentVersion) {
       return;
     }
-    var url = this.currentVersion;
-    this.log.trace("BEGIN rollbackChanges Version : " + url);
+    const copyOfVersion = this.currentVersion;
+    this.log.trace('BEGIN rollbackChanges Version : ' + copyOfVersion);
 
     await this.loadHistoryUntil(toBlockHeight);
     for (; this.currentVersion >= toBlockHeight;) {
-      var artistTrack = this.getHistoryByVersion(this.currentVersion);
-      this.undoChanges(artistTrack);
+      const changes = this.getHistoryByVersion(this.currentVersion);
+      this.undoChanges(changes);
       this.currentVersion--;
     }
-    /** @type {number} */
     this.minVersion = Math.min(this.minVersion, this.currentVersion);
 
-    this.log.trace("SUCCESS rollbackChanges Version : " + url + " -> " + this.currentVersion);
+    this.log.trace('SUCCESS rollbackChanges Version : ' + copyOfVersion + ' -> ' + this.currentVersion);
   }
 
-
-  beginConfirm() {
+  public beginConfirm() {
     this.confirming = true;
     if (this.unconfirmedChanges.length > 0) {
-      this.log.warn("unconfimred changes(" + this.unconfirmedChanges.length + ") detected , you should call commit or cancel changes");
+      this.log.warn('unconfimred changes(' + this.unconfirmedChanges.length + ') detected , you should call commit or cancel changes');
     }
-    this.unconfirmedChanges = new Array;
+    this.unconfirmedChanges = [];
 
-    this.log.trace("BEGIN beginConfirm");
+    this.log.trace('BEGIN beginConfirm');
   }
 
 
-  confirm() {
-    var _selectedKeys;
-    (_selectedKeys = this.confirmedChanges).push.apply(_selectedKeys, toArray(this.unconfirmedChanges));
-    this.unconfirmedChanges = new Array;
-    /** @type {boolean} */
+  public confirm() { // TODO refactor
+    // let _selectedKeys;
+    // (_selectedKeys = this.confirmedChanges).push.apply(_selectedKeys, toArray(this.unconfirmedChanges));
+    this.confirmedChanges.push(...this.unconfirmedChanges);
+
+    this.unconfirmedChanges = [];
     this.confirming = false;
 
-    this.log.trace("SUCCESS confirm ");
+    this.log.trace('SUCCESS confirm ');
   }
 
 
-  cancelConfirm() {
+  public cancelConfirm() {
     this.undoChanges(this.unconfirmedChanges);
-    /** @type {boolean} */
     this.confirming = false;
 
-    this.log.trace("SUCCESS cancelConfirm ");
+    this.log.trace('SUCCESS cancelConfirm ');
   }
 
+  private attachHistory(history: Map<number, EntityChanges[]>) {
+    this.log.info('BEGIN attachHistory history version = ' + JSON.stringify(this.historyVersion));
 
-  attachHistory(data) {
-    this.log.info("BEGIN attachHistory history version = " + JSON.stringify(this.historyVersion));
-
-    data.forEach((ideaExample, data) => {
-      this.history.set(data, ideaExample);
-      this.minVersion = this.minVersion < 0 ? data : Math.min(data, this.minVersion);
-      /** @type {number} */
-      this.currentVersion = Math.max(data, this.currentVersion);
+    history.forEach((ideaExample, index) => {
+      this.history.set(index, ideaExample);
+      this.minVersion = this.minVersion < 0 ? index : Math.min(index, this.minVersion);
+      this.currentVersion = Math.max(index, this.currentVersion);
     });
 
-    this.log.info("SUCCESS attachHistory size = " + JSON.stringify(data ? data.size : 0));
+    this.log.info('SUCCESS attachHistory size = ' + JSON.stringify(history ? history.size : 0));
   }
 
-
-  getHistoryByVersion(item) {
-    var isSelectionByClickEnabled = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    !this.history.has(item) && isSelectionByClickEnabled && this.history.set(item, new Array);
+  private getHistoryByVersion(item: number, option = false) {
+    // !this.history.has(item) && isSelectionByClickEnabled && this.history.set(item, new Array);
+    if (!this.history.has(item) && option) {
+      this.history.set(item, []);
+    }
     return this.history.get(item);
   }
 
-
-  async loadHistoryUntil(height) {
+  private async loadHistoryUntil(height: number) {
     if (height < this.minVersion) {
-      var artistTrack = await this.loadHistory(height, this.minVersion);
-      this.attachHistory(artistTrack);
+      const history = await this.loadHistory(height, this.minVersion);
+      this.attachHistory(history);
     }
   }
 
-
-  removeExpiredHistory() {
+  private removeExpiredHistory() {
     if (this.currentVersion - this.minVersion > this.maxHistoryVersionsHold) {
       this.clearHistoryBefore(this.currentVersion - this.maxHistoryVersionsHold);
     }
   }
 
 
-  async getChangesUntil(historyVersionNr) {
-    await this.loadHistoryUntil(historyVersionNr);
-    var myHooks = new Array;
-    var graphTypeBaseName = historyVersionNr;
-    for (; graphTypeBaseName <= this.currentVersion;) {
-      var fixedDims = this.getHistoryByVersion(graphTypeBaseName++);
-      if (fixedDims) {
-        myHooks.push.apply(myHooks, toArray(fixedDims));
+  public async getChangesUntil(height: number) {
+    await this.loadHistoryUntil(height);
+    const result = [];
+    let heightCopy = height;
+
+    for (; heightCopy <= this.currentVersion;) {
+      const oneHistory = this.getHistoryByVersion(heightCopy++);
+      if (oneHistory) {
+        result.push(toArray(oneHistory));
       }
     }
-    return myHooks;
+    return result;
   }
 
 
-  clearHistoryBefore(height) {
+  private clearHistoryBefore(height) {
     if (!(this.minVersion >= height || this.currentVersion < height)) {
       var index = this.minVersion;
       for (; index < height; index++) {

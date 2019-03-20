@@ -1,45 +1,58 @@
 import * as codeContract from './codeContract';
 import * as enumerations from './entityChangeType';
+import { BasicEntityTracker, EntityChanges } from './basicEntityTracker';
+import { ModelSchema } from './modelSchema';
+import { JsonSqlBuilder } from './jsonSQLBuilder';
+import { ObjectLiteral } from 'typeorm';
 
 export class BasicTrackerSqlBuilder {
+  private tracker: BasicEntityTracker;
+  private schemas: Map<string, ModelSchema>;
+  private sqlBuilder: JsonSqlBuilder;
+
   /**
-   * @param {?} tracker
+   * @constructor
+   * @param {?} basicEntityTracker
    * @param {string} schemas
-   * @param {?} options
+   * @param {?} sqlBuilder
    * @return {undefined}
    */
-  constructor(tracker, schemas, options) { // options = sqlbuilder
-    this.tracker = tracker;
+  constructor(basicEntityTracker: BasicEntityTracker, schemas: Map<string, ModelSchema>, sqlBuilder: JsonSqlBuilder) {
+    this.tracker = basicEntityTracker;
     this.schemas = schemas;
-    this.sqlBuilder = options;
+    this.sqlBuilder = sqlBuilder;
   }
 
-  buildChangeSqls() {
-    return this.tracker.getConfimedChanges().map((change) => {
-      return this.buildSqlAndParameters(this.schemas.get(change.model), change.primaryKey, change);
+  public buildChangeSqls() {
+    return this.tracker.getConfimedChanges().map((oneChange) => {
+      const schema = this.schemas.get(oneChange.model);
+      const primaryKey = oneChange.primaryKey;
+      return this.buildSqlAndParameters(schema, primaryKey, oneChange);
     });
   }
 
-  async buildRollbackChangeSqls(historyVersion) {
-    const array = [];
-    var incoming_value = await this.tracker.getChangesUntil(historyVersion);
-    var definition = undefined;
-    for (; undefined !== (definition = incoming_value.pop());) {
-      var loadAllArticles = this.schemas.get(definition.model);
-      array.push(this.buildRollbackSqlAndParameters(loadAllArticles, definition.primaryKey, definition));
+  async buildRollbackChangeSqls(height: number) {
+    const result = [];
+    const changesUntil = await this.tracker.getChangesUntil(height);
+    let one = undefined;
+    for (; undefined !== (one = changesUntil.pop());) {
+      const schema = this.schemas.get(one.model);
+      const sql = this.buildRollbackSqlAndParameters(schema, one.primaryKey, one);
+      result.push(sql);
     }
-    return array;
+    return result;
   }
 
-  buildSqlAndParameters(speed, count, data) {
-    var result = BasicTrackerSqlBuilder.fieldValuesFromChanges(data);
-    switch(result[enumerations.ENTITY_VERSION_PROPERTY] = data.dbVersion, data.type) {
+  private buildSqlAndParameters(schema: ModelSchema, primaryKey: ObjectLiteral, data: EntityChanges) {
+    const result = BasicTrackerSqlBuilder.fieldValuesFromChanges(data);
+    result[enumerations.ENTITY_VERSION_PROPERTY] = data.dbVersion;
+    switch (data.type) {
       case enumerations.EntityChangeType.New:
-        return this.sqlBuilder.buildInsert(speed, result);
+        return this.sqlBuilder.buildInsert(schema, result);
       case enumerations.EntityChangeType.Modify:
-        return this.sqlBuilder.buildUpdate(speed, count, result, data.dbVersion - 1);
+        return this.sqlBuilder.buildUpdate(schema, primaryKey, result, data.dbVersion - 1);
       case enumerations.EntityChangeType.Delete:
-        return this.sqlBuilder.buildDelete(speed, count);
+        return this.sqlBuilder.buildDelete(schema, primaryKey);
       default:
         throw new Error("Invalid EntityChangeType '" + data.type + "'");
     }

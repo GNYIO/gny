@@ -13,6 +13,7 @@ import * as performance from './performance';
 import * as _ from 'lodash';
 import { loadSchemas } from './helpers';
 import { ModelSchema } from './modelSchema';
+import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 
 export class SmartDB extends EventEmitter {
 
@@ -52,8 +53,10 @@ export class SmartDB extends EventEmitter {
   async init() {
     this.connection = await loadConfig(this.originalLogger);
 
-    // TODO: fix loadHistoryFromLevelDB
-    const history = new Map();
+    const history: LoadChangesHistoryAction = async (fromVersion: number, toVersion: number) => {
+      // TODO load history HistoryDB
+      return Promise.resolve(new Map<number, EntityChanges[]>());
+    };
     this.blockSession = new DbSession(this.connection, history);
 
     await this.loadMaxBlockHeight();
@@ -294,7 +297,7 @@ export class SmartDB extends EventEmitter {
     return this.getSession().increase(sessionId, key, obj);
   }
 
-  update(model, value, record) {
+  update(model: string, value, record) {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
