@@ -24,6 +24,7 @@ import { Variable } from '../entity/Variable';
 import { Vote } from '../entity/Vote';
 import { ModelSchema } from './modelSchema';
 
+
 export class DbSession {
 
   public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;
@@ -33,14 +34,14 @@ export class DbSession {
   private connection: Connection;
   private unconfirmedLocks: Set<any>;
   private confirmedLocks: Set<any>;
-  private schemas: Map<any, any>;
+  private schemas: Map<string, ModelSchema>;
   private sessionCache: LRUEntityCache;
   private sqlBuilder: _jsonSqlBuilder.JsonSqlBuilder;
   private entityTracker: BasicEntityTracker;
   private trackerSqlBuilder: BasicTrackerSqlBuilder;
 
 
-  constructor(connection: Connection, historyChanges, options = {}) {
+  constructor(connection: Connection, historyChanges, maxHistoryVersionsHold?: number) {
     this.log = LogManager.getLogger('DbSession');
     this.sessionSerial = -1;
     this.connection = connection;
@@ -49,9 +50,9 @@ export class DbSession {
     this.schemas = loadSchemas();
     this.sessionCache = new LRUEntityCache(this.schemas);
     this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder;
-    const message = options.maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD; // how many versions to hold
+    const howManyVersionsToHold = maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD;
 
-    this.entityTracker = new BasicEntityTracker(this.sessionCache, this.schemas, message, LogManager.getLogger('BasicEntityTracker'), historyChanges);
+    this.entityTracker = new BasicEntityTracker(this.sessionCache, this.schemas, howManyVersionsToHold, LogManager.getLogger('BasicEntityTracker'), historyChanges);
     this.trackerSqlBuilder = new BasicTrackerSqlBuilder(this.entityTracker, this.schemas, this.sqlBuilder);
   }
 
@@ -59,7 +60,7 @@ export class DbSession {
     return resolveKey(table, key).key;
   }
 
-  trackPersistentEntities(data, remove) {
+  trackPersistentEntities(data: ModelSchema, remove) {
     const props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
     const list = new Array;
     remove.forEach((val) => {
@@ -72,7 +73,7 @@ export class DbSession {
   }
 
   reset() {
-    var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+    const e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
     if (e) {
       this.sessionCache.clear();
     }
@@ -203,22 +204,20 @@ export class DbSession {
     return 1 === expRecords.length ? expRecords[0] : undefined;
   }
 
-  replaceJsonProperties(value, args) {
+  replaceJsonProperties(value: ModelSchema, args) {
     if (0 === value.jsonProperties.length) {
       return args;
     }
-    /** @type {!Object} */
-    var inner = Object.assign({}, args);
+    const inner = Object.assign({}, args);
     value.jsonProperties.forEach(function(key) {
       if (Reflect.has(inner, key)) {
-        /** @type {*} */
-        inner[key] = JSON.parse(String(args[key]));
+        inner[key] = JSON.parse(String(args[key])); // deepCopy
       }
-    })
+    });
     return inner;
   }
 
-  replaceEntitiesJsonPropertis(updated, recorded) {
+  replaceEntitiesJsonPropertis(updated: ModelSchema, recorded) {
     return 0 === updated.jsonProperties.length ? recorded : recorded.map((whilstNext) => {
       return this.replaceJsonProperties(updated, whilstNext);
     });

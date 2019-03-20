@@ -64,15 +64,12 @@ export class SmartDB extends EventEmitter {
     this.emit('ready', this);
   }
 
-  getSchema(model: string | { name: string }, verifyIfRegistered = false, verifyIfReadonly = false) {
+  getSchema(model: string | { name: string }, verifyIfRegistered = false) {
     const id = isString(model) ? String(model) : model.name;
     const modelSchema = this.schemas.get(id);
 
     if (verifyIfRegistered) {
       CodeContract.verify(undefined !== modelSchema, "unregistered model '" + id + "'");
-    }
-    if (verifyIfReadonly) { // remove this check and parameter
-      CodeContract.verify(!modelSchema.isReadonly, "model '" + id + "' is readonly");
     }
     return modelSchema;
   }
@@ -264,7 +261,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('entity', function() {
       return CodeContract.notNull(entity);
     });
-    const context = this.getSchema(model, true, true);
+    const context = this.getSchema(model, true);
     return this.getSession().create(context, entity);
   }
 
@@ -275,7 +272,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('entity', function() {
       return CodeContract.notNull(entity);
     });
-    var schema = this.getSchema(model, true, true);
+    const schema = this.getSchema(model, true);
     var result = this.loadSync(model, schema.getNormalizedPrimaryKey(entity));
     return {
       create : undefined === result,
@@ -293,7 +290,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('key', function() {
       return CodeContract.notNull(key);
     });
-    var sessionId = this.getSchema(model, true, true);
+    const sessionId = this.getSchema(model, true);
     return this.getSession().increase(sessionId, key, obj);
   }
 
@@ -307,7 +304,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('key', function() {
       return CodeContract.notNull(record);
     });
-    var config = this.getSchema(model, true, true);
+    var config = this.getSchema(model, true);
     if (true === this.options.checkModifier) {
       var type;
       var values = Object.keys(value);
@@ -326,7 +323,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('key', function() {
       return CodeContract.notNull(condition);
     });
-    var url = this.getSchema(model, true, true);
+    var url = this.getSchema(model, true);
     this.getSession().delete(url, condition);
   }
   async load(model, condition) {
@@ -347,7 +344,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('key', function() {
       return CodeContract.notNull(value);
     });
-    var request = this.getSchema(key, true);
+    const request = this.getSchema(key, true);
     return this.getSession().loadSync(request, value);
   }
 
@@ -356,7 +353,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(record);
     });
-    var options = this.getSchema(record, true);
+    const options = this.getSchema(record, true);
     return await this.getSession().getMany(options, strategy, callback);
   }
 
@@ -367,7 +364,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('key', function() {
       return CodeContract.notNull(key);
     });
-    var promise = this.getSchema(model, true);
+    const promise = this.getSchema(model, true);
     return this.getSession().getCachedEntity(promise, key);
   }
 
@@ -418,7 +415,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(key);
     });
-    var url = this.getSchema(key, true);
+    const url = this.getSchema(key, true);
     return await this.getSession().count(url, callback);
   }
 
@@ -529,7 +526,7 @@ export class SmartDB extends EventEmitter {
   }
 
   get transactionSchema() {
-    return this.getSchema(SmartDB.TRANSACTION_MODEL_NAME, true, true);
+    return this.getSchema(SmartDB.TRANSACTION_MODEL_NAME, true);
   }
 
   get lastBlockHeight() {

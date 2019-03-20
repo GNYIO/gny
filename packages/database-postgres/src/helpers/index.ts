@@ -3,7 +3,7 @@ import { getConnection } from 'typeorm';
 
 export function toArray(arr) {
   if (Array.isArray(arr)) {
-    const i = 0;
+    let i = 0;
     const arr2 = Array(arr.length);
     for (; i < arr.length; i++) {
       arr2[i] = arr[i];
@@ -21,6 +21,12 @@ export function toArray(arr) {
 //   key: NormalizedEntityKey<E>;
 // };
 
+// export type ResolvedEntityKey<E> = {
+//   isPrimaryKey?: boolean;
+//   isUniqueKey?: boolean;
+//   uniqueName: string;
+//   key: NormalizedEntityKey<E>;
+// };
 
 export function resolveKey(table, key) {
 

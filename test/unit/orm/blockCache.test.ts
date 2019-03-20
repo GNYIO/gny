@@ -151,7 +151,7 @@ describe('orm - BlockCache', () => {
     expect(sut.get(0)).toEqual(block_zero);
     done();
   });
-  it('evitUntil', (done) => {
+  it('evitUntil(rollback) rollback to height', (done) => {
     const sut = new BlockCache(10);
     const heights = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 

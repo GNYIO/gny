@@ -135,8 +135,8 @@ export class ModelSchema {
     return this.isCompsiteKey ? codeContract.partialCopy(val, this.compositeKeys) : val[this.primaryKey];
   }
 
-  getNormalizedPrimaryKey(err) {
-    return this.isCompsiteKey ? codeContract.partialCopy(err, this.compositeKeys) : codeContract.partialCopy(err, [this.primaryKey]);
+  public getNormalizedPrimaryKey(obj) {
+    return this.isCompsiteKey ? codeContract.partialCopy(obj, this.compositeKeys) : codeContract.partialCopy(obj, [this.primaryKey]);
   }
 
   normalizePrimaryKey(result) {

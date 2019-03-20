@@ -154,4 +154,17 @@ describe('orm - ModelSchema', () => {
     expect(sut.primaryKey).toEqual('address');
     done();
   });
+  it('getNormalizedPrimaryKey(obj)', (done) => {
+    const account = {
+      address: 'G3igL8sTPQzNquy87bYAR37NoYRNn',
+      username: 'liangpeili',
+      gny: 2000e8,
+      publicKey: 'e28066fe2185e950f2df851772d346af68119c96b882d41b8cd5283a901cff63',
+    };
+    const expected = {
+      address: 'G3igL8sTPQzNquy87bYAR37NoYRNn'
+    };
+    expect(sut.getNormalizedPrimaryKey(account)).toEqual(expected);
+    done();
+  });
 });

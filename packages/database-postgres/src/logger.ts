@@ -42,7 +42,7 @@ export class LogManager {
     return new LoggerWrapper(name, LogManager.defaultLogger);
   }
 
-  static setLogger(logger) {
+  static setLogger(logger: ILogger) {
     LogManager.defaultLogger = logger;
   }
 }

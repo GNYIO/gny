@@ -25,12 +25,23 @@ export interface EntityChanges<E extends object> {
 }
 
 
+// resolveKey({ address: "G3VU8VKndrpzDVbKzNTExoBrDAnw5" })
+// returns:
+// "{
+//   "isPrimaryKey": true,
+//   "uniqueName": "__PrimaryKey__",
+//   "key": {
+//     "address": "G3VU8VKndrpzDVbKzNTExoBrDAnw5"
+//   }
+// }"
+
+
 
 export class BasicEntityTracker {
   private log: ILogger;
   private cache: LRUEntityCache;
   private confirming: boolean;
-  private schemas: any;
+  private schemas: Map<string, ModelSchema>;
   private doLoadHistory: any;
   private history: Map<any, any>;
   private allTrackingEntities: Map<any, any>;
@@ -38,15 +49,17 @@ export class BasicEntityTracker {
   private confirmedChanges: Array<any>;
   minVersion: number;
   currentVersion: number;
+  private maxHistoryVersionsHold: number;
 
   /**
+   * @constructor
    * @param {string} sessionCache
    * @param {string} schemas
-   * @param {number} message
+   * @param {number} maxHistoryVersionsHold
    * @param {!Object} logger
    * @param {?} historyChanges
    */
-  constructor(sessionCache: LRUEntityCache, schemas, message, logger, historyChanges) { // message: maxHistoryVersionsHold
+  constructor(sessionCache: LRUEntityCache, schemas: Map<string, ModelSchema>, maxHistoryVersionsHold, logger, historyChanges) {
     this.log = logger;
     this.cache = sessionCache;
     this.confirming = false;
@@ -58,7 +71,7 @@ export class BasicEntityTracker {
     this.confirmedChanges = new Array;
     this.minVersion = -1;
     this.currentVersion = -1;
-    this.maxHistoryVersionsHold = message;
+    this.maxHistoryVersionsHold = maxHistoryVersionsHold;
   }
 
   async loadHistory (klass, klasses) {
@@ -130,11 +143,11 @@ export class BasicEntityTracker {
 
 
   trackPersistent(schema: ModelSchema, entity) {
-    const val = schema.getNormalizedPrimaryKey(entity);
-    this.ensureNotracking(schema, val);
-    const keyReads = lodash.cloneDeep(entity);
-    const data = this.buildTrackingEntity(schema, keyReads, enumerations.EntityState.Persistent);
-    this.cache.put(schema.modelName, val, data);
+    const key = schema.getNormalizedPrimaryKey(entity); // returns Partial<E>
+    this.ensureNotracking(schema, key);
+    const copy = lodash.cloneDeep(entity);
+    const data = this.buildTrackingEntity(schema, copy, enumerations.EntityState.Persistent);
+    this.cache.put(schema.modelName, key, data);
     return data;
   }
 
@@ -265,14 +278,14 @@ export class BasicEntityTracker {
         this.cache.refreshCached(update.model, update.primaryKey, data);
         break;
       case enumerations.EntityChangeType.Delete:
-        var elementCssSelector = codeContractXX.makeJsonObject(update.propertyChanges, function(engineDiscovery) {
+        const elementCssSelector = codeContractXX.makeJsonObject(update.propertyChanges, function(engineDiscovery) {
           return engineDiscovery.name;
         }, function(vOffset) {
           return vOffset.original;
         });
-        var facetsMap = this.schemas.get(update.model);
-        var _a = this.buildTrackingEntity(facetsMap, elementCssSelector, enumerations.EntityState.Persistent);
-        this.trackPersistent(facetsMap, _a);
+        const schema = this.schemas.get(update.model);
+        const _a = this.buildTrackingEntity(schema, elementCssSelector, enumerations.EntityState.Persistent);
+        this.trackPersistent(schema, _a);
     }
   }
 

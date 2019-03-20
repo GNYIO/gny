@@ -31,10 +31,8 @@ export class JsonSqlBuilder {
     return 'drop table "' + this.getTableName(schema.modelName) + '"';
   }
 
-  buildSchema(response) {
-    /** @type {!Array} */
+  buildSchema(response: ModelSchema) {
     var t = new Array;
-    /** @type {!Object} */
     var obj = Object.assign({
       type : 'create'
     }, deepCopy(response.schemaObject));
@@ -185,13 +183,12 @@ export class JsonSqlBuilder {
     return Object.assign(static_events, jsonSQL.build(options));
   }
 
-  replaceJsonFields(e, options) {
-    if (0 === e.jsonProperties.length) {
+  replaceJsonFields(schema: ModelSchema, options) {
+    if (0 === schema.jsonProperties.length) {
       return options;
     }
-    /** @type {!Object} */
-    var extractedTargets = Object.assign({}, options);
-    e.jsonProperties.forEach(function(target) {
+    const extractedTargets = Object.assign({}, options);
+    schema.jsonProperties.forEach(function(target) {
       if (Reflect.has(options, target)) {
         /** @type {string} */
         extractedTargets[target] = JSON.stringify(options[target]);
