@@ -98,10 +98,6 @@ export class BasicEntityTracker {
     return this.allTrackingEntities.has(uniqueSchemaKeyString);
   }
 
-  public getConfimedChanges() {
-    return this.confirmedChanges;
-  }
-
   private buildTrackingEntity(model: ModelSchema, data: ObjectLiteral, state: enumerations.EntityState) {
     return data;
   }
@@ -331,7 +327,6 @@ export class BasicEntityTracker {
     this.log.trace('SUCCESS confirm ');
   }
 
-
   public cancelConfirm() {
     this.undoChanges(this.unconfirmedChanges);
     this.confirming = false;
@@ -390,16 +385,22 @@ export class BasicEntityTracker {
 
   private clearHistoryBefore(height) {
     if (!(this.minVersion >= height || this.currentVersion < height)) {
-      var index = this.minVersion;
+      let index = this.minVersion;
       for (; index < height; index++) {
         this.history.delete(index);
       }
-      /** @type {number} */
       this.minVersion = height;
     }
   }
 
-  get trackingEntities() {
+  public getUnconfirmedChanges() {
+    return lodash.cloneDeep(this.unconfirmedChanges);
+  }
+  public getConfirmedChanges() {
+    return lodash.cloneDeep(this.confirmedChanges);
+  }
+
+  get trackingEntities() { // unused?
     return this.allTrackingEntities.values();
   }
 
@@ -411,7 +412,7 @@ export class BasicEntityTracker {
     return this.confirming;
   }
 
-  get historyVersion() {
+  public get historyVersion() {
     return {
       min : this.minVersion,
       max : this.currentVersion

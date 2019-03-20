@@ -148,9 +148,82 @@ describe('orm - BasicEntityTracker', () => {
     const data = createAccount('liangpeili');
     const accountModelSchema = schemas.get('Account');
     sut.trackNew(accountModelSchema, data);
+
+    expect(sut.getConfirmedChanges().length).toEqual(1);
     done();
   });
-  it.skip('trackNew() throws if called twice', (done) => {
+  it('trackNew() throws if called twice', (done) => {
+    const data = createAccount('liangpeili');
+    const accountModelSchema = schemas.get('Account');
+
+    sut.trackNew(accountModelSchema, data); // once
+    expect(() => sut.trackNew(accountModelSchema, data)).toThrow(); // twice
+    done();
+  });
+  it('changes after trackNew("Account")', (done) => {
+    const data = {
+      address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
+      username: 'liangpeili',
+      gny: 0,
+      publicKey: '06080f836e63cfb10516153b97f27a18177637d9b40665b2f1f08b41ad08946a',
+      secondPublicKey: null,
+      isDelegate: 0,
+      isLocked: 0,
+      lockHeight: 0,
+      lockAmount: 0,
+    };
+    const accountModelSchema = schemas.get('Account');
+
+    sut.trackNew(accountModelSchema, data);
+
+    const expected = {
+      type: 1,
+      model: 'Account',
+      primaryKey: {
+        address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY'
+      },
+      dbVersion: 1,
+      propertyChanges: [
+        {
+          name: 'address',
+          current: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY'
+        },
+        {
+          name: 'username',
+          current: 'liangpeili'
+        },
+        {
+          name: 'gny',
+          current: 0
+        },
+        {
+          name: 'publicKey',
+          current: '06080f836e63cfb10516153b97f27a18177637d9b40665b2f1f08b41ad08946a'
+        },
+        {
+          name: 'secondPublicKey',
+          current: null
+        },
+        {
+          name: 'isDelegate',
+          current: 0
+        },
+        {
+          name: 'isLocked',
+          current: 0
+        },
+        {
+          name: 'lockHeight',
+          current: 0
+        },
+        {
+          name: 'lockAmount',
+          current: 0
+        }
+      ]
+    };
+    expect(sut.getConfirmedChanges().length).toEqual(1);
+    expect(sut.getConfirmedChanges()[0]).toEqual(expected);
     done();
   });
   it.skip('trackDelete()', (done) => {

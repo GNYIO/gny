@@ -24,7 +24,7 @@ export class BasicTrackerSqlBuilder {
   }
 
   public buildChangeSqls() {
-    return this.tracker.getConfimedChanges().map((oneChange) => {
+    return this.tracker.getConfirmedChanges().map((oneChange) => {
       const schema = this.schemas.get(oneChange.model);
       const primaryKey = oneChange.primaryKey;
       return this.buildSqlAndParameters(schema, primaryKey, oneChange);
