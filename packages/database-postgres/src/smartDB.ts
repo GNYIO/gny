@@ -25,7 +25,7 @@ export class SmartDB extends EventEmitter {
   private schemas: Map<string, ModelSchema>;
   private log: LoggerWrapper;
   private cachedBlocks: BlockCache;
-  connection: Connection;
+  private connection: Connection;
   private _lastBlockHeight?: number;
   private blockSession: DbSession;
   currentBlock: any;

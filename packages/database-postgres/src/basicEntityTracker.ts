@@ -144,22 +144,26 @@ export class BasicEntityTracker {
     this.cache.evit(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity));
   }
 
-  public trackModify(schema: ModelSchema, trackingEntity, modifier) {
-    const result: PropertyValue[] = Object.keys(modifier)
-      .filter((attr) => {
-        // TODO refactor
-        return schema.isValidProperty(attr) && attr !== enumerations.ENTITY_VERSION_PROPERTY && !lodash.isEqual(trackingEntity[attr], modifier[attr]);
-      })
-      .map((region) => {
-        return {
-          name : region,
-          value : modifier[region]
-        };
-      });
+  public trackModify(schema: ModelSchema, trackingEntity: ObjectLiteral, modifier) {
+    const propertyValues = Object.keys(modifier)
+      .filter((key) => {
+        const validProp = schema.isValidProperty(key);
+        const notVersionProp = key !== enumerations.ENTITY_VERSION_PROPERTY;
+        const notEqualToModifiedProp = !lodash.isEqual(trackingEntity[key], modifier[key]);
 
-    if (0 !== result.length) {
-      this.changesStack.push(this.buildModifyChanges(schema, trackingEntity, result, ++trackingEntity._version_));
-      this.cache.refreshCached(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity), result);
+        return validProp && notVersionProp && notEqualToModifiedProp;
+      })
+      .map((key) => {
+        return {
+          name : key,
+          value : modifier[key]
+        };
+      }) as PropertyValue[];
+
+    if (0 !== propertyValues.length) {
+      const changes = this.buildModifyChanges(schema, trackingEntity, propertyValues, ++trackingEntity._version_);
+      this.changesStack.push(changes);
+      this.cache.refreshCached(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity), propertyValues);
     }
   }
 
@@ -188,47 +192,49 @@ export class BasicEntityTracker {
     this.log.trace('SUCCESS acceptChanges Version = ' + height);
   }
 
-  private buildCreateChanges(schema: ModelSchema, obj) {
-    const result = new Array;
+  private buildCreateChanges(schema: ModelSchema, obj: ObjectLiteral) {
+    const propertyChanges = [];
     let key;
     for (key in obj) {
       if (schema.isValidProperty(key)) {
-        result.push({
+        propertyChanges.push({
           name : key,
           current : obj[key]
         });
       }
     }
-    return {
+    const result: EntityChanges = {
       type : enumerations.EntityChangeType.New,
       model : schema.modelName,
       primaryKey : schema.getNormalizedPrimaryKey(obj),
       dbVersion : 1,
-      propertyChanges : result
-    } as EntityChanges;
+      propertyChanges : propertyChanges
+    };
+    return result;
   }
 
-  private buildModifyChanges(schema: ModelSchema, currentObj: ObjectLiteral, changes, version) {
-    const results: PropertyChange[] = [];
+  private buildModifyChanges(schema: ModelSchema, currentObj: ObjectLiteral, changes: PropertyValue[], dbVersion: number) {
+    const propertyChanges: PropertyChange[] = [];
     changes.forEach((data) => {
-      return results.push({
+      return propertyChanges.push({
         name : data.name,
         current : data.value,
         original : currentObj[data.name]
       });
     });
-    results.push({
+    propertyChanges.push({
       name : enumerations.ENTITY_VERSION_PROPERTY,
-      current : version,
-      original : version - 1
+      current : dbVersion,
+      original : dbVersion - 1
     });
-    return {
+    const result: EntityChanges = {
       type : enumerations.EntityChangeType.Modify,
       model : schema.modelName,
       primaryKey : schema.getNormalizedPrimaryKey(currentObj),
-      dbVersion : version,
-      propertyChanges : results
-    } as EntityChanges;
+      dbVersion : dbVersion,
+      propertyChanges : propertyChanges
+    };
+    return result;
   }
 
   private buildDeleteChanges(schema: ModelSchema, value: ObjectLiteral, dbVersion: number) {
@@ -242,13 +248,14 @@ export class BasicEntityTracker {
         });
       }
     }
-    return {
+    const result: EntityChanges = {
       type : enumerations.EntityChangeType.Delete,
       model : schema.modelName,
       primaryKey : schema.getNormalizedPrimaryKey(value),
       dbVersion : dbVersion,
       propertyChanges : propertyChanges
-    } as EntityChanges;
+    };
+    return result;
   }
 
   private undoEntityChanges(change: EntityChanges) {
@@ -269,6 +276,7 @@ export class BasicEntityTracker {
         break;
       case enumerations.EntityChangeType.Delete:
         const obj: ObjectLiteral = codeContract.makeJsonObject(change.propertyChanges, (engineDiscovery) => engineDiscovery.name, (vOffset) => vOffset.original);
+
         const schema = this.schemas.get(change.model);
         const result: ObjectLiteral = this.buildTrackingEntity(schema, obj, enumerations.EntityState.Persistent);
         this.trackPersistent(schema, result);
@@ -315,8 +323,7 @@ export class BasicEntityTracker {
     this.log.trace('BEGIN beginConfirm');
   }
 
-
-  public confirm() { // TODO refactor
+  public confirm() {
     // let _selectedKeys;
     // (_selectedKeys = this.confirmedChanges).push.apply(_selectedKeys, toArray(this.unconfirmedChanges));
     this.confirmedChanges.push(...this.unconfirmedChanges);
@@ -382,7 +389,6 @@ export class BasicEntityTracker {
     return result;
   }
 
-
   private clearHistoryBefore(height) {
     if (!(this.minVersion >= height || this.currentVersion < height)) {
       let index = this.minVersion;
@@ -396,7 +402,7 @@ export class BasicEntityTracker {
   public getUnconfirmedChanges() {
     return lodash.cloneDeep(this.unconfirmedChanges);
   }
-  public getConfirmedChanges() {
+  public getConfirmedChanges() { // TODO: performance optimization without cloneDeep?
     return lodash.cloneDeep(this.confirmedChanges);
   }
 
