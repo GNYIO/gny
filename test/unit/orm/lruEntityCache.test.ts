@@ -36,18 +36,35 @@ function getDelegateMetaSchema() {
         propertyName: 'publicKey',
       }]
     }],
-    propertiesMap: {
-      address: 'address',
-      tid: 'tid',
-      username: 'username',
-      publicKey: 'publicKey',
-      votes: 'votes',
-      producedBlocks: 'producedBlocks',
-      missedBlocks: 'missedBlocks',
-      fees: 'fees',
-      rewards: 'rewards',
-      _version_: '_version_',
-    },
+    columns: [
+      {
+        name: 'address'
+      },
+      {
+        name: 'tid'
+      },
+      {
+        name: 'username'
+      },
+      {
+        name: 'publicKey'
+      },
+      {
+        name: 'votes'
+      },
+      {
+        name: 'producedBlocks'
+      },
+      {
+        name: 'missedBlocks'
+      },
+      {
+        name: 'fees'
+      },
+      {
+        name: 'rewards'
+      },
+    ],
   };
   return delegateMetaSchema;
 }
@@ -72,17 +89,40 @@ function getAccountMetaSchema() {
         propertyName: 'username'
       }]
     }],
-    propertiesMap: {
-      address: 'address',
-      username: 'username',
-      gny: 'gny',
-      publicKey: 'publicKey',
-      secondPublicKey: 'secondPublicKey',
-      isDelegate: 'isDelegate',
-      isLocked: 'isLocked',
-      lockHeight: 'lockHeight',
-      lockAmount: 'lockAmount',
-    }
+    columns: [
+      {
+        name: 'address',
+      },
+      {
+        name: 'username'
+      },
+      {
+        name: 'gny',
+        default: 0,
+      },
+      {
+        name: 'publicKey'
+      },
+      {
+        name: 'secondPublicKey'
+      },
+      {
+        name: 'isDelegate',
+        default: 0,
+      },
+      {
+        name: 'isLocked',
+        default: 0,
+      },
+      {
+        name: 'lockHeight',
+        default: 0,
+      },
+      {
+        name: 'lockAmount',
+        default: 0,
+      },
+    ]
   };
   return accountMetaSchema;
 }

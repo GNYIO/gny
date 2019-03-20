@@ -33,11 +33,11 @@ export class BasicEntityTracker {
   private schemas: Map<string, ModelSchema>;
   private doLoadHistory: LoadChangesHistoryAction;
   private history: Map<number, EntityChanges[]>;
-  private allTrackingEntities: Map<any, any>;
+  private allTrackingEntities: Map<string, any>;
   private unconfirmedChanges: EntityChanges[];
   private confirmedChanges: EntityChanges[];
-  minVersion: number;
-  currentVersion: number;
+  private minVersion: number;
+  private currentVersion: number;
   private maxHistoryVersionsHold: number;
 
   /**
@@ -55,7 +55,7 @@ export class BasicEntityTracker {
     this.schemas = schemas;
     this.doLoadHistory = onLoadHistory;
     this.history = new Map<number, EntityChanges[]>();
-    this.allTrackingEntities = new Map;
+    this.allTrackingEntities = new Map<string, any>();
     this.unconfirmedChanges = [];
     this.confirmedChanges = [];
     this.minVersion = -1;
@@ -63,7 +63,7 @@ export class BasicEntityTracker {
     this.maxHistoryVersionsHold = maxHistoryVersionsHold;
   }
 
-  private async loadHistory(height, minHeight) {
+  private async loadHistory(height: number, minHeight: number) {
     if (isFunction(this.doLoadHistory)) {
       await this.doLoadHistory(height, minHeight);
     }
@@ -93,7 +93,7 @@ export class BasicEntityTracker {
     };
   }
 
-  private isTracking(schema, key) {
+  private isTracking(schema: ModelSchema, key) {
     const uniqueSchemaKeyString = this.makeModelAndKey(schema, key);
     return this.allTrackingEntities.has(uniqueSchemaKeyString);
   }
@@ -135,7 +135,7 @@ export class BasicEntityTracker {
   }
 
   public trackPersistent(schema: ModelSchema, entity) {
-    const key = schema.getNormalizedPrimaryKey(entity); // returns Partial<E>
+    const key = schema.getNormalizedPrimaryKey(entity);
     this.ensureNotracking(schema, key);
     const copy = lodash.cloneDeep(entity);
     const data = this.buildTrackingEntity(schema, copy, enumerations.EntityState.Persistent);
@@ -410,7 +410,6 @@ export class BasicEntityTracker {
   get isConfirming() {
     return this.confirming;
   }
-
 
   get historyVersion() {
     return {

@@ -7,17 +7,21 @@ import { isObject } from 'util';
 
 // export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;
 
-export type MetaColumn = {
+export type IndexColumn = {
   propertyName: string;
 };
 export type OneIndex = {
   isUnique: boolean;
-  columns: MetaColumn[];
+  columns: IndexColumn[];
+};
+export type NormalColumn = {
+  name: string;
+  default?: any;
 };
 export type MetaSchema = {
   name: string;
   indices: OneIndex[];
-  propertiesMap: ObjectLiteral;
+  columns: NormalColumn[];
 
   memory: boolean;
   maxCachedCount?: number;
@@ -38,6 +42,7 @@ export class ModelSchema {
   public allUniqueIndexes: ModelIndex[];
   private primaryKeyProperty: string;
   private compositKeyProperties: any[];
+  private columns: NormalColumn[];
 
 
   /**
@@ -75,7 +80,7 @@ export class ModelSchema {
         };
       });
 
-    this.allProperties = Object.keys(meta.propertiesMap);
+    this.allProperties = meta.columns.map(col => col.name);
     this.allProperties.forEach((item) => {
       this.propertiesSet.add(item);
     });
@@ -88,6 +93,7 @@ export class ModelSchema {
 
     this.primaryKeyProperty = this.allNormalIndexes[0] ? this.allNormalIndexes[0].name : undefined;
 
+    this.columns = meta.columns;
     this.compositKeyProperties = [];
   }
 
@@ -190,10 +196,12 @@ export class ModelSchema {
     }
   }
 
-  public setDefaultValues(options) { // TODO test
-    this.schema.tableFields.forEach(function(field) {
-      if (undefined !== field.default && (null === options[field.name] || undefined === options[field.name])) {
-        options[field.name] = field.default;
+  public setDefaultValues(data: ObjectLiteral) {
+    this.columns.forEach((column) => {
+      const propIsNotSet = (null === data[column.name] || undefined === data[column.name]);
+
+      if (undefined !== column.default && propIsNotSet) {
+        data[column.name] = column.default;
       }
     });
   }

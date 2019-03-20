@@ -19,19 +19,20 @@ describe('orm - ModelSchema', () => {
           propertyName: 'username'
         }]
       }],
-      propertiesMap: {
-        address: 'address',
-        username: 'username',
-        gny: 0,
-      },
+      columns: [{
+        name: 'address',
+      }, {
+        name: 'username',
+      }, {
+        name: 'gny',
+        default: 0,
+      }],
     };
     sut = new ModelSchema(entityMetadata);
   });
 
 
   it('hasUniqueProperty("gny") -> false', (done) => {
-    // called with ["gny"]
-    // checks if uniquePropertiesSet has ["username"] (Set)
     const result = sut.hasUniqueProperty('gny');
     expect(result).toEqual(false);
     done();
@@ -75,8 +76,7 @@ describe('orm - ModelSchema', () => {
       maxCachedCount: 2000,
       name: 'Delegate',
       indices: [],
-      propertiesMap: {
-      },
+      columns: [],
     };
     const customSut = new ModelSchema(metaSchema);
 
@@ -89,8 +89,7 @@ describe('orm - ModelSchema', () => {
       maxCachedCount: 2000,
       name: 'Round',
       indices: [],
-      propertiesMap: {
-      },
+      columns: [],
     };
     const customSut = new ModelSchema(metaSchema);
 
@@ -103,8 +102,7 @@ describe('orm - ModelSchema', () => {
       maxCachedCount: 500,
       name: 'Round',
       indices: [],
-      propertiesMap: {
-      },
+      columns: [],
     };
     const customSut = new ModelSchema(metaSchema);
     expect(customSut.maxCached).toEqual(500);
@@ -116,8 +114,7 @@ describe('orm - ModelSchema', () => {
       maxCachedCount: undefined,
       name: 'Round',
       indices: [],
-      propertiesMap: {
-      },
+      columns: [],
     };
     const customSut = new ModelSchema(metaSchema);
     expect(customSut.maxCached).toBeUndefined();
@@ -129,8 +126,7 @@ describe('orm - ModelSchema', () => {
       maxCachedCount: 3000, // it does not matter what is provided her
       name: 'Round',
       indices: [],
-      propertiesMap: {
-      },
+      columns: [],
     };
     const customSut = new ModelSchema(metaSchema);
     expect(customSut.maxCached).toEqual(Number.POSITIVE_INFINITY);
@@ -249,6 +245,33 @@ describe('orm - ModelSchema', () => {
     };
     const result = sut.getPrimaryKey(data);
     expect(result).toBeUndefined();
+    done();
+  });
+  it('setDefaultValues() for props that are not set yet', (done) => {
+    const data = {
+      address: 'G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z',
+      username: 'a1300',
+    };
+    sut.setDefaultValues(data);
+    expect(data).toEqual({ // default property for "gny" has been set
+      address: 'G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z',
+      username: 'a1300',
+      gny: 0,
+    });
+    done();
+  });
+  it('setDefaultValues() should not set default if value is already provided', (done) => {
+    const data = {
+      address: 'G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z',
+      username: 'a1300',
+      gny: 80000000000,
+    };
+    sut.setDefaultValues(data);
+    expect(data).toEqual({ // "gny" column should stay the same
+      address: 'G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z',
+      username: 'a1300',
+      gny: 80000000000,
+    });
     done();
   });
 });

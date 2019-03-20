@@ -22,10 +22,12 @@ describe('orm UniquedCache', () => {
           propertyName: 'username'
         }]
       }],
-      propertiesMap: {
-        address: 'address',
-        username: 'username',
-      },
+      columns: [{
+          name: 'address'
+        },
+        {
+          name: 'username'
+      }],
     };
     const modelSchema = new ModelSchema(metaSchema);
     const cache = new CustomCache(modelSchema, LRUEntityCache.DEFULT_MAX_CACHED_COUNT);
@@ -146,10 +148,14 @@ describe('orm UniquedCache', () => {
           propertyName: 'username'
         }]
       }],
-      propertiesMap: {
-        address: 'address',
-        username: 'username',
-      },
+      columns: [
+        {
+          name: 'address'
+        },
+        {
+          name: 'username'
+        },
+      ],
     };
     const modelSchema = new ModelSchema(customMetaSchema);
 
