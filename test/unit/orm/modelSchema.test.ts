@@ -1,7 +1,4 @@
-import * as sinon from 'sinon';
-import { getConnection, EntityMetadata } from 'typeorm';
 import { ModelSchema, MetaSchema } from '../../../packages/database-postgres/src/modelSchema';
-import { ModelIndex } from'../../../packages/database-postgres/src/defaultEntityUniqueIndex';
 
 
 describe('orm - ModelSchema', () => {
@@ -25,6 +22,7 @@ describe('orm - ModelSchema', () => {
       propertiesMap: {
         address: 'address',
         username: 'username',
+        gny: 0,
       },
     };
     sut = new ModelSchema(entityMetadata);
@@ -147,7 +145,7 @@ describe('orm - ModelSchema', () => {
     done();
   });
   it('prop properties', (done) => {
-    expect(sut.properties).toEqual(['address', 'username']);
+    expect(sut.properties).toEqual(['address', 'username', 'gny']);
     done();
   });
   it('prop primaryKey', (done) => {
@@ -165,6 +163,92 @@ describe('orm - ModelSchema', () => {
       address: 'G3igL8sTPQzNquy87bYAR37NoYRNn'
     };
     expect(sut.getNormalizedPrimaryKey(account)).toEqual(expected);
+    done();
+  });
+  it('resolveKey(primary key)', (done) => {
+    const data = {
+      address: 'G28aWzLNE7AgJG3w285Zno9wLo88c',
+    };
+    const expected = {
+      isPrimaryKey: true,
+      key: {
+        address: 'G28aWzLNE7AgJG3w285Zno9wLo88c',
+      },
+      uniqueName: '__PrimaryKey__',
+    };
+    const result = sut.resolveKey(data);
+    expect(result).toEqual(expected);
+    done();
+  });
+  it('resolveKey(unique key)', (done) => {
+    const data = {
+      username: 'liangpeili',
+    };
+    const expected = {
+      isUniqueKey: true,
+      key: {
+        username: 'liangpeili',
+      },
+      uniqueName: 'username',
+    };
+    const result = sut.resolveKey(data);
+    expect(result).toEqual(expected);
+    done();
+  });
+  it('resolveKey(normal prop) returns undefined', (done) => {
+    const data = {
+      gny: 0,
+    };
+    const result = sut.resolveKey(data);
+    expect(result).toBeUndefined();
+    done();
+  });
+  it('setPrimaryKey() direct key', (done) => {
+    const source = {};
+    const directKey = 'G3DpbtT5QNF5smWYTyLTzJ8812SRx';
+    const result = sut.setPrimaryKey(source, directKey);
+    expect(result).toEqual({
+      address: 'G3DpbtT5QNF5smWYTyLTzJ8812SRx',
+    });
+    done();
+  });
+  it('setPrimaryKey() simple key', (done) => {
+    const source = {};
+    const simpleKey = { address: 'G3DpbtT5QNF5smWYTyLTzJ8812SRx' };
+    const result = sut.setPrimaryKey(source, simpleKey);
+    expect(result).toEqual({
+      address: 'G3DpbtT5QNF5smWYTyLTzJ8812SRx',
+    });
+    done();
+  });
+  it('copyProperties(obj, true) makes deep copy', (done) => {
+    const data = {
+      address: 'GQ6hcPj74Tgj89KeCkQJGgUcCqLZ',
+      gny: 0,
+      username: 'liangpeili',
+    };
+    const result = sut.copyProperties(data);
+    expect(result).not.toBe(data); // not same object reference
+    expect(result).toEqual(data); // but data is the same
+    done();
+  });
+  it('getPrimaryKey(obj) pass object with primary key', (done) => {
+    const data = {
+      address: 'GQ6hcPj74Tgj89KeCkQJGgUcCqLZ',
+      gny: 0,
+      username: 'liangpeili',
+    };
+    const result = sut.getPrimaryKey(data);
+    expect(result).toEqual('GQ6hcPj74Tgj89KeCkQJGgUcCqLZ');
+    done();
+  });
+  it('getPrimaryKey(obj) pass object without primary key', (done) => {
+    const data = {
+      gny: 0,
+      username: 'liangpeili',
+    };
+    const result = sut.getPrimaryKey(data);
+    expect(result).toBeUndefined();
     done();
   });
 });

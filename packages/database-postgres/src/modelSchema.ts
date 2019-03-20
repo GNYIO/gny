@@ -4,7 +4,6 @@ import * as lodash from 'lodash';
 import { ObjectLiteral } from 'typeorm';
 import { ModelIndex } from './defaultEntityUniqueIndex';
 import { isObject } from 'util';
-import { IndexMetadata } from 'typeorm/metadata/IndexMetadata';
 
 // export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;
 
@@ -92,54 +91,55 @@ export class ModelSchema {
     this.compositKeyProperties = [];
   }
 
-  hasUniqueProperty(...args: string[]) {
+  public hasUniqueProperty(...args: string[]) {
     return args.some((geomData) => {
       return this.uniquePropertiesSet.has(geomData);
     });
   }
 
-  isValidProperty(typeName) {
+  public isValidProperty(typeName) {
     return this.propertiesSet.has(typeName);
   }
 
-  isValidEntityKey(selector) {
+  private isValidEntityKey(selector) {
     return this.isValidPrimaryKey(selector) || this.isValidUniqueKey(selector);
   }
 
-  isNormalizedPrimaryKey(params) {
+  private isNormalizedPrimaryKey(params) {
     if (!isObject(params)) {
       return;
     }
-    var level = params;
-    var canvas = Object.keys(level);
-    return this.isCompsiteKey ? this.isValidPrimaryKey(level) : 1 === canvas.length && canvas[0] === this.primaryKey;
+    const canvas = Object.keys(params);
+    return this.isCompsiteKey ? this.isValidPrimaryKey(params) : 1 === canvas.length && canvas[0] === this.primaryKey;
   }
 
-  setPrimaryKey(val, id) {
-    throw new Error('not implemented');
-    if (!this.isValidPrimaryKey(id)) {
-      throw new Error("Invalid PrimaryKey of model '" + this.modelName + "', key=''" + JSON.stringify(id));
+  public setPrimaryKey(source: ObjectLiteral, key) {
+    if (!this.isValidPrimaryKey(key)) {
+      throw new Error("Invalid PrimaryKey of model '" + this.modelName + "', key=''" + JSON.stringify(key));
     }
-    if (!this.isCompsiteKey && codeContract.isPrimitiveKey(id)) {
-      val[this.primaryKey] = id;
+    if (!this.isCompsiteKey && codeContract.isPrimitiveKey(key)) {
+      source[this.primaryKey] = key;
     } else if (this.isCompsiteKey) {
-      codeContract.partialCopy(id, this.compositeKeys, val);
+      codeContract.partialCopy(key, this.compositeKeys, source);
     } else {
-      codeContract.partialCopy(id, [this.primaryKey], val);
+      codeContract.partialCopy(key, [this.primaryKey], source);
     }
-    return val;
-    // return !this.isCompsiteKey && codeContract.isPrimitiveKey(id) ? val[this.primaryKey] = id : this.isCompsiteKey ? codeContract.partialCopy(id, this.compositeKeys, val) : , val;
+    return source;
   }
 
-  getPrimaryKey(val) {
-    return this.isCompsiteKey ? codeContract.partialCopy(val, this.compositeKeys) : val[this.primaryKey];
+  public getPrimaryKey(val: Object) {
+    if (this.isCompsiteKey) {
+      return codeContract.partialCopy(val, this.compositeKeys);
+    } else {
+      return val[this.primaryKey];
+    }
   }
 
   public getNormalizedPrimaryKey(obj) {
     return this.isCompsiteKey ? codeContract.partialCopy(obj, this.compositeKeys) : codeContract.partialCopy(obj, [this.primaryKey]);
   }
 
-  normalizePrimaryKey(result) {
+  private normalizePrimaryKey(result) {
     if (!codeContract.isPrimitiveKey(result)) {
       return result;
     }
@@ -147,19 +147,20 @@ export class ModelSchema {
     item[this.primaryKey] = result;
     return item;
   }
-  isValidPrimaryKey(val) {
-    return !this.isCompsiteKey && (codeContract.isPrimitiveKey(val) || this.isNormalizedPrimaryKey(val)) || 0 === lodash.xor(Object.keys(val), this.compositeKeys).length;
+
+  private isValidPrimaryKey(key) {
+    return !this.isCompsiteKey && (codeContract.isPrimitiveKey(key) || this.isNormalizedPrimaryKey(key)) || 0 === lodash.xor(Object.keys(key), this.compositeKeys).length;
   }
 
-  isValidUniqueKey(name) {
+  private isValidUniqueKey(name) {
     return undefined !== this.getUniqueName(name);
   }
 
-  getUniqueName(y) {
-    if (this.isValidPrimaryKey(y)) {
+  private getUniqueName(data) {
+    if (this.isValidPrimaryKey(data)) {
       return ModelSchema.PRIMARY_KEY_NAME;
     }
-    const col = Object.keys(y);
+    const col = Object.keys(data);
     if (1 === col.length && col[0] === this.primaryKey) {
       return ModelSchema.PRIMARY_KEY_NAME;
     }
@@ -169,55 +170,35 @@ export class ModelSchema {
     return undefined === value ? undefined : value.name;
   }
 
-  isPrimaryKeyUniqueName(callback) {
-    return callback === ModelSchema.PRIMARY_KEY_NAME;
+  private isPrimaryKeyUniqueName(data) {
+    return data === ModelSchema.PRIMARY_KEY_NAME;
   }
 
-  getUniqueIndex(name) {
+  private getUniqueIndex(name) {
     return this.allUniqueIndexes.find(function(functionImport) {
       return functionImport.name === name;
     });
   }
 
-  // moved to helpers/index
-  // resolveKey(name/*: EntityKey*/)/*:ResolvedEntiytKey*/ {
-  //   const up = this.getUniqueName(name);
-  //   if (undefined !== up) {
-  //     if (this.isPrimaryKeyUniqueName(up)) {
-  //       const result = {
-  //         isPrimaryKey : true,
-  //         uniqueName : up,
-  //         key : this.setPrimaryKey({}, name),
-  //       };
-  //       return result;
-  //     } else {
-  //       const result = {
-  //         isUniqueKey : true,
-  //         uniqueName : up,
-  //         key : name,
-  //       };
-  //       return result;
-  //     }
-  //   }
-  // }
-
-  copyProperties(output) {
-    var style = this;
-    var noformat = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-    return output ? codeContract.partialCopy(output, noformat ? this.allProperties : function(newScaleKey) {
-      return style.allProperties.includes(newScaleKey);
-    }) : output;
+  public copyProperties(data: Object, noformat = true) {
+    if (data) {
+      const alternative = (newScaleKey) => this.allProperties.includes(newScaleKey);
+      const secondParam = noformat ? this.allProperties : alternative;
+      return codeContract.partialCopy(data, secondParam);
+    } else {
+      return data;
+    }
   }
 
-  setDefaultValues(options) {
-    this.schema.tableFields.forEach(function(configuration) {
-      if (undefined !== configuration.default && (null === options[configuration.name] || undefined === options[configuration.name])) {
-        options[configuration.name] = configuration.default;
+  public setDefaultValues(options) { // TODO test
+    this.schema.tableFields.forEach(function(field) {
+      if (undefined !== field.default && (null === options[field.name] || undefined === options[field.name])) {
+        options[field.name] = field.default;
       }
     });
   }
 
-  splitEntityAndVersion(obj) {
+  private splitEntityAndVersion(obj) {
     const result = obj[ENTITY_VERSION_PROPERTY];
     return Reflect.deleteProperty(obj, ENTITY_VERSION_PROPERTY), {
       version : result,
@@ -225,20 +206,35 @@ export class ModelSchema {
     };
   }
 
-  get properties() {
+  public resolveKey(data: Object) {
+    const up = this.getUniqueName(data);
+    if (undefined !== up) {
+      return this.isPrimaryKeyUniqueName(up) ? {
+        isPrimaryKey : true,
+        uniqueName : up,
+        key : this.setPrimaryKey({}, data)
+      } : {
+        isUniqueKey : true,
+        uniqueName : up,
+        key : data
+      };
+    }
+  }
+
+  public get properties() {
     return this.allProperties;
   }
 
-  get jsonProperties() {
+  public get jsonProperties() {
     return this.allJsonProperties;
   }
 
-  get schemaObject() {
+  public get schemaObject() { // TODO test
     throw new Error('not ready');
     return this.schema;
   }
 
-  get isCompsiteKey() {
+  public get isCompsiteKey() {
     return this.compositeKeys.length > 1;
   }
 
