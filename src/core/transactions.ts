@@ -178,11 +178,14 @@ export default class Transactions {
 
     let queryRunner = undefined;
     try {
+      // TODO without await
       queryRunner = await global.app.sdb.beginContract(transaction);
       // await global.app.sdb.beginContract();
       await this.library.base.transaction.apply(context);
+      // TODO refactor, without await, without parameter
       await global.app.sdb.commitContract(queryRunner);
     } catch (e) {
+      // TODO refactor, without awiat, without parameter
       await global.app.sdb.rollbackContract(queryRunner);
       this.library.logger.error(e);
       throw e;
