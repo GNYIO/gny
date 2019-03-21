@@ -195,9 +195,9 @@ export class DbSession {
     return inner;
   }
 
-  private replaceEntitiesJsonPropertis(updated: ModelSchema, recorded: ObjectLiteral) {
-    return 0 === updated.jsonProperties.length ? recorded : recorded.map((whilstNext) => {
-      return this.replaceJsonProperties(updated, whilstNext);
+  private replaceEntitiesJsonPropertis(schema: ModelSchema, obj: ObjectLiteral) {
+    return 0 === schema.jsonProperties.length ? obj : obj.map((whilstNext) => {
+      return this.replaceJsonProperties(schema, whilstNext);
     });
   }
 
@@ -280,8 +280,8 @@ export class DbSession {
   }
 
   public async saveChanges(height?: number) {
-    const withArgs_ = height || ++this.sessionSerial;
-    this.log.trace('BEGIN saveChanges ( serial = ' + withArgs_ + ' )');
+    const realHeight = height || ++this.sessionSerial;
+    this.log.trace('BEGIN saveChanges ( serial = ' + realHeight + ' )');
 
     this.commitEntityTransaction();
     performance.Utils.Performace.time('Build sqls');
@@ -292,14 +292,14 @@ export class DbSession {
       await this.connection.executeBatch(value);
       await trans.commit();
       performance.Utils.Performace.restartTime('Accept changes');
-      this.entityTracker.acceptChanges(withArgs_);
+      this.entityTracker.acceptChanges(realHeight);
       performance.Utils.Performace.endTime();
       this.clearLocks();
-      this.sessionSerial = withArgs_;
-      this.log.trace('SUCCESS saveChanges ( serial = ' + withArgs_ + ' )');
-      return withArgs_;
+      this.sessionSerial = realHeight;
+      this.log.trace('SUCCESS saveChanges ( serial = ' + realHeight + ' )');
+      return realHeight;
     } catch (expectedCommand) {
-       this.log.error('FAILD saveChanges ( serial = ' + withArgs_ + ' )', expectedCommand);
+       this.log.error('FAILD saveChanges ( serial = ' + realHeight + ' )', expectedCommand);
        await trans.rollback();
        this.entityTracker.rejectChanges();
        throw expectedCommand;

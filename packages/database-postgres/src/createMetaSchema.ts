@@ -80,7 +80,7 @@ export function createMetaSchema() {
   result.set('Asset', asset);
   result.set('Balance', balance);
   result.set('Block', block);
-  result.set('delegate', delegate);
+  result.set('Delegate', delegate);
   result.set('Issuer', issuer);
   result.set('Round', round);
   result.set('Transaction', transaction);

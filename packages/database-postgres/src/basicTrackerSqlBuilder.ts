@@ -87,10 +87,10 @@ export class BasicTrackerSqlBuilder {
         return vOffset.original;
       });
     } else {
-      codeContract.makeJsonObject(entityChanges.propertyChanges, function(engineDiscovery) {
-        return engineDiscovery.name;
-      }, function($tour) {
-        return $tour.current;
+      return codeContract.makeJsonObject(entityChanges.propertyChanges, function(getKey) {
+        return getKey.name;
+      }, function(getValue) {
+        return getValue.current;
       });
     }
   }

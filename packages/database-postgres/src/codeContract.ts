@@ -52,33 +52,33 @@ export class CodeContract {
 }
 
 /**
- * @param {?} value
- * @param {!Function} store
- * @param {!Function} action
+ * @param {?} iterable
+ * @param {!Function} getKey
+ * @param {!Function} getValue
  * @return {?}
  */
-export function makeJsonObject(value, store, action) {
+export function makeJsonObject(iterable, getKey, getValue) {
   CodeContract.argument('iterable', function() {
-    return CodeContract.notNull(value);
+    return CodeContract.notNull(iterable);
   });
   CodeContract.argument('getKey', function() {
-    return CodeContract.notNull(store);
+    return CodeContract.notNull(getKey);
   });
   CodeContract.argument('getValue', function() {
-    return CodeContract.notNull(action);
+    return CodeContract.notNull(getValue);
   });
-  const dataArray = {};
+  let dataArray = {};
   /** @type {boolean} */
-  const _iteratorNormalCompletion3 = true;
+  let _iteratorNormalCompletion3 = true;
   /** @type {boolean} */
   var _didIteratorError = false;
   var _iteratorError = undefined;
   try {
-    var _iterator3 = value[Symbol.iterator]();
+    var _iterator3 = iterable[Symbol.iterator]();
     var _step2;
     for (; !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
       var data = _step2.value;
-      dataArray[store(data)] = action(data);
+      dataArray[getKey(data)] = getValue(data);
     }
   } catch (err) {
     /** @type {boolean} */

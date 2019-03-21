@@ -95,6 +95,8 @@ export class ModelSchema {
 
     this.columns = meta.columns;
     this.compositKeyProperties = [];
+
+    this.allJsonProperties = [];
   }
 
   public hasUniqueProperty(...args: string[]) {

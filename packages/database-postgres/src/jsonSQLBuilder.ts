@@ -31,7 +31,7 @@ export type SqlAndParameters = {
 export class JsonSqlBuilder {
 
   private getTableName(key: string) {
-    return lodash.lowerCase();
+    return lodash.lowerCase(key);
   }
 
   private getPrimaryKeyCondition(schema: ModelSchema, columnName) {
@@ -137,7 +137,8 @@ export class JsonSqlBuilder {
     const static_events = {
       type : SqlType.Select
     };
-    return Object.assign(static_events, jsonSQL.build(options));
+    const result: SqlAndParameters = Object.assign(static_events, jsonSQL.build(options));
+    return result;
   }
 
   private replaceJsonFields(schema: ModelSchema, options) {
