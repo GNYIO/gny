@@ -287,10 +287,18 @@ export class DbSession {
     performance.Utils.Performace.time('Build sqls');
     const value = this.trackerSqlBuilder.buildChangeSqls();
     performance.Utils.Performace.restartTime('Execute sqls (' + value.length + ')');
-    const trans = await this.connection.beginTrans();
+    const queryRunner = await this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      await this.connection.executeBatch(value);
-      await trans.commit();
+      for (let i = 0; i < value.length; ++i) {
+        const one = value[i];
+        const params = Array.from(one.parameters || []);
+        queryRunner.query(one.query, params);
+      }
+
+      await queryRunner.commitTransaction();
+
       performance.Utils.Performace.restartTime('Accept changes');
       this.entityTracker.acceptChanges(realHeight);
       performance.Utils.Performace.endTime();
@@ -300,9 +308,11 @@ export class DbSession {
       return realHeight;
     } catch (expectedCommand) {
        this.log.error('FAILD saveChanges ( serial = ' + realHeight + ' )', expectedCommand);
-       await trans.rollback();
+       await queryRunner.rollbackTransaction();
        this.entityTracker.rejectChanges();
        throw expectedCommand;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -424,7 +434,7 @@ export class DbSession {
     const trans = await this.connection.createQueryBuilder()
       .select('t')
       .from(Transaction, 't')
-      .where('t.heightHeight = :height', { height: Number(height) })
+      .where('t.height = :height', { height: Number(height) })
       .getMany();
     return trans;
   }

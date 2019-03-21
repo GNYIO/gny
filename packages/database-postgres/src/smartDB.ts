@@ -264,7 +264,7 @@ export class SmartDB extends EventEmitter {
       this.log.info('SUCCESS rollbackBlock ( height : ' + currentHeight + ' -> ' + targetHeight + ' )');
     } catch (errorExpectedCommand) {
       this.log.error('FAILD rollbackBlock ( height : ' + currentHeight + ' -> ' + targetHeight + ' )', errorExpectedCommand);
-      throw  errorExpectedCommand;
+      throw errorExpectedCommand;
     }
   }
 
