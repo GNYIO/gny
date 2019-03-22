@@ -26,7 +26,7 @@ import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
 // IApp
-import { SmartDB } from '../packages/database-postgres/smartdb';
+import { SmartDB } from '../packages/database-postgres/src/smartDB';
 import BalanceManager from './smartdb/balance-manager';
 
 import { ExtendedJoi } from './utils/extendedJoi';

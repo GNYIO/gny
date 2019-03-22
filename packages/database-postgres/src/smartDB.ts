@@ -496,7 +496,6 @@ export class SmartDB extends EventEmitter {
 
   public async getBlocksByHeightRange(min: number, max: number, withTransactions = false) {
     CodeContract.argument('minHeight, maxHeight', min >= 0 && max >= min, 'minHeight or maxHeight is invalid');
-    // var off = await this.blockDB.getBlocksByHeightRange(min, max);
     const blocks = await this.blockSession.getBlocksByHeightRange(min, max);
     if (blocks) {
       blocks.forEach((item) => {

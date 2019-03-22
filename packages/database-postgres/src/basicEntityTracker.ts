@@ -2,7 +2,6 @@ import * as codeContract from './codeContract';
 import * as enumerations from './entityChangeType';
 import { isFunction } from 'util';
 import * as lodash from 'lodash';
-import { toArray } from './helpers/index';
 import { ModelSchema } from './modelSchema';
 import { LRUEntityCache, PropertyValue } from './lruEntityCache';
 import { LoggerWrapper } from './logger';
@@ -324,10 +323,7 @@ export class BasicEntityTracker {
   }
 
   public confirm() {
-    // let _selectedKeys;
-    // (_selectedKeys = this.confirmedChanges).push.apply(_selectedKeys, toArray(this.unconfirmedChanges));
     this.confirmedChanges.push(...this.unconfirmedChanges);
-
     this.unconfirmedChanges = [];
     this.confirming = false;
 

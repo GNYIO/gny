@@ -6,7 +6,6 @@ import * as codeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import { BasicEntityTracker, LoadChangesHistoryAction } from './basicEntityTracker';
 import * as performance from './performance';
-import { toArray } from './helpers/index';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
@@ -421,12 +420,19 @@ export class DbSession {
 
   public async getBlockById(id: string) {
     // TODO: remove possible SQL injection
-    const result = await this.connection.query(`select * from blocks where id = '${id}'`);
+    const result = await this.connection.query(`select * from block where id = '${id}'`);
     return result[0];
   }
 
-  public getBlocksByHeightRange(min: number, max: number) {
-    const blocks = this.connection.query(`select * from blocks where height >= ${min} AND height <= ${max}`);
+  public async getBlocksByHeightRange(min: number, max: number) {
+    const blocks = await this.connection.createQueryBuilder()
+      .select('b')
+      .from(Block, 'b')
+      .where('b.height >= :min AND b.height <= :max', {
+        min,
+        max,
+      })
+      .getMany();
     return blocks;
   }
 
@@ -443,7 +449,8 @@ export class DbSession {
     return this.connection && this.connection.isConnected;
   }
 
-  private static setToString(orderedBranch) {
-    return JSON.stringify(new (Function.prototype.bind.apply(Array, [null].concat(toArray(orderedBranch.keys())))));
+  private static setToString(locks: Set<string>) {
+    const data = Array.from(locks.keys());
+    return JSON.stringify(data);
   }
 }
