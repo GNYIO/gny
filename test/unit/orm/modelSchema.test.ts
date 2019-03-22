@@ -274,4 +274,128 @@ describe('orm - ModelSchema', () => {
     });
     done();
   });
+  it('prop isCompositeKeys is correct', (done) => {
+    const metaSchema: MetaSchema = {
+      memory: true,
+      name: 'Balance',
+      indices: [{
+        isUnique: false,
+        columns: [{ propertyName: 'address' }],
+      }, {
+        isUnique: false,
+        columns: [{ propertyName: 'currency' }],
+      }],
+      columns: [{
+        name: 'address',
+      }, {
+        name: 'currency',
+      }, {
+        name: 'balance',
+      }, {
+        name: 'flag',
+      }],
+    };
+    const modelSchema = new ModelSchema(metaSchema);
+    expect(modelSchema.isCompsiteKey).toEqual(true);
+    done();
+  });
+  it('return correct composite keys', (done) => {
+    const metaSchema: MetaSchema = {
+      memory: true,
+      name: 'Balance',
+      indices: [{
+        isUnique: false,
+        columns: [{ propertyName: 'address' }],
+      }, {
+        isUnique: false,
+        columns: [{ propertyName: 'currency' }],
+      }],
+      columns: [{
+        name: 'address',
+      }, {
+        name: 'currency',
+      }, {
+        name: 'balance',
+      }, {
+        name: 'flag',
+      }],
+    };
+    const modelSchema = new ModelSchema(metaSchema);
+    expect(modelSchema.compositeKeys).toEqual(['address', 'currency']);
+    done();
+  });
+  it('isValidPrimaryKey for composite keys returns true', (done) => {
+    const metaSchema: MetaSchema = {
+      memory: true,
+      name: 'Balance',
+      indices: [{
+        isUnique: false,
+        columns: [{ propertyName: 'address' }],
+      }, {
+        isUnique: false,
+        columns: [{ propertyName: 'currency' }],
+      }],
+      columns: [{
+        name: 'address',
+      }, {
+        name: 'currency',
+      }, {
+        name: 'balance',
+      }, {
+        name: 'flag',
+      }],
+    };
+    const modelSchema = new ModelSchema(metaSchema);
+    const key = {
+      address: 'GuGD9McasETcrw7tEcBfoz9UiYZs',
+      currency: 'ABC.ABC',
+    };
+    expect(modelSchema.isValidPrimaryKey(key)).toEqual(true);
+    done();
+  });
+  it('isValidPrimaryKey for incomplete composite key returns false', (done) => {
+    const metaSchema: MetaSchema = {
+      memory: true,
+      name: 'Balance',
+      indices: [{
+        isUnique: false,
+        columns: [{ propertyName: 'address' }],
+      }, {
+        isUnique: false,
+        columns: [{ propertyName: 'currency' }],
+      }],
+      columns: [{
+        name: 'address',
+      }, {
+        name: 'currency',
+      }, {
+        name: 'balance',
+      }, {
+        name: 'flag',
+      }],
+    };
+    const modelSchema = new ModelSchema(metaSchema);
+    const key = {
+      currency: 'ABC.ABC',
+    };
+    expect(modelSchema.isValidPrimaryKey(key)).toEqual(false);
+    done();
+  });
+  it('isValidPrimaryKey for single primary key returns false', (done) => {
+    const key = {
+      address: 'GuGD9McasETcrw7tEcBfoz9UiYZs',
+    };
+    expect(sut.isValidPrimaryKey(key)).toEqual(true);
+    done();
+  });
+  it('isValidPrimaryKey for wrong single key returns false', (done) => {
+    const key = {
+      username: 'a1300',
+    };
+    expect(sut.isValidPrimaryKey(key)).toEqual(false);
+    done();
+  });
+  it.skip('can not have primaryKeys and composite keys', (done) => {
+    done();
+  });
 });

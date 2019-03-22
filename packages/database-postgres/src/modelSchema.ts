@@ -41,9 +41,8 @@ export class ModelSchema {
   public allNormalIndexes: ModelIndex[];
   public allUniqueIndexes: ModelIndex[];
   private primaryKeyProperty: string;
-  private compositKeyProperties: any[];
+  private compositKeyProperties: string[];
   private columns: NormalColumn[];
-
 
   /**
    * @param {EntityMetadata} modelSchemaMetadata - An TypeORM EntityMetadat object from which all other properties can be derived from
@@ -62,7 +61,6 @@ export class ModelSchema {
     this.memory = true === meta.memory;
     this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : meta.maxCachedCount;
 
-
     this.allUniqueIndexes = meta.indices
       .filter(x => x.isUnique)
       .map((index) => {
@@ -80,6 +78,14 @@ export class ModelSchema {
         };
       });
 
+    if (this.allNormalIndexes.length >= 2) {
+      this.compositKeyProperties = this.allNormalIndexes.map((one) => {
+        return one.name;
+      });
+    } else {
+      this.compositKeyProperties = [];
+    }
+
     this.allProperties = meta.columns.map(col => col.name);
     this.allProperties.forEach((item) => {
       this.propertiesSet.add(item);
@@ -94,7 +100,6 @@ export class ModelSchema {
     this.primaryKeyProperty = this.allNormalIndexes[0] ? this.allNormalIndexes[0].name : undefined;
 
     this.columns = meta.columns;
-    this.compositKeyProperties = [];
 
     this.allJsonProperties = [];
   }
@@ -156,7 +161,7 @@ export class ModelSchema {
     return item;
   }
 
-  private isValidPrimaryKey(key) {
+  public isValidPrimaryKey(key) {
     return !this.isCompsiteKey && (codeContract.isPrimitiveKey(key) || this.isNormalizedPrimaryKey(key)) || 0 === lodash.xor(Object.keys(key), this.compositeKeys).length;
   }
 
