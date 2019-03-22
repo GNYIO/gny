@@ -206,7 +206,6 @@ export class LRUEntityCache {
   }
 
   get models() {
-    // TODO: refactor
-    return new (Function.prototype.bind.apply(Array, [null].concat(toArray(this.modelSchemas.values()))));
+    return Array.from(this.modelSchemas.values());
   }
 }

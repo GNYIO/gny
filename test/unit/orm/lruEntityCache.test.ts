@@ -421,7 +421,7 @@ describe('orm - LRUEntityCache', () => {
     done();
   });
 
-  it('refreshCached() - are all uniquedColumn caches also updated???', (done) => {
+  it('refreshCached() - are all uniquedColumn caches also updated?', (done) => {
     const delegateData = createDelegate('liangpeili');
     const delegateKey = {
       address: delegateData.address,
@@ -489,6 +489,18 @@ describe('orm - LRUEntityCache', () => {
 
     const result = sut.getAll('Delegate');
     expect(result).toEqual([secondData, oneData]);
+    done();
+  });
+  it('prop models', (done) => {
+    const delegateMeta = getDelegateMetaSchema();
+    const delegateSchema = new ModelSchema(delegateMeta);
+
+    const accountMeta = getAccountMetaSchema();
+    const accountSchema = new ModelSchema(accountMeta);
+
+    const expected = [delegateSchema, accountSchema];
+
+    expect(sut.models).toEqual(expected);
     done();
   });
 });
