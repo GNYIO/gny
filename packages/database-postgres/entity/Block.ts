@@ -1,5 +1,4 @@
-import { Column, Entity, Index, PrimaryColumn, OneToMany } from 'typeorm';
-import { Transaction } from './Transaction';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
 
 @Config({ memory: false })
@@ -77,12 +76,6 @@ export class Block {
     type: 'varchar',
   })
   public signature: string;
-
-  @OneToMany(type => Transaction,
-    transaction => transaction.height, {
-    cascade: ['remove'],
-  })
-  public transactions: Transaction[];
 
   @Column({
     default: 0,

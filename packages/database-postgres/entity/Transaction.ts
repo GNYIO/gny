@@ -1,5 +1,4 @@
-import { Column, Entity, Index, PrimaryColumn, ManyToOne } from 'typeorm';
-import { Block } from './Block';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
 
 @Config({ memory: false })
@@ -47,7 +46,8 @@ export class Transaction {
   public fee: number;
 
   @Column({
-    type: 'json',
+    length: 164,
+    type: 'varchar',
     nullable: false,
   })
   public signatures: any;
@@ -60,12 +60,15 @@ export class Transaction {
   public secondSignature?: any;
 
   @Column({
-    type: 'json',
+    type: 'varchar',
     nullable: true,
   })
   public args: any;
 
-  @ManyToOne(type => Block, block => block.transactions)
+  @Column({
+    type: 'bigint',
+    nullable: false,
+  })
   public height: number;
 
   @Column({

@@ -267,9 +267,9 @@ export default class Blocks {
     }
 
     try {
+      await this.saveBlockTransactions(block);
       await this.applyRound(block);
       await global.app.sdb.commitBlock(block.height);
-      await this.saveBlockTransactions(block);
       const trsCount = block.transactions.length;
       global.app.logger.info(`Block applied correctly with ${trsCount} transactions`);
       this.setLastBlock(block);
@@ -298,6 +298,8 @@ export default class Blocks {
     for (const trs of block.transactions) {
       trs.height = block.height;
       // trs.block = block;
+      trs.signatures = JSON.stringify(trs.signatures);
+      trs.args = JSON.stringify(trs.args);
       await global.app.sdb.create('Transaction', trs);
     }
     global.app.logger.trace('Blocks#save transactions');
