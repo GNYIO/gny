@@ -374,16 +374,16 @@ export class BasicEntityTracker {
     }
   }
 
-
+  // TODO check logic
   public async getChangesUntil(height: number) {
     await this.loadHistoryUntil(height);
-    const result = [];
+    const result: EntityChanges[] = [];
     let heightCopy = height;
 
     for (; heightCopy <= this.currentVersion;) {
       const oneHistory = this.getHistoryByVersion(heightCopy++);
       if (oneHistory) {
-        result.push(toArray(oneHistory));
+        result.push(...oneHistory);
       }
     }
     return result;
