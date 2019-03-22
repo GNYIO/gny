@@ -24,9 +24,10 @@ export class Block {
   @Index()
   public timestamp: number;
 
-  @PrimaryColumn({
+  @Column({
     nullable: false,
     type: 'bigint',
+    unique: true,
   })
   public height: number;
 
