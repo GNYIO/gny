@@ -4,13 +4,11 @@ import { ILogger, IGenesisBlock } from '../../../src/interfaces';
 import * as path from 'path';
 import * as fs from 'fs';
 import { cloneDeep } from 'lodash';
-
+import { Client } from 'pg';
+import { CUSTOM_GENESIS } from './data';
 
 const ROOT_DIR = process.cwd();
 const ORM_INTEGRATION_TESTS_DIR = path.join(ROOT_DIR, 'test/integration/orm');
-
-const pathToGenesisBlock = path.join(ROOT_DIR, 'genesisBlock.json');
-const GENESIS_BLOCK: IGenesisBlock = JSON.parse(fs.readFileSync(pathToGenesisBlock, { encoding: 'utf8' }));
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -25,7 +23,7 @@ const logger: ILogger = {
 };
 
 async function saveGenesisBlock(smartDB: SmartDB) {
-  const block = Object.assign(cloneDeep(GENESIS_BLOCK), {
+  const block = Object.assign(cloneDeep(CUSTOM_GENESIS), {
     _version_: 0,
   });
 
@@ -97,7 +95,7 @@ describe('integration - SmartDB', () => {
 
     const expected = {
       _version_: 0,
-      count: 203,
+      count: 0,
       delegate: 'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
       fees: 0,
       height: 0,
@@ -138,4 +136,25 @@ describe('integration - SmartDB', () => {
   it.skip('rollback block', async (done) => {
     done();
   });
+
+  it.skip('prop lastBlock before genesisBlock', (done) => {
+    done();
+  });
+
+  it.skip('prop lastBlock after genesisBlock', (done) => {
+    done();
+  });
+
+  it.skip('prop lastBlock after height 1', (done) => {
+    done();
+  });
+
+  it.skip('createOrLoad("Round")', (done) => {
+    done();
+  });
+
+  it.skip('initial _version_ is 1', (done) => {
+    done();
+  });
+  // it.skip
 });

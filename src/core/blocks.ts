@@ -37,7 +37,7 @@ export default class Blocks {
       const minHeight = Math.max(0, maxHeight - 4);
       let blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
-      const ids = blocks.map((b: any) => b.id);
+      const ids = blocks.map((b ) => b.id);
       return { ids, firstHeight: minHeight };
     } catch (e) {
       throw e;

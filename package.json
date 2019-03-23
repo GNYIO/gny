@@ -42,6 +42,7 @@
     "@types/method-override": "=0.0.31",
     "@types/nedb": "=1.8.6",
     "@types/node": "^10.9.4",
+    "@types/pg": "^7.4.14",
     "@types/shelljs": "=0.8.1",
     "@types/socket.io": "=1.4.40",
     "@types/z-schema": "=3.16.32",
