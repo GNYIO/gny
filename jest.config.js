@@ -43,7 +43,8 @@ module.exports = {
           "node_modules/@types",
         ],
         esModuleInterop: false,
-        inlineSourceMap: true,
+        inlineSourceMap: false,
+        inlineSources: false
       }
     }
   },

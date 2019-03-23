@@ -1,0 +1,22 @@
+{
+  "type": "postgres",
+  "host": "localhost",
+  "port": 4000,
+  "username": "postgres",
+  "password": "docker",
+  "database": "postgres",
+  "synchronize": true,
+  "dropSchema": false,
+  "logging": false,
+  "migrations": [
+     "packages/database-postgres/migration/**/*.js"
+  ],
+  "subscribers": [
+     "packages/database-postgres/subscriber/**/*.js"
+  ],
+  "cli": {
+     "entitliesDir": "packages/database-postgres/entity",
+     "migrationsDir": "packages/database-postgres/migration",
+     "subscribersDir": "packages/database-postgres/subscriber"
+  }
+}

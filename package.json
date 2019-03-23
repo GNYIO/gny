@@ -5,7 +5,8 @@
   "main": "dist/app.js",
   "scripts": {
     "tsc": "tsc; ts-node copyStaticAssets",
-    "test": "jest --ci --runInBand",
+    "test": "jest --ci --runInBand test/unit",
+    "test:integration": "sudo node_modules/jest/bin/jest.js --ci --runInBand test/integration",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json './**/*.ts'"
   },
   "repository": {

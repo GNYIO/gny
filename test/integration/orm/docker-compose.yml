@@ -2,10 +2,10 @@ version: '3.3'
 services:
   postgres:
     image: "postgres:9.6.12"
-    container_name: 'postgres_${POSTGRES_PORT}'
+    container_name: 'postgres_integration_test'
     restart: always
     ports:
-      - '${POSTGRES_PORT}:5432'
+      - '4000:5432'
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
