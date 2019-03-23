@@ -1,3 +1,4 @@
+import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 
 function getCurrencyFlag(currency) {
   if (currency === 'GNY') {
@@ -10,6 +11,7 @@ function getCurrencyFlag(currency) {
 }
 
 export default class BalanceManager {
+  private sdb: SmartDB;
   constructor(sdb) {
     this.sdb = sdb;
   }
