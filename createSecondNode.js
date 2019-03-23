@@ -62,14 +62,12 @@ if (!isRoot()) {
   }
 
   let postgresPort = 3000;
-  let redisPort = 3001;
   // docker-compose .env
   for (let i = 0; i < HOW_MANY_NODES; ++i) {
     
-    const envContent = `POSTGRES_PORT=${postgresPort}\nREDIS_PORT=${redisPort}`;
+    const envContent = `POSTGRES_PORT=${postgresPort}`;
     const tempOrmConfig = JSON.parse(JSON.stringify(ormconfig));
     tempOrmConfig.port = postgresPort;
-    tempOrmConfig.cache.options.port = redisPort;
 
     let distDir = '';
     if (i === 0) {
@@ -83,7 +81,6 @@ if (!isRoot()) {
     fs.writeFileSync(`${distDir}/ormconfig.json`, JSON.stringify(tempOrmConfig, null, 2), { encoding: 'utf8' });
 
     postgresPort += 2;
-    redisPort +=2;
   }
 
 
@@ -124,6 +121,14 @@ if (!isRoot()) {
     }
   }
 
+  // recreate permissions
+  for (let i = 0; i < HOW_MANY_NODES; ++i) {
+    if (i === 0) {
+      shell.exec('sudo chmod -R 777 dist');
+    } else {
+      shell.exec(`sudo chmod -R 777 dist${i}`);
+    }
+  }
 
   process.exit(1);
 

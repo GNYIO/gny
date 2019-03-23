@@ -206,10 +206,12 @@ export class SmartDB extends EventEmitter {
   }
 
   public beginBlock(block: Block) {
+    block.height = Number(block.height);
     CodeContract.argument('block', function() {
       return CodeContract.notNull(block);
     });
-    CodeContract.argument('block', block.height === this.lastBlockHeight + 1, 'invalid block height ' + block.height + ', last = ' + this.lastBlockHeight);
+    // TODO refactor Number()
+    CodeContract.argument('block', Number(block.height) === this.lastBlockHeight + 1, 'invalid block height ' + block.height + ', last = ' + this.lastBlockHeight);
 
     this.log.info('BEGIN block height = ' + block.height);
 
@@ -255,6 +257,7 @@ export class SmartDB extends EventEmitter {
       await this.blockSession.rollbackChanges(targetHeight);
       for (; this.lastBlockHeight > targetHeight;) {
         // await this.blockDB.deleteLastBlock(this.lastBlockHeight);
+        this.del('Block', { height: this.lastBlockHeight });
         this.cachedBlocks.evitUntil(this.lastBlockHeight);
       }
       await this.ensureLastBlockLoaded();
@@ -558,7 +561,7 @@ export class SmartDB extends EventEmitter {
     return this.lastBlockHeight + 1;
   }
 
-  private get lastBlock() {
+  public get lastBlock() {
     return this.cachedBlocks.get(this.lastBlockHeight);
   }
 }

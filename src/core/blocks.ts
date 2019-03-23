@@ -379,7 +379,7 @@ export default class Blocks {
     }
   }
 
-  public getBlocks = async (minHeight, maxHeight, withTransaction) => {
+  public getBlocks = async (minHeight: number, maxHeight: number, withTransaction: boolean) => {
     const blocks = await global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight);
 
     if (!blocks || !blocks.length) {

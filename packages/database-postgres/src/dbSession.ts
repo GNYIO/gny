@@ -315,7 +315,7 @@ export class DbSession {
     }
   }
 
-  public async rollbackChanges(height) {
+  public async rollbackChanges(height: number) {
     if (this.sessionSerial < height) {
       return this.sessionSerial;
     }
@@ -323,19 +323,30 @@ export class DbSession {
 
     this.log.trace('BEGIN rollbackChanges ( serial = ' + height + ' )');
     const rollbackSql = await this.trackerSqlBuilder.buildRollbackChangeSqls(height + 1);
-    const transaction = await this.connection.beginTrans();
+    // const transaction = await this.connection.beginTrans();
+
+    const queryRunner = await this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-       await this.connection.executeBatch(rollbackSql);
-       await transaction.commit();
-       this.entityTracker.rejectChanges();
-       await this.entityTracker.rollbackChanges(height + 1);
-       this.clearLocks();
-       this.sessionSerial = height;
-       this.log.trace('SUCCESS rollbackChanges (serial : ' + t + ' -> ' + this.sessionSerial + ')');
-       return this.sessionSerial;
+      for (let i = 0; i < rollbackSql.length; ++i) {
+        const one = rollbackSql[i];
+        queryRunner.query(one.query);
+      }
+
+      // await this.connection.executeBatch(rollbackSql);
+      await queryRunner.commitTransaction();
+
+      this.entityTracker.rejectChanges();
+      await this.entityTracker.rollbackChanges(height + 1);
+      this.clearLocks();
+      this.sessionSerial = height;
+      this.log.trace('SUCCESS rollbackChanges (serial : ' + t + ' -> ' + this.sessionSerial+ ')');
+      return this.sessionSerial;
     } catch (expectedCommand) {
        this.log.error('FAILD rollbackChanges (serial : ' + t + ' -> ' + this.sessionSerial + ')', expectedCommand);
-       await transaction.rollback();
+       await queryRunner.rollbackTransaction();
        throw expectedCommand;
     }
   }
