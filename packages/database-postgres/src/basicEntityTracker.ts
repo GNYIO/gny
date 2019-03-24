@@ -64,7 +64,7 @@ export class BasicEntityTracker {
 
   private async loadHistory(height: number, minHeight: number) {
     if (isFunction(this.doLoadHistory)) {
-      await this.doLoadHistory(height, minHeight);
+      return await this.doLoadHistory(height, minHeight);
     }
     return Promise.resolve(new Map<number, EntityChanges[]>());
   }
@@ -139,7 +139,8 @@ export class BasicEntityTracker {
   }
 
   public trackDelete(schema: ModelSchema, trackingEntity: ObjectLiteral) {
-    this.changesStack.push(this.buildDeleteChanges(schema, trackingEntity, trackingEntity._version_));
+    const changes = this.buildDeleteChanges(schema, trackingEntity, trackingEntity._version_);
+    this.changesStack.push(changes);
     this.cache.evit(schema.modelName, schema.getNormalizedPrimaryKey(trackingEntity));
   }
 
@@ -349,7 +350,7 @@ export class BasicEntityTracker {
     this.log.info('SUCCESS attachHistory size = ' + JSON.stringify(history ? history.size : 0));
   }
 
-  private getHistoryByVersion(item: number, option = false) {
+  public getHistoryByVersion(item: number, option = false) { // public for testing
     // !this.history.has(item) && isSelectionByClickEnabled && this.history.set(item, new Array);
     if (!this.history.has(item) && option) {
       this.history.set(item, []);
@@ -385,7 +386,7 @@ export class BasicEntityTracker {
     return result;
   }
 
-  private clearHistoryBefore(height) {
+  private clearHistoryBefore(height: number) {
     if (!(this.minVersion >= height || this.currentVersion < height)) {
       let index = this.minVersion;
       for (; index < height; index++) {

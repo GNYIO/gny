@@ -156,7 +156,7 @@ export interface IGenesisBlock {
     type: number;
     fee: number;
     timestamp: number;
-    senderid: string;
+    senderId: string;
     senderPublicKey: string;
     signatures: string[];
     message: string;
