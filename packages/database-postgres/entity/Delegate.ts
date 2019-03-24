@@ -7,7 +7,6 @@ export class Delegate {
   @PrimaryColumn({
     type: 'varchar',
     length: 50,
-    unique: true,
     nullable: false,
   })
   public address: string;
