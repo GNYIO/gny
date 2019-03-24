@@ -292,6 +292,20 @@ describe('orm - LRUEntityCache', () => {
     done();
   });
 
+  it('after clear() should exists return false', (done) => {
+    const data = createDelegate('a1300');
+    const key = {
+      address: data.address,
+    };
+
+    sut.put('Delegate', key, data);
+
+    expect(sut.exists('Delegate', key)).toEqual(true);
+    sut.clear();
+    expect(sut.exists('Delegate', key)).toEqual(false);
+    done();
+  });
+
   it('WARNING put() updating the data updates also the cached reference', (done) => {
     const data = createDelegate('liangpeili');
     data.producedBlocks = 5;
