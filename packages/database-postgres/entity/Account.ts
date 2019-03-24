@@ -9,7 +9,6 @@ export class Account {
     type: 'varchar',
     length: 50,
     nullable: false,
-    unique: true,
   })
   public address: string;
 
