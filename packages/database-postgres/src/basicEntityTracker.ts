@@ -259,6 +259,7 @@ export class BasicEntityTracker {
   }
 
   private undoEntityChanges(change: EntityChanges) {
+    // console.log(`undoEntityChanges: ${JSON.stringify(change, null, 2)}`);
     switch (change.type) {
       case enumerations.EntityChangeType.New:
         if (this.cache.get(change.model, change.primaryKey)) {

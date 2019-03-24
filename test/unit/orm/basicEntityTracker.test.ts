@@ -123,9 +123,7 @@ describe('orm - BasicEntityTracker', () => {
     sut = undefined;
   });
 
-  it.skip('creation', (done) => {
-    done();
-  });
+
   it('prop confirming - after creation is confirming -> false', (done) => {
     expect(sut.isConfirming).toEqual(false);
     done();
@@ -133,9 +131,6 @@ describe('orm - BasicEntityTracker', () => {
   it('prop confirming - after beginConfirm() is confirming -> true', (done) => {
     sut.beginConfirm();
     expect(sut.isConfirming).toEqual(true);
-    done();
-  });
-  it.skip('getHistoryByVersion', (done) => {
     done();
   });
   it('initVersion(height) loads changes from old blocks', async (done) => {
@@ -259,9 +254,6 @@ describe('orm - BasicEntityTracker', () => {
     const LOAD_UP_TO_HEIGHT = 5;
     customSut.initVersion(LOAD_UP_TO_HEIGHT);
     expect(mockOnLoadHistory).toBeCalledTimes(0);
-    done();
-  });
-  it.skip('getConfirmedChanges', (done) => {
     done();
   });
   it('trackNew("Account")', (done) => {
@@ -587,9 +579,6 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
-  it.skip('getConfirmedChanges', (done) => {
-    done();
-  });
   it.skip('getChangesUntil', (done) => {
     done();
   });
@@ -613,6 +602,307 @@ describe('orm - BasicEntityTracker', () => {
 
     expect(sut.getUnconfirmedChanges.length).toEqual(0);
 
+    done();
+  });
+  it('getTrackingEntity() by primary key', (done) => {
+    const data = {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      username: 'liangpeili',
+    };
+    const accountSchema = schemas.get('Account');
+    sut.trackNew(accountSchema, data);
+
+
+    const expected = {
+      _version_: 1,
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili',
+    };
+
+    const key = {
+      address: data.address,
+    };
+    expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
+    done();
+  });
+  it('getTrackingEntity() by unique constraint (unique column)', (done) => {
+    const data = {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      username: 'liangpeili',
+    };
+    const accountSchema = schemas.get('Account');
+    sut.trackNew(accountSchema, data);
+
+
+    const expected = {
+      _version_: 1,
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili',
+    };
+
+    const key = {
+      username: data.username,
+    };
+    expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
+    done();
+  });
+  it('getTrackingEntity() still works for cached entities after block is accepted', (done) => {
+    const data = {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      username: 'liangpeili',
+    };
+    const accountSchema = schemas.get('Account');
+    sut.trackNew(accountSchema, data);
+
+    // accept changes for block 0
+    sut.acceptChanges(0);
+
+    // is entity still tracked?
+    const expected = {
+      _version_: 1,
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili',
+    };
+
+    const key = {
+      address: data.address,
+    };
+    expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
+    done();
+  });
+  it('rejectChanges() rejects all unconfirmed changes', (done) => {
+    const data = {
+      address: 'GuGD9McasETcrw7tEcBfoz9UiYZs',
+      username: 'liangpeili',
+      gny: 0,
+    };
+    const accountSchema = schemas.get('Account');
+
+    sut.beginConfirm();
+
+    sut.trackNew(accountSchema, data);
+    expect(sut.getUnconfirmedChanges().length).toEqual(1);
+
+    sut.rejectChanges();
+    expect(sut.getUnconfirmedChanges().length).toEqual(0);
+    expect(sut.getConfirmedChanges().length).toEqual(0);
+    done();
+  });
+  it('rejectChanges() correctly sets isConfirming to false', (done) => {
+    expect(sut.isConfirming).toEqual(false);
+
+    sut.beginConfirm();
+    expect(sut.isConfirming).toEqual(true);
+
+    sut.rejectChanges();
+    expect(sut.isConfirming).toEqual(false);
+    done();
+  });
+  it('rejectChanges() correctly updates cache after trackNew()', (done) => {
+    const accountSchema = schemas.get('Account');
+    const data = {
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      username: 'liangpeili',
+      gny: 0,
+    };
+    const primaryKey = {
+      address: data.address,
+    };
+    const uniqueKey = {
+      username: data.username,
+    };
+
+    sut.beginConfirm();
+    sut.trackNew(accountSchema, data);
+
+    // before rejectChanges()
+    const expected = {
+      _version_: 1,
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili'
+    };
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expected);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expected);
+
+    // act
+    sut.rejectChanges();
+
+    // after rejectChanges()
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toBeUndefined();
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toBeUndefined();
+    done();
+  });
+  it('rejectChanges() correctly updates cache after trackModify()', (done) => {
+    const accountSchema = schemas.get('Account');
+    const data = {
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      username: 'liangpeili',
+      gny: 0,
+    };
+    const primaryKey = {
+      address: data.address,
+    };
+    const uniqueKey = {
+      username: data.username,
+    };
+
+    sut.beginConfirm();
+    const trackedDat = sut.trackNew(accountSchema, data);
+    sut.confirm();
+    sut.acceptChanges(0);
+
+    sut.beginConfirm();
+
+    // before trackModify
+    const expectedAfterNew = { // is the same as trackedDat
+      _version_: 1,
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili'
+    };
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expectedAfterNew);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expectedAfterNew);
+
+    // modify
+    sut.trackModify(accountSchema, trackedDat, { gny: 900000 });
+
+    // before rejectChanges()
+    const updatedData = {
+      _version_: 2, // changed
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      gny: 900000, // changed
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili'
+    };
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(updatedData);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(updatedData);
+
+    // act
+    sut.rejectChanges();
+
+    // after rejectChanges() (data should be like before the modify)
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expectedAfterNew);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expectedAfterNew);
+
+    done();
+  });
+  // test will fail because after the trackDelete() the cached entity is missing the _version_ property
+  it.skip('rejectChanges() correctly updates cache after trackDelete()', (done) => {
+    const accountSchema = schemas.get('Account');
+    const data = {
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      username: 'liangpeili',
+      gny: 0,
+    };
+    const primaryKey = {
+      address: data.address,
+    };
+    const uniqueKey = {
+      username: data.username,
+    };
+
+    sut.beginConfirm();
+    const trackedData = sut.trackNew(accountSchema, data);
+    sut.confirm();
+    sut.acceptChanges(0);
+
+    // check before delete
+    const expected = {
+      _version_: 1,
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      username: 'liangpeili'
+    };
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expected);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expected);
+
+    // trackDelete()
+    sut.beginConfirm();
+    sut.trackDelete(accountSchema, trackedData);
+
+    // now data should be not available in cache
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toBeUndefined();
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toBeUndefined();
+
+    // act
+    sut.rejectChanges();
+
+    // after rejectChanges() data should be available again
+    expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expected);
+    expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expected);
+    done();
+  });
+  it('rejectChanges() does not affect already saved block changes', (done) => {
+    sut.acceptChanges(0);
+    sut.acceptChanges(1);
+
+    sut.beginConfirm();
+    const accountSchema = schemas.get('Account');
+    const data = {
+      address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
+      username: 'liangpeili',
+      gny: 1000,
+    };
+    const trackedData = sut.trackNew(accountSchema, data);
+    sut.confirm();
+    sut.acceptChanges(2);
+
+    // test before
+    expect(sut.getHistoryByVersion(0).length).toEqual(0);
+    expect(sut.getHistoryByVersion(1).length).toEqual(0);
+    expect(sut.getHistoryByVersion(2).length).toEqual(1);
+
+    sut.beginConfirm();
+    sut.trackModify(accountSchema, trackedData, { gny: 2000 });
+    sut.rejectChanges();
+
+    expect(sut.isConfirming).toEqual(false);
+    expect(sut.getUnconfirmedChanges().length).toEqual(0);
+    expect(sut.getConfirmedChanges().length).toEqual(0);
+
+    // test after
+    expect(sut.getHistoryByVersion(0).length).toEqual(0);
+    expect(sut.getHistoryByVersion(1).length).toEqual(0);
+    expect(sut.getHistoryByVersion(2).length).toEqual(1);
+
+    done();
+  });
+  it.skip('rollbackChanges()', (done) => {
+    // sut.rollbackChanges()
+    done();
+  });
+  it.skip('automatically clear block-history after exceeding maxCachedBlocks', (done) => {
     done();
   });
 });
