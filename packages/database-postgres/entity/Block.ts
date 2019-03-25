@@ -6,25 +6,25 @@ export class Block {
   @PrimaryColumn({
     type: 'varchar',
     length: 64,
-    nullable: false,
+    nullable: false
   })
   public id: string;
 
   @PrimaryColumn({
     nullable: false,
-    type: 'bigint',
+    type: 'bigint'
   })
   public height: number;
 
   @Column({
     type: 'int',
-    nullable: false,
+    nullable: false
   })
   public version: number;
 
   @Column({
     nullable: false,
-    type: 'int',
+    type: 'int'
   })
   @Index()
   public timestamp: number;
@@ -32,53 +32,52 @@ export class Block {
   @Column({
     length: 64,
     nullable: true,
-    type: 'varchar',
+    type: 'varchar'
   })
   @Index()
   public prevBlockId?: any;
 
   @Column({
     nullable: false,
-    type: 'int',
+    type: 'int'
   })
   public count: number;
 
   @Column({
     nullable: false,
-    type: 'bigint',
+    type: 'bigint'
   })
   public fees: number;
 
   @Column({
     nullable: false,
-    type: 'bigint',
+    type: 'bigint'
   })
   public reward: number;
 
   @Column({
     length: 64,
     nullable: false,
-    type: 'varchar',
+    type: 'varchar'
   })
   public payloadHash: string;
 
   @Column({
     length: 64,
     nullable: false,
-    type: 'varchar',
+    type: 'varchar'
   })
   public delegate: string;
 
   @Column({
     length: 128,
     nullable: false,
-    type: 'varchar',
+    type: 'varchar'
   })
   public signature: string;
 
-  @OneToMany(type => Transaction,
-    transaction => transaction.height, {
-    cascade: ['remove'],
+  @OneToMany(type => Transaction, transaction => transaction.height, {
+    cascade: ['remove']
   })
   public transactions: Transaction[];
 }

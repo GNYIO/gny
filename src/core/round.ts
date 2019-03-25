@@ -14,21 +14,24 @@ export default class Round {
   }
 
   calculateRound(height: number) {
-    return Math.floor(height / slots.delegates) + (height % slots.delegates > 0 ? 1 : 0);
+    return (
+      Math.floor(height / slots.delegates) +
+      (height % slots.delegates > 0 ? 1 : 0)
+    );
   }
 
   // Events
   onBlockChainReady = () => {
     this.isloaded = true;
-  }
+  };
 
   onFinishRound = (round: any) => {
     this.library.network.io.sockets.emit('/round/change', { number: round });
-  }
+  };
 
-  cleanup = (cb) => {
+  cleanup = cb => {
     this.library.logger.debug('Cleaning up core/round');
     this.isloaded = false;
     cb();
-  }
+  };
 }

@@ -9,9 +9,9 @@ export default class Account {
     this.library = scope;
   }
 
-  public generateAddressByPublicKey = (publicKey) => {
+  public generateAddressByPublicKey = publicKey => {
     return addressHelper.generateAddress(publicKey);
-  }
+  };
 
   public getAccountByName = async (name: string) => {
     try {
@@ -22,10 +22,13 @@ export default class Account {
     } catch (err) {
       return 'Server Error';
     }
-  }
+  };
 
   public getAccount = async (address: string) => {
-    const schema = this.library.joi.string().address().required();
+    const schema = this.library.joi
+      .string()
+      .address()
+      .required();
     const report = this.library.joi.validate(address, schema);
     if (report.error) {
       return 'provided address is not a GNY address';
@@ -50,7 +53,7 @@ export default class Account {
           balance: account.gny,
           secondPublicKey: account.secondPublicKey,
           lockHeight: account.lockHeight || 0,
-          isDelegate: account.isDelegate,
+          isDelegate: account.isDelegate
         };
       }
       const latestBlock = this.modules.blocks.getLastBlock();
@@ -58,19 +61,19 @@ export default class Account {
         account: accountData,
         latestBlock: {
           height: latestBlock.height,
-          timestamp: latestBlock.timestamp,
+          timestamp: latestBlock.timestamp
         },
-        version: this.modules.peer.getVersion(),
+        version: this.modules.peer.getVersion()
       };
       return ret;
     } catch (e) {
       this.library.logger.error('Failed to get account', e);
       return 'Server Error';
     }
-  }
+  };
 
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 }

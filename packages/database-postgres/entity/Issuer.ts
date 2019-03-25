@@ -5,14 +5,14 @@ export class Issuer {
   @PrimaryColumn({
     length: 32,
     type: 'varchar',
-    nullable: false,
+    nullable: false
   })
   public name: string;
 
   @Column({
     length: 64,
     type: 'varchar',
-    unique: true,
+    unique: true
   })
   public tid: string;
 
@@ -20,14 +20,14 @@ export class Issuer {
     length: 50,
     type: 'varchar',
     unique: true,
-    nullable: false,
+    nullable: false
   })
   public issuerId: string;
 
   @Column({
     type: 'varchar',
     nullable: false,
-    length: 4096,
+    length: 4096
   })
   public desc: string;
 }

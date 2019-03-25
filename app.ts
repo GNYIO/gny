@@ -12,7 +12,6 @@ import { IConfig, IGenesisBlock } from './src/interfaces';
 const version = packageJson.version;
 
 function main() {
-
   process.stdin.resume();
 
   program
@@ -31,9 +30,7 @@ function main() {
 
   const baseDir = program.base || './';
   const seedPort = 81;
-  const seeds = [
-    757137132
-  ];
+  const seeds = [757137132];
   let appConfigFile: string;
   let genesisBlockFile: string;
 
@@ -68,7 +65,9 @@ function main() {
     genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisBlock: IGenesisBlock = JSON.parse(fs.readFileSync(genesisBlockFile, 'utf8'));
+  const genesisBlock: IGenesisBlock = JSON.parse(
+    fs.readFileSync(genesisBlockFile, 'utf8')
+  );
 
   if (program.port) {
     appConfig.port = program.port;
@@ -84,7 +83,7 @@ function main() {
         const parts = peer.split(':');
         return {
           ip: parts.shift(),
-          port: parts.shift() || appConfig.port,
+          port: parts.shift() || appConfig.port
         };
       });
     } else {
@@ -109,12 +108,11 @@ function main() {
     fs.writeFileSync(pidFile, process.pid, 'utf8');
   }
 
-
   const options = {
     appConfig,
     genesisBlock,
     logger,
-    pidFile,
+    pidFile
   };
 
   const application = new Application(options);
@@ -124,7 +122,6 @@ function main() {
     } catch (e) {
       console.log(e);
     }
-
   })();
 }
 

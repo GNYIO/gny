@@ -1,4 +1,3 @@
-
 function getCurrencyFlag(currency) {
   if (currency === 'GNY') {
     return 1;
@@ -25,14 +24,16 @@ export default class BalanceManager {
     const key = { address, currency };
     let item = await this.sdb.get('Balance', key);
     if (item) {
-      item.balance = new global.app.util.bignumber(item.balance).plus(amount).toString(10);
+      item.balance = new global.app.util.bignumber(item.balance)
+        .plus(amount)
+        .toString(10);
       await global.app.sdb.update('Balance', { balance: item.balance }, key);
     } else {
       item = await this.sdb.create('Balance', {
         address,
         currency,
         balance: amount,
-        flag: getCurrencyFlag(currency),
+        flag: getCurrencyFlag(currency)
       });
     }
   }

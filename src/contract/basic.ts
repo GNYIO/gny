@@ -3,13 +3,22 @@ async function deleteCreatedVotes(account) {
     voterAddress: string;
     delegate: string;
   }
-  const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: account.address } }) as Vote[];
+  const voteList = (await global.app.sdb.findAll('Vote', {
+    condition: { voterAddress: account.address }
+  })) as Vote[];
   if (voteList && voteList.length > 0 && account.lockAmount > 0) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
-      await global.app.sdb.increase('Delegate', { votes: -account.lockAmount }, { username: voteItem.delegate });
-      await global.app.sdb.del('Vote', { voterAddress: voteItem.voterAddress, delegate: voteItem.delegate });
+      await global.app.sdb.increase(
+        'Delegate',
+        { votes: -account.lockAmount },
+        { username: voteItem.delegate }
+      );
+      await global.app.sdb.del('Vote', {
+        voterAddress: voteItem.voterAddress,
+        delegate: voteItem.delegate
+      });
     }
   }
 }
@@ -35,27 +44,44 @@ export default {
     amount = Number(amount);
     const sender = this.sender;
     const senderId = sender.address;
-    if (this.block.height > 0 && sender.gny < amount) return 'Insufficient balance';
+    if (this.block.height > 0 && sender.gny < amount)
+      return 'Insufficient balance';
 
     let recipientAccount;
     // Validate recipient is valid address
     if (recipient && global.app.util.address.isAddress(recipient)) {
-      recipientAccount = await global.app.sdb.load('Account', {address: recipient});
+      recipientAccount = await global.app.sdb.load('Account', {
+        address: recipient
+      });
       if (recipientAccount) {
-        await global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
+        await global.app.sdb.increase(
+          'Account',
+          { gny: amount },
+          { address: recipientAccount.address }
+        );
       } else {
         recipientAccount = await global.app.sdb.create('Account', {
           address: recipient,
           gny: amount,
-          username: null,
+          username: null
         });
       }
     } else {
-      recipientAccount = await global.app.sdb.load('Account', { username: recipient });
+      recipientAccount = await global.app.sdb.load('Account', {
+        username: recipient
+      });
       if (!recipientAccount) return 'Recipient name not exist';
-      await global.app.sdb.increase('Account', { gny: amount }, { address: recipientAccount.address });
+      await global.app.sdb.increase(
+        'Account',
+        { gny: amount },
+        { address: recipientAccount.address }
+      );
     }
-    await global.app.sdb.increase('Account', { gny: -amount }, { address: sender.address });
+    await global.app.sdb.increase(
+      'Account',
+      { gny: -amount },
+      { address: sender.address }
+    );
 
     await global.app.sdb.create('Transfer', {
       tid: this.trs.id,
@@ -65,7 +91,7 @@ export default {
       recipientName: recipientAccount.username,
       currency: 'gny',
       amount: String(amount),
-      timestamp: this.trs.timestamp,
+      timestamp: this.trs.timestamp
     });
     return null;
   },
@@ -76,12 +102,16 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const exists = await global.app.sdb.load('Account', { username: username});
+    const exists = await global.app.sdb.load('Account', { username: username });
 
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
     this.sender.username = username;
-    await global.app.sdb.update('Account', { username }, { address: this.sender.address });
+    await global.app.sdb.update(
+      'Account',
+      { username },
+      { address: this.sender.address }
+    );
 
     return null;
   },
@@ -96,12 +126,17 @@ export default {
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (this.sender.secondPublicKey) return 'Password already set';
     this.sender.secondPublicKey = publicKey;
-    await global.app.sdb.update('Account', { secondPublicKey: publicKey }, { address: this.sender.address });
+    await global.app.sdb.update(
+      'Account',
+      { secondPublicKey: publicKey },
+      { address: this.sender.address }
+    );
     return null;
   },
 
   async lock(height, amount) {
-    if (!Number.isInteger(height) || height <= 0) return 'Height should be positive integer';
+    if (!Number.isInteger(height) || height <= 0)
+      return 'Height should be positive integer';
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
 
     height = Number(height);
@@ -115,8 +150,11 @@ export default {
     const sender = this.sender;
     if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
-      if (height !== 0
-        && height < (Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT)) {
+      if (
+        height !== 0 &&
+        height <
+          Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
+      ) {
         return 'Invalid lock height';
       }
       if (height === 0 && amount === 0) {
@@ -140,12 +178,20 @@ export default {
     if (amount !== 0) {
       sender.gny -= amount;
       sender.lockAmount += amount;
-      await global.app.sdb.update('Account', sender, { address: sender.address });
+      await global.app.sdb.update('Account', sender, {
+        address: sender.address
+      });
 
-      const voteList = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
+      const voteList = await global.app.sdb.findAll('Vote', {
+        condition: { voterAddress: senderId }
+      });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
-          await global.app.sdb.increase('Delegate', { votes: amount }, { username: voteItem.delegate });
+          await global.app.sdb.increase(
+            'Delegate',
+            { votes: amount },
+            { username: voteItem.delegate }
+          );
         }
       }
     }
@@ -175,7 +221,8 @@ export default {
 
   async registerDelegate() {
     const senderId = this.sender.address;
-    if (this.block.height > 0) await global.app.sdb.lock(`basic.account@${senderId}`);
+    if (this.block.height > 0)
+      await global.app.sdb.lock(`basic.account@${senderId}`);
     const sender = this.sender;
     if (!sender) return 'Account not found';
     if (!sender.username) return 'Account has not a name';
@@ -190,10 +237,14 @@ export default {
       producedBlocks: 0,
       missedBlocks: 0,
       fees: 0,
-      rewards: 0,
+      rewards: 0
     });
     sender.isDelegate = 1;
-    await global.app.sdb.update('Account', { isDelegate: 1 }, { address: senderId });
+    await global.app.sdb.update(
+      'Account',
+      { isDelegate: 1 },
+      { address: senderId }
+    );
 
     return null;
   },
@@ -210,7 +261,9 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', {
+      condition: { voterAddress: senderId }
+    });
     if (currentVotes) {
       if (currentVotes.length + delegates.length > 101) {
         return 'Maximum number of votes exceeded';
@@ -232,11 +285,11 @@ export default {
     }
 
     for (const username of delegates) {
-      const votes = (sender.lockAmount);
+      const votes = sender.lockAmount;
       await global.app.sdb.increase('Delegate', { votes }, { username });
       await global.app.sdb.create('Vote', {
         voterAddress: senderId,
-        delegate: username,
+        delegate: username
       });
     }
     return null;
@@ -254,7 +307,9 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', { condition: { voterAddress: senderId } });
+    const currentVotes = await global.app.sdb.findAll('Vote', {
+      condition: { voterAddress: senderId }
+    });
     if (currentVotes) {
       const currentVotedDelegates = new Set();
       for (const v of currentVotes) {
@@ -273,11 +328,14 @@ export default {
     }
 
     for (const username of delegates) {
-      const votes = -(sender.lockAmount);
+      const votes = -sender.lockAmount;
       await global.app.sdb.increase('Delegate', { votes }, { username });
 
-      await global.app.sdb.del('Vote', { voterAddress: senderId, delegate: username });
+      await global.app.sdb.del('Vote', {
+        voterAddress: senderId,
+        delegate: username
+      });
     }
     return null;
-  },
+  }
 };

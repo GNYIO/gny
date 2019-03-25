@@ -10,7 +10,7 @@ export class Asset {
 
   @PrimaryColumn({
     type: 'varchar',
-    length: 50,
+    length: 50
   })
   public name: string;
 
@@ -18,45 +18,45 @@ export class Asset {
     length: 64,
     type: 'varchar',
     nullable: false,
-    unique: true,
+    unique: true
   })
   public tid: string;
 
   @Column({
     type: 'bigint',
-    nullable: false,
+    nullable: false
   })
   @Index()
   public timestamp: number;
 
   @Column({
     type: 'bigint',
-    nullable: false,
+    nullable: false
   })
   @Index()
   public maximum: number;
 
   @Column({
     type: Number,
-    nullable: false,
+    nullable: false
   })
   public precision: number;
 
   @Column({
     type: 'bigint',
-    nullable: false,
+    nullable: false
   })
   public quantity: number;
 
   @Column({
-    type: 'text',
+    type: 'text'
   })
   public desc: string;
 
   @Column({
     length: 50,
     type: 'varchar',
-    nullable: false,
+    nullable: false
   })
   public issuerId: string;
 }

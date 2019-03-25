@@ -1,4 +1,3 @@
-
 import BlocksApi from '../packages/http/api/blocksApi';
 import AccountsApi from '../packages/http/api/accountsApi';
 import DelegatesApi from '../packages/http/api/delegatesApi';
@@ -33,6 +32,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     transportApi,
     uiaApi,
     transfersApi,
-    loaderApi,
+    loaderApi
   };
 }

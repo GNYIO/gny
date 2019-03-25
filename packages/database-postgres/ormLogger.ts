@@ -1,4 +1,3 @@
-
 import { ILogger } from '../../src/interfaces';
 import { Logger, QueryRunner } from 'typeorm';
 
@@ -14,11 +13,29 @@ export class OrmLogger implements Logger {
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
     // commented out, output is too big
   }
-  logQueryError(error: string, query: string, parameters?: any[], queryRunner?: QueryRunner) {
-    this.logger.log(`[SmartDB-logQueryError] error: ${error}; query: ${query}; parameters: ${parameters && parameters.length > 0 ? JSON.stringify(parameters) : ''};`);
+  logQueryError(
+    error: string,
+    query: string,
+    parameters?: any[],
+    queryRunner?: QueryRunner
+  ) {
+    this.logger.log(
+      `[SmartDB-logQueryError] error: ${error}; query: ${query}; parameters: ${
+        parameters && parameters.length > 0 ? JSON.stringify(parameters) : ''
+      };`
+    );
   }
-  logQuerySlow(time: number, query: string, parameters?: any[], queryRunner?: QueryRunner) {
-    this.logger.log(`[SmartDB-logQuerySlow] time: ${time}; query: ${query}; parameters: ${parameters && parameters.length ? JSON.stringify(parameters) : ''}`);
+  logQuerySlow(
+    time: number,
+    query: string,
+    parameters?: any[],
+    queryRunner?: QueryRunner
+  ) {
+    this.logger.log(
+      `[SmartDB-logQuerySlow] time: ${time}; query: ${query}; parameters: ${
+        parameters && parameters.length ? JSON.stringify(parameters) : ''
+      }`
+    );
   }
   logSchemaBuild(message: string, queryRunner?: QueryRunner) {
     this.logger.log(`[SmartDB-logSchemaBuild] message: ${message};`);

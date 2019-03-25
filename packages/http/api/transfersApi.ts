@@ -4,10 +4,9 @@ import { IScope, Next } from '../../../src/interfaces';
 import { In } from 'typeorm';
 
 export default class TransfersApi {
-
   private library: IScope;
   private loaded = false;
-  constructor (library: IScope) {
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
@@ -15,21 +14,25 @@ export default class TransfersApi {
   // Events
   public onBlockchainReady = () => {
     this.loaded = true;
-  }
+  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
       if (this.loaded === true) return next();
-      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'Blockchain is loading' });
     });
 
     router.get('/', this.getRoot);
     router.get('/amount', this.getAmount);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).send({ success: false, error: 'API endpoint not found' });
+      return res
+        .status(500)
+        .send({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/api/transfers', router);
@@ -38,10 +41,9 @@ export default class TransfersApi {
       this.library.logger.error(req.url, err.toString());
       return res.status(500).send({ success: false, error: err.toString() });
     });
-  }
+  };
 
   private getRoot = async (req: Request, res: Response, next: Next) => {
-
     const condition: any = {};
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
@@ -50,7 +52,7 @@ export default class TransfersApi {
     if (ownerId) {
       condition.$or = {
         senderId: ownerId,
-        recipientId: ownerId,
+        recipientId: ownerId
       };
     }
     if (currency) {
@@ -69,7 +71,7 @@ export default class TransfersApi {
         condition,
         limit,
         offset,
-        sort: { timestamp: -1 },
+        sort: { timestamp: -1 }
       });
       const assetNames = new Set<string>();
       for (const t of transfers) {
@@ -96,7 +98,7 @@ export default class TransfersApi {
       }
     }
     return res.json({ count, transfers });
-  }
+  };
 
   private getAmount = async (req: Request, res: Response, next: Next) => {
     const startTimestamp = req.query.startTimestamp;
@@ -112,7 +114,7 @@ export default class TransfersApi {
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,
-        sort: { timestamp: -1 },
+        sort: { timestamp: -1 }
       });
       const assetNames = new Set<string>();
       for (const t of transfers) {
@@ -142,9 +144,7 @@ export default class TransfersApi {
     }
     const strTotalAmount = String(totalAmount);
     return res.json({ count, strTotalAmount });
-  }
-
-
+  };
 
   // helper function
   private getAssetMap = async (assetNames: Set<string>) => {
@@ -155,27 +155,27 @@ export default class TransfersApi {
     if (uiaNameList && uiaNameList.length) {
       const assets = await global.app.sdb.findAll('Asset', {
         condition: {
-          name: In(uiaNameList),
-        },
+          name: In(uiaNameList)
+        }
       });
       for (const a of assets) {
         assetMap.set(a.name, a);
       }
     }
     return assetMap;
-  }
+  };
 
   // helper function
-  private getTransactionMap = async (tids) => {
+  private getTransactionMap = async tids => {
     const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
-        id: In(tids),
-      },
+        id: In(tids)
+      }
     });
     for (const t of trs) {
       trsMap.set(t.id, t);
     }
     return trsMap;
-  }
+  };
 }

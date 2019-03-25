@@ -24,16 +24,16 @@ export default class Transactions {
 
   clearUnconfirmed = () => this.pool.clear();
 
-  getUnconfirmedTransactions = (cb) => setImmediate(
-    cb, null,
-    { transactions: this.getUnconfirmedTransactionList() },
-  )
+  getUnconfirmedTransactions = cb =>
+    setImmediate(cb, null, {
+      transactions: this.getUnconfirmedTransactionList()
+    });
 
   getTransactions = (req, cb) => {
     const query = req.body;
     const limit = query.limit ? Number(query.limit) : 100;
     const offset = query.offset ? Number(query.offset) : 0;
-    const condition: { senderId?: any; type?: any; } = {};
+    const condition: { senderId?: any; type?: any } = {};
     if (query.senderId) {
       condition.senderId = query.senderId;
     }
@@ -44,7 +44,10 @@ export default class Transactions {
     (async () => {
       try {
         const count = await global.app.sdb.count('Transaction', condition);
-        let transactions = await global.app.sdb.find('Transaction', condition, { limit: limit, offset: offset });
+        let transactions = await global.app.sdb.find('Transaction', condition, {
+          limit: limit,
+          offset: offset
+        });
         if (!transactions) transactions = [];
         return cb(null, { transactions, count });
       } catch (e) {
@@ -52,27 +55,27 @@ export default class Transactions {
         return cb(`System error: ${e}`);
       }
     })();
-  }
+  };
 
   getTransaction = (req, cb) => {
     (async () => {
       try {
         if (!req.params || !req.params.id) return cb('Invalid transaction id');
         const id = req.params.id;
-        const trs = await global.app.sdb.find('Transaction', { 'id': id });
+        const trs = await global.app.sdb.find('Transaction', { id: id });
         if (!trs || !trs.length) return cb('Transaction not found');
         return cb(null, { transaction: trs[0] });
       } catch (e) {
         return cb(`System error: ${e}`);
       }
     })();
-  }
+  };
 
-  applyTransactionsAsync = async (transactions) => {
+  applyTransactionsAsync = async transactions => {
     for (let i = 0; i < transactions.length; ++i) {
       await this.applyUnconfirmedTransactionAsync(transactions[i]);
     }
-  }
+  };
 
   processUnconfirmedTransactions = (transactions, cb) => {
     (async () => {
@@ -85,13 +88,13 @@ export default class Transactions {
         cb(e.toString(), transactions);
       }
     })();
-  }
+  };
 
-  processUnconfirmedTransactionsAsync = async (transactions) => {
+  processUnconfirmedTransactionsAsync = async transactions => {
     for (const transaction of transactions) {
       await this.processUnconfirmedTransactionAsync(transaction);
     }
-  }
+  };
 
   processUnconfirmedTransaction = (transaction, cb) => {
     (async () => {
@@ -102,9 +105,9 @@ export default class Transactions {
         cb(e.toString(), transaction);
       }
     })();
-  }
+  };
 
-  processUnconfirmedTransactionAsync = async (transaction) => {
+  processUnconfirmedTransactionAsync = async transaction => {
     try {
       if (!transaction.id) {
         transaction.id = this.library.base.transaction.getId(transaction);
@@ -125,7 +128,9 @@ export default class Transactions {
       if (this.pool.has(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
-      const exists = await global.app.sdb.exists('Transaction', { id: transaction.id });
+      const exists = await global.app.sdb.exists('Transaction', {
+        id: transaction.id
+      });
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
@@ -136,40 +141,41 @@ export default class Transactions {
       this.failedTrsCache.set(transaction.id, true);
       throw e;
     }
-  }
+  };
 
-  applyUnconfirmedTransactionAsync = async (transaction) => {
+  applyUnconfirmedTransactionAsync = async transaction => {
     this.library.logger.debug('apply unconfirmed trs', transaction);
 
     const height = await this.modules.blocks.getLastBlock().height;
     const block = {
-      height: height + 1,
+      height: height + 1
     };
 
     const senderId = transaction.senderId;
     if (!senderId) {
       throw new Error('Missing sender address');
     }
-    if (global.app.util.address.isAddress(senderId)
-      && !transaction.senderPublicKey) {
+    if (
+      global.app.util.address.isAddress(senderId) &&
+      !transaction.senderPublicKey
+    ) {
       throw new Error('Sender public key not provided');
     }
 
-
-    let sender = await global.app.sdb.load('Account', {address: senderId});
+    let sender = await global.app.sdb.load('Account', { address: senderId });
     if (!sender) {
       if (height > 0) throw new Error('Sender account not found');
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: 0,
+        gny: 0
       });
     }
 
     const context = {
       trs: transaction,
       block,
-      sender,
+      sender
     };
     if (height > 0) {
       const error = await this.library.base.transaction.verify(context);
@@ -187,10 +193,10 @@ export default class Transactions {
       this.library.logger.error(e);
       throw e;
     }
-  }
+  };
 
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 }

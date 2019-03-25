@@ -16,7 +16,7 @@ export default class TransportApi {
       os: osInfo.getOS(),
       version: osInfo.getVersion(),
       port: osInfo.getPort(),
-      magic: osInfo.getMagic(),
+      magic: osInfo.getMagic()
     };
     this.attachApi();
   }
@@ -24,7 +24,7 @@ export default class TransportApi {
   // Events
   public onBlockchainReady = () => {
     this.loaded = true;
-  }
+  };
 
   private attachApi = () => {
     const router = express.Router();
@@ -35,7 +35,9 @@ export default class TransportApi {
         return res.json({ success: false, error: 'Blockchain is loading' });
       }
       if (this.modules.loader.syncing()) {
-        return res.status(500).json({ success: false, error: 'Blockchain is syncing' });
+        return res
+          .status(500)
+          .json({ success: false, error: 'Blockchain is syncing' });
       }
 
       res.set(this.headers);
@@ -45,7 +47,7 @@ export default class TransportApi {
           success: false,
           error: 'Request is made on the wrong network',
           expected: this.library.config.magic,
-          received: req.headers.magic,
+          received: req.headers.magic
         });
       }
       return next();
@@ -60,17 +62,21 @@ export default class TransportApi {
     router.post('/getHeight', this.getHeight);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).json({ success: false, error: 'API endpoint not found' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/peer', router);
 
-    this.library.network.app.use((err: string, req: Request, res: Response, next) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).json({ success: false, error: err.toString() });
-    });
-  }
+    this.library.network.app.use(
+      (err: string, req: Request, res: Response, next) => {
+        if (!err) return next();
+        this.library.logger.error(req.url, err.toString());
+        return res.status(500).json({ success: false, error: err.toString() });
+      }
+    );
+  };
 
   // POST
   public newBlock = (req: Request, res: Response, next: Next) => {
@@ -82,8 +88,12 @@ export default class TransportApi {
     if (!newBlock) {
       return next('New block not found');
     }
-    return res.json({ success: true, block: newBlock.block, votes: newBlock.votes });
-  }
+    return res.json({
+      success: true,
+      block: newBlock.block,
+      votes: newBlock.votes
+    });
+  };
 
   // POST
   private commonBlock = async (req: Request, res: Response, next: Next) => {
@@ -96,7 +106,7 @@ export default class TransportApi {
     try {
       let blocks = await global.app.sdb.getBlocksByHeightRange(min, max);
       if (!blocks || !blocks.length) {
-        return  next('Blocks not found');
+        return next('Blocks not found');
       }
       blocks = blocks.reverse();
       let commonBlock = null;
@@ -114,7 +124,7 @@ export default class TransportApi {
       global.app.logger.error(`Failed to find common block: ${e}`);
       return next('Failed to find common block');
     }
-  }
+  };
 
   // POST
   private blocks = async (req: Request, res: Response, next: Next) => {
@@ -132,14 +142,18 @@ export default class TransportApi {
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
 
       const minHeight = Number(lastBlock.height) + 1;
-      const maxHeight = (minHeight + blocksLimit) - 1;
-      const blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, true);
+      const maxHeight = minHeight + blocksLimit - 1;
+      const blocks = await this.modules.blocks.getBlocks(
+        minHeight,
+        maxHeight,
+        true
+      );
       return res.json({ blocks });
     } catch (e) {
       global.app.logger.error('Failed to get blocks or transactions', e);
       return res.json({ blocks: [] });
     }
-  }
+  };
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
@@ -149,49 +163,78 @@ export default class TransportApi {
       this.library.logger.error('Blockchain is not ready', {
         getNextSlot: slots.getNextSlot(),
         lastSlot,
-        lastBlockHeight: lastBlock.height,
+        lastBlockHeight: lastBlock.height
       });
       return next('Blockchain is not ready');
     }
     let transaction: any;
     try {
-      transaction = this.library.base.transaction.objectNormalize(req.body.transaction);
+      transaction = this.library.base.transaction.objectNormalize(
+        req.body.transaction
+      );
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         raw: req.body,
         trs: transaction,
-        error: e.toString(),
+        error: e.toString()
       });
       return next('Invalid transaction body');
     }
 
-    const finished = (err) => {
+    const finished = err => {
       if (err) {
-        this.library.logger.warn(`Receive invalid transaction ${transaction.id}`, err);
+        this.library.logger.warn(
+          `Receive invalid transaction ${transaction.id}`,
+          err
+        );
         const errMsg = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
         this.library.bus.message('unconfirmedTransaction', transaction);
-        return res.status(200).json({ success: true, transactionId: transaction.id });
+        return res
+          .status(200)
+          .json({ success: true, transactionId: transaction.id });
       }
     };
 
-    return this.library.sequence.add((cb) => {
-      this.library.logger.info(`Received transaction ${transaction.id} from http client`);
-      this.modules.transactions.processUnconfirmedTransaction(transaction, cb);
-    }, undefined, finished);
-  }
+    return this.library.sequence.add(
+      cb => {
+        this.library.logger.info(
+          `Received transaction ${transaction.id} from http client`
+        );
+        this.modules.transactions.processUnconfirmedTransaction(
+          transaction,
+          cb
+        );
+      },
+      undefined,
+      finished
+    );
+  };
 
   // POST
   private votes = (req: Request, res: Response, next: Next) => {
     const votes = req.body.votes;
     const schema = this.library.joi.object().keys({
-      height: this.library.joi.number().integer().min(0).required(),
-      id: this.library.joi.string().length(64).required(),
-      signatures: this.library.joi.array().items({
-        publicKey: this.library.joi.string().publicKey().required(),
-        signature: this.library.joi.string().required(),
-      }).required(),
+      height: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      id: this.library.joi
+        .string()
+        .length(64)
+        .required(),
+      signatures: this.library.joi
+        .array()
+        .items({
+          publicKey: this.library.joi
+            .string()
+            .publicKey()
+            .required(),
+          signature: this.library.joi.string().required()
+        })
+        .required()
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
@@ -200,20 +243,19 @@ export default class TransportApi {
 
     this.library.bus.message('receiveVotes', req.body.votes as ManyVotes);
     res.json({});
-  }
+  };
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
-    return res.json({ transactions: this.modules.transactions.getUnconfirmedTransactionList() });
-  }
+    return res.json({
+      transactions: this.modules.transactions.getUnconfirmedTransactionList()
+    });
+  };
 
   // POST
   private getHeight = (req: Request, res: Response) => {
     return res.json({
-      height: this.modules.blocks.getLastBlock().height,
+      height: this.modules.blocks.getLastBlock().height
     });
-  }
-
-
-
+  };
 }

@@ -2,12 +2,11 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Account {
-
   @PrimaryColumn({
     type: 'varchar',
     length: 50,
     nullable: false,
-    unique: true,
+    unique: true
   })
   public address: string;
 
@@ -15,51 +14,51 @@ export class Account {
     length: 30,
     type: 'varchar',
     nullable: true,
-    unique: true,
+    unique: true
   })
   public username: string;
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'bigint'
   })
   public gny: number;
 
   @Column({
     length: 64,
     type: String,
-    nullable: true,
+    nullable: true
   })
   public publicKey: string;
 
   @Column({
     length: 64,
     type: String,
-    nullable: true,
+    nullable: true
   })
   public secondPublicKey: string;
 
   @Column({
     default: 0,
-    type: Number,
+    type: Number
   })
   public isDelegate: number;
 
   @Column({
     default: 0,
-    type: Number,
+    type: Number
   })
   public isLocked: number;
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'bigint'
   })
   public lockHeight: number;
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'bigint'
   })
   public lockAmount: number;
 }

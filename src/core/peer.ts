@@ -2,7 +2,10 @@ import * as _ from 'lodash';
 import axios from 'axios';
 import * as Database from 'nedb';
 import * as fs from 'fs';
-import { createPeerInfoArgs, createFromJSON, } from '../../packages/p2p/createPeerInfo';
+import {
+  createPeerInfoArgs,
+  createFromJSON
+} from '../../packages/p2p/createPeerInfo';
 import { Peer2Peer } from '../../packages/p2p/index';
 import { Modules, IScope, PeerNode } from '../interfaces';
 
@@ -12,27 +15,35 @@ export default class Peer {
   private nodesDb: Database = undefined;
 
   public p2p: Peer2Peer;
-  constructor (scope: IScope) {
+  constructor(scope: IScope) {
     this.library = scope;
   }
 
   public findSeenNodesInDb = (callback: any) => {
-    this.nodesDb.find({ seen: { $exists: true } }).sort({ seen: -1 }).exec(callback);
-  }
+    this.nodesDb
+      .find({ seen: { $exists: true } })
+      .sort({ seen: -1 })
+      .exec(callback);
+  };
 
   public getVersion = () => ({
     version: this.library.config.version,
     build: this.library.config.buildVersion,
-    net: this.library.config.netVersion,
-  })
+    net: this.library.config.netVersion
+  });
 
-  public request = async (endpoint: string, body: any, contact: PeerNode, timeout?: number) => {
+  public request = async (
+    endpoint: string,
+    body: any,
+    contact: PeerNode,
+    timeout?: number
+  ) => {
     const address = `${contact.host}:${contact.port - 1}`;
     const uri = `http://${address}/peer/${endpoint}`;
     this.library.logger.debug(`start to request ${uri}`);
     const headers = {
       magic: global.Config.magic,
-      version: global.Config.version,
+      version: global.Config.version
     };
 
     let result;
@@ -44,14 +55,18 @@ export default class Peer {
       };
       result = await axios.post(uri, body, config);
       if (result.status !== 200) {
-        throw new Error(`Invalid status code: ${result.statusCode}, error: ${result.data}`);
+        throw new Error(
+          `Invalid status code: ${result.statusCode}, error: ${result.data}`
+        );
       }
       return result.data;
     } catch (err) {
-      this.library.logger.error(`Failed to request remote peer: ${err.message}`);
+      this.library.logger.error(
+        `Failed to request remote peer: ${err.message}`
+      );
       throw err;
     }
-  }
+  };
 
   public randomRequestAsync = async (method: string, params: any) => {
     const randomNode = this.p2p.getRandomNode();
@@ -61,29 +76,33 @@ export default class Peer {
       const result = await this.request(method, params, randomNode, 4000);
       return {
         data: result,
-        node: randomNode,
+        node: randomNode
       };
     } catch (err) {
       throw err;
     }
-  }
+  };
 
   private preparePeerInfo = async () => {
-    let KEY = fs.readFileSync(this.library.config.peers.p2pKeyFile, { encoding: 'utf8' });
+    let KEY = fs.readFileSync(this.library.config.peers.p2pKeyFile, {
+      encoding: 'utf8'
+    });
     KEY = JSON.parse(KEY);
 
     const peerId = await createFromJSON(KEY);
     const peerInfo = await createPeerInfoArgs(peerId);
 
-    const multi = `/ip4/${this.library.config.publicIp}/tcp/${this.library.config.peerPort}`;
+    const multi = `/ip4/${this.library.config.publicIp}/tcp/${
+      this.library.config.peerPort
+    }`;
     peerInfo.multiaddrs.add(multi);
     return peerInfo;
-  }
+  };
 
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 
   onBlockchainReady = async () => {
     const peerInfo = await this.preparePeerInfo();
@@ -92,17 +111,20 @@ export default class Peer {
     this.p2p = new Peer2Peer(
       global.app.logger,
       peerInfo,
-      this.library.config.peers.bootstrap,
+      this.library.config.peers.bootstrap
     );
-    this.p2p.startAsync().then(() => {
-      this.library.bus.message('peerReady');
-    }).catch((err) => {
-      this.library.logger.error('Failed to init dht', err);
-    });
-  }
+    this.p2p
+      .startAsync()
+      .then(() => {
+        this.library.bus.message('peerReady');
+      })
+      .catch(err => {
+        this.library.logger.error('Failed to init dht', err);
+      });
+  };
 
-  cleanup = (cb) => {
+  cleanup = cb => {
     this.p2p.stop(cb);
     this.library.logger.debug('Cleaning up core/peer');
-  }
+  };
 }
