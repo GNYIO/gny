@@ -172,7 +172,7 @@ export class Block {
         .number()
         .integer()
         .min(0)
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(block, schema);
     if (report.error) {

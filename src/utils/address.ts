@@ -3,7 +3,7 @@ import * as bs58 from 'bs58';
 
 export default {
   generateAddress,
-  isAddress
+  isAddress,
 };
 
 export function generateAddress(publicKey: string) {

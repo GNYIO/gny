@@ -52,7 +52,7 @@ export default class TransfersApi {
     if (ownerId) {
       condition.$or = {
         senderId: ownerId,
-        recipientId: ownerId
+        recipientId: ownerId,
       };
     }
     if (currency) {
@@ -71,7 +71,7 @@ export default class TransfersApi {
         condition,
         limit,
         offset,
-        sort: { timestamp: -1 }
+        sort: { timestamp: -1 },
       });
       const assetNames = new Set<string>();
       for (const t of transfers) {
@@ -114,7 +114,7 @@ export default class TransfersApi {
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,
-        sort: { timestamp: -1 }
+        sort: { timestamp: -1 },
       });
       const assetNames = new Set<string>();
       for (const t of transfers) {
@@ -155,8 +155,8 @@ export default class TransfersApi {
     if (uiaNameList && uiaNameList.length) {
       const assets = await global.app.sdb.findAll('Asset', {
         condition: {
-          name: In(uiaNameList)
-        }
+          name: In(uiaNameList),
+        },
       });
       for (const a of assets) {
         assetMap.set(a.name, a);
@@ -170,8 +170,8 @@ export default class TransfersApi {
     const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
-        id: In(tids)
-      }
+        id: In(tids),
+      },
     });
     for (const t of trs) {
       trsMap.set(t.id, t);

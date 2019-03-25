@@ -30,7 +30,7 @@ const stringExtensions: Joi.Extension = {
     asset: 'is not a valid GNY asset name',
     signature: 'is not a valid GNY signature',
     hex: 'is not a hex string{{q}}',
-    ipv4PlusPort: 'is not a ipv4:port'
+    ipv4PlusPort: 'is not a ipv4:port',
   },
   rules: [
     {
@@ -54,7 +54,7 @@ const stringExtensions: Joi.Extension = {
             options
           );
         }
-      }
+      },
     },
     {
       name: 'secret',
@@ -68,7 +68,7 @@ const stringExtensions: Joi.Extension = {
             options
           );
         return value;
-      }
+      },
     },
     {
       name: 'address',
@@ -83,7 +83,7 @@ const stringExtensions: Joi.Extension = {
           );
         }
         return value;
-      }
+      },
     },
     {
       name: 'username',
@@ -97,7 +97,7 @@ const stringExtensions: Joi.Extension = {
             options
           );
         return value;
-      }
+      },
     },
     {
       name: 'issuer',
@@ -111,7 +111,7 @@ const stringExtensions: Joi.Extension = {
             options
           );
         return value;
-      }
+      },
     },
     {
       name: 'asset',
@@ -120,7 +120,7 @@ const stringExtensions: Joi.Extension = {
         if (!regname.test(value))
           return this.createError('string.asset', { v: value }, state, options);
         return value;
-      }
+      },
     },
     {
       name: 'signature',
@@ -152,12 +152,12 @@ const stringExtensions: Joi.Extension = {
             options
           );
         }
-      }
+      },
     },
     {
       name: 'hex',
       params: {
-        bufferLength: Joi.number()
+        bufferLength: Joi.number(),
       },
       validate(params, value, state, options) {
         let b;
@@ -192,7 +192,7 @@ const stringExtensions: Joi.Extension = {
           state,
           options
         );
-      }
+      },
     },
     {
       name: 'ipv4PlusPort',
@@ -206,9 +206,9 @@ const stringExtensions: Joi.Extension = {
             options
           );
         return value;
-      }
-    }
-  ]
+      },
+    },
+  ],
 };
 
 const newJoi: ExtendedJoi = Joi.extend(stringExtensions);

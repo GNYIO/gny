@@ -33,7 +33,7 @@ export default class BalanceManager {
         address,
         currency,
         balance: amount,
-        flag: getCurrencyFlag(currency)
+        flag: getCurrencyFlag(currency),
       });
     }
   }

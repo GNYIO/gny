@@ -56,7 +56,7 @@ export default class UiaApi {
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0)
+      offset: this.library.joi.number().min(0),
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
@@ -65,7 +65,7 @@ export default class UiaApi {
     try {
       const limitAndOffset = {
         limit: query.limit || 100,
-        offset: query.offset || 0
+        offset: query.offset || 0,
       };
       const count = await global.app.sdb.count('Issuer', {});
       const issues = await global.app.sdb.find('Issuer', {}, limitAndOffset);
@@ -80,8 +80,8 @@ export default class UiaApi {
     const nameMustBeNameOrAddress = this.library.joi.object().keys({
       name: [
         this.library.joi.string().issuer(),
-        this.library.joi.string().address()
-      ]
+        this.library.joi.string().address(),
+      ],
     });
     const report = this.library.joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
@@ -92,7 +92,7 @@ export default class UiaApi {
     try {
       if (addressHelper.isAddress(name)) {
         const issuer = await global.app.sdb.findOne('Issuer', {
-          condition: { issuerId: name }
+          condition: { issuerId: name },
         });
         if (!issuer) {
           return next('Issuer not found');
@@ -100,7 +100,7 @@ export default class UiaApi {
         return res.json({ issuer });
       } else {
         const issuers = await global.app.sdb.find('Issuer', {
-          name: req.params.name
+          name: req.params.name,
         });
         if (!issuers || issuers.length === 0) return next('Issuer not found');
         return res.json({ issuer: issuers[0] });
@@ -115,7 +115,7 @@ export default class UiaApi {
       name: this.library.joi
         .string()
         .issuer()
-        .required()
+        .required(),
     });
     const nameReport = this.library.joi.validate(req.params, nameSchema);
     if (nameReport.error) {
@@ -128,7 +128,7 @@ export default class UiaApi {
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0)
+      offset: this.library.joi.number().min(0),
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
@@ -138,7 +138,7 @@ export default class UiaApi {
     try {
       const issuerName = req.params.name;
       const issuer = await global.app.sdb.findOne('Issuer', {
-        condition: { name: issuerName }
+        condition: { name: issuerName },
       });
       if (!issuer) {
         return next(`Issuer "${issuer}" not found`);
@@ -146,7 +146,7 @@ export default class UiaApi {
 
       const limitAndOffset = {
         limit: query.limit || 100,
-        offset: query.offset || 0
+        offset: query.offset || 0,
       };
       const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count('Asset', condition);
@@ -168,7 +168,7 @@ export default class UiaApi {
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0)
+      offset: this.library.joi.number().min(0),
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
@@ -179,7 +179,7 @@ export default class UiaApi {
       const condition = {};
       const limitAndOffset = {
         limit: query.limit || 100,
-        offset: query.offset || 0
+        offset: query.offset || 0,
       };
       const count = await global.app.sdb.count('Asset', condition);
       const assets = await global.app.sdb.find(
@@ -199,7 +199,7 @@ export default class UiaApi {
       name: this.library.joi
         .string()
         .asset()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -221,7 +221,7 @@ export default class UiaApi {
       address: this.library.joi
         .string()
         .address()
-        .required()
+        .required(),
     });
     const addressReport = this.library.joi.validate(req.params, addressSchema);
     if (addressReport.error) {
@@ -234,7 +234,7 @@ export default class UiaApi {
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0)
+      offset: this.library.joi.number().min(0),
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
@@ -265,7 +265,7 @@ export default class UiaApi {
       currency: this.library.joi
         .string()
         .asset()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(req.params, schema);
     if (report.error) {
@@ -275,7 +275,7 @@ export default class UiaApi {
     try {
       const condition = {
         address: req.params.address,
-        currency: req.params.currency
+        currency: req.params.currency,
       };
       const balances = await global.app.sdb.find('Balance', condition);
       if (!balances || balances.length === 0)

@@ -46,7 +46,7 @@ export default async function intNetwork(
       {
         key: privateKey,
         cert: certificate,
-        ciphers: CIPHERS
+        ciphers: CIPHERS,
       },
       expressApp
     );
@@ -64,7 +64,7 @@ export default async function intNetwork(
       bodyParser.urlencoded({
         extended: true,
         limit: PAYLOAD_LIMIT_SIZE,
-        parameterLimit: 5000
+        parameterLimit: 5000,
       })
     );
     expressApp.use(bodyParser.json({ limit: PAYLOAD_LIMIT_SIZE }));
@@ -79,7 +79,7 @@ export default async function intNetwork(
       'address',
       'recipientId',
       'senderId',
-      'previousBlock'
+      'previousBlock',
     ];
 
     expressApp.use(
@@ -94,7 +94,7 @@ export default async function intNetwork(
           }
 
           return Number.parseInt(value, radix);
-        }
+        },
       })
     );
 
@@ -149,7 +149,7 @@ export default async function intNetwork(
             blocksBehind:
               slots.getNextSlot() -
               (slots.getSlotNumber(lastBlock.timestamp) + 1),
-            version: modules.peer.getVersion()
+            version: modules.peer.getVersion(),
           })
         );
         next();
@@ -172,7 +172,7 @@ export default async function intNetwork(
     server,
     io,
     sslServer,
-    sslio
+    sslio,
   };
 }
 

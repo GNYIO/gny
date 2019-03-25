@@ -13,7 +13,7 @@ import {
   ISimpleCache,
   PeerNode,
   ProcessBlockOptions,
-  BlockPropose
+  BlockPropose,
 } from '../interfaces';
 import { In } from 'typeorm';
 
@@ -70,7 +70,7 @@ export default class Blocks {
     const params = {
       max: lastBlockHeight,
       min: data.firstHeight,
-      ids: data.ids
+      ids: data.ids,
     };
 
     let ret;
@@ -351,7 +351,7 @@ export default class Blocks {
     await global.app.sdb.createOrLoad('Round', {
       fee: 0,
       reward: 0,
-      round: roundNumber
+      round: roundNumber,
     });
     await global.app.sdb.increase('Round', modifier, { round: roundNumber });
     return await global.app.sdb.load('Round', { round: roundNumber });
@@ -403,7 +403,7 @@ export default class Blocks {
     );
     const forgedDelegates = [
       ...forgedBlocks.map(b => b.delegate),
-      block.delegate
+      block.delegate,
     ];
 
     const missedDelegates = delegates.filter(
@@ -469,8 +469,8 @@ export default class Blocks {
     if (withTransaction) {
       const transactions = await global.app.sdb.findAll('Transaction', {
         condition: {
-          height: { $gte: minHeight, $lte: maxHeight }
-        }
+          height: { $gte: minHeight, $lte: maxHeight },
+        },
       });
       const firstHeight = blocks[0].height;
       for (const t of transactions) {
@@ -500,7 +500,7 @@ export default class Blocks {
         const limit = 200;
         const params = {
           limit,
-          lastBlockId: lastCommonBlockId
+          lastBlockId: lastCommonBlockId,
         };
         let body;
         try {
@@ -573,7 +573,7 @@ export default class Blocks {
       count: unconfirmedList.length,
       fees,
       payloadHash: payloadHash.digest().toString('hex'),
-      reward: this.blockreward.calculateReward(height)
+      reward: this.blockreward.calculateReward(height),
     };
 
     block.signature = this.library.base.block.sign(block, keypair);
@@ -605,7 +605,7 @@ export default class Blocks {
       await this.processBlock(block, {
         local: true,
         broadcast: true,
-        votes: localVotes
+        votes: localVotes,
       });
       this.library.logger.info(
         `Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(
@@ -808,7 +808,7 @@ export default class Blocks {
               this.lastPropose = propose;
             }
             setImmediate(next);
-          }
+          },
         ],
         (err: any) => {
           if (err) {
@@ -844,7 +844,7 @@ export default class Blocks {
             await this.processBlock(block, {
               votes: totalVotes,
               local: true,
-              broadcast: true
+              broadcast: true,
             });
             this.library.logger.info(
               `Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(

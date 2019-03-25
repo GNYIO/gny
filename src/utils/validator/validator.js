@@ -201,7 +201,7 @@ Validator.addAlias = function(name, origin) {
   Object.defineProperty(this.prototype.rules, name, {
     get: function() {
       return this[origin];
-    }
+    },
   });
 };
 
@@ -222,7 +222,7 @@ Validator.options = {
   forceAsync: false,
   skipMissed: false,
   execRules: true,
-  reporter: null
+  reporter: null,
 };
 
 /**
@@ -240,7 +240,7 @@ Validator.validate = function(value, rules, customRules, callback) {
 
   var instance = new this(
     extend({}, this.options, {
-      rules: customRules
+      rules: customRules,
     })
   );
 
@@ -257,28 +257,28 @@ Validator.addRule('defaults', {
     } else {
       return value;
     }
-  }
+  },
 });
 
 Validator.addRule('type', {
   description: 'Check value type',
   validate: function(accept, value) {
     return typeof value === accept;
-  }
+  },
 });
 
 Validator.addRule('equal', {
   description: 'Check if value equals acceptable value',
   validate: function(accept, value) {
     return value === accept;
-  }
+  },
 });
 
 Validator.addRule('notEqual', {
   description: 'Check if value not equals acceptable value',
   validate: function(accept, value) {
     return typeof value !== accept;
-  }
+  },
 });
 
 Validator.addRule('greater', {
@@ -286,7 +286,7 @@ Validator.addRule('greater', {
   aliases: ['>', 'gt'],
   validate: function(accept, value) {
     return typeof value > accept;
-  }
+  },
 });
 
 Validator.addRule('greaterOrEqual', {
@@ -294,7 +294,7 @@ Validator.addRule('greaterOrEqual', {
   aliases: ['>=', 'gte'],
   validate: function(accept, value) {
     return typeof value >= accept;
-  }
+  },
 });
 
 Validator.addRule('less', {
@@ -302,7 +302,7 @@ Validator.addRule('less', {
   aliases: ['<', 'lt'],
   validate: function(accept, value) {
     return typeof value < accept;
-  }
+  },
 });
 
 Validator.addRule('lessOrEqual', {
@@ -310,7 +310,7 @@ Validator.addRule('lessOrEqual', {
   aliases: ['<=', 'lte'],
   validate: function(accept, value) {
     return typeof value <= accept;
-  }
+  },
 });
 
 Validator.fieldProperty('isObject', function() {

@@ -87,7 +87,7 @@ export default class Application {
       // handle the error safely
       scope.logger.fatal('uncaughtException', {
         message: err.message,
-        stack: err.stack
+        stack: err.stack,
       });
       process.emit('cleanup');
     });

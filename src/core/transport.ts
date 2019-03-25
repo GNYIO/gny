@@ -8,7 +8,7 @@ import {
   PeerNode,
   NewBlockMessage,
   P2PMessage,
-  BlockPropose
+  BlockPropose,
 } from '../interfaces';
 
 export default class Transport {
@@ -51,13 +51,13 @@ export default class Transport {
   public onNewBlock = async (block, votes) => {
     this.latestBlocksCache.set(block.id, {
       block,
-      votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64') // TODO, try/catch
+      votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'), // TODO, try/catch
     });
 
     const message = this.blockHeaderMidCache.get(block.id) || {
       id: block.id,
       height: block.height,
-      prevBlockId: block.prevBlockId
+      prevBlockId: block.prevBlockId,
     };
 
     let encodedNewBlockMessage: Buffer;
@@ -123,7 +123,7 @@ export default class Transport {
       prevBlockId: this.library.joi
         .string()
         .hex()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(body, schema);
     if (report.error) {
@@ -232,7 +232,7 @@ export default class Transport {
         .number()
         .integer()
         .positive()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(propose, schema);
     if (report.error) {
@@ -257,7 +257,7 @@ export default class Transport {
       this.library.logger.error('Blockchain is not ready', {
         getNextSlot: slots.getNextSlot(),
         lastSlot,
-        lastBlockHeight: lastBlock.height
+        lastBlockHeight: lastBlock.height,
       });
       return;
     }
@@ -278,7 +278,7 @@ export default class Transport {
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         message,
-        error: e.toString()
+        error: e.toString(),
       });
       return;
     }
@@ -310,7 +310,7 @@ export default class Transport {
     const parts = address.split(':');
     const contact: PeerNode = {
       host: parts[0],
-      port: Number(parts[1])
+      port: Number(parts[1]),
     };
     try {
       const result = await this.modules.peer.request(

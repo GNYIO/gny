@@ -32,6 +32,6 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     transportApi,
     uiaApi,
     transfersApi,
-    loaderApi
+    loaderApi,
   };
 }

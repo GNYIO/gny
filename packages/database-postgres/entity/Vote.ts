@@ -5,14 +5,14 @@ export class Vote {
   @PrimaryColumn({
     type: 'varchar',
     length: 50,
-    nullable: false
+    nullable: false,
   })
   public voterAddress: string;
 
   @PrimaryColumn({
     length: 50,
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   public delegate: string;
 }

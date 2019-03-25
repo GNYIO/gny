@@ -17,7 +17,7 @@ export default {
       tid: this.trs.id,
       issuerId: senderId,
       name,
-      desc: descJson
+      desc: descJson,
     });
     return null;
   },
@@ -31,7 +31,7 @@ export default {
     global.app.validate('amount', maximum);
 
     const issuer = await global.app.sdb.findOne('Issuer', {
-      condition: { issuerId: this.sender.address }
+      condition: { issuerId: this.sender.address },
     });
     if (!issuer) return 'Account is not an issuer';
 
@@ -49,7 +49,7 @@ export default {
       maximum,
       precision,
       quantity: '0',
-      issuerId: this.sender.address
+      issuerId: this.sender.address,
     });
     return null;
   },
@@ -97,7 +97,7 @@ export default {
     } else {
       recipientName = recipient;
       const recipientAccount = await global.app.sdb.findOne('Account', {
-        condition: { username: recipient }
+        condition: { username: recipient },
       });
       if (!recipientAccount) return 'Recipient name not exist';
       recipientAddress = recipientAccount.address;
@@ -117,8 +117,8 @@ export default {
       recipientName,
       currency,
       amount,
-      timestamp: this.trs.timestamp
+      timestamp: this.trs.timestamp,
     });
     return null;
-  }
+  },
 };

@@ -56,7 +56,7 @@ export default class AccountsApi {
         this.library.logger.error(req.url, err);
         return res.status(500).json({
           success: false,
-          error: err.toString()
+          error: err.toString(),
         });
       }
     );
@@ -77,7 +77,7 @@ export default class AccountsApi {
       secret,
       publicKey: keypair.publicKey.toString('hex'),
       privateKey: keypair.privateKey.toString('hex'),
-      address
+      address,
     });
   };
 
@@ -87,7 +87,7 @@ export default class AccountsApi {
       .object()
       .keys({
         publicKey: this.library.joi.string().publicKey(),
-        secret: this.library.joi.string().secret()
+        secret: this.library.joi.string().secret(),
       })
       .xor('publicKey', 'secret');
     const report = this.library.joi.validate(body, publicKeyOrSecret);
@@ -117,7 +117,7 @@ export default class AccountsApi {
       .object()
       .keys({
         address: this.library.joi.string().address(),
-        username: this.library.joi.string().username()
+        username: this.library.joi.string().username(),
       })
       .xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
@@ -148,7 +148,7 @@ export default class AccountsApi {
       address: this.library.joi
         .string()
         .address()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(query, hasAddress);
     if (report.error) {
@@ -180,7 +180,7 @@ export default class AccountsApi {
       balances = await global.app.sdb.findAll('Balance', {
         condition,
         limit,
-        offset
+        offset,
       });
       const currencyMap = new Map();
       for (const b of balances) {
@@ -192,8 +192,8 @@ export default class AccountsApi {
       if (uiaNameList && uiaNameList.length) {
         const assets = await global.app.sdb.findAll('Asset', {
           condition: {
-            name: In(uiaNameList)
-          }
+            name: In(uiaNameList),
+          },
         });
         for (const a of assets) {
           currencyMap.set(a.name, a);
@@ -205,12 +205,12 @@ export default class AccountsApi {
       }
     }
     balances.push({
-      gny: gnyBalance
+      gny: gnyBalance,
     });
 
     return res.json({
       count: count + 1,
-      balances
+      balances,
     });
   };
 
@@ -222,13 +222,13 @@ export default class AccountsApi {
     const currency = req.params.currency;
     const condition = {
       address: req.params.address,
-      currency
+      currency,
     };
     const balance = await global.app.sdb.findOne('Balance', condition);
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
       balance.asset = await global.app.sdb.findOne('Asset', {
-        name: balance.currency
+        name: balance.currency,
       });
     }
 
@@ -245,7 +245,7 @@ export default class AccountsApi {
       .object()
       .keys({
         address: this.library.joi.string().address(),
-        username: this.library.joi.string().username()
+        username: this.library.joi.string().username(),
       })
       .xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
@@ -257,7 +257,7 @@ export default class AccountsApi {
       let addr;
       if (query.username) {
         const account: any = await global.app.sdb.load('Account', {
-          username: query.username
+          username: query.username,
         });
         if (!account) {
           return next('Account not found');
@@ -267,7 +267,7 @@ export default class AccountsApi {
         addr = query.address;
       }
       const votes = await global.app.sdb.findAll('Vote', {
-        voterAddress: addr
+        voterAddress: addr,
       });
       if (!votes || !votes.length) {
         return res.json({ delegates: [] });
@@ -301,7 +301,7 @@ export default class AccountsApi {
   private getPublicKey = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const isAddress = this.library.joi.object().keys({
-      address: this.library.joi.string().address()
+      address: this.library.joi.string().address(),
     });
     const report = this.library.joi.validate(query, isAddress);
     if (report.error) {
@@ -326,7 +326,7 @@ export default class AccountsApi {
       secret: this.library.joi
         .string()
         .secret()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(body, hasSecret);
     if (report.error) {

@@ -10,7 +10,7 @@ import {
   KeyPair,
   ManyVotes,
   Signature,
-  BlockPropose
+  BlockPropose,
 } from '../interfaces';
 
 export class Consensus {
@@ -55,9 +55,9 @@ export class Consensus {
           signature: this.library.joi
             .string()
             .signature()
-            .required()
+            .required(),
         })
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
@@ -71,12 +71,12 @@ export class Consensus {
     const votes: ManyVotes = {
       height: block.height,
       id: block.id,
-      signatures: []
+      signatures: [],
     };
     keypairs.forEach((kp: KeyPair) => {
       votes.signatures.push({
         publicKey: kp.publicKey.toString('hex'),
-        signature: ed.sign(hash, kp.privateKey).toString('hex')
+        signature: ed.sign(hash, kp.privateKey).toString('hex'),
       } as Signature);
     });
     return votes;
@@ -112,7 +112,7 @@ export class Consensus {
           this.pendingVotes = {
             height: votes.height,
             id: votes.id,
-            signatures: []
+            signatures: [],
           };
         }
         this.pendingVotes.signatures.push(item);
@@ -186,7 +186,7 @@ export class Consensus {
       id: block.id,
       timestamp: block.timestamp,
       generatorPublicKey: block.delegate,
-      address
+      address,
     };
 
     const hash = this.getProposeHash(basePropose);
@@ -194,7 +194,7 @@ export class Consensus {
     const finalPropose: BlockPropose = {
       ...basePropose,
       hash: hash.toString('hex'),
-      signature: ed.sign(hash, keypair.privateKey).toString('hex')
+      signature: ed.sign(hash, keypair.privateKey).toString('hex'),
     };
 
     return finalPropose;

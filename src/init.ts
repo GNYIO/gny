@@ -69,7 +69,7 @@ async function init_alt(options: any) {
     genesisBlock: scope.genesisBlock,
     consensus: new Consensus(scope),
     transaction: new Transaction(scope),
-    block: new Block(scope)
+    block: new Block(scope),
   };
 
   global.library = scope;
@@ -118,7 +118,7 @@ function dbSequence(options: any) {
     name: 'db',
     onWarning: (current: any) => {
       options.logger.warn(`DB sequence ${current}`);
-    }
+    },
   });
 }
 
@@ -127,7 +127,7 @@ function sequence(options: any) {
     name: 'normal',
     onWarning: (current: any) => {
       options.logger.warn(`Main sequence ${current}`);
-    }
+    },
   });
 }
 
@@ -143,8 +143,8 @@ function validateConfig(config: IConfig, logger: ILogger) {
         whiteList: extendedJoi
           .array()
           .items(extendedJoi.string().ip())
-          .required()
-      })
+          .required(),
+      }),
     }),
     peers: extendedJoi.object().keys({
       bootstrap: extendedJoi.string().allow(null),
@@ -153,8 +153,8 @@ function validateConfig(config: IConfig, logger: ILogger) {
         timeout: extendedJoi
           .number()
           .integer()
-          .min(0)
-      })
+          .min(0),
+      }),
     }),
     forging: extendedJoi.object().keys({
       secret: extendedJoi.array().items(
@@ -167,8 +167,8 @@ function validateConfig(config: IConfig, logger: ILogger) {
         whiteList: extendedJoi
           .array()
           .items(extendedJoi.string().ip())
-          .required()
-      })
+          .required(),
+      }),
     }),
     ssl: extendedJoi.object().keys({
       enabled: extendedJoi.boolean(),
@@ -176,8 +176,8 @@ function validateConfig(config: IConfig, logger: ILogger) {
         port: extendedJoi.number().port(),
         address: extendedJoi.string().ip(),
         key: extendedJoi.string(),
-        cert: extendedJoi.string()
-      })
+        cert: extendedJoi.string(),
+      }),
     }),
 
     version: extendedJoi.string(),
@@ -187,7 +187,7 @@ function validateConfig(config: IConfig, logger: ILogger) {
     buildVersion: extendedJoi.string(),
     netVersion: extendedJoi.string(),
     publicDir: extendedJoi.string(),
-    peerPort: extendedJoi.number().port()
+    peerPort: extendedJoi.number().port(),
   });
 
   const report = extendedJoi.validate(config, schema);

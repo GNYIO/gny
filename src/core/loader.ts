@@ -110,7 +110,7 @@ export default class Loader {
         .number()
         .integer()
         .min(0)
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(ret, schema);
     if (report.error) {
@@ -154,7 +154,7 @@ export default class Loader {
         transactions: this.library.joi
           .array()
           .unique()
-          .required()
+          .required(),
       });
       const report = this.library.joi.validate(data, schema);
       if (report.error) {

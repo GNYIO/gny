@@ -6,19 +6,19 @@ export class Transaction {
   @PrimaryColumn({
     type: 'varchar',
     length: 64,
-    nullable: false
+    nullable: false,
   })
   public id: string;
 
   @Column({
-    nullable: false
+    nullable: false,
   })
   @Index()
   public type: number;
 
   @Column({
     nullable: false,
-    type: 'int'
+    type: 'int',
   })
   @Index()
   public timestamp: number;
@@ -26,7 +26,7 @@ export class Transaction {
   @Column({
     length: 50,
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   @Index()
   public senderId: string;
@@ -34,32 +34,32 @@ export class Transaction {
   @Column({
     length: 64,
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   public senderPublicKey: string;
 
   @Column({
     nullable: false,
-    type: 'bigint'
+    type: 'bigint',
   })
   public fee: number;
 
   @Column({
     type: 'json',
-    nullable: false
+    nullable: false,
   })
   public signatures: any;
 
   @Column({
     length: 128,
     nullable: true,
-    type: 'varchar'
+    type: 'varchar',
   })
   public secondSignature?: any;
 
   @Column({
     type: 'json',
-    nullable: true
+    nullable: true,
   })
   public args: any;
 
@@ -69,7 +69,7 @@ export class Transaction {
   @Column({
     length: 256,
     type: 'varchar',
-    nullable: true
+    nullable: true,
   })
   @Index()
   public message?: string;

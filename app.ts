@@ -83,7 +83,7 @@ function main() {
         const parts = peer.split(':');
         return {
           ip: parts.shift(),
-          port: parts.shift() || appConfig.port
+          port: parts.shift() || appConfig.port,
         };
       });
     } else {
@@ -112,7 +112,7 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
-    pidFile
+    pidFile,
   };
 
   const application = new Application(options);

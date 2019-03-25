@@ -74,7 +74,7 @@ export default class DelegatesApi {
       username: this.library.joi
         .string()
         .username()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
@@ -83,13 +83,13 @@ export default class DelegatesApi {
 
     try {
       const votes = await global.app.sdb.findAll('Vote', {
-        delegate: query.username
+        delegate: query.username,
       });
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
       const accounts = await global.app.sdb.findAll('Account', {
-        address: In(addresses)
+        address: In(addresses),
       });
       const lastBlock = this.modules.blocks.getLastBlock();
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
@@ -109,7 +109,7 @@ export default class DelegatesApi {
     const publicKeyOrNameOrAddress = this.library.joi.object().keys({
       publicKey: this.library.joi.string().publicKey(),
       username: this.library.joi.string().username(),
-      address: this.library.joi.string().address()
+      address: this.library.joi.string().address(),
     });
     const report = this.library.joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
@@ -153,7 +153,7 @@ export default class DelegatesApi {
     if (!delegates) return next('No delegates found');
     return res.json({
       totalCount: delegates.length,
-      delegates: delegates.slice(offset, offset + limit)
+      delegates: delegates.slice(offset, offset + limit),
     });
   };
 
@@ -164,7 +164,7 @@ export default class DelegatesApi {
         .string()
         .secret()
         .required(),
-      publicKey: this.library.joi.string().publicKey()
+      publicKey: this.library.joi.string().publicKey(),
     });
     const report = this.library.joi.validate(body, secretAndPublicKey);
     if (report.error) {
@@ -221,7 +221,7 @@ export default class DelegatesApi {
         .string()
         .secret()
         .required(),
-      publicKey: this.library.joi.string().publicKey()
+      publicKey: this.library.joi.string().publicKey(),
     });
     const report = this.library.joi.validate(body, secretAndPublicKey);
     if (report.error) {
@@ -282,7 +282,7 @@ export default class DelegatesApi {
       publicKey: this.library.joi
         .string()
         .publicKey()
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(query, needPublicKey);
     if (report.error) {
@@ -294,7 +294,7 @@ export default class DelegatesApi {
     );
     return res.json({
       success: true,
-      enabled: isEnabled
+      enabled: isEnabled,
     });
   };
 

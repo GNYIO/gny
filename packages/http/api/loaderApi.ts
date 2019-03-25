@@ -50,7 +50,7 @@ export default class LoaderApi {
     return res.json({
       loaded: this.loaded,
       lastBlockHeight: this.modules.loader.loadingLastBlock.height,
-      count: this.modules.loader.total
+      count: this.modules.loader.total,
     });
   };
 
@@ -58,7 +58,7 @@ export default class LoaderApi {
     return res.json({
       syncing: this.modules.loader.syncing(),
       blocks: this.modules.loader.blocksToSync,
-      height: this.modules.blocks.getLastBlock().height
+      height: this.modules.blocks.getLastBlock().height,
     });
   };
 }

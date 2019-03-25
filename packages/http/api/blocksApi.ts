@@ -52,7 +52,7 @@ export default class BlocksApi {
         this.library.logger.error(req.url, err.toString());
         return res.status(500).send({
           success: false,
-          error: err.toString()
+          error: err.toString(),
         });
       }
     );
@@ -65,7 +65,7 @@ export default class BlocksApi {
       .object()
       .keys({
         id: this.library.joi.string().min(1),
-        height: this.library.joi.number().min(0)
+        height: this.library.joi.number().min(0),
       })
       .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);
@@ -159,7 +159,7 @@ export default class BlocksApi {
       fee,
       milestone,
       reward,
-      supply
+      supply,
     });
   };
 }

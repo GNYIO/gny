@@ -61,7 +61,7 @@ export default class PeerApi {
     return res.json({
       version: this.library.config.version,
       build: this.library.config.buildVersion,
-      net: this.library.config.netVersion
+      net: this.library.config.netVersion,
     });
   };
 }

@@ -5,7 +5,7 @@ export class Balance {
   @PrimaryColumn({
     type: 'varchar',
     length: 64,
-    nullable: false
+    nullable: false,
   })
   @Index()
   public address: string;
@@ -13,14 +13,14 @@ export class Balance {
   @PrimaryColumn({
     length: 30,
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   @Index()
   public currency: string;
 
   @Column({
     type: 'bigint',
-    nullable: false
+    nullable: false,
   })
   public balance: number;
 

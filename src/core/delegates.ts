@@ -9,7 +9,7 @@ import {
   KeyPair,
   Delegate,
   DelegateViewModel,
-  BlockPropose
+  BlockPropose,
 } from '../interfaces';
 
 export default class Delegates {
@@ -80,7 +80,7 @@ export default class Delegates {
       if (delegateKey && this.keyPairs[delegateKey]) {
         return {
           time: slots.getSlotTime(currentSlot),
-          keypair: this.keyPairs[delegateKey]
+          keypair: this.keyPairs[delegateKey],
         };
       }
     }
@@ -248,9 +248,9 @@ export default class Delegates {
         id: block.id,
         timestamp: block.timestamp,
         height: block.height,
-        prevBlockId: block.prevBlockId
+        prevBlockId: block.prevBlockId,
       },
-      cause
+      cause,
     });
   };
 
@@ -295,7 +295,7 @@ export default class Delegates {
         Math.floor(percent * 100) / 100
       ).toFixed(2);
       await global.app.sdb.update('Delegate', current, {
-        address: current.address
+        address: current.address,
       });
     }
     return delegates as DelegateViewModel[];
@@ -335,7 +335,7 @@ export default class Delegates {
 
   private getBookkeeper = async (): Promise<string[]> => {
     const item = await global.app.sdb.get('Variable', {
-      key: this.BOOK_KEEPER_NAME
+      key: this.BOOK_KEEPER_NAME,
     });
     if (!item) throw new Error('Bookkeeper variable not found');
 
@@ -347,7 +347,7 @@ export default class Delegates {
     const value = JSON.stringify(await this.getTopDelegates());
     const create = await global.app.sdb.createOrLoad('Variable', {
       key: this.BOOK_KEEPER_NAME,
-      value: value
+      value: value,
     });
     // It seems there is no need to update
     if (!create) {

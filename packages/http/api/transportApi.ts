@@ -16,7 +16,7 @@ export default class TransportApi {
       os: osInfo.getOS(),
       version: osInfo.getVersion(),
       port: osInfo.getPort(),
-      magic: osInfo.getMagic()
+      magic: osInfo.getMagic(),
     };
     this.attachApi();
   }
@@ -47,7 +47,7 @@ export default class TransportApi {
           success: false,
           error: 'Request is made on the wrong network',
           expected: this.library.config.magic,
-          received: req.headers.magic
+          received: req.headers.magic,
         });
       }
       return next();
@@ -91,7 +91,7 @@ export default class TransportApi {
     return res.json({
       success: true,
       block: newBlock.block,
-      votes: newBlock.votes
+      votes: newBlock.votes,
     });
   };
 
@@ -163,7 +163,7 @@ export default class TransportApi {
       this.library.logger.error('Blockchain is not ready', {
         getNextSlot: slots.getNextSlot(),
         lastSlot,
-        lastBlockHeight: lastBlock.height
+        lastBlockHeight: lastBlock.height,
       });
       return next('Blockchain is not ready');
     }
@@ -176,7 +176,7 @@ export default class TransportApi {
       this.library.logger.error('Received transaction parse error', {
         raw: req.body,
         trs: transaction,
-        error: e.toString()
+        error: e.toString(),
       });
       return next('Invalid transaction body');
     }
@@ -232,9 +232,9 @@ export default class TransportApi {
             .string()
             .publicKey()
             .required(),
-          signature: this.library.joi.string().required()
+          signature: this.library.joi.string().required(),
         })
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
@@ -248,14 +248,14 @@ export default class TransportApi {
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
     return res.json({
-      transactions: this.modules.transactions.getUnconfirmedTransactionList()
+      transactions: this.modules.transactions.getUnconfirmedTransactionList(),
     });
   };
 
   // POST
   private getHeight = (req: Request, res: Response) => {
     return res.json({
-      height: this.modules.blocks.getLastBlock().height
+      height: this.modules.blocks.getLastBlock().height,
     });
   };
 }

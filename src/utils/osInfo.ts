@@ -12,5 +12,5 @@ export default {
   },
   getMagic() {
     return global.Config.magic;
-  }
+  },
 };

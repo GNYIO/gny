@@ -33,7 +33,7 @@ export default function loadModules(scope: IScope) {
     delegates: delegates,
     round: round,
     uia: uia,
-    blocks: blocks
+    blocks: blocks,
   };
   return modules;
 }

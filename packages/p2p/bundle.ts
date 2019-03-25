@@ -15,25 +15,25 @@ export class Bundle extends libp2p {
         streamMuxer: [Mplex],
         connEncryption: [SECIO],
         peerDiscovery: [Bootstrap],
-        dht: DHT
+        dht: DHT,
       },
       config: {
         dht: {
           kBucketSize: 20,
-          enabledDiscovery: true
+          enabledDiscovery: true,
         },
         EXPERIMENTAL: {
           dht: true,
-          pubsub: true
+          pubsub: true,
         },
         peerDiscovery: {
           bootstrap: {
             interval: 10 * 1000,
             enabled: true,
-            list: []
-          }
-        }
-      }
+            list: [],
+          },
+        },
+      },
     };
     const finalConfig = defaultsDeep(_options, defaults);
     super(finalConfig);

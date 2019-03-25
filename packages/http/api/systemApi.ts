@@ -51,8 +51,9 @@ export default class SystemApi {
           height: lastBlock.height,
           timestamp: slots.getRealTime(lastBlock.timestamp),
           behind:
-            slots.getNextSlot() - (slots.getSlotNumber(lastBlock.timestamp) + 1)
-        }
+            slots.getNextSlot() -
+            (slots.getSlotNumber(lastBlock.timestamp) + 1),
+        },
       });
     } catch (err) {
       return next('Server error');

@@ -16,7 +16,7 @@ export default class Account {
   public getAccountByName = async (name: string) => {
     try {
       const account = await global.app.sdb.findOne('Account', {
-        condition: { username: name }
+        condition: { username: name },
       });
       return account;
     } catch (err) {
@@ -36,7 +36,7 @@ export default class Account {
 
     try {
       const account = await global.app.sdb.findOne('Account', {
-        condition: { address }
+        condition: { address },
       });
       let accountData;
       if (!account) {
@@ -45,7 +45,7 @@ export default class Account {
           balance: 0,
           secondPublicKey: '',
           lockHeight: 0,
-          isDelegate: 0
+          isDelegate: 0,
         };
       } else {
         accountData = {
@@ -53,7 +53,7 @@ export default class Account {
           balance: account.gny,
           secondPublicKey: account.secondPublicKey,
           lockHeight: account.lockHeight || 0,
-          isDelegate: account.isDelegate
+          isDelegate: account.isDelegate,
         };
       }
       const latestBlock = this.modules.blocks.getLastBlock();
@@ -61,9 +61,9 @@ export default class Account {
         account: accountData,
         latestBlock: {
           height: latestBlock.height,
-          timestamp: latestBlock.timestamp
+          timestamp: latestBlock.timestamp,
         },
-        version: this.modules.peer.getVersion()
+        version: this.modules.peer.getVersion(),
       };
       return ret;
     } catch (e) {

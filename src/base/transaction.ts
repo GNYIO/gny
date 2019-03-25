@@ -23,7 +23,7 @@ export class Transaction {
       timestamp: slots.getTime(undefined),
       message: data.message,
       args: data.args,
-      fee: data.fee
+      fee: data.fee,
     };
 
     transaction.signatures = [this.sign(data.keypair, transaction)];
@@ -290,7 +290,7 @@ export class Transaction {
       height: this.library.joi
         .number()
         .integer()
-        .optional()
+        .optional(),
     });
     const report = this.library.joi.validate(
       transaction,

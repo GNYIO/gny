@@ -26,7 +26,7 @@ export default class Transactions {
 
   getUnconfirmedTransactions = cb =>
     setImmediate(cb, null, {
-      transactions: this.getUnconfirmedTransactionList()
+      transactions: this.getUnconfirmedTransactionList(),
     });
 
   getTransactions = (req, cb) => {
@@ -46,7 +46,7 @@ export default class Transactions {
         const count = await global.app.sdb.count('Transaction', condition);
         let transactions = await global.app.sdb.find('Transaction', condition, {
           limit: limit,
-          offset: offset
+          offset: offset,
         });
         if (!transactions) transactions = [];
         return cb(null, { transactions, count });
@@ -129,7 +129,7 @@ export default class Transactions {
         throw new Error('Transaction already in the pool');
       }
       const exists = await global.app.sdb.exists('Transaction', {
-        id: transaction.id
+        id: transaction.id,
       });
       if (exists) {
         throw new Error('Transaction already confirmed');
@@ -148,7 +148,7 @@ export default class Transactions {
 
     const height = await this.modules.blocks.getLastBlock().height;
     const block = {
-      height: height + 1
+      height: height + 1,
     };
 
     const senderId = transaction.senderId;
@@ -168,14 +168,14 @@ export default class Transactions {
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: 0
+        gny: 0,
       });
     }
 
     const context = {
       trs: transaction,
       block,
-      sender
+      sender,
     };
     if (height > 0) {
       const error = await this.library.base.transaction.verify(context);

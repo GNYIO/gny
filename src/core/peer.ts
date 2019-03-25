@@ -4,7 +4,7 @@ import * as Database from 'nedb';
 import * as fs from 'fs';
 import {
   createPeerInfoArgs,
-  createFromJSON
+  createFromJSON,
 } from '../../packages/p2p/createPeerInfo';
 import { Peer2Peer } from '../../packages/p2p/index';
 import { Modules, IScope, PeerNode } from '../interfaces';
@@ -29,7 +29,7 @@ export default class Peer {
   public getVersion = () => ({
     version: this.library.config.version,
     build: this.library.config.buildVersion,
-    net: this.library.config.netVersion
+    net: this.library.config.netVersion,
   });
 
   public request = async (
@@ -43,7 +43,7 @@ export default class Peer {
     this.library.logger.debug(`start to request ${uri}`);
     const headers = {
       magic: global.Config.magic,
-      version: global.Config.version
+      version: global.Config.version,
     };
 
     let result;
@@ -51,7 +51,7 @@ export default class Peer {
       const config = {
         headers: headers,
         responseType: 'json',
-        timeout: undefined || timeout
+        timeout: undefined || timeout,
       };
       result = await axios.post(uri, body, config);
       if (result.status !== 200) {
@@ -76,7 +76,7 @@ export default class Peer {
       const result = await this.request(method, params, randomNode, 4000);
       return {
         data: result,
-        node: randomNode
+        node: randomNode,
       };
     } catch (err) {
       throw err;
@@ -85,7 +85,7 @@ export default class Peer {
 
   private preparePeerInfo = async () => {
     let KEY = fs.readFileSync(this.library.config.peers.p2pKeyFile, {
-      encoding: 'utf8'
+      encoding: 'utf8',
     });
     KEY = JSON.parse(KEY);
 

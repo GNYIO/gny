@@ -5,7 +5,7 @@ export default zscheme => (req, res, next) => {
         null,
         {
           isValid: valid,
-          issues: err ? `${err[0].message}: ${err[0].path}` : null
+          issues: err ? `${err[0].message}: ${err[0].path}` : null,
         },
         value
       )

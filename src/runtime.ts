@@ -20,10 +20,10 @@ export default async function runtime(options) {
     feeMapping: {},
     defaultFee: {
       currency: 'GNY',
-      min: '10000000'
+      min: '10000000',
     },
     hooks: {},
-    logger: options.logger
+    logger: options.logger,
   };
   global.app.validators = {
     amount: amount => {
@@ -74,7 +74,7 @@ export default async function runtime(options) {
         );
       }
       return null;
-    }
+    },
   };
   global.app.validate = (type, value, constraints) => {
     if (!global.app.validators[type])
@@ -91,7 +91,7 @@ export default async function runtime(options) {
   global.app.registerFee = (type, min, currency) => {
     global.app.feeMapping[type] = {
       currency: currency || global.app.defaultFee.currency,
-      min
+      min,
     };
   };
   global.app.getFee = type => global.app.feeMapping[type];
@@ -116,7 +116,7 @@ export default async function runtime(options) {
 
   global.app.util = {
     address: address,
-    bignumber: BigNumber
+    bignumber: BigNumber,
   };
 
   // await loadModels();

@@ -69,14 +69,14 @@ export default class TransactionsApi {
         .max(100)
         .when('height', {
           is: this.library.joi.exist(),
-          then: this.library.joi.forbidden()
+          then: this.library.joi.forbidden(),
         }),
       type: this.library.joi
         .number()
         .min(0)
         .max(1000),
       height: this.library.joi.number().min(0),
-      message: this.library.joi.string()
+      message: this.library.joi.string(),
     });
 
     const report = this.library.joi.validate(query, schema);
@@ -116,7 +116,7 @@ export default class TransactionsApi {
       const count = await global.app.sdb.count('Transaction', condition);
       const limitAndOffset = {
         limit: query.limit || 100,
-        offset: query.offset || 0
+        offset: query.offset || 0,
       };
       let transactions = await global.app.sdb.find(
         'Transaction',
@@ -142,7 +142,7 @@ export default class TransactionsApi {
         .string()
         .min(1)
         .max(64)
-        .required()
+        .required(),
     });
     const report = this.library.joi.validate(query, typeSchema);
     if (report.error) {
@@ -166,7 +166,7 @@ export default class TransactionsApi {
     const { query } = req;
     const publicKeyAddress = this.library.joi.object().keys({
       senderPublicKey: this.library.joi.string().publicKey(),
-      address: this.library.joi.string().address()
+      address: this.library.joi.string().address(),
     });
     const report = this.library.joi.validate(query, publicKeyAddress);
     if (report.error) {
@@ -223,7 +223,7 @@ export default class TransactionsApi {
       senderId: this.library.joi
         .string()
         .address()
-        .optional()
+        .optional(),
     });
     const report = this.library.joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
@@ -267,7 +267,7 @@ export default class TransactionsApi {
               args: query.args || null,
               message: query.message || null,
               secondKeypair,
-              keypair
+              keypair,
             });
             await this.modules.transactions.processUnconfirmedTransactionAsync(
               trs

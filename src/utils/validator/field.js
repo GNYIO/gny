@@ -102,7 +102,7 @@ Field.prototype.validate = function(callback) {
         report.push({
           path: this.path,
           rule: rule,
-          accept: accept
+          accept: accept,
         });
 
         this.hasError = true;
@@ -112,7 +112,7 @@ Field.prototype.validate = function(callback) {
       if (!err.field)
         Object.defineProperty(err, 'field', {
           enumerable: false,
-          value: this
+          value: this,
         });
 
       this.validator.onError(this, err);
@@ -165,7 +165,7 @@ Field.prototype.async = function(callback) {
       if (!err.hasOwnProperty('field')) {
         Object.defineProperty(err, 'field', {
           enumerable: false,
-          value: self
+          value: self,
         });
         self.validator.onError(self, err);
       }

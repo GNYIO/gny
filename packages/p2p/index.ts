@@ -31,10 +31,10 @@ export class Peer2Peer {
         peerDiscovery: {
           bootstrap: {
             list: bootstrapNode ? [bootstrapNode] : [],
-            interval: bootStrapInterval
-          }
-        }
-      }
+            interval: bootStrapInterval,
+          },
+        },
+      },
     };
 
     this.bundle = new Bundle(configuration);
@@ -98,7 +98,7 @@ export class Peer2Peer {
         const finish = peerToAttach => {
           const extendedMsg: P2PMessage = {
             ...message,
-            peerInfo: extractIpAndPort(peerToAttach)
+            peerInfo: extractIpAndPort(peerToAttach),
           };
           handler(extendedMsg);
         };

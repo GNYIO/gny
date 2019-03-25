@@ -5,7 +5,7 @@ export function generateKeyPair(hash: Buffer): KeyPair {
   const keypair = sodium.crypto_sign_seed_keypair(hash);
   return <KeyPair>{
     publicKey: keypair.publicKey,
-    privateKey: keypair.secretKey
+    privateKey: keypair.secretKey,
   };
 }
 

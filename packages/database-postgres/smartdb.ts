@@ -6,7 +6,7 @@ import {
   Connection,
   getConnection,
   MoreThan,
-  ConnectionOptions
+  ConnectionOptions,
 } from 'typeorm';
 import { OrmLogger } from './ormLogger';
 
@@ -39,7 +39,7 @@ const ENTITY: any = {
   Transaction: Transaction,
   Variable: Variable,
   Vote: Vote,
-  Transfer: Transfer
+  Transfer: Transfer,
 };
 
 export class SmartDB {
@@ -62,7 +62,7 @@ export class SmartDB {
     const options: ConnectionOptions = JSON.parse(optionsRaw);
 
     Object.assign(options, {
-      logger: new OrmLogger(this.logger)
+      logger: new OrmLogger(this.logger),
     });
     this.connection = await createConnection(options);
 
@@ -87,8 +87,8 @@ export class SmartDB {
       where: condition,
       take: 1,
       cache: {
-        id: id
-      }
+        id: id,
+      },
     });
 
     return result[0];
@@ -123,8 +123,8 @@ export class SmartDB {
       take: limit,
       skip: offset,
       cache: {
-        id: 'findAll' + table
-      }
+        id: 'findAll' + table,
+      },
     });
 
     return result;
@@ -150,8 +150,8 @@ export class SmartDB {
       take: limitAndOffset.limit,
       offset: limitAndOffset.offset,
       cache: {
-        id: 'find' + table
-      }
+        id: 'find' + table,
+      },
     });
 
     return result;
@@ -190,8 +190,8 @@ export class SmartDB {
     const num = await repo.count({
       where: condition,
       cache: {
-        id: 'count' + table
-      }
+        id: 'count' + table,
+      },
     });
 
     return num;
@@ -207,7 +207,7 @@ export class SmartDB {
     const repo = connection.getRepository(Block);
     const data = await repo.find({
       where: { id: id },
-      take: 1
+      take: 1,
     });
     return data[0];
   }
@@ -222,7 +222,7 @@ export class SmartDB {
     const repo = connection.getRepository(Block);
     const data = await repo.find({
       take: 1,
-      where: { height: height }
+      where: { height: height },
     });
     return data[0];
   }
@@ -269,7 +269,7 @@ export class SmartDB {
     const block = await repo
       .createQueryBuilder('block')
       .where('block.height = :height', {
-        height: height.maxHeight
+        height: height.maxHeight,
       })
       .getOne();
     return block;
@@ -344,8 +344,8 @@ export class SmartDB {
       where: condition,
       take: 1,
       cache: {
-        id: id
-      }
+        id: id,
+      },
     });
 
     return result[0];
@@ -387,7 +387,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
   }
 
@@ -422,7 +422,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
 
     // logger.info('Created an item in table: ' + table);
@@ -448,7 +448,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
   }
 
@@ -469,7 +469,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
     // logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
   }
@@ -504,7 +504,7 @@ export class SmartDB {
       await connection.queryResultCache.remove([
         'count' + table,
         'find' + table,
-        'findAll' + table
+        'findAll' + table,
       ]);
 
       // logger.info('Commit the contract');
@@ -561,7 +561,7 @@ export class SmartDB {
       const QueryResultCacheOptions = {
         identifier: cacheId,
         duration: 30000,
-        query: ''
+        query: '',
       };
       const cache = await connection.queryResultCache.getFromCache(
         QueryResultCacheOptions
@@ -635,7 +635,7 @@ export class SmartDB {
       'Account_address',
       'Asset_name',
       'Issuer_issuerId',
-      'Issuer_name'
+      'Issuer_name',
     ];
 
     let key: string;
