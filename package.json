@@ -6,7 +6,9 @@
   "scripts": {
     "tsc": "tsc; ts-node copyStaticAssets",
     "test": "jest --ci --runInBand",
-    "tslint": "tslint --fix --config tslint.json  --project tsconfig.json './**/*.ts'"
+    "tslint": "tslint --fix --config tslint.json  --project tsconfig.json",
+    "tslint-check": "tslint-config-prettier-check ./tslint.json",
+    "prettier": "prettier --config .prettierrc --write '{src,packages}/{**/*,*}[.ts|.js]' 'app.ts' 'index.ts'"
   },
   "repository": {
     "type": "git",
@@ -105,6 +107,9 @@
     "eslint-plugin-typescript": "^0.12.0",
     "jest": "^23.6.0",
     "jest-cli": "^23.6.0",
+    "prettier": "1.16.4",
+    "tslint": "^5.14.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript-eslint-parser": "^18.0.0"
   }
 }

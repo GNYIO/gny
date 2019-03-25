@@ -70,6 +70,6 @@
     "packages/**/*[.ts|.js]",
     "packages/*[.ts|.js]",
     "app.ts",
-    "index.ts",
+    "index.ts"
   ]
 }
