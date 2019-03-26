@@ -15,7 +15,7 @@
       "packages/database-postgres/subscriber/**/*.js"
    ],
    "cli": {
-      "entitliesDir": "packages/database-postgres/entity",
+      "entitiesDir": "packages/database-postgres/entity",
       "migrationsDir": "packages/database-postgres/migration",
       "subscribersDir": "packages/database-postgres/subscriber"
    }
