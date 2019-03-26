@@ -213,6 +213,7 @@ export class DbSession {
     return schema.copyProperties(data, true);
   }
 
+  // TODO remove sync methods
   public loadSync(schema: ModelSchema, key: ObjectLiteral) {
     const entity = this.getCachedEntity(schema, key);
     if (undefined !== entity) {

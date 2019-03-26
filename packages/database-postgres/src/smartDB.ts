@@ -243,6 +243,7 @@ export class SmartDB extends EventEmitter {
        return this.lastBlockHeight;
     } catch (err) {
        this.log.error('FAILD commitBlock ( height = ' + this.currentBlock.height + ' )', err);
+      //  await this.blockDB.deleteLastBlock(this.currentBlock.height);
        throw err;
     }
   }

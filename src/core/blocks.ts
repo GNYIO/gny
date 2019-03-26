@@ -528,7 +528,7 @@ export default class Blocks {
     }
     this.library.base.consensus.setPendingBlock(block);
     this.library.base.consensus.addPendingVotes(localVotes);
-    // this.proposeCache[propose.hash] = true
+    this.proposeCache[propose.hash] = true;
     this.privIsCollectingVotes = true;
     this.library.bus.message('newPropose', propose, true);
     return;
