@@ -66,7 +66,7 @@ export class Transaction {
   public args: any;
 
   @Column({
-    type: 'bigint',
+    type: 'int',
     nullable: false,
   })
   public height: number;

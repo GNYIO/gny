@@ -26,7 +26,7 @@ export class Block {
 
   @Column({
     nullable: false,
-    type: 'bigint',
+    type: 'int',
     unique: true,
   })
   public height: number;
