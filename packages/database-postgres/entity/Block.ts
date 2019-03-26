@@ -76,8 +76,7 @@ export class Block {
   })
   public signature: string;
 
-  @OneToMany(type => Transaction,
-    transaction => transaction.height, {
+  @OneToMany(type => Transaction, transaction => transaction.height, {
     cascade: ['remove'],
   })
   public transactions: Transaction[];

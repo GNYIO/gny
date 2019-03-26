@@ -2,7 +2,15 @@ import * as crypto from 'crypto';
 import * as ed from '../utils/ed';
 import slots from '../utils/slots';
 import BlockReward from '../utils/block-reward';
-import { Modules, IScope, KeyPairsIndexer, KeyPair, Delegate, DelegateViewModel, BlockPropose } from '../interfaces';
+import {
+  Modules,
+  IScope,
+  KeyPairsIndexer,
+  KeyPair,
+  Delegate,
+  DelegateViewModel,
+  BlockPropose,
+} from '../interfaces';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -21,7 +29,7 @@ export default class Delegates {
   // Events
   public onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 
   public onBlockchainReady = async () => {
     this.loaded = true;
@@ -37,7 +45,7 @@ export default class Delegates {
     };
 
     setImmediate(nextLoop);
-  }
+  };
 
   public isPublicKeyInKeyPairs = (publicKey: string) => {
     if (this.keyPairs[publicKey]) {
@@ -45,16 +53,19 @@ export default class Delegates {
     } else {
       return false;
     }
-  }
+  };
 
   public setKeyPair = (publicKey: string, keys: KeyPair) => {
     this.keyPairs[publicKey] = keys;
-  }
+  };
   public removeKeyPair = (publicKey: string) => {
     delete this.keyPairs[publicKey];
-  }
+  };
 
-  private getBlockSlotData = async (slot: number, height: number): Promise<{ time: number, keypair: any }> => {
+  private getBlockSlotData = async (
+    slot: number,
+    height: number
+  ): Promise<{ time: number; keypair: any }> => {
     const activeDelegates = await this.generateDelegateList(height);
     if (!activeDelegates) {
       return;
@@ -73,7 +84,7 @@ export default class Delegates {
         };
       }
     }
-  }
+  };
 
   public loop = async () => {
     if (!this.isForgingEnabled) {
@@ -102,7 +113,10 @@ export default class Delegates {
       return;
     }
 
-    const currentBlockData = await this.getBlockSlotData(currentSlot, Number(lastBlock.height) + 1);
+    const currentBlockData = await this.getBlockSlotData(
+      currentSlot,
+      Number(lastBlock.height) + 1
+    );
     if (!currentBlockData) {
       this.library.logger.trace('Loop:', 'skipping slot');
       return;
@@ -110,27 +124,34 @@ export default class Delegates {
 
     // this.library.sequence.add(done => (async () => { }))
     await (async () => {
-        try {
-          if (slots.getSlotNumber(currentBlockData.time) === slots.getSlotNumber()
-            && this.modules.blocks.getLastBlock().timestamp < currentBlockData.time) {
-            await this.modules.blocks.generateBlock(currentBlockData.keypair, currentBlockData.time);
-          }
-        } catch (e) {
-          this.library.logger.error('Failed generate block within slot:', e);
-          return;
+      try {
+        if (
+          slots.getSlotNumber(currentBlockData.time) ===
+            slots.getSlotNumber() &&
+          this.modules.blocks.getLastBlock().timestamp < currentBlockData.time
+        ) {
+          await this.modules.blocks.generateBlock(
+            currentBlockData.keypair,
+            currentBlockData.time
+          );
         }
+      } catch (e) {
+        this.library.logger.error('Failed generate block within slot:', e);
+        return;
+      }
     })();
-  }
+  };
 
   private loadMyDelegates = async () => {
     let secrets: string[] = [];
     if (this.library.config.forging.secret) {
       secrets = Array.isArray(this.library.config.forging.secret)
-        ? this.library.config.forging.secret : [this.library.config.forging.secret];
+        ? this.library.config.forging.secret
+        : [this.library.config.forging.secret];
     }
 
     try {
-      const delegates = await global.app.sdb.getAll('Delegate') as Delegate[];
+      const delegates = (await global.app.sdb.getAll('Delegate')) as Delegate[];
       if (!delegates || !delegates.length) {
         return 'Delegates not found in database';
       }
@@ -139,19 +160,30 @@ export default class Delegates {
         delegateMap.set(d.publicKey, d);
       }
       for (const secret of secrets) {
-        const keypair = ed.generateKeyPair(crypto.createHash('sha256').update(secret, 'utf8').digest());
+        const keypair = ed.generateKeyPair(
+          crypto
+            .createHash('sha256')
+            .update(secret, 'utf8')
+            .digest()
+        );
         const publicKey = keypair.publicKey.toString('hex');
         if (delegateMap.has(publicKey)) {
           this.keyPairs[publicKey] = keypair;
-          this.library.logger.info(`Forging enabled on account: ${delegateMap.get(publicKey).address}`);
+          this.library.logger.info(
+            `Forging enabled on account: ${delegateMap.get(publicKey).address}`
+          );
         } else {
-          this.library.logger.info(`Delegate with this public key not found: ${keypair.publicKey.toString('hex')}`);
+          this.library.logger.info(
+            `Delegate with this public key not found: ${keypair.publicKey.toString(
+              'hex'
+            )}`
+          );
         }
       }
     } catch (e) {
       return e;
     }
-  }
+  };
 
   public getActiveDelegateKeypairs = async (height: number) => {
     const delegates = await this.generateDelegateList(height);
@@ -166,7 +198,7 @@ export default class Delegates {
       }
     }
     return results;
-  }
+  };
 
   public validateProposeSlot = async (propose: BlockPropose) => {
     const activeDelegates = await this.generateDelegateList(propose.height);
@@ -178,14 +210,17 @@ export default class Delegates {
     }
 
     throw new Error('Failed to validate propose slot');
-  }
+  };
 
   public generateDelegateList = async (height: number): Promise<string[]> => {
     try {
       const truncDelegateList = await this.getBookkeeper();
       const seedSource = this.modules.round.calculateRound(height).toString();
 
-      let currentSeed = crypto.createHash('sha256').update(seedSource, 'utf8').digest();
+      let currentSeed = crypto
+        .createHash('sha256')
+        .update(seedSource, 'utf8')
+        .digest();
       for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
         for (let x = 0; x < 4 && i < delCount; i++, x++) {
           const newIndex = currentSeed[x] % delCount;
@@ -193,7 +228,10 @@ export default class Delegates {
           truncDelegateList[newIndex] = truncDelegateList[i];
           truncDelegateList[i] = b;
         }
-        currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
+        currentSeed = crypto
+          .createHash('sha256')
+          .update(currentSeed)
+          .digest();
       }
 
       return truncDelegateList;
@@ -201,7 +239,7 @@ export default class Delegates {
       global.app.logger.error('error while generating DelgateList', e);
       return;
     }
-  }
+  };
 
   public fork = (block, cause) => {
     this.library.logger.info('Fork', {
@@ -214,7 +252,7 @@ export default class Delegates {
       },
       cause,
     });
-  }
+  };
 
   public validateBlockSlot = async (block): Promise<void> => {
     const activeDelegates = await this.generateDelegateList(block.height);
@@ -227,7 +265,7 @@ export default class Delegates {
     }
 
     throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
-  }
+  };
 
   public getDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll('Delegate');
@@ -242,63 +280,82 @@ export default class Delegates {
     const lastBlock = this.modules.blocks.getLastBlock();
     const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
 
-
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;
       current.rate = i + 1;
-      current.approval = ((current.votes / totalSupply) * 100);
+      current.approval = (current.votes / totalSupply) * 100;
 
-      let percent = 100 - (current.missedBlocks / (current.producedBlocks + current.missedBlocks) / 100);
+      let percent =
+        100 -
+        current.missedBlocks /
+          (current.producedBlocks + current.missedBlocks) /
+          100;
       percent = percent || 0;
-      current.productivity = parseFloat(Math.floor(percent * 100) / 100).toFixed(2);
-      await global.app.sdb.update('Delegate', current, { address: current.address });
+      current.productivity = parseFloat(
+        Math.floor(percent * 100) / 100
+      ).toFixed(2);
+      await global.app.sdb.update('Delegate', current, {
+        address: current.address,
+      });
     }
     return delegates as DelegateViewModel[];
-  }
+  };
 
   public enableForging = () => {
     this.isForgingEnabled = true;
-  }
+  };
 
   public disableForging = () => {
     this.isForgingEnabled = false;
-  }
-
-
+  };
 
   private compare = (left: Delegate, right: Delegate) => {
     if (left.votes !== right.votes) {
       return right.votes - left.votes;
     }
     return left.publicKey < right.publicKey ? 1 : -1;
-  }
+  };
 
-  public cleanup = (cb) => {
+  public cleanup = cb => {
     this.library.logger.debug('Cleaning up core/delegates');
     this.loaded = false;
     cb();
-  }
+  };
 
   private getTopDelegates = async () => {
-    const allDelegates = await global.app.sdb.getAll('Delegate') as Delegate[];
-    const sortedPublicKeys = allDelegates.sort(this.compare).map(d => d.publicKey).slice(0, 101);
+    const allDelegates = (await global.app.sdb.getAll(
+      'Delegate'
+    )) as Delegate[];
+    const sortedPublicKeys = allDelegates
+      .sort(this.compare)
+      .map(d => d.publicKey)
+      .slice(0, 101);
     return sortedPublicKeys;
-  }
+  };
 
   private getBookkeeper = async (): Promise<string[]> => {
-    const item = await global.app.sdb.get('Variable', {key: this.BOOK_KEEPER_NAME});
+    const item = await global.app.sdb.get('Variable', {
+      key: this.BOOK_KEEPER_NAME,
+    });
     if (!item) throw new Error('Bookkeeper variable not found');
 
     // TODO: ?? make field type as JSON
     return JSON.parse(item.value);
-  }
+  };
 
   public updateBookkeeper = async () => {
     const value = JSON.stringify(await this.getTopDelegates());
-    const create = await global.app.sdb.createOrLoad('Variable', { key: this.BOOK_KEEPER_NAME, value: value });
+    const create = await global.app.sdb.createOrLoad('Variable', {
+      key: this.BOOK_KEEPER_NAME,
+      value: value,
+    });
     // It seems there is no need to update
     if (!create) {
-      await global.app.sdb.update('Variable', { value }, { key: this.BOOK_KEEPER_NAME });
+      await global.app.sdb.update(
+        'Variable',
+        { value },
+        { key: this.BOOK_KEEPER_NAME }
+      );
     }
-  }
+  };
 }

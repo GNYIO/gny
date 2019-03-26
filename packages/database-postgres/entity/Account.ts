@@ -2,7 +2,6 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class Account {
-
   @PrimaryColumn({
     type: 'varchar',
     length: 50,

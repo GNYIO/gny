@@ -17,14 +17,16 @@ export default class TransactionsApi {
   // Events
   public onBlockchainReady = () => {
     this.loaded = true;
-  }
+  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
       if (this.modules && this.loaded === true) return next();
-      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'Blockchain is loading' });
     });
 
     router.get('/', this.getTransactions);
@@ -38,27 +40,41 @@ export default class TransactionsApi {
     });
 
     this.library.network.app.use('/api/transactions', router);
-    this.library.network.app.use((err: any, req: Request, res: Response, next) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).json({ success: false, error: err.toString() });
-    });
-  }
+    this.library.network.app.use(
+      (err: any, req: Request, res: Response, next) => {
+        if (!err) return next();
+        this.library.logger.error(req.url, err.toString());
+        return res.status(500).json({ success: false, error: err.toString() });
+      }
+    );
+  };
 
   private getTransactions = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const schema = this.library.joi.object().keys({
-      limit: this.library.joi.number().min(0).max(100),
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(100),
       offset: this.library.joi.number().min(0),
-      id: this.library.joi.string().min(1).max(100),
+      id: this.library.joi
+        .string()
+        .min(1)
+        .max(100),
       senderId: this.library.joi.string().address(),
       senderPublicKey: this.library.joi.string().publicKey(),
-      blockId: this.library.joi.string().min(1).max(100)
+      blockId: this.library.joi
+        .string()
+        .min(1)
+        .max(100)
         .when('height', {
           is: this.library.joi.exist(),
           then: this.library.joi.forbidden(),
         }),
-      type: this.library.joi.number().min(0).max(1000),
+      type: this.library.joi
+        .number()
+        .min(0)
+        .max(1000),
       height: this.library.joi.number().min(0),
       message: this.library.joi.string(),
     });
@@ -98,34 +114,55 @@ export default class TransactionsApi {
         condition.height = block.height;
       }
       const count = await global.app.sdb.count('Transaction', condition);
-      const limitAndOffset = { limit: query.limit || 100, offset: query.offset || 0 };
-      let transactions = await global.app.sdb.find('Transaction', condition, limitAndOffset);
+      const limitAndOffset = {
+        limit: query.limit || 100,
+        offset: query.offset || 0,
+      };
+      let transactions = await global.app.sdb.find(
+        'Transaction',
+        condition,
+        limitAndOffset
+      );
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
     } catch (e) {
       global.app.logger.error('Failed to get transactions', e);
       return next(`System error: ${e}`);
     }
-  }
+  };
 
-  private getUnconfirmedTransaction = (req: Request, res: Response, next: Next) => {
+  private getUnconfirmedTransaction = (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
     const { query } = req;
     const typeSchema = this.library.joi.object().keys({
-      id: this.library.joi.string().min(1).max(64).required(),
+      id: this.library.joi
+        .string()
+        .min(1)
+        .max(64)
+        .required(),
     });
     const report = this.library.joi.validate(query, typeSchema);
     if (report.error) {
       return next(report.error.message);
     }
 
-    const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(query.id);
+    const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(
+      query.id
+    );
 
     return !unconfirmedTransaction
       ? next('Transaction not found')
       : res.json({ transaction: unconfirmedTransaction });
-  }
+  };
 
-  private getUnconfirmedTransactions = (req: Request, res: Response, next: Next) => {
+  private getUnconfirmedTransactions = (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
     const { query } = req;
     const publicKeyAddress = this.library.joi.object().keys({
       senderPublicKey: this.library.joi.string().publicKey(),
@@ -141,8 +178,10 @@ export default class TransactionsApi {
 
     if (query.senderPublicKey || query.address) {
       for (let i = 0; i < transactions.length; i++) {
-        if (transactions[i].senderPublicKey === query.senderPublicKey
-          || transactions[i].recipientId === query.address) {
+        if (
+          transactions[i].senderPublicKey === query.senderPublicKey ||
+          transactions[i].recipientId === query.address
+        ) {
           toSend.push(transactions[i]);
         }
       }
@@ -151,23 +190,48 @@ export default class TransactionsApi {
     }
 
     return res.json({ transactions: toSend });
-  }
+  };
 
-  private addTransactionUnsigned = (req: Request, res: Response, next: Next) => {
+  private addTransactionUnsigned = (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
     const query = req.body;
     const unsigendTransactionSchema = this.library.joi.object().keys({
-      secret: this.library.joi.string().secret().required(),
-      secondSecret: this.library.joi.string().secret().optional(),
-      fee: this.library.joi.number().min(1).required(),
-      type: this.library.joi.number().min(0).required(),
+      secret: this.library.joi
+        .string()
+        .secret()
+        .required(),
+      secondSecret: this.library.joi
+        .string()
+        .secret()
+        .optional(),
+      fee: this.library.joi
+        .number()
+        .min(1)
+        .required(),
+      type: this.library.joi
+        .number()
+        .min(0)
+        .required(),
       args: this.library.joi.array().optional(),
-      message: this.library.joi.string().max(256).optional(),
-      senderId: this.library.joi.string().address().optional(),
+      message: this.library.joi
+        .string()
+        .max(256)
+        .optional(),
+      senderId: this.library.joi
+        .string()
+        .address()
+        .optional(),
     });
     const report = this.library.joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
-      this.library.logger.warn('Failed to validate query params', report.error.message);
-      return setImmediate(next, (report.error.message));
+      this.library.logger.warn(
+        'Failed to validate query params',
+        report.error.message
+      );
+      return setImmediate(next, report.error.message);
     }
 
     const finishSequence = (err: string, result: any) => {
@@ -177,35 +241,52 @@ export default class TransactionsApi {
       res.json(result);
     };
 
-    this.library.sequence.add((callback) => {
-      (async () => {
-        try {
-          const hash = crypto.createHash('sha256').update(query.secret, 'utf8').digest();
-          const keypair = ed.generateKeyPair(hash);
-          let secondKeypair: KeyPair = null;
-          if (query.secondSecret) {
-            secondKeypair = ed.generateKeyPair(crypto.createHash('sha256').update(query.secondSecret, 'utf8').digest());
+    this.library.sequence.add(
+      callback => {
+        (async () => {
+          try {
+            const hash = crypto
+              .createHash('sha256')
+              .update(query.secret, 'utf8')
+              .digest();
+            const keypair = ed.generateKeyPair(hash);
+            let secondKeypair: KeyPair = null;
+            if (query.secondSecret) {
+              secondKeypair = ed.generateKeyPair(
+                crypto
+                  .createHash('sha256')
+                  .update(query.secondSecret, 'utf8')
+                  .digest()
+              );
+            }
+            const trs = this.library.base.transaction.create({
+              secret: query.secret,
+              fee: query.fee,
+              type: query.type,
+              senderId: query.senderId || null,
+              args: query.args || null,
+              message: query.message || null,
+              secondKeypair,
+              keypair,
+            });
+            await this.modules.transactions.processUnconfirmedTransactionAsync(
+              trs
+            );
+            this.library.bus.message('unconfirmedTransaction', trs);
+            callback(null, { transactionId: trs.id });
+          } catch (e) {
+            this.library.logger.warn(
+              'Failed to process unsigned transaction',
+              e
+            );
+            callback(e.toString());
           }
-          const trs = this.library.base.transaction.create({
-            secret: query.secret,
-            fee: query.fee,
-            type: query.type,
-            senderId: query.senderId || null,
-            args: query.args || null,
-            message: query.message || null,
-            secondKeypair,
-            keypair,
-          });
-          await this.modules.transactions.processUnconfirmedTransactionAsync(trs);
-          this.library.bus.message('unconfirmedTransaction', trs);
-          callback(null, { transactionId: trs.id });
-        } catch (e) {
-          this.library.logger.warn('Failed to process unsigned transaction', e);
-          callback(e.toString());
-        }
-      })();
-    }, undefined, finishSequence);
-  }
+        })();
+      },
+      undefined,
+      finishSequence
+    );
+  };
 
   private addTransactions = (req: Request, res: Response, next: Next) => {
     if (!req.body || !req.body.transactions) {
@@ -226,8 +307,12 @@ export default class TransactionsApi {
     } catch (e) {
       return next(`Invalid transaction body: ${e.toString()}`);
     }
-    return this.library.sequence.add((callback) => {
-      this.modules.transactions.processUnconfirmedTransactions(trs, callback);
-    }, undefined, finishedCallback);
-  }
+    return this.library.sequence.add(
+      callback => {
+        this.modules.transactions.processUnconfirmedTransactions(trs, callback);
+      },
+      undefined,
+      finishedCallback
+    );
+  };
 }

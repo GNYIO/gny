@@ -1,19 +1,20 @@
 export default function parseNums(obj, options) {
   let result = {},
-      key,
-      value;
+    key,
+    value;
 
   for (key in obj) {
     if (obj.hasOwnProperty(key)) {
       value = obj[key];
 
-      if (typeof value === 'string' && !isNaN(options.parser.call(null, value, 10, key))) {
+      if (
+        typeof value === 'string' &&
+        !isNaN(options.parser.call(null, value, 10, key))
+      ) {
         result[key] = options.parser.call(null, value, 10, key);
-      }
-      else if (value.constructor === Object) {
+      } else if (value.constructor === Object) {
         result[key] = parseNums(value, options);
-      }
-      else {
+      } else {
         result[key] = value;
       }
     }

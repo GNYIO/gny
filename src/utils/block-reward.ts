@@ -52,7 +52,7 @@ export default class BlockReward {
 
     let amount: number = 0;
     let multiplier: number = 0;
-    height = (height - this.rewardOffset) + 1;
+    height = height - this.rewardOffset + 1;
 
     for (let i = 0; i < REWARDS.MILESTONES.length; i++) {
       if (milestone >= i) {
@@ -85,4 +85,3 @@ export default class BlockReward {
     return supply;
   }
 }
-

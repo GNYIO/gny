@@ -1,4 +1,3 @@
-
 import server from './core/server';
 import accounts from './core/accounts';
 import transactions from './core/transactions';
@@ -67,7 +66,6 @@ export interface Modules {
   blocks: blocks;
 }
 
-
 export interface IMessageEmitter {
   message: (topic: string, ...restArgs: any[]) => void;
 }
@@ -114,7 +112,11 @@ interface IApp {
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
-  validate: (type: string, value: any, constraints?: IValidatorConstraints) => void | never;
+  validate: (
+    type: string,
+    value: any,
+    constraints?: IValidatorConstraints
+  ) => void | never;
   registerContract: (type: number, name: string) => void;
   getContractName: (type: string) => any;
   contractTypeMapping: {
@@ -132,7 +134,7 @@ interface IApp {
   setDefaultFee: (min: string, currency: string) => void;
   addRoundFee: (fee: IFee, roundNumber: number) => void;
   hooks: {
-    [name: string]: () => void
+    [name: string]: () => void;
   };
   registerHook: (name: string, func: () => void) => void;
   logger: ILogger;
@@ -165,9 +167,14 @@ export interface IGenesisBlock {
   }[];
 }
 
-
-type ILogLevel = 'trace' | 'debug' | 'log' | 'info' | 'warn' | 'error' | 'fatal';
-
+type ILogLevel =
+  | 'trace'
+  | 'debug'
+  | 'log'
+  | 'info'
+  | 'warn'
+  | 'error'
+  | 'fatal';
 
 export interface IConfig {
   version: string;
@@ -182,7 +189,7 @@ export interface IConfig {
   peerPort: number;
   address: string;
   peers: {
-    list: { ip: string, port: string | number }[];
+    list: { ip: string; port: string | number }[];
   };
   logLevel: ILogLevel;
   pidFile: string;
@@ -213,7 +220,6 @@ export interface ISimpleCache {
 }
 
 export type Next = (err: string) => any;
-
 
 export interface PeerNode {
   host: string;
@@ -262,7 +268,6 @@ export interface P2PMessage {
 
 export type P2PSubscribeHandler = (message: P2PMessage) => void;
 
-
 export interface BlockPropose {
   address: string;
   generatorPublicKey: string;
@@ -287,4 +292,3 @@ declare global {
     }
   }
 }
-

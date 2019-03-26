@@ -1,5 +1,3 @@
-
-
 export default {
   async registerIssuer(name, desc) {
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name';
@@ -27,11 +25,14 @@ export default {
   async registerAsset(symbol, desc, maximum, precision) {
     if (!/^[A-Z]{3,6}$/.test(symbol)) return 'Invalid symbol';
     if (desc.length > 4096) return 'Invalid asset description';
-    if (!Number.isInteger(precision) || precision <= 0) return 'Precision should be positive integer';
+    if (!Number.isInteger(precision) || precision <= 0)
+      return 'Precision should be positive integer';
     if (precision > 16 || precision < 0) return 'Invalid asset precision';
     global.app.validate('amount', maximum);
 
-    const issuer = await global.app.sdb.findOne('Issuer', { condition: { issuerId: this.sender.address } });
+    const issuer = await global.app.sdb.findOne('Issuer', {
+      condition: { issuerId: this.sender.address },
+    });
     if (!issuer) return 'Account is not an issuer';
 
     const fullName = `${issuer.name}.${symbol}`;
@@ -69,7 +70,11 @@ export default {
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
-    await global.app.sdb.update('Asset', { quantity: asset.quantity }, { name });
+    await global.app.sdb.update(
+      'Asset',
+      { quantity: asset.quantity },
+      { name }
+    );
 
     await global.app.balances.increase(this.sender.address, name, amount);
     return null;
@@ -91,12 +96,19 @@ export default {
       recipientAddress = recipient;
     } else {
       recipientName = recipient;
-      const recipientAccount = await global.app.sdb.findOne('Account', { condition: { username: recipient } });
+      const recipientAccount = await global.app.sdb.findOne('Account', {
+        condition: { username: recipient },
+      });
       if (!recipientAccount) return 'Recipient name not exist';
       recipientAddress = recipientAccount.address;
     }
 
-    await global.app.balances.transfer(currency, amount, senderId, recipientAddress);
+    await global.app.balances.transfer(
+      currency,
+      amount,
+      senderId,
+      recipientAddress
+    );
     await global.app.sdb.create('Transfer', {
       tid: this.trs.id,
       height: this.block.height,

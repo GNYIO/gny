@@ -18,7 +18,7 @@ function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
     assert.equal(
       payloadHash.digest().toString('hex'),
       block.payloadHash,
-      'Unexpected payloadHash',
+      'Unexpected payloadHash'
     );
     assert.equal(id, block.id, 'Unexpected block id');
   } catch (e) {
@@ -83,13 +83,16 @@ export default class Application {
       process.emit('cleanup');
     });
 
-    process.on('uncaughtException', (err) => {
+    process.on('uncaughtException', err => {
       // handle the error safely
-      scope.logger.fatal('uncaughtException', { message: err.message, stack: err.stack });
+      scope.logger.fatal('uncaughtException', {
+        message: err.message,
+        stack: err.stack,
+      });
       process.emit('cleanup');
     });
 
-    process.on('unhandledRejection', (err) => {
+    process.on('unhandledRejection', err => {
       // handle the error safely
       scope.logger.error('unhandledRejection', err);
       process.emit('cleanup');

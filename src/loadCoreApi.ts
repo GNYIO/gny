@@ -1,4 +1,3 @@
-
 import BlocksApi from '../packages/http/api/blocksApi';
 import AccountsApi from '../packages/http/api/accountsApi';
 import DelegatesApi from '../packages/http/api/delegatesApi';

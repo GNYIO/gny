@@ -21,7 +21,11 @@ const CIPHERS = `
   DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
   !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
-export default async function intNetwork(appConfig: IConfig, modules: Modules, logger: ILogger) {
+export default async function intNetwork(
+  appConfig: IConfig,
+  modules: Modules,
+  logger: ILogger
+) {
   let sslServer;
   let sslio;
 
@@ -38,11 +42,14 @@ export default async function intNetwork(appConfig: IConfig, modules: Modules, l
     const privateKey = fs.readFileSync(appConfig.ssl.options.key);
     const certificate = fs.readFileSync(appConfig.ssl.options.cert);
 
-    sslServer = https.createServer({
-      key: privateKey,
-      cert: certificate,
-      ciphers: CIPHERS,
-    }, expressApp);
+    sslServer = https.createServer(
+      {
+        key: privateKey,
+        cert: certificate,
+        ciphers: CIPHERS,
+      },
+      expressApp
+    );
     sslio = socketio(sslServer);
   }
 
@@ -53,49 +60,63 @@ export default async function intNetwork(appConfig: IConfig, modules: Modules, l
     expressApp.set('views', appConfig.publicDir);
     expressApp.use(express.static(appConfig.publicDir));
     expressApp.use(bodyParser.raw({ limit: PAYLOAD_LIMIT_SIZE }));
-    expressApp.use(bodyParser.urlencoded({
-      extended: true,
-      limit: PAYLOAD_LIMIT_SIZE,
-      parameterLimit: 5000,
-    }));
+    expressApp.use(
+      bodyParser.urlencoded({
+        extended: true,
+        limit: PAYLOAD_LIMIT_SIZE,
+        parameterLimit: 5000,
+      })
+    );
     expressApp.use(bodyParser.json({ limit: PAYLOAD_LIMIT_SIZE }));
     expressApp.use(methodOverride());
 
     const ignore = [
-      'id', 'name', 'lastBlockId', 'blockId',
-      'transactionId', 'address', 'recipientId',
-      'senderId', 'previousBlock',
+      'id',
+      'name',
+      'lastBlockId',
+      'blockId',
+      'transactionId',
+      'address',
+      'recipientId',
+      'senderId',
+      'previousBlock',
     ];
 
-    expressApp.use(queryParser({
-      parser(value, radix, name) {
-        if (ignore.indexOf(name) >= 0) {
-          return value;
-        }
+    expressApp.use(
+      queryParser({
+        parser(value, radix, name) {
+          if (ignore.indexOf(name) >= 0) {
+            return value;
+          }
 
-        if (!isNumberOrNumberString(value)) {
-          return value;
-        }
+          if (!isNumberOrNumberString(value)) {
+            return value;
+          }
 
-        return Number.parseInt(value, radix);
-      },
-    }));
+          return Number.parseInt(value, radix);
+        },
+      })
+    );
 
     expressApp.use(ZSchemaExpress(scheme()));
     expressApp.use((req, res, next) => {
       const parts = req.url.split('/');
-      const host = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const host =
+        req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
       logger.debug(`receive request: ${req.method} ${req.url} from ${host}`);
 
       res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('Content-Security-Policy', 'frame-ancestors \'none\'');
+      res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader(
         'Access-Control-Allow-Headers',
-        'Origin, Content-Length,  X-Requested-With, Content-Type, Accept, request-node-status',
+        'Origin, Content-Length,  X-Requested-With, Content-Type, Accept, request-node-status'
       );
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD, PUT, DELETE');
+      res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, POST, OPTIONS, HEAD, PUT, DELETE'
+      );
 
       if (req.method === 'OPTIONS') {
         res.sendStatus(200);
@@ -104,13 +125,15 @@ export default async function intNetwork(appConfig: IConfig, modules: Modules, l
       }
 
       const URI_PREFIXS = ['api', 'peer'];
-      const isApiOrPeer = parts.length > 1 && (URI_PREFIXS.indexOf(parts[1]) !== -1);
+      const isApiOrPeer =
+        parts.length > 1 && URI_PREFIXS.indexOf(parts[1]) !== -1;
       const { whiteList } = appConfig.api.access;
       const { blackList } = appConfig.peers;
 
-      const forbidden = isApiOrPeer && (
-        (whiteList.length > 0 && whiteList.indexOf(ip) < 0)
-        || (blackList.length > 0 && blackList.indexOf(ip) >= 0));
+      const forbidden =
+        isApiOrPeer &&
+        ((whiteList.length > 0 && whiteList.indexOf(ip) < 0) ||
+          (blackList.length > 0 && blackList.indexOf(ip) >= 0));
 
       if (isApiOrPeer && forbidden) {
         res.sendStatus(403);
@@ -118,19 +141,24 @@ export default async function intNetwork(appConfig: IConfig, modules: Modules, l
         // Add server status info to response header
         const lastBlock = modules.blocks.getLastBlock();
         res.setHeader('Access-Control-Expose-Headers', 'node-status');
-        res.setHeader('node-status', JSON.stringify({
-          blockHeight: lastBlock.height,
-          blockTime: slots.getRealTime(lastBlock.timestamp),
-          blocksBehind: slots.getNextSlot() - (slots.getSlotNumber(lastBlock.timestamp) + 1),
-          version: modules.peer.getVersion(),
-        }));
+        res.setHeader(
+          'node-status',
+          JSON.stringify({
+            blockHeight: lastBlock.height,
+            blockTime: slots.getRealTime(lastBlock.timestamp),
+            blocksBehind:
+              slots.getNextSlot() -
+              (slots.getSlotNumber(lastBlock.timestamp) + 1),
+            version: modules.peer.getVersion(),
+          })
+        );
         next();
       } else {
         next();
       }
     });
 
-    server.listen(appConfig.port, appConfig.address, (err) => {
+    server.listen(appConfig.port, appConfig.address, err => {
       logger.log(`Server started: ${appConfig.address}:${appConfig.port}`);
       if (!err) {
         logger.log(`Error: ${err}`);
@@ -149,12 +177,15 @@ export default async function intNetwork(appConfig: IConfig, modules: Modules, l
 }
 
 function isNumberOrNumberString(value) {
-  return !(Number.isNaN(value) || Number.isNaN(parseInt(value, 10))
-    || String(parseInt(value, 10)) !== String(value));
+  return !(
+    Number.isNaN(value) ||
+    Number.isNaN(parseInt(value, 10)) ||
+    String(parseInt(value, 10)) !== String(value)
+  );
 }
 
 function scheme() {
-  ZSchema.registerFormat('hex', (str) => {
+  ZSchema.registerFormat('hex', str => {
     let b;
     try {
       b = Buffer.from(str, 'hex');
@@ -165,7 +196,7 @@ function scheme() {
     return b && b.length > 0;
   });
 
-  ZSchema.registerFormat('publicKey', (str) => {
+  ZSchema.registerFormat('publicKey', str => {
     if (str.length === 0) {
       return true;
     }
@@ -179,7 +210,7 @@ function scheme() {
     }
   });
 
-  ZSchema.registerFormat('splitarray', (str) => {
+  ZSchema.registerFormat('splitarray', str => {
     try {
       const a = str.split(',');
       return a.length > 0 && a.length <= 1000;
@@ -188,7 +219,7 @@ function scheme() {
     }
   });
 
-  ZSchema.registerFormat('signature', (str) => {
+  ZSchema.registerFormat('signature', str => {
     try {
       const signature = Buffer.from(str, 'hex');
       return signature.length === 64;

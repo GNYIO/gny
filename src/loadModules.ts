@@ -12,7 +12,6 @@ import Blocks from './core/blocks';
 import { Modules, IScope } from './interfaces';
 
 export default function loadModules(scope: IScope) {
-
   const server = new Server(scope);
   const accounts = new Accounts(scope);
   const transactions = new Transactions(scope);
@@ -34,7 +33,7 @@ export default function loadModules(scope: IScope) {
     delegates: delegates,
     round: round,
     uia: uia,
-    blocks: blocks
+    blocks: blocks,
   };
   return modules;
 }

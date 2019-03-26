@@ -4,10 +4,9 @@ import { IScope, Next } from '../../../src/interfaces';
 import { In } from 'typeorm';
 
 export default class TransfersApi {
-
   private library: IScope;
   private loaded = false;
-  constructor (library: IScope) {
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
@@ -15,21 +14,25 @@ export default class TransfersApi {
   // Events
   public onBlockchainReady = () => {
     this.loaded = true;
-  }
+  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
       if (this.loaded === true) return next();
-      return res.status(500).json({ success: false, error: 'Blockchain is loading' });
+      return res
+        .status(500)
+        .json({ success: false, error: 'Blockchain is loading' });
     });
 
     router.get('/', this.getRoot);
     router.get('/amount', this.getAmount);
 
     router.use((req: Request, res: Response) => {
-      return res.status(500).send({ success: false, error: 'API endpoint not found' });
+      return res
+        .status(500)
+        .send({ success: false, error: 'API endpoint not found' });
     });
 
     this.library.network.app.use('/api/transfers', router);
@@ -38,10 +41,9 @@ export default class TransfersApi {
       this.library.logger.error(req.url, err.toString());
       return res.status(500).send({ success: false, error: err.toString() });
     });
-  }
+  };
 
   private getRoot = async (req: Request, res: Response, next: Next) => {
-
     const condition: any = {};
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
@@ -96,7 +98,7 @@ export default class TransfersApi {
       }
     }
     return res.json({ count, transfers });
-  }
+  };
 
   private getAmount = async (req: Request, res: Response, next: Next) => {
     const startTimestamp = req.query.startTimestamp;
@@ -142,9 +144,7 @@ export default class TransfersApi {
     }
     const strTotalAmount = String(totalAmount);
     return res.json({ count, strTotalAmount });
-  }
-
-
+  };
 
   // helper function
   private getAssetMap = async (assetNames: Set<string>) => {
@@ -163,10 +163,10 @@ export default class TransfersApi {
       }
     }
     return assetMap;
-  }
+  };
 
   // helper function
-  private getTransactionMap = async (tids) => {
+  private getTransactionMap = async tids => {
     const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
@@ -177,5 +177,5 @@ export default class TransfersApi {
       trsMap.set(t.id, t);
     }
     return trsMap;
-  }
+  };
 }

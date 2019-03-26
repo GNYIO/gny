@@ -1,7 +1,13 @@
 import 'reflect-metadata';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createConnection, Connection, getConnection, MoreThan, ConnectionOptions } from 'typeorm';
+import {
+  createConnection,
+  Connection,
+  getConnection,
+  MoreThan,
+  ConnectionOptions,
+} from 'typeorm';
 import { OrmLogger } from './ormLogger';
 
 import { Account } from './entity/Account';
@@ -23,20 +29,18 @@ interface LimitAndOffset {
 }
 
 const ENTITY: any = {
-  'Account': Account,
-  'Asset': Asset,
-  'Balance': Balance,
-  'Block': Block,
-  'Delegate': Delegate,
-  'Issuer': Issuer,
-  'Round': Round,
-  'Transaction': Transaction,
-  'Variable': Variable,
-  'Vote': Vote,
-  'Transfer': Transfer
+  Account: Account,
+  Asset: Asset,
+  Balance: Balance,
+  Block: Block,
+  Delegate: Delegate,
+  Issuer: Issuer,
+  Round: Round,
+  Transaction: Transaction,
+  Variable: Variable,
+  Vote: Vote,
+  Transfer: Transfer,
 };
-
-
 
 export class SmartDB {
   connection: Connection;
@@ -101,7 +105,13 @@ export class SmartDB {
    * @param {any} sort - TODO
    * @return {Promise<any>}
    */
-  public async findAll(table: string, condition?: any, limit: number = 0, offset: number = 0, sort?: any): Promise<any> {
+  public async findAll(
+    table: string,
+    condition?: any,
+    limit: number = 0,
+    offset: number = 0,
+    sort?: any
+  ): Promise<any> {
     // TODO sort
     if (!sort) {
       sort = undefined;
@@ -128,7 +138,11 @@ export class SmartDB {
    * @param {number} offset
    * @return {Promise<any>}
    */
-  public async find(table: string, condition: any, limitAndOffset?: LimitAndOffset): Promise<any> {
+  public async find(
+    table: string,
+    condition: any,
+    limitAndOffset?: LimitAndOffset
+  ): Promise<any> {
     const connection = getConnection();
     const repo = connection.getRepository(ENTITY[table]);
     const result = await repo.find({
@@ -253,11 +267,11 @@ export class SmartDB {
       .select('MAX(block.height)', 'maxHeight')
       .getRawOne();
     const block = await repo
-          .createQueryBuilder('block')
-          .where('block.height = :height', {
-            height: height.maxHeight
-          })
-          .getOne();
+      .createQueryBuilder('block')
+      .where('block.height = :height', {
+        height: height.maxHeight,
+      })
+      .getOne();
     return block;
   }
 
@@ -331,7 +345,7 @@ export class SmartDB {
       take: 1,
       cache: {
         id: id,
-      }
+      },
     });
 
     return result[0];
@@ -344,7 +358,11 @@ export class SmartDB {
    * @param {any} condition
    * @return {Promise<void>}
    */
-  public async increase(table: string, data: any, condition: any): Promise<void> {
+  public async increase(
+    table: string,
+    data: any,
+    condition: any
+  ): Promise<void> {
     let num: number;
     let item: any = await this.findOne(table, condition);
 
@@ -369,7 +387,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
   }
 
@@ -404,7 +422,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
 
     // logger.info('Created an item in table: ' + table);
@@ -430,7 +448,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
   }
 
@@ -451,7 +469,7 @@ export class SmartDB {
       id,
       'count' + table,
       'find' + table,
-      'findAll' + table
+      'findAll' + table,
     ]);
     // logger.info('Delete the data according to the condition: ' + JSON.stringify(condition));
   }
@@ -486,7 +504,7 @@ export class SmartDB {
       await connection.queryResultCache.remove([
         'count' + table,
         'find' + table,
-        'findAll' + table
+        'findAll' + table,
       ]);
 
       // logger.info('Commit the contract');
@@ -617,7 +635,7 @@ export class SmartDB {
       'Account_address',
       'Asset_name',
       'Issuer_issuerId',
-      'Issuer_name'
+      'Issuer_name',
     ];
 
     let key: string;

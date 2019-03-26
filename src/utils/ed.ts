@@ -3,7 +3,7 @@ import { KeyPair } from '../interfaces';
 
 export function generateKeyPair(hash: Buffer): KeyPair {
   const keypair = sodium.crypto_sign_seed_keypair(hash);
-  return <KeyPair> {
+  return <KeyPair>{
     publicKey: keypair.publicKey,
     privateKey: keypair.secretKey,
   };
@@ -13,6 +13,10 @@ export function sign(hash: Buffer, privateKey: Buffer): Buffer {
   return sodium.crypto_sign_detached(hash, privateKey);
 }
 
-export function verify(hash: Buffer, signature: Buffer, publicKey: Buffer): boolean {
+export function verify(
+  hash: Buffer,
+  signature: Buffer,
+  publicKey: Buffer
+): boolean {
   return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 }

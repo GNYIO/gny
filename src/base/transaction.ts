@@ -13,10 +13,12 @@ export class Transaction {
     this.library = scope;
   }
 
-  public create = (data) => {
+  public create = data => {
     const transaction: any = {
       type: data.type,
-      senderId: addressHelper.generateAddress(data.keypair.publicKey.toString('hex')),
+      senderId: addressHelper.generateAddress(
+        data.keypair.publicKey.toString('hex')
+      ),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getTime(undefined),
       message: data.message,
@@ -33,21 +35,27 @@ export class Transaction {
     transaction.id = this.getHash(transaction).toString('hex');
 
     return transaction;
-  }
+  };
 
   private sign = (keypair: KeyPair, transaction) => {
     const bytes = this.getBytes(transaction, true, true);
-    const hash = crypto.createHash('sha256').update(bytes).digest();
+    const hash = crypto
+      .createHash('sha256')
+      .update(bytes)
+      .digest();
 
     return ed.sign(hash, keypair.privateKey).toString('hex');
-  }
+  };
 
   getId(transaction) {
     return this.getHash(transaction).toString('hex');
   }
 
   private getHash(transaction) {
-    return crypto.createHash('sha256').update(this.getBytes(transaction)).digest();
+    return crypto
+      .createHash('sha256')
+      .update(this.getBytes(transaction))
+      .digest();
   }
 
   public getBytes(transaction, skipSignature?, skipSecondSignature?): Buffer {
@@ -81,7 +89,10 @@ export class Transaction {
     }
 
     if (!skipSecondSignature && transaction.secondSignature) {
-    const secondSignatureBuffer = Buffer.from(transaction.secondSignature, 'hex');
+      const secondSignatureBuffer = Buffer.from(
+        transaction.secondSignature,
+        'hex'
+      );
       for (let i = 0; i < secondSignatureBuffer.length; i++) {
         byteBuffer.writeByte(secondSignatureBuffer[i]);
       }
@@ -93,12 +104,24 @@ export class Transaction {
   }
 
   verifyNormalSignature(transaction, sender, bytes) {
-    if (!this.verifyBytes(bytes, transaction.senderPublicKey, transaction.signatures[0])) {
+    if (
+      !this.verifyBytes(
+        bytes,
+        transaction.senderPublicKey,
+        transaction.signatures[0]
+      )
+    ) {
       return 'Invalid signature';
     }
     if (sender.secondPublicKey) {
       if (!transaction.secondSignature) return 'Second signature not provided';
-      if (!this.verifyBytes(bytes, sender.secondPublicKey, transaction.secondSignature)) {
+      if (
+        !this.verifyBytes(
+          bytes,
+          sender.secondPublicKey,
+          transaction.secondSignature
+        )
+      ) {
         return 'Invalid second signature';
       }
     }
@@ -143,7 +166,10 @@ export class Transaction {
         data2[i] = bytes[i];
       }
 
-      const hash = crypto.createHash('sha256').update(data2).digest();
+      const hash = crypto
+        .createHash('sha256')
+        .update(data2)
+        .digest();
       const signatureBuffer = Buffer.from(signature, 'hex');
       const publicKeyBuffer = Buffer.from(publicKey, 'hex');
       return ed.verify(hash, signatureBuffer || ' ', publicKeyBuffer || ' ');
@@ -153,9 +179,7 @@ export class Transaction {
   }
 
   async apply(context: any) {
-    const {
-      block, trs, sender,
-    } = context;
+    const { block, trs, sender } = context;
     const name = global.app.getContractName(trs.type);
     if (!name) {
       throw new Error(`Unsupported transaction type: ${trs.type}`);
@@ -172,7 +196,11 @@ export class Transaction {
     if (block.height !== 0) {
       if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
       sender.gny -= trs.fee;
-      await global.app.sdb.update('Account', { gny: sender.gny }, { address: sender.address });
+      await global.app.sdb.update(
+        'Account',
+        { gny: sender.gny },
+        { address: sender.address }
+      );
     }
 
     const error = await fn.apply(context, trs.args);
@@ -182,7 +210,7 @@ export class Transaction {
     // transaction.executed = 1
   }
 
-  public objectNormalize = (transaction) => {
+  public objectNormalize = transaction => {
     for (const i in transaction) {
       if (transaction[i] === null || typeof transaction[i] === 'undefined') {
         delete transaction[i];
@@ -195,7 +223,8 @@ export class Transaction {
     if (transaction.args && typeof transaction.args === 'string') {
       try {
         transaction.args = JSON.parse(transaction.args);
-        if (!Array.isArray(transaction.args)) throw new Error('Transaction args must be json array');
+        if (!Array.isArray(transaction.args))
+          throw new Error('Transaction args must be json array');
       } catch (e) {
         throw new Error(`Failed to parse args: ${e}`);
       }
@@ -210,26 +239,71 @@ export class Transaction {
     }
 
     const signedTransactionSchema = this.library.joi.object().keys({
-      fee: this.library.joi.number().integer().min(0).required(),
-      type: this.library.joi.number().integer().min(0).required(),
-      timestamp: this.library.joi.number().integer().min(0).required(),
+      fee: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      type: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      timestamp: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
       args: this.library.joi.array().optional(),
-      message: this.library.joi.string().max(256).allow('').optional(),
-      senderId: this.library.joi.string().address().required(),
-      senderPublicKey: this.library.joi.string().publicKey().required(),
-      signatures: this.library.joi.array().length(1).items(
-        this.library.joi.string().signature().required()
-      ).required().single(),
-      secondSignature: this.library.joi.string().signature().optional(),
-      id: this.library.joi.string().hex().required(),
-      height: this.library.joi.number().integer().optional(),
+      message: this.library.joi
+        .string()
+        .max(256)
+        .allow('')
+        .optional(),
+      senderId: this.library.joi
+        .string()
+        .address()
+        .required(),
+      senderPublicKey: this.library.joi
+        .string()
+        .publicKey()
+        .required(),
+      signatures: this.library.joi
+        .array()
+        .length(1)
+        .items(
+          this.library.joi
+            .string()
+            .signature()
+            .required()
+        )
+        .required()
+        .single(),
+      secondSignature: this.library.joi
+        .string()
+        .signature()
+        .optional(),
+      id: this.library.joi
+        .string()
+        .hex()
+        .required(),
+      height: this.library.joi
+        .number()
+        .integer()
+        .optional(),
     });
-    const report = this.library.joi.validate(transaction, signedTransactionSchema);
+    const report = this.library.joi.validate(
+      transaction,
+      signedTransactionSchema
+    );
     if (report.error) {
-      this.library.logger.error(`Failed to normalize transaction body: ${report.error.message}`, transaction);
+      this.library.logger.error(
+        `Failed to normalize transaction body: ${report.error.message}`,
+        transaction
+      );
       throw new Error(report.error.message);
     }
 
     return transaction;
-  }
+  };
 }
