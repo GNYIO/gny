@@ -1,12 +1,13 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Account {
   @PrimaryColumn({
     type: 'varchar',
     length: 50,
     nullable: false,
-    unique: true,
   })
   public address: string;
 
@@ -61,4 +62,11 @@ export class Account {
     type: 'bigint',
   })
   public lockAmount: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

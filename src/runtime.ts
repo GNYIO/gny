@@ -2,11 +2,12 @@
 import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
-import { SmartDB } from '../packages/database-postgres/smartdb';
+import { SmartDB } from '../packages/database-postgres/src/smartDB';
 // import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
 // import loadModels from './loadModels';
 import loadContracts from './loadContracts';
+import * as path from 'path';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
@@ -108,6 +109,8 @@ export default async function runtime(options) {
   global.app.registerHook = (name, func) => {
     global.app.hooks[name] = func;
   };
+
+  const { dataDir } = options.appConfig;
 
   global.app.sdb = new SmartDB(options.logger);
   await global.app.sdb.init();

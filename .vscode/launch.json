@@ -38,7 +38,10 @@
       "name": "second Node",
       "program": "${workspaceFolder}/createSecondNode.js",
       "cwd": "${workspaceFolder}",
-      "args": ["2"]
+      "args": ["2"],
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     },
     {
       "type": "node",
@@ -48,7 +51,9 @@
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
       "args": [
           "--verbose",
-          "--runInBand"
+          "--runInBand",
+          "--no-cache",
+          "test/integration"
       ],
       "runtimeArgs": [
           "--nolazy"
@@ -56,7 +61,10 @@
       "console": "integratedTerminal",
       "env": {
           "NODE_ENV": "test"
-      }
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
     }
   ]
 }

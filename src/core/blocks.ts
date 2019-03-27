@@ -15,7 +15,6 @@ import {
   ProcessBlockOptions,
   BlockPropose,
 } from '../interfaces';
-import { In } from 'typeorm';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -48,7 +47,7 @@ export default class Blocks {
         maxHeight
       );
       blocks = blocks.reverse();
-      const ids = blocks.map((b: any) => b.id);
+      const ids = blocks.map(b => b.id);
       return { ids, firstHeight: minHeight };
     } catch (e) {
       throw e;
@@ -287,7 +286,7 @@ export default class Blocks {
 
         if (
           idList.length !== 0 &&
-          (await global.app.sdb.exists('Transaction', { id: In(idList) }))
+          (await global.app.sdb.exists('Transaction', { id: idList }))
         ) {
           throw new Error('Block contain already confirmed transaction');
         }
@@ -306,9 +305,9 @@ export default class Blocks {
     }
 
     try {
+      await this.saveBlockTransactions(block);
       await this.applyRound(block);
       await global.app.sdb.commitBlock(block.height);
-      await this.saveBlockTransactions(block);
       const trsCount = block.transactions.length;
       global.app.logger.info(
         `Block applied correctly with ${trsCount} transactions`
@@ -342,6 +341,8 @@ export default class Blocks {
     for (const trs of block.transactions) {
       trs.height = block.height;
       // trs.block = block;
+      trs.signatures = JSON.stringify(trs.signatures);
+      trs.args = JSON.stringify(trs.args);
       await global.app.sdb.create('Transaction', trs);
     }
     global.app.logger.trace('Blocks#save transactions');
@@ -455,7 +456,11 @@ export default class Blocks {
     }
   };
 
-  public getBlocks = async (minHeight, maxHeight, withTransaction) => {
+  public getBlocks = async (
+    minHeight: number,
+    maxHeight: number,
+    withTransaction: boolean
+  ) => {
     const blocks = await global.app.sdb.getBlocksByHeightRange(
       minHeight,
       maxHeight
@@ -636,7 +641,7 @@ export default class Blocks {
     }
     this.library.base.consensus.setPendingBlock(block);
     this.library.base.consensus.addPendingVotes(localVotes);
-    // this.proposeCache[propose.hash] = true
+    this.proposeCache[propose.hash] = true;
     this.privIsCollectingVotes = true;
     this.library.bus.message('newPropose', propose, true);
     return;
@@ -897,7 +902,7 @@ export default class Blocks {
 
     return (async () => {
       try {
-        const count = await global.app.sdb.blocksCount();
+        const count = global.app.sdb.blocksCount;
         global.app.logger.info('Blocks found:', count);
         if (!count) {
           this.setLastBlock({ height: -1 });

@@ -8,9 +8,6 @@
    "synchronize": true,
    "dropSchema": false,
    "logging": false,
-   "entities": [
-      "packages/database-postgres/entity/**/*.js"
-   ],
    "migrations": [
       "packages/database-postgres/migration/**/*.js"
    ],
@@ -21,13 +18,5 @@
       "entitiesDir": "packages/database-postgres/entity",
       "migrationsDir": "packages/database-postgres/migration",
       "subscribersDir": "packages/database-postgres/subscriber"
-   },
-   "cache": {
-      "type": "redis",
-      "duration": 30000,
-      "options": {
-        "host": "localhost",
-        "port": 3001
-      }
    }
 }

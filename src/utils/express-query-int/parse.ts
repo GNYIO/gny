@@ -1,7 +1,7 @@
 export default function parseNums(obj, options) {
-  let result = {},
-    key,
-    value;
+  const result = {};
+  let key;
+  let value;
 
   for (key in obj) {
     if (obj.hasOwnProperty(key)) {

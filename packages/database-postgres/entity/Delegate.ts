@@ -1,11 +1,12 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: true })
 @Entity()
 export class Delegate {
   @PrimaryColumn({
     type: 'varchar',
     length: 50,
-    unique: true,
     nullable: false,
   })
   public address: string;
@@ -64,4 +65,11 @@ export class Delegate {
     nullable: true,
   })
   public rewards: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

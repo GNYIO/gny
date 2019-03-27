@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Transfer {
   @PrimaryColumn({
@@ -58,4 +60,11 @@ export class Transfer {
   })
   @Index()
   public height: number;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }
