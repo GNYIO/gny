@@ -1,6 +1,7 @@
-import { Column, Entity, Index, PrimaryColumn, OneToMany } from 'typeorm';
-import { Transaction } from './Transaction';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Block {
   @PrimaryColumn({
@@ -28,6 +29,13 @@ export class Block {
   })
   @Index()
   public timestamp: number;
+
+  @Column({
+    nullable: false,
+    type: 'int',
+    unique: true,
+  })
+  public height: number;
 
   @Column({
     length: 64,
@@ -76,8 +84,10 @@ export class Block {
   })
   public signature: string;
 
-  @OneToMany(type => Transaction, transaction => transaction.height, {
-    cascade: ['remove'],
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
   })
-  public transactions: Transaction[];
+  public _version_: number;
 }

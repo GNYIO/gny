@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: true })
 @Entity()
 export class Asset {
   // @PrimaryColumn({
@@ -59,4 +61,11 @@ export class Asset {
     nullable: false,
   })
   public issuerId: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

@@ -1,5 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: true })
 @Entity()
 export class Variable {
   @PrimaryColumn({
@@ -14,4 +16,11 @@ export class Variable {
     nullable: false,
   })
   public value: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }

@@ -122,8 +122,7 @@ export default class Delegates {
       return;
     }
 
-    // this.library.sequence.add(done => (async () => { }))
-    await (async () => {
+    this.library.sequence.add(async done => {
       try {
         if (
           slots.getSlotNumber(currentBlockData.time) ===
@@ -138,8 +137,10 @@ export default class Delegates {
       } catch (e) {
         this.library.logger.error('Failed generate block within slot:', e);
         return;
+      } finally {
+        return done();
       }
-    })();
+    });
   };
 
   private loadMyDelegates = async () => {

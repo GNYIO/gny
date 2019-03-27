@@ -17,6 +17,7 @@ module.exports = {
   collectCoverage: true,
   globals: {
     'ts-jest': {
+      diagnostics: false,
       tsConfig: {
         target: 'ES2016',
         module: 'commonjs',
@@ -42,7 +43,8 @@ module.exports = {
           "node_modules/@types",
         ],
         esModuleInterop: false,
-        inlineSourceMap: true,
+        inlineSourceMap: false,
+        inlineSources: false
       }
     }
   },

@@ -182,14 +182,12 @@ export default class Transactions {
       if (error) throw new Error(error);
     }
 
-    let queryRunner = undefined;
     try {
-      queryRunner = await global.app.sdb.beginContract(transaction);
-      // await global.app.sdb.beginContract();
+      global.app.sdb.beginContract(transaction);
       await this.library.base.transaction.apply(context);
-      await global.app.sdb.commitContract(queryRunner);
+      global.app.sdb.commitContract();
     } catch (e) {
-      await global.app.sdb.rollbackContract(queryRunner);
+      global.app.sdb.rollbackContract();
       this.library.logger.error(e);
       throw e;
     }

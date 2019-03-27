@@ -10,9 +10,3 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-  redis:
-    image: "redis:4-alpine3.9"
-    container_name: 'redis_${REDIS_PORT}'
-    restart: always
-    ports:
-      - '${REDIS_PORT}:6379'

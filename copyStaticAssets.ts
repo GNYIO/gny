@@ -26,8 +26,7 @@ fs.readFile(path.join(__dirname, 'ormconfig.json'), { encoding: 'utf8' }, (err, 
   else {
     const parsedData: any = JSON.parse(data);
     const postgresPort = parsedData.port;
-    const redisPort = parsedData.cache.options.port;
-    const envContent = `POSTGRES_PORT=${postgresPort}\nREDIS_PORT=${redisPort}`;
+    const envContent = `POSTGRES_PORT=${postgresPort}`;
     fs.writeFile('dist/.env', envContent, { encoding: 'utf8' }, (err) => {
       if (err) { throw err; }
     });

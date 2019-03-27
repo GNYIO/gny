@@ -1,5 +1,7 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Config } from '../decorator/config';
 
+@Config({ memory: false })
 @Entity()
 export class Vote {
   @PrimaryColumn({
@@ -15,4 +17,11 @@ export class Vote {
     nullable: false,
   })
   public delegate: string;
+
+  @Column({
+    default: 0,
+    type: 'bigint',
+    nullable: false,
+  })
+  public _version_: number;
 }
