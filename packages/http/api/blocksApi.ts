@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import BlockReward from '../../src/utils/block-reward';
-import { Modules, IScope, Next } from '../../src/interfaces';
+import BlockReward from '../../../src/utils/block-reward';
+import { Modules, IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 
 export default class BlocksApi {
@@ -9,7 +9,7 @@ export default class BlocksApi {
   private loaded = false;
   private blockReward = new BlockReward();
 
-  constructor (modules: Modules, library: IScope) {
+  constructor(modules: Modules, library: IScope) {
     this.modules = modules;
     this.library = library;
 
@@ -19,14 +19,16 @@ export default class BlocksApi {
   // Events
   public onBlockchainReady = () => {
     this.loaded = true;
-  }
+  };
 
   private attachApi() {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
       if (this.modules && this.loaded === true) return next();
-      return res.status(500).send({ success: false, error: 'Blockchain is loading' });
+      return res
+        .status(500)
+        .send({ success: false, error: 'Blockchain is loading' });
     });
 
     // Mapping
@@ -44,23 +46,28 @@ export default class BlocksApi {
     });
 
     this.library.network.app.use('/api/blocks', router);
-    this.library.network.app.use((err: string, req: Request, res: Response, next: any) => {
-      if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
-      return res.status(500).send({
-        success: false,
-        error: err.toString(),
-      });
-    });
+    this.library.network.app.use(
+      (err: string, req: Request, res: Response, next: any) => {
+        if (!err) return next();
+        this.library.logger.error(req.url, err.toString());
+        return res.status(500).send({
+          success: false,
+          error: err.toString(),
+        });
+      }
+    );
   }
 
   private getBlock = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
-    const idOrHeight = this.library.joi.object().keys({
-      id: this.library.joi.string().min(1),
-      height: this.library.joi.number().min(0),
-    }).xor('id', 'height');
+    const idOrHeight = this.library.joi
+      .object()
+      .keys({
+        id: this.library.joi.string().min(1),
+        height: this.library.joi.number().min(0),
+      })
+      .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);
     if (report.error) {
       return next(report.error.message);
@@ -82,7 +89,7 @@ export default class BlocksApi {
       this.library.logger.error(e);
       return next('Server error');
     }
-  }
+  };
 
   private getBlocks = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
@@ -94,16 +101,20 @@ export default class BlocksApi {
     if (query.orderBy === 'height:desc') {
       needReverse = true;
       maxHeight = this.modules.blocks.getLastBlock().height - offset;
-      minHeight = (maxHeight - limit) + 1;
+      minHeight = maxHeight - limit + 1;
       minHeight = minHeight > 0 ? minHeight : 0;
     } else {
       minHeight = offset;
-      maxHeight = (offset + limit) - 1;
+      maxHeight = offset + limit - 1;
     }
     const withTransactions = !!query.transactions;
 
     try {
-      let blocks = await this.modules.blocks.getBlocks(minHeight, maxHeight, withTransactions);
+      let blocks = await this.modules.blocks.getBlocks(
+        minHeight,
+        maxHeight,
+        withTransactions
+      );
       if (needReverse) {
         blocks = _.reverse(blocks);
       }
@@ -112,30 +123,30 @@ export default class BlocksApi {
     } catch (err) {
       return next(err.message);
     }
-  }
+  };
 
   private getHeight = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
     return res.json({ height });
-  }
+  };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
     const milestone = this.blockReward.calculateMilestone(height);
     return res.json({ milestone });
-  }
+  };
 
   private getReward = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
     const reward = this.blockReward.calculateReward(height);
     return res.json({ reward });
-  }
+  };
 
   private getSupply = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
     const supply = this.blockReward.calculateSupply(height);
     return res.json({ supply });
-  }
+  };
 
   private getStatus = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
@@ -150,5 +161,5 @@ export default class BlocksApi {
       reward,
       supply,
     });
-  }
+  };
 }

@@ -9,14 +9,14 @@ export default class Server {
   }
 
   // Events
-    // Events
+  // Events
   onBlockchainReady = () => {
     this.isLoaded = true;
-  }
+  };
 
-  cleanup = (cb) => {
+  cleanup = cb => {
     this.library.logger.debug('Cleaning up core/server');
     this.isLoaded = false;
     cb();
-  }
+  };
 }

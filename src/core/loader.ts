@@ -27,19 +27,26 @@ export default class Loader {
     this.library.logger.debug(`Loading blocks from genesis from ${peerStr}`);
 
     this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
-  }
+  };
 
-  private async findUpdate (lastBlock: any, peer: any, cb: any) {
+  private async findUpdate(lastBlock: any, peer: any, cb: any) {
     const peerStr = `${peer.host}:${peer.port - 1}`;
 
     let commonBlock;
     try {
-      commonBlock = await this.modules.blocks.getCommonBlock(peer, lastBlock.height);
+      commonBlock = await this.modules.blocks.getCommonBlock(
+        peer,
+        lastBlock.height
+      );
     } catch (err) {
       return cb('Failed to get common block:', err);
     }
 
-    this.library.logger.info(`Found common block ${commonBlock.id} (at ${commonBlock.height}) with peer ${peerStr}, last block height is ${lastBlock.height}`);
+    this.library.logger.info(
+      `Found common block ${commonBlock.id} (at ${
+        commonBlock.height
+      }) with peer ${peerStr}, last block height is ${lastBlock.height}`
+    );
 
     const toRemove = Number(lastBlock.height) - commonBlock.height;
 
@@ -54,24 +61,33 @@ export default class Loader {
         if (toRemove > 0) {
           await global.app.sdb.rollbackBlock(commonBlock.height);
           this.modules.blocks.setLastBlock(await global.app.sdb.lastBlock);
-          this.library.logger.debug('set new last block', global.app.sdb.lastBlock);
+          this.library.logger.debug(
+            'set new last block',
+            global.app.sdb.lastBlock
+          );
         } else {
-          await global.app.sdb.rollbackBlock();
+          await global.app.sdb.rollbackBlock(lastBlock.height);
         }
       } catch (e) {
         this.library.logger.error('Failed to rollback block', e);
         return cb(e.message);
       }
       this.library.logger.debug(`Loading blocks from peer ${peerStr}`);
-      return this.modules.blocks.loadBlocksFromPeer(peer, commonBlock.id, (err2) => {
-        if (err2) {
-          this.library.logger.error(`Failed to load blocks, ban 60 min: ${peerStr}`, err2);
+      return this.modules.blocks.loadBlocksFromPeer(
+        peer,
+        commonBlock.id,
+        err2 => {
+          if (err2) {
+            this.library.logger.error(
+              `Failed to load blocks, ban 60 min: ${peerStr}`,
+              err2
+            );
+          }
+          cb();
         }
-        cb();
-      });
+      );
     })();
   }
-
 
   private async loadBlocks(lastBlock: any, cb: any) {
     let result;
@@ -90,11 +106,17 @@ export default class Loader {
     ret.height = Number.parseInt(ret.height, 10);
 
     const schema = this.library.joi.object().keys({
-      height: this.library.joi.number().integer().min(0).required(),
+      height: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
     });
     const report = this.library.joi.validate(ret, schema);
     if (report.error) {
-      this.library.logger.info(`Failed to parse blockchain height: ${peerStr}\n${report.error.message}`);
+      this.library.logger.info(
+        `Failed to parse blockchain height: ${peerStr}\n${report.error.message}`
+      );
       return cb();
     }
     if (new global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
@@ -112,13 +134,15 @@ export default class Loader {
     return cb();
   }
 
-
   // next
-  private loadUnconfirmedTransactions = (cb) => {
+  private loadUnconfirmedTransactions = cb => {
     (async () => {
       let result;
       try {
-        result = await this.modules.peer.randomRequestAsync('getUnconfirmedTransactions', {});
+        result = await this.modules.peer.randomRequestAsync(
+          'getUnconfirmedTransactions',
+          {}
+        );
       } catch (err) {
         return cb(err.message);
       }
@@ -127,7 +151,10 @@ export default class Loader {
       const peer = result.node;
 
       const schema = this.library.joi.object().keys({
-        transactions: this.library.joi.array().unique().required(),
+        transactions: this.library.joi
+          .array()
+          .unique()
+          .required(),
       });
       const report = this.library.joi.validate(data, schema);
       if (report.error) {
@@ -139,9 +166,16 @@ export default class Loader {
 
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = this.library.base.transaction.objectNormalize(transactions[i]);
+          transactions[i] = this.library.base.transaction.objectNormalize(
+            transactions[i]
+          );
         } catch (e) {
-          this.library.logger.info(`Transaction ${transactions[i] ? transactions[i].id : 'null'} is not valid, ban 60 min`, peerStr);
+          this.library.logger.info(
+            `Transaction ${
+              transactions[i] ? transactions[i].id : 'null'
+            } is not valid, ban 60 min`,
+            peerStr
+          );
           return cb('received transaction not valid');
         }
       }
@@ -152,14 +186,16 @@ export default class Loader {
           trs.push(transactions[i]);
         }
       }
-      this.library.logger.info(`Loading ${transactions.length} unconfirmed transaction from peer ${peerStr}`);
+      this.library.logger.info(
+        `Loading ${
+          transactions.length
+        } unconfirmed transaction from peer ${peerStr}`
+      );
       return this.library.sequence.add((done: any) => {
         this.modules.transactions.processUnconfirmedTransactions(trs, done);
       }, cb);
-
     })();
-
-  }
+  };
 
   // Public methods
   public syncing = () => this.privSyncing;
@@ -170,12 +206,12 @@ export default class Loader {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add(async (cb) => {
+    this.library.sequence.add(async cb => {
       this.library.logger.debug('startSyncBlocks enter sequence');
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
 
-      await this.loadBlocks(lastBlock, (err) => {
+      await this.loadBlocks(lastBlock, err => {
         if (err) {
           this.library.logger.error('loadBlocks error:', err);
         }
@@ -185,7 +221,7 @@ export default class Loader {
         cb();
       });
     });
-  }
+  };
 
   public syncBlocksFromPeer = (peer: PeerNode) => {
     this.library.logger.debug('syncBlocksFromPeer enter');
@@ -193,13 +229,13 @@ export default class Loader {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add( async (cb) => {
+    this.library.sequence.add(async cb => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
       this.modules.transactions.clearUnconfirmed();
-      await global.app.sdb.rollbackBlock().then(() => {
-        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, (err) => {
+      await global.app.sdb.rollbackBlock(lastBlock.height).then(() => {
+        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, err => {
           if (err) {
             this.library.logger.error('syncBlocksFromPeer error:', err);
           }
@@ -209,7 +245,7 @@ export default class Loader {
         });
       });
     });
-  }
+  };
 
   // Events
   public onPeerReady = () => {
@@ -225,25 +261,25 @@ export default class Loader {
 
     setImmediate(() => {
       if (!this.isLoaded || this.privSyncing) return;
-      this.loadUnconfirmedTransactions((err) => {
+      this.loadUnconfirmedTransactions(err => {
         if (err) {
           this.library.logger.error('loadUnconfirmedTransactions timer:', err);
         }
       });
     });
-  }
+  };
 
   public onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 
   public onBlockchainReady = () => {
     this.isLoaded = true;
-  }
+  };
 
   public cleanup = (cb: any) => {
     this.library.logger.debug('Cleaning up core/loader');
     this.isLoaded = false;
     cb();
-  }
+  };
 }

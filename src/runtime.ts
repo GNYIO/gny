@@ -27,7 +27,7 @@ export default async function runtime(options) {
     logger: options.logger,
   };
   global.app.validators = {
-    amount: (amount) => {
+    amount: amount => {
       if (typeof amount !== 'string') return 'Invalid amount type';
       if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer';
 
@@ -40,34 +40,46 @@ export default async function runtime(options) {
       if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range';
       return null;
     },
-    name: (value) => {
+    name: value => {
       const regname = /^[a-z0-9_]{2,20}$/;
       if (!regname.test(value)) return 'Invalid name';
       return null;
     },
-    publickey: (value) => {
+    publickey: value => {
       const reghex = /^[0-9a-fA-F]{64}$/;
       if (!reghex.test(value)) return 'Invalid public key';
       return null;
     },
     string: (value, constraints) => {
       if (constraints.length) {
-        return JSON.stringify(validate({ data: value }, { data: { length: constraints.length } }));
-      } if (constraints.isEmail) {
-        return JSON.stringify(validate({ email: value }, { email: { email: true } }));
-      } if (constraints.url) {
-        return JSON.stringify(validate({ url: value }, { url: { url: constraints.url } }));
-      } if (constraints.number) {
-        return JSON.stringify(validate(
-          { number: value },
-          { number: { numericality: constraints.number } },
-        ));
+        return JSON.stringify(
+          validate({ data: value }, { data: { length: constraints.length } })
+        );
+      }
+      if (constraints.isEmail) {
+        return JSON.stringify(
+          validate({ email: value }, { email: { email: true } })
+        );
+      }
+      if (constraints.url) {
+        return JSON.stringify(
+          validate({ url: value }, { url: { url: constraints.url } })
+        );
+      }
+      if (constraints.number) {
+        return JSON.stringify(
+          validate(
+            { number: value },
+            { number: { numericality: constraints.number } }
+          )
+        );
       }
       return null;
     },
   };
   global.app.validate = (type, value, constraints) => {
-    if (!global.app.validators[type]) throw new Error(`Validator not found: ${type}`);
+    if (!global.app.validators[type])
+      throw new Error(`Validator not found: ${type}`);
     const error = global.app.validators[type](value, constraints);
     if (error) throw new Error(error);
   };
@@ -109,8 +121,6 @@ export default async function runtime(options) {
     address: address,
     bignumber: BigNumber,
   };
-
-
 
   // await loadModels();
   await loadContracts();

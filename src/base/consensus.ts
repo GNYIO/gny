@@ -5,7 +5,13 @@ import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
 import { DELEGATES } from '../utils/constants';
-import { IScope, KeyPair, ManyVotes, Signature, BlockPropose } from '../interfaces';
+import {
+  IScope,
+  KeyPair,
+  ManyVotes,
+  Signature,
+  BlockPropose,
+} from '../interfaces';
 
 export class Consensus {
   private pendingBlock: any = null;
@@ -25,24 +31,40 @@ export class Consensus {
     byteBuffer.flip();
 
     const buffer = byteBuffer.toBuffer();
-    return crypto.createHash('sha256').update(buffer).digest();
+    return crypto
+      .createHash('sha256')
+      .update(buffer)
+      .digest();
   }
 
   public normalizeVotes = (votes): ManyVotes => {
     const schema = this.library.joi.object().keys({
-      height: this.library.joi.number().integer().min(0).required(),
+      height: this.library.joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
       id: this.library.joi.string().required(),
-      signatures: this.library.joi.array().items({
-        publicKey: this.library.joi.string().publicKey().required(),
-        signature: this.library.joi.string().signature().required(),
-      }).required(),
+      signatures: this.library.joi
+        .array()
+        .items({
+          publicKey: this.library.joi
+            .string()
+            .publicKey()
+            .required(),
+          signature: this.library.joi
+            .string()
+            .signature()
+            .required(),
+        })
+        .required(),
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
       throw new Error(report.error.message);
     }
     return votes;
-  }
+  };
 
   public createVotes = (keypairs: KeyPair[], block: any): ManyVotes => {
     const hash = this.calculateVoteHash(block.height, block.id);
@@ -58,7 +80,7 @@ export class Consensus {
       } as Signature);
     });
     return votes;
-  }
+  };
 
   public verifyVote = (height: number, id: string, vote: Signature) => {
     try {
@@ -69,11 +91,14 @@ export class Consensus {
     } catch (e) {
       return false;
     }
-  }
+  };
 
-  public addPendingVotes = (votes) => {
-    if (!this.pendingBlock || this.pendingBlock.height !== votes.height
-      || this.pendingBlock.id !== votes.id) {
+  public addPendingVotes = votes => {
+    if (
+      !this.pendingBlock ||
+      this.pendingBlock.height !== votes.height ||
+      this.pendingBlock.id !== votes.id
+    ) {
       return this.pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
@@ -94,14 +119,16 @@ export class Consensus {
       }
     }
     return this.pendingVotes;
-  }
+  };
 
   public hasEnoughVotes(votes: ManyVotes) {
-    return votes && votes.signatures && (votes.signatures.length > DELEGATES * 2 / 3);
+    return (
+      votes && votes.signatures && votes.signatures.length > (DELEGATES * 2) / 3
+    );
   }
 
-  public hasEnoughVotesRemote = (votes) => votes && votes.signatures
-  && votes.signatures.length >= 6
+  public hasEnoughVotesRemote = votes =>
+    votes && votes.signatures && votes.signatures.length >= 6;
 
   public setPendingBlock(block) {
     this.pendingBlock = block;
@@ -111,7 +138,10 @@ export class Consensus {
     if (!this.pendingBlock) {
       return false;
     }
-    return slots.getSlotNumber(this.pendingBlock.timestamp) === slots.getSlotNumber(timestamp);
+    return (
+      slots.getSlotNumber(this.pendingBlock.timestamp) ===
+      slots.getSlotNumber(timestamp)
+    );
   }
   public getPendingBlock() {
     return this.pendingBlock;
@@ -122,7 +152,10 @@ export class Consensus {
     byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
-    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
+    const generatorPublicKeyBuffer = Buffer.from(
+      propose.generatorPublicKey,
+      'hex'
+    );
     for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
       byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
     }
@@ -136,13 +169,19 @@ export class Consensus {
 
     byteBuffer.flip();
     const buffer = byteBuffer.toBuffer();
-    return crypto.createHash('sha256').update(buffer).digest();
+    return crypto
+      .createHash('sha256')
+      .update(buffer)
+      .digest();
   }
 
   public createPropose(keypair: KeyPair, block, address: string) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
-    const basePropose: Pick<BlockPropose, 'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'> = {
+    const basePropose: Pick<
+      BlockPropose,
+      'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'
+    > = {
       height: block.height,
       id: block.id,
       timestamp: block.timestamp,
@@ -161,12 +200,20 @@ export class Consensus {
     return finalPropose;
   }
 
-  private getProposeHash(propose: Pick<BlockPropose, 'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'>) {
+  private getProposeHash(
+    propose: Pick<
+      BlockPropose,
+      'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'
+    >
+  ) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
 
-    const generatorPublicKeyBuffer = Buffer.from(propose.generatorPublicKey, 'hex');
+    const generatorPublicKeyBuffer = Buffer.from(
+      propose.generatorPublicKey,
+      'hex'
+    );
     for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
       byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
     }
@@ -180,7 +227,10 @@ export class Consensus {
 
     byteBuffer.flip();
     const buffer = byteBuffer.toBuffer();
-    return crypto.createHash('sha256').update(buffer).digest();
+    return crypto
+      .createHash('sha256')
+      .update(buffer)
+      .digest();
   }
 
   public acceptPropose(propose: BlockPropose) {

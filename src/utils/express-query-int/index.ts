@@ -2,7 +2,7 @@ import parseNums from './parse';
 
 export default function(options) {
   options = options || {
-    parser: parseInt
+    parser: parseInt,
   };
 
   return function(req, res, next) {

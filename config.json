@@ -12,8 +12,6 @@
   "peers": {
     "bootstrap": null,
     "p2pKeyFile": "p2p_key.json",
-    "list": [],
-    "blackList": [],
     "options": {
       "timeout": 4000
     }
@@ -128,10 +126,6 @@
       ]
     }
   },
-  "loading": {
-    "verifyOnLoading": false,
-    "loadPerIteration": 5000
-  },
   "ssl": {
     "enabled": false,
     "options": {
@@ -140,6 +134,5 @@
       "key": "./ssl/server.key",
       "cert": "./ssl/server.crt"
     }
-  },
-  "gateway": {}
+  }
 }

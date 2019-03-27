@@ -9,23 +9,26 @@ export default class Account {
     this.library = scope;
   }
 
-  public generateAddressByPublicKey = (publicKey) => {
+  public generateAddressByPublicKey = publicKey => {
     return addressHelper.generateAddress(publicKey);
-  }
+  };
 
   public getAccountByName = async (name: string) => {
     try {
       const account = await global.app.sdb.findOne('Account', {
-        condition: { username: name }
+        condition: { username: name },
       });
       return account;
     } catch (err) {
       return 'Server Error';
     }
-  }
+  };
 
   public getAccount = async (address: string) => {
-    const schema = this.library.joi.string().address().required();
+    const schema = this.library.joi
+      .string()
+      .address()
+      .required();
     const report = this.library.joi.validate(address, schema);
     if (report.error) {
       return 'provided address is not a GNY address';
@@ -33,7 +36,7 @@ export default class Account {
 
     try {
       const account = await global.app.sdb.findOne('Account', {
-        condition: { address }
+        condition: { address },
       });
       let accountData;
       if (!account) {
@@ -42,7 +45,7 @@ export default class Account {
           balance: 0,
           secondPublicKey: '',
           lockHeight: 0,
-          isDelegate: 0
+          isDelegate: 0,
         };
       } else {
         accountData = {
@@ -67,10 +70,10 @@ export default class Account {
       this.library.logger.error('Failed to get account', e);
       return 'Server Error';
     }
-  }
+  };
 
   // Events
   onBind = (scope: Modules) => {
     this.modules = scope;
-  }
+  };
 }

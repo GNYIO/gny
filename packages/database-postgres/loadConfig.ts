@@ -1,4 +1,3 @@
-
 import * as fs from 'fs';
 import * as path from 'path';
 import { createConnection } from 'typeorm';
@@ -18,9 +17,8 @@ import { Transaction } from './entity/Transaction';
 import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
-import { BlockHistory } from './entity/BlockHistory';
 
-export async function loadConfig (logger: ILogger) {
+export async function loadConfig(logger: ILogger) {
   let options: PostgresConnectionOptions | SqljsConnectionOptions = undefined;
 
   if (process.env.NODE_ENV === 'test') {
@@ -46,8 +44,7 @@ export async function loadConfig (logger: ILogger) {
       Transfer,
       Variable,
       Vote,
-      BlockHistory,
-    ]
+    ],
   });
   Object.assign(options, {
     logger: new OrmLogger(logger),
@@ -55,7 +52,7 @@ export async function loadConfig (logger: ILogger) {
   const connection = await createConnection(options);
   logger.info('Initialized smartdb');
 
-  if (process.env.NODE_ENV = 'test') {
+  if ((process.env.NODE_ENV = 'test')) {
     await connection.dropDatabase();
     await connection.synchronize();
   }

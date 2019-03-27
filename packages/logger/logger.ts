@@ -12,12 +12,18 @@ export enum LogLevel {
   fatal = 6,
 }
 
-export function createLogger(fileName: string, consoleLogLevel: LogLevel): ILogger {
-  const stream = fs.createWriteStream(fileName, { flags: 'a', encoding: 'utf8' });
+export function createLogger(
+  fileName: string,
+  consoleLogLevel: LogLevel
+): ILogger {
+  const stream = fs.createWriteStream(fileName, {
+    flags: 'a',
+    encoding: 'utf8',
+  });
   const logger: ILogger = tracer.colorConsole({
     transport: [
-      function (data) {
-         // write all messages to file
+      function(data) {
+        // write all messages to file
         stream.write(data.rawoutput + '\n');
       },
       function(data) {
@@ -25,8 +31,8 @@ export function createLogger(fileName: string, consoleLogLevel: LogLevel): ILogg
         if (data.level >= consoleLogLevel) {
           console.log(data.output);
         }
-      }
-    ]
+      },
+    ],
   });
   return logger;
 }

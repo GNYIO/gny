@@ -67,7 +67,7 @@ export class Protobuf {
   }
 }
 
-export function getSchema (schemaFile: string) {
+export function getSchema(schemaFile: string) {
   const data = fs.readFileSync(schemaFile);
   const schema = protocolBuffers(data);
   return new Protobuf(schema);

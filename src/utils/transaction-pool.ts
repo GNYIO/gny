@@ -1,4 +1,3 @@
-
 export default class TransactionPool {
   private index: Map<any, any>;
   private unConfirmed: any[];
