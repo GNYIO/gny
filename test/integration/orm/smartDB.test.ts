@@ -1,10 +1,7 @@
-import * as dockerCompose from 'docker-compose';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { ILogger, IGenesisBlock } from '../../../src/interfaces';
+import { ILogger } from '../../../src/interfaces';
 import * as path from 'path';
-import * as fs from 'fs';
 import { cloneDeep } from 'lodash';
-import { Client } from 'pg';
 import { CUSTOM_GENESIS } from './data';
 
 const ROOT_DIR = process.cwd();
@@ -47,37 +44,16 @@ async function saveGenesisBlock(smartDB: SmartDB) {
 
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
-  beforeAll(async (done) => {
-    await dockerCompose.upAll({
-      cwd: ORM_INTEGRATION_TESTS_DIR,
-      log: false,
-    });
-    await timeout(10000);
-
-    done();
-  }, 60 * 1000);
-  afterAll(async (done) => {
-    await dockerCompose.down({
-      cwd: ORM_INTEGRATION_TESTS_DIR,
-      log: false,
-    });
-    await dockerCompose.rm({
-      cwd: ORM_INTEGRATION_TESTS_DIR,
-      log: false,
-    });
-    done();
-  }, 60 * 1000);
-
   beforeEach(async (done) => {
     sut = new SmartDB(logger);
     await sut.init();
     done();
-  }, 20000);
+  }, 10000);
   afterEach(async (done) => {
     await sut.close();
     sut = undefined;
     done();
-  }, 20000);
+  }, 10000);
 
   it('init works', async (done) => {
     await saveGenesisBlock(sut);
@@ -129,7 +105,7 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it('getBlocksByHeightRange with transactions', async (done) => {
+  it.skip('getBlocksByHeightRange with transactions', async (done) => {
     done();
   });
 
@@ -156,5 +132,4 @@ describe('integration - SmartDB', () => {
   it.skip('initial _version_ is 1', (done) => {
     done();
   });
-  // it.skip
 });

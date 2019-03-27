@@ -6,7 +6,7 @@
   "scripts": {
     "tsc": "tsc; ts-node copyStaticAssets",
     "test": "jest --ci --runInBand test/unit",
-    "test:integration": "sudo node_modules/jest/bin/jest.js --ci --runInBand test/integration",
+    "test:integration": "jest --ci --runInBand test/integration",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json './**/*.ts'"
   },
   "repository": {
@@ -92,6 +92,7 @@
     "shelljs": "=0.8.3",
     "socket.io": "=1.4.8",
     "sodium": "=2.0.3",
+    "sql.js": "^0.5.0",
     "static-module": "=2.0.0",
     "tracer": "=0.9.8",
     "ts-jest": "^23.1.4",
