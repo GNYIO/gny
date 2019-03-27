@@ -29,7 +29,7 @@ export default class Loader {
     this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
   };
 
-  private async findUpdate(lastBlock: any, peer: any, cb: any) {
+  private async findUpdate(lastBlock: any, peer: PeerNode, cb: any) {
     const peerStr = `${peer.host}:${peer.port - 1}`;
 
     let commonBlock;

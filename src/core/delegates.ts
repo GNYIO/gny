@@ -65,7 +65,7 @@ export default class Delegates {
   private getBlockSlotData = async (
     slot: number,
     height: number
-  ): Promise<{ time: number; keypair: any }> => {
+  ): Promise<{ time: number; keypair: KeyPair }> => {
     const activeDelegates = await this.generateDelegateList(height);
     if (!activeDelegates) {
       return;

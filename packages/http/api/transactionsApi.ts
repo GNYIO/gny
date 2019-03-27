@@ -41,7 +41,7 @@ export default class TransactionsApi {
 
     this.library.network.app.use('/api/transactions', router);
     this.library.network.app.use(
-      (err: any, req: Request, res: Response, next) => {
+      (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
         this.library.logger.error(req.url, err.toString());
         return res.status(500).json({ success: false, error: err.toString() });

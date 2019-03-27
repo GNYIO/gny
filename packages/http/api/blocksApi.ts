@@ -47,7 +47,7 @@ export default class BlocksApi {
 
     this.library.network.app.use('/api/blocks', router);
     this.library.network.app.use(
-      (err: string, req: Request, res: Response, next: any) => {
+      (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
         this.library.logger.error(req.url, err.toString());
         return res.status(500).send({

@@ -33,7 +33,7 @@ export default class Transactions {
     const query = req.body;
     const limit = query.limit ? Number(query.limit) : 100;
     const offset = query.offset ? Number(query.offset) : 0;
-    const condition: { senderId?: any; type?: any } = {};
+    const condition: { senderId?: string; type?: number } = {};
     if (query.senderId) {
       condition.senderId = query.senderId;
     }

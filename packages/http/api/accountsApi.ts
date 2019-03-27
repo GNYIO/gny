@@ -51,7 +51,7 @@ export default class AccountsApi {
 
     this.library.network.app.use('/api/accounts', router);
     this.library.network.app.use(
-      (err: string, req: Request, res: Response, next: any) => {
+      (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
         this.library.logger.error(req.url, err);
         return res.status(500).json({
@@ -281,7 +281,7 @@ export default class AccountsApi {
         return res.json({ delegates: [] });
       }
 
-      const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name));
+      const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name)); // username or name?
       return res.json({ delegates: myVotedDelegates });
     } catch (e) {
       this.library.logger.error('get voted delegates error', e);

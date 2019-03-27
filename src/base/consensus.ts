@@ -134,7 +134,7 @@ export class Consensus {
     this.pendingBlock = block;
   }
 
-  public hasPendingBlock(timestamp: any) {
+  public hasPendingBlock(timestamp: number) {
     if (!this.pendingBlock) {
       return false;
     }

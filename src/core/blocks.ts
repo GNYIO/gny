@@ -14,6 +14,7 @@ import {
   PeerNode,
   ProcessBlockOptions,
   BlockPropose,
+  Next,
 } from '../interfaces';
 import { In } from 'typeorm';
 
@@ -29,7 +30,7 @@ export default class Blocks {
   private lastPropose: BlockPropose = null;
   private privIsCollectingVotes = false;
 
-  private lastVoteTime: any;
+  private lastVoteTime: number;
   private blockreward = new Blockreward();
 
   constructor(scope: IScope) {
@@ -792,7 +793,7 @@ export default class Blocks {
             );
             next(undefined, activeKeypairs);
           },
-          async (activeKeypairs: KeyPair[], next: any) => {
+          async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = this.library.base.consensus.createVotes(
                 activeKeypairs,

@@ -41,7 +41,7 @@ declare interface IBase {
 
 export interface IScope {
   protobuf: Protobuf;
-  config: any;
+  config: IConfig;
   logger: ILogger;
   genesisBlock: IGenesisBlock;
   joi: ExtendedJoi;
@@ -92,9 +92,9 @@ interface IValidatorConstraints {
 }
 
 interface IValidators {
-  amount: (amount: any) => string;
-  name: (amount: any) => string;
-  publickey: (value: any) => string;
+  amount: (amount: string) => string;
+  name: (amount: string) => string;
+  publickey: (value: string) => string;
   string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
@@ -219,7 +219,7 @@ export interface ISimpleCache {
   [id: string]: boolean;
 }
 
-export type Next = (err: string) => any;
+export type Next = (err?: string) => any;
 
 export interface PeerNode {
   host: string;
