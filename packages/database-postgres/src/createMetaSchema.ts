@@ -13,6 +13,7 @@ import { Transaction } from '../entity/Transaction';
 import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
 import { Vote } from '../entity/Vote';
+import { BlockHistory } from '../entity/BlockHistory';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -21,22 +22,25 @@ export function transform(entity: any) {
   const primaryColumns: OneIndex[] = ormMetaData.primaryColumns.map(column => {
     return {
       isUnique: false,
-      columns: [{
-        propertyName: column.propertyName
-      }],
+      columns: [
+        {
+          propertyName: column.propertyName,
+        },
+      ],
     };
   });
-  const uniqueColumns: OneIndex[] = ormMetaData.uniques.map((uniqueMetaData) => {
+  const uniqueColumns: OneIndex[] = ormMetaData.uniques.map(uniqueMetaData => {
     return {
       isUnique: true,
-      columns: [{
-        propertyName: uniqueMetaData.columns[0].propertyName,
-      }],
+      columns: [
+        {
+          propertyName: uniqueMetaData.columns[0].propertyName,
+        },
+      ],
     };
   });
 
-
-  const columns: NormalColumn[] = ormMetaData.columns.map((column) => {
+  const columns: NormalColumn[] = ormMetaData.columns.map(column => {
     if (column.default) {
       return {
         name: column.propertyName,
@@ -55,7 +59,7 @@ export function transform(entity: any) {
     name,
     indices: [...primaryColumns, ...uniqueColumns] || [],
     columns: columns || [],
-    ...config
+    ...config,
   };
 
   return new ModelSchema(meta);
@@ -75,6 +79,7 @@ export function createMetaSchema() {
   const transfer = transform(Transfer);
   const variable = transform(Variable);
   const vote = transform(Vote);
+  const blockHistory = transform(BlockHistory);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -87,6 +92,7 @@ export function createMetaSchema() {
   result.set('Transfer', transfer);
   result.set('Variable', variable);
   result.set('Vote', vote);
+  result.set('BlockHistory', blockHistory);
 
   return result;
 }

@@ -17,6 +17,7 @@ import { Transaction } from './entity/Transaction';
 import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
+import { BlockHistory } from './entity/BlockHistory';
 
 export async function loadConfig(logger: ILogger) {
   let options: PostgresConnectionOptions | SqljsConnectionOptions = undefined;
@@ -44,6 +45,7 @@ export async function loadConfig(logger: ILogger) {
       Transfer,
       Variable,
       Vote,
+      BlockHistory,
     ],
   });
   Object.assign(options, {

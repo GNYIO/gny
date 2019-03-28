@@ -23,7 +23,12 @@ export class BlockCache {
 
   push(block: Block) {
     if (this.maxHeight >= 0 && block.height !== this.maxHeight + 1) {
-      throw new Error('invalid block height, expected : ' + (this.maxHeight + 1) + ' actual : ' + block.height);
+      throw new Error(
+        'invalid block height, expected : ' +
+          (this.maxHeight + 1) +
+          ' actual : ' +
+          block.height
+      );
     }
     this.cache.set(block.height, block);
     this.maxHeight = block.height;
@@ -37,15 +42,19 @@ export class BlockCache {
     return this.cache.get(height);
   }
 
-  getById(blockId: string) {
-    var _iteratorNormalCompletion4 = true;
-    var _didIteratorError4 = false;
-    var _iteratorError4 = undefined;
+  getById(blockId: string): Block {
+    let _iteratorNormalCompletion4 = true;
+    let _didIteratorError4 = false;
+    let _iteratorError4 = undefined;
     try {
-      var _iterator4 = this.cache.values()[Symbol.iterator]();
-      var _step4;
-      for (; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-        var domain = _step4.value;
+      const _iterator4 = this.cache.values()[Symbol.iterator]();
+      let _step4;
+      for (
+        ;
+        !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done);
+        _iteratorNormalCompletion4 = true
+      ) {
+        const domain = _step4.value;
         if (domain.id === blockId) {
           return domain;
         }
@@ -66,7 +75,6 @@ export class BlockCache {
     }
   }
 
-
   evitUntil(minEvitHeight: number) {
     if (minEvitHeight > this.maxHeight) {
       return;
@@ -82,8 +90,8 @@ export class BlockCache {
 
   get cachedHeightRange() {
     return {
-      min : this.minHeight,
-      max : this.maxHeight
+      min: this.minHeight,
+      max: this.maxHeight,
     };
   }
 }

@@ -47,7 +47,30 @@
       "type": "node",
       "runtimeVersion": "8.13.0",
       "request": "launch",
-      "name": "Jest Tests",
+      "name": "Unit Tests",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+          "--verbose",
+          "--runInBand",
+          "--no-cache",
+          "test/unit"
+      ],
+      "runtimeArgs": [
+          "--nolazy"
+      ],
+      "console": "integratedTerminal",
+      "env": {
+          "NODE_ENV": "test"
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "runtimeVersion": "8.13.0",
+      "request": "launch",
+      "name": "Integration Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
       "args": [
           "--verbose",
