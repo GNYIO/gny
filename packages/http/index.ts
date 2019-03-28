@@ -128,12 +128,9 @@ export default async function intNetwork(
       const isApiOrPeer =
         parts.length > 1 && URI_PREFIXS.indexOf(parts[1]) !== -1;
       const { whiteList } = appConfig.api.access;
-      const { blackList } = appConfig.peers;
 
       const forbidden =
-        isApiOrPeer &&
-        ((whiteList.length > 0 && whiteList.indexOf(ip) < 0) ||
-          (blackList.length > 0 && blackList.indexOf(ip) >= 0));
+        isApiOrPeer && (whiteList.length > 0 && whiteList.indexOf(ip) < 0);
 
       if (isApiOrPeer && forbidden) {
         res.sendStatus(403);
