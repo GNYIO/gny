@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import { IScope, KeyPair } from '../interfaces';
+import { IScope, KeyPair, IBlock } from '../interfaces';
 
 export class Block {
   private library: IScope;
@@ -10,7 +10,7 @@ export class Block {
     this.library = scope;
   }
 
-  public getId = (block: any) => {
+  public getId = (block: IBlock) => {
     const bytes = this.getBytes(block);
     const hash = crypto
       .createHash('sha256')
@@ -39,12 +39,12 @@ export class Block {
     });
   };
 
-  public sign = (block, keypair: KeyPair): string => {
+  public sign = (block: IBlock, keypair: KeyPair): string => {
     const hash = this.calculateHash(block);
     return ed.sign(hash, keypair.privateKey).toString('hex');
   };
 
-  private calculateHash = block => {
+  private calculateHash = (block: IBlock) => {
     const bytes = this.getBytes(block);
     return crypto
       .createHash('sha256')
@@ -52,7 +52,7 @@ export class Block {
       .digest();
   };
 
-  private getBytes = (block: any, skipSignature?: any): Buffer => {
+  private getBytes = (block: IBlock, skipSignature?: any): Buffer => {
     const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
     const bb = new ByteBuffer(size, true);
@@ -87,7 +87,7 @@ export class Block {
     return b;
   };
 
-  public verifySignature = block => {
+  public verifySignature = (block: IBlock) => {
     const remove = 64;
 
     try {
@@ -115,7 +115,7 @@ export class Block {
     }
   };
 
-  public objectNormalize = block => {
+  public objectNormalize = (block: IBlock) => {
     for (const i in block) {
       if (block[i] == undefined || typeof block[i] === 'undefined') {
         delete block[i];

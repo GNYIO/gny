@@ -7,6 +7,7 @@ import * as ip from 'ip';
 import { DELEGATES } from '../utils/constants';
 import {
   IScope,
+  IBlock,
   KeyPair,
   ManyVotes,
   Signature,
@@ -14,7 +15,7 @@ import {
 } from '../interfaces';
 
 export class Consensus {
-  private pendingBlock: any = null;
+  private pendingBlock: IBlock = null;
   private pendingVotes: any = null;
   private votesKeySet = new Set();
   private library: IScope;
@@ -66,7 +67,7 @@ export class Consensus {
     return votes;
   };
 
-  public createVotes = (keypairs: KeyPair[], block: any): ManyVotes => {
+  public createVotes = (keypairs: KeyPair[], block: IBlock): ManyVotes => {
     const hash = this.calculateVoteHash(block.height, block.id);
     const votes: ManyVotes = {
       height: block.height,
@@ -175,7 +176,7 @@ export class Consensus {
       .digest();
   }
 
-  public createPropose(keypair: KeyPair, block, address: string) {
+  public createPropose(keypair: KeyPair, block: IBlock, address: string) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const basePropose: Pick<

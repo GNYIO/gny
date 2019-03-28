@@ -1,6 +1,12 @@
 import slots from '../utils/slots';
 import { TIMEOUT } from '../utils/constants';
-import { Modules, IScope, IGenesisBlock, PeerNode } from '../interfaces';
+import {
+  Modules,
+  IScope,
+  IGenesisBlock,
+  PeerNode,
+  IBlock,
+} from '../interfaces';
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -8,7 +14,7 @@ export default class Loader {
   private readonly library: IScope;
   private modules: Modules;
   private genesisBlock: IGenesisBlock;
-  public loadingLastBlock: any = null;
+  public loadingLastBlock: IGenesisBlock = null;
   private syncIntervalId: any;
   public blocksToSync = 0;
   public total = 0;
@@ -29,7 +35,11 @@ export default class Loader {
     this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
   };
 
-  private async findUpdate(lastBlock: any, peer: PeerNode, cb: any) {
+  private async findUpdate(
+    lastBlock: IBlock | Pick<IBlock, 'height'>,
+    peer: PeerNode,
+    cb: any
+  ) {
     const peerStr = `${peer.host}:${peer.port - 1}`;
 
     let commonBlock;
@@ -89,7 +99,10 @@ export default class Loader {
     })();
   }
 
-  private async loadBlocks(lastBlock: any, cb: any) {
+  private async loadBlocks(
+    lastBlock: IBlock | Pick<IBlock, 'height'>,
+    cb: any
+  ) {
     let result;
     try {
       result = await this.modules.peer.randomRequestAsync('getHeight', {});

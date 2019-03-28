@@ -167,6 +167,22 @@ export interface IGenesisBlock {
   }[];
 }
 
+export interface IBlock {
+  id: string;
+  height: number;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: number;
+  reward: number;
+  payloadHash: string;
+  delegate: string;
+  signature: string;
+  _version_?: number;
+  transactions?: any;
+}
+
 type ILogLevel =
   | 'trace'
   | 'debug'
