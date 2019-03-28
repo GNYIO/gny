@@ -209,6 +209,7 @@ export interface IConfig {
   };
   logLevel: ILogLevel;
   pidFile: string;
+  publicIp?: string;
 }
 
 export interface KeyPairsIndexer {
@@ -307,4 +308,13 @@ declare global {
       emit(event: 'cleanup'): this;
     }
   }
+}
+
+export interface IOptions {
+  appConfig: IConfig;
+  genesisBlock: IGenesisBlock;
+  logger: ILogger;
+  pidFile: string;
+  modules?: any;
+  library?: Partial<IScope>;
 }

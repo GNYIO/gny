@@ -11,8 +11,9 @@ import * as path from 'path';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
+import { IOptions } from './interfaces';
 
-export default async function runtime(options) {
+export default async function runtime(options: IOptions) {
   global.app = {
     sdb: null,
     balances: null,

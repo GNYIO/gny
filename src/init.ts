@@ -12,7 +12,13 @@ import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from './utils/extendedJoi';
-import { IScope, IMessageEmitter, IConfig, ILogger } from './interfaces';
+import {
+  IScope,
+  IMessageEmitter,
+  IConfig,
+  ILogger,
+  IOptions,
+} from './interfaces';
 
 import initNetwork from '../packages/http/index';
 
@@ -37,10 +43,10 @@ function getPublicIp() {
   return publicIp;
 }
 
-async function init_alt(options: any) {
+async function init_alt(options: IOptions) {
   const scope: Partial<IScope> = {};
   const genesisBlock = options.genesisBlock;
-  let appConfig = options.appConfig;
+  let appConfig: IConfig = options.appConfig;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
@@ -113,7 +119,7 @@ async function init_alt(options: any) {
   return scope;
 }
 
-function dbSequence(options: any) {
+function dbSequence(options: IOptions) {
   return new Sequence({
     name: 'db',
     onWarning: (current: any) => {
@@ -122,7 +128,7 @@ function dbSequence(options: any) {
   });
 }
 
-function sequence(options: any) {
+function sequence(options: IOptions) {
   return new Sequence({
     name: 'normal',
     onWarning: (current: any) => {
