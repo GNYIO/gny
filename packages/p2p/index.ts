@@ -24,7 +24,7 @@ export class Peer2Peer {
 
   constructor(
     logger: ILogger,
-    peerInfo: PeerNode,
+    peerInfo: PeerInfo,
     bootstrapNode: string,
     bootStrapInterval: number = 30000
   ) {
