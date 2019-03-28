@@ -17,7 +17,6 @@ import {
   Next,
   IBlock,
 } from '../interfaces';
-import { Omit } from 'type-fest';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;

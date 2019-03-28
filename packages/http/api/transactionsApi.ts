@@ -2,7 +2,13 @@ import * as crypto from 'crypto';
 import * as ed from '../../../src/utils/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Modules, IScope, KeyPair, Next } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  KeyPair,
+  Next,
+  Transaction,
+} from '../../../src/interfaces';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -121,7 +127,10 @@ export default class TransactionsApi {
       let transactions = await global.app.sdb.find(
         'Transaction',
         condition,
-        limitAndOffset
+        limitAndOffset,
+        {},
+        [],
+        limitAndOffset.offset
       );
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
@@ -174,7 +183,7 @@ export default class TransactionsApi {
     }
 
     const transactions = this.modules.transactions.getUnconfirmedTransactionList();
-    const toSend: any[] = [];
+    const toSend: Transaction[] = [];
 
     if (query.senderPublicKey || query.address) {
       for (let i = 0; i < transactions.length; i++) {

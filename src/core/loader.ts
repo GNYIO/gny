@@ -6,6 +6,7 @@ import {
   IGenesisBlock,
   PeerNode,
   IBlock,
+  Transaction,
 } from '../interfaces';
 
 export default class Loader {
@@ -193,7 +194,7 @@ export default class Loader {
         }
       }
 
-      const trs: any[] = [];
+      const trs: Transaction[] = [];
       for (let i = 0; i < transactions.length; ++i) {
         if (!this.modules.transactions.hasUnconfirmed(transactions[i])) {
           trs.push(transactions[i]);

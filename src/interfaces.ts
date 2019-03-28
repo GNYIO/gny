@@ -167,22 +167,6 @@ export interface IGenesisBlock {
   }[];
 }
 
-export interface IBlock {
-  id: string;
-  height: number;
-  version: number;
-  timestamp: number;
-  prevBlockId?: any;
-  count: number;
-  fees: number;
-  reward: number;
-  payloadHash: string;
-  delegate: string;
-  signature: string;
-  _version_?: number;
-  transactions?: any;
-}
-
 type ILogLevel =
   | 'trace'
   | 'debug'
@@ -251,6 +235,37 @@ export interface ProcessBlockOptions {
 }
 
 // Models
+export interface IBlock {
+  id: string;
+  height: number;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: number;
+  reward: number;
+  payloadHash: string;
+  delegate: string;
+  signature: string;
+  _version_?: number;
+  transactions?: any;
+}
+
+export interface Transaction {
+  id: string;
+  type: number;
+  timestamp: number;
+  senderId: string;
+  senderPublicKey: string;
+  fee: number;
+  signatures?: any;
+  secondSignature?: any;
+  args: any;
+  height: number;
+  message?: string;
+  _version_: number;
+}
+
 export interface Delegate {
   address: string;
   tid: string;
