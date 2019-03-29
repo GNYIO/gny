@@ -46,7 +46,6 @@ export interface IScope {
   genesisBlock: IGenesisBlock;
   joi: ExtendedJoi;
   network: INetwork;
-  dbSequence: Sequence;
   sequence: Sequence;
   base: IBase;
   bus: EventEmitter & IMessageEmitter;

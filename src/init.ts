@@ -61,7 +61,6 @@ async function init_alt(options: any) {
 
   scope.joi = extendedJoi;
   scope.network = await initNetwork(appConfig, scope.modules, options.logger);
-  scope.dbSequence = dbSequence(options);
   scope.sequence = sequence(options);
 
   scope.base = {
@@ -111,15 +110,6 @@ async function init_alt(options: any) {
   }
   scope.bus = new Bus();
   return scope;
-}
-
-function dbSequence(options: any) {
-  return new Sequence({
-    name: 'db',
-    onWarning: (current: any) => {
-      options.logger.warn(`DB sequence ${current}`);
-    },
-  });
 }
 
 function sequence(options: any) {
