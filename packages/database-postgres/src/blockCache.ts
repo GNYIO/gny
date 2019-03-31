@@ -46,8 +46,8 @@ export class BlockCache {
     let _iteratorNormalCompletion4 = true;
     let _didIteratorError4 = false;
     let _iteratorError4 = undefined;
+    const _iterator4 = this.cache.values()[Symbol.iterator]();
     try {
-      const _iterator4 = this.cache.values()[Symbol.iterator]();
       let _step4;
       for (
         ;

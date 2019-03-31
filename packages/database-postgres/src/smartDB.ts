@@ -663,7 +663,7 @@ export class SmartDB extends EventEmitter {
     if (!withTransactions || undefined === block) {
       return block;
     }
-    return await this.attachTransactions([block]);
+    return await this.attachTransactions([block])[0];
   }
 
   public async getBlocksByHeightRange(
@@ -718,7 +718,10 @@ export class SmartDB extends EventEmitter {
     return blocks;
   }
 
-  private copyCachedBlock(getCachedBlockFunc, withTransactions: boolean) {
+  private copyCachedBlock(
+    getCachedBlockFunc,
+    withTransactions: boolean
+  ): Block {
     const result = getCachedBlockFunc();
     if (undefined === result) {
       return;
