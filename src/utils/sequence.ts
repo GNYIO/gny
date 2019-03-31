@@ -25,7 +25,6 @@ function tick(task, cb) {
   try {
     task.worker.apply(task.worker, args);
   } catch (e) {
-    library.logger.error('Worker task failed:', e);
     done(e.toString());
   }
 }
@@ -60,6 +59,6 @@ export default class Sequence {
   }
 
   count() {
-    return this.sequence.length;
+    return this.queue.length();
   }
 }
