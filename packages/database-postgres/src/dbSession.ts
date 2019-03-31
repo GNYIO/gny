@@ -14,6 +14,7 @@ import { ModelSchema } from './modelSchema';
 
 import { Block } from '../entity/Block';
 import { Transaction } from '../entity/Transaction';
+import * as _ from 'lodash';
 
 export class DbSession {
   public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;
@@ -200,8 +201,13 @@ export class DbSession {
   }
 
   public create(schema: ModelSchema, entity: ObjectLiteral) {
-    const mapData = schema.getNormalizedPrimaryKey(entity);
-    if (undefined === mapData) {
+    const primaryKey = schema.getNormalizedPrimaryKey(entity);
+    const isValidPrimaryKey = schema.isValidPrimaryKey(primaryKey);
+    if (
+      undefined === primaryKey ||
+      _.isEmpty(primaryKey) ||
+      !isValidPrimaryKey
+    ) {
       throw new Error(
         "entity must contains primary key ( model = '" +
           schema.modelName +
@@ -210,12 +216,12 @@ export class DbSession {
           "' )"
       );
     }
-    if (this.sessionCache.exists(schema.modelName, mapData)) {
+    if (this.sessionCache.exists(schema.modelName, primaryKey)) {
       throw new Error(
         "entity exists already ( model = '" +
           schema.modelName +
           "' key = '" +
-          JSON.stringify(mapData) +
+          JSON.stringify(primaryKey) +
           "' )"
       );
     }

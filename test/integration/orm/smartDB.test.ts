@@ -425,13 +425,13 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     const data = {
-      addres: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     };
     const createResult = await sut.create('Account', data);
 
     const expected = {
       _version_: 1,
-      addres: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
       gny: 0,
       isDelegate: 0,
       isLocked: 0,
@@ -442,6 +442,34 @@ describe('integration - SmartDB', () => {
     expect(createResult).not.toBe(expected); // not same reference
     expect(createResult).toEqual(expected); // deepEquals (same values)
     done();
+  });
+
+  it('create() - throws if no primary key is provided', async () => {
+    await saveGenesisBlock(sut);
+
+    const wrongData = {
+      username: 'a1300', // but no property address
+    };
+    const createPromise = sut.create('Account', wrongData);
+    return expect(createPromise).rejects.toEqual(
+      new Error(
+        "entity must contains primary key ( model = 'Account' entity = '[object Object]' )"
+      )
+    );
+  });
+
+  it('create() - throws if no complete composite key is provided if needed', async () => {
+    await saveGenesisBlock(sut);
+
+    const wrongCompositeKeyData = {
+      currency: 'ABC.ABC', // missing property address
+    };
+    const createPromise = sut.create('Balance', wrongCompositeKeyData);
+    return expect(createPromise).rejects.toEqual(
+      new Error(
+        "entity must contains primary key ( model = 'Balance' entity = '[object Object]' )"
+      )
+    );
   });
 
   it('getAll() - throws if Model has not memory:true activated', async done => {
