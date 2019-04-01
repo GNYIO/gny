@@ -5,6 +5,11 @@ import { Request, Response, Router } from 'express';
 import { Modules, IScope, Next } from '../../../src/interfaces';
 import { In } from 'typeorm';
 
+interface BalanceCondition {
+  address: string;
+  flag?: number;
+}
+
 export default class AccountsApi {
   private modules: Modules;
   private library: IScope;
@@ -170,7 +175,7 @@ export default class AccountsApi {
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const condition: any = { address: req.params.address };
+    const condition: BalanceCondition = { address: req.params.address };
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }

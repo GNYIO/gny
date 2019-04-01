@@ -267,6 +267,18 @@ export interface Transaction {
   _version_: number;
 }
 
+export interface Transfer {
+  tid: string;
+  senderId: string;
+  recipientId: string;
+  recipientName?: string;
+  currency: string;
+  amount: number;
+  timestamp: number;
+  height: number;
+  _version_: number;
+}
+
 export interface Delegate {
   address: string;
   tid: string;

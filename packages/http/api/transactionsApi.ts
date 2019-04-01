@@ -8,6 +8,7 @@ import {
   KeyPair,
   Next,
   Transaction,
+  IBlock,
 } from '../../../src/interfaces';
 
 export default class TransactionsApi {
@@ -90,7 +91,10 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const condition: any = {};
+    const condition = {} as Pick<
+      Transaction,
+      'senderId' | 'height' | 'senderPublicKey' | 'type' | 'id' | 'message'
+    >;
     if (query.senderId) {
       condition.senderId = query.senderId;
     }
@@ -111,7 +115,7 @@ export default class TransactionsApi {
     }
 
     try {
-      let block;
+      let block: IBlock;
       if (query.blockId) {
         block = await global.app.sdb.getBlockById(query.blockId);
         if (block === undefined) {
