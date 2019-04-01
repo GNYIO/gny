@@ -259,9 +259,9 @@ export default class AccountsApi {
     }
 
     try {
-      let addr;
+      let addr: string;
       if (query.username) {
-        const account: any = await global.app.sdb.load('Account', {
+        const account = await global.app.sdb.load('Account', {
           username: query.username,
         });
         if (!account) {

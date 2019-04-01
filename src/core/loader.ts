@@ -101,7 +101,7 @@ export default class Loader {
   }
 
   private async loadBlocks(
-    lastBlock: IBlock | Pick<IBlock, 'height'>,
+    lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>,
     cb: any
   ) {
     let result;

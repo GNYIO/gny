@@ -265,6 +265,7 @@ export interface Transaction {
   height: number;
   message?: string;
   _version_: number;
+  recipientId?: string;
 }
 
 export interface Transfer {

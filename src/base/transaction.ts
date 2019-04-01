@@ -5,7 +5,15 @@ import slots from '../utils/slots';
 // import * as constants from '../utils/constants';
 import * as addressHelper from '../utils/address';
 import feeCalculators from '../utils/calculate-fee';
-import { IScope, KeyPair } from '../interfaces';
+import { IScope, KeyPair, IBlock } from '../interfaces';
+
+import { Transaction as ITransaction } from '../interfaces';
+
+interface Context {
+  trs: ITransaction;
+  block: Pick<IBlock, 'height'>;
+  sender: string;
+}
 
 export class Transaction {
   private readonly library: IScope;
@@ -178,9 +186,9 @@ export class Transaction {
     }
   }
 
-  async apply(context: any) {
+  async apply(context: Context) {
     const { block, trs, sender } = context;
-    const name = global.app.getContractName(trs.type);
+    const name = global.app.getContractName(String(trs.type));
     if (!name) {
       throw new Error(`Unsupported transaction type: ${trs.type}`);
     }
