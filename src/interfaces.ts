@@ -51,6 +51,7 @@ export interface IScope {
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
+  coreApi: any;
 }
 
 export interface Modules {
@@ -80,7 +81,7 @@ export interface INetwork {
 }
 
 interface IUtil {
-  address: any;
+  address: string;
   bignumber: typeof BigNumber;
 }
 

@@ -44,7 +44,7 @@ function getPublicIp() {
 }
 
 async function init_alt(options: IOptions) {
-  const scope: Partial<IScope> = {};
+  const scope = {} as IScope;
   const genesisBlock = options.genesisBlock;
   let appConfig: IConfig = options.appConfig;
 
