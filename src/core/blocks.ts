@@ -16,6 +16,7 @@ import {
   BlockPropose,
   Next,
   IBlock,
+  ManyVotes,
 } from '../interfaces';
 
 export default class Blocks {
@@ -198,14 +199,14 @@ export default class Blocks {
     }
   };
 
-  public verifyBlockVotes = async (block: IBlock, votes: any) => {
+  public verifyBlockVotes = async (block: IBlock, votes: ManyVotes) => {
     // is this working??
     const delegateList = await this.modules.delegates.generateDelegateList(
       block.height
     );
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
-      if (!publicKeySet.has(item.publicKey.toString('hex'))) {
+      if (!publicKeySet.has(item.publicKey)) {
         throw new Error(`Votes key is not in the top list: ${item.publicKey}`);
       }
       if (
@@ -652,7 +653,7 @@ export default class Blocks {
   };
 
   // Events
-  public onReceiveBlock = (block: IBlock, votes: any) => {
+  public onReceiveBlock = (block: IBlock, votes: ManyVotes) => {
     if (this.modules.loader.syncing() || !this.loaded) {
       return;
     }
@@ -830,7 +831,7 @@ export default class Blocks {
     });
   };
 
-  public onReceiveVotes = (votes: any) => {
+  public onReceiveVotes = (votes: ManyVotes) => {
     if (this.modules.loader.syncing() || !this.loaded) {
       return;
     }

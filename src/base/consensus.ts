@@ -94,7 +94,7 @@ export class Consensus {
     }
   };
 
-  public addPendingVotes = votes => {
+  public addPendingVotes = (votes: ManyVotes) => {
     if (
       !this.pendingBlock ||
       this.pendingBlock.height !== votes.height ||
