@@ -2,7 +2,12 @@ import * as ed from '../../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { Modules, IScope, Next } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  Next,
+  DelegateViewModel,
+} from '../../../src/interfaces';
 import { In } from 'typeorm';
 
 interface BalanceCondition {
@@ -281,12 +286,14 @@ export default class AccountsApi {
       for (const v of votes) {
         delegateNames.add(v.delegate);
       }
-      const delegates: any = this.modules.delegates.getDelegates();
+      const delegates: DelegateViewModel[] = await this.modules.delegates.getDelegates();
       if (!delegates || !delegates.length) {
         return res.json({ delegates: [] });
       }
 
-      const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name)); // username or name?
+      const myVotedDelegates = delegates.filter(d =>
+        delegateNames.has(d.username)
+      );
       return res.json({ delegates: myVotedDelegates });
     } catch (e) {
       this.library.logger.error('get voted delegates error', e);

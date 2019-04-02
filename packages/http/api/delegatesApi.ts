@@ -1,7 +1,12 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { Modules, IScope, Next } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  Next,
+  DelegateViewModel,
+} from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { In } from 'typeorm';
 
@@ -149,7 +154,7 @@ export default class DelegatesApi {
       return next('Invalid params');
     }
 
-    const delegates: any = await this.modules.delegates.getDelegates();
+    const delegates: DelegateViewModel[] = await this.modules.delegates.getDelegates();
     if (!delegates) return next('No delegates found');
     return res.json({
       totalCount: delegates.length,
