@@ -22,7 +22,7 @@ export class Transaction {
   }
 
   public create = data => {
-    const transaction: any = {
+    const transaction = {
       type: data.type,
       senderId: addressHelper.generateAddress(
         data.keypair.publicKey.toString('hex')
@@ -32,7 +32,7 @@ export class Transaction {
       message: data.message,
       args: data.args,
       fee: data.fee,
-    };
+    } as ITransaction;
 
     transaction.signatures = [this.sign(data.keypair, transaction)];
 
