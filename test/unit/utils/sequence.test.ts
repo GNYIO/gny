@@ -143,14 +143,6 @@ describe('sequence', () => {
     done();
   });
 
-  it.skip('recursive add() calls', async done => {
-    done();
-  });
-
-  it.skip('add(sync & async)', async done => {
-    done();
-  });
-
   it('add() resolve callback as 3rd parameter', async done => {
     const task = res => {
       res(undefined, 'this is the result');
@@ -170,6 +162,70 @@ describe('sequence', () => {
     expect(taskMock).toBeCalledTimes(1);
     expect(callbackMock).toBeCalledTimes(1);
     expect(callbackMock).toBeCalledWith(undefined, 'this is the result');
+
+    done();
+  });
+
+  it('recursive add() calls', async done => {
+    const inOrder: number[] = [];
+
+    const otherTask = () => {
+      sut.add(res => {
+        inOrder.push(2);
+        res();
+      });
+    };
+
+    const task = cb => {
+      inOrder.push(1);
+      otherTask();
+      inOrder.push(3);
+      setImmediate(cb);
+    };
+
+    sut.add(task);
+
+    await timeout(300);
+    await timeout(300);
+
+    expect(inOrder).toEqual([1, 3, 2]);
+    done();
+  });
+
+  it('return cb() should not further execute the code in the sequence', async done => {
+    const result: number[] = [];
+    const task = cb => {
+      result.push(1);
+      return cb();
+      result.push(2);
+    };
+
+    const taskMock = jest.fn().mockImplementation(task);
+    sut.add(taskMock);
+
+    await timeout(300);
+
+    expect(taskMock).toBeCalledTimes(1);
+    expect(result).toEqual([1]);
+
+    done();
+  });
+
+  it('warning: without "return cb()" will the code execute further', async done => {
+    const result: number[] = [];
+    const task = cb => {
+      result.push(1);
+      cb();
+      result.push(2);
+    };
+
+    const taskMock = jest.fn().mockImplementation(task);
+    sut.add(taskMock);
+
+    await timeout(300);
+
+    expect(taskMock).toBeCalledTimes(1);
+    expect(result).toEqual([1, 2]);
 
     done();
   });
