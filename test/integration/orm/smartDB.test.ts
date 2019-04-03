@@ -364,6 +364,14 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it.skip('createOrLoad() - create entity with composite key', async done => {
+    done();
+  });
+
+  it.skip('createOrLoad() - load entity by composite key', async done => {
+    done();
+  });
+
   it('get() loads entity only from cache - untracked -> returns undefined', async done => {
     await saveGenesisBlock(sut);
 
@@ -392,6 +400,10 @@ describe('integration - SmartDB', () => {
       username: 'liangpeili',
       _version_: 1,
     });
+    done();
+  });
+
+  it('get() loads entity', async done => {
     done();
   });
 
@@ -526,12 +538,6 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  // create without providing key (or whole composite key)
-
-  it.skip('load all objects from Model Asset (Asset = memory:true) into memory', async done => {
-    done();
-  });
-
   it('prop blocksCount after initalization', done => {
     expect(sut.blocksCount).toEqual(0);
     done();
@@ -557,6 +563,69 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     expect(() => sut.beginBlock(undefined)).toThrow();
+    done();
+  });
+
+  it('count() - no account -> returns count 0', async done => {
+    await saveGenesisBlock(sut);
+
+    const key = {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    };
+    const result = await sut.count('Account', key);
+    expect(result).toEqual(0);
+    done();
+  });
+
+  it('count() - after save -> returns count 1', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+
+    const delegate = {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+      username: 'liangpeili',
+      producedBlocks: 0,
+      tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
+      publicKey:
+        '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
+    };
+    await sut.create('Delegate', delegate);
+
+    // need to save block in order to save changes to DB
+    await sut.commitBlock(block.height);
+
+    const key = {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    };
+    const result = await sut.count('Delegate', {});
+    expect(result).toEqual(1);
+
+    done();
+  });
+
+  it.skip('if you miss a mandatory property while creating a model, should not get saved', async done => {
+    done();
+  });
+
+  it.skip('beginContract', async done => {
+    done();
+  });
+
+  it.skip('findAll()', async done => {
+    done();
+  });
+
+  it.skip('findAll() limit and offset', async done => {
+    done();
+  });
+
+  it.skip('findOne()', async done => {
+    done();
+  });
+
+  it.skip('findOne() should not look into the cache', async done => {
     done();
   });
 });

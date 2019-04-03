@@ -596,8 +596,8 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
     });
-    const url = this.getSchema(model, true);
-    return await this.getSession().count(url, condition);
+    const schema = this.getSchema(model, true);
+    return await this.getSession().count(schema, condition);
   }
 
   private async loadMaxBlockHeight() {
