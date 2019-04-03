@@ -407,7 +407,7 @@ export class DbSession {
       for (let i = 0; i < value.length; ++i) {
         const one = value[i];
         const params = Array.from(one.parameters || []);
-        queryRunner.query(one.query, params);
+        await queryRunner.query(one.query, params);
       }
 
       await queryRunner.commitTransaction();
@@ -451,7 +451,7 @@ export class DbSession {
     try {
       for (let i = 0; i < rollbackSql.length; ++i) {
         const one = rollbackSql[i];
-        queryRunner.query(one.query);
+        await queryRunner.query(one.query);
       }
 
       // await this.connection.executeBatch(rollbackSql);
