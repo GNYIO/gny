@@ -609,11 +609,257 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it.skip('beginContract', async done => {
+  it('beginContract() and commitContract() - persits changes after beginBlock(), commitBlock()', async done => {
+    await saveGenesisBlock(sut);
+
+    // check before
+    const before = await sut.count('Delegate', {});
+    expect(before).toEqual(0);
+
+    sut.beginContract(); // start
+
+    const delegate = {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+      username: 'a1300',
+      tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
+      publicKey:
+        '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
+      votes: 0,
+      producedBlocks: 0,
+      missedBlocks: 0,
+      fees: 0,
+      rewards: 0,
+    };
+    await sut.create('Delegate', delegate);
+
+    sut.commitContract();
+
+    const shouldBeCached = await sut.get('Delegate', {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    });
+    expect(shouldBeCached).toBeTruthy();
+
+    // persist data
+    const block = createBlock(1);
+    await sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    // check after
+    const after = await sut.count('Delegate', {});
+    expect(after).toEqual(1);
+
+    done();
+  });
+
+  it('beginContract() and commitContract() - can rollback changes made during a contract', async done => {
+    await saveGenesisBlock(sut);
+
+    // first contract
+    sut.beginContract();
+    const data = {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+      username: 'liangpeili',
+      tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
+      publicKey:
+        '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
+      votes: 0,
+      producedBlocks: 0,
+      missedBlocks: 0,
+      fees: 0,
+      rewards: 0,
+    };
+    const created = sut.create('Delegate', data);
+    sut.commitContract(); // end first contract
+
+    // check if cached
+    const isCached = await sut.get('Delegate', {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    });
+    expect(isCached).toBeTruthy();
+
+    // second contract (change data from first contract)
+    sut.beginContract();
+    await sut.increase(
+      'Delegate',
+      {
+        votes: +2000,
+      },
+      {
+        address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+      }
+    );
+
+    const meantime = await sut.get('Delegate', {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    });
+    expect(meantime.votes).toEqual(2000);
+
+    sut.rollbackContract();
+
+    // check after rollback
+    const result = await sut.get('Delegate', {
+      address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
+    });
+    expect(result.votes).toEqual(0);
+
+    done();
+  });
+
+  it('increase() - increases by number x', async done => {
+    await saveGenesisBlock(sut);
+
+    const data = {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      username: 'liangpeili',
+      tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
+      publicKey:
+        '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
+      votes: 0,
+      producedBlocks: 1,
+      missedBlocks: 0,
+      fees: 0,
+      rewards: 0,
+    };
+
+    await sut.create('Delegate', data);
+
+    await sut.increase(
+      'Delegate',
+      {
+        producedBlocks: 2,
+      },
+      {
+        address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      }
+    );
+
+    const result = await sut.get('Delegate', {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+    });
+    expect(result.producedBlocks).toEqual(3);
+    done();
+  });
+
+  it('increase can increase more than one property at time', async done => {
+    await saveGenesisBlock(sut);
+
+    const data = {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      username: 'liangpeili',
+      tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
+      publicKey:
+        '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
+      votes: 0,
+      producedBlocks: 0,
+      missedBlocks: 0,
+      fees: 0,
+      rewards: 0,
+    };
+
+    await sut.create('Delegate', data);
+
+    await sut.increase(
+      'Delegate',
+      {
+        producedBlocks: 2,
+        missedBlocks: 1,
+      },
+      {
+        address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      }
+    );
+
+    const result = await sut.get('Delegate', {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+    });
+    expect(result.producedBlocks).toEqual(2);
+    expect(result.missedBlocks).toEqual(1);
+    done();
+  });
+
+  it('increase() - by composite primary key', async done => {
+    await saveGenesisBlock(sut);
+
+    const balance1 = {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      currency: 'ABC.ABC',
+      balance: 1,
+    };
+    await sut.create('Balance', balance1);
+
+    const balance2 = {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      currency: 'CCC.DDD', // same address, other currency
+      balance: 1,
+    };
+    await sut.create('Balance', balance2);
+
+    // increase only balance1
+    await sut.increase(
+      'Balance',
+      {
+        balance: 1,
+      },
+      {
+        address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+        currency: 'ABC.ABC',
+      }
+    );
+
+    const result1 = await sut.get('Balance', {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      currency: 'ABC.ABC',
+    });
+    const result2 = await sut.get('Balance', {
+      address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
+      currency: 'CCC.DDD',
+    });
+    expect(result1.balance).toEqual(2);
+    expect(result2.balance).toEqual(1);
+    done();
+  });
+
+  it.skip('increase can increase many DB rows not only one', async done => {
+    done();
+  });
+
+  it('increase() - can decrease value by number x', async done => {
+    await saveGenesisBlock(sut);
+
+    const data = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      gny: 4000,
+    };
+    await sut.create('Account', data);
+
+    await sut.increase(
+      'Account',
+      {
+        gny: -1000,
+      },
+      {
+        address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      }
+    );
+
+    const result = await sut.get('Account', {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(result.gny).toEqual(3000);
+
+    done();
+  });
+
+  it.skip('del() - deletes entity from cache', async done => {
+    done();
+  });
+
+  it.skip('del() - deletes entity from DB after beginBlock() and commitBlock()', async done => {
     done();
   });
 
   it.skip('findAll()', async done => {
+    await sut.findAll();
     done();
   });
 
@@ -628,4 +874,11 @@ describe('integration - SmartDB', () => {
   it.skip('findOne() should not look into the cache', async done => {
     done();
   });
+
+  it.skip('it should never happen that beginContract() should be called after beginBlock()', async done => {
+    done();
+  });
+
+  // get() should load an entity from cache solely by its unique properties
+  // load() should load an entity from db solely by its unique properties
 });
