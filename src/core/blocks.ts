@@ -14,6 +14,9 @@ import {
   PeerNode,
   ProcessBlockOptions,
   BlockPropose,
+  Next,
+  IBlock,
+  ManyVotes,
 } from '../interfaces';
 
 export default class Blocks {
@@ -28,7 +31,7 @@ export default class Blocks {
   private lastPropose: BlockPropose = null;
   private privIsCollectingVotes = false;
 
-  private lastVoteTime: any;
+  private lastVoteTime: number;
   private blockreward = new Blockreward();
 
   constructor(scope: IScope) {
@@ -86,7 +89,7 @@ export default class Blocks {
     return ret.common;
   };
 
-  public setLastBlock = (block: any) => {
+  public setLastBlock = (block: IBlock | Pick<IBlock, 'height'>) => {
     if (typeof block.height === 'string') {
       block.height = Number(block.height);
     }
@@ -96,7 +99,7 @@ export default class Blocks {
   public getLastBlock = () => this.lastBlock;
 
   public verifyBlock = async (
-    block: any,
+    block: IBlock,
     options: Pick<ProcessBlockOptions, 'votes'>
   ) => {
     try {
@@ -196,14 +199,14 @@ export default class Blocks {
     }
   };
 
-  public verifyBlockVotes = async (block: any, votes: any) => {
+  public verifyBlockVotes = async (block: IBlock, votes: ManyVotes) => {
     // is this working??
     const delegateList = await this.modules.delegates.generateDelegateList(
       block.height
     );
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
-      if (!publicKeySet.has(item.publicKey.toString('hex'))) {
+      if (!publicKeySet.has(item.publicKey)) {
         throw new Error(`Votes key is not in the top list: ${item.publicKey}`);
       }
       if (
@@ -214,7 +217,7 @@ export default class Blocks {
     }
   };
 
-  public applyBlock = async (block: any) => {
+  public applyBlock = async (block: IBlock) => {
     global.app.logger.trace('enter applyblock');
     const appliedTransactions: any = {};
 
@@ -333,7 +336,7 @@ export default class Blocks {
     }
   };
 
-  public saveBlockTransactions = async (block: any) => {
+  public saveBlockTransactions = async (block: IBlock) => {
     global.app.logger.trace(
       'Blocks#saveBlockTransactions height',
       block.height
@@ -358,7 +361,7 @@ export default class Blocks {
     return await global.app.sdb.load('Round', { round: roundNumber });
   };
 
-  public applyRound = async (block: any) => {
+  public applyRound = async (block: IBlock) => {
     if (block.height === 0) {
       await this.modules.delegates.updateBookkeeper();
       return;
@@ -461,7 +464,7 @@ export default class Blocks {
     maxHeight: number,
     withTransaction: boolean
   ) => {
-    const blocks = await global.app.sdb.getBlocksByHeightRange(
+    const blocks: any = await global.app.sdb.getBlocksByHeightRange(
       minHeight,
       maxHeight
     );
@@ -568,7 +571,7 @@ export default class Blocks {
       payloadLength += bytes.length;
     }
     const height = this.lastBlock.height + 1;
-    const block: any = {
+    const block: IBlock = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
       height,
@@ -579,6 +582,8 @@ export default class Blocks {
       fees,
       payloadHash: payloadHash.digest().toString('hex'),
       reward: this.blockreward.calculateReward(height),
+      signature: null,
+      id: null,
     };
 
     block.signature = this.library.base.block.sign(block, keypair);
@@ -648,7 +653,7 @@ export default class Blocks {
   };
 
   // Events
-  public onReceiveBlock = (block: any, votes: any) => {
+  public onReceiveBlock = (block: IBlock, votes: ManyVotes) => {
     if (this.modules.loader.syncing() || !this.loaded) {
       return;
     }
@@ -797,7 +802,7 @@ export default class Blocks {
             );
             next(undefined, activeKeypairs);
           },
-          async (activeKeypairs: KeyPair[], next: any) => {
+          async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = this.library.base.consensus.createVotes(
                 activeKeypairs,
@@ -826,7 +831,7 @@ export default class Blocks {
     });
   };
 
-  public onReceiveVotes = (votes: any) => {
+  public onReceiveVotes = (votes: ManyVotes) => {
     if (this.modules.loader.syncing() || !this.loaded) {
       return;
     }

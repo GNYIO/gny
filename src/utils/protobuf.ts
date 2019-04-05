@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as protocolBuffers from 'protocol-buffers';
-import { NewBlockMessage, BlockPropose } from '../interfaces';
+import { NewBlockMessage, BlockPropose, Transaction } from '../interfaces';
 
 export class Protobuf {
   public schema;
@@ -39,7 +39,7 @@ export class Protobuf {
     return obj;
   }
 
-  encodeTransaction(trs): Buffer {
+  encodeTransaction(trs: Transaction): Buffer {
     const obj = _.cloneDeep(trs);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);

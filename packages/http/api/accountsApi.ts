@@ -2,8 +2,18 @@ import * as ed from '../../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { Modules, IScope, Next } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  Next,
+  DelegateViewModel,
+} from '../../../src/interfaces';
 import { In } from 'typeorm';
+
+interface BalanceCondition {
+  address: string;
+  flag?: number;
+}
 
 export default class AccountsApi {
   private modules: Modules;
@@ -51,7 +61,7 @@ export default class AccountsApi {
 
     this.library.network.app.use('/api/accounts', router);
     this.library.network.app.use(
-      (err: string, req: Request, res: Response, next: any) => {
+      (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
         this.library.logger.error(req.url, err);
         return res.status(500).json({
@@ -170,7 +180,7 @@ export default class AccountsApi {
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
-    const condition: any = { address: req.params.address };
+    const condition: BalanceCondition = { address: req.params.address };
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }
@@ -254,9 +264,9 @@ export default class AccountsApi {
     }
 
     try {
-      let addr;
+      let addr: string;
       if (query.username) {
-        const account: any = await global.app.sdb.load('Account', {
+        const account = await global.app.sdb.load('Account', {
           username: query.username,
         });
         if (!account) {
@@ -276,12 +286,14 @@ export default class AccountsApi {
       for (const v of votes) {
         delegateNames.add(v.delegate);
       }
-      const delegates: any = this.modules.delegates.getDelegates();
+      const delegates: DelegateViewModel[] = await this.modules.delegates.getDelegates();
       if (!delegates || !delegates.length) {
         return res.json({ delegates: [] });
       }
 
-      const myVotedDelegates = delegates.filter(d => delegateNames.has(d.name));
+      const myVotedDelegates = delegates.filter(d =>
+        delegateNames.has(d.username)
+      );
       return res.json({ delegates: myVotedDelegates });
     } catch (e) {
       this.library.logger.error('get voted delegates error', e);

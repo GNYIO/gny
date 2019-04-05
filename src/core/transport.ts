@@ -9,6 +9,7 @@ import {
   NewBlockMessage,
   P2PMessage,
   BlockPropose,
+  Transaction,
 } from '../interfaces';
 
 export default class Transport {
@@ -40,7 +41,7 @@ export default class Transport {
   };
 
   // broadcast to peers Transaction
-  public onUnconfirmedTransaction = async (transaction: any) => {
+  public onUnconfirmedTransaction = async (transaction: Transaction) => {
     const encodedTransaction = this.library.protobuf.encodeTransaction(
       transaction
     );
@@ -262,7 +263,7 @@ export default class Transport {
       return;
     }
 
-    let transaction: any;
+    let transaction: Transaction;
     try {
       transaction = this.library.protobuf.decodeTransaction(message.data);
     } catch (e) {

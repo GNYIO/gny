@@ -1,12 +1,14 @@
+import { Transaction } from '../interfaces';
+
 export default class TransactionPool {
   private index: Map<any, any>;
-  private unConfirmed: any[];
+  private unConfirmed: Transaction[];
   constructor() {
     this.index = new Map();
     this.unConfirmed = [];
   }
 
-  public add(trs: any) {
+  public add(trs: Transaction) {
     this.unConfirmed.push(trs);
     this.index.set(trs.id, this.unConfirmed.length - 1);
   }
@@ -23,7 +25,7 @@ export default class TransactionPool {
   }
 
   public getUnconfirmed() {
-    const a: any[] = [];
+    const a: Transaction[] = [];
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {

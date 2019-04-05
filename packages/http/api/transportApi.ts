@@ -2,7 +2,13 @@ import * as express from 'express';
 import slots from '../../../src/utils/slots';
 import osInfo from '../../../src/utils/osInfo';
 import { Request, Response } from 'express';
-import { Modules, IScope, Next, ManyVotes } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  Next,
+  ManyVotes,
+  Transaction,
+} from '../../../src/interfaces';
 
 export default class TransportApi {
   private modules: Modules;
@@ -167,7 +173,7 @@ export default class TransportApi {
       });
       return next('Blockchain is not ready');
     }
-    let transaction: any;
+    let transaction: Transaction;
     try {
       transaction = this.library.base.transaction.objectNormalize(
         req.body.transaction

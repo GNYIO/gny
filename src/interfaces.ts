@@ -41,7 +41,7 @@ declare interface IBase {
 
 export interface IScope {
   protobuf: Protobuf;
-  config: any;
+  config: IConfig;
   logger: ILogger;
   genesisBlock: IGenesisBlock;
   joi: ExtendedJoi;
@@ -51,6 +51,7 @@ export interface IScope {
   base: IBase;
   bus: EventEmitter & IMessageEmitter;
   modules: Modules;
+  coreApi: any;
 }
 
 export interface Modules {
@@ -80,7 +81,7 @@ export interface INetwork {
 }
 
 interface IUtil {
-  address: any;
+  address: string;
   bignumber: typeof BigNumber;
 }
 
@@ -92,9 +93,9 @@ interface IValidatorConstraints {
 }
 
 interface IValidators {
-  amount: (amount: any) => string;
-  name: (amount: any) => string;
-  publickey: (value: any) => string;
+  amount: (amount: string) => string;
+  name: (amount: string) => string;
+  publickey: (value: string) => string;
   string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
@@ -193,6 +194,7 @@ export interface IConfig {
   };
   logLevel: ILogLevel;
   pidFile: string;
+  publicIp?: string;
 }
 
 export interface KeyPairsIndexer {
@@ -219,7 +221,7 @@ export interface ISimpleCache {
   [id: string]: boolean;
 }
 
-export type Next = (err: string) => any;
+export type Next = (err?: string) => any;
 
 export interface PeerNode {
   host: string;
@@ -234,6 +236,50 @@ export interface ProcessBlockOptions {
 }
 
 // Models
+export interface IBlock {
+  id: string;
+  height: number;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: number;
+  reward: number;
+  payloadHash: string;
+  delegate: string;
+  signature: string;
+  _version_?: number;
+  transactions?: any;
+}
+
+export interface Transaction {
+  id: string;
+  type: number;
+  timestamp: number;
+  senderId: string;
+  senderPublicKey: string;
+  fee: number;
+  signatures?: any;
+  secondSignature?: any;
+  args: any;
+  height: number;
+  message?: string;
+  _version_: number;
+  recipientId?: string;
+}
+
+export interface Transfer {
+  tid: string;
+  senderId: string;
+  recipientId: string;
+  recipientName?: string;
+  currency: string;
+  amount: number;
+  timestamp: number;
+  height: number;
+  _version_: number;
+}
+
 export interface Delegate {
   address: string;
   tid: string;
@@ -291,4 +337,13 @@ declare global {
       emit(event: 'cleanup'): this;
     }
   }
+}
+
+export interface IOptions {
+  appConfig: IConfig;
+  genesisBlock: IGenesisBlock;
+  logger: ILogger;
+  pidFile: string;
+  modules?: any;
+  library?: Partial<IScope>;
 }
