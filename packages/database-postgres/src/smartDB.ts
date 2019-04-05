@@ -428,7 +428,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(key);
     });
     const sessionId = this.getSchema(model, true);
-    return this.getSession().increase(sessionId, key, increaseBy);
+    return await this.getSession().increase(sessionId, key, increaseBy);
   }
 
   public async update(
@@ -458,7 +458,7 @@ export class SmartDB extends EventEmitter {
         );
       }
     }
-    this.getSession().update(schema, key, modifier);
+    await this.getSession().update(schema, key, modifier);
   }
 
   public async del(model: string, key: ObjectLiteral) {
@@ -470,7 +470,7 @@ export class SmartDB extends EventEmitter {
       return CodeContract.notNull(key);
     });
     const schema = this.getSchema(model, true);
-    this.getSession().delete(schema, key);
+    await this.getSession().delete(schema, key);
   }
 
   public async load(model: string, key: ObjectLiteral) {

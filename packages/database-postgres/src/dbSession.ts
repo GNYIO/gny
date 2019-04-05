@@ -93,12 +93,6 @@ export class DbSession {
     return this.replaceEntitiesJsonPropertis(schema, result);
   }
 
-  // TODO: remove sync methods
-  private queryEntitiesSync(expr, options) {
-    const result = this.connection.querySync(options.query, options.parameters);
-    return this.replaceEntitiesJsonPropertis(expr, result);
-  }
-
   public async initSerial(serial: number) {
     this.sessionSerial = serial;
     if (serial >= 0) {
@@ -228,26 +222,6 @@ export class DbSession {
     return codeContract.deepCopy(this.entityTracker.trackNew(schema, entity));
   }
 
-  private loadEntityByKeySync(schema: ModelSchema, obj: ObjectLiteral) {
-    const results = this.makeByKeyCondition(schema, obj);
-    const options = this.sqlBuilder.buildSelect(
-      schema,
-      schema.properties,
-      results
-    );
-    const dataPerSeries = this.queryEntitiesSync(schema, options);
-    if (dataPerSeries.length > 1) {
-      throw new Error(
-        "entity key is duplicated ( model = '" +
-          schema.modelName +
-          "' key = '" +
-          JSON.stringify(obj) +
-          "' )"
-      );
-    }
-    return 1 === dataPerSeries.length ? dataPerSeries[0] : undefined;
-  }
-
   private async loadEntityByKey(schema: ModelSchema, obj: ObjectLiteral) {
     const params = this.makeByKeyCondition(schema, obj);
     const options = this.sqlBuilder.buildSelect(
@@ -300,20 +274,6 @@ export class DbSession {
     const loadedEntity = await this.loadEntityByKey(schema, obj);
     if (undefined === loadedEntity) {
       return undefined;
-    }
-    const data = this.entityTracker.trackPersistent(schema, loadedEntity);
-    return schema.copyProperties(data, true);
-  }
-
-  // TODO remove sync methods
-  public loadSync(schema: ModelSchema, key: ObjectLiteral) {
-    const entity = this.getCachedEntity(schema, key);
-    if (undefined !== entity) {
-      return entity;
-    }
-    const loadedEntity = this.loadEntityByKeySync(schema, key);
-    if (undefined === loadedEntity) {
-      return;
     }
     const data = this.entityTracker.trackPersistent(schema, loadedEntity);
     return schema.copyProperties(data, true);
@@ -483,10 +443,10 @@ export class DbSession {
     }
   }
 
-  private ensureEntityTracking(schema: ModelSchema, key: ObjectLiteral) {
+  private async ensureEntityTracking(schema: ModelSchema, key: ObjectLiteral) {
     let cachedObj = this.getCached(schema, key);
     if (undefined === cachedObj) {
-      const data = this.loadEntityByKeySync(schema, key);
+      const data = this.loadEntityByKey(schema, key);
       if (undefined === data) {
         throw Error(
           "Entity not found ( model = '" +
@@ -501,21 +461,21 @@ export class DbSession {
     return cachedObj;
   }
 
-  public update(
+  public async update(
     schema: ModelSchema,
     obj: ObjectLiteral,
     modifier: ObjectLiteral
   ) {
-    const tracked = this.ensureEntityTracking(schema, obj);
+    const tracked = await this.ensureEntityTracking(schema, obj);
     this.entityTracker.trackModify(schema, tracked, modifier);
   }
 
-  public increase(
+  public async increase(
     schema: ModelSchema,
     keyObj: ObjectLiteral,
     obj: ObjectLiteral
   ) {
-    const end = this.ensureEntityTracking(schema, keyObj);
+    const end = await this.ensureEntityTracking(schema, keyObj);
     const endColorCoords = {};
     Object.keys(obj).forEach(i => {
       endColorCoords[i] = undefined === end[i] ? obj[i] : obj[i] + end[i];
@@ -524,8 +484,8 @@ export class DbSession {
     return endColorCoords;
   }
 
-  public delete(schema: ModelSchema, condition: ObjectLiteral) {
-    const tracked = this.ensureEntityTracking(schema, condition);
+  public async delete(schema: ModelSchema, condition: ObjectLiteral) {
+    const tracked = await this.ensureEntityTracking(schema, condition);
     this.entityTracker.trackDelete(schema, tracked);
   }
 
