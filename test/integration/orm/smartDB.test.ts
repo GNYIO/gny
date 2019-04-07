@@ -84,7 +84,7 @@ async function saveGenesisBlock(smartDB: SmartDB) {
     await smartDB.create('Transaction', trs);
   }
 
-  await smartDB.commitBlock(block.height);
+  await smartDB.commitBlock();
 }
 
 describe('integration - SmartDB', () => {
@@ -149,7 +149,7 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    await sut.commitBlock(first.height);
+    await sut.commitBlock();
 
     const result = await sut.getBlockById(first.id, false);
     const expected = Object.assign({}, first);
@@ -166,7 +166,7 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    await sut.commitBlock(first.height);
+    await sut.commitBlock();
 
     const result = await sut.getBlockById(first.id, true);
     const expected = Object.assign({}, first);
@@ -192,7 +192,7 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    sut.commitBlock(first.height);
+    sut.commitBlock();
 
     const blocks = await sut.getBlocksByHeightRange(0, 1, true);
     expect(blocks).toBeTruthy();
@@ -236,11 +236,11 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    await sut.commitBlock(first.height);
+    await sut.commitBlock();
 
     const second = createBlock(2);
     sut.beginBlock(second);
-    await sut.commitBlock(second.height);
+    await sut.commitBlock();
 
     // before
     expect(sut.lastBlockHeight).toEqual(2);
@@ -269,15 +269,15 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     customSut.beginBlock(first);
-    await customSut.commitBlock(first.height);
+    await customSut.commitBlock();
 
     const second = createBlock(2);
     customSut.beginBlock(second);
-    await customSut.commitBlock(second.height);
+    await customSut.commitBlock();
 
     const third = createBlock(3);
     customSut.beginBlock(third);
-    await customSut.commitBlock(third.height);
+    await customSut.commitBlock();
 
     // before
     expect(customSut.lastBlockHeight).toEqual(3);
@@ -312,7 +312,7 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    await sut.commitBlock(first.height);
+    await sut.commitBlock();
 
     expect(sut.lastBlock).toEqual(first);
 
@@ -619,11 +619,11 @@ describe('integration - SmartDB', () => {
 
     const first = createBlock(1);
     sut.beginBlock(first);
-    await sut.commitBlock(first.height);
+    await sut.commitBlock();
 
     const second = createBlock(2);
     sut.beginBlock(second);
-    await sut.commitBlock(second.height);
+    await sut.commitBlock();
 
     const otherFirst = createBlock(1);
     expect(() => sut.beginBlock(otherFirst)).toThrow(
@@ -671,7 +671,7 @@ describe('integration - SmartDB', () => {
     await sut.create('Delegate', delegate);
 
     // need to save block in order to save changes to DB
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     const key = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
@@ -719,7 +719,7 @@ describe('integration - SmartDB', () => {
     // persist data
     const block = createBlock(1);
     await sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     // check after
     const after = await sut.count('Delegate', {});
@@ -1021,7 +1021,7 @@ describe('integration - SmartDB', () => {
     // first create account and persist with next block
     const block1 = createBlock(1);
     sut.beginBlock(block1);
-    await sut.commitBlock(block1.height);
+    await sut.commitBlock();
 
     // before: check how many accounts exist
     const before = await sut.count('Account', {});
@@ -1035,7 +1035,7 @@ describe('integration - SmartDB', () => {
     // then delete account and persist with next block
     const block2 = createBlock(2);
     sut.beginBlock(block2);
-    await sut.commitBlock(block2.height);
+    await sut.commitBlock();
 
     // after: check how many accounts exist
     const after = await sut.count('Account', {});
@@ -1084,7 +1084,7 @@ describe('integration - SmartDB', () => {
     // save changes to block and persist to DB
     const block = createBlock(1);
     sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     // findAll balance lines for one address
     const result = await sut.findAll('Balance', {
@@ -1125,7 +1125,7 @@ describe('integration - SmartDB', () => {
     // persist Assets in DB with new block
     const block = createBlock(1);
     sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     // check if 2 Assets exist
     const count = await sut.count('Asset', {});
@@ -1157,7 +1157,7 @@ describe('integration - SmartDB', () => {
     // persist Assets in DB with new block
     const block = createBlock(1);
     sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     // load both normal
     const both = await sut.findAll('Asset', {});
@@ -1183,7 +1183,7 @@ describe('integration - SmartDB', () => {
     // persist Assets in DB with new block
     const block = createBlock(1);
     sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     const loadFirst = await sut.findAll('Asset', {
       limit: 1,
@@ -1208,7 +1208,7 @@ describe('integration - SmartDB', () => {
     // persist changes to dB
     const block = createBlock(1);
     sut.beginBlock(block);
-    await sut.commitBlock(block.height);
+    await sut.commitBlock();
 
     const expected = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',

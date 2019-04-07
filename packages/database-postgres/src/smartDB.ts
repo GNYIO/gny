@@ -298,7 +298,7 @@ export class SmartDB extends EventEmitter {
     this._lastBlockHeight--;
   }
 
-  public async commitBlock(height: number) {
+  public async commitBlock() {
     if (!this.currentBlock) {
       throw new Error('Current block is null');
     }
