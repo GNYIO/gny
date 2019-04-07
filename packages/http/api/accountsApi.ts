@@ -192,7 +192,9 @@ export default class AccountsApi {
       if (uiaNameList && uiaNameList.length) {
         const assets = await global.app.sdb.findAll('Asset', {
           condition: {
-            name: In(uiaNameList),
+            name: {
+              $in: uiaNameList,
+            },
           },
         });
         for (const a of assets) {
@@ -267,7 +269,9 @@ export default class AccountsApi {
         addr = query.address;
       }
       const votes = await global.app.sdb.findAll('Vote', {
-        voterAddress: addr,
+        condition: {
+          voterAddress: addr,
+        },
       });
       if (!votes || !votes.length) {
         return res.json({ delegates: [] });

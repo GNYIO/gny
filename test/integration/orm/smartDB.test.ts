@@ -46,6 +46,29 @@ function createBlock(height: number) {
   return block;
 }
 
+function createAsset(name: string) {
+  const asset = {
+    name,
+    tid: createRandomBytes(32),
+    timestamp: 3000,
+    maximum: 4e8,
+    precision: 8,
+    quantity: 0,
+    desc: name,
+    issuerId: generateAddress(createRandomBytes(32)),
+  };
+  return asset;
+}
+
+function createAccount(address: string) {
+  const account = {
+    address,
+    username: undefined,
+    gny: 0,
+  };
+  return account;
+}
+
 async function saveGenesisBlock(smartDB: SmartDB) {
   const block = Object.assign(cloneDeep(CUSTOM_GENESIS), {
     _version_: 0, // TODO should be version 1 (or completly without _version_)
@@ -121,7 +144,7 @@ describe('integration - SmartDB', () => {
     done();
   }, 5000);
 
-  it('getBlockById without transactions', async done => {
+  it('getBlockById', async done => {
     await saveGenesisBlock(sut);
 
     const first = createBlock(1);
@@ -221,7 +244,7 @@ describe('integration - SmartDB', () => {
 
     // before
     expect(sut.lastBlockHeight).toEqual(2);
-    const existsSecond = await sut.load('Block', { height: 2 }); // get loads only from cache
+    const existsSecond = await sut.load('Block', { height: 2 }); // get() loads only from cache
     const secondWithoutTrs = deepCopy(second);
     Reflect.deleteProperty(secondWithoutTrs, 'transactions');
     expect(existsSecond).toEqual(secondWithoutTrs);
@@ -403,8 +426,40 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it('get() loads entity', async done => {
+  it('get() loads entity from cache - by unique key', async done => {
+    await saveGenesisBlock(sut);
+
+    const account = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      username: 'a1300',
+      gny: 0,
+    };
+    const created = await sut.create('Account', account);
+
+    const uniqueKey = {
+      username: 'a1300',
+    };
+    const result = await sut.get('Account', uniqueKey);
+    expect(result).toEqual(created);
     done();
+  });
+
+  it('get() loads entity from cache - throws if not provided whole composite key', async () => {
+    await saveGenesisBlock(sut);
+
+    // first save data
+    const balance = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+      balance: 2000,
+    };
+    await sut.create('Balance', balance);
+
+    const notWholeCompositeKey = { currency: 'ABC.ABC' };
+    const getPromise = sut.get('Balance', notWholeCompositeKey);
+    return expect(getPromise).rejects.toEqual(
+      new Error("Cannot read property 'key' of undefined")
+    );
   });
 
   it('create() - initial _version_ is 1 after creation', async done => {
@@ -549,13 +604,35 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it('beginBlock() called with "wrong" height throws', async done => {
+  it('beginBlock() - called with too big height throws', async done => {
     await saveGenesisBlock(sut);
 
     const wrongBlock = createBlock(2);
     expect(() => sut.beginBlock(wrongBlock)).toThrow(
       'argName or verify can not be null or undefined'
     );
+    done();
+  });
+
+  it('beginBlock() - called with too small height throws', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock(first.height);
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock(second.height);
+
+    const otherFirst = createBlock(1);
+    expect(() => sut.beginBlock(otherFirst)).toThrow(
+      'argName or verify can not be null or undefined'
+    );
+    done();
+  });
+
+  it.skip('beginBlock() - called twice with same block height throws', async done => {
     done();
   });
 
@@ -605,7 +682,7 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it.skip('if you miss a mandatory property while creating a model, should not get saved', async done => {
+  it.skip('create() - if mandatory property is missing, should throw', async done => {
     done();
   });
 
@@ -850,24 +927,315 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it.skip('del() - deletes entity from cache', async done => {
+  it('del() - deletes entity from cache', async done => {
+    await saveGenesisBlock(sut);
+
+    const account = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      gny: 0,
+    };
+    await sut.create('Account', account);
+
+    // check before
+    const before = await sut.get('Account', {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(before).toBeTruthy();
+
+    // delete
+    await sut.del('Account', {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+
+    // check after
+    const after = await sut.get('Account', {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(after).toBeUndefined();
+
     done();
   });
 
-  it.skip('del() - deletes entity from DB after beginBlock() and commitBlock()', async done => {
+  it('delete by unique key', async done => {
+    await saveGenesisBlock(sut);
+
+    const account = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      username: 'a1300',
+      gny: 0,
+    };
+    await sut.create('Account', account);
+
+    // delete
+    await sut.del('Account', {
+      username: 'a1300',
+    });
+
+    // check after
+    const after = await sut.get('Account', {
+      username: 'a1300',
+    });
+    expect(after).toBeUndefined();
+
     done();
   });
 
-  it.skip('findAll()', async done => {
-    await sut.findAll();
+  it('del() - deletes entity from cache (with composite primary key)', async done => {
+    await saveGenesisBlock(sut);
+
+    const balance = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+      balance: 3000,
+    };
+    const created = await sut.create('Balance', balance);
+
+    // check before
+    const compositeKey = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+    };
+    const before = await sut.get('Balance', compositeKey);
+    expect(before).toEqual(created);
+
+    // delete
+    await sut.del('Balance', compositeKey);
+
+    // check after
+    const after = await sut.get('Balance', compositeKey);
+    expect(after).toBeUndefined();
+
     done();
   });
 
-  it.skip('findAll() limit and offset', async done => {
+  it('del() - deletes entity from DB after beginBlock() and commitBlock()', async done => {
+    await saveGenesisBlock(sut);
+
+    const account = {
+      address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      username: 'a1300',
+      gny: 0,
+    };
+    await sut.create('Account', account);
+
+    // first create account and persist with next block
+    const block1 = createBlock(1);
+    sut.beginBlock(block1);
+    await sut.commitBlock(block1.height);
+
+    // before: check how many accounts exist
+    const before = await sut.count('Account', {});
+    expect(before).toEqual(1);
+
+    const key = {
+      address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+    };
+    await sut.del('Account', key);
+
+    // then delete account and persist with next block
+    const block2 = createBlock(2);
+    sut.beginBlock(block2);
+    await sut.commitBlock(block2.height);
+
+    // after: check how many accounts exist
+    const after = await sut.count('Account', {});
+    expect(after).toEqual(0);
+
     done();
   });
 
-  it.skip('findOne()', async done => {
+  it('findAll() - access directly DB, no cache read', async done => {
+    await saveGenesisBlock(sut);
+
+    // populate cache with one entity
+    const account = {
+      address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      username: 'xpgeng',
+      gny: 100000,
+    };
+    await sut.create('Account', account);
+
+    const result = await sut.findAll('Account', {
+      condition: {
+        address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      },
+    });
+    expect(result).toEqual([]);
+    expect(result.length).toEqual(0);
+    done();
+  });
+
+  it('findAll() - WHERE clause', async done => {
+    await saveGenesisBlock(sut);
+
+    await sut.create('Balance', {
+      address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      currency: 'ABC.ABC',
+      balance: 100000,
+      flag: 1,
+    });
+    await sut.create('Balance', {
+      address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      currency: 'FEE.FEE',
+      balance: 400000,
+      flag: 1,
+    });
+
+    // save changes to block and persist to DB
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    // findAll balance lines for one address
+    const result = await sut.findAll('Balance', {
+      condition: {
+        address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+      },
+    });
+
+    const expected = [
+      {
+        address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+        currency: 'ABC.ABC',
+        balance: 100000,
+        flag: 1,
+        _version_: 1,
+      },
+      {
+        address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
+        currency: 'FEE.FEE',
+        balance: 400000,
+        flag: 1,
+        _version_: 1,
+      },
+    ];
+    expect(result).toEqual(expected);
+    done();
+  });
+
+  it('findAll() - WHERE IN clause', async done => {
+    await saveGenesisBlock(sut);
+
+    const abc = createAsset('ABC.ABC');
+    const createdABC = await sut.create('Asset', abc);
+
+    const tec = createAsset('TEC.TEC');
+    await sut.create('Asset', tec);
+
+    // persist Assets in DB with new block
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    // check if 2 Assets exist
+    const count = await sut.count('Asset', {});
+    expect(count).toEqual(2);
+
+    // load only one
+    const names = ['ABC.ABC'];
+    const result = await sut.findAll('Asset', {
+      condition: {
+        name: {
+          $in: names,
+        },
+      },
+    });
+
+    expect(result).toEqual([createdABC]);
+    done();
+  });
+
+  it('findAll() - limit', async done => {
+    await saveGenesisBlock(sut);
+
+    const abc = createAsset('ABC.ABC');
+    await sut.create('Asset', abc);
+
+    const tec = createAsset('TEC.TEC');
+    await sut.create('Asset', tec);
+
+    // persist Assets in DB with new block
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    // load both normal
+    const both = await sut.findAll('Asset', {});
+    expect(both.length).toEqual(2);
+
+    // load only one with limit
+    const limit = await sut.findAll('Asset', {
+      limit: 1,
+    });
+    expect(limit.length).toEqual(1);
+    done();
+  });
+
+  it('findAll() - limit and offset', async done => {
+    await saveGenesisBlock(sut);
+
+    const abc = createAsset('ABC.ABC');
+    const createdABC = await sut.create('Asset', abc);
+
+    const tec = createAsset('TEC.TEC');
+    const createdTEC = await sut.create('Asset', tec);
+
+    // persist Assets in DB with new block
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    const loadFirst = await sut.findAll('Asset', {
+      limit: 1,
+      offset: 0,
+    });
+    const loadSecond = await sut.findAll('Asset', {
+      limit: 1,
+      offset: 1,
+    });
+
+    expect(loadFirst).toEqual([createdABC]);
+    expect(loadSecond).toEqual([createdTEC]);
+    done();
+  });
+
+  it('findOne() - load entity from DB by primary key', async done => {
+    await saveGenesisBlock(sut);
+
+    const account = createAccount('G26gsyu1VkF1z4JJ6UGa5VTa4wdWj');
+    await sut.create('Account', account);
+
+    // persist changes to dB
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock(block.height);
+
+    const expected = {
+      address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
+      gny: 0,
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: 0,
+      lockHeight: 0,
+      publicKey: null,
+      secondPublicKey: null,
+      username: null,
+      _version_: 1,
+    };
+
+    const key = {
+      address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
+    };
+    const result = await sut.findOne('Account', key);
+    expect(result).toEqual(expected);
+    done();
+  });
+
+  it.skip('findOne - load entity from DB by unique key', async done => {
+    done();
+  });
+
+  it.skip('findOne - load entity from DB by composite key', async done => {
     done();
   });
 
@@ -875,10 +1243,21 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it.skip('findOne - throws if more than one 1 entity is found', async done => {
+    done();
+  });
+
   it.skip('it should never happen that beginContract() should be called after beginBlock()', async done => {
     done();
   });
 
-  // get() should load an entity from cache solely by its unique properties
+  it.skip('load() - loads entity from cache (if cached), otherwise from db', async done => {
+    done();
+  });
   // load() should load an entity from db solely by its unique properties
+
+  it.skip('commitBlock() - fails, then cache and last block in DB should be correct', async done => {
+    // make entry for database column too long
+    done();
+  });
 });

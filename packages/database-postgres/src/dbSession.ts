@@ -290,6 +290,7 @@ export class DbSession {
 
   private getCached(schema: ModelSchema, keyvalue: ObjectLiteral) {
     const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue);
+    // TODO throw Error if primaryKeyMetadat is undefined
     const this_area = this.entityTracker.getTrackingEntity(
       schema,
       primaryKeyMetadata.key

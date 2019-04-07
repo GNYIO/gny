@@ -473,6 +473,9 @@ export class SmartDB extends EventEmitter {
     await this.getSession().delete(schema, key);
   }
 
+  /**
+   * load entity from cache and database
+   */
   public async load(model: string, key: ObjectLiteral) {
     // TODO remove async
     CodeContract.argument('model', function() {
@@ -576,6 +579,11 @@ export class SmartDB extends EventEmitter {
     return 0 === result.length ? undefined : result[0];
   }
 
+  /**
+   * Directly accesses DB, does not search in cache
+   * @param {string} model - e.g. "Account" or "Balnace"
+   * @param condition
+   */
   public async findAll(model: string, condition: ObjectLiteral) {
     CodeContract.argument('model', function() {
       return CodeContract.notNull(model);
