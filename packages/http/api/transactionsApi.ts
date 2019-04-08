@@ -193,7 +193,7 @@ export default class TransactionsApi {
       for (let i = 0; i < transactions.length; i++) {
         if (
           transactions[i].senderPublicKey === query.senderPublicKey ||
-          transactions[i].recipientId === query.address
+          transactions[i].senderId === query.address
         ) {
           toSend.push(transactions[i]);
         }

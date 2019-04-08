@@ -263,8 +263,7 @@ export interface Transaction {
   args: any;
   height: number;
   message?: string;
-  _version_: number;
-  recipientId?: string;
+  _version_?: number;
 }
 
 export interface Transfer {
