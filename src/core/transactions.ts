@@ -1,6 +1,6 @@
 import LimitCache from '../utils/limit-cache';
 import TransactionPool from '../utils/transaction-pool';
-import { Modules, IScope } from '../interfaces';
+import { Modules, IScope, Transaction } from '../interfaces';
 
 export default class Transactions {
   private readonly library: IScope;
@@ -33,7 +33,7 @@ export default class Transactions {
     const query = req.body;
     const limit = query.limit ? Number(query.limit) : 100;
     const offset = query.offset ? Number(query.offset) : 0;
-    const condition: { senderId?: any; type?: any } = {};
+    const condition: { senderId?: string; type?: number } = {};
     if (query.senderId) {
       condition.senderId = query.senderId;
     }
@@ -44,10 +44,15 @@ export default class Transactions {
     (async () => {
       try {
         const count = await global.app.sdb.count('Transaction', condition);
-        let transactions = await global.app.sdb.find('Transaction', condition, {
-          limit: limit,
-          offset: offset,
-        });
+
+        let transactions = await global.app.sdb.find(
+          'Transaction',
+          condition,
+          limit,
+          {},
+          [],
+          offset
+        );
         if (!transactions) transactions = [];
         return cb(null, { transactions, count });
       } catch (e) {
@@ -71,13 +76,13 @@ export default class Transactions {
     })();
   };
 
-  applyTransactionsAsync = async transactions => {
+  applyTransactionsAsync = async (transactions: Transaction[]) => {
     for (let i = 0; i < transactions.length; ++i) {
       await this.applyUnconfirmedTransactionAsync(transactions[i]);
     }
   };
 
-  processUnconfirmedTransactions = (transactions, cb) => {
+  processUnconfirmedTransactions = (transactions: Transaction[], cb) => {
     (async () => {
       try {
         for (const transaction of transactions) {
@@ -90,13 +95,13 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionsAsync = async transactions => {
+  processUnconfirmedTransactionsAsync = async (transactions: Transaction[]) => {
     for (const transaction of transactions) {
       await this.processUnconfirmedTransactionAsync(transaction);
     }
   };
 
-  processUnconfirmedTransaction = (transaction, cb) => {
+  processUnconfirmedTransaction = (transaction: Transaction, cb) => {
     (async () => {
       try {
         await this.processUnconfirmedTransactionAsync(transaction);
@@ -107,7 +112,7 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionAsync = async transaction => {
+  processUnconfirmedTransactionAsync = async (transaction: Transaction) => {
     try {
       if (!transaction.id) {
         transaction.id = this.library.base.transaction.getId(transaction);
@@ -143,7 +148,7 @@ export default class Transactions {
     }
   };
 
-  applyUnconfirmedTransactionAsync = async transaction => {
+  applyUnconfirmedTransactionAsync = async (transaction: Transaction) => {
     this.library.logger.debug('apply unconfirmed trs', transaction);
 
     const height = await this.modules.blocks.getLastBlock().height;
@@ -183,7 +188,7 @@ export default class Transactions {
     }
 
     try {
-      global.app.sdb.beginContract(transaction);
+      global.app.sdb.beginContract();
       await this.library.base.transaction.apply(context);
       global.app.sdb.commitContract();
     } catch (e) {

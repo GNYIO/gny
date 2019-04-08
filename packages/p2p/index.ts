@@ -1,7 +1,12 @@
 import { Bundle } from './bundle';
 import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
-import { P2PMessage, ILogger, P2PSubscribeHandler } from '../../src/interfaces';
+import {
+  P2PMessage,
+  ILogger,
+  P2PSubscribeHandler,
+  PeerNode,
+} from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
@@ -19,7 +24,7 @@ export class Peer2Peer {
 
   constructor(
     logger: ILogger,
-    peerInfo: any,
+    peerInfo: PeerInfo,
     bootstrapNode: string,
     bootStrapInterval: number = 30000
   ) {

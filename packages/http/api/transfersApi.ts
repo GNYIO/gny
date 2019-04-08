@@ -1,7 +1,8 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../src/interfaces';
+import { IScope, Next, Transfer } from '../../../src/interfaces';
 import { In } from 'typeorm';
+import { Merge } from 'type-fest';
 
 export default class TransfersApi {
   private library: IScope;
@@ -44,7 +45,10 @@ export default class TransfersApi {
   };
 
   private getRoot = async (req: Request, res: Response, next: Next) => {
-    const condition: any = {};
+    const condition = {} as Merge<
+      Pick<Transfer, 'senderId' | 'recipientId' | 'currency'>,
+      { $or: any }
+    >;
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;
@@ -103,7 +107,7 @@ export default class TransfersApi {
   private getAmount = async (req: Request, res: Response, next: Next) => {
     const startTimestamp = req.query.startTimestamp;
     const endTimestamp = req.query.endTimestamp;
-    const condition: any = {};
+    const condition = {} as { currency: string; timestamp: any };
     if (startTimestamp && endTimestamp) {
       condition.timestamp = { $between: [startTimestamp, endTimestamp] };
     }

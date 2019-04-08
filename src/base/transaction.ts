@@ -5,7 +5,15 @@ import slots from '../utils/slots';
 // import * as constants from '../utils/constants';
 import * as addressHelper from '../utils/address';
 import feeCalculators from '../utils/calculate-fee';
-import { IScope, KeyPair } from '../interfaces';
+import { IScope, KeyPair, IBlock } from '../interfaces';
+
+import { Transaction as ITransaction } from '../interfaces';
+
+interface Context {
+  trs: ITransaction;
+  block: Pick<IBlock, 'height'>;
+  sender: string;
+}
 
 export class Transaction {
   private readonly library: IScope;
@@ -14,7 +22,7 @@ export class Transaction {
   }
 
   public create = data => {
-    const transaction: any = {
+    const transaction = {
       type: data.type,
       senderId: addressHelper.generateAddress(
         data.keypair.publicKey.toString('hex')
@@ -24,7 +32,7 @@ export class Transaction {
       message: data.message,
       args: data.args,
       fee: data.fee,
-    };
+    } as ITransaction;
 
     transaction.signatures = [this.sign(data.keypair, transaction)];
 
@@ -178,9 +186,9 @@ export class Transaction {
     }
   }
 
-  async apply(context: any) {
+  async apply(context: Context) {
     const { block, trs, sender } = context;
-    const name = global.app.getContractName(trs.type);
+    const name = global.app.getContractName(String(trs.type));
     if (!name) {
       throw new Error(`Unsupported transaction type: ${trs.type}`);
     }

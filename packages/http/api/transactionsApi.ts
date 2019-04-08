@@ -2,7 +2,14 @@ import * as crypto from 'crypto';
 import * as ed from '../../../src/utils/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Modules, IScope, KeyPair, Next } from '../../../src/interfaces';
+import {
+  Modules,
+  IScope,
+  KeyPair,
+  Next,
+  Transaction,
+  IBlock,
+} from '../../../src/interfaces';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -41,7 +48,7 @@ export default class TransactionsApi {
 
     this.library.network.app.use('/api/transactions', router);
     this.library.network.app.use(
-      (err: any, req: Request, res: Response, next) => {
+      (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
         this.library.logger.error(req.url, err.toString());
         return res.status(500).json({ success: false, error: err.toString() });
@@ -84,7 +91,10 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const condition: any = {};
+    const condition = {} as Pick<
+      Transaction,
+      'senderId' | 'height' | 'senderPublicKey' | 'type' | 'id' | 'message'
+    >;
     if (query.senderId) {
       condition.senderId = query.senderId;
     }
@@ -105,7 +115,7 @@ export default class TransactionsApi {
     }
 
     try {
-      let block;
+      let block: IBlock;
       if (query.blockId) {
         block = await global.app.sdb.getBlockById(query.blockId);
         if (block === undefined) {
@@ -121,7 +131,10 @@ export default class TransactionsApi {
       let transactions = await global.app.sdb.find(
         'Transaction',
         condition,
-        limitAndOffset
+        limitAndOffset,
+        {},
+        [],
+        limitAndOffset.offset
       );
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
@@ -174,7 +187,7 @@ export default class TransactionsApi {
     }
 
     const transactions = this.modules.transactions.getUnconfirmedTransactionList();
-    const toSend: any[] = [];
+    const toSend: Transaction[] = [];
 
     if (query.senderPublicKey || query.address) {
       for (let i = 0; i < transactions.length; i++) {
