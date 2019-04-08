@@ -1,5 +1,5 @@
 import LimitCache from '../utils/limit-cache';
-import TransactionPool from '../utils/transaction-pool';
+import { TransactionPool } from '../utils/transaction-pool';
 import { Modules, IScope, Transaction } from '../interfaces';
 
 export default class Transactions {
