@@ -12,7 +12,7 @@ import { Transaction as ITransaction } from '../interfaces';
 interface Context {
   trs: ITransaction;
   block: Pick<IBlock, 'height'>;
-  sender: string;
+  sender: any;
 }
 
 export class Transaction {
