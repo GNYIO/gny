@@ -29,53 +29,6 @@ export default class Transactions {
       transactions: this.getUnconfirmedTransactionList(),
     });
 
-  getTransactions = (req, cb) => {
-    const query = req.body;
-    const limit = query.limit ? Number(query.limit) : 100;
-    const offset = query.offset ? Number(query.offset) : 0;
-    const condition: { senderId?: string; type?: number } = {};
-    if (query.senderId) {
-      condition.senderId = query.senderId;
-    }
-    if (query.type) {
-      condition.type = Number(query.type);
-    }
-
-    (async () => {
-      try {
-        const count = await global.app.sdb.count('Transaction', condition);
-
-        let transactions = await global.app.sdb.find(
-          'Transaction',
-          condition,
-          limit,
-          {},
-          [],
-          offset
-        );
-        if (!transactions) transactions = [];
-        return cb(null, { transactions, count });
-      } catch (e) {
-        global.app.logger.error('Failed to get transactions', e);
-        return cb(`System error: ${e}`);
-      }
-    })();
-  };
-
-  getTransaction = (req, cb) => {
-    (async () => {
-      try {
-        if (!req.params || !req.params.id) return cb('Invalid transaction id');
-        const id = req.params.id;
-        const trs = await global.app.sdb.find('Transaction', { id: id });
-        if (!trs || !trs.length) return cb('Transaction not found');
-        return cb(null, { transaction: trs[0] });
-      } catch (e) {
-        return cb(`System error: ${e}`);
-      }
-    })();
-  };
-
   applyTransactionsAsync = async (transactions: Transaction[]) => {
     for (let i = 0; i < transactions.length; ++i) {
       await this.applyUnconfirmedTransactionAsync(transactions[i]);
