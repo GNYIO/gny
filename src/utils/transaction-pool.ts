@@ -15,7 +15,7 @@ export class TransactionPool {
 
   public remove(id: string) {
     const pos = this.index.get(id);
-    delete this.index[id];
+    this.index.delete(id);
     this.unConfirmed[pos] = null;
   }
 

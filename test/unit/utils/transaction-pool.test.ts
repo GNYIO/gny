@@ -221,7 +221,7 @@ describe('TransactionPool', () => {
 
     // check after remove()
     const after = sut.get('trans1');
-    expect(after).toBeNull(); // watch out this should be undefined
+    expect(after).toBeUndefined();
 
     done();
   });
