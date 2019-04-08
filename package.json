@@ -41,6 +41,7 @@
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
     "@polkadot/ts": "git+https://github.com/a1300/ts.git",
+    "@types/async": "^1.4.29",
     "@types/bip39": "^2.4.0",
     "@types/body-parser": "=1.17.0",
     "@types/bs58": "^3.0.30",

@@ -11,12 +11,6 @@ export class Block {
   })
   public id: string;
 
-  @PrimaryColumn({
-    nullable: false,
-    type: 'bigint',
-  })
-  public height: number;
-
   @Column({
     type: 'int',
     nullable: false,
