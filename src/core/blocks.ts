@@ -17,6 +17,7 @@ import {
   Next,
   IBlock,
   ManyVotes,
+  Transaction,
 } from '../interfaces';
 
 export default class Blocks {
@@ -24,7 +25,7 @@ export default class Blocks {
   private modules: Modules;
   private readonly library: IScope;
 
-  private lastBlock: any = {};
+  private lastBlock: IBlock | Pick<IBlock, 'height'> = {};
   private loaded: boolean = false;
   private blockCache: ISimpleCache = {};
   private proposeCache: ISimpleCache = {};
@@ -677,7 +678,7 @@ export default class Blocks {
             ` slot: ${slots.getSlotNumber(block.timestamp)}`
         );
         return await (async () => {
-          const pendingTrsMap = new Map();
+          const pendingTrsMap = new Map<string, Transaction>();
           try {
             const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
             for (const t of pendingTrs) {

@@ -38,7 +38,7 @@ export class Consensus {
       .digest();
   }
 
-  public normalizeVotes = (votes): ManyVotes => {
+  public normalizeVotes = (votes: any): ManyVotes => {
     const schema = this.library.joi.object().keys({
       height: this.library.joi
         .number()

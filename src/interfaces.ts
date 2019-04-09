@@ -322,6 +322,11 @@ export interface BlockPropose {
   timestamp: number;
 }
 
+export interface BlockAndVotes {
+  block: IBlock;
+  votes: string;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {
