@@ -1,4 +1,3 @@
-import server from './core/server';
 import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
@@ -54,7 +53,6 @@ export interface IScope {
 }
 
 export interface Modules {
-  server: server;
   accounts: accounts;
   transactions: transactions;
   loader: loader;
