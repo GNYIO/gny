@@ -876,23 +876,7 @@ export default class Blocks {
     });
   };
 
-  public getSupply = () => {
-    const height = this.lastBlock.height;
-    return this.blockreward.calculateSupply(height);
-  };
-
-  public getCirculatingSupply = () => {
-    const height = this.lastBlock.height;
-    return this.blockreward.calculateSupply(height);
-  };
-
   public isCollectingVotes = () => this.privIsCollectingVotes;
-
-  public isHealthy = () => {
-    const lastBlock = this.lastBlock;
-    const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-    return slots.getNextSlot() - lastSlot < 3 && !this.modules.loader.syncing();
-  };
 
   cleanup = cb => {
     this.library.logger.debug('Cleaning up core/blocks');
