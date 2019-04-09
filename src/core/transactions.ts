@@ -1,4 +1,4 @@
-import LimitCache from '../utils/limit-cache';
+import { LimitCache } from '../utils/limit-cache';
 import { TransactionPool } from '../utils/transaction-pool';
 import { Modules, IScope, Transaction } from '../interfaces';
 
@@ -6,12 +6,12 @@ export default class Transactions {
   private readonly library: IScope;
   private modules: Modules;
   private pool: TransactionPool;
-  private failedTrsCache: LimitCache;
+  private failedTrsCache: LimitCache<string, boolean>;
 
   constructor(scope: IScope) {
     this.library = scope;
     this.pool = new TransactionPool();
-    this.failedTrsCache = new LimitCache();
+    this.failedTrsCache = new LimitCache<string, boolean>();
   }
 
   getUnconfirmedTransaction = (id: string) => this.pool.get(id);
