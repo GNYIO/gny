@@ -132,25 +132,6 @@ export class DbSession {
     return cache ? this.trackPersistentEntities(schema, result, true) : result;
   }
 
-  public async query(
-    schema: ModelSchema,
-    condition,
-    resultRange,
-    sort,
-    fields,
-    join
-  ) {
-    const a = this.sqlBuilder.buildSelect(
-      schema,
-      fields || schema.properties,
-      condition,
-      resultRange,
-      sort,
-      join
-    );
-    return await this.queryEntities(schema, a);
-  }
-
   public async queryByJson(schema: ModelSchema, obj: ObjectLiteral) {
     const type = this.sqlBuilder.buildSelect(schema, obj);
     return await this.queryEntities(schema, type);

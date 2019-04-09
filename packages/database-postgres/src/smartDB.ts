@@ -533,37 +533,6 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().getAll(schema);
   }
 
-  /**
-   * find entities from database
-   * @param model model name or model type
-   * @param condition query condition, see type SqlCondition
-   * @param resultRange limit and offset of results number or json, eg: 10 or { limit : 10, offset : 1 }
-   * @param sort json { propertyName : 'ASC' | 'DESC' } , eg: { name : 'ASC', age : 'DESC' }
-   * @param properties result properties, default is all properties of model
-   * @param offset offset of result set
-   */
-  public async find(
-    model: string,
-    condition: ObjectLiteral,
-    resultRange,
-    sort,
-    properties,
-    offset
-  ) {
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    const url = this.getSchema(model, true);
-    return await this.getSession().query(
-      url,
-      condition,
-      resultRange,
-      sort,
-      properties,
-      offset
-    );
-  }
-
   public async findOne(model: string, condition: ObjectLiteral) {
     const result = await this.findAll(model, condition);
     const schema = this.getSchema(model, true);
