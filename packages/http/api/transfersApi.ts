@@ -159,7 +159,9 @@ export default class TransfersApi {
     if (uiaNameList && uiaNameList.length) {
       const assets = await global.app.sdb.findAll('Asset', {
         condition: {
-          name: In(uiaNameList),
+          name: {
+            $in: uiaNameList,
+          },
         },
       });
       for (const a of assets) {
@@ -174,7 +176,9 @@ export default class TransfersApi {
     const trsMap = new Map();
     const trs = await global.app.sdb.findAll('Transaction', {
       condition: {
-        id: In(tids),
+        id: {
+          $in: tids,
+        },
       },
     });
     for (const t of trs) {

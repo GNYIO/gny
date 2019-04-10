@@ -124,18 +124,11 @@ export default class TransactionsApi {
         condition.height = block.height;
       }
       const count = await global.app.sdb.count('Transaction', condition);
-      const limitAndOffset = {
+      let transactions = await global.app.sdb.findAll('Transaction', {
+        condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
-      };
-      let transactions = await global.app.sdb.find(
-        'Transaction',
-        condition,
-        limitAndOffset,
-        {},
-        [],
-        limitAndOffset.offset
-      );
+      });
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
     } catch (e) {
@@ -193,7 +186,7 @@ export default class TransactionsApi {
       for (let i = 0; i < transactions.length; i++) {
         if (
           transactions[i].senderPublicKey === query.senderPublicKey ||
-          transactions[i].recipientId === query.address
+          transactions[i].senderId === query.address
         ) {
           toSend.push(transactions[i]);
         }

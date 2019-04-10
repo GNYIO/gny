@@ -1,4 +1,3 @@
-import Server from './core/server';
 import Accounts from './core/accounts';
 import Transactions from './core/transactions';
 import Loader from './core/loader';
@@ -12,7 +11,6 @@ import Blocks from './core/blocks';
 import { Modules, IScope } from './interfaces';
 
 export default function loadModules(scope: IScope) {
-  const server = new Server(scope);
   const accounts = new Accounts(scope);
   const transactions = new Transactions(scope);
   const loader = new Loader(scope);
@@ -24,7 +22,6 @@ export default function loadModules(scope: IScope) {
   const blocks = new Blocks(scope);
 
   const modules: Modules = {
-    server: server,
     accounts: accounts,
     transactions: transactions,
     loader: loader,

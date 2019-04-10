@@ -10,12 +10,14 @@ import {
   P2PMessage,
   BlockPropose,
   Transaction,
+  IBlock,
+  BlockAndVotes,
 } from '../interfaces';
 
 export default class Transport {
   private readonly library: IScope;
-  public latestBlocksCache: any = new LRU(200);
-  private blockHeaderMidCache: any = new LRU(1000);
+  public latestBlocksCache = new LRU<string, BlockAndVotes>(200);
+  private blockHeaderMidCache = new LRU<string, NewBlockMessage>(1000);
   private modules: Modules;
 
   constructor(scope: IScope) {
@@ -49,17 +51,19 @@ export default class Transport {
   };
 
   // broadcast to peers NewBlockMessage
-  public onNewBlock = async (block, votes) => {
+  public onNewBlock = async (block: IBlock, votes: ManyVotes) => {
     this.latestBlocksCache.set(block.id, {
       block,
       votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'), // TODO, try/catch
     });
 
-    const message = this.blockHeaderMidCache.get(block.id) || {
-      id: block.id,
-      height: block.height,
-      prevBlockId: block.prevBlockId,
-    };
+    const message =
+      this.blockHeaderMidCache.get(block.id) ||
+      ({
+        id: block.id,
+        height: block.height,
+        prevBlockId: block.prevBlockId,
+      } as NewBlockMessage);
 
     let encodedNewBlockMessage: Buffer;
     try {
@@ -160,7 +164,8 @@ export default class Transport {
     this.library.logger.info('Receive new block header', { height, id });
 
     // TODO add type information
-    let result;
+
+    let result: BlockAndVotes;
     try {
       const params = { id };
       result = await this.modules.peer.request('newBlock', params, peer);

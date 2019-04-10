@@ -9,7 +9,7 @@ export default class Account {
     this.library = scope;
   }
 
-  public generateAddressByPublicKey = publicKey => {
+  public generateAddressByPublicKey = (publicKey: string) => {
     return addressHelper.generateAddress(publicKey);
   };
 

@@ -63,12 +63,11 @@ export default class UiaApi {
       return next(report.error.message);
     }
     try {
-      const limitAndOffset = {
+      const count = await global.app.sdb.count('Issuer', {});
+      const issues = await global.app.sdb.findAll('Issuer', {
         limit: query.limit || 100,
         offset: query.offset || 0,
-      };
-      const count = await global.app.sdb.count('Issuer', {});
-      const issues = await global.app.sdb.find('Issuer', {}, limitAndOffset);
+      });
       return res.json({ count, issues });
     } catch (dbErr) {
       return next(`Failed to get issuers: ${dbErr}`);
@@ -99,11 +98,11 @@ export default class UiaApi {
         }
         return res.json({ issuer });
       } else {
-        const issuers = await global.app.sdb.find('Issuer', {
+        const issuer = await global.app.sdb.findOne('Issuer', {
           name: req.params.name,
         });
-        if (!issuers || issuers.length === 0) return next('Issuer not found');
-        return res.json({ issuer: issuers[0] });
+        if (!issuer) return next('Issuer not found');
+        return res.json({ issuer: issuer });
       }
     } catch (err) {
       return next(err.toString());
@@ -144,17 +143,13 @@ export default class UiaApi {
         return next(`Issuer "${issuer}" not found`);
       }
 
-      const limitAndOffset = {
-        limit: query.limit || 100,
-        offset: query.offset || 0,
-      };
       const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.find(
-        'Asset',
+      const assets = await global.app.sdb.findAll('Asset', {
         condition,
-        limitAndOffset
-      );
+        limit: query.limit || 100,
+        offset: query.offset || 0,
+      });
       return res.json({ count, assets: assets });
     } catch (dbErr) {
       return next(`Failed to get assets: ${dbErr}`);
@@ -177,16 +172,12 @@ export default class UiaApi {
 
     try {
       const condition = {};
-      const limitAndOffset = {
+      const count = await global.app.sdb.count('Asset', condition);
+      const assets = await global.app.sdb.findAll('Asset', {
+        condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
-      };
-      const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.find(
-        'Asset',
-        condition,
-        limitAndOffset
-      );
+      });
       return res.json({ count, assets: assets });
     } catch (dbErr) {
       return next(`Failed to get assets: ${dbErr}`);
@@ -207,8 +198,11 @@ export default class UiaApi {
     }
 
     try {
-      const condition = { name: query.name };
-      const assets = await global.app.sdb.find('Asset', condition);
+      const assets = await global.app.sdb.findAll('Asset', {
+        condition: {
+          name: query.name,
+        },
+      });
       if (!assets || assets.length === 0) return next('Asset not found');
       return res.json({ asset: assets[0] });
     } catch (dbErr) {
@@ -244,12 +238,11 @@ export default class UiaApi {
     try {
       const condition = { address: req.params.address };
       const count = await global.app.sdb.count('Balance', condition);
-      const resultRange = { limit: query.limit, offset: query.offset };
-      const balances = await global.app.sdb.find(
-        'Balance',
+      const balances = await global.app.sdb.findAll('Balance', {
         condition,
-        resultRange
-      );
+        limit: query.limit,
+        offset: query.offset,
+      });
       return res.json({ count, balances: balances });
     } catch (dbErr) {
       return next(`Failed to get balances: ${dbErr}`);
@@ -277,7 +270,7 @@ export default class UiaApi {
         address: req.params.address,
         currency: req.params.currency,
       };
-      const balances = await global.app.sdb.find('Balance', condition);
+      const balances = await global.app.sdb.findAll('Balance', { condition });
       if (!balances || balances.length === 0)
         return next('Balance info not found');
       return res.json({ balance: balances[0] });

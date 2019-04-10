@@ -1,7 +1,7 @@
 import { Transaction } from '../interfaces';
 
-export default class TransactionPool {
-  private index: Map<any, any>;
+export class TransactionPool {
+  private index: Map<string, number>;
   private unConfirmed: Transaction[];
   constructor() {
     this.index = new Map();
@@ -15,7 +15,7 @@ export default class TransactionPool {
 
   public remove(id: string) {
     const pos = this.index.get(id);
-    delete this.index[id];
+    this.index.delete(id);
     this.unConfirmed[pos] = null;
   }
 
@@ -36,7 +36,7 @@ export default class TransactionPool {
   }
 
   public clear() {
-    this.index = new Map();
+    this.index = new Map<string, number>();
     this.unConfirmed = [];
   }
 
