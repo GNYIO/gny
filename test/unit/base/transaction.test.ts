@@ -6,7 +6,7 @@ import * as ed from '../../../src/utils/ed';
 
 import { Transaction as ITransaction } from '../../../src/interfaces';
 
-function createTransation() {
+export function createTransation() {
   const data = {
     type: 10,
     fee: 10000000000,
@@ -196,9 +196,8 @@ describe('Transaction', () => {
       done();
     });
 
-    it('should return undifined when valid normal signature is checked', () => {
+    it('should return the normalized trsanction', () => {
       const normalizedTrs = transaction.objectNormalize(trs);
-      console.log({ normalizedTrs });
       expect(normalizedTrs).toEqual(trs);
     });
   });
