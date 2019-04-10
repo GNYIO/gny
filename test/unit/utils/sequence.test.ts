@@ -60,7 +60,7 @@ describe('sequence', () => {
       throw new Error('test');
     };
     const errCallback = err => {
-      console.log('error callback called');
+      // console.log('error callback called');
     };
     const errMock = jest.fn().mockImplementation(errCallback);
 
@@ -227,6 +227,36 @@ describe('sequence', () => {
     expect(taskMock).toBeCalledTimes(1);
     expect(result).toEqual([1, 2]);
 
+    done();
+  });
+
+  it('concurrency: async ifii vs. setImidiate()', async done => {
+    let result = '';
+    const setResult = res => {
+      result = res;
+    };
+    const setResultMock = jest.fn().mockImplementation(setResult);
+
+    // dummy implementation of core/blocks.onReceiveVotes()
+    const task = cb => {
+      if (undefined === undefined) {
+        return (async () => {
+          setResultMock('async iffii');
+          cb();
+        })();
+      }
+      return setImmediate(() => {
+        setResultMock('setImmediate');
+        cb();
+      });
+    };
+
+    sut.add(task);
+
+    await timeout(500);
+
+    expect(setResultMock).toBeCalledTimes(1);
+    expect(setResultMock).toBeCalledWith('async iffii');
     done();
   });
 });

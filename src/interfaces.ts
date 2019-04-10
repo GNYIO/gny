@@ -1,4 +1,3 @@
-import server from './core/server';
 import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
@@ -54,7 +53,6 @@ export interface IScope {
 }
 
 export interface Modules {
-  server: server;
   accounts: accounts;
   transactions: transactions;
   loader: loader;
@@ -263,8 +261,7 @@ export interface Transaction {
   args: any;
   height: number;
   message?: string;
-  _version_: number;
-  recipientId?: string;
+  _version_?: number;
 }
 
 export interface Transfer {
@@ -321,6 +318,11 @@ export interface BlockPropose {
   id: string;
   signature: string;
   timestamp: number;
+}
+
+export interface BlockAndVotes {
+  block: IBlock;
+  votes: string;
 }
 
 declare global {

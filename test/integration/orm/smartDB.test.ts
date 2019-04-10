@@ -1295,6 +1295,56 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('findAll() - sort results ASCENDING', async done => {
+    await saveGenesisBlock(sut);
+
+    const abc = createAsset('ABC.ABC');
+    const createdABC = await sut.create('Asset', abc);
+
+    const tec = createAsset('TEC.TEC');
+    const createdTEC = await sut.create('Asset', tec);
+
+    // persist Assets in DB with new block
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.findAll('Asset', {
+      sort: {
+        name: 1,
+      },
+    });
+
+    expect(result).toEqual([createdABC, createdTEC]);
+
+    done();
+  });
+
+  it('findAll() - sort results DESCENDING', async done => {
+    await saveGenesisBlock(sut);
+
+    const abc = createAsset('ABC.ABC');
+    const createdABC = await sut.create('Asset', abc);
+
+    const tec = createAsset('TEC.TEC');
+    const createdTEC = await sut.create('Asset', tec);
+
+    // persist Assets in DB with new block
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.findAll('Asset', {
+      sort: {
+        name: -1,
+      },
+    });
+
+    expect(result).toEqual([createdTEC, createdABC]);
+
+    done();
+  });
+
   it('findOne() - load entity from DB by primary key', async done => {
     await saveGenesisBlock(sut);
 

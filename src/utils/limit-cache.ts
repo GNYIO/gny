@@ -1,14 +1,19 @@
 const DEFAULT_LIMIT = 10000;
 
-export default class LimitCache {
-  private cache = new Map();
-  public index = [];
-  public options = {};
-  public limit = DEFAULT_LIMIT;
+export class LimitCache<KEY, VAL> {
+  private cache = new Map<KEY, VAL>();
+  private index = new Array<KEY>();
+  private limit: number;
 
-  constructor() {}
+  constructor(limit?: number) {
+    this.limit = limit || DEFAULT_LIMIT;
+  }
 
-  set(key, value) {
+  public set(key: KEY, value: VAL) {
+    if (this.cache.has(key) && this.cache.get(key) === value) {
+      // sameResult is already saved
+      return;
+    }
     if (this.cache.size >= this.limit && !this.cache.has(key)) {
       const dropKey = this.index.shift();
       this.cache.delete(dropKey);
@@ -17,7 +22,11 @@ export default class LimitCache {
     this.index.push(key);
   }
 
-  has(key) {
+  public has(key: KEY) {
     return this.cache.has(key);
+  }
+
+  public getLimit() {
+    return this.limit;
   }
 }
