@@ -10,7 +10,7 @@ function createRandomBytes(length: number) {
   return Buffer.from(crypto.randomBytes(length)).toString('hex');
 }
 
-function createKeypair() {
+export function createKeypair() {
   const randomstring = 'ABCDE';
   const hash = crypto
     .createHash('sha256')
@@ -19,7 +19,7 @@ function createKeypair() {
   return ed.generateKeyPair(hash);
 }
 
-function createBlock(height: number, keypair: KeyPair) {
+export function createBlock(height: number, keypair: KeyPair) {
   const block: IBlock = {
     height: height,
     version: 0,
