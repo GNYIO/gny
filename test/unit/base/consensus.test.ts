@@ -5,19 +5,6 @@ import { Block } from '../../../src/base/block';
 
 import { createKeypair, createBlock } from './block.test';
 
-// function createVotes(blockBase: Block, consensusBase: Consensus) {
-//   const keypair = createKeypair();
-//   const keypairs = [keypair];
-
-//   let block = createBlock(1, keypair);
-//   block.signature = blockBase.sign(block, keypair);
-//   block.id = blockBase.getId(block);
-
-//   const votes = consensusBase.createVotes(keypairs, block);
-
-//   return votes;
-// }
-
 describe('Consensus', () => {
   let consensusBase;
   let blockBase;
@@ -32,20 +19,27 @@ describe('Consensus', () => {
     done();
   });
 
-  // describe('normalizeVotes', () => {
-  //   let votes;
+  describe('normalizeVotes', () => {
+    let block;
+    let keypairs;
+    let votes;
 
-  //   beforeEach(done => {
-  //     votes = createVotes();
-  //     done();
-  //   });
+    beforeEach(done => {
+      const keypair = createKeypair();
+      keypairs = [keypair];
+      block = createBlock(1, keypair);
+      block.signature = blockBase.sign(block, keypair);
+      block.id = blockBase.getId(block);
+      votes = consensusBase.createVotes(keypairs, block);
+      done();
+    });
 
-  //   it('should return the normalized votes', done => {
-  //     const normalizedVotes = consensusBase.normalizeVotes(votes);
-  //     expect(normalizedVotes).toBe(votes);
-  //     done();
-  //   });
-  // });
+    it('should return the validated votes', done => {
+      const validatedVotes = consensusBase.normalizeVotes(votes);
+      expect(validatedVotes).toBe(votes);
+      done();
+    });
+  });
 
   describe('createVotes', () => {
     let block;
