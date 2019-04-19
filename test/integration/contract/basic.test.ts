@@ -196,10 +196,6 @@ describe('Consensus', () => {
     let height;
     let amount;
 
-    beforeEach(done => {
-      done();
-    });
-
     it('should lock the account by height and amout', async done => {
       height = 5760 * 30 + 2;
       amount = 99;
@@ -249,7 +245,7 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return Invalid lock height', async done => {
+    it('should return Invalid lock height if (sender.isLocked = 1)', async done => {
       height = 2;
       amount = 99;
       (basic as any).sender = {
@@ -268,7 +264,7 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return Invalid height or amount', async done => {
+    it('should return Invalid height or amount if (sender.isLocked = 1)', async done => {
       height = 5760 * 30 + 2;
       amount = 0;
       (basic as any).sender = {
@@ -284,6 +280,112 @@ describe('Consensus', () => {
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Invalid amount');
+      done();
+    });
+
+    it('should return Invalid lock height if (sender.isLocked = 0)', async done => {
+      height = 2;
+      amount = 0;
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 0,
+        lockHeight: 0,
+        lockAmount: 0,
+      };
+      (basic as any).block = {
+        height: 1,
+      };
+
+      const locked = await basic.lock(height, amount);
+      expect(locked).toBe('Invalid lock height');
+      done();
+    });
+
+    it('should return Invalid height or amount if (sender.isLocked = 0)', async done => {
+      height = 5760 * 30 + 2;
+      amount = 0;
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 0,
+        lockHeight: 0,
+        lockAmount: 0,
+      };
+      (basic as any).block = {
+        height: 1,
+      };
+
+      const locked = await basic.lock(height, amount);
+      expect(locked).toBe('Invalid amount');
+      done();
+    });
+  });
+
+  describe('unlock', () => {
+    it('should unlock the account', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+        lockHeight: 1,
+        lockAmount: 99,
+        isDelegate: 0,
+      };
+      (basic as any).block = {
+        height: 2,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.update.mockReturnValue(null);
+
+      const unlocked = await basic.unlock();
+      expect(unlocked).toBeNull();
+      done();
+    });
+
+    it('should return Account not found', async done => {
+      (basic as any).sender = null;
+
+      const unlocked = await basic.unlock();
+      expect(unlocked).toBe('Account not found');
+      done();
+    });
+
+    it('should return Account is not locked', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 0,
+        lockHeight: 0,
+        lockAmount: 0,
+        isDelegate: 0,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const unlocked = await basic.unlock();
+      expect(unlocked).toBe('Account is not locked');
+      done();
+    });
+
+    it('should return Account cannot unlock', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+        lockHeight: 3,
+        lockAmount: 0,
+        isDelegate: 0,
+      };
+      (basic as any).block = {
+        height: 2,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const unlocked = await basic.unlock();
+      expect(unlocked).toBe('Account cannot unlock');
       done();
     });
   });
