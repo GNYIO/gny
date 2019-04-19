@@ -422,6 +422,8 @@ export class DbSession {
       );
       await queryRunner.rollbackTransaction();
       throw expectedCommand;
+    } finally {
+      await queryRunner.release();
     }
   }
 
