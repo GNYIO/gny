@@ -151,14 +151,13 @@ export default {
     if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
       if (
-        height !== 0 &&
         height <
-          Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
+        Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
       ) {
         return 'Invalid lock height';
       }
-      if (height === 0 && amount === 0) {
-        return 'Invalid height or amount';
+      if (amount === 0) {
+        return 'Invalid amount';
       }
     } else {
       if (height < this.block.height + MIN_LOCK_HEIGHT) {

@@ -269,7 +269,7 @@ describe('Consensus', () => {
     });
 
     it('should return Invalid height or amount', async done => {
-      height = 0;
+      height = 5760 * 30 + 2;
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -283,7 +283,7 @@ describe('Consensus', () => {
       };
 
       const locked = await basic.lock(height, amount);
-      expect(locked).toBe('Invalid height or amount');
+      expect(locked).toBe('Invalid amount');
       done();
     });
   });
