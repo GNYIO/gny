@@ -198,10 +198,10 @@ export default {
   },
 
   async unlock() {
-    const senderId = this.sender.address;
-    await global.app.sdb.lock(`basic.account@${senderId}`);
     const sender = this.sender;
     if (!sender) return 'Account not found';
+    const senderId = this.sender.address;
+    await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
     if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
 
