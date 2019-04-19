@@ -8,6 +8,7 @@ import {
   Next,
   ManyVotes,
   Transaction,
+  IBlock,
 } from '../../../src/interfaces';
 
 export default class TransportApi {
@@ -115,7 +116,7 @@ export default class TransportApi {
         return next('Blocks not found');
       }
       blocks = blocks.reverse();
-      let commonBlock = null;
+      let commonBlock: IBlock = null;
       for (const i in ids) {
         if (blocks[i].id === ids[i]) {
           commonBlock = blocks[i];

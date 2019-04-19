@@ -325,6 +325,22 @@ export interface BlockAndVotes {
   votes: string;
 }
 
+export interface FirstHeightIds {
+  ids: string[];
+  firstHeight: number;
+}
+
+export interface CommonBlockParams {
+  max: number;
+  min: number;
+  ids: string[];
+}
+
+export interface CommonBlockResult {
+  success: boolean;
+  common: IBlock;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

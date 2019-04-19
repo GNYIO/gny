@@ -338,7 +338,9 @@ export default class Delegates {
     const item = await global.app.sdb.get('Variable', {
       key: this.BOOK_KEEPER_NAME,
     });
-    if (!item) throw new Error('Bookkeeper variable not found');
+    if (!item) {
+      throw new Error('Bookkeeper variable not found');
+    }
 
     // TODO: ?? make field type as JSON
     return JSON.parse(item.value);
@@ -346,7 +348,7 @@ export default class Delegates {
 
   public updateBookkeeper = async () => {
     const value = JSON.stringify(await this.getTopDelegates());
-    const create = await global.app.sdb.createOrLoad('Variable', {
+    const { create } = await global.app.sdb.createOrLoad('Variable', {
       key: this.BOOK_KEEPER_NAME,
       value: value,
     });
