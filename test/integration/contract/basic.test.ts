@@ -389,4 +389,91 @@ describe('Consensus', () => {
       done();
     });
   });
+
+  describe('registerDelegate', () => {
+    it('should return null', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+        lockHeight: 1,
+        lockAmount: 99,
+        isDelegate: 0,
+        usename: 'xpgeng',
+      };
+      (basic as any).block = {
+        height: 2,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.create.mockReturnValue(null);
+      global.app.sdb.update.mockReturnValue(null);
+
+      const registered = await basic.registerDelegate();
+      expect(registered).toBeNull();
+      done();
+    });
+
+    it('should return Account not found', async done => {
+      (basic as any).sender = null;
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const registered = await basic.registerDelegate();
+      expect(registered).toBe('Account not found');
+      done();
+    });
+
+    it('should return Account not found', async done => {
+      (basic as any).sender = null;
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const registered = await basic.registerDelegate();
+      expect(registered).toBe('Account not found');
+      done();
+    });
+
+    it('should return Account has not a name', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+        lockHeight: 3,
+        lockAmount: 0,
+        isDelegate: 0,
+        username: null,
+      };
+      (basic as any).block = {
+        height: 2,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const registered = await basic.unlock();
+      expect(registered).toBe('Account has not a name');
+      done();
+    });
+
+    it('should return Account is already Delegate', async done => {
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+        lockHeight: 3,
+        lockAmount: 0,
+        isDelegate: 1,
+        username: 'xpgeng',
+      };
+      (basic as any).block = {
+        height: 2,
+      };
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const registered = await basic.unlock();
+      expect(registered).toBe('Account is already Delegate');
+      done();
+    });
+  });
 });
