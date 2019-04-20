@@ -219,11 +219,13 @@ export default {
   },
 
   async registerDelegate() {
+    const sender = this.sender;
+    if (!sender) return 'Account not found';
+
     const senderId = this.sender.address;
     if (this.block.height > 0)
       await global.app.sdb.lock(`basic.account@${senderId}`);
-    const sender = this.sender;
-    if (!sender) return 'Account not found';
+
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 

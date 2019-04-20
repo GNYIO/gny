@@ -399,7 +399,7 @@ describe('Consensus', () => {
         lockHeight: 1,
         lockAmount: 99,
         isDelegate: 0,
-        usename: 'xpgeng',
+        username: 'xpgeng',
       };
       (basic as any).block = {
         height: 2,
@@ -450,7 +450,7 @@ describe('Consensus', () => {
 
       global.app.sdb.lock.mockReturnValue(null);
 
-      const registered = await basic.unlock();
+      const registered = await basic.registerDelegate();
       expect(registered).toBe('Account has not a name');
       done();
     });
@@ -471,7 +471,7 @@ describe('Consensus', () => {
 
       global.app.sdb.lock.mockReturnValue(null);
 
-      const registered = await basic.unlock();
+      const registered = await basic.registerDelegate();
       expect(registered).toBe('Account is already Delegate');
       done();
     });
