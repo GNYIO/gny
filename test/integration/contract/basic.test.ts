@@ -80,7 +80,6 @@ describe('Consensus', () => {
         gny: 100000000,
         username: username,
       };
-
       done();
     });
 
@@ -473,6 +472,127 @@ describe('Consensus', () => {
 
       const registered = await basic.registerDelegate();
       expect(registered).toBe('Account is already Delegate');
+      done();
+    });
+  });
+
+  describe('vote', () => {
+    let delegates;
+    let currentVotes;
+
+    beforeEach(done => {
+      delegates = 'xpgeng,liangpeili,a1300';
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+      };
+      currentVotes = [
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'bob',
+        },
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'alice',
+        },
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'cookie',
+        },
+      ];
+      done();
+    });
+    it('should return null', async done => {
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.exists.mockReturnValue(true);
+      global.app.sdb.increase.mockReturnValue(null);
+      global.app.sdb.create.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBeNull();
+      done();
+    });
+
+    it('should return Account is not locked', async done => {
+      (basic as any).sender.isLocked = 0;
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Account is not locked');
+      done();
+    });
+
+    it('should return Invalid delegates', async done => {
+      delegates = ' ';
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Invalid delegates');
+      done();
+    });
+
+    it('should return Voting limit exceeded', async done => {
+      delegates = '';
+      for (let i = 0; i < 34; i++) {
+        delegates += i + ',';
+      }
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Voting limit exceeded');
+      done();
+    });
+
+    it('should return Duplicated vote item', async done => {
+      delegates = 'xpgeng,liangpeili,a1300,liangpeili';
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Duplicated vote item');
+      done();
+    });
+
+    it('should return Maximum number of votes exceeded', async done => {
+      delegates = '';
+      for (let i = 0; i < 30; i++) {
+        delegates += i + ',';
+      }
+
+      for (let i = 0; i < 70; i++) {
+        currentVotes.push({ delegate: String(i) });
+      }
+
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Maximum number of votes exceeded');
+      done();
+    });
+
+    it('should return Already voted for delegate: xpgeng', async done => {
+      currentVotes.push({ delegate: 'xpgeng' });
+
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Already voted for delegate: xpgeng');
+      done();
+    });
+
+    it('should return Voted delegate not exists:: xpgeng', async done => {
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.exists.mockReturnValue(null);
+
+      const voted = await basic.vote(delegates);
+      expect(voted).toBe('Voted delegate not exists: xpgeng');
       done();
     });
   });
