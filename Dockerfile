@@ -6,7 +6,7 @@ RUN apt-get update && \
     build-essential \
     curl ntp wget git libssl-dev openssl \
     make gcc g++ autoconf automake \
-    python build-essential postgresql postgresql-contrib && \
+    python build-essential && \
     npm ci && \
     npm run tsc
 EXPOSE 4096

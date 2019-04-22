@@ -1,6 +1,5 @@
 import axios from 'axios';
-import * as path from 'path';
-import { fork } from 'child_process';
+import * as dockerCompose from 'docker-compose';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -22,7 +21,7 @@ export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function onNewBlockAsync() {
+export async function onNewBlock() {
   const firstHeight = await getHeight();
   let height: number;
   do {
@@ -31,35 +30,40 @@ export async function onNewBlockAsync() {
   } while (height <= firstHeight);
 }
 
-export async function spawnNode() {
-  const executionDir = path.join(process.cwd(), 'dist');
-  const executionFile = path.join(process.cwd(), 'dist', 'app.js');
-  const proc = fork(executionFile, undefined, {
-    cwd: executionDir,
-    stdio: [],
-  });
-
-  proc.on('error', err => {
-    console.log(`err:${err.message}`);
-  });
-
-  proc.on('exit', function(code, signal) {
-    console.log(
-      'child process exited with ' + `code ${code} and signal ${signal}`
-    );
-  });
-
-  await sleep(10000);
-
-  let height = null;
-  while (!height) {
+async function waitForLoaded() {
+  let loaded = false;
+  while (loaded === false) {
     try {
-      height = await getHeight();
-    } catch (e) {
-      height = null;
-    }
-
-    await sleep(2000);
+      const height = await getHeight();
+      if (typeof height === 'number' && height > 0) {
+        loaded = true;
+      }
+    } catch (err) {}
+    await sleep(1000);
   }
-  return proc;
+}
+
+export async function buildDockerImage() {
+  // first stop all running containers
+  // then delete image file
+  await dockerCompose.buildAll({
+    cwd: process.cwd(),
+    log: true,
+  });
+}
+
+export async function spawnContainer() {
+  await dockerCompose.upAll({
+    cwd: process.cwd(),
+    log: true,
+  });
+  await sleep(10 * 1000);
+  await waitForLoaded();
+}
+
+export async function stopAndKillContainer() {
+  await dockerCompose.down({
+    cwd: process.cwd(),
+    log: true,
+  });
 }

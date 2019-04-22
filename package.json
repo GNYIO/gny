@@ -7,7 +7,7 @@
     "start": "cd dist/ && node app.js",
     "tsc": "tsc; ts-node copyStaticAssets",
     "test": "jest --ci --runInBand test/unit",
-    "test:integration": "jest --ci --runInBand test/integration",
+    "test:integration": "sudo node_modules/jest/bin/jest.js --ci --runInBand test/integration",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
     "prettier": "prettier --config .prettierrc --write '{src,packages}/{**/*,*}[.ts|.js]' 'app.ts' 'index.ts'"
