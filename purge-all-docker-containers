@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo docker stop $(sudo docker ps --all --quiet)
+sudo docker rm $(sudo docker ps --all --quiet)

@@ -1,12 +1,32 @@
-version: '3.3'
+version: '3.5'
 services:
-  postgres:
+  db:
     image: "postgres:9.6.12"
-    container_name: 'postgres_${POSTGRES_PORT}'
+    container_name: 'postgres_3000'
     restart: always
     ports:
-      - '${POSTGRES_PORT}:5432'
+      - '3000:5432'
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      api:
+  app:
+    build: .
+    #command: sh -c './wait-for --timeout=20 db:5432 -- npm start'
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
+    environment:
+      NODE_ENV: production
+    ports:
+      - '4096:4096'
+    networks:
+      api:
+networks:
+  api:
+
+
+
+# volumes:
+#   - .:/home/app/appDir
+#   - /home/app/appDir/node_modules
