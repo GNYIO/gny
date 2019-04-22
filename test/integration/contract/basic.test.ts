@@ -525,14 +525,14 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return Invalid delegates', async done => {
-      delegates = ' ';
-      global.app.sdb.lock.mockReturnValue(null);
+    // it('should return Invalid delegates', async done => {
+    //   delegates = ' ';
+    //   global.app.sdb.lock.mockReturnValue(null);
 
-      const voted = await basic.vote(delegates);
-      expect(voted).toBe('Invalid delegates');
-      done();
-    });
+    //   const voted = await basic.vote(delegates);
+    //   expect(voted).toBe('Invalid delegates');
+    //   done();
+    // });
 
     it('should return Voting limit exceeded', async done => {
       delegates = '';
@@ -593,6 +593,109 @@ describe('Consensus', () => {
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Voted delegate not exists: xpgeng');
+      done();
+    });
+  });
+
+  describe('unvote', () => {
+    let delegates;
+    let currentVotes;
+
+    beforeEach(done => {
+      delegates = 'xpgeng,liangpeili,a1300';
+      (basic as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 100000100,
+        isLocked: 1,
+      };
+      currentVotes = [
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'xpgeng',
+        },
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'liangpeili',
+        },
+        {
+          voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          delegate: 'a1300',
+        },
+      ];
+      done();
+    });
+    it('should return null', async done => {
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.exists.mockReturnValue(true);
+      global.app.sdb.increase.mockReturnValue(null);
+      global.app.sdb.del.mockReturnValue(null);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBeNull();
+      done();
+    });
+
+    it('should return Account is not locked', async done => {
+      (basic as any).sender.isLocked = 0;
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBe('Account is not locked');
+      done();
+    });
+
+    // it('should return Invalid delegates', async done => {
+    //   delegates = ' ';
+    //   global.app.sdb.lock.mockReturnValue(null);
+
+    //   const voted = await basic.unvote(delegates);
+    //   expect(voted).toBe('Invalid delegates');
+    //   done();
+    // });
+
+    it('should return Voting limit exceeded', async done => {
+      delegates = '';
+      for (let i = 0; i < 34; i++) {
+        delegates += i + ',';
+      }
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBe('Voting limit exceeded');
+      done();
+    });
+
+    it('should return Duplicated vote item', async done => {
+      delegates = 'xpgeng,liangpeili,a1300,liangpeili';
+
+      global.app.sdb.lock.mockReturnValue(null);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBe('Duplicated vote item');
+      done();
+    });
+
+    it('should return Delegate not voted yet: a1300', async done => {
+      currentVotes.pop(2);
+
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBe('Delegate not voted yet: a1300');
+      done();
+    });
+
+    it('should return Voted delegate not exists: xpgeng', async done => {
+      global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.exists.mockReturnValue(null);
+
+      const unvoted = await basic.unvote(delegates);
+      expect(unvoted).toBe('Voted delegate not exists: xpgeng');
       done();
     });
   });
