@@ -5,7 +5,7 @@ import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');
 
-describe('Consensus', () => {
+describe('basic', () => {
   beforeEach(done => {
     const logger: ILogger = {
       log: x => x,
