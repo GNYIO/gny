@@ -216,6 +216,7 @@ export class Transaction {
       throw new Error(error);
     }
     // transaction.executed = 1
+    return null;
   }
 
   public objectNormalize = transaction => {

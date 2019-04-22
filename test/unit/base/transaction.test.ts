@@ -1,10 +1,16 @@
 import { Transaction } from '../../../src/base/transaction';
+import basic from '../../../src/contract/basic';
 import { IScope } from '../../../src/interfaces';
 import extendedJoi from '../../../src/utils/extendedJoi';
+import { ILogger } from '../../../src/interfaces';
+import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
 import * as ed from '../../../src/utils/ed';
 
-import { Transaction as ITransaction } from '../../../src/interfaces';
+// import { Transaction as ITransaction } from '../../../src/interfaces';
+
+jest.mock('../../../packages/database-postgres/src/smartDB');
+jest.mock('../../../src/contract/basic');
 
 export function createTransation() {
   const data = {
@@ -35,6 +41,22 @@ describe('Transaction', () => {
 
   beforeEach(done => {
     transaction = new Transaction(iScope);
+    const logger: ILogger = {
+      log: x => x,
+      trace: x => x,
+      debug: x => x,
+      info: x => x,
+      warn: x => x,
+      error: x => x,
+      fatal: x => x,
+    };
+    const sdb = new SmartDB(logger);
+    global.app = {
+      getContractName: jest.fn(type => 'basic.transfer'),
+      contract: { basic: basic },
+      sdb: sdb,
+      validate: jest.fn((type, value) => null),
+    };
     done();
   });
 
@@ -139,12 +161,6 @@ describe('Transaction', () => {
       const verified = await transaction.verify(context);
       expect(verified).toBeUndefined();
     });
-
-    // it('should return undifined when valid normal signature is checked', async () => {
-    // const verified = await transaction.verify(context);
-    // expect(verified).toEqual(undefined);
-
-    // })
   });
 
   describe('verifyBytes', () => {
@@ -166,27 +182,32 @@ describe('Transaction', () => {
     });
   });
 
-  // describe('apply', () => {
-  //   let context;
-  //   let trs;
-  //   let sender;
-  //   let block;
+  describe('apply', () => {
+    let context;
+    let trs;
+    let sender;
+    let block;
 
-  //   beforeEach(done => {
-  //     trs = createTransation();
-  //     sender = {};
-  //     block = {height: 1};
-  //     context = {trs, sender, block};
-  //     done();
-  //   })
+    beforeEach(done => {
+      trs = createTransation();
+      sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: 400000000000000000,
+      };
+      block = { height: 1 };
+      context = { trs, sender, block };
+      done();
+    });
 
-  //   it('should return undifined when valid normal signature is checked', async () => {
-  //     const applied = await transaction.apply(context);
-  //     console.log({applied});
-  //     expect(applied).toThrow('');
+    it('should return nothing if applied', async () => {
+      global.app.sdb.update.mockReturnValue(true);
+      global.app.contract.basic.transfer.mockReturnValue(null);
 
-  //   })
-  // })
+      const applied = await transaction.apply(context);
+      console.log({ applied });
+      expect(applied).toBeNull();
+    });
+  });
 
   describe('objectNormalize', () => {
     let trs;
