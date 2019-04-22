@@ -42,6 +42,11 @@ describe('Transaction', () => {
 
   const iScope = {
     joi: extendedJoi,
+    base: {
+      transaction: {
+        objectNormalize: jest.fn(trs => trs),
+      },
+    } as any,
   } as IScope;
 
   beforeEach(done => {
@@ -111,27 +116,36 @@ describe('Transaction', () => {
     });
   });
 
-  // describe('objectNormalize', () => {
-  //   let block;
-  //   let keypair;
-  //   let trs;
+  describe('objectNormalize', () => {
+    let block;
+    let keypair;
+    let trs;
 
-  //   beforeEach(done => {
-  //     trs = createTransation();
-  //     keypair = createKeypair();
-  //     block = createBlock(1, keypair);
+    beforeEach(done => {
+      trs = createTransation();
+      keypair = createKeypair();
+      block = createBlock(1, keypair);
 
-  //     block.transactions = [trs];
-  //     block.signature = blockBase.sign(block, keypair);
-  //     block.id = blockBase.getId(block);
-  //     done();
-  //   });
+      block.transactions = [trs];
+      block.signature = blockBase.sign(block, keypair);
+      block.id = blockBase.getId(block);
+      done();
+    });
 
-  //   it('should return the normalized block', () => {
-  //     console.log(block);
-  //     const normalizedBlock = blockBase.objectNormalize(block);
-  //     console.log({ normalizedBlock });
-  //     expect(normalizedBlock).toEqual(block);
-  //   });
-  // });
+    it('should return the normalized block', () => {
+      const normalizedBlock = blockBase.objectNormalize(block);
+      expect(normalizedBlock).toEqual(block);
+    });
+
+    it('should throw error if there are errors during validation', () => {
+      block.height = -1;
+      try {
+        blockBase.objectNormalize(block);
+      } catch (e) {
+        expect(e.message).toBe(
+          'child "height" fails because ["height" must be larger than or equal to 0]'
+        );
+      }
+    });
+  });
 });
