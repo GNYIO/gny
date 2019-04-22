@@ -394,8 +394,6 @@ describe('uia', () => {
       global.app.balances.get.mockReturnValue(balance);
       global.app.sdb.findOne.mockReturnValue(null);
 
-      console.log({ recipient });
-
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBe('Recipient name not exist');
       done();
