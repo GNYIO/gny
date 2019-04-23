@@ -12,7 +12,7 @@ import { Transaction as ITransaction } from '../interfaces';
 interface Context {
   trs: ITransaction;
   block: Pick<IBlock, 'height'>;
-  sender: string;
+  sender: any;
 }
 
 export class Transaction {
@@ -216,6 +216,7 @@ export class Transaction {
       throw new Error(error);
     }
     // transaction.executed = 1
+    return null;
   }
 
   public objectNormalize = transaction => {

@@ -151,14 +151,13 @@ export default {
     if (sender.gny - 100000000 < amount) return 'Insufficient balance';
     if (sender.isLocked) {
       if (
-        height !== 0 &&
         height <
-          Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
+        Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
       ) {
         return 'Invalid lock height';
       }
-      if (height === 0 && amount === 0) {
-        return 'Invalid height or amount';
+      if (amount === 0) {
+        return 'Invalid amount';
       }
     } else {
       if (height < this.block.height + MIN_LOCK_HEIGHT) {
@@ -199,10 +198,10 @@ export default {
   },
 
   async unlock() {
-    const senderId = this.sender.address;
-    await global.app.sdb.lock(`basic.account@${senderId}`);
     const sender = this.sender;
     if (!sender) return 'Account not found';
+    const senderId = this.sender.address;
+    await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
     if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
 
@@ -220,11 +219,13 @@ export default {
   },
 
   async registerDelegate() {
+    const sender = this.sender;
+    if (!sender) return 'Account not found';
+
     const senderId = this.sender.address;
     if (this.block.height > 0)
       await global.app.sdb.lock(`basic.account@${senderId}`);
-    const sender = this.sender;
-    if (!sender) return 'Account not found';
+
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 
