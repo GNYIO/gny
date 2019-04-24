@@ -16,6 +16,7 @@ import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
+import * as path from 'path';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -33,6 +34,7 @@ export interface SmartDBOptions {
   cachedBlockCount?: number;
   maxBlockHistoryHold?: number;
   checkModifier?: boolean;
+  configFilePath?: string;
 }
 
 export class SmartDB extends EventEmitter {
@@ -58,6 +60,7 @@ export class SmartDB extends EventEmitter {
     this.options = options || {
       cachedBlockCount: 10,
       maxBlockHistoryHold: 10,
+      configFilePath: path.join(process.cwd(), 'ormconfig.json'),
     };
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
@@ -69,7 +72,10 @@ export class SmartDB extends EventEmitter {
   }
 
   async init() {
-    this.connection = await loadConfig(this.originalLogger);
+    this.connection = await loadConfig(
+      this.originalLogger,
+      this.options.configFilePath
+    );
 
     this.schemas = createMetaSchema();
 

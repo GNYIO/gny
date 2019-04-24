@@ -3,7 +3,6 @@ import {
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
 import { ILogger } from '../../../src/interfaces';
-import * as path from 'path';
 import { cloneDeep } from 'lodash';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
@@ -38,7 +37,7 @@ function createBlock(height: number) {
     prevBlockId: createRandomBytes(32),
     timestamp: height * 1024,
     fees: 0,
-    payloadHash: createRandomBytes(64),
+    payloadHash: createRandomBytes(32),
     reward: 0,
     signature: createRandomBytes(64),
     _version_: 1,
@@ -88,7 +87,11 @@ async function saveGenesisBlock(smartDB: SmartDB) {
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
   beforeEach(async done => {
-    sut = new SmartDB(logger);
+    sut = new SmartDB(logger, {
+      cachedBlockCount: 10,
+      maxBlockHistoryHold: 10,
+      configFilePath: 'ormconfig.sqljs.json',
+    });
     await sut.init();
     done();
   }, 10000);
