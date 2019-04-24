@@ -6,8 +6,8 @@ import { Block } from '../../../src/base/block';
 import { createKeypair, createBlock } from './block.test';
 
 describe('Consensus', () => {
-  let consensusBase;
-  let blockBase;
+  let consensusBase: Consensus;
+  let blockBase: Block;
 
   const iScope = {
     joi: extendedJoi,
@@ -89,9 +89,9 @@ describe('Consensus', () => {
   });
 
   describe('addPendingVotes', () => {
-    let block;
-    let keypairs;
-    let votes;
+    let block: IBlock;
+    let keypairs: KeyPair[];
+    let votes: ManyVotes;
 
     beforeEach(done => {
       const keypair = createKeypair();
@@ -103,9 +103,9 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return null', done => {
+    it('should return undefined pendingBlocks property', done => {
       const pendingVotes = consensusBase.addPendingVotes(votes);
-      expect(pendingVotes).toBe(null);
+      expect(pendingVotes).toBeUndefined();
       done();
     });
 
