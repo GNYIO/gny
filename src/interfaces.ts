@@ -29,6 +29,7 @@ import BalanceManager from './smartdb/balance-manager';
 
 import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
+import address from './utils/address';
 
 declare interface IBase {
   bus: any;
@@ -78,7 +79,7 @@ export interface INetwork {
 }
 
 interface IUtil {
-  address: string;
+  address: typeof address;
   bignumber: typeof BigNumber;
 }
 
