@@ -1,5 +1,7 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
+import * as Docker from 'dockerode';
+import { randomBytes } from 'crypto';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -48,14 +50,15 @@ export async function buildDockerImage() {
   // then delete image file
   await dockerCompose.buildAll({
     cwd: process.cwd(),
-    log: true,
+    log: false,
+    config: ['--no-cache'],
   });
 }
 
 export async function spawnContainer() {
   await dockerCompose.upAll({
     cwd: process.cwd(),
-    log: true,
+    log: false,
   });
   await sleep(10 * 1000);
   await waitForLoaded();
@@ -64,6 +67,63 @@ export async function spawnContainer() {
 export async function stopAndKillContainer() {
   await dockerCompose.down({
     cwd: process.cwd(),
-    log: true,
+    log: false,
   });
+}
+
+export async function spawnOnlyDbContainer() {
+  const docker = new Docker();
+
+  return await docker.run('postgres:9.6.12', [], process.stdin, {
+    // Volumes: {[__dirname]: {}},
+    name: 'smartDB_integration_testing',
+    HostConfig: {
+      // Binds: [__dirname + ":/stuff"],
+      // ShmSize: 1000000000,
+      Privileged: true,
+      AutoRemove: true,
+      PortBindings: {
+        '5432/tcp': [
+          {
+            HostPort: '4000',
+          },
+        ],
+      },
+    },
+    Env: [
+      'POSTGRES_PASSWORD=docker',
+      'POSTGRES_DB=postgres',
+      'POSTGRES_USER=postgres',
+    ],
+  });
+
+  const container = await docker.createContainer({
+    Image: 'postgres:9.6.12',
+    name: randomBytes(32).toString('hex'),
+    HostConfig: {
+      Privileged: true,
+      AutoRemove: true,
+      PortBindings: {
+        '5432/tcp': [
+          {
+            HostPort: '4000',
+          },
+        ],
+      },
+    },
+    Env: [
+      'POSTGRES_PASSWORD=docker',
+      'POSTGRES_DB=postgres',
+      'POSTGRES_USER=postgres',
+    ],
+  });
+  await container.start();
+  return container;
+}
+
+export async function stopAndRemoveOnlyDbContainer(
+  container: Docker.Container
+) {
+  await container.kill();
+  await sleep(10 * 1000);
 }

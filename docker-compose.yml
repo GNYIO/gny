@@ -14,7 +14,6 @@ services:
       api:
   app:
     build: .
-    #command: sh -c './wait-for --timeout=20 db:5432 -- npm start'
     command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
     environment:
       NODE_ENV: production
