@@ -10,8 +10,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    networks:
-      api:
   app:
     build: .
     command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
@@ -19,12 +17,6 @@ services:
       NODE_ENV: production
     ports:
       - '4096:4096'
-    networks:
-      api:
-networks:
-  api:
-
-
 
 # volumes:
 #   - .:/home/app/appDir
