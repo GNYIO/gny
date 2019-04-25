@@ -44,7 +44,6 @@ npm run tsc
 
 ## 4 Start Node
 
-Change directory to the `dist` directory and start the docker containers of postgresql and redis and then the Blockchain:
 ```
 # start POSTGRESQL database on port 3000
 sudo docker run --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres -p 3000:5432 postgres
