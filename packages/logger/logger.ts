@@ -21,6 +21,7 @@ export function createLogger(
     encoding: 'utf8',
   });
   const logger: ILogger = tracer.colorConsole({
+    dateformat: 'HH:MM:ss.l',
     transport: [
       function(data) {
         // write all messages to file

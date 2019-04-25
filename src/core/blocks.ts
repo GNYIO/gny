@@ -18,14 +18,18 @@ import {
   IBlock,
   ManyVotes,
   Transaction,
+  FirstHeightIds,
+  CommonBlockParams,
+  CommonBlockResult,
 } from '../interfaces';
+import pWhilst from 'p-whilst';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
   private modules: Modules;
   private readonly library: IScope;
 
-  private lastBlock: IBlock | Pick<IBlock, 'height'> = {};
+  private lastBlock: IBlock;
   private loaded: boolean = false;
   private blockCache: ISimpleCache = {};
   private proposeCache: ISimpleCache = {};
@@ -52,31 +56,35 @@ export default class Blocks {
       );
       blocks = blocks.reverse();
       const ids = blocks.map(b => b.id);
-      return { ids, firstHeight: minHeight };
+      return { ids, firstHeight: minHeight } as FirstHeightIds;
     } catch (e) {
       throw e;
     }
   }
 
   // todo look at core/loader
-  public getCommonBlock = async (peer, height) => {
-    const lastBlockHeight = height;
-
-    let data;
+  public getCommonBlock = async (
+    peer: PeerNode,
+    lastBlockHeight: number
+  ): Promise<IBlock> => {
+    let data: FirstHeightIds;
     try {
       data = await this.getIdSequence2(lastBlockHeight);
     } catch (e) {
-      return `Failed to get this.last block id sequence${e}`;
+      this.library.logger.error(
+        `Failed to get this.last block id sequence${e}`
+      );
+      throw e;
     }
 
     this.library.logger.trace('getIdSequence=========', data);
-    const params = {
+    const params: CommonBlockParams = {
       max: lastBlockHeight,
       min: data.firstHeight,
       ids: data.ids,
     };
 
-    let ret;
+    let ret: CommonBlockResult;
     try {
       ret = await this.modules.peer.request('commonBlock', params, peer);
     } catch (err) {
@@ -84,7 +92,7 @@ export default class Blocks {
     }
 
     if (!ret.common) {
-      return 'Common block not found';
+      throw new Error('Common block not found');
     }
 
     return ret.common;
@@ -320,9 +328,9 @@ export default class Blocks {
 
       if (options.broadcast && options.local) {
         options.votes.signatures = options.votes.signatures.slice(0, 6);
-        this.library.bus.message('newBlock', block, options.votes);
+        this.library.bus.message('onNewBlock', block, options.votes);
       }
-      this.library.bus.message('processBlock', block);
+      this.library.bus.message('onProcessBlock', block);
     } catch (e) {
       global.app.logger.error(block);
       global.app.logger.error('save block error: ', e);
@@ -497,14 +505,14 @@ export default class Blocks {
     return blocks;
   };
 
-  public loadBlocksFromPeer = (peer: PeerNode, id: string, cb) => {
+  public loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
     let loaded = false;
     let count = 0;
-    let lastValidBlock = null;
     let lastCommonBlockId = id;
-    async.whilst(
+
+    await pWhilst(
       () => !loaded && count < 30,
-      async next => {
+      async () => {
         count++;
         const limit = 200;
         const params = {
@@ -515,15 +523,14 @@ export default class Blocks {
         try {
           body = await this.modules.peer.request('blocks', params, peer);
         } catch (err) {
-          return next(`Failed to request remote peer: ${err}`);
+          throw new Error(`Failed to request remote peer: ${err}`);
         }
         if (!body) {
-          return next('Invalid response for blocks request');
+          throw new Error('Invalid response for blocks request');
         }
         const blocks = body.blocks;
         if (!Array.isArray(blocks) || blocks.length === 0) {
           loaded = true;
-          return next();
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
         const address = `${peer.host}:${peer.port - 1}`;
@@ -532,23 +539,15 @@ export default class Blocks {
           for (const block of blocks) {
             await this.processBlock(block, { syncing: true });
             lastCommonBlockId = block.id;
-            lastValidBlock = block;
             global.app.logger.info(
               `Block ${block.id} loaded from ${address} at`,
               block.height
             );
           }
-          return next();
         } catch (e) {
           global.app.logger.error('Failed to process synced block', e);
-          return cb(e);
+          throw e;
         }
-      },
-      err => {
-        if (err) {
-          global.app.logger.error('load blocks from remote peer error:', err);
-        }
-        setImmediate(cb, err, lastValidBlock);
       }
     );
   };
@@ -649,7 +648,7 @@ export default class Blocks {
     this.library.base.consensus.addPendingVotes(localVotes);
     this.proposeCache[propose.hash] = true;
     this.privIsCollectingVotes = true;
-    this.library.bus.message('newPropose', propose, true);
+    this.library.bus.message('onNewPropose', propose, true);
     return;
   };
 
@@ -677,36 +676,34 @@ export default class Blocks {
             )}` +
             ` slot: ${slots.getSlotNumber(block.timestamp)}`
         );
-        return await (async () => {
-          const pendingTrsMap = new Map<string, Transaction>();
-          try {
-            const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
-            for (const t of pendingTrs) {
-              pendingTrsMap.set(t.id, t);
-            }
-            this.modules.transactions.clearUnconfirmed();
-            await global.app.sdb.rollbackBlock(this.lastBlock.height);
-            await this.processBlock(block, { votes, broadcast: true });
-          } catch (e) {
-            this.library.logger.error('Failed to process received block', e);
-          } finally {
-            for (const t of block.transactions) {
-              pendingTrsMap.delete(t.id);
-            }
-            try {
-              const redoTransactions = [...pendingTrsMap.values()];
-              await this.modules.transactions.processUnconfirmedTransactionsAsync(
-                redoTransactions
-              );
-            } catch (e) {
-              this.library.logger.error(
-                'Failed to redo unconfirmed transactions',
-                e
-              );
-            }
-            cb();
+        const pendingTrsMap = new Map<string, Transaction>();
+        try {
+          const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
+          for (const t of pendingTrs) {
+            pendingTrsMap.set(t.id, t);
           }
-        })();
+          this.modules.transactions.clearUnconfirmed();
+          await global.app.sdb.rollbackBlock(this.lastBlock.height);
+          await this.processBlock(block, { votes, broadcast: true });
+        } catch (e) {
+          this.library.logger.error('Failed to process received block', e);
+        } finally {
+          for (const t of block.transactions) {
+            pendingTrsMap.delete(t.id);
+          }
+          try {
+            const redoTransactions = [...pendingTrsMap.values()];
+            await this.modules.transactions.processUnconfirmedTransactionsAsync(
+              redoTransactions
+            );
+          } catch (e) {
+            this.library.logger.error(
+              'Failed to redo unconfirmed transactions',
+              e
+            );
+          }
+          return cb();
+        }
       }
       if (
         block.prevBlockId !== this.lastBlock.id &&
@@ -727,7 +724,7 @@ export default class Blocks {
         this.library.logger.info(
           `receive discontinuous block height ${block.height}`
         );
-        this.modules.loader.startSyncBlocks();
+        this.modules.loader.startSyncBlocks(this.lastBlock);
         return cb();
       }
       return cb();
@@ -768,7 +765,7 @@ export default class Blocks {
           this.library.logger.info(
             `receive discontinuous propose height ${propose.height}`
           );
-          this.modules.loader.startSyncBlocks();
+          this.modules.loader.startSyncBlocks(this.lastBlock);
         }
         return setImmediate(cb);
       }
@@ -901,7 +898,7 @@ export default class Blocks {
           const block = await global.app.sdb.getBlockByHeight(count - 1);
           this.setLastBlock(block);
         }
-        this.library.bus.message('blockchainReady');
+        this.library.bus.message('onBlockchainReady');
       } catch (e) {
         global.app.logger.error('Failed to prepare local blockchain', e);
         process.exit(0);

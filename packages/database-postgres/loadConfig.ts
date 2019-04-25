@@ -19,18 +19,11 @@ import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 import { BlockHistory } from './entity/BlockHistory';
 
-export async function loadConfig(logger: ILogger) {
-  let options: PostgresConnectionOptions | SqljsConnectionOptions = undefined;
+export async function loadConfig(logger: ILogger, configFilePath: string) {
+  let options: PostgresConnectionOptions = undefined;
 
-  if (process.env.NODE_ENV === 'test') {
-    const configPath = path.join(process.cwd(), 'ormconfig.test.json');
-    const optionsRaw = fs.readFileSync(configPath, { encoding: 'utf8' });
-    options = JSON.parse(optionsRaw) as SqljsConnectionOptions;
-  } else {
-    const configPath = path.join(process.cwd(), 'ormconfig.json');
-    const optionsRaw = fs.readFileSync(configPath, { encoding: 'utf8' });
-    options = JSON.parse(optionsRaw) as PostgresConnectionOptions;
-  }
+  const optionsRaw = fs.readFileSync(configFilePath, { encoding: 'utf8' });
+  options = JSON.parse(optionsRaw) as PostgresConnectionOptions;
 
   Object.assign(options, {
     entities: [

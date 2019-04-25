@@ -113,7 +113,13 @@ export default async function runtime(options: IOptions) {
 
   const { dataDir } = options.appConfig;
 
-  global.app.sdb = new SmartDB(options.logger);
+  global.app.sdb = new SmartDB(options.logger, {
+    configFilePath: options.appConfig.ormConfig
+      ? path.join(process.cwd(), options.appConfig.ormConfig)
+      : 'ormconfig.json',
+    cachedBlockCount: 10,
+    maxBlockHistoryHold: 10,
+  });
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);
   global.app.events = new EventEmitter();

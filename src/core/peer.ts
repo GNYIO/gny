@@ -116,7 +116,7 @@ export default class Peer {
     this.p2p
       .startAsync()
       .then(() => {
-        this.library.bus.message('peerReady');
+        this.library.bus.message('onPeerReady');
       })
       .catch(err => {
         this.library.logger.error('Failed to init dht', err);

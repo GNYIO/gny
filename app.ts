@@ -26,6 +26,7 @@ function main() {
     .option('--app <dir>', 'App directory')
     .option('--base <dir>', 'Base directory')
     .option('--data <dir>', 'Data directory')
+    .option('--ormConfig <file>', 'ormconfig.json file')
     .parse(process.argv);
 
   const baseDir = program.base || './';
@@ -106,6 +107,10 @@ function main() {
     console.log('Server started as daemon...');
     daemon({ cwd: process.cwd() });
     fs.writeFileSync(pidFile, process.pid, 'utf8');
+  }
+
+  if (program.ormConfig) {
+    appConfig.ormConfig = program.ormConfig;
   }
 
   const options = {

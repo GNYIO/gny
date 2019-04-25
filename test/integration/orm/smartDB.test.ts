@@ -3,7 +3,6 @@ import {
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
 import { ILogger } from '../../../src/interfaces';
-import * as path from 'path';
 import { cloneDeep } from 'lodash';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
@@ -38,7 +37,7 @@ function createBlock(height: number) {
     prevBlockId: createRandomBytes(32),
     timestamp: height * 1024,
     fees: 0,
-    payloadHash: createRandomBytes(64),
+    payloadHash: createRandomBytes(32),
     reward: 0,
     signature: createRandomBytes(64),
     _version_: 1,
@@ -88,7 +87,11 @@ async function saveGenesisBlock(smartDB: SmartDB) {
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
   beforeEach(async done => {
-    sut = new SmartDB(logger);
+    sut = new SmartDB(logger, {
+      cachedBlockCount: 10,
+      maxBlockHistoryHold: 10,
+      configFilePath: 'ormconfig.sqljs.json',
+    });
     await sut.init();
     done();
   }, 10000);
@@ -1733,6 +1736,76 @@ describe('integration - SmartDB', () => {
   });
 
   it.skip('multiple modifications in one block should incrase the _version_ of the entity', async done => {
+    done();
+  });
+
+  it('exists() - entity exists in DB after beginBlock()', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    const key = {
+      id: block.id,
+    };
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const exists = await sut.exists('Block', key);
+    expect(exists).toEqual(true);
+    done();
+  });
+
+  it('exists() - entity does not exists in DB', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+
+    const key = {
+      id: 'notValidId',
+    };
+    const exists = await sut.exists('Block', key);
+    expect(exists).toEqual(false);
+    done();
+  });
+
+  it('exists() - can access item after createOrLoad() (false)', async done => {
+    await saveGenesisBlock(sut);
+
+    // create() or createOrLoad() does not save entity directly to DB
+    const account = await sut.createOrLoad('Variable', {
+      key: 'key',
+      value: 'value',
+    });
+
+    const exists = await sut.exists('Variable', { key: 'key' });
+    expect(exists).toEqual(false);
+    done();
+  });
+
+  it.skip('should exists() always hit the database?', async done => {
+    done();
+  });
+
+  it.skip('should createOrLoad("Variable") be cached and returned with "sdb.get()"', async done => {
+    done();
+  });
+
+  it.skip('why is the bookkeeper variable not found?', async done => {
+    done();
+  });
+
+  it('createOrLoad() - after createOrLoad entity should be cached', async done => {
+    const variable = await sut.createOrLoad('Variable', {
+      key: 'key',
+      value: 'value',
+    });
+
+    const result = await sut.get('Variable', { key: 'key' });
+    expect(result).toEqual({
+      _version_: 1,
+      key: 'key',
+      value: 'value',
+    });
     done();
   });
 });

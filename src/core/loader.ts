@@ -26,31 +26,21 @@ export default class Loader {
     this.loadingLastBlock = this.library.genesisBlock;
   }
 
-  private loadFullDb = (peer: PeerNode, cb) => {
-    const peerStr = `${peer.host}:${peer.port - 1}`;
-
-    const commonBlockId = this.genesisBlock.id;
-
-    this.library.logger.debug(`Loading blocks from genesis from ${peerStr}`);
-
-    this.modules.blocks.loadBlocksFromPeer(peer, commonBlockId, cb);
-  };
-
   private async findUpdate(
     lastBlock: IBlock | Pick<IBlock, 'height'>,
-    peer: PeerNode,
-    cb: any
+    peer: PeerNode
   ) {
     const peerStr = `${peer.host}:${peer.port - 1}`;
 
-    let commonBlock;
+    let commonBlock: IBlock;
     try {
       commonBlock = await this.modules.blocks.getCommonBlock(
         peer,
         lastBlock.height
       );
     } catch (err) {
-      return cb('Failed to get common block:', err);
+      this.library.logger.error('Failed to get common block:', err);
+      throw err;
     }
 
     this.library.logger.info(
@@ -59,56 +49,40 @@ export default class Loader {
       }) with peer ${peerStr}, last block height is ${lastBlock.height}`
     );
 
-    const toRemove = Number(lastBlock.height) - commonBlock.height;
+    const toRemove = Number(lastBlock.height) - Number(commonBlock.height);
 
     if (toRemove >= 5) {
       this.library.logger.error(`long fork with peer ${peerStr}`);
-      return cb(`long fork with peer ${peerStr}`);
+      throw new Error(`long fork with peer ${peerStr}`);
     }
 
-    return (async () => {
-      try {
-        this.modules.transactions.clearUnconfirmed();
-        if (toRemove > 0) {
-          await global.app.sdb.rollbackBlock(commonBlock.height);
-          this.modules.blocks.setLastBlock(await global.app.sdb.lastBlock);
-          this.library.logger.debug(
-            'set new last block',
-            global.app.sdb.lastBlock
-          );
-        } else {
-          await global.app.sdb.rollbackBlock(lastBlock.height);
-        }
-      } catch (e) {
-        this.library.logger.error('Failed to rollback block', e);
-        return cb(e.message);
+    try {
+      this.modules.transactions.clearUnconfirmed();
+      if (toRemove > 0) {
+        await global.app.sdb.rollbackBlock(commonBlock.height);
+        this.modules.blocks.setLastBlock(await global.app.sdb.lastBlock);
+        this.library.logger.debug(
+          'set new last block',
+          global.app.sdb.lastBlock
+        );
+      } else {
+        await global.app.sdb.rollbackBlock(lastBlock.height);
       }
-      this.library.logger.debug(`Loading blocks from peer ${peerStr}`);
-      return this.modules.blocks.loadBlocksFromPeer(
-        peer,
-        commonBlock.id,
-        err2 => {
-          if (err2) {
-            this.library.logger.error(
-              `Failed to load blocks, ban 60 min: ${peerStr}`,
-              err2
-            );
-          }
-          cb();
-        }
-      );
-    })();
+    } catch (e) {
+      this.library.logger.error('Failed to rollback block', e);
+      throw e;
+    }
+    this.library.logger.debug(`Loading blocks from peer ${peerStr}`);
+    await this.modules.blocks.loadBlocksFromPeer(peer, commonBlock.id);
+    return;
   }
 
-  private async loadBlocks(
-    lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>,
-    cb: any
-  ) {
+  private async loadBlocks(lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>) {
     let result;
     try {
       result = await this.modules.peer.randomRequestAsync('getHeight', {});
     } catch (err) {
-      return cb(err.message);
+      throw err;
     }
 
     const ret = result.data;
@@ -131,21 +105,33 @@ export default class Loader {
       this.library.logger.info(
         `Failed to parse blockchain height: ${peerStr}\n${report.error.message}`
       );
-      return cb();
+      throw new Error('Failed to parse blockchain height');
     }
     if (new global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
       this.blocksToSync = ret.height;
 
       if (lastBlock.id !== this.genesisBlock.id) {
         try {
-          return await this.findUpdate(lastBlock, peer, cb);
+          await this.findUpdate(lastBlock, peer);
+          return;
         } catch (err) {
-          return cb(err.message);
+          this.library.logger.error(
+            'error while calling loader.findUpdate()',
+            err.messag
+          );
+          throw err;
         }
       }
-      return this.loadFullDb(peer, cb);
+
+      this.library.logger.debug(
+        `Loading blocks from genesis from ${peer.host}:${peer.port - 1}`
+      );
+      return await this.modules.blocks.loadBlocksFromPeer(
+        peer,
+        this.genesisBlock.id
+      );
     }
-    return cb();
+    return undefined;
   }
 
   // next
@@ -214,7 +200,7 @@ export default class Loader {
   // Public methods
   public syncing = () => this.privSyncing;
 
-  public startSyncBlocks = () => {
+  public startSyncBlocks = (lastBlock: IBlock) => {
     this.library.logger.debug('startSyncBlocks enter');
     if (!this.isLoaded || this.privSyncing) {
       this.library.logger.debug('blockchain is already syncing');
@@ -223,17 +209,16 @@ export default class Loader {
     this.library.sequence.add(async cb => {
       this.library.logger.debug('startSyncBlocks enter sequence');
       this.privSyncing = true;
-      const lastBlock = this.modules.blocks.getLastBlock();
 
-      await this.loadBlocks(lastBlock, err => {
-        if (err) {
-          this.library.logger.error('loadBlocks error:', err);
-        }
-        this.privSyncing = false;
-        this.blocksToSync = 0;
-        this.library.logger.debug('startSyncBlocks end');
-        cb();
-      });
+      try {
+        await this.loadBlocks(lastBlock);
+      } catch (err) {
+        this.library.logger.error('loadBlocks error:', err);
+      }
+      this.privSyncing = false;
+      this.blocksToSync = 0;
+      this.library.logger.debug('startSyncBlocks end');
+      cb();
     });
   };
 
@@ -248,16 +233,24 @@ export default class Loader {
       this.privSyncing = true;
       const lastBlock = this.modules.blocks.getLastBlock();
       this.modules.transactions.clearUnconfirmed();
-      await global.app.sdb.rollbackBlock(lastBlock.height).then(() => {
-        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id, err => {
-          if (err) {
-            this.library.logger.error('syncBlocksFromPeer error:', err);
-          }
-          this.privSyncing = false;
-          this.library.logger.debug('syncBlocksFromPeer end');
-          cb();
-        });
-      });
+      try {
+        await global.app.sdb.rollbackBlock(lastBlock.height);
+      } catch (err) {
+        this.library.logger.error('error while sdb.rollbackBlock()');
+
+        // reset
+        this.privSyncing = false;
+        throw err;
+      }
+      try {
+        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id);
+      } catch (err) {
+        throw err;
+      } finally {
+        this.privSyncing = false;
+        this.library.logger.debug('syncBlocksFromPeer end');
+        cb();
+      }
     });
   };
 
@@ -267,7 +260,7 @@ export default class Loader {
       const lastBlock = this.modules.blocks.getLastBlock();
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 3) {
-        this.startSyncBlocks();
+        this.startSyncBlocks(lastBlock);
       }
       setTimeout(nextSync, TIMEOUT * 1000);
     };

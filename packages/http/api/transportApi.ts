@@ -8,6 +8,7 @@ import {
   Next,
   ManyVotes,
   Transaction,
+  IBlock,
 } from '../../../src/interfaces';
 
 export default class TransportApi {
@@ -115,7 +116,7 @@ export default class TransportApi {
         return next('Blocks not found');
       }
       blocks = blocks.reverse();
-      let commonBlock = null;
+      let commonBlock: IBlock = null;
       for (const i in ids) {
         if (blocks[i].id === ids[i]) {
           commonBlock = blocks[i];
@@ -196,7 +197,7 @@ export default class TransportApi {
         const errMsg = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
-        this.library.bus.message('unconfirmedTransaction', transaction);
+        this.library.bus.message('onUnconfirmedTransaction', transaction);
         return res
           .status(200)
           .json({ success: true, transactionId: transaction.id });
@@ -247,7 +248,7 @@ export default class TransportApi {
       return next(report.error.message);
     }
 
-    this.library.bus.message('receiveVotes', req.body.votes as ManyVotes);
+    this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
     res.json({});
   };
 

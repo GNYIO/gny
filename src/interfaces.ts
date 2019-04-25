@@ -193,6 +193,7 @@ export interface IConfig {
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
+  ormConfig: string;
 }
 
 export interface KeyPairsIndexer {
@@ -324,6 +325,22 @@ export interface BlockPropose {
 export interface BlockAndVotes {
   block: IBlock;
   votes: string;
+}
+
+export interface FirstHeightIds {
+  ids: string[];
+  firstHeight: number;
+}
+
+export interface CommonBlockParams {
+  max: number;
+  min: number;
+  ids: string[];
+}
+
+export interface CommonBlockResult {
+  success: boolean;
+  common: IBlock;
 }
 
 declare global {

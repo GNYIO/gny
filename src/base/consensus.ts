@@ -15,8 +15,8 @@ import {
 } from '../interfaces';
 
 export class Consensus {
-  private pendingBlock: IBlock = null;
-  private pendingVotes: any = null;
+  private pendingBlock: IBlock = undefined;
+  private pendingVotes: ManyVotes = undefined;
   private votesKeySet = new Set();
   private library: IScope;
 
@@ -114,7 +114,7 @@ export class Consensus {
             height: votes.height,
             id: votes.id,
             signatures: [],
-          };
+          } as ManyVotes;
         }
         this.pendingVotes.signatures.push(item);
       }
@@ -131,7 +131,7 @@ export class Consensus {
   public hasEnoughVotesRemote = votes =>
     votes && votes.signatures && votes.signatures.length >= 6;
 
-  public setPendingBlock(block) {
+  public setPendingBlock(block: IBlock) {
     this.pendingBlock = block;
   }
 

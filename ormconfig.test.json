@@ -1,6 +1,10 @@
 {
-  "type": "sqljs",
+  "type": "postgres",
+  "host": "localhost",
+  "port": 4000,
+  "username": "postgres",
+  "password": "docker",
+  "database": "postgres",
   "synchronize": true,
-  "dropSchema": false,
-  "logging": false
+  "dropSchema": false
 }

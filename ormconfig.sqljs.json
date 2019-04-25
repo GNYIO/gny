@@ -1,0 +1,6 @@
+{
+  "type": "sqljs",
+  "synchronize": true,
+  "dropSchema": false,
+  "logging": false
+}
