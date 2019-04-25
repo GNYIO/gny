@@ -12,7 +12,7 @@ services:
      POSTGRES_USER: postgres
   app:
     build: .
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; cd dist && node app.js --ormConfig "ormconfig.integration.json"'
     environment:
       NODE_ENV: production
     ports:

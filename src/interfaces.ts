@@ -193,6 +193,7 @@ export interface IConfig {
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
+  ormConfig: string;
 }
 
 export interface KeyPairsIndexer {

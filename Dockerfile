@@ -22,4 +22,5 @@ COPY . .
 RUN npm run tsc
 EXPOSE 4096
 
+# gets overriden in docker-compose.yml file
 CMD [ "npm", "start" ]

@@ -10,7 +10,7 @@
       "name": "DEBUG_1",
       "program": "${workspaceFolder}/dist/app.js",
       "cwd": "${workspaceFolder}/dist",
-      "args": ["--log", "trace"],
+      "args": ["--log", "trace", "--ormConfig", "ormconfig.integration.json"],
       "env": {
         "DEBUG": "debug"
       },

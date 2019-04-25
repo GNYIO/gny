@@ -1,7 +1,7 @@
 {
    "type": "postgres",
-   "host": "db",
-   "port": 5432,
+   "host": "localhost",
+   "port": 3000,
    "username": "postgres",
    "password": "docker",
    "database": "postgres",

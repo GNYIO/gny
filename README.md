@@ -21,7 +21,7 @@ __Important__
 <br/>
 <br/>
 
-## 1 Install
+## 1 Clone Repository
 
 Clone this repository:
 ```bash
@@ -42,15 +42,15 @@ Execute:
 npm run tsc
 ```
 
-## 4 Start ONE Node
+## 4 Start Node
 
 Change directory to the `dist` directory and start the docker containers of postgresql and redis and then the Blockchain:
 ```
-# change directory
-cd dist
+# start POSTGRESQL database on port 3000
+sudo docker run --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres -p 3000:5432 postgres
 
-# start postgres and redis
-sudo docker-compose up --detach
+# open new console and change directory
+cd dist
 
 # start blockchain
 node app
@@ -68,31 +68,7 @@ Default ports:
 > After changing ports be sure to rebuild the project with `npm run tsc`
 
 
-## 5 Start MANY Nodes
-
-First delete the `dist/` directory:
-```
-rm -rf dist
-```
-
-Next make a clean build:
-```
-npm run tsc
-```
-
-Specify the amount of `[nodes]` you want to create. You can create up to 101.
-
-Example create `10` nodes:
-```bash
-sudo node createSecondNode.js 10
-```
-
-After we have created the nodes launch all of them:
-```bash
-sudo node launchAllNodes.js
-```
-
-# Run whole Blockchain only in Docker
+# Extra: Run whole Blockchain only in Docker
 First build the image for the `node.js` Blockchain node and the `postgres` database:
 ```bash
 sudo docker-compose build
