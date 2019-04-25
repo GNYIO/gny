@@ -204,7 +204,6 @@ describe('Transaction', () => {
       global.app.contract.basic.transfer.mockReturnValue(null);
 
       const applied = await transaction.apply(context);
-      console.log({ applied });
       expect(applied).toBeNull();
     });
   });
