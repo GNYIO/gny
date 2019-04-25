@@ -91,3 +91,48 @@ After we have created the nodes launch all of them:
 ```bash
 sudo node launchAllNodes.js
 ```
+
+# Run whole Blockchain only in Docker
+First build the image for the `node.js` Blockchain node and the `postgres` database:
+```bash
+sudo docker-compose build
+```
+
+Then start both services:
+```bash
+sudo docker-compose up
+```
+
+
+# Docker 101
+
+## Images
+### Show all images
+```bash
+sudo docker image ls
+```
+### Get bash into image
+```bash
+sudo docker run -it 99f5bbbb1a69 /bin/bash
+```
+
+## Containers
+### Show all running containers
+```bash
+sudo docker ps --all
+```
+### Bash into running container
+```bash
+sudo docker exec -it 650e76a2d377 /bin/bash
+```
+
+## Delete everything
+### Stop all running containers
+```bash
+sudo docker stop $(sudo docker ps --all --quiet)
+```
+
+### Delete all stopped containers
+```bash
+sudo docker rm $(sudo docker ps --all --quiet)
+```
