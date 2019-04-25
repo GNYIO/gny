@@ -1,2 +1,12 @@
 .git
+.gitignore
+.circleci
 node_modules
+test
+
+createSecondNode.js
+genGenesisBlock.txt
+jest.config.js
+launchAllNodes.js
+purge-all-docker-containers
+rebuild.sh
