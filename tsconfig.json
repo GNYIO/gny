@@ -64,6 +64,7 @@
     "dist",
     "test/**/*.ts",
     "src/utils/validator/*.js",
+    "packages/gny-js"
   ],
   "include": [
     "src/**/*[.ts|.js]",
