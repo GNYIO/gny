@@ -1,5 +1,6 @@
 export default {
   async registerIssuer(name, desc) {
+    if (arguments.length !== 2) return 'Invalid arguments length';
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name';
     if (!desc) return 'No issuer description was provided';
     const descJson = JSON.stringify(desc);
@@ -23,6 +24,7 @@ export default {
   },
 
   async registerAsset(symbol, desc, maximum, precision) {
+    if (arguments.length !== 4) return 'Invalid arguments length';
     if (!/^[A-Z]{3,6}$/.test(symbol)) return 'Invalid symbol';
     if (desc.length > 4096) return 'Invalid asset description';
     if (!Number.isInteger(precision) || precision <= 0)
@@ -55,6 +57,7 @@ export default {
   },
 
   async issue(name, amount) {
+    if (arguments.length !== 2) return 'Invalid arguments length';
     if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name)) return 'Invalid currency';
     global.app.validate('amount', amount);
 
@@ -81,6 +84,7 @@ export default {
   },
 
   async transfer(currency, amount, recipient) {
+    if (arguments.length !== 3) return 'Invalid arguments length';
     if (currency.length > 30) return 'Invalid currency';
     if (!recipient || recipient.length > 50) return 'Invalid recipient';
     // if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(currency)) return 'Invalid currency'
