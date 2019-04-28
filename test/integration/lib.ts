@@ -1,7 +1,6 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import * as Docker from 'dockerode';
-import { randomBytes } from 'crypto';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -43,6 +42,13 @@ async function waitForLoaded() {
     } catch (err) {}
     await sleep(1000);
   }
+}
+
+export async function deleteOldDockerImages() {
+  await dockerCompose.rm({
+    cwd: process.cwd(),
+    log: true,
+  });
 }
 
 export async function buildDockerImage() {

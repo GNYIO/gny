@@ -279,7 +279,7 @@ export default class TransactionsApi {
               trs
             );
             this.library.bus.message('unconfirmedTransaction', trs);
-            callback(null, { transactionId: trs.id });
+            callback(null, { success: true, transactionId: trs.id });
           } catch (e) {
             this.library.logger.warn(
               'Failed to process unsigned transaction',
