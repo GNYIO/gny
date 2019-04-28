@@ -1,6 +1,8 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import * as Docker from 'dockerode';
+import { randomBytes } from 'crypto';
+import { generateAddress } from '../../src/utils/address';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -103,3 +105,10 @@ export async function stopAndRemoveOnlyDbContainer(
   await container.kill();
   await sleep(10 * 1000);
 }
+
+export function createRandomAddress() {
+  const rand = randomBytes(10).toString('hex');
+  return generateAddress(rand);
+}
+export const oneMinute = 60 * 1000;
+export const tenMinutes = 10 * 60 * 1000;

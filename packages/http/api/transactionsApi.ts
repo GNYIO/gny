@@ -237,7 +237,7 @@ export default class TransactionsApi {
         'Failed to validate query params',
         report.error.message
       );
-      return setImmediate(next, report.error.message);
+      return setImmediate(next, 'Invalid transaction body');
     }
 
     const finishSequence = (err: string, result: any) => {
