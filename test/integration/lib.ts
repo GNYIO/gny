@@ -31,6 +31,7 @@ export async function onNewBlock() {
     await sleep(2000);
     height = await getHeight();
   } while (height <= firstHeight);
+  return height;
 }
 
 async function waitForLoaded() {

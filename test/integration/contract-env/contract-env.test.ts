@@ -123,12 +123,21 @@ describe('contract environment', () => {
       },
       lib.oneMinute
     );
-    it.skip('sending UNSIGNED transaction without http magic returns error', async done => {
-      done();
-    });
 
-    it.skip('sending SIGNED transaction without address prop succeeds', async done => {
-      done();
+    // should the header also be set?
+    it.skip('sending UNSIGNED transaction without http magic returns error', async () => {
+      const trs = {
+        type: 0,
+        secret: genesisSecret,
+        args: [lib.createRandomAddress(), 22 * 1e8],
+      };
+
+      const contractPromise = axios.put(UNSIGNED_URL, trs);
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Request is made on the wrong network',
+        expected: '594fe0f3',
+      });
     });
 
     it(
@@ -316,7 +325,151 @@ describe('contract environment', () => {
   });
 
   describe('timestamp management', () => {
-    it.skip('transaction (SIGNED) is valid until 3 slots later', async () => {});
+    it(
+      'transaction (SIGNED) is valid 1 block after creation',
+      async done => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+
+        // now wait for 1 block
+        const secondHeight = await lib.onNewBlock();
+
+        // send
+        const transData = {
+          transaction: basicTransfer,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+
+        expect(secondHeight).toEqual(firstHeight + 1);
+
+        done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'transaction (SIGNED) is valid 2 blocks after creation',
+      async done => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+
+        // now wait for 2 blocks
+        await lib.onNewBlock();
+        const thirdHeight = await lib.onNewBlock();
+
+        // send
+        const transData = {
+          transaction: basicTransfer,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+
+        expect(thirdHeight).toEqual(firstHeight + 2);
+
+        done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'transaction (SIGNED) is valid 3 blocks after creation',
+      async done => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+
+        // now wait for 3 blocks
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        const fourthHeight = await lib.onNewBlock();
+
+        // send
+        const transData = {
+          transaction: basicTransfer,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+
+        expect(fourthHeight).toEqual(firstHeight + 3);
+
+        done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'transaction (SIGNED) is valid 4 blocks after creation',
+      async done => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+
+        // now wait for 4 blocks
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        const fourthHeight = await lib.onNewBlock();
+
+        // send
+        const transData = {
+          transaction: basicTransfer,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+
+        expect(fourthHeight).toEqual(firstHeight + 4);
+
+        done();
+      },
+      lib.oneMinute
+    );
   });
 
   describe('regression testing', () => {
