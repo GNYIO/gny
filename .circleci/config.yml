@@ -1,23 +1,5 @@
 version: 2
 jobs:
-  build:
-    working_directory: ~/repo
-    docker:
-      - image: circleci/node:8.13
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}-unit
-      - run:
-          name: npm-install-from-package-lock
-          command: npm ci
-      - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}-unit
-          paths:
-            - ./node_modules
-      - run:
-          name: test
-          command: npm test
   build-integration:
     working_directory: ~/repo
     docker:
@@ -36,3 +18,21 @@ jobs:
       - run:
           name: test-integration
           command: npm test:integration
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: circleci/node:8.13
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-unit
+      - run:
+          name: npm-install-from-package-lock
+          command: npm ci
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-unit
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: npm test
