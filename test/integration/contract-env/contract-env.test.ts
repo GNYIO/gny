@@ -118,6 +118,7 @@ describe('contract environment', () => {
           success: false,
           error: 'Request is made on the wrong network',
           expected: '594fe0f3',
+          received: 'wrongNetworkMagic',
         });
       },
       lib.oneMinute
@@ -129,14 +130,62 @@ describe('contract environment', () => {
     it.skip('sending SIGNED transaction without address prop succeeds', async done => {
       done();
     });
-    it.skip('blocks show correct transactions count', async done => {
-      done();
-    });
+
+    it(
+      'blocks show correct transactions count',
+      async done => {
+        const firstHeight = await lib.onNewBlock();
+
+        const { data } = await axios.get('http://localhost:4096/api/blocks');
+        const firstBlock = data.blocks[firstHeight];
+        expect(firstBlock.count).toEqual(0);
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+        const transData = {
+          transaction: basicTransfer,
+        };
+        const contractCallResult = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        const secondHeight = await lib.onNewBlock(); // wait for new block
+        const { data: newData } = await axios.get(
+          'http://localhost:4096/api/blocks'
+        );
+        const secondBlock = newData.blocks[secondHeight];
+        expect(secondBlock.count).toEqual(1);
+
+        expect(secondHeight).toEqual(firstHeight + 1);
+
+        done();
+      },
+      lib.oneMinute
+    );
+
     it.skip('round', async done => {
       done();
     });
-    it.skip('sending UNSIGNED transaction with NOT complient BIP39 secret returns error', async done => {
-      done();
+
+    it('sending UNSIGNED transaction with NOT complient BIP39 secret returns error', async () => {
+      const WRONG_SECRET = 'wrong password';
+      const trs = {
+        type: 0,
+        secret: WRONG_SECRET,
+        args: [lib.createRandomAddress(), 22 * 1e8],
+        message: undefined,
+      };
+      const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
     });
   });
 
@@ -150,8 +199,25 @@ describe('contract environment', () => {
   });
 
   describe('too big', () => {
-    it.skip('too big args in transactions result in error', async done => {
-      done();
+    it('too big transaction gets rejected by server', async () => {
+      const VERY_LONG_USERNAME = 'a'.repeat(8 * 1024 * 1024); // 8mb
+      const setUserNameTrs = gnyJS.basic.setUserName(
+        VERY_LONG_USERNAME,
+        genesisSecret
+      );
+      const transData = {
+        transaction: setUserNameTrs,
+      };
+
+      const contractPromise = axios.post(
+        'http://localhost:4096/peer/transactions',
+        transData,
+        config
+      );
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        error: 'PayloadTooLargeError: request entity too large',
+        success: false,
+      });
     });
   });
 
@@ -200,14 +266,57 @@ describe('contract environment', () => {
       });
     });
 
-    it.skip('timestamp is bigger (UNSIGNED transaction) then Number Number.MAX_SAFE_INTEGER +1', async () => {
-      // return expect(contractPromise).rejects
-      //   .toHaveProperty('response.data', {
-      //     success: false,
-      //     error: 'Invalid transaction body',
-      //   });
+    it('timestamp is bigger (UNSIGNED transaction) then Number Number.MAX_SAFE_INTEGER +1', async () => {
+      const TOO_BIG_timestamp = Number.MAX_SAFE_INTEGER + 100;
+      const trs = {
+        secret: genesisSecret,
+        type: 0,
+        timestamp: TOO_BIG_timestamp,
+        args: [lib.createRandomAddress(), 22 * 1e8],
+      };
+      const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
     });
-    it.skip('negative timestamp (UNSIGNED transaction) returns erro', async () => {});
+
+    it('negative timestamp (UNSIGNED transaction) returns error', async () => {
+      const NEGATIVE_timestamp = -10;
+      const trs = {
+        secret: genesisSecret,
+        type: 0,
+        timestamp: NEGATIVE_timestamp,
+        args: [lib.createRandomAddress(), 22 * 1e8],
+      };
+      const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
+    });
+
+    it('zero timestamp (UNSIGNED transaction) returns error', async () => {
+      const ZERO_timestamp = 0;
+      const trs = {
+        secret: genesisSecret,
+        type: 0,
+        timestamp: ZERO_timestamp,
+        args: [lib.createRandomAddress(), 22 * 1e8],
+      };
+      const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
+    });
+  });
+
+  describe('timestamp management', () => {
+    it.skip('transaction (SIGNED) is valid until 3 slots later', async () => {});
   });
 
   describe('regression testing', () => {
