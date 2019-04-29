@@ -17,4 +17,4 @@ jobs:
             - ./node_modules
       - run:
           name: test-integration
-          command: npm test:integration
+          command: "npm test:integration"
