@@ -1,7 +1,9 @@
 version: 2
 jobs:
   build:
-    machine: true
+    machine:
+      enabled: true
+      image: circleci/classic:edge
     working_directory: ~/repo
     steps:
       # - setup_remote_docker
