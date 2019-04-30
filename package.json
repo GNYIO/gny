@@ -107,7 +107,7 @@
     "rimraf": "=2.5.4",
     "shelljs": "=0.8.3",
     "socket.io": "=2.2.0",
-    "sodium": "=2.0.3",
+    "sodium": "=3.0.2",
     "sql.js": "^0.5.0",
     "static-module": "=2.0.0",
     "tracer": "=0.9.8",
