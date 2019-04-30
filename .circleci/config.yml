@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: install-linux-dependencies
-          command: sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool libtool-bin -y
+          command: sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
           name: Install nvm and node@8.13
           command: |
