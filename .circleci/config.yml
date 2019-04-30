@@ -12,7 +12,7 @@ jobs:
           name: install-linux-dependencies
           command: sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
-          name: Install node@8.13 (need right version for `yarn`)
+          name: Install node@8.13
           command: |
             set +e             
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
@@ -27,9 +27,6 @@ jobs:
       - run:
           name: update-npm
           command: npm install -g npm
-      - run:
-          name: test
-          command: node --version; exit 1;
       - run:
           name: npm-install-from-package-lock
           command: npm ci
