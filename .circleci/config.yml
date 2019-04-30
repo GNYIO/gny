@@ -31,5 +31,8 @@ jobs:
           name: npm-install-from-package-lock
           command: npm ci
       - run:
+          name: gny-js-dependencies
+          command: cd ./packages/gny-js/ && npm ci && cd ../..
+      - run:
           name: test-integration
           command: npm run test:integration
