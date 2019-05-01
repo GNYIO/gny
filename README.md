@@ -2,7 +2,7 @@
 
 __Dependencies__
 ```
-sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential -y
+sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential -y
 
 sudo apt-get install libtool libtool-bin -y
 

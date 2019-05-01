@@ -1,18 +1,35 @@
 version: 2
 jobs:
-  build:
+  node@8.13-unit:
+    docker:
+      - image: circleci/node:8.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          key: node8.13-unit-cache-{{ checksum "package.json" }}
+      - run:
+          name: npm-ci
+          command: npm ci
+      - save_cache:
+          key: node8.13-unit-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: npm run test
+  node@8.13-integration:
     machine:
       enabled: true
       image: circleci/classic:edge
     working_directory: ~/repo
     steps:
-      # - setup_remote_docker
       - checkout
       - run:
           name: install-linux-dependencies
-          command: sudo apt-get install curl sqlite3 ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
+          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
-          name: Install node@8.13
+          name: load nvm and install node@8.13
           command: |
             set +e             
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
@@ -27,12 +44,22 @@ jobs:
       - run:
           name: update-npm
           command: npm install -g npm
+      - restore_cache:
+          key: node8.13-integration-cache-{{ checksum "package.json" }}
       - run:
-          name: npm-install-from-package-lock
+          name: npm-ci
           command: npm ci
+      - save_cache:
+          key: node8.13-integration-cache-{{ checksum "package.json" }}
       - run:
           name: gny-js-dependencies
           command: cd ./packages/gny-js/ && npm ci && cd ../..
       - run:
           name: test-integration
           command: npm run test:integration
+workflows:
+  version: 2
+  unit_and_integration_tests:
+    jobs:
+      - node@8.13-unit
+      - node@8.13-integration

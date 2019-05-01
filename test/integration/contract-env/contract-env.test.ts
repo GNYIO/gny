@@ -474,7 +474,7 @@ describe('contract environment', () => {
   });
 
   describe('regression testing', () => {
-    it(
+    it.only(
       '/peer/getUnconfirmedTransactions does not return secret by UNSIGNED transactions',
       async done => {
         const amount = 5 * 1e8;
@@ -496,6 +496,8 @@ describe('contract environment', () => {
 
         expect(transactionResult).toHaveProperty('transactionId');
         expect(transactionResult).toHaveProperty('success');
+
+        await lib.sleep(1000);
 
         const { data: transactions } = await axios.post(
           'http://localhost:4096/peer/getUnconfirmedTransactions',
