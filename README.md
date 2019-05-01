@@ -21,28 +21,45 @@ __Important__
 <br/>
 <br/>
 
-## 1 Clone Repository
+## Run Tests
+
+To run the unit tests, simple run:
+```bash
+npm run test
+```
+
+To run the integration tests you need to first login as the root user (because of docker):
+```bash
+sudo -s
+npm run test:integration
+```
+
+
+
+## Installation
+
+### 1 Clone Repository
 
 Clone this repository:
 ```bash
 git clone https://github.com/gnyio/gny-experiment
 ```
 
-## 2 Install Node Dependencies
+### 2 Install Node Dependencies
 
 Install exactly the dependencies from `package-lock.json` with `npm ci`:
 ```bash
 npm ci
 ```
 
-## 3 Transpile Files with TypeScript
+### 3 Transpile Files with TypeScript
 
 Execute:
 ```bash
 npm run tsc
 ```
 
-## 4 Start Node
+### 4 Start Node
 
 ```
 # start POSTGRESQL database on port 3000
