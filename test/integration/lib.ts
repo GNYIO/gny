@@ -72,6 +72,15 @@ export async function spawnContainer() {
   await waitForLoaded();
 }
 
+export async function printActiveContainers() {
+  const result = await dockerCompose.ps({
+    cwd: process.cwd(),
+    log: true,
+  });
+  console.log(JSON.stringify(result, null, 2));
+  await sleep(1000);
+}
+
 export async function stopAndKillContainer() {
   await dockerCompose.down({
     cwd: process.cwd(),

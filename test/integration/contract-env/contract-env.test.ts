@@ -22,6 +22,7 @@ describe('contract environment', () => {
 
   beforeEach(async done => {
     await lib.spawnContainer();
+    await lib.printActiveContainers();
     done();
   }, lib.oneMinute);
 
@@ -41,7 +42,7 @@ describe('contract environment', () => {
     lib.oneMinute
   );
 
-  it('send unsigned transaction', async done => {
+  it.only('send unsigned transaction', async done => {
     const amount = 5 * 1e8;
     const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
 
