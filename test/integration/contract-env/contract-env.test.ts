@@ -42,7 +42,7 @@ describe('contract environment', () => {
     lib.oneMinute
   );
 
-  it.only('send unsigned transaction', async done => {
+  it('send unsigned transaction', async done => {
     const amount = 5 * 1e8;
     const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
 

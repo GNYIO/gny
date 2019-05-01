@@ -77,7 +77,6 @@ export async function printActiveContainers() {
     cwd: process.cwd(),
     log: true,
   });
-  console.log(JSON.stringify(result, null, 2));
   await sleep(1000);
 }
 
