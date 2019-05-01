@@ -12,6 +12,14 @@ const config = {
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
+function newSignature(secret: string) {
+  const keys = gnyJS.crypto.getKeys(secret);
+  const signature = {
+    publicKey: keys.publicKey,
+  };
+  return signature;
+}
+
 async function setSecondPassPhrase(secondPassPhrase: string) {
   const trs = gnyJS.basic.setSecondPassphrase(genesisSecret, secondPassPhrase);
   const transData = {
@@ -68,11 +76,76 @@ describe('contract-env - basic.setSecondPassphrase', () => {
     done();
   });
 
-  it.skip('basic.setSecondPassphrase too small fee returns error', async () => {});
+  it('basic.setSecondPassphrase too small fee returns error', async () => {
+    const secondSignature = newSignature('secret');
+    const SMALLER_FEE = 4 * 1e8;
+    const trans = gnyJS.transaction.createTransactionEx({
+      type: 2,
+      fee: SMALLER_FEE,
+      args: [secondSignature.publicKey],
+      secret: genesisSecret,
+    });
 
-  it.skip('basic.setSecondPassphrase adding extra arguments to args array throws error', async () => {});
+    const transData = {
+      transaction: trans,
+    };
 
-  it.skip('basic.setSecondPassphrase calling contract with too few arguments throws error', async () => {});
+    const contractPromise = axios.post(
+      'http://localhost:4096/peer/transactions',
+      transData,
+      config
+    );
+
+    return expect(contractPromise).rejects.toHaveProperty('response.data', {
+      success: false,
+      error: 'Error: Fee not enough',
+    });
+  });
+
+  it('basic.setSecondPassphrase adding extra arguments to args array throws error', async () => {
+    const secondSignature = newSignature('second');
+    const trans = gnyJS.transaction.createTransactionEx({
+      type: 2,
+      fee: 5 * 1e8,
+      args: [secondSignature.publicKey, 'additionalArgument'],
+      secret: genesisSecret,
+    });
+
+    const transData = {
+      transaction: trans,
+    };
+    const contractPromise = axios.post(
+      'http://localhost:4096/peer/transactions',
+      transData,
+      config
+    );
+    return expect(contractPromise).rejects.toHaveProperty('response.data', {
+      success: false,
+      error: 'Error: Invalid arguments length',
+    });
+  });
+
+  it('basic.setSecondPassphrase calling contract with too few arguments throws error', async () => {
+    const trans = gnyJS.transaction.createTransactionEx({
+      type: 2,
+      fee: 5 * 1e8,
+      args: [],
+      secret: genesisSecret,
+    });
+
+    const transData = {
+      transaction: trans,
+    };
+    const contractPromise = axios.post(
+      'http://localhost:4096/peer/transactions',
+      transData,
+      config
+    );
+    return expect(contractPromise).rejects.toHaveProperty('response.data', {
+      success: false,
+      error: 'Error: Invalid arguments length',
+    });
+  });
 
   describe('after setting secondPassPhrase no other contract should be called without secondPassPhrase', () => {
     it(
