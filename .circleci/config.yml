@@ -51,6 +51,8 @@ jobs:
           command: npm ci
       - save_cache:
           key: node8.13-integration-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
       - run:
           name: gny-js-dependencies
           command: cd ./packages/gny-js/ && npm ci && cd ../..
