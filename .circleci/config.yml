@@ -7,12 +7,15 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: node8.13-unit-cache-{{ checksum "package.json" }}
+          key: node-8-13-unit-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: npm-ci
-          command: npm ci
+          name: npm install dependencies
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci # install only if node_modules is not present
+            fi
       - save_cache:
-          key: node8.13-unit-cache-{{ checksum "package.json" }}
+          key: node-8-13-unit-cache-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
       - run:
@@ -45,12 +48,15 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node8.13-integration-cache-{{ checksum "package.json" }}
+          key: node-8-13-integration-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: npm-ci
-          command: npm ci
+          name: npm install dependencies
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci # install only if node_modules is not present
+            fi
       - save_cache:
-          key: node8.13-integration-cache-{{ checksum "package.json" }}
+          key: node-8-13-integration-cache-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
       - run:
