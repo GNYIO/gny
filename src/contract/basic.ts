@@ -36,6 +36,7 @@ function isUniq(arr) {
 
 export default {
   async transfer(amount, recipient) {
+    if (arguments.length !== 2) return 'Invalid arguments length';
     if (!recipient) return 'Invalid recipient';
     // Verify amount should be positive integer
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
@@ -97,6 +98,7 @@ export default {
   },
 
   async setUserName(username) {
+    if (arguments.length !== 1) return 'Invalid arguments length';
     global.app.validate('name', username);
 
     const senderId = this.sender.address;
@@ -117,6 +119,7 @@ export default {
   },
 
   async setSecondPassphrase(publicKey) {
+    if (arguments.length !== 1) return 'Invalid arguments length';
     global.app.validate('publickey', publicKey);
 
     if (!global.app.util.address.isAddress(this.sender.address)) {
@@ -135,6 +138,7 @@ export default {
   },
 
   async lock(height, amount) {
+    if (arguments.length !== 2) return 'Invalid arguments length';
     if (!Number.isInteger(height) || height <= 0)
       return 'Height should be positive integer';
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
@@ -198,6 +202,7 @@ export default {
   },
 
   async unlock() {
+    if (arguments.length !== 0) return 'Invalid arguments length';
     const sender = this.sender;
     if (!sender) return 'Account not found';
     const senderId = this.sender.address;
@@ -219,6 +224,7 @@ export default {
   },
 
   async registerDelegate() {
+    if (arguments.length !== 0) return 'Invalid arguments length';
     const sender = this.sender;
     if (!sender) return 'Account not found';
 
@@ -251,6 +257,7 @@ export default {
   },
 
   async vote(delegates) {
+    if (arguments.length !== 1) return 'Invalid arguments length';
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
@@ -297,6 +304,7 @@ export default {
   },
 
   async unvote(delegates) {
+    if (arguments.length !== 1) return 'Invalid arguments length';
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
