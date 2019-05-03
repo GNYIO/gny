@@ -50,7 +50,7 @@ async function waitForLoaded() {
 export async function deleteOldDockerImages() {
   await dockerCompose.rm({
     cwd: process.cwd(),
-    log: false,
+    log: true,
   });
 }
 
@@ -59,14 +59,14 @@ export async function buildDockerImage() {
   // then delete image file
   await dockerCompose.buildAll({
     cwd: process.cwd(),
-    log: false,
+    log: true,
   });
 }
 
 export async function spawnContainer() {
   await dockerCompose.upAll({
     cwd: process.cwd(),
-    log: false,
+    log: true,
   });
   await sleep(10 * 1000);
   await waitForLoaded();
@@ -75,7 +75,7 @@ export async function spawnContainer() {
 export async function printActiveContainers() {
   const result = await dockerCompose.ps({
     cwd: process.cwd(),
-    log: false,
+    log: true,
   });
   await sleep(1000);
 }
@@ -83,7 +83,7 @@ export async function printActiveContainers() {
 export async function stopAndKillContainer() {
   await dockerCompose.down({
     cwd: process.cwd(),
-    log: false,
+    log: true,
   });
 }
 
