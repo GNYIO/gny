@@ -1,4 +1,4 @@
-version: '3.5'
+version: '3.3'
 services:
   db:
     image: "postgres:9.6.12"
@@ -12,6 +12,7 @@ services:
      POSTGRES_USER: postgres
   app:
     build: .
+    image: gny-experiment:integration # tags
     command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; cd dist && node app.js --ormConfig "ormconfig.integration.json"'
     environment:
       NODE_ENV: production
