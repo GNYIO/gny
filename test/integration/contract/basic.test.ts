@@ -1,4 +1,4 @@
-import * as gnyJS from 'gny-js';
+import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
 
@@ -22,6 +22,35 @@ describe('basic', () => {
   }, oneMinute);
 
   describe('transfer', () => {
-    it('should transfer to a recipient account', async done => {});
+    it('should transfer to a recipient account', async done => {
+      const genesisSecret =
+        'grow pencil ten junk bomb right describe trade rich valid tuna service';
+      const amount = 5 * 1e8;
+      const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
+      const message = '';
+      const config = {
+        headers: {
+          magic: '594fe0f3',
+        },
+      };
+
+      const trs = gnyJS.basic.transfer(
+        recipient,
+        amount,
+        message,
+        genesisSecret
+      );
+      const data = {
+        transaction: trs,
+      };
+
+      const result = await axios.post(
+        'http://localhost:4096/peer/transactions',
+        data,
+        config
+      );
+      expect(result.data).toHaveProperty('transactionId');
+      done();
+    });
   });
 });
