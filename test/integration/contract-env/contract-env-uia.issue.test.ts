@@ -11,7 +11,43 @@ const config = {
   },
 };
 
-describe('contract-env - uia.registerIssuer', () => {
+async function beforeAssetIssue() {
+  // prepare registerIssuer
+  const registerIssuer = gnyJS.uia.registerIssuer(
+    'ABC',
+    'some desc',
+    genesisSecret
+  );
+  const registerIssuerTransData = {
+    transaction: registerIssuer,
+  };
+  await axios.post(
+    'http://localhost:4096/peer/transactions',
+    registerIssuerTransData,
+    config
+  );
+  await lib.onNewBlock();
+
+  // prepare issue
+  const registerAsset = gnyJS.uia.registerAsset(
+    'BBB',
+    'some desc',
+    String(10 * 1e8),
+    8,
+    genesisSecret
+  );
+  const registerAssetTransData = {
+    transaction: registerAsset,
+  };
+  await axios.post(
+    'http://localhost:4096/peer/transactions',
+    registerAssetTransData,
+    config
+  );
+  await lib.onNewBlock();
+}
+
+describe('contract-env - uia.registerAsset', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
@@ -30,23 +66,28 @@ describe('contract-env - uia.registerIssuer', () => {
 
   describe('fee', () => {
     it(
-      'uia.registerIssuer correct fee is 100GNY',
+      'uia.issue correct fee is 0.1GNY',
       async done => {
-        const registerIssuer = gnyJS.uia.registerIssuer(
-          'ABC',
-          'some desc',
+        // prepare
+        await beforeAssetIssue();
+
+        // act
+        const issue = gnyJS.uia.issue(
+          'ABC.BBB',
+          String(10 * 1e8),
           genesisSecret
         );
         const transData = {
-          transaction: registerIssuer,
+          transaction: issue,
         };
-        expect(registerIssuer.fee).toEqual(100 * 1e8);
+        expect(issue.fee).toEqual(0.1 * 1e8);
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
           transData,
           config
         );
+
         expect(data).toHaveProperty('success', true);
         expect(data).toHaveProperty('transactionId');
 
@@ -56,17 +97,21 @@ describe('contract-env - uia.registerIssuer', () => {
     );
 
     it(
-      'uia.registerIssuer too small fee returns error',
+      'uia.issue too small fee returns error',
       async () => {
-        const SMALLER_FEE = 99 * 1e8;
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
-          type: 100,
-          args: ['ABC', 'some desc'],
+        // prepare
+        await beforeAssetIssue();
+
+        // act
+        const SMALLER_FEE = 0.01 * 1e8;
+        const issue = gnyJS.transaction.createTransactionEx({
+          type: 102,
+          args: ['ABC.BBB', String(10 * 1e8)],
           secret: genesisSecret,
           fee: SMALLER_FEE,
         });
         const transData = {
-          transaction: registerIssuer,
+          transaction: issue,
         };
 
         const contractPromise = axios.post(
@@ -85,16 +130,19 @@ describe('contract-env - uia.registerIssuer', () => {
 
   describe('args', () => {
     it(
-      'uia.registerIssuer adding extra arguments to args array throws error',
+      'uia.issue adding extra arguments to args array throws error',
       async () => {
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
-          type: 100,
-          args: ['ABC', 'some desc', 'unnecessary argument'],
+        // prepare
+        await beforeAssetIssue();
+
+        const issue = gnyJS.transaction.createTransactionEx({
+          type: 102,
+          args: ['ABC.BBB', String(10 * 1e8), 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: 0.1 * 1e8,
         });
         const transData = {
-          transaction: registerIssuer,
+          transaction: issue,
         };
         const contractPromise = axios.post(
           'http://localhost:4096/peer/transactions',
@@ -110,16 +158,19 @@ describe('contract-env - uia.registerIssuer', () => {
     );
 
     it(
-      'uia.registerIssuer calling contract with too few arguments throws error',
+      'uia.issue calling contract with too few arguments throws error',
       async () => {
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
-          type: 100,
+        // prepare
+        await beforeAssetIssue();
+
+        const issue = gnyJS.transaction.createTransactionEx({
+          type: 102,
           args: ['ABC'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: 0.1 * 1e8,
         });
         const transData = {
-          transaction: registerIssuer,
+          transaction: issue,
         };
         const contractPromise = axios.post(
           'http://localhost:4096/peer/transactions',
