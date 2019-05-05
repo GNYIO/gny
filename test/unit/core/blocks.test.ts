@@ -7,10 +7,12 @@ import {
   KeyPair,
 } from '../../../src/interfaces';
 import { Block as BaseBlock } from '../../../src/base/block';
+import { Transaction as BaseTransaction } from '../../../src/base/transaction';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
+import slots from '../../../src/utils/slots';
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
@@ -29,16 +31,47 @@ function createRandomKeyPair(secret: string) {
   return keypair;
 }
 
-function createBlock(height: number, keypair: KeyPair, previousBlock: IBlock) {
+function createBlock(
+  height: number,
+  keypair: KeyPair,
+  previousBlock: IBlock,
+  transactionsAmount = 0
+) {
   const payloadHash = crypto.createHash('sha256');
+
+  const transactions = [];
+  if (transactionsAmount > 0) {
+    const baseTransaction = new BaseTransaction({} as IScope);
+
+    for (let i = 0; i < transactionsAmount; ++i) {
+      const trans = baseTransaction.create({
+        secret:
+          'grow pencil ten junk bomb right describe trade rich valid tuna service',
+        fee: 0,
+        type: 0,
+        args: [generateAddress(randomHex(32)), 2 * 1e8],
+        message: null,
+        keypair,
+      });
+      transactions.push(trans);
+    }
+
+    for (const trans of transactions) {
+      const bytes = baseTransaction.getBytes(trans);
+      payloadHash.update(bytes);
+    }
+  }
+
+  const timestamp = slots.getSlotTime(slots.getSlotNumber());
+
   const block: IBlock = {
     version: 0,
     delegate: keypair.publicKey.toString('hex'),
     height: 2,
     prevBlockId: previousBlock.id,
-    timestamp: 0,
-    transactions: [],
-    count: 0,
+    timestamp: timestamp,
+    transactions: transactions,
+    count: transactions.length,
     fees: 0,
     payloadHash: payloadHash.digest().toString('hex'),
     reward: 0,
@@ -287,9 +320,38 @@ describe('core/blocks', () => {
       });
     });
 
-    it.skip('verifyBlock() - Invalid amount of block assets', async () => {
-      // const func = coreBlocks.verifyBlock(block, options);
-      // 20000
+    it('verifyBlock() - Invalid amount of block assets (too much transactions)', async () => {
+      // prepare
+      const TOO_MUCH_TRANSACTIONS = 20000 + 1;
+
+      const previousBlockId = randomHex(32);
+      const keypair = createRandomKeyPair('some random secret');
+      const block = createBlock(
+        2,
+        keypair,
+        {
+          id: previousBlockId,
+        } as IBlock,
+        TOO_MUCH_TRANSACTIONS
+      );
+
+      expect(block).toHaveProperty('count', TOO_MUCH_TRANSACTIONS);
+      expect(block.transactions.length).toEqual(TOO_MUCH_TRANSACTIONS);
+
+      // prepare lastBlock
+      const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
+      coreBlocks.setLastBlock({
+        id: previousBlockId,
+        timestamp: lastBlockTimestamp,
+      } as any);
+
+      // act
+      const options = {};
+      const func = coreBlocks.verifyBlock(block, options);
+
+      return expect(func).rejects.toMatchObject({
+        message: expect.stringMatching(/^Invalid amount of block assets/),
+      });
     });
   });
 
