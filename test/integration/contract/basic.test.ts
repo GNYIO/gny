@@ -96,106 +96,231 @@ describe('basic', () => {
   });
 
   describe('unlock', () => {
-    it('should unlock the sender account', async () => {
-      const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
-      const lockTransData = {
-        transaction: lockTrs,
-      };
+    it(
+      'should unlock the sender account',
+      async () => {
+        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
 
-      const result = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        lockTransData,
-        config
-      );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
 
-      await lib.onNewBlock();
+        await lib.onNewBlock();
 
-      const trs = gnyJS.basic.unlock(genesisSecret);
-      const transData = {
-        transaction: trs,
-      };
+        const trs = gnyJS.basic.unlock(genesisSecret);
+        const transData = {
+          transaction: trs,
+        };
 
-      const contractPromise = axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
-      return expect(contractPromise).rejects.toHaveProperty('response.data', {
-        success: false,
-        error: 'Error: Account cannot unlock',
-      });
-    });
+        const contractPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Account cannot unlock',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('registerDelegate', () => {
-    it('should register the delegate', async done => {
-      const trs = gnyJS.basic.registerDelegate(genesisSecret);
+    it(
+      'should register the delegate',
+      async () => {
+        const username = 'xpgeng';
 
-      const transData = {
-        transaction: trs,
-      };
+        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
 
-      expect(data).toHaveProperty('success');
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        await lib.onNewBlock();
+
+        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success');
+        expect(data).toHaveProperty('transactionId');
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error if usename is not set',
+      async () => {
+        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+
+        const transData = {
+          transaction: trs,
+        };
+
+        const contractPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Account has not a name',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('vote', () => {
-    it('should vote the delegates', async done => {
-      const trs = gnyJS.basic.vote([], genesisSecret);
+    it(
+      'should vote the delegates',
+      async () => {
+        // set username
+        const username = 'xpgeng';
+        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      const transData = {
-        transaction: trs,
-      };
+        // lock the account
+        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        // register delegate
+        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTransData = {
+          transaction: delegateTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          delegateTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      expect(data).toHaveProperty('success');
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success');
+        expect(data).toHaveProperty('transactionId');
+      },
+      lib.oneMinute
+    );
   });
 
   describe('unvote', () => {
-    it('should unvote the delegates', async done => {
-      const voteTrs = gnyJS.basic.vote([], genesisSecret);
+    it(
+      'should unvote the delegates',
+      async () => {
+        // set username
+        const username = 'xpgeng';
+        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      const voteTransData = {
-        transaction: voteTrs,
-      };
+        // lock the account
+        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      await axios.post(
-        'http://localhost:4096/peer/transactions',
-        voteTransData,
-        config
-      );
+        // register delegate
+        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTransData = {
+          transaction: delegateTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          delegateTransData,
+          config
+        );
+        await lib.onNewBlock();
+        // vote
+        const voteTrs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const voteTransData = {
+          transaction: voteTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          voteTransData,
+          config
+        );
+        await lib.onNewBlock();
 
-      const trs = gnyJS.basic.unvote([], genesisSecret);
+        const trs = gnyJS.basic.unvote(['xpgeng'], genesisSecret);
 
-      const transData = {
-        transaction: trs,
-      };
+        const transData = {
+          transaction: trs,
+        };
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
 
-      expect(data).toHaveProperty('success');
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        expect(data).toHaveProperty('success');
+        expect(data).toHaveProperty('transactionId');
+      },
+      lib.oneMinute
+    );
   });
 });
