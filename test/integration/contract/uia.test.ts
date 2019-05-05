@@ -48,71 +48,175 @@ describe('uia', () => {
   });
 
   describe('registerAsset', () => {
-    it('should register the asset', async done => {
-      const trs = gnyJS.uia.registerAsset(
-        'BBB',
-        'some description',
-        String(10 * 1e8),
-        8,
-        genesisSecret
-      );
-      const transData = {
-        transaction: trs,
-      };
+    it(
+      'should register the asset',
+      async () => {
+        const issuerTrs = gnyJS.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
+        const issuerTransData = {
+          transaction: issuerTrs,
+        };
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          issuerTransData,
+          config
+        );
 
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        await lib.onNewBlock();
+
+        const trs = gnyJS.uia.registerAsset(
+          'BBB',
+          'some description',
+          String(10 * 1e8),
+          8,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+      },
+      lib.oneMinute
+    );
   });
 
   describe('issue', () => {
-    it('should update asset', async done => {
-      const trs = gnyJS.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
-      const transData = {
-        transaction: trs,
-      };
+    it(
+      'should update asset',
+      async () => {
+        const issuerTrs = gnyJS.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
+        const issuerTransData = {
+          transaction: issuerTrs,
+        };
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          issuerTransData,
+          config
+        );
+        await lib.onNewBlock();
+        const assetTrs = gnyJS.uia.registerAsset(
+          'BBB',
+          'some description',
+          String(10 * 1e8),
+          8,
+          genesisSecret
+        );
+        const assetTransData = {
+          transaction: assetTrs,
+        };
 
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          assetTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const trs = gnyJS.uia.issue(
+          'liang.BBB',
+          String(10 * 1e8),
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+      },
+      lib.oneMinute
+    );
   });
 
-  describe('transfer', () => {
-    it('should transfer some amount to the recipient', async done => {
-      const trs = gnyJS.uia.transfer(
-        'ABC.BBB',
-        String(10 * 1e8),
-        lib.createRandomAddress(),
-        undefined,
-        genesisSecret
-      );
-      const transData = {
-        transaction: trs,
-      };
+  // describe('transfer', () => {
+  //   it('should transfer some amount to the recipient', async () => {
+  //     let keys = gnyJS.crypto.getKeys(genesisSecret);
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+  //     // Init sender account with some amount
+  //     // const secret = 'bar light swap bring check blush later suggest broken egg wisdom rose';
+  //     const senderId = gnyJS.crypto.getAddress(keys.publicKey);
+  //     const amount = 5 * 1e8;
+  //     const message = '';
+  //     const senderTrs = gnyJS.basic.transfer(
+  //       senderId,
+  //       amount,
+  //       message,
+  //       genesisSecret
+  //     );
+  //     const senderTransData = {
+  //       transaction: senderTrs,
+  //     };
+  //     // await axios.post(
+  //     //   'http://localhost:4096/peer/transactions',
+  //     //   senderTransData,
+  //     //   config
+  //     // );
 
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
-  });
+  //     try {
+  //       await axios.post(
+  //         'http://localhost:4096/peer/transactions',
+  //         senderTransData,
+  //         config
+  //       );
+  //     } catch (e) {
+  //       console.log(e.response.data);
+  //     }
+
+  //     await lib.onNewBlock();
+
+  //     const trs = gnyJS.uia.transfer(
+  //       '',
+  //       String(1 * 1e8),
+  //       lib.createRandomAddress(),
+  //       undefined,
+  //       genesisSecret
+  //     );
+  //     const transData = {
+  //       transaction: trs,
+  //     };
+
+  //     try {
+  //       const { data } = await axios.post(
+  //         'http://localhost:4096/peer/transactions',
+  //         transData,
+  //         config
+  //       );
+  //     } catch (e) {
+  //       console.log(e.response.data);
+  //     }
+
+  //     // const { data } = await axios.post(
+  //     //   'http://localhost:4096/peer/transactions',
+  //     //   transData,
+  //     //   config
+  //     // );
+
+  //     // expect(data).toHaveProperty('success', true);
+  //     // expect(data).toHaveProperty('transactionId');
+  //     // done();
+  //   }, lib.oneMinute);
+  // });
 });
