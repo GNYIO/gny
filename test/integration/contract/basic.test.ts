@@ -96,7 +96,7 @@ describe('basic', () => {
   });
 
   describe('unlock', () => {
-    it('should unlock the sender account', async done => {
+    it('should unlock the sender account', async () => {
       const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
       const lockTransData = {
         transaction: lockTrs,
@@ -108,23 +108,22 @@ describe('basic', () => {
         config
       );
 
-      console.log(result.data);
-      done();
+      await lib.onNewBlock();
 
       const trs = gnyJS.basic.unlock(genesisSecret);
       const transData = {
         transaction: trs,
       };
 
-      const { data } = await axios.post(
+      const contractPromise = axios.post(
         'http://localhost:4096/peer/transactions',
         transData,
         config
       );
-      console.log(data);
-      expect(data).toHaveProperty('success');
-      expect(data).toHaveProperty('transactionId');
-      done();
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Error: Account cannot unlock',
+      });
     });
   });
 
