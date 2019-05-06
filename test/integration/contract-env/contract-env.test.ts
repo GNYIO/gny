@@ -200,6 +200,36 @@ describe('contract environment', () => {
     it.skip('rejected transaction does not get into block', async () => {});
     it.skip('sending rejected transaction twice (within same block) returns erro', async () => {});
     it.skip('sending rejected transaction (after one block) returns error', async () => {});
+    it.skip('signing a transaction with a second password should throw error, if second password was not registered', async () => {});
+
+    it(
+      'negative fee with SIGNED transaction',
+      async () => {
+        const SMALLER_FEE = -1 * 1e8;
+        const unlock = gnyJS.transaction.createTransactionEx({
+          type: 6,
+          args: [],
+          secret: genesisSecret,
+          fee: SMALLER_FEE,
+        });
+        const transData = {
+          transaction: unlock,
+        };
+
+        const contractPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Invalid transaction body',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it.skip('negative fee with UNSIGNED transaction', async () => {});
   });
 
   describe('batch', () => {
@@ -477,7 +507,7 @@ describe('contract environment', () => {
   });
 
   describe('regression testing', () => {
-    it(
+    it.only(
       '/peer/getUnconfirmedTransactions does not return secret by UNSIGNED transactions',
       async done => {
         const amount = 5 * 1e8;

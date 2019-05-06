@@ -46,7 +46,7 @@ export default class Blocks {
 
   // priv methods
 
-  public async getIdSequence2(height: number) {
+  private async getIdSequence2(height: number) {
     try {
       const maxHeight = Math.max(height, this.lastBlock.height);
       const minHeight = Math.max(0, maxHeight - 4);
