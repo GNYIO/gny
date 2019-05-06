@@ -29,28 +29,61 @@ describe('uia', () => {
   }, lib.oneMinute);
 
   describe('registerIssuer', () => {
-    it('should regitster an issuer', async done => {
-      const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
-      const transData = {
-        transaction: trs,
-      };
+    it(
+      'should regitster an issuer',
+      async () => {
+        const issuerName = 'liang';
 
-      const { data } = await axios.post(
-        'http://localhost:4096/peer/transactions',
-        transData,
-        config
-      );
+        // Before registering
+        const beforeRegisterPromise = axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName
+        );
+        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Issuer not found',
+        });
+        await lib.onNewBlock();
 
-      expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('transactionId');
-      done();
-    });
+        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success', true);
+        expect(data).toHaveProperty('transactionId');
+        await lib.onNewBlock();
+
+        // After registering
+        const afterTrs = await axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName
+        );
+        expect(afterTrs.data.issuer.name).toBe(issuerName);
+      },
+      lib.oneMinute
+    );
   });
 
   describe('registerAsset', () => {
     it(
       'should register the asset',
       async () => {
+        const name = 'liang.BBB';
+        // Before registering asset
+        const beforeRegisterPromise = axios.get(
+          'http://localhost:4096/api/uia/assets/' + name
+        );
+        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Asset not found',
+        });
+        await lib.onNewBlock();
+
         const issuerTrs = gnyJS.uia.registerIssuer(
           'liang',
           'liang',
@@ -87,6 +120,14 @@ describe('uia', () => {
 
         expect(data).toHaveProperty('success', true);
         expect(data).toHaveProperty('transactionId');
+
+        await lib.onNewBlock();
+
+        // After registering
+        const afterTrs = await axios.get(
+          'http://localhost:4096/api/uia/assets/' + name
+        );
+        expect(afterTrs.data.asset.name).toBe(name);
       },
       lib.oneMinute
     );
@@ -129,6 +170,15 @@ describe('uia', () => {
         );
         await lib.onNewBlock();
 
+        // before issue
+        const issuerName = 'liang';
+        const beforeIssue = await axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName + '/assets'
+        );
+        expect(beforeIssue.data.assets[0].quantity).toBe('0');
+        await lib.onNewBlock();
+
+        // issue
         const trs = gnyJS.uia.issue(
           'liang.BBB',
           String(10 * 1e8),
@@ -146,6 +196,14 @@ describe('uia', () => {
 
         expect(data).toHaveProperty('success', true);
         expect(data).toHaveProperty('transactionId');
+
+        await lib.onNewBlock();
+
+        // After issue
+        const afterIssue = await axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName + '/assets'
+        );
+        expect(afterIssue.data.assets[0].quantity).toBe(String(10 * 1e8));
       },
       lib.oneMinute
     );
