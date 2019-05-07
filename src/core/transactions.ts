@@ -1,6 +1,6 @@
 import { LimitCache } from '../utils/limit-cache';
 import { TransactionPool } from '../utils/transaction-pool';
-import { Modules, IScope, Transaction } from '../interfaces';
+import { Modules, IScope, Transaction, Context } from '../interfaces';
 
 export default class Transactions {
   private readonly library: IScope;
@@ -130,7 +130,7 @@ export default class Transactions {
       });
     }
 
-    const context = {
+    const context: Context = {
       trs: transaction,
       block,
       sender,

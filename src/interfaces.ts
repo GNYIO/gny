@@ -343,6 +343,12 @@ export interface CommonBlockResult {
   common: IBlock;
 }
 
+export interface Context {
+  trs: Transaction;
+  block: Pick<IBlock, 'height'>;
+  sender: any;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {

@@ -1,0 +1,4 @@
+// consensus
+export const SET_PENDING_BLOCK = 'SET_PENDING_BLOCK';
+export const ADD_PENDING_VOTES = 'ADD_PENDING_VOTES';
+export const RESET_CONSENSUS = 'RESET_CONSENSUS';

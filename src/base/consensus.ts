@@ -4,7 +4,6 @@ import * as ed from '../utils/ed';
 import * as assert from 'assert';
 import slots from '../utils/slots';
 import * as ip from 'ip';
-import { DELEGATES } from '../utils/constants';
 import {
   IScope,
   IBlock,
@@ -23,76 +22,6 @@ export class Consensus {
   constructor(scope: IScope) {
     this.library = scope;
   }
-
-  private calculateVoteHash(height: number, id: string) {
-    const byteBuffer = new ByteBuffer();
-
-    byteBuffer.writeInt64(height);
-    byteBuffer.writeString(id);
-    byteBuffer.flip();
-
-    const buffer = byteBuffer.toBuffer();
-    return crypto
-      .createHash('sha256')
-      .update(buffer)
-      .digest();
-  }
-
-  public normalizeVotes = (votes: any): ManyVotes => {
-    const schema = this.library.joi.object().keys({
-      height: this.library.joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      id: this.library.joi.string().required(),
-      signatures: this.library.joi
-        .array()
-        .items({
-          publicKey: this.library.joi
-            .string()
-            .publicKey()
-            .required(),
-          signature: this.library.joi
-            .string()
-            .signature()
-            .required(),
-        })
-        .required(),
-    });
-    const report = this.library.joi.validate(votes, schema);
-    if (report.error) {
-      throw new Error(report.error.message);
-    }
-    return votes;
-  };
-
-  public createVotes = (keypairs: KeyPair[], block: IBlock): ManyVotes => {
-    const hash = this.calculateVoteHash(block.height, block.id);
-    const votes: ManyVotes = {
-      height: block.height,
-      id: block.id,
-      signatures: [],
-    };
-    keypairs.forEach((kp: KeyPair) => {
-      votes.signatures.push({
-        publicKey: kp.publicKey.toString('hex'),
-        signature: ed.sign(hash, kp.privateKey).toString('hex'),
-      } as Signature);
-    });
-    return votes;
-  };
-
-  public verifyVote = (height: number, id: string, vote: Signature) => {
-    try {
-      const hash = this.calculateVoteHash(height, id);
-      const signature = Buffer.from(vote.signature, 'hex');
-      const publicKey = Buffer.from(vote.publicKey, 'hex');
-      return ed.verify(hash, signature, publicKey);
-    } catch (e) {
-      return false;
-    }
-  };
 
   public addPendingVotes = (votes: ManyVotes) => {
     if (
@@ -121,15 +50,6 @@ export class Consensus {
     }
     return this.pendingVotes;
   };
-
-  public hasEnoughVotes(votes: ManyVotes) {
-    return (
-      votes && votes.signatures && votes.signatures.length > (DELEGATES * 2) / 3
-    );
-  }
-
-  public hasEnoughVotesRemote = votes =>
-    votes && votes.signatures && votes.signatures.length >= 6;
 
   public setPendingBlock(block: IBlock) {
     this.pendingBlock = block;
