@@ -65,6 +65,7 @@
         loadContracts();
       }
       function login(secret) {
+        // http://localhost:4096/api/uia/balances/G4GDW6G78sgQdSdVAQUXdm5xPS13t
         $.ajax({
           type: 'POST',
           url: '/api/accounts/open',
@@ -78,10 +79,30 @@
               alert(ret.error);
               return;
             }
-            UserInfo.secret = secret;
-            UserInfo.publicKey = ret.account.publicKey;
-            UserInfo.address = ret.account.address;
-            onLogin(ret.account);
+
+            // get balances
+            $.ajax({
+              type: 'GET',
+              url: '/api/uia/balances/' + ret.account.address,
+              dataType: 'json',
+              success: function (response) {
+                if (!response) {
+                  console.log(response.error);
+                  return;
+                }
+
+                ret.account.balances = response.balances;
+                ret.account.balances.push({
+                  balance: ret.account.balance,
+                  currency: 'GNY',
+                });
+
+                UserInfo.secret = secret;
+                UserInfo.publicKey = ret.account.publicKey;
+                UserInfo.address = ret.account.address;
+                onLogin(ret.account);
+              }
+            })
           },
         });
       }
