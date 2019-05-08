@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/wingcss"/>
+    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+    <title>Simple Wallet</title>
+</head>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var COUNT_PER_PAGE = 20;
+        var State = {
+            isLogin: false,
+            timer: null
+        };
+        var UserInfo = {
+            secret: '',
+        };
+        function updateBalanceView(balances) {
+            var $table = $('#balanceTable');
+            $table.find('tr:not(:first)').remove();
+            for (var i in balances) {
+                var balanceInfo = balances[i]
+                var balance = Number(balanceInfo.balance) / 100000000
+                var currency = balanceInfo.currency
+                var tr = '<tr><td>' + currency + '</td>' + '<td>' + balance + '</td></tr>';
+                $table.append(tr);
+            }
+        }
+        function loadContracts() {
+            $.ajax({
+                type: 'GET',
+                url: '/contracts',
+                dataType: 'json',
+                success: function (ret) {
+                    console.log(ret)
+                    var $contractOptions = $('#contractOptions')
+                    $contractOptions.empty()
+                    for (var i in ret.contracts) {
+                        var c = ret.contracts[i]
+                        $contractOptions.append('<option value="' + c.type + '">' + c.type + ': ' + c.name + '</option>')
+                    }
+                },
+                error: function(ret) {
+                  console.log(ret);
+                }
+            })
+        }
+        function onLogin(account) {
+            State.isLogin = true;
+            $('#loginBtn').html('Logout');
+            $('#secretInput').hide();
+            $('#mainPanel').show();
+            updateBalanceView(account.balances);
+            loadContracts()
+        }
+        function login(secret) {
+            $.ajax({
+                type: 'POST',
+                url: '/api/accounts/open',
+                data: {
+                    secret: secret
+                },
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(JSON.stringify(ret, null, 2));
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    UserInfo.secret = secret;
+                    UserInfo.publicKey = ret.account.publicKey;
+                    UserInfo.address = ret.account.address
+                    onLogin(ret.account);
+                }
+            });
+        }
+        function getBalances(address) {
+            $.ajax({
+                type: 'GET',
+                url: '/balances/' + address,
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    updateBalanceView(ret.balances)
+                }
+            });
+        }
+        function logout() {
+            $('#loginBtn').html('Login');
+            $('#secretInput').show();
+            $('#mainPanel').hide();
+            State.isLogin = false;
+            if (State.timer) {
+                clearInterval(State.timer);
+                State.timer = null;
+            }
+        }
+
+        State.timer = setInterval(function () {
+            if (UserInfo.publicKey) {
+                getBalances(UserInfo.address);
+            }
+        }, 10 * 1000);
+        $('#loginBtn').click(function () {
+            if (State.isLogin) {
+                logout();
+            } else {
+                login($('#secretInput').val());
+            }
+        });
+        $('#invokeBtn').click(function () {
+            var args = $('#contractArgs').val().split('\n')
+            var fee = '10000000'
+            var type =  Number($('#contractOptions').val())
+            if(type==1005){
+                fee = '50000000000'
+            }else if(type==1006){
+                fee = '5000000000'
+            }
+            var data = {
+                secret: UserInfo.secret,
+                fee: fee,
+                type: type,
+                args: JSON.stringify(args)
+            }
+            console.log('invoke', data)
+            $.ajax({
+                type: 'PUT',
+                url: '/transactions/unsigned',
+                data: data,
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert('Error: ' + ret.error);
+                        return;
+                    }
+                    alert("Success! " + ret.transactionId);
+                }
+            });
+        })
+        $('#accessBtn').click(function () {
+            var params = $('#accessParams').val()
+            var jsonParams = null
+            try {
+                if (params) {
+                    var jsonParams = JSON.parse(params)
+                }
+            } catch (e) {
+                alert('Invalid params')
+                return
+            }
+            
+            $.ajax({
+                type: 'GET',
+                url: $('#accessUrl').val(),
+                data: jsonParams,
+                dataType: 'json',
+                success: function (ret) {
+                    console.log(ret)
+                    $('#accessResponse').val(JSON.stringify(ret, null, 4));
+                }
+            })
+        })
+    });
+</script>
+
+<body>
+    <h1>Simple Wallet</h1>
+    <div>
+        <input type="password" id="secretInput" placeholder="Please input master secret">
+        <button id="loginBtn">Login</button>
+    </div>
+    <div id="mainPanel" style="display: none;">
+        <hr/>
+        <h2>Account balances</h2>
+        <div>
+            <table id="balanceTable" width="200px" border="1">
+                <tr>
+                    <th>Currency</th>
+                    <th>Balance</th>
+                </tr>
+            </table>
+        </div>
+
+        <hr/>
+        <h2>Contract invoke</h2>
+        <div>
+            <select id="contractOptions"></select><input type="button" id="invokeBtn" value="Invoke"><br/>
+            <textarea rows="6" cols="60" id="contractArgs" placeholder="Please input the arguments"></textarea><br/>
+        </div>
+
+        <hr/>
+        <h2>Interface access</h2>
+        <div>
+            <input type="text" id="accessUrl" placeholder="Please input url"><input type="button" id="accessBtn" value="Access"><br/>
+            <textarea rows="10" cols="60" id="accessParams" placeholder="Please input params"></textarea><br/>
+            <textarea rows="20" cols="60" id="accessResponse"></textarea><br/>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -111,13 +111,19 @@ export default class AccountsApi {
       if (typeof result === 'string') {
         return next(result);
       }
-      return res.json(result);
+      return res.json({
+        success: true,
+        ...result,
+      });
     } else {
       const result2 = await this.openAccount2(body.publicKey);
       if (typeof result2 === 'string') {
         return next(result2);
       }
-      return res.json(result2);
+      return res.json({
+        success: true,
+        result2,
+      });
     }
   };
 
