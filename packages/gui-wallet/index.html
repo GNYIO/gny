@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="https://unpkg.com/wingcss" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+
     <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
     <script src="https://unpkg.com/axios@0.18.0/dist/axios.js"></script>
     <title>Simple Wallet</title>
@@ -29,6 +32,33 @@
             '<tr><td>' + currency + '</td>' + '<td>' + balance + '</td></tr>';
           $table.append(tr);
         }
+      }
+      function updateTransactionView(address) {
+        const getTrsUrl = '/api/transactions?senderId=' + address;
+        console.log(getTrsUrl);
+        axios.get(getTrsUrl)
+          .then(response => {
+            const transactions = response.data.transactions;
+            console.log(transactions);
+
+            var $transTable = $('#transactionTable');
+            $transTable.find('tr:not(:first)').remove();
+            for(let i = 0; i < transactions.length; ++i) {
+              const one = transactions[i];
+
+              var tr = '<tr>' 
+                + '<td>' + one.type + '</td>'
+                + '<td>' + one.height + '</td>'
+                + '<td>' + one.args + '</td>'
+                + '<td>' + one.timestamp + '</td>'
+                + '<td>' + one.senderId + '</td>'
+                + '</tr>';
+              $transTable.append(tr);
+            }
+          })
+          .catch(error => {
+            console.log(error.response.data);
+          })
       }
       function loadContracts() {
         var $contractOptions = $('#contractOptions');
@@ -68,6 +98,7 @@
         $('#secretInput').hide();
         $('#mainPanel').show();
         updateBalanceView(account.balances);
+        updateTransactionView(account.address);
         loadContracts();
       }
       function login(secret) {
@@ -256,6 +287,20 @@
         ></textarea
         ><br />
         <textarea rows="20" cols="60" id="accessResponse"></textarea><br />
+      </div>
+
+      <hr />
+      <h2>My Transactions</h2>
+      <div>
+        <table id="transactionTable" width="200px" border="1">
+          <tr>
+            <th>Type</th>
+            <th>Height</th>
+            <th>Args</th>
+            <th>Timestamp</th>
+            <th>SenderId</th>
+          </tr>
+        </table>
       </div>
     </div>
   </body>
