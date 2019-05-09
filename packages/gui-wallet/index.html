@@ -34,19 +34,33 @@
         var $contractOptions = $('#contractOptions');
         $contractOptions.empty();
 
-        $contractOptions.append('<option value="0">' + '#0 basic.transfer' + '</option');
-        $contractOptions.append('<option value="1">' + '#1 basic.setUserName' + '</option');
-        $contractOptions.append('<option value="2">' + '#2 basic.setSecondPassPhrase' + '</option');
-        $contractOptions.append('<option value="3">' + '#3 basic.lock' + '</option');
-        $contractOptions.append('<option value="4">' + '#4 basic.vote' + '</option');
-        $contractOptions.append('<option value="5">' + '#5 basic.unvote' + '</option');
-        $contractOptions.append('<option value="6">' + '#6 basic.unlock' + '</option');
-        $contractOptions.append('<option value="10">' + '#10 basic.registerDelegate' + '</option');
+        const transfer = JSON.stringify({ type: 0, fee: 0.1 * 1e8, });
+        const setUserName = JSON.stringify({ type: 1, fee: 5 * 1e8, });
+        const setSecondPassphrase = JSON.stringify({ type: 2, fee: 5 * 1e8, });
+        const lock = JSON.stringify({ type: 3, fee: 0.1 * 1e8, });
+        const vote = JSON.stringify({ type: 4, fee: 0.1 * 1e8, });
+        const unvote = JSON.stringify({ type: 5, fee: 0.1 * 1e8, });
+        const unlock = JSON.stringify({ type: 6, fee: 0 * 1e8, });
+        const registerDelegate = JSON.stringify({ type: 10, fee: 100 * 1e8, })
 
-        $contractOptions.append('<option value="100">' + '#100 uia.registerIssuer' + '</option');
-        $contractOptions.append('<option value="101">' + '#101 uia.registerAsset' + '</option');
-        $contractOptions.append('<option value="102">' + '#102 uia.issue' + '</option');
-        $contractOptions.append('<option value="103">' + '#103 uia.transfer' + '</option');
+        const registerIssuer = JSON.stringify({ type: 100, fee: 100 * 1e8, });
+        const registerAsset = JSON.stringify({ type: 101, fee: 500 * 1e8, });
+        const issue = JSON.stringify({ type: 102, fee: 0.1, });
+        const assetTransfer = JSON.stringify({ type: 103, fee: 0.1 * 1e8, });
+
+        $contractOptions.append(`<option value=${transfer}>#0 basic.transfer</option`);
+        $contractOptions.append(`<option value="${setUserName}">#1 basic.setUserName</option`);
+        $contractOptions.append(`<option value="${setSecondPassphrase}">#2 basic.setSecondPassPhrase</option`);
+        $contractOptions.append(`<option value="${lock}">#3 basic.lock</option`);
+        $contractOptions.append(`<option value="${vote}">#4 basic.vote</option`);
+        $contractOptions.append(`<option value="${unvote}">#5 basic.unvote</option`);
+        $contractOptions.append(`<option value="${unlock}">#6 basic.unlock</option`);
+        $contractOptions.append(`<option value="${registerDelegate}">#10 basic.registerDelegate</option`);
+
+        $contractOptions.append(`<option value="${registerIssuer}">#100 uia.registerIssuer</option`);
+        $contractOptions.append(`<option value="${registerAsset}">#101 uia.registerAsset</option`);
+        $contractOptions.append(`<option value="${issue}">#102 uia.issue</option`);
+        $contractOptions.append(`<option value="${assetTransfer}">#103 uia.transfer</option`);
       }
       function onLogin(account) {
         State.isLogin = true;
@@ -140,36 +154,29 @@
         var args = $('#contractArgs')
           .val()
           .split('\n');
-        var type = Number($('#contractOptions').val());
+        var info = $('#contractOptions').val();
+        console.log(info);
+        info = JSON.parse(info);
 
         var data = {
+          type: info.type,
+          fee: info.fee,
           secret: UserInfo.secret,
-          type: Number(type),
           args: args,
-          fee: 0.1 * 1e8,
         };
         console.log('invoke', data);
         // axios.put()
-        $.ajax({
-          type: 'PUT',
-          url: '/api/transactions',
-          data: data,
-          dataType: 'application/json',
+        axios.put('/api/transactions', data, {
           headers: {
             magic: '594fe0f3',
           },
-          success: function(ret) {
-            console.log(ret);
-            if (!ret.success) {
-              alert('Error: ' + ret.error);
-              return;
-            }
-            alert('Success! ' + ret.transactionId);
-          },
-          error: function(ret) {
-            console.log(ret.responseJSON);
-          },
-        });
+        })
+          .then((response) => {
+            console.log(response.data);
+          })
+          .catch(error => {
+            console.log(error.response.data);
+          });
       });
       $('#accessBtn').click(function() {
         var params = $('#accessParams').val();
