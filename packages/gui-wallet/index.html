@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
     <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
     <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+    <link rel="stylesheet" href="blue.css">
 
     <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
     <script src="https://unpkg.com/axios@0.18.0/dist/axios.js"></script>
@@ -35,11 +36,9 @@
       }
       function updateTransactionView(address) {
         const getTrsUrl = '/api/transactions?senderId=' + address;
-        console.log(getTrsUrl);
         axios.get(getTrsUrl)
           .then(response => {
             const transactions = response.data.transactions;
-            console.log(transactions);
 
             var $transTable = $('#transactionTable');
             $transTable.find('tr:not(:first)').remove();
@@ -75,7 +74,7 @@
 
         const registerIssuer = JSON.stringify({ type: 100, fee: 100 * 1e8, });
         const registerAsset = JSON.stringify({ type: 101, fee: 500 * 1e8, });
-        const issue = JSON.stringify({ type: 102, fee: 0.1, });
+        const issue = JSON.stringify({ type: 102, fee: 0.1 * 1e8, });
         const assetTransfer = JSON.stringify({ type: 103, fee: 0.1 * 1e8, });
 
         $contractOptions.append(`<option value=${transfer}>#0 basic.transfer</option`);
@@ -152,7 +151,6 @@
           url: '/api/uia/balances/' + address,
           dataType: 'json',
           success: function(ret) {
-            console.log(ret);
             if (!ret.success) {
               alert(ret.error);
               return;
@@ -187,8 +185,23 @@
           .val()
           .split('\n');
         var info = $('#contractOptions').val();
-        console.log(info);
         info = JSON.parse(info);
+
+        // data cleanup
+        switch(info.type) {
+          case 3:
+            args[0] = Number(args[0]);
+            break;
+          case 10:
+            args = [];
+            break;
+          case 101:
+            args[3] = Number(args[3]);
+            break;
+          default:
+        }
+
+        console.log(`args: ${args}`);
 
         var data = {
           type: info.type,
@@ -196,8 +209,6 @@
           secret: UserInfo.secret,
           args: args,
         };
-        console.log('invoke', data);
-        // axios.put()
         axios.put('/api/transactions', data, {
           headers: {
             magic: '594fe0f3',
@@ -205,38 +216,17 @@
         })
           .then((response) => {
             console.log(response.data);
+            alert(`Success!\ntransactionId: ${response.data.transactionId}`);
           })
           .catch(error => {
-            console.log(error.response.data);
+            console.error(error.response.data);
+            alert(`Error!\n${error.response.data.error}`);
           });
-      });
-      $('#accessBtn').click(function() {
-        var params = $('#accessParams').val();
-        var jsonParams = null;
-        try {
-          if (params) {
-            var jsonParams = JSON.parse(params);
-          }
-        } catch (e) {
-          alert('Invalid params');
-          return;
-        }
-
-        $.ajax({
-          type: 'GET',
-          url: $('#accessUrl').val(),
-          data: jsonParams,
-          dataType: 'json',
-          success: function(ret) {
-            console.log(ret);
-            $('#accessResponse').val(JSON.stringify(ret, null, 4));
-          },
-        });
       });
     });
   </script>
 
-  <body>
+  <body style="margin: 35px">
     <h1>Simple Wallet</h1>
     <div>
       <input
