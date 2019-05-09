@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://unpkg.com/wingcss" />
     <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+    <script src="https://unpkg.com/axios@0.18.0/dist/axios.js"></script>
     <title>Simple Wallet</title>
   </head>
 
@@ -30,31 +31,22 @@
         }
       }
       function loadContracts() {
-        $.ajax({
-          type: 'GET',
-          url: '/contracts',
-          dataType: 'json',
-          success: function(ret) {
-            console.log(ret);
-            var $contractOptions = $('#contractOptions');
-            $contractOptions.empty();
-            for (var i in ret.contracts) {
-              var c = ret.contracts[i];
-              $contractOptions.append(
-                '<option value="' +
-                  c.type +
-                  '">' +
-                  c.type +
-                  ': ' +
-                  c.name +
-                  '</option>'
-              );
-            }
-          },
-          error: function(ret) {
-            console.log(ret);
-          },
-        });
+        var $contractOptions = $('#contractOptions');
+        $contractOptions.empty();
+
+        $contractOptions.append('<option value="0">' + '#0 basic.transfer' + '</option');
+        $contractOptions.append('<option value="1">' + '#1 basic.setUserName' + '</option');
+        $contractOptions.append('<option value="2">' + '#2 basic.setSecondPassPhrase' + '</option');
+        $contractOptions.append('<option value="3">' + '#3 basic.lock' + '</option');
+        $contractOptions.append('<option value="4">' + '#4 basic.vote' + '</option');
+        $contractOptions.append('<option value="5">' + '#5 basic.unvote' + '</option');
+        $contractOptions.append('<option value="6">' + '#6 basic.unlock' + '</option');
+        $contractOptions.append('<option value="10">' + '#10 basic.registerDelegate' + '</option');
+
+        $contractOptions.append('<option value="100">' + '#100 uia.registerIssuer' + '</option');
+        $contractOptions.append('<option value="101">' + '#101 uia.registerAsset' + '</option');
+        $contractOptions.append('<option value="102">' + '#102 uia.issue' + '</option');
+        $contractOptions.append('<option value="103">' + '#103 uia.transfer' + '</option');
       }
       function onLogin(account) {
         State.isLogin = true;
@@ -109,7 +101,7 @@
       function getBalances(address) {
         $.ajax({
           type: 'GET',
-          url: '/balances/' + address,
+          url: '/api/uia/balances/' + address,
           dataType: 'json',
           success: function(ret) {
             console.log(ret);
@@ -134,7 +126,7 @@
 
       State.timer = setInterval(function() {
         if (UserInfo.publicKey) {
-          getBalances(UserInfo.address);
+          // getBalances(UserInfo.address);
         }
       }, 10 * 1000);
       $('#loginBtn').click(function() {
@@ -148,25 +140,24 @@
         var args = $('#contractArgs')
           .val()
           .split('\n');
-        var fee = '10000000';
         var type = Number($('#contractOptions').val());
-        if (type == 1005) {
-          fee = '50000000000';
-        } else if (type == 1006) {
-          fee = '5000000000';
-        }
+
         var data = {
           secret: UserInfo.secret,
-          fee: fee,
-          type: type,
-          args: JSON.stringify(args),
+          type: Number(type),
+          args: args,
+          fee: 0.1 * 1e8,
         };
         console.log('invoke', data);
+        // axios.put()
         $.ajax({
           type: 'PUT',
-          url: '/transactions/unsigned',
+          url: '/api/transactions',
           data: data,
-          dataType: 'json',
+          dataType: 'application/json',
+          headers: {
+            magic: '594fe0f3',
+          },
           success: function(ret) {
             console.log(ret);
             if (!ret.success) {
@@ -174,6 +165,9 @@
               return;
             }
             alert('Success! ' + ret.transactionId);
+          },
+          error: function(ret) {
+            console.log(ret.responseJSON);
           },
         });
       });
