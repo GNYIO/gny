@@ -103,45 +103,35 @@
       }
       function login(secret) {
         // http://localhost:4096/api/uia/balances/G4GDW6G78sgQdSdVAQUXdm5xPS13t
-        $.ajax({
-          type: 'POST',
-          url: '/api/accounts/open',
-          data: {
-            secret: secret,
-          },
-          dataType: 'json',
-          success: function(ret) {
-            console.log(JSON.stringify(ret, null, 2));
-            if (!ret.success) {
-              alert(ret.error);
-              return;
-            }
 
-            // get balances
-            $.ajax({
-              type: 'GET',
-              url: '/api/uia/balances/' + ret.account.address,
-              dataType: 'json',
-              success: function (response) {
-                if (!response) {
-                  console.log(response.error);
-                  return;
-                }
+        const temp = {
+          secret,
+        };
 
-                ret.account.balances = response.balances;
-                ret.account.balances.push({
-                  balance: ret.account.balance,
-                  currency: 'GNY',
-                });
+        axios.post('/api/accounts/open', { secret })
+          .then(ret => {
 
-                UserInfo.secret = secret;
-                UserInfo.publicKey = ret.account.publicKey;
-                UserInfo.address = ret.account.address;
-                onLogin(ret.account);
-              }
-            })
-          },
-        });
+            temp.secret = secret;
+            temp.publicKey = ret.data.account.publicKey;
+            temp.address = ret.data.account.address;
+            temp.gny = ret.data.account.balance;
+
+            return axios.get('/api/uia/balances/' + temp.address)
+          })
+          .then(ret => {
+            temp.balances = ret.data.balances;
+            temp.balances.push({
+              balance: temp.gny,
+              currency: 'GNY',
+            });
+
+            onLogin(temp);
+          })
+          .catch(err => {
+            console.log(err.message);
+            err.response && console.log(err.response.data);
+            alert(err.message);
+          });
       }
       function getBalances(address) {
         $.ajax({
@@ -171,7 +161,7 @@
 
       State.timer = setInterval(function() {
         if (UserInfo.publicKey) {
-          // getBalances(UserInfo.address);
+          getBalances(UserInfo.address);
         }
       }, 10 * 1000);
       $('#loginBtn').click(function() {
