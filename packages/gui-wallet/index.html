@@ -79,18 +79,23 @@
         const assetTransfer = JSON.stringify({ type: 103, fee: 0.1 * 1e8, });
 
         $contractOptions.append(`<option value=${transfer}>#0 basic.transfer</option`);
-        $contractOptions.append(`<option value="${setUserName}">#1 basic.setUserName</option`);
-        $contractOptions.append(`<option value="${setSecondPassphrase}">#2 basic.setSecondPassPhrase</option`);
-        $contractOptions.append(`<option value="${lock}">#3 basic.lock</option`);
-        $contractOptions.append(`<option value="${vote}">#4 basic.vote</option`);
-        $contractOptions.append(`<option value="${unvote}">#5 basic.unvote</option`);
-        $contractOptions.append(`<option value="${unlock}">#6 basic.unlock</option`);
-        $contractOptions.append(`<option value="${registerDelegate}">#10 basic.registerDelegate</option`);
+        $contractOptions.append(`<option value=${setUserName}>#1 basic.setUserName</option`);
+        $contractOptions.append(`<option value=${setSecondPassphrase}>#2 basic.setSecondPassPhrase</option`);
+        $contractOptions.append(`<option value=${lock}>#3 basic.lock</option`);
+        $contractOptions.append(`<option value=${vote}>#4 basic.vote</option`);
+        $contractOptions.append(`<option value=${unvote}>#5 basic.unvote</option`);
+        $contractOptions.append(`<option value=${unlock}>#6 basic.unlock</option`);
+        $contractOptions.append(`<option value=${registerDelegate}>#10 basic.registerDelegate</option`);
 
-        $contractOptions.append(`<option value="${registerIssuer}">#100 uia.registerIssuer</option`);
-        $contractOptions.append(`<option value="${registerAsset}">#101 uia.registerAsset</option`);
-        $contractOptions.append(`<option value="${issue}">#102 uia.issue</option`);
-        $contractOptions.append(`<option value="${assetTransfer}">#103 uia.transfer</option`);
+        $contractOptions.append(`<option value=${registerIssuer}>#100 uia.registerIssuer</option`);
+        $contractOptions.append(`<option value=${registerAsset}>#101 uia.registerAsset</option`);
+        $contractOptions.append(`<option value=${issue}>#102 uia.issue</option`);
+        $contractOptions.append(`<option value=${assetTransfer}>#103 uia.transfer</option`);
+      }
+
+      function updateAccount(account) {
+        updateBalanceView(account.balances);
+        updateTransactionView(account.address);
       }
       function onLogin(account) {
         State.isLogin = true;
@@ -100,10 +105,18 @@
         updateBalanceView(account.balances);
         updateTransactionView(account.address);
         loadContracts();
-      }
-      function login(secret) {
-        // http://localhost:4096/api/uia/balances/G4GDW6G78sgQdSdVAQUXdm5xPS13t
 
+        State.timer = setInterval(function() {
+          console.log('refetch data');
+          if (UserInfo.publicKey) {
+            login(UserInfo.secret, (err, account) => {
+              UserInfo = account;
+              updateAccount(account);
+            });
+          }
+        }, 5 * 1000);
+      }
+      function login(secret, cb) {
         const temp = {
           secret,
         };
@@ -125,12 +138,12 @@
               currency: 'GNY',
             });
 
-            onLogin(temp);
+            cb(null, temp);
           })
           .catch(err => {
             console.log(err.message);
             err.response && console.log(err.response.data);
-            alert(err.message);
+            cb(err.message);
           });
       }
       function getBalances(address) {
@@ -159,16 +172,14 @@
         }
       }
 
-      State.timer = setInterval(function() {
-        if (UserInfo.publicKey) {
-          getBalances(UserInfo.address);
-        }
-      }, 10 * 1000);
       $('#loginBtn').click(function() {
         if (State.isLogin) {
           logout();
         } else {
-          login($('#secretInput').val());
+          login($('#secretInput').val(), (err, account) => {
+            UserInfo = account;
+            onLogin(account);
+          });
         }
       });
       $('#invokeBtn').click(function() {
@@ -259,24 +270,6 @@
           placeholder="Please input the arguments"
         ></textarea
         ><br />
-      </div>
-
-      <hr />
-      <h2>Interface access</h2>
-      <div>
-        <input
-          type="text"
-          id="accessUrl"
-          placeholder="Please input url"
-        /><input type="button" id="accessBtn" value="Access" /><br />
-        <textarea
-          rows="10"
-          cols="60"
-          id="accessParams"
-          placeholder="Please input params"
-        ></textarea
-        ><br />
-        <textarea rows="20" cols="60" id="accessResponse"></textarea><br />
       </div>
 
       <hr />
