@@ -8,6 +8,11 @@ const config = {
   },
 };
 
+function createAddress(secret) {
+  const keys = gnyJS.crypto.getKeys(secret);
+  return gnyJS.crypto.getAddress(keys.publicKey);
+}
+
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
@@ -71,6 +76,53 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'should return recipient name not exist',
+      async () => {
+        const senderId = createAddress(genesisSecret);
+        const amount = 5 * 1e8;
+        const recipient = 'guQr4DM3aiTD36EARqDpbfsEHoNF'; // wrong recipient
+        const message = '';
+
+        // Check the balance before the transaction
+        const beforeTrs = await axios.get(
+          'http://localhost:4096/api/accounts/getBalance?address=' + senderId
+        );
+        expect(beforeTrs.data.balances[0].gny).toBe('40000000000000000');
+        await lib.onNewBlock();
+
+        // Transaction
+        const trs = gnyJS.basic.transfer(
+          recipient,
+          amount,
+          message,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const transferPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(transferPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Recipient name not exist',
+        });
+
+        await lib.onNewBlock();
+
+        // Check the balance after the transaction
+        const afterTrs = await axios.get(
+          'http://localhost:4096/api/accounts/getBalance?address=' + senderId
+        );
+        expect(afterTrs.data.balances[0].gny).toBe('40000000000000000');
+      },
+      lib.oneMinute
+    );
   });
 
   describe('setUserName', () => {
@@ -104,6 +156,101 @@ describe('basic', () => {
           'http://localhost:4096/api/accounts?username=' + username
         );
         expect(afterset.data.username).toBe(username);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return the error: Name already set',
+      async () => {
+        const username = 'xpgeng';
+
+        const beforeset = await axios.get(
+          'http://localhost:4096/api/accounts?username=' + username
+        );
+        expect(beforeset.data).toHaveLength(0);
+        await lib.onNewBlock();
+
+        const trs = gnyJS.basic.setUserName(username, genesisSecret);
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success');
+        expect(data).toHaveProperty('transactionId');
+
+        await lib.onNewBlock();
+
+        // set the same username twice
+
+        const trsTwice = gnyJS.basic.setUserName(username, genesisSecret);
+        const transTwiceData = {
+          transaction: trsTwice,
+        };
+
+        const setPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transTwiceData,
+          config
+        );
+        expect(setPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Name already registered',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return the error: Name already set',
+      async () => {
+        const username = 'xpgeng';
+
+        const beforeset = await axios.get(
+          'http://localhost:4096/api/accounts?username=' + username
+        );
+        expect(beforeset.data).toHaveLength(0);
+        await lib.onNewBlock();
+
+        const trs = gnyJS.basic.setUserName(username, genesisSecret);
+        const transData = {
+          transaction: trs,
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(data).toHaveProperty('success');
+        expect(data).toHaveProperty('transactionId');
+
+        await lib.onNewBlock();
+
+        // set the another username to same account
+        const anotherName = 'liang';
+
+        const trsTwice = gnyJS.basic.setUserName(anotherName, genesisSecret);
+        const transTwiceData = {
+          transaction: trsTwice,
+        };
+
+        const setPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transTwiceData,
+          config
+        );
+        expect(setPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Name already set',
+        });
       },
       lib.oneMinute
     );
