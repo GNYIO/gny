@@ -21,6 +21,21 @@ __Important__
 <br/>
 <br/>
 
+## Genesis Account
+
+All GNY tokens are first on the __genesis Account__. Use the secret below to execute contracts. If you want to use another account you need to transfer GNY from the genesis account to your new account in order to execute contracts.
+
+```json
+{
+  "keypair": {
+    "publicKey": "575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b",
+    "privateKey": "c68434b960ef024b2a868118be7641be25e566f720a5eb12ff314022629ccc71575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b"
+  },
+  "address": "G4GDW6G78sgQdSdVAQUXdm5xPS13t",
+  "secret": "grow pencil ten junk bomb right describe trade rich valid tuna service"
+}
+```
+
 ## Run Tests
 
 To run the unit tests, simple run:
