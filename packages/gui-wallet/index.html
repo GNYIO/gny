@@ -59,6 +59,34 @@
             console.log(error.response.data);
           })
       }
+      function updateAccountInfo(account) {
+        var addressDiv = $('#address');
+        addressDiv.html(`<b>Address: </b>${account.address}`);
+
+        var publicKeyDiv = $('#publicKey');
+        publicKeyDiv.html(`<b>PublicKey: </b>${account.publicKey}`);
+
+        var username = $('#username');
+        if (account.username) {
+          username.html(`<b>Username </b>${account.username}`)
+        } else {
+          username.html('<b>Username: </b><i>no username</i>');
+        }
+
+        var isDelegate = $('#isDelegate');
+        if (account.isDelegate) {
+          isDelegate.html(`<b>Is Delegate: </b>Yes`);
+        } else {
+          isDelegate.html(`<b>Is Delegate: </b>No`);
+        }
+
+        var isLocked = $('#isLocked');
+        if (account.lockHeight === '0') {
+          isLocked.html('<b>Is Locked: </b> No');
+        } else {
+          isLocked.html(`<b> Is Locked: </b> Yes, until height <b>${account.lockHeight}</b>`);
+        }
+      }
       function loadContracts() {
         var $contractOptions = $('#contractOptions');
         $contractOptions.empty();
@@ -95,6 +123,7 @@
       function updateAccount(account) {
         updateBalanceView(account.balances);
         updateTransactionView(account.address);
+        updateAccountInfo(account);
       }
       function onLogin(account) {
         State.isLogin = true;
@@ -103,6 +132,7 @@
         $('#mainPanel').show();
         updateBalanceView(account.balances);
         updateTransactionView(account.address);
+        updateAccountInfo(account);
         loadContracts();
 
         State.timer = setInterval(function() {
@@ -127,6 +157,10 @@
             temp.publicKey = ret.data.account.publicKey;
             temp.address = ret.data.account.address;
             temp.gny = ret.data.account.balance;
+            temp.username = ret.data.account.username;
+            temp.isDelegate = ret.data.account.isDelegate;
+            temp.lockHeight = ret.data.account.lockHeight;
+            console.log(ret.data);
 
             return axios.get('/api/uia/balances/' + temp.address)
           })
@@ -236,7 +270,20 @@
       />
       <button id="loginBtn">Login</button>
     </div>
+
     <div id="mainPanel" style="display: none;">
+      <hr/>
+      <h2>Account info</h2>
+      <div>
+        <span>
+          <div id="address"></div>
+          <div id="publicKey"></div>
+          <div id="username"></div>
+          <div id="isDelegate"></div>
+          <div id="isLocked"></div>
+        </span>
+      </div>
+
       <hr />
       <h2>Account balances</h2>
       <div>
