@@ -30,6 +30,7 @@ export default class UiaApi {
     });
 
     router.get('/issuers', this.getIssuers);
+    router.get('/isIssuer/:address', this.isIssuer);
     router.get('/issuers/:name', this.getIssuer);
     router.get('/issuers/:name/assets', this.getIssuerAssets);
     router.get('/assets', this.getAssets);
@@ -47,6 +48,33 @@ export default class UiaApi {
       this.library.logger.error(req.url, err);
       return res.status(500).json({ success: false, error: err.toString() });
     });
+  };
+
+  private isIssuer = async (req: Request, res: Response, next: Next) => {
+    const query = req.params;
+    const addressValidation = this.library.joi.object().keys({
+      address: this.library.joi
+        .string()
+        .address()
+        .required(),
+    });
+    const report = this.library.joi.validate(query, addressValidation);
+    if (report.error) {
+      return next(report.error.message);
+    }
+    try {
+      const issuer = await global.app.sdb.findOne('Issuer', {
+        issuerId: query.address,
+      });
+
+      return res.json({
+        success: true,
+        isIssuer: issuer ? true : false,
+        issuerName: issuer ? issuer.name : undefined,
+      });
+    } catch (err) {
+      return next(`Failed to check for existing Issuer: ${err.message}`);
+    }
   };
 
   private getIssuers = async (req: Request, res: Response, next: Next) => {
@@ -140,7 +168,7 @@ export default class UiaApi {
         condition: { name: issuerName },
       });
       if (!issuer) {
-        return next(`Issuer "${issuer}" not found`);
+        return next(`Issuer "${issuerName}" not found`);
       }
 
       const condition = { issuerId: issuer.issuerId };
