@@ -1047,7 +1047,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Duplicated vote item',
+      'should return the error: Already voted for delegate',
       async () => {
         // set username
         const username = 'xpgeng';

@@ -199,7 +199,45 @@ describe('uia', () => {
       lib.oneMinute
     );
 
-    it.skip('should return the error: No issuer description was provided', async () => {});
+    it(
+      'should return the error: No issuer description was provided',
+      async () => {
+        const issuerName = 'liang';
+
+        // Before registering
+        const beforeRegisterPromise = axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName
+        );
+        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Issuer not found',
+        });
+        await lib.onNewBlock();
+
+        // Register
+        const description = '';
+        const trs = gnyJS.uia.registerIssuer(
+          issuerName,
+          description,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const issuerPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: No issuer description was provided',
+        });
+      },
+      lib.oneMinute
+    );
 
     it(
       'should return the error: Invalid issuer description',
