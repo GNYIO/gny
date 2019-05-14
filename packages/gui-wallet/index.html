@@ -34,31 +34,64 @@
           $table.append(tr);
         }
       }
-      function updateTransactionView(address) {
-        const getTrsUrl = '/api/transactions?senderId=' + address;
-        axios.get(getTrsUrl)
-          .then(response => {
-            const transactions = response.data.transactions;
+      function updateTransactionView(account) {
 
-            var $transTable = $('#transactionTable');
-            $transTable.find('tr:not(:first)').remove();
-            for(let i = 0; i < transactions.length; ++i) {
-              const one = transactions[i];
+        var $transTable = $('#transactionTable');
+        $transTable.find('tr:not(:first)').remove();
+        for(let i = 0; i < account.transactions.length; ++i) {
+          const one = account.transactions[i];
 
-              var tr = '<tr>' 
-                + '<td>' + one.type + '</td>'
-                + '<td>' + one.height + '</td>'
-                + '<td>' + one.args + '</td>'
-                + '<td>' + one.timestamp + '</td>'
-                + '<td>' + one.senderId + '</td>'
-                + '</tr>';
-              $transTable.append(tr);
-            }
-          })
-          .catch(error => {
-            console.log(error.response.data);
-          })
+          var tr = '<tr>' 
+            + '<td>' + one.type + '</td>'
+            + '<td>' + one.height + '</td>'
+            + '<td>' + one.args + '</td>'
+            + '<td>' + one.timestamp + '</td>'
+            + '<td>' + one.senderId + '</td>'
+            + '</tr>';
+          $transTable.append(tr);
+        }
       }
+      function updateAccountInfo(account) {
+        var addressDiv = $('#address');
+        addressDiv.html(`<b>Address: </b>${account.address}`);
+
+        var publicKeyDiv = $('#publicKey');
+        publicKeyDiv.html(`<b>PublicKey: </b>${account.publicKey}`);
+
+        var username = $('#username');
+        if (account.username) {
+          username.html(`<b>Username </b>${account.username}`)
+        } else {
+          username.html('<b>Username: </b><i>no username</i>');
+        }
+
+        var isDelegate = $('#isDelegate');
+        if (account.isDelegate) {
+          isDelegate.html(`<b>Is Delegate: </b>Yes`);
+        } else {
+          isDelegate.html(`<b>Is Delegate: </b>No`);
+        }
+
+        var isLocked = $('#isLocked');
+        if (account.lockHeight === '0') {
+          isLocked.html('<b>Is Locked: </b> No');
+        } else {
+          isLocked.html(`<b> Is Locked: </b> Yes, until height <b>${account.lockHeight}</b>`);
+        }
+      }
+      function downloadUiaInfo() {
+        // .then(ret => {
+        // return axios.get('/api/uia/isIssuer/' + temp.address);
+        // if (!ret.data.isIssuer) {
+        //   temp.issuer = null;
+        // } else {
+        //   temp.issuer = ret.data.issuerName;
+        // }
+        // return axios.get('/api/uia/issuers/' + (temp.issuer || null) + '/assets')
+        // })
+        // .then(ret => {
+      }
+
       function loadContracts() {
         var $contractOptions = $('#contractOptions');
         $contractOptions.empty();
@@ -94,7 +127,8 @@
 
       function updateAccount(account) {
         updateBalanceView(account.balances);
-        updateTransactionView(account.address);
+        updateTransactionView(account);
+        updateAccountInfo(account);
       }
       function onLogin(account) {
         State.isLogin = true;
@@ -102,20 +136,29 @@
         $('#secretInput').hide();
         $('#mainPanel').show();
         updateBalanceView(account.balances);
-        updateTransactionView(account.address);
+        updateTransactionView(account);
+        updateAccountInfo(account);
         loadContracts();
 
         State.timer = setInterval(function() {
-          console.log('refetch data');
           if (UserInfo.publicKey) {
+            console.log('refetch data');
             login(UserInfo.secret, (err, account) => {
+              console.log('finshed setInterval')
+              if (err) {
+                console.log(`error during login: ${err}`);
+                return;
+              }
+
               UserInfo = account;
               updateAccount(account);
             });
           }
-        }, 5 * 1000);
+        }, 10 * 1000);
       }
       function login(secret, cb) {
+        console.log('called login ' + new Date());
+
         const temp = {
           secret,
         };
@@ -127,6 +170,9 @@
             temp.publicKey = ret.data.account.publicKey;
             temp.address = ret.data.account.address;
             temp.gny = ret.data.account.balance;
+            temp.username = ret.data.account.username;
+            temp.isDelegate = ret.data.account.isDelegate;
+            temp.lockHeight = ret.data.account.lockHeight;
 
             return axios.get('/api/uia/balances/' + temp.address)
           })
@@ -137,27 +183,17 @@
               currency: 'GNY',
             });
 
+            return axios.get('/api/transactions?senderId=' + temp.address);
+          })
+          .then(ret => {
+            temp.transactions = ret.data.transactions;
+
             cb(null, temp);
           })
           .catch(err => {
-            console.log(err.message);
-            err.response && console.log(err.response.data);
-            cb(err.message);
+            console.log(`login err: ${err}`);
+            cb('Data fetching failed');
           });
-      }
-      function getBalances(address) {
-        $.ajax({
-          type: 'GET',
-          url: '/api/uia/balances/' + address,
-          dataType: 'json',
-          success: function(ret) {
-            if (!ret.success) {
-              alert(ret.error);
-              return;
-            }
-            updateBalanceView(ret.balances);
-          },
-        });
       }
       function logout() {
         $('#loginBtn').html('Login');
@@ -174,9 +210,16 @@
         if (State.isLogin) {
           logout();
         } else {
-          login($('#secretInput').val(), (err, account) => {
+          const secret = $('#secretInput').val();
+          login(secret, (err, account) => {
+            if (err) {
+              console.log(`error during login: ${err}`);
+              return;
+            }
+
+            console.log(`setting UserInfo to: ${account}`)
             UserInfo = account;
-            onLogin(account);
+            onLogin(UserInfo);
           });
         }
       });
@@ -227,7 +270,7 @@
   </script>
 
   <body style="margin: 35px">
-    <h1>Simple Wallet</h1>
+    <h1>GNY - Simple Wallet</h1>
     <div>
       <input
         type="password"
@@ -236,7 +279,20 @@
       />
       <button id="loginBtn">Login</button>
     </div>
+
     <div id="mainPanel" style="display: none;">
+      <hr/>
+      <h2>Account info</h2>
+      <div>
+        <span>
+          <div id="address"></div>
+          <div id="publicKey"></div>
+          <div id="username"></div>
+          <div id="isDelegate"></div>
+          <div id="isLocked"></div>
+        </span>
+      </div>
+
       <hr />
       <h2>Account balances</h2>
       <div>
