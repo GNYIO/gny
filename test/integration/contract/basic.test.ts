@@ -96,7 +96,6 @@ describe('basic', () => {
           'http://localhost:4096/api/accounts/getBalance?address=' + recipient
         );
         expect(beforeTrs.data.balances[0].gny).toBe(0);
-        await lib.onNewBlock();
 
         // Transaction
         const trs = gnyJS.basic.transfer(
