@@ -183,7 +183,7 @@ export default class Transport {
       let votes = this.library.protobuf.decodeBlockVotes(
         Buffer.from(result.votes, 'base64')
       );
-      block = this.library.base.block.objectNormalize(block);
+      block = this.library.base.block.normalizeBlock(block);
       votes = this.library.base.consensus.normalizeVotes(votes);
       this.latestBlocksCache.set(block.id, result);
       this.blockHeaderMidCache.set(block.id, body);
@@ -280,7 +280,9 @@ export default class Transport {
 
     try {
       // normalize and validate
-      transaction = this.library.base.transaction.objectNormalize(transaction);
+      transaction = this.library.base.transaction.normalizeTransaction(
+        transaction
+      );
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         message,

@@ -166,7 +166,7 @@ export default class Loader {
 
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = this.library.base.transaction.objectNormalize(
+          transactions[i] = this.library.base.transaction.normalizeTransaction(
             transactions[i]
           );
         } catch (e) {

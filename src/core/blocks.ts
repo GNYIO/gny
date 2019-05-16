@@ -264,7 +264,7 @@ export default class Blocks {
       if (!block.transactions) block.transactions = [];
       if (!options.local) {
         try {
-          block = this.library.base.block.objectNormalize(block);
+          block = this.library.base.block.normalizeBlock(block);
         } catch (e) {
           this.library.logger.error(`Failed to normalize block: ${e}`, block);
           throw e;
@@ -292,7 +292,7 @@ export default class Blocks {
 
         // TODO use bloomfilter
         for (const transaction of block.transactions) {
-          this.library.base.transaction.objectNormalize(transaction);
+          this.library.base.transaction.normalizeTransaction(transaction);
         }
         const idList = block.transactions.map(t => t.id);
 
@@ -341,7 +341,7 @@ export default class Blocks {
       this.proposeCache = {};
       this.lastVoteTime = null;
       this.privIsCollectingVotes = false;
-      this.library.base.consensus.clearState();
+      this.library.modules.consensusManagement.clearState();
     }
   };
 
@@ -553,7 +553,7 @@ export default class Blocks {
   };
 
   public generateBlock = async (keypair: KeyPair, timestamp: number) => {
-    if (this.library.base.consensus.hasPendingBlock(timestamp)) {
+    if (this.library.modules.consensusManagement.hasPendingBlock(timestamp)) {
       return;
     }
     const unconfirmedList = this.modules.transactions.getUnconfirmedTransactionList();
@@ -644,8 +644,8 @@ export default class Blocks {
       this.library.logger.error('Failed to create propose', e);
       return;
     }
-    this.library.base.consensus.setPendingBlock(block);
-    this.library.base.consensus.addPendingVotes(localVotes);
+    this.library.modules.consensusManagement.setPendingBlock(block);
+    this.library.modules.consensusManagement.addPendingVotes(localVotes);
     this.proposeCache[propose.hash] = true;
     this.privIsCollectingVotes = true;
     this.library.bus.message('onNewPropose', propose, true);
@@ -834,7 +834,9 @@ export default class Blocks {
       return;
     }
     this.library.sequence.add(cb => {
-      const totalVotes = this.library.base.consensus.addPendingVotes(votes);
+      const totalVotes = this.library.modules.consensusManagement.addPendingVotes(
+        votes
+      );
       if (totalVotes && totalVotes.signatures) {
         this.library.logger.debug(
           `receive new votes, total votes number ${
@@ -843,7 +845,7 @@ export default class Blocks {
         );
       }
       if (this.library.base.consensus.hasEnoughVotes(totalVotes)) {
-        const block = this.library.base.consensus.getPendingBlock();
+        const block = this.library.modules.consensusManagement.getPendingBlock();
         const height = block.height;
         const id = block.id;
         return (async () => {

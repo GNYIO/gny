@@ -2,73 +2,102 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import * as assert from 'assert';
-import slots from '../utils/slots';
+import joi from '../../src/utils/extendedJoi';
 import * as ip from 'ip';
 import {
-  IScope,
   IBlock,
   KeyPair,
   ManyVotes,
   Signature,
   BlockPropose,
 } from '../interfaces';
+import { copyObject } from './helpers';
+import { DELEGATES } from '../utils/constants';
 
-export class Consensus {
-  private pendingBlock: IBlock = undefined;
-  private pendingVotes: ManyVotes = undefined;
-  private votesKeySet = new Set();
-  private library: IScope;
+export class ConsensusBase {
+  private static calculateVoteHash(height: number, id: string) {
+    const byteBuffer = new ByteBuffer();
 
-  constructor(scope: IScope) {
-    this.library = scope;
+    byteBuffer.writeInt64(height);
+    byteBuffer.writeString(id);
+    byteBuffer.flip();
+
+    const buffer = byteBuffer.toBuffer();
+    return crypto
+      .createHash('sha256')
+      .update(buffer)
+      .digest();
   }
 
-  public addPendingVotes = (votes: ManyVotes) => {
-    if (
-      !this.pendingBlock ||
-      this.pendingBlock.height !== votes.height ||
-      this.pendingBlock.id !== votes.id
-    ) {
-      return this.pendingVotes;
-    }
-    for (let i = 0; i < votes.signatures.length; ++i) {
-      const item = votes.signatures[i];
-      if (this.votesKeySet[item.publicKey]) {
-        continue;
-      }
-      if (this.verifyVote(votes.height, votes.id, item)) {
-        this.votesKeySet[item.publicKey] = true;
-        if (!this.pendingVotes) {
-          this.pendingVotes = {
-            height: votes.height,
-            id: votes.id,
-            signatures: [],
-          } as ManyVotes;
-        }
-        this.pendingVotes.signatures.push(item);
-      }
-    }
-    return this.pendingVotes;
-  };
+  public static normalizeVotes(old: any): ManyVotes {
+    const votes = copyObject(old);
 
-  public setPendingBlock(block: IBlock) {
-    this.pendingBlock = block;
+    const schema = joi.object().keys({
+      height: joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      id: joi.string().required(),
+      signatures: joi
+        .array()
+        .items({
+          publicKey: joi
+            .string()
+            .publicKey()
+            .required(),
+          signature: joi
+            .string()
+            .signature()
+            .required(),
+        })
+        .required(),
+    });
+    const report = joi.validate(votes, schema);
+    if (report.error) {
+      throw new Error(report.error.message);
+    }
+    return votes;
   }
 
-  public hasPendingBlock(timestamp: number) {
-    if (!this.pendingBlock) {
+  public static createVotes(keypairs: KeyPair[], block: IBlock): ManyVotes {
+    const hash = ConsensusBase.calculateVoteHash(block.height, block.id);
+    const votes: ManyVotes = {
+      height: block.height,
+      id: block.id,
+      signatures: [],
+    };
+    keypairs.forEach((kp: KeyPair) => {
+      votes.signatures.push({
+        publicKey: kp.publicKey.toString('hex'),
+        signature: ed.sign(hash, kp.privateKey).toString('hex'),
+      } as Signature);
+    });
+    return votes;
+  }
+
+  public static verifyVote(height: number, id: string, vote: Signature) {
+    try {
+      const hash = ConsensusBase.calculateVoteHash(height, id);
+      const signature = Buffer.from(vote.signature, 'hex');
+      const publicKey = Buffer.from(vote.publicKey, 'hex');
+      return ed.verify(hash, signature, publicKey);
+    } catch (e) {
       return false;
     }
-    return (
-      slots.getSlotNumber(this.pendingBlock.timestamp) ===
-      slots.getSlotNumber(timestamp)
-    );
-  }
-  public getPendingBlock() {
-    return this.pendingBlock;
   }
 
-  private calculateProposeHash(propose: BlockPropose) {
+  public static hasEnoughVotes(votes: ManyVotes) {
+    return (
+      votes && votes.signatures && votes.signatures.length > (DELEGATES * 2) / 3
+    );
+  }
+
+  public static hasEnoughVotesRemote(votes: ManyVotes) {
+    return votes && votes.signatures && votes.signatures.length >= 6;
+  }
+
+  private static calculateProposeHash(propose: BlockPropose) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64(propose.height);
     byteBuffer.writeString(propose.id);
@@ -96,7 +125,11 @@ export class Consensus {
       .digest();
   }
 
-  public createPropose(keypair: KeyPair, block: IBlock, address: string) {
+  public static createPropose(
+    keypair: KeyPair,
+    block: IBlock,
+    address: string
+  ) {
     assert(keypair.publicKey.toString('hex') === block.delegate);
 
     const basePropose: Pick<
@@ -110,7 +143,7 @@ export class Consensus {
       address,
     };
 
-    const hash = this.getProposeHash(basePropose);
+    const hash = ConsensusBase.getProposeHash(basePropose);
 
     const finalPropose: BlockPropose = {
       ...basePropose,
@@ -121,7 +154,7 @@ export class Consensus {
     return finalPropose;
   }
 
-  private getProposeHash(
+  private static getProposeHash(
     propose: Pick<
       BlockPropose,
       'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'
@@ -154,8 +187,8 @@ export class Consensus {
       .digest();
   }
 
-  public acceptPropose(propose: BlockPropose) {
-    const hash = this.calculateProposeHash(propose);
+  public static acceptPropose(propose: BlockPropose) {
+    const hash = ConsensusBase.calculateProposeHash(propose);
     if (propose.hash !== hash.toString('hex')) {
       throw new Error('Propose hash is not correct.');
     }
@@ -169,11 +202,5 @@ export class Consensus {
     } catch (e) {
       throw new Error(`Propose signature exception: ${e.toString()}`);
     }
-  }
-
-  public clearState() {
-    this.pendingVotes = undefined;
-    this.votesKeySet = new Set();
-    this.pendingBlock = undefined;
   }
 }

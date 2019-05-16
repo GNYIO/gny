@@ -176,7 +176,7 @@ export default class TransportApi {
     }
     let transaction: Transaction;
     try {
-      transaction = this.library.base.transaction.objectNormalize(
+      transaction = this.library.base.transaction.normalizeTransaction(
         req.body.transaction
       );
     } catch (e) {

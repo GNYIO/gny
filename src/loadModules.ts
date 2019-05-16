@@ -7,6 +7,7 @@ import Delegates from './core/delegates';
 import Round from './core/round';
 import Uia from './core/uia';
 import Blocks from './core/blocks';
+import ConsensusManagement from './core/consensus-management';
 
 import { Modules, IScope } from './interfaces';
 
@@ -20,6 +21,7 @@ export default function loadModules(scope: IScope) {
   const round = new Round(scope);
   const uia = new Uia(scope);
   const blocks = new Blocks(scope);
+  const consensusManagement = new ConsensusManagement(scope);
 
   const modules: Modules = {
     accounts: accounts,
@@ -31,6 +33,7 @@ export default function loadModules(scope: IScope) {
     round: round,
     uia: uia,
     blocks: blocks,
+    consensusManagement: consensusManagement,
   };
   return modules;
 }

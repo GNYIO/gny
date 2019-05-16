@@ -7,10 +7,11 @@ import delegates from './core/delegates';
 import round from './core/round';
 import uia from './core/uia';
 import blocks from './core/blocks';
+import consensusManagement from './core/consensus-management';
 
-import { Consensus as BaseConsensus } from './base/consensus';
-import { Transaction as BaseTransaction } from './base/transaction';
-import { Block as BaseBlock } from './base/block';
+import { ConsensusBase } from './base/consensus';
+import { TransactionBase } from './base/transaction';
+import { BlockBase } from './base/block';
 
 import { Protobuf } from './utils/protobuf';
 import * as tracer from 'tracer';
@@ -26,6 +27,7 @@ import * as SocketIO from 'socket.io';
 // IApp
 import { SmartDB } from '../packages/database-postgres/src/smartDB';
 import BalanceManager from './smartdb/balance-manager';
+import { Store } from 'redux';
 
 import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
@@ -34,9 +36,9 @@ import address from './utils/address';
 declare interface IBase {
   bus: any;
   genesisBlock: IGenesisBlock;
-  consensus: BaseConsensus;
-  transaction: BaseTransaction;
-  block: BaseBlock;
+  consensus: typeof ConsensusBase;
+  transaction: typeof TransactionBase;
+  block: typeof BlockBase;
 }
 
 export interface IScope {
@@ -63,6 +65,7 @@ export interface Modules {
   round: round;
   uia: uia;
   blocks: blocks;
+  consensusManagement: consensusManagement;
 }
 
 export interface IMessageEmitter {
@@ -137,6 +140,7 @@ interface IApp {
   };
   registerHook: (name: string, func: () => void) => void;
   logger: ILogger;
+  store: Store;
 }
 
 export type ILogger = tracer.Tracer.Logger;

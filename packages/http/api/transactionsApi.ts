@@ -308,7 +308,7 @@ export default class TransactionsApi {
     const trs = req.body.transactions;
     try {
       for (const t of trs) {
-        this.library.base.transaction.objectNormalize(t);
+        this.library.base.transaction.normalizeTransaction(t);
       }
     } catch (e) {
       return next(`Invalid transaction body: ${e.toString()}`);
