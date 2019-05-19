@@ -178,10 +178,22 @@ export class DbSession {
   public create(schema: ModelSchema, entity: ObjectLiteral) {
     const primaryKey = schema.getNormalizedPrimaryKey(entity);
     const isValidPrimaryKey = schema.isValidPrimaryKey(primaryKey);
+    const primaryGeneratedKey = schema.getPrimaryGeneratedKey(entity);
+    const hasPrimaryGeneratedKey = schema.hasPrimaryGeneratedKey();
+
+    if (primaryGeneratedKey !== undefined && !_.isEmpty(primaryGeneratedKey)) {
+      throw new Error(
+        "entity must not contain primary generated key ( model = '" +
+          schema.modelName +
+          "' entity = '" +
+          entity +
+          "' )"
+      );
+    }
+
     if (
-      undefined === primaryKey ||
-      _.isEmpty(primaryKey) ||
-      !isValidPrimaryKey
+      !hasPrimaryGeneratedKey &&
+      (undefined === primaryKey || _.isEmpty(primaryKey) || !isValidPrimaryKey)
     ) {
       throw new Error(
         "entity must contains primary key ( model = '" +
@@ -191,6 +203,7 @@ export class DbSession {
           "' )"
       );
     }
+
     if (this.sessionCache.exists(schema.modelName, primaryKey)) {
       throw new Error(
         "entity exists already ( model = '" +

@@ -18,6 +18,7 @@ import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 import { BlockHistory } from './entity/BlockHistory';
+import { Mldata } from './entity/Mldata';
 
 export async function loadConfig(logger: ILogger, configFilePath: string) {
   let options: PostgresConnectionOptions = undefined;
@@ -39,6 +40,7 @@ export async function loadConfig(logger: ILogger, configFilePath: string) {
       Variable,
       Vote,
       BlockHistory,
+      Mldata,
     ],
   });
   Object.assign(options, {
