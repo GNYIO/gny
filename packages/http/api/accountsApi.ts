@@ -8,7 +8,6 @@ import {
   Next,
   DelegateViewModel,
 } from '../../../src/interfaces';
-import { In } from 'typeorm';
 
 interface BalanceCondition {
   address: string;

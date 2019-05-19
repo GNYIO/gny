@@ -14,6 +14,7 @@ import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
 import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
+import { Mldata } from '../entity/Mldata';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -22,6 +23,7 @@ export function transform(entity: any) {
   const primaryColumns: OneIndex[] = ormMetaData.primaryColumns.map(column => {
     return {
       isUnique: false,
+      isGenerated: false,
       columns: [
         {
           propertyName: column.propertyName,
@@ -29,9 +31,23 @@ export function transform(entity: any) {
       ],
     };
   });
+  const generatedColumns: OneIndex[] = ormMetaData.generatedColumns.map(
+    column => {
+      return {
+        isUnique: true,
+        isGenerated: true,
+        columns: [
+          {
+            propertyName: column.propertyName,
+          },
+        ],
+      };
+    }
+  );
   const uniqueColumns: OneIndex[] = ormMetaData.uniques.map(uniqueMetaData => {
     return {
       isUnique: true,
+      isGenerated: false,
       columns: [
         {
           propertyName: uniqueMetaData.columns[0].propertyName,
@@ -57,7 +73,7 @@ export function transform(entity: any) {
 
   const meta: MetaSchema = {
     name,
-    indices: [...primaryColumns, ...uniqueColumns] || [],
+    indices: [...primaryColumns, ...generatedColumns, ...uniqueColumns] || [],
     columns: columns || [],
     ...config,
   };
@@ -80,6 +96,7 @@ export function createMetaSchema() {
   const variable = transform(Variable);
   const vote = transform(Vote);
   const blockHistory = transform(BlockHistory);
+  const mldata = transform(Mldata);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -93,6 +110,7 @@ export function createMetaSchema() {
   result.set('Variable', variable);
   result.set('Vote', vote);
   result.set('BlockHistory', blockHistory);
+  result.set('Mldata', mldata);
 
   return result;
 }
