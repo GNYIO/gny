@@ -1,6 +1,5 @@
-import { Block } from '../../../src/base/block';
-import { IScope, KeyPair, IBlock } from '../../../src/interfaces';
-import extendedJoi from '../../../src/utils/extendedJoi';
+import { BlockBase } from '../../../src/base/block';
+import { KeyPair, IBlock, Transaction } from '../../../src/interfaces';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 
@@ -38,25 +37,9 @@ export function createBlock(height: number, keypair: KeyPair) {
 }
 
 describe('Transaction', () => {
-  let blockBase;
-
-  const iScope = {
-    joi: extendedJoi,
-    base: {
-      transaction: {
-        objectNormalize: jest.fn(trs => trs),
-      },
-    } as any,
-  } as IScope;
-
-  beforeEach(done => {
-    blockBase = new Block(iScope);
-    done();
-  });
-
   describe('getId', () => {
-    let block;
-    let keypair;
+    let block: IBlock;
+    let keypair: KeyPair;
 
     beforeEach(done => {
       keypair = createKeypair();
@@ -65,7 +48,7 @@ describe('Transaction', () => {
     });
 
     it('should return an id of the block', done => {
-      const id = blockBase.getId(block);
+      const id = BlockBase.getId(block);
       expect(id).toHaveLength(64);
       done();
     });
@@ -73,15 +56,15 @@ describe('Transaction', () => {
 
   describe('calculateFee', () => {
     it('should return the fee', done => {
-      const fee = blockBase.calculateFee();
+      const fee = BlockBase.calculateFee();
       expect(fee).toEqual(10000000);
       done();
     });
   });
 
   describe('sign', () => {
-    let block;
-    let keypair;
+    let block: IBlock;
+    let keypair: KeyPair;
 
     beforeEach(done => {
       keypair = createKeypair();
@@ -90,36 +73,36 @@ describe('Transaction', () => {
     });
 
     it('should return the signature of the block', done => {
-      const signature = blockBase.sign(block, keypair);
+      const signature = BlockBase.sign(block, keypair);
       expect(signature).toHaveLength(128);
       done();
     });
   });
 
   describe('verifySignature', () => {
-    let block;
-    let keypair;
+    let block: IBlock;
+    let keypair: KeyPair;
 
     beforeEach(done => {
       keypair = createKeypair();
       block = createBlock(1, keypair);
 
-      block.signature = blockBase.sign(block, keypair);
-      block.id = blockBase.getId(block);
+      block.signature = BlockBase.sign(block, keypair);
+      block.id = BlockBase.getId(block);
       done();
     });
 
     it('should return true when valid signature is checked ', done => {
-      const verified = blockBase.verifySignature(block);
+      const verified = BlockBase.verifySignature(block);
       expect(verified).toBeTruthy();
       done();
     });
   });
 
   describe('objectNormalize', () => {
-    let block;
-    let keypair;
-    let trs;
+    let block: IBlock;
+    let keypair: KeyPair;
+    let trs: Transaction;
 
     beforeEach(done => {
       trs = createTransation();
@@ -127,20 +110,20 @@ describe('Transaction', () => {
       block = createBlock(1, keypair);
 
       block.transactions = [trs];
-      block.signature = blockBase.sign(block, keypair);
-      block.id = blockBase.getId(block);
+      block.signature = BlockBase.sign(block, keypair);
+      block.id = BlockBase.getId(block);
       done();
     });
 
     it('should return the normalized block', () => {
-      const normalizedBlock = blockBase.objectNormalize(block);
+      const normalizedBlock = BlockBase.normalizeBlock(block);
       expect(normalizedBlock).toEqual(block);
     });
 
     it('should throw error if there are errors during validation', () => {
       block.height = -1;
       try {
-        blockBase.objectNormalize(block);
+        BlockBase.normalizeBlock(block);
       } catch (e) {
         expect(e.message).toBe(
           'child "height" fails because ["height" must be larger than or equal to 0]'
