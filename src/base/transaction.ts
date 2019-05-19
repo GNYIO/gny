@@ -136,7 +136,7 @@ export class TransactionBase {
     bytes: Buffer
   ) {
     if (
-      !verifyBytes(
+      !TransactionBase.verifyBytes(
         bytes,
         transaction.senderPublicKey,
         transaction.signatures[0]
@@ -147,7 +147,11 @@ export class TransactionBase {
     if (sender.secondPublicKey) {
       if (!transaction.secondSignature) return 'Second signature not provided';
       if (
-        !verifyBytes(bytes, sender.secondPublicKey, transaction.secondSignature)
+        !TransactionBase.verifyBytes(
+          bytes,
+          sender.secondPublicKey,
+          transaction.secondSignature
+        )
       ) {
         return 'Invalid second signature';
       }
@@ -204,7 +208,7 @@ export class TransactionBase {
     if (trs.fee < minFee) return 'Fee not enough';
 
     try {
-      const bytes = getBytes(trs, true, true);
+      const bytes = TransactionBase.getBytes(trs, true, true);
       if (trs.senderPublicKey) {
         const error = TransactionBase.verifyNormalSignature(trs, sender, bytes);
         if (error) return error;
@@ -230,19 +234,22 @@ export class TransactionBase {
       fee: data.fee,
     } as Transaction;
 
-    transaction.signatures = [sign(data.keypair, transaction)];
+    transaction.signatures = [TransactionBase.sign(data.keypair, transaction)];
 
     if (data.secondKeypair) {
-      transaction.secondSignature = sign(data.secondKeypair, transaction);
+      transaction.secondSignature = TransactionBase.sign(
+        data.secondKeypair,
+        transaction
+      );
     }
 
-    transaction.id = getHash(transaction).toString('hex');
+    transaction.id = TransactionBase.getHash(transaction).toString('hex');
 
     return transaction;
   }
 
   private static sign(keypair: KeyPair, transaction) {
-    const bytes = getBytes(transaction, true, true);
+    const bytes = TransactionBase.getBytes(transaction, true, true);
     const hash = crypto
       .createHash('sha256')
       .update(bytes)

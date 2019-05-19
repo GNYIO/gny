@@ -1,19 +1,17 @@
-import { Transaction } from '../../../src/base/transaction';
+import { TransactionBase } from '../../../src/base/transaction';
 import basic from '../../../src/contract/basic';
-import { IScope } from '../../../src/interfaces';
+import { IScope, Transaction, Context, IBlock } from '../../../src/interfaces';
 import extendedJoi from '../../../src/utils/extendedJoi';
 import { ILogger } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
 import * as ed from '../../../src/utils/ed';
 
-// import { Transaction as ITransaction } from '../../../src/interfaces';
-
 jest.mock('../../../packages/database-postgres/src/smartDB');
 jest.mock('../../../src/contract/basic');
 
 export function createTransation() {
-  const data = {
+  const data: Transaction = {
     type: 10,
     fee: 10000000000,
     timestamp: 12165155,
@@ -28,19 +26,13 @@ export function createTransation() {
     secondSignature:
       '9197c401ae2c72532e0d16340ec920639798714962e03c50d6742ed91944b5a8246e0f83d761435f2619a3413e3dd0f5fa8070c00d2f44ff99d5ac9600fe4b02',
     id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
+    height: 0,
   };
   return data;
 }
 
 describe('Transaction', () => {
-  let transaction;
-
-  const iScope = {
-    joi: extendedJoi,
-  } as IScope;
-
   beforeEach(done => {
-    transaction = new Transaction(iScope);
     const logger: ILogger = {
       log: x => x,
       trace: x => x,
@@ -61,7 +53,7 @@ describe('Transaction', () => {
   });
 
   describe('create', () => {
-    let trs;
+    let trs: Transaction;
     beforeEach(done => {
       const secret = 'ABCDEFG';
       const secondSecret = 'HIJKLMN';
@@ -86,7 +78,7 @@ describe('Transaction', () => {
         keypair: keypair,
         secondKeypair: secondKeypair,
       };
-      trs = transaction.create(data);
+      trs = TransactionBase.create(data);
       done();
     });
 
@@ -99,11 +91,11 @@ describe('Transaction', () => {
   });
 
   describe('getId', () => {
-    let id;
-    let trs;
+    let id: string;
+    let trs: Transaction;
     beforeEach(done => {
       trs = createTransation();
-      id = transaction.getId(trs);
+      id = TransactionBase.getId(trs);
       done();
     });
 
@@ -114,11 +106,11 @@ describe('Transaction', () => {
   });
 
   describe('getBytes', () => {
-    let bytes;
+    let bytes: Buffer;
 
     beforeEach(done => {
       const trs = createTransation();
-      bytes = transaction.getBytes(trs, false, false);
+      bytes = TransactionBase.getBytes(trs, false, false);
       done();
     });
 
@@ -128,26 +120,30 @@ describe('Transaction', () => {
   });
 
   describe('verifyNormalSignature', () => {
-    let trs;
+    let trs: Transaction;
     let sender;
-    let bytes;
+    let bytes: Buffer;
 
     beforeEach(done => {
       trs = createTransation();
       sender = {};
-      bytes = transaction.getBytes(trs, true, true);
+      bytes = TransactionBase.getBytes(trs, true, true);
       done();
     });
 
-    it('should return undifined when valid normal signature is checked', () => {
-      const verified = transaction.verifyNormalSignature(trs, sender, bytes);
+    it('should return undefined when valid normal signature is checked', () => {
+      const verified = TransactionBase.verifyNormalSignature(
+        trs,
+        sender,
+        bytes
+      );
       expect(verified).toBeUndefined();
     });
   });
 
   describe('verify', () => {
-    let context;
-    let trs;
+    let context: Context;
+    let trs: Transaction;
     let sender;
 
     beforeEach(done => {
@@ -157,36 +153,36 @@ describe('Transaction', () => {
       done();
     });
 
-    it('should return undifined when valid normal signature is checked', async () => {
-      const verified = await transaction.verify(context);
+    it('should return undefined when valid normal signature is checked', async () => {
+      const verified = await TransactionBase.verify(context);
       expect(verified).toBeUndefined();
     });
   });
 
   describe('verifyBytes', () => {
-    let bytes;
-    let publicKey;
-    let signature;
+    let bytes: Buffer;
+    let publicKey: string;
+    let signature: string;
 
     beforeEach(done => {
       const trs = createTransation();
-      bytes = transaction.getBytes(trs, true, true);
+      bytes = TransactionBase.getBytes(trs, true, true);
       publicKey = trs.senderPublicKey;
       signature = trs.signatures[0];
       done();
     });
 
     it('should return true when valid bytes are checked', () => {
-      const verified = transaction.verifyBytes(bytes, publicKey, signature);
+      const verified = TransactionBase.verifyBytes(bytes, publicKey, signature);
       expect(verified).toBeTruthy();
     });
   });
 
   describe('apply', () => {
-    let context;
-    let trs;
+    let context: Context;
+    let trs: Transaction;
     let sender;
-    let block;
+    let block: Pick<IBlock, 'height'>;
 
     beforeEach(done => {
       trs = createTransation();
@@ -203,13 +199,13 @@ describe('Transaction', () => {
       global.app.sdb.update.mockReturnValue(true);
       global.app.contract.basic.transfer.mockReturnValue(null);
 
-      const applied = await transaction.apply(context);
+      const applied = await TransactionBase.apply(context);
       expect(applied).toBeNull();
     });
   });
 
   describe('objectNormalize', () => {
-    let trs;
+    let trs: Transaction;
 
     beforeEach(done => {
       trs = createTransation();
@@ -217,7 +213,7 @@ describe('Transaction', () => {
     });
 
     it('should return the normalized trsanction', () => {
-      const normalizedTrs = transaction.objectNormalize(trs);
+      const normalizedTrs = TransactionBase.normalizeTransaction(trs);
       expect(normalizedTrs).toEqual(trs);
     });
   });
