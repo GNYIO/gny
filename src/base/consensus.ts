@@ -29,9 +29,7 @@ export class ConsensusBase {
       .digest();
   }
 
-  public static normalizeVotes(old: any): ManyVotes {
-    const votes = copyObject(old);
-
+  public static normalizeVotes(votes: any): ManyVotes {
     const schema = joi.object().keys({
       height: joi
         .number()
