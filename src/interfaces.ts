@@ -5,7 +5,6 @@ import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
 import round from './core/round';
-import uia from './core/uia';
 import blocks from './core/blocks';
 import consensusManagement from './core/consensus-management';
 
@@ -63,7 +62,6 @@ export interface Modules {
   transport: transport;
   delegates: delegates;
   round: round;
-  uia: uia;
   blocks: blocks;
   consensusManagement: consensusManagement;
 }
