@@ -605,21 +605,6 @@ describe('integration - SmartDB', () => {
     );
   });
 
-  it('create() - throws if primary generated key is provided', async () => {
-    await saveGenesisBlock(sut);
-
-    const wrongData = {
-      id: 1,
-      username: 'a1300', // but no property address
-    };
-    const createPromise = sut.create('Mldata', wrongData);
-    return expect(createPromise).rejects.toEqual(
-      new Error(
-        "entity must not contain primary generated key ( model = 'Mldata' entity = '[object Object]' )"
-      )
-    );
-  });
-
   it('create() - throws if no complete composite key is provided if needed', async () => {
     await saveGenesisBlock(sut);
 
@@ -1451,31 +1436,6 @@ describe('integration - SmartDB', () => {
     const result = await sut.findOne('Balance', compositeKey);
     expect(result).toEqual(createdBalance);
 
-    done();
-  });
-
-  it('findOne() - load entity from DB by primary genertated key', async done => {
-    await saveGenesisBlock(sut);
-
-    const data = { username: 'xpgeng' };
-    await sut.create('Mldata', data);
-
-    // persist changes to dB
-    const block = createBlock(1);
-    sut.beginBlock(block);
-    await sut.commitBlock();
-
-    const expected = {
-      id: 1,
-      username: 'xpgeng',
-      _version_: 1,
-    };
-
-    const key = {
-      id: 1,
-    };
-    const result = await sut.findOne('Mldata', key);
-    expect(result).toEqual(expected);
     done();
   });
 
