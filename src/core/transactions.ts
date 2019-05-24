@@ -1,6 +1,7 @@
 import { LimitCache } from '../utils/limit-cache';
 import { TransactionPool } from '../utils/transaction-pool';
 import { Modules, IScope, Transaction, Context } from '../interfaces';
+import { TransactionBase } from '../base/transaction';
 
 export default class Transactions {
   private readonly library: IScope;
@@ -68,9 +69,9 @@ export default class Transactions {
   processUnconfirmedTransactionAsync = async (transaction: Transaction) => {
     try {
       if (!transaction.id) {
-        transaction.id = this.library.base.transaction.getId(transaction);
+        transaction.id = TransactionBase.getId(transaction);
       } else {
-        const id = this.library.base.transaction.getId(transaction);
+        const id = TransactionBase.getId(transaction);
         if (transaction.id !== id) {
           throw new Error('Invalid transaction id');
         }
@@ -136,13 +137,13 @@ export default class Transactions {
       sender,
     };
     if (height > 0) {
-      const error = await this.library.base.transaction.verify(context);
+      const error = await TransactionBase.verify(context);
       if (error) throw new Error(error);
     }
 
     try {
       global.app.sdb.beginContract();
-      await this.library.base.transaction.apply(context);
+      await this.apply(context);
       global.app.sdb.commitContract();
     } catch (e) {
       global.app.sdb.rollbackContract();
@@ -150,6 +151,39 @@ export default class Transactions {
       throw e;
     }
   };
+
+  public async apply(context: Context) {
+    const { block, trs, sender } = context;
+    const name = global.app.getContractName(String(trs.type));
+    if (!name) {
+      throw new Error(`Unsupported transaction type: ${trs.type}`);
+    }
+    const [mod, func] = name.split('.');
+    if (!mod || !func) {
+      throw new Error('Invalid transaction function');
+    }
+    const fn = global.app.contract[mod][func];
+    if (!fn) {
+      throw new Error('Contract not found');
+    }
+
+    if (block.height !== 0) {
+      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
+      sender.gny -= trs.fee;
+      await global.app.sdb.update(
+        'Account',
+        { gny: sender.gny },
+        { address: sender.address }
+      );
+    }
+
+    const error = await fn.apply(context, trs.args);
+    if (error) {
+      throw new Error(error);
+    }
+    // transaction.executed = 1
+    return null;
+  }
 
   // Events
   onBind = (scope: Modules) => {
