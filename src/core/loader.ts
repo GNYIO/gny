@@ -214,7 +214,7 @@ export default class Loader {
       try {
         await this.loadBlocks(lastBlock);
       } catch (err) {
-        this.library.logger.error('loadBlocks error:', err);
+        this.library.logger.warn('loadBlocks warning:', err.message);
       }
       this.privSyncing = false;
       this.blocksToSync = 0;
