@@ -32,38 +32,10 @@ describe('blocksApi', () => {
     it(
       'should get the number of delegates',
       async () => {
-        // register delegate
-        const username = 'xpgeng';
-
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
-        const nameTransData = {
-          transaction: nameTrs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          nameTransData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const trs = gnyJS.basic.registerDelegate(genesisSecret);
-        const transData = {
-          transaction: trs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
         const { data } = await axios.get(
           'http://localhost:4096/api/delegates/count'
         );
-        console.log(data);
-        // expect(data.block.height).toBe(2);
+        expect(data.count).toBe(101);
       },
       lib.oneMinute
     );
