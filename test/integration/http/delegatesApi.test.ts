@@ -160,8 +160,8 @@ describe('blocksApi', () => {
 
   describe('/forging/enable', () => {
     it(
-      'should get the voters',
-      async done => {
+      'should return the error: ',
+      async () => {
         const username = 'gny_d1';
         const publicKey =
           '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9';
@@ -172,24 +172,32 @@ describe('blocksApi', () => {
           secret,
           publicKey,
         };
-        // const { data } = await axios.post(
-        //   'http://localhost:4096/api/delegates/forging/enable',
-        //   transData,
-        //   config
-        // );
-        // console.log(data);
+        const enablePromise = axios.post(
+          'http://localhost:4096/api/delegates/forging/enable',
+          transData,
+          config
+        );
+        expect(enablePromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Access denied',
+        });
+      },
+      lib.oneMinute
+    );
+  });
 
-        try {
-          const { data } = await axios.post(
-            'http://localhost:4096/api/delegates/forging/enable',
-            transData,
-            config
-          );
-          console.log(data);
-        } catch (error) {
-          console.log(error);
-        }
-        // expect(data.accounts).toHaveLength(1);
+  describe('/forging/status', () => {
+    it(
+      'should get the status',
+      async done => {
+        const publicKey =
+          '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9';
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/delegates/forging/status?publicKey=' +
+            publicKey
+        );
+        expect(data).toHaveProperty('enabled');
         done();
       },
       lib.oneMinute
