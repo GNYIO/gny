@@ -35,9 +35,6 @@ import address from './utils/address';
 declare interface IBase {
   bus: any;
   genesisBlock: IGenesisBlock;
-  consensus: typeof ConsensusBase;
-  transaction: typeof TransactionBase;
-  block: typeof BlockBase;
 }
 
 export interface IScope {

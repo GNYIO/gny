@@ -5,9 +5,6 @@ import { EventEmitter } from 'events';
 import * as ip from 'ip';
 import * as _ from 'lodash';
 import Sequence from './utils/sequence';
-import { TransactionBase } from './base/transaction';
-import { BlockBase } from './base/block';
-import { ConsensusBase } from './base/consensus';
 import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
@@ -72,9 +69,6 @@ async function init_alt(options: IOptions) {
   scope.base = {
     bus: scope.bus,
     genesisBlock: scope.genesisBlock,
-    consensus: ConsensusBase,
-    transaction: TransactionBase,
-    block: BlockBase,
   };
 
   global.library = scope;

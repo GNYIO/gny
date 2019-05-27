@@ -7,3 +7,4 @@ const reducers = combineReducers({
 });
 
 export const store = createStore(reducers);
+// checkout redux documentation - use with typescript

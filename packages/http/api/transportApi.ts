@@ -10,6 +10,7 @@ import {
   Transaction,
   IBlock,
 } from '../../../src/interfaces';
+import { TransactionBase } from '../../../src/base/transaction';
 
 export default class TransportApi {
   private modules: Modules;
@@ -176,9 +177,7 @@ export default class TransportApi {
     }
     let transaction: Transaction;
     try {
-      transaction = this.library.base.transaction.normalizeTransaction(
-        req.body.transaction
-      );
+      transaction = TransactionBase.normalizeTransaction(req.body.transaction);
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         raw: req.body,

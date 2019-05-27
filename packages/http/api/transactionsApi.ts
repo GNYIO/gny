@@ -10,6 +10,7 @@ import {
   Transaction,
   IBlock,
 } from '../../../src/interfaces';
+import { TransactionBase } from '../../../src/base/transaction';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -265,7 +266,7 @@ export default class TransactionsApi {
                   .digest()
               );
             }
-            const trs = this.library.base.transaction.create({
+            const trs = TransactionBase.create({
               secret: query.secret,
               fee: query.fee,
               type: query.type,
@@ -307,8 +308,8 @@ export default class TransactionsApi {
 
     const trs = req.body.transactions;
     try {
-      for (const t of trs) {
-        this.library.base.transaction.normalizeTransaction(t);
+      for (let i = 0; i < trs.length; ++i) {
+        trs[i] = TransactionBase.normalizeTransaction(trs[i]);
       }
     } catch (e) {
       return next(`Invalid transaction body: ${e.toString()}`);

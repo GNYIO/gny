@@ -13,6 +13,9 @@ import {
   IBlock,
   BlockAndVotes,
 } from '../interfaces';
+import { BlockBase } from '../base/block';
+import { ConsensusBase } from '../base/consensus';
+import { TransactionBase } from '../base/transaction';
 
 export default class Transport {
   private readonly library: IScope;
@@ -183,8 +186,8 @@ export default class Transport {
       let votes = this.library.protobuf.decodeBlockVotes(
         Buffer.from(result.votes, 'base64')
       );
-      block = this.library.base.block.normalizeBlock(block);
-      votes = this.library.base.consensus.normalizeVotes(votes);
+      block = BlockBase.normalizeBlock(block);
+      votes = ConsensusBase.normalizeVotes(votes);
       this.latestBlocksCache.set(block.id, result);
       this.blockHeaderMidCache.set(block.id, body);
       this.library.bus.message('onReceiveBlock', block, votes);
@@ -280,9 +283,7 @@ export default class Transport {
 
     try {
       // normalize and validate
-      transaction = this.library.base.transaction.normalizeTransaction(
-        transaction
-      );
+      transaction = TransactionBase.normalizeTransaction(transaction);
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         message,

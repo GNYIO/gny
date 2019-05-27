@@ -1,11 +1,18 @@
 import { IScope, ManyVotes, IBlock } from '../interfaces';
 import { ConsensusBase } from '../base/consensus';
 import slots from '../../src/utils/slots';
+import {
+  setVotesKeySetAction,
+  addPendingVotesAction,
+  addPendingVotesSignaturesAction,
+  setPendingBlockAction,
+  resetConsensusAction,
+} from '../../packages/functional/redux/consensusActions';
 
 export default class ConsensusManagement {
-  private pendingBlock: IBlock = undefined;
-  private pendingVotes: ManyVotes = undefined;
-  private votesKeySet = new Set();
+  // private pendingBlock: IBlock = undefined;
+  // private pendingVotes: ManyVotes = undefined;
+  // private votesKeySet = new Set();
   private library: IScope;
 
   constructor(scope: IScope) {
@@ -13,55 +20,67 @@ export default class ConsensusManagement {
   }
 
   public addPendingVotes(votes: ManyVotes) {
+    const pendingBlock = global.app.store.getState().pendingBlock;
     if (
-      !this.pendingBlock ||
-      this.pendingBlock.height !== votes.height ||
-      this.pendingBlock.id !== votes.id
+      !pendingBlock ||
+      pendingBlock.height !== votes.height ||
+      pendingBlock.id !== votes.id
     ) {
-      return this.pendingVotes;
+      return global.app.store.getState().pendingVotes;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
       const item = votes.signatures[i];
-      if (this.votesKeySet[item.publicKey]) {
+      const votesKeySet = global.app.store.getState().votesKeySet;
+      if (votesKeySet[item.publicKey]) {
         continue;
       }
       if (ConsensusBase.verifyVote(votes.height, votes.id, item)) {
-        this.votesKeySet[item.publicKey] = true;
-        if (!this.pendingVotes) {
-          this.pendingVotes = {
-            height: votes.height,
-            id: votes.id,
-            signatures: [],
-          } as ManyVotes;
+        global.app.store.dispatch(setVotesKeySetAction(item.publicKey));
+        // this.votesKeySet[item.publicKey] = true;
+        const pendingVotes = global.app.store.getState().pendingVotes;
+        if (!pendingVotes) {
+          global.app.store.dispatch(
+            addPendingVotesAction({
+              height: votes.height,
+              id: votes.id,
+              signatures: [],
+            })
+          );
         }
-        this.pendingVotes.signatures.push(item);
+        global.app.store.dispatch(addPendingVotesSignaturesAction(item));
+        // this.pendingVotes.signatures.push(item);
       }
     }
-    return this.pendingVotes;
+    return global.app.store.getState().pendingVotes;
+    // return this.pendingVotes;
   }
 
   public setPendingBlock(block: IBlock) {
-    this.pendingBlock = block;
+    global.app.store.dispatch(setPendingBlockAction(block));
+    // this.pendingBlock = block;
   }
 
   public hasPendingBlock(timestamp: number) {
-    if (!this.pendingBlock) {
+    const pendingBlock = global.app.store.getState().pendingBlock;
+    if (!pendingBlock) {
       return false;
     }
     return (
-      slots.getSlotNumber(this.pendingBlock.timestamp) ===
+      slots.getSlotNumber(pendingBlock.timestamp) ===
       slots.getSlotNumber(timestamp)
     );
   }
 
   public getPendingBlock() {
-    return this.pendingBlock;
+    return global.app.store.getState().pendingBlock;
+    // return this.pendingBlock;
   }
 
   public clearState() {
-    this.pendingVotes = undefined;
-    this.votesKeySet = new Set();
-    this.pendingBlock = undefined;
+    global.app.store.dispatch(resetConsensusAction());
+    // this.pendingVotes = undefined;
+    // this.votesKeySet = new Set();
+    // this.pendingBlock = undefined;
   }
 
   public cleanup = (cb: any) => {

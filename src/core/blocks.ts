@@ -23,6 +23,9 @@ import {
   CommonBlockResult,
 } from '../interfaces';
 import pWhilst from 'p-whilst';
+import { BlockBase } from '../base/block';
+import { TransactionBase } from '../base/transaction';
+import { ConsensusBase } from '../base/consensus';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -112,7 +115,7 @@ export default class Blocks {
     options: Pick<ProcessBlockOptions, 'votes'>
   ) => {
     try {
-      block.id = this.library.base.block.getId(block);
+      block.id = BlockBase.getId(block);
     } catch (e) {
       throw new Error(`Failed to get block id: ${e.toString()}`);
     }
@@ -126,7 +129,7 @@ export default class Blocks {
     }
 
     try {
-      if (!this.library.base.block.verifySignature(block)) {
+      if (!BlockBase.verifySignature(block)) {
         throw new Error('Failed to verify block signature');
       }
     } catch (e) {
@@ -168,7 +171,7 @@ export default class Blocks {
 
       let bytes;
       try {
-        bytes = this.library.base.transaction.getBytes(transaction);
+        bytes = TransactionBase.getBytes(transaction);
       } catch (e) {
         throw new Error(`Failed to get transaction bytes: ${e.toString()}`);
       }
@@ -198,10 +201,7 @@ export default class Blocks {
       if (block.id !== votes.id) {
         throw new Error('Votes id is not correct');
       }
-      if (
-        !votes.signatures ||
-        !this.library.base.consensus.hasEnoughVotesRemote(votes)
-      ) {
+      if (!votes.signatures || !ConsensusBase.hasEnoughVotesRemote(votes)) {
         throw new Error('Votes signature is not correct');
       }
       await this.verifyBlockVotes(block, votes);
@@ -218,16 +218,14 @@ export default class Blocks {
       if (!publicKeySet.has(item.publicKey)) {
         throw new Error(`Votes key is not in the top list: ${item.publicKey}`);
       }
-      if (
-        !this.library.base.consensus.verifyVote(votes.height, votes.id, item)
-      ) {
+      if (!ConsensusBase.verifyVote(votes.height, votes.id, item)) {
         throw new Error('Failed to verify vote signature');
       }
     }
   };
 
   public applyBlock = async (block: IBlock) => {
-    global.app.logger.trace('enter applyblock');
+    this.library.logger.trace('enter applyblock');
     const appliedTransactions: any = {};
 
     try {
@@ -243,7 +241,7 @@ export default class Blocks {
         appliedTransactions[transaction.id] = transaction;
       }
     } catch (e) {
-      global.app.logger.error(e);
+      this.library.logger.error(e);
       await global.app.sdb.rollbackBlock();
       throw new Error(`Failed to apply block: ${e}`);
     }
@@ -264,7 +262,7 @@ export default class Blocks {
       if (!block.transactions) block.transactions = [];
       if (!options.local) {
         try {
-          block = this.library.base.block.normalizeBlock(block);
+          block = BlockBase.normalizeBlock(block);
         } catch (e) {
           this.library.logger.error(`Failed to normalize block: ${e}`, block);
           throw e;
@@ -291,8 +289,10 @@ export default class Blocks {
         }
 
         // TODO use bloomfilter
-        for (const transaction of block.transactions) {
-          this.library.base.transaction.normalizeTransaction(transaction);
+        for (let i = 0; i < block.transactions.length; ++i) {
+          block.transactions[i] = TransactionBase.normalizeTransaction(
+            block.transactions[i]
+          );
         }
         const idList = block.transactions.map(t => t.id);
 
@@ -303,11 +303,11 @@ export default class Blocks {
           throw new Error('Block contain already confirmed transaction');
         }
 
-        global.app.logger.trace('before applyBlock');
+        this.library.logger.trace('before applyBlock');
         try {
           await this.applyBlock(block);
         } catch (e) {
-          global.app.logger.error(`Failed to apply block: ${e}`);
+          this.library.logger.error(`Failed to apply block: ${e}`);
           throw e;
         }
       }
@@ -321,7 +321,7 @@ export default class Blocks {
       await this.applyRound(block);
       await global.app.sdb.commitBlock();
       const trsCount = block.transactions.length;
-      global.app.logger.info(
+      this.library.logger.info(
         `Block applied correctly with ${trsCount} transactions`
       );
       this.setLastBlock(block);
@@ -332,8 +332,8 @@ export default class Blocks {
       }
       this.library.bus.message('onProcessBlock', block);
     } catch (e) {
-      global.app.logger.error(block);
-      global.app.logger.error('save block error: ', e);
+      this.library.logger.error(block);
+      this.library.logger.error('save block error: ', e);
       await global.app.sdb.rollbackBlock();
       throw new Error(`Failed to save block: ${e}`);
     } finally {
@@ -346,7 +346,7 @@ export default class Blocks {
   };
 
   public saveBlockTransactions = async (block: IBlock) => {
-    global.app.logger.trace(
+    this.library.logger.trace(
       'Blocks#saveBlockTransactions height',
       block.height
     );
@@ -357,7 +357,7 @@ export default class Blocks {
       trs.args = JSON.stringify(trs.args);
       await global.app.sdb.create('Transaction', trs);
     }
-    global.app.logger.trace('Blocks#save transactions');
+    this.library.logger.trace('Blocks#save transactions');
   };
 
   public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
@@ -398,7 +398,7 @@ export default class Blocks {
 
     if (block.height % 101 !== 0) return;
 
-    global.app.logger.debug(
+    this.library.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
     );
 
@@ -408,7 +408,7 @@ export default class Blocks {
     if (!delegates) {
       throw new Error('no delegates');
     }
-    global.app.logger.debug('delegate length', delegates.length);
+    this.library.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       block.height - 100,
@@ -539,13 +539,13 @@ export default class Blocks {
           for (const block of blocks) {
             await this.processBlock(block, { syncing: true });
             lastCommonBlockId = block.id;
-            global.app.logger.info(
+            this.library.logger.info(
               `Block ${block.id} loaded from ${address} at`,
               block.height
             );
           }
         } catch (e) {
-          global.app.logger.error('Failed to process synced block', e);
+          this.library.logger.error('Failed to process synced block', e);
           throw e;
         }
       }
@@ -562,7 +562,7 @@ export default class Blocks {
     let fees = 0;
     for (const transaction of unconfirmedList) {
       fees += transaction.fee;
-      const bytes = this.library.base.transaction.getBytes(transaction);
+      const bytes = TransactionBase.getBytes(transaction);
       // TODO check payload length when process remote block
       if (payloadLength + bytes.length > maxPayloadLength) {
         throw new Error('Playload length outof range');
@@ -586,8 +586,8 @@ export default class Blocks {
       id: null,
     };
 
-    block.signature = this.library.base.block.sign(block, keypair);
-    block.id = this.library.base.block.getId(block);
+    block.signature = BlockBase.sign(block, keypair);
+    block.id = BlockBase.getId(block);
 
     let activeKeypairs: KeyPair[];
     try {
@@ -606,11 +606,8 @@ export default class Blocks {
     this.library.logger.info(
       `get active delegate keypairs len: ${activeKeypairs.length}`
     );
-    const localVotes = this.library.base.consensus.createVotes(
-      activeKeypairs,
-      block
-    );
-    if (this.library.base.consensus.hasEnoughVotes(localVotes)) {
+    const localVotes = ConsensusBase.createVotes(activeKeypairs, block);
+    if (ConsensusBase.hasEnoughVotes(localVotes)) {
       this.modules.transactions.clearUnconfirmed();
       await this.processBlock(block, {
         local: true,
@@ -635,11 +632,7 @@ export default class Blocks {
     }`;
     let propose: BlockPropose;
     try {
-      propose = this.library.base.consensus.createPropose(
-        keypair,
-        block,
-        serverAddr
-      );
+      propose = ConsensusBase.createPropose(keypair, block, serverAddr);
     } catch (e) {
       this.library.logger.error('Failed to create propose', e);
       return;
@@ -788,7 +781,7 @@ export default class Blocks {
           },
           async next => {
             try {
-              const result = this.library.base.consensus.acceptPropose(propose);
+              const result = ConsensusBase.acceptPropose(propose);
               next();
             } catch (err) {
               next(err);
@@ -802,10 +795,7 @@ export default class Blocks {
           },
           async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
-              const votes = this.library.base.consensus.createVotes(
-                activeKeypairs,
-                propose
-              );
+              const votes = ConsensusBase.createVotes(activeKeypairs, propose);
               this.library.logger.debug(
                 `send votes height ${votes.height} id ${votes.id} sigatures ${
                   votes.signatures.length
@@ -844,7 +834,7 @@ export default class Blocks {
           }`
         );
       }
-      if (this.library.base.consensus.hasEnoughVotes(totalVotes)) {
+      if (ConsensusBase.hasEnoughVotes(totalVotes)) {
         const block = this.library.modules.consensusManagement.getPendingBlock();
         const height = block.height;
         const id = block.id;
@@ -892,7 +882,7 @@ export default class Blocks {
     return (async () => {
       try {
         const count = global.app.sdb.blocksCount;
-        global.app.logger.info('Blocks found:', count);
+        this.library.logger.info('Blocks found:', count);
         if (!count) {
           this.setLastBlock({ height: -1 });
           await this.processBlock(this.genesisBlock, {});
@@ -902,7 +892,7 @@ export default class Blocks {
         }
         this.library.bus.message('onBlockchainReady');
       } catch (e) {
-        global.app.logger.error('Failed to prepare local blockchain', e);
+        this.library.logger.error('Failed to prepare local blockchain', e);
         process.exit(0);
       }
     })();

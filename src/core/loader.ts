@@ -8,6 +8,7 @@ import {
   IBlock,
   Transaction,
 } from '../interfaces';
+import { TransactionBase } from '../base/transaction';
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -166,7 +167,7 @@ export default class Loader {
 
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = this.library.base.transaction.normalizeTransaction(
+          transactions[i] = TransactionBase.normalizeTransaction(
             transactions[i]
           );
         } catch (e) {

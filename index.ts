@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
 import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
+import { TransactionBase } from './src/base/transaction';
+import { BlockBase } from './src/base/block';
 
 function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
   try {
@@ -11,10 +13,10 @@ function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
 
     for (let i = 0; i < block.transactions.length; i++) {
       const trs = block.transactions[i];
-      const bytes = scope.base.transaction.getBytes(trs);
+      const bytes = TransactionBase.getBytes(trs);
       payloadHash.update(bytes);
     }
-    const id = scope.base.block.getId(block);
+    const id = BlockBase.getId(block);
     assert.equal(
       payloadHash.digest().toString('hex'),
       block.payloadHash,

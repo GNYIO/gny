@@ -195,7 +195,7 @@ describe('Transaction', () => {
       done();
     });
 
-    it('should return nothing if applied', async () => {
+    it.skip('should return nothing if applied', async () => {
       global.app.sdb.update.mockReturnValue(true);
       global.app.contract.basic.transfer.mockReturnValue(null);
 

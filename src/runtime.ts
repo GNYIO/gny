@@ -8,6 +8,7 @@ import BalanceManager from './smartdb/balance-manager';
 // import loadModels from './loadModels';
 import loadContracts from './loadContracts';
 import * as path from 'path';
+import { store } from '../packages/functional/redux/store';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
@@ -26,6 +27,7 @@ export default async function runtime(options: IOptions) {
     },
     hooks: {},
     logger: options.logger,
+    store: store,
   };
   global.app.validators = {
     amount: amount => {

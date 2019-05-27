@@ -96,10 +96,6 @@ export class TransactionBase {
     });
     const report = joi.validate(transaction, signedTransactionSchema);
     if (report.error) {
-      global.app.logger.error(
-        `Failed to normalize transaction body: ${report.error.message}`,
-        transaction
-      );
       throw new Error(report.error.message);
     }
 
@@ -157,39 +153,6 @@ export class TransactionBase {
       }
     }
     return undefined;
-  }
-
-  public static async apply(context: Context) {
-    const { block, trs, sender } = context;
-    const name = global.app.getContractName(String(trs.type));
-    if (!name) {
-      throw new Error(`Unsupported transaction type: ${trs.type}`);
-    }
-    const [mod, func] = name.split('.');
-    if (!mod || !func) {
-      throw new Error('Invalid transaction function');
-    }
-    const fn = global.app.contract[mod][func];
-    if (!fn) {
-      throw new Error('Contract not found');
-    }
-
-    if (block.height !== 0) {
-      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
-      sender.gny -= trs.fee;
-      await global.app.sdb.update(
-        'Account',
-        { gny: sender.gny },
-        { address: sender.address }
-      );
-    }
-
-    const error = await fn.apply(context, trs.args);
-    if (error) {
-      throw new Error(error);
-    }
-    // transaction.executed = 1
-    return null;
   }
 
   public static async verify(context: Context) {

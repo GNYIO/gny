@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
 import { Modules, IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
+import { BlockBase } from '../../../src/base/block';
 
 export default class BlocksApi {
   private modules: Modules;
@@ -150,7 +151,7 @@ export default class BlocksApi {
 
   private getStatus = (req: Request, res: Response, next: Next) => {
     const height = this.modules.blocks.getLastBlock().height;
-    const fee = this.library.base.block.calculateFee();
+    const fee = BlockBase.calculateFee();
     const milestone = this.blockReward.calculateMilestone(height);
     const reward = this.blockReward.calculateReward(height);
     const supply = this.blockReward.calculateSupply(height);
