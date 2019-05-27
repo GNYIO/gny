@@ -8,7 +8,6 @@ import {
   DelegateViewModel,
 } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
-import { In } from 'typeorm';
 
 export default class DelegatesApi {
   private modules: Modules;

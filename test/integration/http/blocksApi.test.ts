@@ -1,12 +1,5 @@
-import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
-
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
 
 describe('blocksApi', () => {
   beforeAll(async done => {
