@@ -68,6 +68,22 @@ function createAccount(address: string) {
   return account;
 }
 
+function createTransaction(height: number) {
+  const publicKey = createRandomBytes(32);
+  const transaction = {
+    height,
+    type: 0,
+    args: JSON.stringify([10 * 1e8, 'G3SSkWs6UFuoVHU3N4rLvXoobbQCt']),
+    fee: 0.1 * 1e8,
+    id: randomBytes(32).toString('hex'),
+    senderId: generateAddress(publicKey),
+    senderPublicKey: publicKey,
+    signatures: JSON.stringify([randomBytes(32).toString('hex')]),
+    timestamp: 300235235,
+  };
+  return transaction;
+}
+
 async function saveGenesisBlock(smartDB: SmartDB) {
   const block = cloneDeep(CUSTOM_GENESIS);
 
@@ -1344,6 +1360,43 @@ describe('integration - SmartDB', () => {
     });
 
     expect(result).toEqual([createdTEC, createdABC]);
+
+    done();
+  });
+
+  it('findAll() - search for a range of values with $gte and $lte', async done => {
+    await saveGenesisBlock(sut);
+
+    // save first transaction in block 1
+    const trs1 = createTransaction(1);
+    const createdTrs1 = await sut.create('Transaction', trs1);
+    const block1 = createBlock(1);
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    // save another transaction in block 2
+    const trs2 = createTransaction(2);
+    const createdTrs2 = await sut.create('Transaction', trs2);
+    const block2 = createBlock(2);
+    sut.beginBlock(block2);
+    await sut.commitBlock();
+
+    // load data directly from DB
+    const minHeight = 0;
+    const maxHeight = 1;
+    const result = await sut.findAll('Transaction', {
+      condition: {
+        height: { $gte: minHeight, $lte: maxHeight },
+      },
+    });
+
+    const expected = {
+      ...createdTrs1,
+      message: null,
+      secondSignature: null,
+    };
+
+    expect(result).toEqual([expected]);
 
     done();
   });
