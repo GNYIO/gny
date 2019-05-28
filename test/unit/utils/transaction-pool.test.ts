@@ -139,6 +139,26 @@ describe('TransactionPool', () => {
     done();
   });
 
+  it('getUnconfirmed() - called 2x does not clear the transactions, returns always the same transactions', done => {
+    const trans1 = createTransaction('trans1');
+    const trans2 = createTransaction('trans2');
+
+    sut.add(trans1);
+    sut.add(trans2);
+
+    const first = sut.getUnconfirmed();
+    expect(first).toEqual([trans1, trans2]);
+
+    const sameAsFirst = sut.getUnconfirmed();
+    expect(sameAsFirst).toEqual([trans1, trans2]);
+
+    // transactions within are the array are the same
+    // but the returned array is not the same memory refernce
+    expect(first).not.toBe(sameAsFirst);
+
+    done();
+  });
+
   it('has() - returns false if transaction is not pool', done => {
     const result = sut.has('trans1');
     expect(result).toEqual(false);
