@@ -1786,6 +1786,111 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('exists() - pass in Array[], should return true if one of the elements is in db', async done => {
+    await saveGenesisBlock(sut);
+
+    // create block to persist changes to db
+    const createdTrans = await sut.create('Transaction', {
+      type: 0,
+      fee: 0,
+      timestamp: 0,
+      senderId: 'G3VU8VKndrpzDVbKzNTExoBrDAnw5',
+      senderPublicKey:
+        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+      signatures: JSON.stringify([
+        '62d8eda0130fff84f75b7937421dff50bd4553b4e30a2ca01e4a8138a0442a6c48f50e45994c8c14d473f8e283f3daf05cc04532d8760cd581ee8660208f280b',
+      ]),
+      args: JSON.stringify([
+        40000000000000000,
+        'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+      ]),
+      id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+      height: 1,
+    });
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Transaction', {
+      id: [
+        'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+        '0f9c04265f537f389e06aa74bb4c080f77154418ce826607374a3b82af7027ec',
+      ],
+    });
+    expect(result).toEqual(true);
+
+    done();
+  });
+
+  it('exists() - pass in Array[], should return false if no of the elements are in db', async done => {
+    await saveGenesisBlock(sut);
+
+    // the following transaction will be saved to the db
+    const createdTrans = await sut.create('Transaction', {
+      type: 0,
+      fee: 0,
+      timestamp: 0,
+      senderId: 'G3VU8VKndrpzDVbKzNTExoBrDAnw5',
+      senderPublicKey:
+        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+      signatures: JSON.stringify([
+        '62d8eda0130fff84f75b7937421dff50bd4553b4e30a2ca01e4a8138a0442a6c48f50e45994c8c14d473f8e283f3daf05cc04532d8760cd581ee8660208f280b',
+      ]),
+      args: JSON.stringify([
+        40000000000000000,
+        'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+      ]),
+      id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+      height: 1,
+    });
+
+    // create block to persist changes to db
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Transaction', {
+      id: [
+        '9af76a7c85d5f3cb96b9d3b0dc81fdaba1cd5fe2a6722d0a364de02477e6a489',
+        '0f9c04265f537f389e06aa74bb4c080f77154418ce826607374a3b82af7027ec',
+      ],
+    });
+    expect(result).toEqual(false);
+
+    done();
+  });
+
+  it('exists() - commit Block, now block should exist in DB', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Block', {
+      id: block.id,
+    });
+    expect(result).toEqual(true);
+
+    done();
+  });
+
+  it('exists() - begin Block, now block should NOT exist in DB', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    // no commitBlock() so block is only in memory and not in DB
+
+    const result = await sut.exists('Block', {
+      id: block.id,
+    });
+    expect(result).toEqual(false);
+
+    done();
+  });
+
   it.skip('should createOrLoad("Variable") be cached and returned with "sdb.get()"', async done => {
     done();
   });
