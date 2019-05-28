@@ -1,7 +1,7 @@
 import * as lib from '../lib';
 import axios from 'axios';
 
-describe('loaderApi', () => {
+describe('peerApi', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
@@ -18,32 +18,32 @@ describe('loaderApi', () => {
     done();
   }, lib.oneMinute);
 
-  describe('/status', () => {
+  describe('/', () => {
     it(
-      'should get the status',
+      'should get peer info',
       async done => {
-        const { data } = await axios.get(
-          'http://localhost:4096/api/loader/status'
-        );
-        expect(data).toHaveProperty('loaded');
-        expect(data).toHaveProperty('lastBlockHeight');
+        const { data } = await axios.get('http://localhost:4096/api/peers');
         expect(data).toHaveProperty('count');
+        try {
+          const { data } = await axios.get('http://localhost:4096/api/peers');
+          console.log(data);
+        } catch (error) {
+          console.log(error);
+        }
         done();
       },
       lib.oneMinute
     );
   });
 
-  describe('/status/sync', () => {
+  describe('/version', () => {
     it(
-      'should get the status about syncing',
+      'should get the version',
       async done => {
         const { data } = await axios.get(
-          'http://localhost:4096/api/loader/status/sync'
+          'http://localhost:4096/api/peers/version'
         );
-        expect(data).toHaveProperty('syncing');
-        expect(data).toHaveProperty('blocks');
-        expect(data).toHaveProperty('height');
+        expect(data).toHaveProperty('version');
         done();
       },
       lib.oneMinute

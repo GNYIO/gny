@@ -11,7 +11,7 @@ const config = {
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
-describe('blocksApi', () => {
+describe('delegatesApi', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
@@ -160,7 +160,7 @@ describe('blocksApi', () => {
 
   describe('/forging/enable', () => {
     it(
-      'should return the error: ',
+      'should return the error: Access denied',
       async () => {
         const username = 'gny_d1';
         const publicKey =
