@@ -90,7 +90,7 @@ export default {
       senderId,
       recipientId: recipientAccount.address,
       recipientName: recipientAccount.username,
-      currency: 'gny',
+      currency: 'GNY',
       amount: String(amount),
       timestamp: this.trs.timestamp,
     });
