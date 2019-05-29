@@ -4,13 +4,8 @@ import loader from './core/loader';
 import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
-import round from './core/round';
 import blocks from './core/blocks';
 import consensusManagement from './core/consensus-management';
-
-import { ConsensusBase } from './base/consensus';
-import { TransactionBase } from './base/transaction';
-import { BlockBase } from './base/block';
 
 import { Protobuf } from './utils/protobuf';
 import * as tracer from 'tracer';
@@ -58,7 +53,6 @@ export interface Modules {
   peer: peer;
   transport: transport;
   delegates: delegates;
-  round: round;
   blocks: blocks;
   consensusManagement: consensusManagement;
 }

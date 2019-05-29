@@ -11,6 +11,7 @@ import {
   DelegateViewModel,
   BlockPropose,
 } from '../interfaces';
+import { RoundBase } from '../base/round';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -124,14 +125,19 @@ export default class Delegates {
 
     this.library.sequence.add(async done => {
       try {
-        if (
-          slots.getSlotNumber(currentBlockData.time) ===
-            slots.getSlotNumber() &&
-          this.modules.blocks.getLastBlock().timestamp < currentBlockData.time
-        ) {
+        const myTime = currentBlockData.time;
+        const isCurrentSlot =
+          slots.getSlotNumber(myTime) === slots.getSlotNumber();
+        const lastBlockWasBefore =
+          this.modules.blocks.getLastBlock().timestamp < myTime;
+        const noPendingBlock =
+          this.library.modules.consensusManagement.hasPendingBlock(myTime) ===
+          false;
+
+        if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
           await this.modules.blocks.generateBlock(
             currentBlockData.keypair,
-            currentBlockData.time
+            myTime
           );
         }
       } catch (e) {
@@ -216,7 +222,7 @@ export default class Delegates {
   public generateDelegateList = async (height: number): Promise<string[]> => {
     try {
       const truncDelegateList = await this.getBookkeeper();
-      const seedSource = this.modules.round.calculateRound(height).toString();
+      const seedSource = RoundBase.calculateRound(height).toString();
 
       let currentSeed = crypto
         .createHash('sha256')

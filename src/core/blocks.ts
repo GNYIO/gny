@@ -26,6 +26,7 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
+import { RoundBase } from '../base/round';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -390,7 +391,7 @@ export default class Blocks {
       }
     }
 
-    const roundNumber = this.modules.round.calculateRound(block.height);
+    const roundNumber = RoundBase.calculateRound(block.height);
     const { fee, reward } = await this.increaseRoundData(
       { fee: transFee, reward: block.reward },
       roundNumber
@@ -553,9 +554,6 @@ export default class Blocks {
   };
 
   public generateBlock = async (keypair: KeyPair, timestamp: number) => {
-    if (this.library.modules.consensusManagement.hasPendingBlock(timestamp)) {
-      return;
-    }
     const unconfirmedList = this.modules.transactions.getUnconfirmedTransactionList();
     const payloadHash = crypto.createHash('sha256');
     let payloadLength = 0;
@@ -615,7 +613,7 @@ export default class Blocks {
         votes: localVotes,
       });
       this.library.logger.info(
-        `Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(
+        `Forged new block id: ${id}, height: ${height}, round: ${RoundBase.calculateRound(
           height
         )}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${
           block.reward
@@ -664,7 +662,7 @@ export default class Blocks {
         this.library.logger.info(
           `Received new block id: ${block.id}` +
             ` height: ${block.height}` +
-            ` round: ${this.modules.round.calculateRound(
+            ` round: ${RoundBase.calculateRound(
               this.modules.blocks.getLastBlock().height
             )}` +
             ` slot: ${slots.getSlotNumber(block.timestamp)}`
@@ -847,7 +845,7 @@ export default class Blocks {
               broadcast: true,
             });
             this.library.logger.info(
-              `Forged new block id: ${id}, height: ${height}, round: ${this.modules.round.calculateRound(
+              `Forged new block id: ${id}, height: ${height}, round: ${RoundBase.calculateRound(
                 height
               )}, slot: ${slots.getSlotNumber(block.timestamp)}, reward: ${
                 block.reward

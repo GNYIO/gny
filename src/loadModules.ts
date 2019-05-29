@@ -4,7 +4,6 @@ import Loader from './core/loader';
 import Peer from './core/peer';
 import Transport from './core/transport';
 import Delegates from './core/delegates';
-import Round from './core/round';
 import Blocks from './core/blocks';
 import ConsensusManagement from './core/consensus-management';
 
@@ -17,7 +16,6 @@ export default function loadModules(scope: IScope) {
   const peer = new Peer(scope);
   const transport = new Transport(scope);
   const delegates = new Delegates(scope);
-  const round = new Round(scope);
   const blocks = new Blocks(scope);
   const consensusManagement = new ConsensusManagement(scope);
 
@@ -28,7 +26,6 @@ export default function loadModules(scope: IScope) {
     peer: peer,
     transport: transport,
     delegates: delegates,
-    round: round,
     blocks: blocks,
     consensusManagement: consensusManagement,
   };
