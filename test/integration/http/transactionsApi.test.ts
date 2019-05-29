@@ -11,7 +11,7 @@ const config = {
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
-describe('systemApi', () => {
+describe('transactionsApi', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
@@ -60,20 +60,6 @@ describe('systemApi', () => {
         );
         expect(data).toHaveProperty('transactions');
         expect(data.count).toBe(1);
-        done();
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/unconfirmed/get', () => {
-    it(
-      'should get transations',
-      async done => {
-        const { data } = await axios.get(
-          'http://localhost:4096/api/transactions/unconfirmed/get?id=' + id
-        );
-
         done();
       },
       lib.oneMinute
