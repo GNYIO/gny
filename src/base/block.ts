@@ -18,6 +18,9 @@ export class BlockBase {
     return hash.toString('hex');
   }
 
+  /***
+   * returns signature
+   */
   public static sign(oldBlock: IBlock, oldKeypair: KeyPair): string {
     const block = copyObject(oldBlock);
     const keypair = copyObject(oldKeypair);

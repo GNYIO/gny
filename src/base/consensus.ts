@@ -11,7 +11,6 @@ import {
   Signature,
   BlockPropose,
 } from '../interfaces';
-import { copyObject } from './helpers';
 import { DELEGATES } from '../utils/constants';
 
 export class ConsensusBase {
