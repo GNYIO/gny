@@ -201,6 +201,7 @@ describe('contract environment', () => {
     it.skip('sending rejected transaction twice (within same block) returns erro', async () => {});
     it.skip('sending rejected transaction (after one block) returns error', async () => {});
     it.skip('signing a transaction with a second password should throw error, if second password was not registered', async () => {});
+    it.skip('resending exact same transaction after 10 seconds should make block fail', async () => {});
 
     it(
       'negative fee with SIGNED transaction',
