@@ -115,9 +115,19 @@ function sequence(options: any) {
 
 function validateConfig(config: IConfig, logger: ILogger) {
   const schema = extendedJoi.object().keys({
-    port: extendedJoi.number().port(),
+    port: extendedJoi
+      .number()
+      .port()
+      .required(),
+    peerPort: extendedJoi
+      .number()
+      .port()
+      .required(), // always must be port + 1
     address: extendedJoi.string().ip(),
-    publicIp: extendedJoi.string().ip(),
+    publicIp: extendedJoi
+      .string()
+      .ip()
+      .required(),
     logLevel: extendedJoi.string(),
     magic: extendedJoi.string(),
     api: extendedJoi.object().keys({
@@ -169,12 +179,12 @@ function validateConfig(config: IConfig, logger: ILogger) {
     buildVersion: extendedJoi.string(),
     netVersion: extendedJoi.string(),
     publicDir: extendedJoi.string(),
-    peerPort: extendedJoi.number().port(),
   });
 
   const report = extendedJoi.validate(config, schema);
   if (report.error) {
     logger.error(report.error.message);
+    throw new Error(report.error.message);
   }
 
   return config;
