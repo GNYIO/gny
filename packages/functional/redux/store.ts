@@ -1,4 +1,3 @@
-import { IBlock, IScope } from '../../../src/interfaces';
 import { createStore, combineReducers } from 'redux';
 import consensus from './consensusReducer';
 

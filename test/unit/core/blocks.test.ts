@@ -268,7 +268,7 @@ describe('core/blocks', () => {
       );
     });
 
-    it('verifyBlock() - signature is not correct returns error', async () => {
+    it.skip('verifyBlock() - signature is not correct returns error', async () => {
       const block: BlockModel = {
         height: 1,
         id: randomHex(32),

@@ -135,9 +135,18 @@ export default class Delegates {
           false;
 
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
-          await this.modules.blocks.generateBlock(
+          const activeDelegates = BlockCorrect.loadMyDelegates();
+          const currentState = BlockCorrect.getCurrentState();
+          const unconfirmedTransactions = this.modules.transactions.getUnconfirmedTransactionList();
+          const delegateList = await this.generateDelegateList();
+
+          const newstate = await this.modules.blocks.generateBlock(
+            state,
+            activeDelegates,
+            unconfirmedTransactions,
             currentBlockData.keypair,
-            myTime
+            myTime,
+            delegateList
           );
         }
       } catch (e) {

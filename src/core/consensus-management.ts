@@ -1,4 +1,4 @@
-import { IScope, ManyVotes, IBlock } from '../interfaces';
+import { IScope, ManyVotes, IBlock, IState } from '../interfaces';
 import { ConsensusBase } from '../base/consensus';
 import slots from '../../src/utils/slots';
 import {
@@ -8,6 +8,11 @@ import {
   setPendingBlockAction,
   resetConsensusAction,
 } from '../../packages/functional/redux/consensusActions';
+
+type PendingVotesAndState = {
+  allVotes: ManyVotes;
+  state: IState;
+};
 
 export default class ConsensusManagement {
   // private pendingBlock: IBlock = undefined;
@@ -19,40 +24,41 @@ export default class ConsensusManagement {
     this.library = scope;
   }
 
-  public addPendingVotes(votes: ManyVotes) {
-    const pendingBlock = global.app.store.getState().pendingBlock;
+  public addPendingVotes(state: IState, votes: ManyVotes) {
+    const pendingBlock = state.pendingBlock;
     if (
       !pendingBlock ||
       pendingBlock.height !== votes.height ||
       pendingBlock.id !== votes.id
     ) {
-      return global.app.store.getState().pendingVotes;
+      return {
+        allVotes: state.pendingVotes,
+        state,
+      } as PendingVotesAndState;
     }
     for (let i = 0; i < votes.signatures.length; ++i) {
       const item = votes.signatures[i];
-      const votesKeySet = global.app.store.getState().votesKeySet;
+      const votesKeySet = state.votesKeySet;
       if (votesKeySet[item.publicKey]) {
         continue;
       }
       if (ConsensusBase.verifyVote(votes.height, votes.id, item)) {
-        global.app.store.dispatch(setVotesKeySetAction(item.publicKey));
-        // this.votesKeySet[item.publicKey] = true;
-        const pendingVotes = global.app.store.getState().pendingVotes;
+        state.votesKeySet[item.publicKey] = true;
+        const pendingVotes = state.pendingVotes;
         if (!pendingVotes) {
-          global.app.store.dispatch(
-            addPendingVotesAction({
-              height: votes.height,
-              id: votes.id,
-              signatures: [],
-            })
-          );
+          state.pendingVotes = {
+            height: votes.height,
+            id: votes.id,
+            signatures: [],
+          };
         }
-        global.app.store.dispatch(addPendingVotesSignaturesAction(item));
-        // this.pendingVotes.signatures.push(item);
+        state.pendingVotes.signatures.push(item);
       }
     }
-    return global.app.store.getState().pendingVotes;
-    // return this.pendingVotes;
+    return {
+      allVotes: state.pendingVotes,
+      state,
+    } as PendingVotesAndState;
   }
 
   public setPendingBlock(block: IBlock) {
@@ -76,11 +82,14 @@ export default class ConsensusManagement {
     // return this.pendingBlock;
   }
 
-  public clearState() {
+  public clearState(state: IState) {
     global.app.store.dispatch(resetConsensusAction());
-    // this.pendingVotes = undefined;
-    // this.votesKeySet = new Set();
-    // this.pendingBlock = undefined;
+
+    state.votesKeySet = new Set();
+    state.pendingBlock = undefined;
+    state.pendingVotes = undefined;
+
+    return state;
   }
 
   public cleanup = (cb: any) => {

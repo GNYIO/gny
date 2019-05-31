@@ -27,6 +27,20 @@ import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from './utils/address';
 
+export interface IState {
+  votesKeySet: Set<any>;
+  pendingBlock: IBlock;
+  pendingVotes: ManyVotes;
+
+  lastBlock: IBlock;
+  blockCache: ISimpleCache;
+
+  proposeCache: ISimpleCache;
+  lastPropose: BlockPropose;
+  privIsCollectingVotes: boolean;
+  lastVoteTime: number;
+}
+
 declare interface IBase {
   bus: any;
   genesisBlock: IGenesisBlock;
