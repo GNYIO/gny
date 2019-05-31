@@ -159,6 +159,13 @@ describe('TransactionPool', () => {
     done();
   });
 
+  it('getUnconfirmed() - returns empty object when no transaction where added', done => {
+    const result = sut.getUnconfirmed();
+    expect(result).toEqual([]);
+
+    done();
+  });
+
   it('has() - returns false if transaction is not pool', done => {
     const result = sut.has('trans1');
     expect(result).toEqual(false);
