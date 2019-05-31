@@ -166,6 +166,40 @@ describe('TransactionPool', () => {
     done();
   });
 
+  it('getUnconfirmed() - returns objects in the order they where added', done => {
+    const trans1 = createTransaction('trans1');
+    const trans2 = createTransaction('trans2');
+
+    sut.add(trans1);
+    sut.add(trans2);
+
+    const expectedOrder = [trans1, trans2];
+
+    const result = sut.getUnconfirmed();
+    expect(result).toEqual(expectedOrder);
+
+    done();
+  });
+
+  it('getUnconfirmed() - returns objects in order they where added also when objects where deleted', done => {
+    const trans1 = createTransaction('trans1');
+    const trans2 = createTransaction('trans2');
+    const trans3 = createTransaction('trans3');
+
+    sut.add(trans1);
+    sut.add(trans2);
+
+    sut.remove('trans2');
+
+    sut.add(trans3);
+
+    const expectedOrder = [trans1, trans3];
+    const result = sut.getUnconfirmed();
+    expect(result).toEqual(expectedOrder);
+
+    done();
+  });
+
   it('has() - returns false if transaction is not pool', done => {
     const result = sut.has('trans1');
     expect(result).toEqual(false);
