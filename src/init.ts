@@ -179,6 +179,7 @@ function validateConfig(config: IConfig, logger: ILogger) {
     buildVersion: extendedJoi.string(),
     netVersion: extendedJoi.string(),
     publicDir: extendedJoi.string(),
+    ormConfig: extendedJoi.string(),
   });
 
   const report = extendedJoi.validate(config, schema);
