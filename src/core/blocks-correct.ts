@@ -1,4 +1,11 @@
-import { Transaction, KeyPair, IBlock, BlockPropose } from '../interfaces';
+import {
+  Transaction,
+  KeyPair,
+  IBlock,
+  BlockPropose,
+  IState,
+  ISimpleCache,
+} from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { maxPayloadLength } from '../utils/constants';
 import * as crypto from 'crypto';
@@ -9,6 +16,17 @@ import { ConsensusBase } from '../base/consensus';
 const blockreward = new Blockreward();
 
 export class BlocksCorrect {
+  public static setState(state: IState) {
+    global.state = state;
+  }
+  /**
+   * Warning: The object reference returned from this function should never get changed,
+   * always make a copy first
+   */
+  public static getState() {
+    return global.state;
+  }
+
   public static areTransactionsExceedingPayloadLength(
     transactions: Transaction[]
   ) {
@@ -86,7 +104,7 @@ export class BlocksCorrect {
   }
 
   public static AreTransactionsDuplicated(transactions: Transaction[]) {
-    const appliedTransactions: any = {};
+    const appliedTransactions: ISimpleCache<Transaction> = {};
     for (const transaction of transactions) {
       if (appliedTransactions[transaction.id]) {
         return true;

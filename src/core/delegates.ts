@@ -10,8 +10,12 @@ import {
   Delegate,
   DelegateViewModel,
   BlockPropose,
+  ProcessBlockOptions,
+  IState,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
+import { BlocksCorrect } from './blocks-correct';
+import { copyObject } from '../base/helpers';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -135,12 +139,20 @@ export default class Delegates {
           false;
 
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
-          const activeDelegates = BlockCorrect.loadMyDelegates();
-          const currentState = BlockCorrect.getCurrentState();
-          const unconfirmedTransactions = this.modules.transactions.getUnconfirmedTransactionList();
-          const delegateList = await this.generateDelegateList();
+          const old = BlocksCorrect.getState();
+          let state = copyObject(old) as IState;
 
-          const newstate = await this.modules.blocks.generateBlock(
+          const height = state.lastBlock.height + 1;
+
+          const activeDelegates = await this.getActiveDelegateKeypairs(height); // move to BlocksCorrect?
+          const unconfirmedTransactions = this.modules.transactions.getUnconfirmedTransactionList();
+          const delegateList = await this.generateDelegateList(height);
+
+          const {
+            block: newBlock,
+            state: newState,
+            votes: localVotes,
+          } = await this.modules.blocks.generateBlock(
             state,
             activeDelegates,
             unconfirmedTransactions,
@@ -148,6 +160,26 @@ export default class Delegates {
             myTime,
             delegateList
           );
+          state = newState;
+
+          // no pending block -> block can be created
+          if (newBlock && !newState.pendingBlock && localVotes) {
+            this.modules.transactions.clearUnconfirmed(); // TODO, handle better
+            const options: ProcessBlockOptions = {
+              local: true,
+              broadcast: true,
+              votes: localVotes,
+            };
+            state = await this.modules.blocks.processBlock(
+              newState,
+              newBlock,
+              options,
+              delegateList
+            );
+          }
+
+          // set new state after successful finished
+          BlocksCorrect.setState(state);
         }
       } catch (e) {
         this.library.logger.error('Failed generate block within slot:', e);

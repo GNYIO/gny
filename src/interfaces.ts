@@ -33,9 +33,9 @@ export interface IState {
   pendingVotes: ManyVotes;
 
   lastBlock: IBlock;
-  blockCache: ISimpleCache;
+  blockCache: ISimpleCache<boolean>;
 
-  proposeCache: ISimpleCache;
+  proposeCache: ISimpleCache<boolean>;
   lastPropose: BlockPropose;
   privIsCollectingVotes: boolean;
   lastVoteTime: number;
@@ -223,8 +223,8 @@ export interface Signature {
   signature: string;
 }
 
-export interface ISimpleCache {
-  [id: string]: boolean;
+export interface ISimpleCache<VALUE_TYPE> {
+  [id: string]: VALUE_TYPE;
 }
 
 export type Next = (err?: string) => any;
@@ -363,6 +363,7 @@ declare global {
       modules: Modules;
       app: Partial<IApp>;
       Config: Partial<IConfig>;
+      state: IState;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

@@ -39,8 +39,8 @@ export default class Blocks {
 
   private lastBlock: IBlock;
   private loaded: boolean = false;
-  private blockCache: ISimpleCache = {};
-  private proposeCache: ISimpleCache = {};
+  private blockCache: ISimpleCache<boolean> = {};
+  private proposeCache: ISimpleCache<boolean> = {};
   private lastPropose: BlockPropose = null;
   private privIsCollectingVotes = false;
 
@@ -561,14 +561,6 @@ export default class Blocks {
 
     // TODO somehow fuel the state with the default state!
 
-    if (
-      BlocksCorrect.areTransactionsExceedingPayloadLength(
-        unconfirmedTransactions
-      )
-    ) {
-      throw new Error('Playload length outof range');
-    }
-
     const newBlock = BlocksCorrect.generateBlockShort(
       keypair,
       timestamp,
@@ -583,19 +575,12 @@ export default class Blocks {
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
     if (ConsensusBase.hasEnoughVotes(localVotes)) {
-      this.modules.transactions.clearUnconfirmed();
-      const options: ProcessBlockOptions = {
-        local: true,
-        broadcast: true,
+      return {
+        // important
+        state,
+        block: newBlock,
         votes: localVotes,
       };
-      const returnedState = await this.processBlock(
-        state,
-        newBlock,
-        options,
-        delegateList
-      );
-      return returnedState; // important
     }
 
     /*
@@ -620,87 +605,92 @@ export default class Blocks {
     state.privIsCollectingVotes = true;
 
     this.library.bus.message('onNewPropose', propose, true);
-    return state;
+    return {
+      // important
+      state,
+      block: undefined,
+      votes: undefined,
+    };
   };
 
   // Events
-  // public onReceiveBlock = (block: IBlock, votes: ManyVotes) => {
-  //   if (this.modules.loader.syncing() || !this.loaded) {
-  //     return;
-  //   }
+  public onReceiveBlock = (block: IBlock, votes: ManyVotes) => {
+    if (this.modules.loader.syncing() || !this.loaded) {
+      return;
+    }
 
-  //   if (this.blockCache[block.id]) {
-  //     return;
-  //   }
-  //   this.blockCache[block.id] = true;
+    if (this.blockCache[block.id]) {
+      return;
+    }
+    this.blockCache[block.id] = true;
 
-  //   this.library.sequence.add(async cb => {
-  //     if (
-  //       block.prevBlockId === this.lastBlock.id &&
-  //       this.lastBlock.height + 1 === block.height
-  //     ) {
-  //       this.library.logger.info(
-  //         `Received new block id: ${block.id}` +
-  //           ` height: ${block.height}` +
-  //           ` round: ${RoundBase.calculateRound(
-  //             this.modules.blocks.getLastBlock().height
-  //           )}` +
-  //           ` slot: ${slots.getSlotNumber(block.timestamp)}`
-  //       );
-  //       const pendingTrsMap = new Map<string, Transaction>();
-  //       try {
-  //         const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
-  //         for (const t of pendingTrs) {
-  //           pendingTrsMap.set(t.id, t);
-  //         }
-  //         this.modules.transactions.clearUnconfirmed();
-  //         await global.app.sdb.rollbackBlock(this.lastBlock.height);
-  //         await this.processBlock(block, { votes, broadcast: true });
-  //       } catch (e) {
-  //         this.library.logger.error('Failed to process received block', e);
-  //       } finally {
-  //         for (const t of block.transactions) {
-  //           pendingTrsMap.delete(t.id);
-  //         }
-  //         try {
-  //           const redoTransactions = [...pendingTrsMap.values()];
-  //           await this.modules.transactions.processUnconfirmedTransactionsAsync(
-  //             redoTransactions
-  //           );
-  //         } catch (e) {
-  //           this.library.logger.error(
-  //             'Failed to redo unconfirmed transactions',
-  //             e
-  //           );
-  //         }
-  //         return cb();
-  //       }
-  //     }
-  //     if (
-  //       block.prevBlockId !== this.lastBlock.id &&
-  //       this.lastBlock.height + 1 === block.height
-  //     ) {
-  //       this.modules.delegates.fork(block, 1);
-  //       return cb('Fork');
-  //     }
-  //     if (
-  //       block.prevBlockId === this.lastBlock.prevBlockId &&
-  //       block.height === this.lastBlock.height &&
-  //       block.id !== this.lastBlock.id
-  //     ) {
-  //       this.modules.delegates.fork(block, 5);
-  //       return cb('Fork');
-  //     }
-  //     if (block.height > this.lastBlock.height + 1) {
-  //       this.library.logger.info(
-  //         `receive discontinuous block height ${block.height}`
-  //       );
-  //       this.modules.loader.startSyncBlocks(this.lastBlock);
-  //       return cb();
-  //     }
-  //     return cb();
-  //   });
-  // };
+    this.library.sequence.add(async cb => {
+      if (
+        block.prevBlockId === this.lastBlock.id &&
+        this.lastBlock.height + 1 === block.height
+      ) {
+        this.library.logger.info(
+          `Received new block id: ${block.id}` +
+            ` height: ${block.height}` +
+            ` round: ${RoundBase.calculateRound(
+              this.modules.blocks.getLastBlock().height
+            )}` +
+            ` slot: ${slots.getSlotNumber(block.timestamp)}`
+        );
+        const pendingTrsMap = new Map<string, Transaction>();
+        try {
+          const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
+          for (const t of pendingTrs) {
+            pendingTrsMap.set(t.id, t);
+          }
+          this.modules.transactions.clearUnconfirmed();
+          await global.app.sdb.rollbackBlock(this.lastBlock.height);
+          await this.processBlock(block, { votes, broadcast: true });
+        } catch (e) {
+          this.library.logger.error('Failed to process received block', e);
+        } finally {
+          for (const t of block.transactions) {
+            pendingTrsMap.delete(t.id);
+          }
+          try {
+            const redoTransactions = [...pendingTrsMap.values()];
+            await this.modules.transactions.processUnconfirmedTransactionsAsync(
+              redoTransactions
+            );
+          } catch (e) {
+            this.library.logger.error(
+              'Failed to redo unconfirmed transactions',
+              e
+            );
+          }
+          return cb();
+        }
+      }
+      if (
+        block.prevBlockId !== this.lastBlock.id &&
+        this.lastBlock.height + 1 === block.height
+      ) {
+        this.modules.delegates.fork(block, 1);
+        return cb('Fork');
+      }
+      if (
+        block.prevBlockId === this.lastBlock.prevBlockId &&
+        block.height === this.lastBlock.height &&
+        block.id !== this.lastBlock.id
+      ) {
+        this.modules.delegates.fork(block, 5);
+        return cb('Fork');
+      }
+      if (block.height > this.lastBlock.height + 1) {
+        this.library.logger.info(
+          `receive discontinuous block height ${block.height}`
+        );
+        this.modules.loader.startSyncBlocks(this.lastBlock);
+        return cb();
+      }
+      return cb();
+    });
+  };
 
   public onReceivePropose = (propose: BlockPropose) => {
     if (this.modules.loader.syncing() || !this.loaded) {
@@ -843,13 +833,37 @@ export default class Blocks {
     });
   };
 
-  public isCollectingVotes = () => this.privIsCollectingVotes;
+  public isCollectingVotes = () => this.privIsCollectingVotes; // TODO access state
 
   cleanup = cb => {
     this.library.logger.debug('Cleaning up core/blocks');
     this.loaded = false;
     cb();
   };
+
+  // belongs to "onBind"
+  public async binding(blocksCount: number) {
+    const old = BlocksCorrect.getState();
+    let state = copyObject(old) as IState;
+
+    if (!blocksCount) {
+      state.lastBlock = { height: -1 } as IBlock;
+
+      const options: ProcessBlockOptions = {};
+      const delegateList: string[] = [];
+      state = await this.processBlock(
+        state,
+        this.genesisBlock,
+        options,
+        delegateList
+      );
+    } else {
+      const block = await global.app.sdb.getBlockByHeight(blocksCount - 1);
+
+      state.lastBlock = block;
+    }
+    return state;
+  }
 
   // Events
   public onBind = (scope: Modules) => {
@@ -860,14 +874,8 @@ export default class Blocks {
     return (async () => {
       try {
         const count = global.app.sdb.blocksCount;
+        await this.binding(count);
         this.library.logger.info('Blocks found:', count);
-        if (!count) {
-          this.setLastBlock({ height: -1 });
-          await this.processBlock(this.genesisBlock, {});
-        } else {
-          const block = await global.app.sdb.getBlockByHeight(count - 1);
-          this.setLastBlock(block);
-        }
         this.library.bus.message('onBlockchainReady');
       } catch (e) {
         this.library.logger.error('Failed to prepare local blockchain', e);
