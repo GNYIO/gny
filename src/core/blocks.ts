@@ -389,7 +389,7 @@ export default class Blocks {
       return;
     }
 
-    let address = addressHelper.generateAddress(block.delegate);
+    const address = addressHelper.generateAddress(block.delegate);
     await global.app.sdb.increase(
       'Delegate',
       { producedBlocks: 1 },
@@ -413,7 +413,7 @@ export default class Blocks {
     const delegates = await this.modules.delegates.generateDelegateList(
       block.height
     );
-    if (!delegates) {
+    if (!delegates || !delegates.length) {
       throw new Error('no delegates');
     }
     this.library.logger.debug('delegate length', delegates.length);
@@ -422,7 +422,7 @@ export default class Blocks {
       block.height - 100,
       block.height - 1
     );
-    const forgedDelegates = [
+    const forgedDelegates: string[] = [
       ...forgedBlocks.map(b => b.delegate),
       block.delegate,
     ];
@@ -430,27 +430,32 @@ export default class Blocks {
     const missedDelegates = delegates.filter(
       fd => !forgedDelegates.includes(fd)
     );
-    missedDelegates.forEach(async md => {
-      address = addressHelper.generateAddress(md);
+    for (let i = 0; i < missedDelegates.length; ++i) {
+      const md = missedDelegates[i];
+      const adr = addressHelper.generateAddress(md);
       await global.app.sdb.increase(
         'Delegate',
         { missedBlocks: 1 },
-        { address }
+        { address: adr }
       );
-    });
+    }
 
-    async function updateDelegate(pk, fee, reward) {
-      address = addressHelper.generateAddress(pk);
+    async function updateDelegate(
+      publicKey: string,
+      fee: number,
+      reward: number
+    ) {
+      const delegateAdr = addressHelper.generateAddress(publicKey);
       await global.app.sdb.increase(
         'Delegate',
         { fees: fee, rewards: reward },
-        { address }
+        { address: delegateAdr }
       );
       // TODO should account be all cached?
       await global.app.sdb.increase(
         'Account',
         { gny: fee + reward },
-        { address }
+        { address: delegateAdr }
       );
     }
 
