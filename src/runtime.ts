@@ -15,6 +15,20 @@ import { BigNumber } from 'bignumber.js';
 import { IOptions } from './interfaces';
 
 export default async function runtime(options: IOptions) {
+  global.state = {
+    // TODO: check correct init values
+    votesKeySet: new Set(),
+    pendingBlock: undefined,
+    pendingVotes: undefined,
+
+    lastBlock: undefined,
+    blockCache: {},
+
+    proposeCache: {},
+    lastPropose: null,
+    privIsCollectingVotes: false,
+    lastVoteTime: undefined,
+  };
   global.app = {
     sdb: null,
     balances: null,

@@ -107,7 +107,7 @@ export default class Delegates {
     }
 
     const currentSlot = slots.getSlotNumber();
-    const lastBlock = this.modules.blocks.getLastBlock();
+    const lastBlock = BlocksCorrect.getState().lastBlock;
 
     if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
       return;
@@ -133,7 +133,7 @@ export default class Delegates {
         const isCurrentSlot =
           slots.getSlotNumber(myTime) === slots.getSlotNumber();
         const lastBlockWasBefore =
-          this.modules.blocks.getLastBlock().timestamp < myTime;
+          BlocksCorrect.getState().lastBlock.timestamp < myTime;
         const noPendingBlock =
           this.library.modules.consensusManagement.hasPendingBlock(myTime) ===
           false;

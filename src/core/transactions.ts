@@ -1,6 +1,6 @@
 import { LimitCache } from '../utils/limit-cache';
 import { TransactionPool } from '../utils/transaction-pool';
-import { Modules, IScope, Transaction, Context } from '../interfaces';
+import { Modules, IScope, Transaction, Context, IState } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 
 export default class Transactions {
@@ -102,10 +102,13 @@ export default class Transactions {
     }
   };
 
-  applyUnconfirmedTransactionAsync = async (transaction: Transaction) => {
+  public applyUnconfirmedTransactionAsync = async (
+    state: IState,
+    transaction: Transaction
+  ) => {
     this.library.logger.debug('apply unconfirmed trs', transaction);
 
-    const height = await this.modules.blocks.getLastBlock().height;
+    const height = state.lastBlock.height;
     const block = {
       height: height + 1,
     };

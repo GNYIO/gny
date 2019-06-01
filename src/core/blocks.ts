@@ -115,7 +115,8 @@ export default class Blocks {
 
   public getLastBlock = () => this.lastBlock;
 
-  public verifyBlock = async (
+  public verifyBlock = (
+    state: IState,
     block: IBlock,
     options: Pick<ProcessBlockOptions, 'votes'>,
     delegateList: string[]
@@ -138,13 +139,15 @@ export default class Blocks {
       throw new Error('Failed to verify block signature');
     }
 
-    if (block.prevBlockId !== this.lastBlock.id) {
+    if (block.prevBlockId !== state.lastBlock.id) {
       throw new Error('Incorrect previous block hash');
     }
 
     if (block.height !== 0) {
       const blockSlotNumber = slots.getSlotNumber(block.timestamp);
-      const lastBlockSlotNumber = slots.getSlotNumber(this.lastBlock.timestamp);
+      const lastBlockSlotNumber = slots.getSlotNumber(
+        state.lastBlock.timestamp
+      );
 
       if (
         blockSlotNumber > slots.getSlotNumber() + 1 ||
@@ -192,15 +195,11 @@ export default class Blocks {
       if (!ConsensusBase.hasEnoughVotesRemote(votes)) {
         throw new Error('Not enough remote votes');
       }
-      await this.verifyBlockVotes(block, votes, delegateList);
+      this.verifyBlockVotes(votes, delegateList);
     }
   };
 
-  public verifyBlockVotes = async (
-    block: IBlock,
-    votes: ManyVotes,
-    delegateList: string[]
-  ) => {
+  public verifyBlockVotes = (votes: ManyVotes, delegateList: string[]) => {
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
       if (!publicKeySet.has(item.publicKey)) {
@@ -212,7 +211,7 @@ export default class Blocks {
     }
   };
 
-  public applyBlock = async (block: IBlock) => {
+  public applyBlock = async (state: IState, block: IBlock) => {
     this.library.logger.trace('enter applyblock');
 
     try {
@@ -222,6 +221,7 @@ export default class Blocks {
 
       for (const transaction of block.transactions) {
         await this.modules.transactions.applyUnconfirmedTransactionAsync(
+          state,
           transaction
         );
       }
@@ -251,19 +251,27 @@ export default class Blocks {
     return block; // important
   }
 
-  public async CheckBlockWithDbAccessIO(
+  public async CheckBlock(
+    state: IState,
     block: IBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) {
     if (!options.local) {
-      await this.verifyBlock(block, options, delegateList);
+      this.verifyBlock(state, block, options, delegateList);
+    }
+  }
 
+  public async CheckBlockWithDbAccessIO(
+    block: IBlock,
+    options: ProcessBlockOptions
+  ) {
+    if (!options.local) {
       await BlocksCorrect.IsBlockAlreadyInDbIO(block);
 
       if (block.height !== 0) {
         try {
-          await this.modules.delegates.validateBlockSlot(block);
+          await this.modules.delegates.validateBlockSlot(block); // TODO, pass more arguments
         } catch (e) {
           this.library.logger.error(e);
           throw new Error(`Can't verify slot: ${e}`);
@@ -272,16 +280,18 @@ export default class Blocks {
 
       await BlocksCorrect.AreAnyTransactionsAlreadyInDbIO(block.transactions);
     }
-
-    return block; // important, block gets modified
   }
 
-  public async ProcessBlockDbIO(block: Block, options: ProcessBlockOptions) {
+  public async ProcessBlockDbIO(
+    state: IState,
+    block: Block,
+    options: ProcessBlockOptions
+  ) {
     await global.app.sdb.beginBlock(block);
 
     try {
       if (!options.local) {
-        await this.applyBlock(block);
+        await this.applyBlock(state, block);
       }
 
       await this.saveBlockTransactions(block);
@@ -326,10 +336,16 @@ export default class Blocks {
     if (!this.loaded) throw new Error('Blockchain is loading');
 
     try {
+      // check block fields
       block = this.CheckBlockEffect(block, options);
-      block = await this.CheckBlockWithDbAccessIO(block, options, delegateList);
 
-      await this.ProcessBlockDbIO(block, options);
+      // Check block logic also to previous block
+      this.CheckBlock(state, block, options, delegateList);
+
+      // Check block against DB
+      await this.CheckBlockWithDbAccessIO(block, options);
+
+      await this.ProcessBlockDbIO(state, block, options);
 
       state = this.ProcessBlockEffect(state, block);
 
@@ -380,12 +396,7 @@ export default class Blocks {
       { address }
     );
 
-    let transFee = 0;
-    for (const t of block.transactions) {
-      if (t.fee >= 0) {
-        transFee += t.fee;
-      }
-    }
+    const transFee = BlocksCorrect.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
     const { fee, reward } = await this.increaseRoundData(
@@ -874,7 +885,8 @@ export default class Blocks {
     return (async () => {
       try {
         const count = global.app.sdb.blocksCount;
-        await this.binding(count);
+        const state = await this.binding(count);
+        BlocksCorrect.setState(state);
         this.library.logger.info('Blocks found:', count);
         this.library.bus.message('onBlockchainReady');
       } catch (e) {

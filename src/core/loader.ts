@@ -9,6 +9,7 @@ import {
   Transaction,
 } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
+import { BlocksCorrect } from './blocks-correct';
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -258,7 +259,7 @@ export default class Loader {
   // Events
   public onPeerReady = () => {
     const nextSync = () => {
-      const lastBlock = this.modules.blocks.getLastBlock();
+      const lastBlock = BlocksCorrect.getState().lastBlock;
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 3) {
         this.startSyncBlocks(lastBlock);

@@ -93,7 +93,7 @@ const dummyLogger = {
   fatal: x => x,
 };
 
-describe('core/blocks', () => {
+describe.skip('core/blocks', () => {
   let coreBlocks: Blocks;
   beforeAll(done => {
     global.app = {};
