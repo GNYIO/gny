@@ -252,6 +252,8 @@ export default class TransactionsApi {
     this.library.sequence.add(
       callback => {
         (async () => {
+          const state = BlocksCorrect.getState();
+
           try {
             const hash = crypto
               .createHash('sha256')
@@ -268,7 +270,6 @@ export default class TransactionsApi {
               );
             }
             const trs = TransactionBase.create({
-              secret: query.secret,
               fee: query.fee,
               type: query.type,
               senderId: query.senderId || null,
@@ -278,6 +279,7 @@ export default class TransactionsApi {
               keypair,
             });
             await this.modules.transactions.processUnconfirmedTransactionAsync(
+              state,
               trs
             );
             this.library.bus.message('unconfirmedTransaction', trs);
