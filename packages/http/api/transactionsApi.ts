@@ -282,7 +282,7 @@ export default class TransactionsApi {
               state,
               trs
             );
-            this.library.bus.message('unconfirmedTransaction', trs);
+            this.library.bus.message('onUnconfirmedTransaction', trs);
             callback(null, { success: true, transactionId: trs.id });
           } catch (e) {
             this.library.logger.warn(

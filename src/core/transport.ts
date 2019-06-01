@@ -309,7 +309,7 @@ export default class Transport {
             err
           );
         } else {
-          // library.bus.message('unconfirmedTransaction', transaction, true)
+          // library.bus.message('onUnconfirmedTransaction', transaction, true)
         }
       }
     );
