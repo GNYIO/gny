@@ -9,8 +9,10 @@ import {
   ManyVotes,
   Transaction,
   IBlock,
+  IState,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
+import { BlocksCorrect } from '../../../src/core/blocks-correct';
 
 export default class TransportApi {
   private modules: Modules;
@@ -163,18 +165,22 @@ export default class TransportApi {
     }
   };
 
-  // POST
-  private transactions = (req: Request, res: Response, next: Next) => {
-    const lastBlock = this.modules.blocks.getLastBlock();
+  public IsBlockchainReady(state: IState) {
+    const lastBlock = state.lastBlock;
+    const nextSlot = slots.getNextSlot();
     const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-    if (slots.getNextSlot() - lastSlot >= 12) {
+    if (nextSlot - lastSlot >= 12) {
       this.library.logger.error('Blockchain is not ready', {
         getNextSlot: slots.getNextSlot(),
         lastSlot,
         lastBlockHeight: lastBlock.height,
       });
-      return next('Blockchain is not ready');
+      throw new Error('Blockchain is not ready');
     }
+  }
+
+  // POST
+  private transactions = (req: Request, res: Response, next: Next) => {
     let transaction: Transaction;
     try {
       transaction = TransactionBase.normalizeTransaction(req.body.transaction);
@@ -205,10 +211,11 @@ export default class TransportApi {
 
     return this.library.sequence.add(
       cb => {
-        this.library.logger.info(
-          `Received transaction ${transaction.id} from http client`
-        );
+        const state = BlocksCorrect.getState();
+        this.IsBlockchainReady(state);
+
         this.modules.transactions.processUnconfirmedTransaction(
+          state,
           transaction,
           cb
         );

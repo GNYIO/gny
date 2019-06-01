@@ -55,10 +55,14 @@ export default class Transactions {
     }
   };
 
-  processUnconfirmedTransaction = (transaction: Transaction, cb) => {
+  processUnconfirmedTransaction = (
+    state: IState,
+    transaction: Transaction,
+    cb
+  ) => {
     (async () => {
       try {
-        await this.processUnconfirmedTransactionAsync(transaction);
+        await this.processUnconfirmedTransactionAsync(state, transaction);
         cb(null, transaction);
       } catch (e) {
         cb(e.toString(), transaction);
@@ -66,7 +70,10 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionAsync = async (transaction: Transaction) => {
+  processUnconfirmedTransactionAsync = async (
+    state: IState,
+    transaction: Transaction
+  ) => {
     try {
       if (!transaction.id) {
         transaction.id = TransactionBase.getId(transaction);
@@ -77,7 +84,7 @@ export default class Transactions {
         }
       }
 
-      if (this.modules.blocks.isCollectingVotes()) {
+      if (state.privIsCollectingVotes) {
         throw new Error('Block consensus in processing');
       }
 
@@ -93,7 +100,7 @@ export default class Transactions {
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
-      await this.applyUnconfirmedTransactionAsync(transaction);
+      await this.applyUnconfirmedTransactionAsync(state, transaction);
       this.pool.add(transaction);
       return transaction;
     } catch (e) {
