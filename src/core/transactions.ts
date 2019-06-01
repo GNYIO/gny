@@ -36,11 +36,15 @@ export default class Transactions {
     }
   };
 
-  processUnconfirmedTransactions = (transactions: Transaction[], cb) => {
+  public processUnconfirmedTransactions = (
+    state: IState,
+    transactions: Transaction[],
+    cb
+  ) => {
     (async () => {
       try {
         for (const transaction of transactions) {
-          await this.processUnconfirmedTransactionAsync(transaction);
+          await this.processUnconfirmedTransactionAsync(state, transaction);
         }
         cb(null, transactions);
       } catch (e) {

@@ -11,6 +11,7 @@ import {
   IBlock,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
+import { BlocksCorrect } from '../../../src/core/blocks-correct';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -316,7 +317,12 @@ export default class TransactionsApi {
     }
     return this.library.sequence.add(
       callback => {
-        this.modules.transactions.processUnconfirmedTransactions(trs, callback);
+        const state = BlocksCorrect.getState();
+        this.modules.transactions.processUnconfirmedTransactions(
+          state,
+          trs,
+          callback
+        );
       },
       undefined,
       finishedCallback
