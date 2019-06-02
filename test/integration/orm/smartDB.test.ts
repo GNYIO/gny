@@ -1966,4 +1966,51 @@ describe('integration - SmartDB', () => {
     });
     done();
   });
+
+  describe('use cases', () => {
+    it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
+      await saveGenesisBlock(sut);
+
+      const variable = await sut.createOrLoad('Variable', {
+        key: 'key',
+        value: 'value',
+      });
+
+      const block1 = createBlock(1);
+      sut.beginBlock(block1);
+      await sut.commitBlock();
+
+      // pre check
+      const preCheckResult = await sut.findAll('Variable', {
+        key: 'key',
+      });
+      expect(preCheckResult).toHaveLength(1);
+      expect(preCheckResult[0]).toEqual({
+        key: 'key',
+        value: 'value',
+        _version_: 1,
+      });
+
+      // act
+      await sut.update('Variable', { value: 'newValue' }, { key: 'key' });
+
+      // persist changes
+      const block2 = createBlock(2);
+      sut.beginBlock(block2);
+      await sut.commitBlock();
+
+      // check
+      const result = await sut.findAll('Variable', {
+        key: 'key',
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        key: 'key',
+        value: 'newValue',
+        _version_: 2,
+      });
+
+      done();
+    });
+  });
 });
