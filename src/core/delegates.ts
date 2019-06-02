@@ -69,10 +69,10 @@ export default class Delegates {
     delete this.keyPairs[publicKey];
   };
 
-  public getBlockSlotData = async (
+  public getBlockSlotData = (
     slot: number,
     activeDelegates: string[]
-  ): Promise<BlockSlotData> => {
+  ): void | BlockSlotData => {
     if (!activeDelegates || !activeDelegates.length) {
       return;
     }
@@ -123,7 +123,7 @@ export default class Delegates {
     const delList = await this.generateDelegateList(
       Number(lastBlock.height) + 1
     );
-    const currentBlockData = await this.getBlockSlotData(currentSlot, delList);
+    const currentBlockData = this.getBlockSlotData(currentSlot, delList);
     if (!currentBlockData) {
       this.library.logger.trace('Loop:', 'skipping slot');
       return;

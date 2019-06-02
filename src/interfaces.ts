@@ -241,6 +241,11 @@ export interface ProcessBlockOptions {
   votes?: ManyVotes;
 }
 
+export interface BlockSlotData {
+  time: number;
+  keypair: KeyPair;
+}
+
 // Models
 export interface IBlock {
   id: string;
