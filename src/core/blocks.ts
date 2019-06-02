@@ -251,7 +251,7 @@ export default class Blocks {
     return block; // important
   }
 
-  public async CheckBlock(
+  public CheckBlock(
     state: IState,
     block: IBlock,
     options: ProcessBlockOptions,
@@ -259,6 +259,9 @@ export default class Blocks {
   ) {
     if (!options.local) {
       this.verifyBlock(state, block, options, delegateList);
+      if (block.height !== 0) {
+        this.modules.delegates.validateBlockSlot(block, delegateList);
+      }
     }
   }
 
@@ -268,15 +271,6 @@ export default class Blocks {
   ) {
     if (!options.local) {
       await BlocksCorrect.IsBlockAlreadyInDbIO(block);
-
-      if (block.height !== 0) {
-        try {
-          await this.modules.delegates.validateBlockSlot(block); // TODO, pass more arguments
-        } catch (e) {
-          this.library.logger.error(e);
-          throw new Error(`Can't verify slot: ${e}`);
-        }
-      }
 
       await BlocksCorrect.AreAnyTransactionsAlreadyInDbIO(block.transactions);
     }
@@ -350,8 +344,8 @@ export default class Blocks {
       state = this.ProcessBlockEffect(state, block);
 
       this.ProcessBlockFireEvents(block, options);
-    } catch (fe) {
-      this.library.logger.error('save block error: ', fe);
+    } catch (error) {
+      this.library.logger.error('save block error: ', error);
     } finally {
       state = this.ProcessBlockCleanupEffect(state);
     }
