@@ -475,43 +475,6 @@ export default class Blocks {
     }
   };
 
-  public getBlocks = async (
-    minHeight: number,
-    maxHeight: number,
-    withTransaction: boolean
-  ) => {
-    const blocks: any = await global.app.sdb.getBlocksByHeightRange(
-      minHeight,
-      maxHeight
-    );
-
-    if (!blocks || !blocks.length) {
-      return [];
-    }
-
-    maxHeight = blocks[blocks.length - 1].height;
-    if (withTransaction) {
-      const transactions = await global.app.sdb.findAll('Transaction', {
-        condition: {
-          height: { $gte: minHeight, $lte: maxHeight },
-        },
-      });
-      const firstHeight = blocks[0].height;
-      for (const t of transactions) {
-        const h = t.height;
-        const b = blocks[h - firstHeight];
-        if (b) {
-          if (!b.transactions) {
-            b.transactions = [];
-          }
-          b.transactions.push(t);
-        }
-      }
-    }
-
-    return blocks;
-  };
-
   public loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
     let loaded = false;
     let count = 0;

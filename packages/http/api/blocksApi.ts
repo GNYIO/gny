@@ -4,6 +4,7 @@ import { Modules, IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
 import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { getBlocks as getBlocksFromApi } from '../util';
 
 export default class BlocksApi {
   private modules: Modules;
@@ -113,7 +114,7 @@ export default class BlocksApi {
 
     try {
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
-      let blocks = await this.modules.blocks.getBlocks(
+      let blocks = await getBlocksFromApi(
         minHeight,
         maxHeight,
         withTransactions
