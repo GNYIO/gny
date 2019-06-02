@@ -563,8 +563,16 @@ export default class Blocks {
     if (!this.library.config.publicIp) {
       throw new Error('No public ip'); // throw or simple return?
     }
+    if (!this.library.config.peerPort) {
+      throw new Error('No peer port'); // throw or simple return?
+    }
 
-    const propose = BlocksCorrect.ManageProposeCreation(keypair, newBlock);
+    const config = global.Config; // global access is bad
+    const propose = BlocksCorrect.ManageProposeCreation(
+      keypair,
+      newBlock,
+      config
+    );
 
     state.pendingBlock = newBlock;
 

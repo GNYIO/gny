@@ -5,6 +5,7 @@ import {
   BlockPropose,
   IState,
   ISimpleCache,
+  IConfig,
 } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { maxPayloadLength } from '../utils/constants';
@@ -115,6 +116,7 @@ export class BlocksCorrect {
   }
 
   public static CanAllTransactionsBeSerialized(transactions: Transaction[]) {
+    if (!transactions) throw new Error('transactions are null');
     for (const transaction of transactions) {
       try {
         const bytes = TransactionBase.getBytes(transaction);
@@ -129,9 +131,17 @@ export class BlocksCorrect {
     return !Array.isArray(activeKeypairs) || activeKeypairs.length === 0;
   }
 
-  public static ManageProposeCreation(keypair: KeyPair, block: IBlock) {
-    const publicIp = global.Config.publicIp; // global access is bad
-    const peerPort = global.Config.peerPort; // global access is bad
+  public static ManageProposeCreation(
+    keypair: KeyPair,
+    block: IBlock,
+    config: Partial<IConfig>
+  ) {
+    if (!config.publicIp || !config.peerPort) {
+      throw new Error('config.publicIp and config.peerPort is mandatory');
+    }
+
+    const publicIp = config.publicIp;
+    const peerPort = config.peerPort;
 
     const serverAddr = `${publicIp}:${peerPort}`;
     let propose: BlockPropose;
@@ -161,39 +171,5 @@ export class BlocksCorrect {
     ) {
       throw new Error('Block contain already confirmed transaction');
     }
-  }
-
-  public static async PrepareIODataForBlockGeneration(height: number) {
-    let activeKeypairs: KeyPair[];
-    try {
-      activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(
-        height
-      );
-    } catch (e) {
-      throw new Error(`Failed to get active delegate keypairs: ${e}`);
-    }
-
-    const io = {
-      delegates,
-    };
-
-    // DB access
-    // const exists = await global.app.sdb.exists('Block', { id: block.id });
-    // (await global.app.sdb.exists('Transaction', { id: idList }))
-
-    // const inMemory = {
-    //   lastBlock: 0,
-    //   config.publicIp and config.peerPort,
-    //   }`;
-    // };
-
-    // SideEffects (when NOT enough votes):
-    // this.library.modules.consensusManagement.setPendingBlock(block);
-    // this.library.modules.consensusManagement.addPendingVotes(localVotes);
-    // this.proposeCache[propose.hash] = true;
-    // this.privIsCollectingVotes = true;
-    // this.library.bus.message('onNewPropose', propose, true);
-
-    // SideEffects (enough votes):
   }
 }

@@ -370,7 +370,7 @@ export default class Delegates {
     cb();
   };
 
-  private getTopDelegates = async () => {
+  public getTopDelegates = async () => {
     const allDelegates = (await global.app.sdb.getAll(
       'Delegate'
     )) as Delegate[];
@@ -381,7 +381,7 @@ export default class Delegates {
     return sortedPublicKeys;
   };
 
-  private getBookkeeper = async (): Promise<string[]> => {
+  private getBookkeeper = async () => {
     const item = await global.app.sdb.get('Variable', {
       key: this.BOOK_KEEPER_NAME,
     });
@@ -390,7 +390,7 @@ export default class Delegates {
     }
 
     // TODO: ?? make field type as JSON
-    return JSON.parse(item.value);
+    return JSON.parse(item.value) as string[];
   };
 
   public updateBookkeeper = async () => {
