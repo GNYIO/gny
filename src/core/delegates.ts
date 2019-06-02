@@ -12,6 +12,8 @@ import {
   BlockPropose,
   ProcessBlockOptions,
   IState,
+  BlockSlotData,
+  IBlock,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
 import { BlocksCorrect } from './blocks-correct';
@@ -67,12 +69,11 @@ export default class Delegates {
     delete this.keyPairs[publicKey];
   };
 
-  private getBlockSlotData = async (
+  public getBlockSlotData = async (
     slot: number,
-    height: number
-  ): Promise<{ time: number; keypair: KeyPair }> => {
-    const activeDelegates = await this.generateDelegateList(height);
-    if (!activeDelegates) {
+    activeDelegates: string[]
+  ): Promise<BlockSlotData> => {
+    if (!activeDelegates || !activeDelegates.length) {
       return;
     }
     const lastSlot = slots.getLastSlot(slot);
@@ -108,8 +109,9 @@ export default class Delegates {
 
     const currentSlot = slots.getSlotNumber();
     const lastBlock = BlocksCorrect.getState().lastBlock;
+    const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
-    if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
+    if (currentSlot === lastBlockSlotNumber) {
       return;
     }
 
@@ -118,10 +120,10 @@ export default class Delegates {
       return;
     }
 
-    const currentBlockData = await this.getBlockSlotData(
-      currentSlot,
+    const delList = await this.generateDelegateList(
       Number(lastBlock.height) + 1
     );
+    const currentBlockData = await this.getBlockSlotData(currentSlot, delList);
     if (!currentBlockData) {
       this.library.logger.trace('Loop:', 'skipping slot');
       return;
@@ -302,9 +304,7 @@ export default class Delegates {
     });
   };
 
-  public validateBlockSlot = async (block): Promise<void> => {
-    const activeDelegates = await this.generateDelegateList(block.height);
-
+  public validateBlockSlot = (block: IBlock, activeDelegates: string[]) => {
     const currentSlot = slots.getSlotNumber(block.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
