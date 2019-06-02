@@ -153,6 +153,7 @@ export default class TransportApi {
 
       const minHeight = Number(lastBlock.height) + 1;
       const maxHeight = minHeight + blocksLimit - 1;
+      // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
       const blocks = await this.modules.blocks.getBlocks(
         minHeight,
         maxHeight,
