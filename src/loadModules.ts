@@ -5,7 +5,6 @@ import Peer from './core/peer';
 import Transport from './core/transport';
 import Delegates from './core/delegates';
 import Blocks from './core/blocks';
-import ConsensusManagement from './core/consensus-management';
 
 import { Modules, IScope } from './interfaces';
 
@@ -17,7 +16,6 @@ export default function loadModules(scope: IScope) {
   const transport = new Transport(scope);
   const delegates = new Delegates(scope);
   const blocks = new Blocks(scope);
-  const consensusManagement = new ConsensusManagement(scope);
 
   const modules: Modules = {
     accounts: accounts,
@@ -27,7 +25,6 @@ export default function loadModules(scope: IScope) {
     transport: transport,
     delegates: delegates,
     blocks: blocks,
-    consensusManagement: consensusManagement,
   };
   return modules;
 }

@@ -5,7 +5,6 @@ import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
 import blocks from './core/blocks';
-import consensusManagement from './core/consensus-management';
 
 import { Protobuf } from './utils/protobuf';
 import * as tracer from 'tracer';
@@ -68,7 +67,6 @@ export interface Modules {
   transport: transport;
   delegates: delegates;
   blocks: blocks;
-  consensusManagement: consensusManagement;
 }
 
 export interface IMessageEmitter {
@@ -245,6 +243,8 @@ export interface BlockSlotData {
   time: number;
   keypair: KeyPair;
 }
+
+export type BlockHeightId = Pick<IBlock, 'height' | 'id'>;
 
 // Models
 export interface IBlock {
