@@ -237,9 +237,9 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return a string about successful verification', done => {
+    it('should return undefined after successful verification', done => {
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toEqual('Verify propose successful.');
+      expect(accepted).toBeUndefined();
       done();
     });
   });

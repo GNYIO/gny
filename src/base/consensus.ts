@@ -10,6 +10,7 @@ import {
   ManyVotes,
   Signature,
   BlockPropose,
+  BlockHeightId,
 } from '../interfaces';
 import { DELEGATES } from '../utils/constants';
 
@@ -57,11 +58,17 @@ export class ConsensusBase {
     return votes;
   }
 
-  public static createVotes(keypairs: KeyPair[], block: IBlock): ManyVotes {
-    const hash = ConsensusBase.calculateVoteHash(block.height, block.id);
+  public static createVotes(
+    keypairs: KeyPair[],
+    heightAndId: BlockHeightId
+  ): ManyVotes {
+    const hash = ConsensusBase.calculateVoteHash(
+      heightAndId.height,
+      heightAndId.id
+    );
     const votes: ManyVotes = {
-      height: block.height,
-      id: block.id,
+      height: heightAndId.height,
+      id: heightAndId.id,
       signatures: [],
     };
     keypairs.forEach((kp: KeyPair) => {
@@ -193,7 +200,7 @@ export class ConsensusBase {
       const signature = Buffer.from(propose.signature, 'hex');
       const publicKey = Buffer.from(propose.generatorPublicKey, 'hex');
       if (ed.verify(hash, signature, publicKey)) {
-        return 'Verify propose successful.';
+        return;
       }
       throw new Error('Propose signature verify failed.');
     } catch (e) {
