@@ -195,10 +195,25 @@ export interface IConfig {
   peers: {
     list: { ip: string; port: string | number }[];
   };
+  forging: {
+    secret: string[];
+    access: {
+      whiteList: string[];
+    };
+  };
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
   ormConfig: string;
+  ssl: {
+    enabled: boolean;
+    options: {
+      port: number;
+      address: string;
+      key: string;
+      cert: string;
+    };
+  };
 }
 
 export interface KeyPairsIndexer {

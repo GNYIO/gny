@@ -1,7 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next, Transfer } from '../../../src/interfaces';
-import { In } from 'typeorm';
 import { Merge } from 'type-fest';
 
 export default class TransfersApi {
