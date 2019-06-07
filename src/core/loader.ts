@@ -150,9 +150,10 @@ export default class Loader {
       }
 
       const data = result.data;
-      const peer = result.node;
+      const peer = result.node as PeerNode;
 
       const schema = this.library.joi.object().keys({
+        // Todo: better schema
         transactions: this.library.joi
           .array()
           .unique()
@@ -163,7 +164,11 @@ export default class Loader {
         return cb(report.error.message);
       }
 
-      const transactions = data.transactions;
+      if (!BlocksCorrect.IsPeerNode(peer)) {
+        return cb('validation of peer failed');
+      }
+
+      const transactions = data.transactions as Transaction[];
       const peerStr = `${peer.host}:${peer.port - 1}`;
 
       for (let i = 0; i < transactions.length; i++) {
@@ -184,8 +189,9 @@ export default class Loader {
 
       const trs: Transaction[] = [];
       for (let i = 0; i < transactions.length; ++i) {
-        if (!this.modules.transactions.hasUnconfirmed(transactions[i])) {
-          trs.push(transactions[i]);
+        const one = transactions[i];
+        if (!this.modules.transactions.hasUnconfirmed(one.id)) {
+          trs.push(one);
         }
       }
       this.library.logger.info(
@@ -226,6 +232,7 @@ export default class Loader {
 
   public syncBlocksFromPeer = (peer: PeerNode) => {
     this.library.logger.debug('syncBlocksFromPeer enter');
+
     if (!this.isLoaded || this.privSyncing) {
       this.library.logger.debug('blockchain is already syncing');
       return;
@@ -245,7 +252,7 @@ export default class Loader {
         throw err;
       }
       try {
-        this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id);
+        await this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id);
       } catch (err) {
         throw err;
       } finally {

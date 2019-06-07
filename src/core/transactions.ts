@@ -21,7 +21,7 @@ export default class Transactions {
 
   removeUnconfirmedTransaction = (id: string) => this.pool.remove(id);
 
-  hasUnconfirmed = (id: string) => this.pool.has(id);
+  public hasUnconfirmed = (id: string) => this.pool.has(id);
 
   clearUnconfirmed = () => this.pool.clear();
 
@@ -53,9 +53,12 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionsAsync = async (transactions: Transaction[]) => {
+  public processUnconfirmedTransactionsAsync = async (
+    state: IState,
+    transactions: Transaction[]
+  ) => {
     for (const transaction of transactions) {
-      await this.processUnconfirmedTransactionAsync(transaction);
+      await this.processUnconfirmedTransactionAsync(state, transaction);
     }
   };
 

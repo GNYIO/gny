@@ -1,7 +1,5 @@
-import * as assert from 'assert';
-import * as crypto from 'crypto';
 import async = require('async');
-import { maxPayloadLength, maxTxsPerBlock } from '../utils/constants';
+import { MAX_TXS_PER_BLOCK } from '../utils/constants';
 import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
@@ -22,15 +20,17 @@ import {
   CommonBlockParams,
   CommonBlockResult,
   IState,
+  NewBlockMessage,
 } from '../interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';
-import { BlocksCorrect } from './blocks-correct';
+import { BlocksCorrect, BlockMessageFitInLineResult } from './blocks-correct';
 import { copyObject } from '../base/helpers';
 import { Block } from '../../packages/database-postgres/entity/Block';
+import { ConsensusHelper } from './ConsensusHelper';
 
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
@@ -42,7 +42,6 @@ export default class Blocks {
   private blockCache: ISimpleCache<boolean> = {};
   private proposeCache: ISimpleCache<boolean> = {};
   private lastPropose: BlockPropose = null;
-  private privIsCollectingVotes = false;
 
   private lastVoteTime: number;
   private blockreward = new Blockreward();
@@ -157,7 +156,7 @@ export default class Blocks {
       }
     }
 
-    if (block.transactions.length > maxTxsPerBlock) {
+    if (block.transactions.length > MAX_TXS_PER_BLOCK) {
       throw new Error(`Invalid amount of block assets: ${block.id}`);
     }
     if (block.transactions.length !== block.count) {
@@ -308,17 +307,17 @@ export default class Blocks {
     state.lastVoteTime = null;
     state.privIsCollectingVotes = false;
 
-    state = this.library.modules.consensusManagement.clearState(state);
+    state = ConsensusHelper.clearState(state);
 
     return state;
   }
 
   public ProcessBlockFireEvents(block: Block, options: ProcessBlockOptions) {
     if (options.broadcast && options.local) {
-      options.votes.signatures = options.votes.signatures.slice(0, 6);
+      options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
       this.library.bus.message('onNewBlock', block, options.votes);
     }
-    this.library.bus.message('onProcessBlock', block);
+    this.library.bus.message('onProcessBlock', block); // TODO is this used?
   }
 
   public processBlock = async (
@@ -559,7 +558,6 @@ export default class Blocks {
     /*
       not enough votes, so create a block propose and send it to all peers
     */
-
     if (!this.library.config.publicIp) {
       throw new Error('No public ip'); // throw or simple return?
     }
@@ -574,13 +572,9 @@ export default class Blocks {
       config
     );
 
-    state.pendingBlock = newBlock;
+    state = ConsensusHelper.setPendingBlock(state, newBlock);
 
-    const result = this.library.modules.consensusManagement.addPendingVotes(
-      state,
-      localVotes
-    );
-    state = result.state;
+    state = ConsensusHelper.addPendingVotes(state, localVotes);
 
     state.proposeCache[propose.hash] = true;
     state.privIsCollectingVotes = true;
@@ -594,30 +588,65 @@ export default class Blocks {
     };
   };
 
-  // Events
-  public onReceiveBlock = (block: IBlock, votes: ManyVotes) => {
-    if (this.modules.loader.syncing() || !this.loaded) {
-      return;
-    }
+  public fork = (block: IBlock, cause: number) => {
+    this.library.logger.info('Fork', {
+      delegate: block.delegate,
+      block: {
+        id: block.id,
+        timestamp: block.timestamp,
+        height: block.height,
+        prevBlockId: block.prevBlockId,
+      },
+      cause,
+    });
+  };
 
-    if (this.blockCache[block.id]) {
+  // Events
+  public onReceiveBlock = (
+    newBlockMsg: NewBlockMessage,
+    peer: PeerNode,
+    block: IBlock,
+    votes: ManyVotes
+  ) => {
+    if (this.modules.loader.syncing() || !this.loaded) {
+      // TODO access state
       return;
     }
-    this.blockCache[block.id] = true;
 
     this.library.sequence.add(async cb => {
-      if (
-        block.prevBlockId === this.lastBlock.id &&
-        this.lastBlock.height + 1 === block.height
-      ) {
-        this.library.logger.info(
-          `Received new block id: ${block.id}` +
-            ` height: ${block.height}` +
-            ` round: ${RoundBase.calculateRound(
-              this.modules.blocks.getLastBlock().height
-            )}` +
-            ` slot: ${slots.getSlotNumber(block.timestamp)}`
-        );
+      const old = BlocksCorrect.getState();
+      let state = copyObject(old) as IState;
+
+      // validate the received Block and NewBlockMessage against each other
+      if (!BlocksCorrect.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
+        this.library.logger.warn('NewBlockMessage and Block do not');
+        return cb();
+      }
+
+      const fitInLineResult = BlocksCorrect.DoesTheNewBlockMessageFitInLine(
+        state,
+        newBlockMsg
+      );
+      if (fitInLineResult === BlockMessageFitInLineResult.Exit) return cb();
+      if (fitInLineResult === BlockMessageFitInLineResult.SyncBlocks) {
+        this.modules.loader.syncBlocksFromPeer(peer);
+        return cb();
+      }
+
+      // migrated from receivePeer_NewBlockHeader
+      const lastBlock = BlocksCorrect.getState().lastBlock;
+      if (!lastBlock) {
+        this.library.logger.error('Last does block not exists');
+        return cb();
+      }
+
+      if (BlocksCorrect.AlreadyReceivedThisBlock(state, block)) {
+        return cb();
+      }
+
+      state = BlocksCorrect.MarkBlockAsReceived(state, block); // TODO this should be saved already in case of an error
+
+      if (BlocksCorrect.ReceivedBlockIsInRightOrder(state, block)) {
         const pendingTrsMap = new Map<string, Transaction>();
         try {
           const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
@@ -625,8 +654,14 @@ export default class Blocks {
             pendingTrsMap.set(t.id, t);
           }
           this.modules.transactions.clearUnconfirmed();
-          await global.app.sdb.rollbackBlock(this.lastBlock.height);
-          await this.processBlock(block, { votes, broadcast: true });
+          await global.app.sdb.rollbackBlock(state.lastBlock.height);
+
+          const delegateList = await this.modules.delegates.generateDelegateList(
+            block.height
+          );
+          const options: ProcessBlockOptions = { votes, broadcast: true };
+          state = await this.processBlock(state, block, options, delegateList);
+          // TODO: save state?
         } catch (e) {
           this.library.logger.error('Failed to process received block', e);
         } finally {
@@ -636,6 +671,7 @@ export default class Blocks {
           try {
             const redoTransactions = [...pendingTrsMap.values()];
             await this.modules.transactions.processUnconfirmedTransactionsAsync(
+              state,
               redoTransactions
             );
           } catch (e) {
@@ -644,29 +680,32 @@ export default class Blocks {
               e
             );
           }
+
+          // important
+          BlocksCorrect.setState(state);
           return cb();
         }
       }
       if (
-        block.prevBlockId !== this.lastBlock.id &&
-        this.lastBlock.height + 1 === block.height
+        block.prevBlockId !== state.lastBlock.id &&
+        state.lastBlock.height + 1 === block.height
       ) {
-        this.modules.delegates.fork(block, 1);
+        this.fork(block, 1);
         return cb('Fork');
       }
       if (
-        block.prevBlockId === this.lastBlock.prevBlockId &&
-        block.height === this.lastBlock.height &&
-        block.id !== this.lastBlock.id
+        block.prevBlockId === state.lastBlock.prevBlockId &&
+        block.height === state.lastBlock.height &&
+        block.id !== state.lastBlock.id
       ) {
-        this.modules.delegates.fork(block, 5);
+        this.fork(block, 5);
         return cb('Fork');
       }
-      if (block.height > this.lastBlock.height + 1) {
+      if (block.height > state.lastBlock.height + 1) {
         this.library.logger.info(
           `receive discontinuous block height ${block.height}`
         );
-        this.modules.loader.startSyncBlocks(this.lastBlock);
+        this.modules.loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       return cb();
@@ -675,54 +714,45 @@ export default class Blocks {
 
   public onReceivePropose = (propose: BlockPropose) => {
     if (this.modules.loader.syncing() || !this.loaded) {
+      // TODO access state
       return;
     }
-    if (this.proposeCache[propose.hash]) {
-      return;
-    }
-    this.proposeCache[propose.hash] = true;
 
     this.library.sequence.add(cb => {
-      if (
-        this.lastPropose &&
-        this.lastPropose.height === propose.height &&
-        this.lastPropose.generatorPublicKey === propose.generatorPublicKey &&
-        this.lastPropose.id !== propose.id
-      ) {
-        this.library.logger.warn(
-          `generate different block with the same height, generator: ${
-            propose.generatorPublicKey
-          }`
-        );
+      const old = BlocksCorrect.getState();
+      let state = copyObject(old) as IState;
+
+      if (BlocksCorrect.AlreadyReceivedPropose(state, propose)) {
         return setImmediate(cb);
       }
-      if (propose.height !== this.lastBlock.height + 1) {
-        this.library.logger.debug(
-          `invalid propose height, proposed height: "${
-            propose.height
-          }", lastBlock.height: "${this.lastBlock.height}"`,
-          propose
-        );
-        if (propose.height > this.lastBlock.height + 1) {
-          this.library.logger.info(
-            `receive discontinuous propose height ${propose.height}`
-          );
-          this.modules.loader.startSyncBlocks(this.lastBlock);
+      state = BlocksCorrect.MarkProposeAsReceived(state, propose);
+
+      if (BlocksCorrect.DoesNewBlockProposeMatchOldOne(state, propose)) {
+        return setImmediate(cb);
+      }
+      if (propose.height !== state.lastBlock.height + 1) {
+        if (propose.height > state.lastBlock.height + 1) {
+          this.modules.loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
       }
-      if (this.lastVoteTime && Date.now() - this.lastVoteTime < 5 * 1000) {
+      if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
         this.library.logger.debug('ignore the frequently propose');
         return setImmediate(cb);
       }
-      this.library.logger.info(
-        `receive propose height ${propose.height} bid ${propose.id}`
-      );
+
+      // propose ok
       return async.waterfall(
         [
           async next => {
             try {
-              await this.modules.delegates.validateProposeSlot(propose);
+              const activeDelegates = await this.modules.delegates.generateDelegateList(
+                propose.height
+              );
+              this.modules.delegates.validateProposeSlot(
+                propose,
+                activeDelegates
+              );
               next();
             } catch (err) {
               next(err.toString());
@@ -730,7 +760,7 @@ export default class Blocks {
           },
           async next => {
             try {
-              const result = ConsensusBase.acceptPropose(propose);
+              ConsensusBase.acceptPropose(propose);
               next();
             } catch (err) {
               next(err);
@@ -745,11 +775,7 @@ export default class Blocks {
           async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = ConsensusBase.createVotes(activeKeypairs, propose);
-              this.library.logger.debug(
-                `send votes height ${votes.height} id ${votes.id} sigatures ${
-                  votes.signatures.length
-                }`
-              );
+
               await this.modules.transport.sendVotes(votes, propose.address);
               this.lastVoteTime = Date.now();
               this.lastPropose = propose;
@@ -768,55 +794,87 @@ export default class Blocks {
     });
   };
 
+  public onReceiveTransaction = (transaction: Transaction) => {
+    const finishCallback = err => {
+      if (err) {
+        this.library.logger.warn(
+          `Receive invalid transaction ${transaction.id}`,
+          err
+        );
+      } else {
+        // TODO: are peer-transactions not broadcasted to all other peers also?
+        // library.bus.message('onUnconfirmedTransaction', transaction, true)
+      }
+    };
+
+    this.library.sequence.add(cb => {
+      if (this.modules.loader.syncing()) {
+        // TODO this should access state
+        return cb();
+      }
+
+      const state = BlocksCorrect.getState();
+      if (!BlocksCorrect.IsBlockchainReady(state, this.library.logger)) {
+        return cb();
+      }
+
+      this.modules.transactions.processUnconfirmedTransaction(
+        state,
+        transaction,
+        cb
+      );
+    }, finishCallback);
+  };
+
   public onReceiveVotes = (votes: ManyVotes) => {
     if (this.modules.loader.syncing() || !this.loaded) {
+      // TODO: use state
       return;
     }
-    this.library.sequence.add(cb => {
-      const totalVotes = this.library.modules.consensusManagement.addPendingVotes(
-        votes
-      );
-      if (totalVotes && totalVotes.signatures) {
-        this.library.logger.debug(
-          `receive new votes, total votes number ${
-            totalVotes.signatures.length
-          }`
-        );
-      }
+
+    this.library.sequence.add(async cb => {
+      const old = BlocksCorrect.getState();
+      let state = copyObject(old) as IState;
+
+      state = ConsensusHelper.addPendingVotes(state, votes);
+
+      const totalVotes = state.pendingVotes;
+
       if (ConsensusBase.hasEnoughVotes(totalVotes)) {
-        const pendingBlock = this.library.modules.consensusManagement.getPendingBlock();
-        const height = pendingBlock.height;
-        const id = pendingBlock.id;
-        return (async () => {
-          try {
-            this.modules.transactions.clearUnconfirmed();
-            await this.processBlock(pendingBlock, {
-              votes: totalVotes,
-              local: true,
-              broadcast: true,
-            });
-            this.library.logger.info(
-              `Forged new block id: ${id}, height: ${height}, round: ${RoundBase.calculateRound(
-                height
-              )}, slot: ${slots.getSlotNumber(
-                pendingBlock.timestamp
-              )}, reward: ${pendingBlock.reward}`
-            );
-          } catch (err) {
-            this.library.logger.error(
-              `Failed to process confirmed block height: ${height} id: ${id} error: ${err}`
-            );
-          }
-          cb();
-        })();
+        const pendingBlock = ConsensusHelper.getPendingBlock(state);
+
+        try {
+          this.modules.transactions.clearUnconfirmed();
+          const options: ProcessBlockOptions = {
+            votes: totalVotes,
+            local: true,
+            broadcast: true,
+          };
+          const delegateList = await this.modules.delegates.generateDelegateList(
+            pendingBlock.height
+          );
+          state = await this.processBlock(
+            state,
+            pendingBlock,
+            options,
+            delegateList
+          );
+
+          BlocksCorrect.setState(state); // imporantđ
+        } catch (err) {
+          this.library.logger.error(
+            `Failed to process confirmed block: ${err}`
+          );
+        }
+        return cb();
+      } else {
+        BlocksCorrect.setState(state); // important
+        return setImmediate(cb);
       }
-      return setImmediate(cb); // todo, check if correct. Is not
     });
   };
 
-  public isCollectingVotes = () => this.privIsCollectingVotes; // TODO access state
-
-  cleanup = cb => {
+  public cleanup = cb => {
     this.library.logger.debug('Cleaning up core/blocks');
     this.loaded = false;
     cb();
@@ -850,19 +908,27 @@ export default class Blocks {
   public onBind = (scope: Modules) => {
     this.modules = scope;
 
-    this.loaded = true;
+    this.loaded = true; // TODO: use state
 
-    return (async () => {
-      try {
-        const count = global.app.sdb.blocksCount;
-        const state = await this.binding(count);
-        BlocksCorrect.setState(state);
-        this.library.logger.info('Blocks found:', count);
-        this.library.bus.message('onBlockchainReady');
-      } catch (e) {
-        this.library.logger.error('Failed to prepare local blockchain', e);
-        process.exit(0);
+    return this.library.sequence.add(
+      async cb => {
+        try {
+          const count = global.app.sdb.blocksCount;
+          const state = await this.binding(count);
+          BlocksCorrect.setState(state);
+          this.library.logger.info('Blocks found:', count);
+          this.library.bus.message('onBlockchainReady');
+          return cb();
+        } catch (err) {
+          this.library.logger.error('Failed to prepare local blockchain', e);
+          return cb('Failed to prepare local blockchain');
+        }
+      },
+      err => {
+        if (err) {
+          process.exit(0);
+        }
       }
-    })();
+    );
   };
 }

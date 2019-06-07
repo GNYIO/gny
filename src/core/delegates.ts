@@ -18,6 +18,7 @@ import {
 import { RoundBase } from '../base/round';
 import { BlocksCorrect } from './blocks-correct';
 import { copyObject } from '../base/helpers';
+import { ConsensusHelper } from './ConsensusHelper';
 
 export default class Delegates {
   private loaded: boolean = false;
@@ -130,20 +131,18 @@ export default class Delegates {
     }
 
     this.library.sequence.add(async done => {
+      const old = BlocksCorrect.getState();
+      let state = copyObject(old) as IState;
+
       try {
         const myTime = currentBlockData.time;
         const isCurrentSlot =
           slots.getSlotNumber(myTime) === slots.getSlotNumber();
-        const lastBlockWasBefore =
-          BlocksCorrect.getState().lastBlock.timestamp < myTime;
+        const lastBlockWasBefore = state.lastBlock.timestamp < myTime;
         const noPendingBlock =
-          this.library.modules.consensusManagement.hasPendingBlock(myTime) ===
-          false;
+          ConsensusHelper.hasPendingBlock(state, myTime) === false;
 
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
-          const old = BlocksCorrect.getState();
-          let state = copyObject(old) as IState;
-
           const height = state.lastBlock.height + 1;
 
           const activeDelegates = await this.getActiveDelegateKeypairs(height); // move to BlocksCorrect?
@@ -250,8 +249,10 @@ export default class Delegates {
     return results;
   };
 
-  public validateProposeSlot = async (propose: BlockPropose) => {
-    const activeDelegates = await this.generateDelegateList(propose.height);
+  public validateProposeSlot = (
+    propose: BlockPropose,
+    activeDelegates: string[]
+  ) => {
     const currentSlot = slots.getSlotNumber(propose.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
@@ -289,19 +290,6 @@ export default class Delegates {
       global.app.logger.error('error while generating DelgateList', e);
       return;
     }
-  };
-
-  public fork = (block, cause) => {
-    this.library.logger.info('Fork', {
-      delegate: block.delegate,
-      block: {
-        id: block.id,
-        timestamp: block.timestamp,
-        height: block.height,
-        prevBlockId: block.prevBlockId,
-      },
-      cause,
-    });
   };
 
   public validateBlockSlot = (block: IBlock, activeDelegates: string[]) => {

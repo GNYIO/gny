@@ -16,6 +16,7 @@ import {
 import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
 import { TransactionBase } from '../base/transaction';
+import { BlocksCorrect } from './blocks-correct';
 
 export default class Transport {
   private readonly library: IScope;
@@ -55,12 +56,20 @@ export default class Transport {
 
   // broadcast to peers NewBlockMessage
   public onNewBlock = async (block: IBlock, votes: ManyVotes) => {
-    this.latestBlocksCache.set(block.id, {
-      block,
-      votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'), // TODO, try/catch
-    });
+    let blockAndVotes: BlockAndVotes = undefined;
+    try {
+      blockAndVotes = {
+        block,
+        votes: this.library.protobuf.encodeBlockVotes(votes).toString('base64'),
+      };
+    } catch (err) {
+      this.library.logger.error('could not encode blockVotes');
+      return;
+    }
 
-    const message =
+    this.latestBlocksCache.set(block.id, blockAndVotes);
+
+    const message: NewBlockMessage =
       this.blockHeaderMidCache.get(block.id) ||
       ({
         id: block.id,
@@ -99,18 +108,13 @@ export default class Transport {
   // peerEvent
   private receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     if (this.modules.loader.syncing()) {
+      // TODO access state
       return;
     }
 
-    const lastBlock = this.modules.blocks.getLastBlock();
-    if (!lastBlock) {
-      this.library.logger.error('Last block not exists');
-      return;
-    }
-
-    let body: NewBlockMessage;
+    let newBlockMsg;
     try {
-      body = this.library.protobuf.decodeNewBlockMessage(message.data);
+      newBlockMsg = this.library.protobuf.decodeNewBlockMessage(message.data);
     } catch (err) {
       this.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -118,55 +122,9 @@ export default class Transport {
       return;
     }
 
-    const schema = this.library.joi.object({
-      id: this.library.joi
-        .string()
-        .hex()
-        .required(),
-      height: this.library.joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-      prevBlockId: this.library.joi
-        .string()
-        .hex()
-        .required(),
-    });
-    const report = this.library.joi.validate(body, schema);
-    if (report.error) {
-      this.library.logger.error(
-        `Invalid message body: ${report.error.message}`
-      );
+    if (!BlocksCorrect.IsNewBlockMessage(newBlockMsg)) {
       return;
     }
-
-    const height = body.height;
-    const id = body.id;
-    const prevBlockId = body.prevBlockId;
-    const peer = message.peerInfo;
-
-    if (
-      height !== Number(lastBlock.height) + 1 ||
-      prevBlockId !== lastBlock.id
-    ) {
-      this.library.logger.warn(
-        'New block does not match with last block',
-        body
-      );
-      this.library.logger.warn(
-        `lastBlock: ${JSON.stringify(lastBlock, null, 2)}`
-      );
-      if (height > Number(lastBlock.height) + 5) {
-        this.library.logger.warn('Receive new block header from long fork');
-      } else {
-        this.modules.loader.syncBlocksFromPeer(peer);
-      }
-      return;
-    }
-    this.library.logger.info('Receive new block header', { height, id });
-
-    // TODO add type information
 
     let result: BlockAndVotes;
     try {
@@ -181,22 +139,33 @@ export default class Transport {
       this.library.logger.error('Invalid block data', result);
       return;
     }
+
+    let block: IBlock;
+    let votes: ManyVotes;
     try {
-      let block = result.block;
-      let votes = this.library.protobuf.decodeBlockVotes(
+      block = result.block;
+      votes = this.library.protobuf.decodeBlockVotes(
         Buffer.from(result.votes, 'base64')
       );
       block = BlockBase.normalizeBlock(block);
       votes = ConsensusBase.normalizeVotes(votes);
-      this.latestBlocksCache.set(block.id, result);
-      this.blockHeaderMidCache.set(block.id, body);
-      this.library.bus.message('onReceiveBlock', block, votes);
+
+      this.latestBlocksCache.set(block.id, result); // TODO: make side effect more predictable
+      this.blockHeaderMidCache.set(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
       this.library.logger.error(
         `normalize block or votes object error: ${e.toString()}`,
         result
       );
     }
+
+    this.library.bus.message(
+      'onReceiveBlock',
+      newBlockMsg,
+      message.peerInfo,
+      block,
+      votes
+    );
   };
 
   // peerEvent
@@ -211,44 +180,8 @@ export default class Transport {
       return;
     }
 
-    const schema = this.library.joi.object().keys({
-      address: this.library.joi
-        .string()
-        .ipv4PlusPort()
-        .required(),
-      generatorPublicKey: this.library.joi
-        .string()
-        .hex()
-        .required(),
-      hash: this.library.joi
-        .string()
-        .hex()
-        .required(),
-      height: this.library.joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-      id: this.library.joi
-        .string()
-        .hex()
-        .required(),
-      signature: this.library.joi
-        .string()
-        .hex()
-        .required(),
-      timestamp: this.library.joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-    });
-    const report = this.library.joi.validate(propose, schema);
-    if (report.error) {
-      this.library.logger.error(
-        'Failed to validate propose ',
-        report.error.message
-      );
+    if (!BlocksCorrect.IsBlockPropose(propose)) {
+      this.library.logger.warn('block propose validation did not work');
       return;
     }
 
@@ -256,21 +189,7 @@ export default class Transport {
   };
 
   // peerEvent
-  private receivePeer_Transaction = (message: P2PMessage) => {
-    if (this.modules.loader.syncing()) {
-      return;
-    }
-    const lastBlock = this.modules.blocks.getLastBlock();
-    const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-    if (slots.getNextSlot() - lastSlot >= 12) {
-      this.library.logger.error('Blockchain is not ready', {
-        getNextSlot: slots.getNextSlot(),
-        lastSlot,
-        lastBlockHeight: lastBlock.height,
-      });
-      return;
-    }
-
+  public receivePeer_Transaction = (message: P2PMessage) => {
     let transaction: Transaction;
     try {
       transaction = this.library.protobuf.decodeTransaction(message.data);
@@ -292,27 +211,7 @@ export default class Transport {
       return;
     }
 
-    this.library.sequence.add(
-      cb => {
-        this.library.logger.info(
-          `Received transaction ${transaction.id} from remote peer`
-        );
-        this.modules.transactions.processUnconfirmedTransaction(
-          transaction,
-          cb
-        );
-      },
-      err => {
-        if (err) {
-          this.library.logger.warn(
-            `Receive invalid transaction ${transaction.id}`,
-            err
-          );
-        } else {
-          // library.bus.message('onUnconfirmedTransaction', transaction, true)
-        }
-      }
-    );
+    this.library.bus.message('onReceiveTransaction', transaction);
   };
 
   public sendVotes = async (votes: ManyVotes, address: string) => {
