@@ -8,7 +8,6 @@ import {
   DelegateViewModel,
 } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
-import { In } from 'typeorm';
 
 export default class DelegatesApi {
   private modules: Modules;
@@ -65,8 +64,8 @@ export default class DelegatesApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const count = await global.app.sdb.getAll('Delegate')['length'];
-      return res.json({ count });
+      const delegates = await global.app.sdb.getAll('Delegate');
+      return res.json({ count: delegates.length });
     } catch (e) {
       this.library.logger.error('Error in counting delegates', e);
       return next('Failed to count delegates');
