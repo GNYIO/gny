@@ -1,5 +1,4 @@
 import * as express from 'express';
-import slots from '../../../src/utils/slots';
 import osInfo from '../../../src/utils/osInfo';
 import { Request, Response } from 'express';
 import {
@@ -9,7 +8,6 @@ import {
   ManyVotes,
   Transaction,
   IBlock,
-  IState,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksCorrect } from '../../../src/core/blocks-correct';
@@ -95,6 +93,18 @@ export default class TransportApi {
     if (!body.id) {
       return next('Invalid params');
     }
+    // validate id
+    const schema = this.library.joi.object().keys({
+      id: this.library.joi
+        .string()
+        .hex()
+        .required(),
+    });
+    const report = this.library.joi.validate(body, schema);
+    if (report.error) {
+      return next('validation failed');
+    }
+
     const newBlock = this.modules.transport.latestBlocksCache.get(body.id);
     if (!newBlock) {
       return next('New block not found');
@@ -163,20 +173,6 @@ export default class TransportApi {
     }
   };
 
-  public IsBlockchainReady(state: IState) {
-    const lastBlock = state.lastBlock;
-    const nextSlot = slots.getNextSlot();
-    const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-    if (nextSlot - lastSlot >= 12) {
-      this.library.logger.error('Blockchain is not ready', {
-        getNextSlot: slots.getNextSlot(),
-        lastSlot,
-        lastBlockHeight: lastBlock.height,
-      });
-      throw new Error('Blockchain is not ready');
-    }
-  }
-
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
     let transaction: Transaction;
@@ -210,7 +206,9 @@ export default class TransportApi {
     return this.library.sequence.add(
       cb => {
         const state = BlocksCorrect.getState();
-        this.IsBlockchainReady(state);
+        if (!BlocksCorrect.IsBlockchainReady(state, this.library.logger)) {
+          return cb('Blockchain is not ready');
+        }
 
         this.modules.transactions.processUnconfirmedTransaction(
           state,
