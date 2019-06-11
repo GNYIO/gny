@@ -37,8 +37,12 @@ export class BlocksCorrect {
    * returns always a deepCopy of the current state
    */
   public static getState() {
-    const state = copyObject(global.state);
+    const state = BlocksCorrect.copyState(global.state);
     return state;
+  }
+
+  public static copyState(state: IState) {
+    return copyObject(state);
   }
 
   public static areTransactionsExceedingPayloadLength(
@@ -209,7 +213,9 @@ export class BlocksCorrect {
     else return false;
   }
 
-  public static MarkProposeAsReceived(state: IState, propose: BlockPropose) {
+  public static MarkProposeAsReceived(old: IState, propose: BlockPropose) {
+    const state = BlocksCorrect.copyState(old);
+
     state.proposeCache[propose.hash] = true;
     return state;
   }
@@ -218,7 +224,9 @@ export class BlocksCorrect {
     if (state.blockCache[block.id]) return true;
     else return false;
   }
-  public static MarkBlockAsReceived(state: IState, block: IBlock) {
+  public static MarkBlockAsReceived(old: IState, block: IBlock) {
+    const state = BlocksCorrect.copyState(old);
+
     state.blockCache[block.id] = true;
     return state;
   }
@@ -227,8 +235,11 @@ export class BlocksCorrect {
     const inCorrectOrder =
       block.prevBlockId === state.lastBlock.id &&
       state.lastBlock.height + 1 === block.height;
-    if (inCorrectOrder) return true;
-    else return false;
+    if (inCorrectOrder) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public static IsBlockPropose(propose: any): propose is BlockPropose {
@@ -305,9 +316,11 @@ export class BlocksCorrect {
       newBlockMsg.height !== block.height ||
       newBlockMsg.id !== block.id ||
       newBlockMsg.prevBlockId !== block.prevBlockId
-    )
+    ) {
       return false;
-    else return true;
+    } else {
+      return true;
+    }
   }
 
   public static DoesTheNewBlockMessageFitInLine(
@@ -363,8 +376,29 @@ export class BlocksCorrect {
     return true;
   }
 
-  public static SetLastBlockEffect(state: IState, block: IBlock) {
-    state.lastBlock = block; // TODO: first make state copy
+  public static SetLastBlock(old: IState, block: IBlock) {
+    const state = BlocksCorrect.copyState(old);
+
+    state.lastBlock = block; // copy block?
+    return state;
+  }
+
+  public static ProcessBlockCleanup(old: IState) {
+    const state = BlocksCorrect.copyState(old);
+
+    state.blockCache = {};
+    state.proposeCache = {};
+    state.lastVoteTime = null;
+    state.privIsCollectingVotes = false;
+
+    return state;
+  }
+
+  public static setPreGenesisBlock(old: IState) {
+    const state = BlocksCorrect.copyState(old);
+
+    state.lastBlock = { height: -1 } as IBlock;
+
     return state;
   }
 }

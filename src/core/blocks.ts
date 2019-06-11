@@ -295,11 +295,7 @@ export default class Blocks {
   }
 
   public ProcessBlockCleanupEffect(state: IState) {
-    state.blockCache = {};
-    state.proposeCache = {};
-    state.lastVoteTime = null;
-    state.privIsCollectingVotes = false;
-
+    state = BlocksCorrect.ProcessBlockCleanup(state);
     state = ConsensusHelper.clearState(state);
 
     return state;
@@ -333,7 +329,7 @@ export default class Blocks {
 
       await this.ProcessBlockDbIO(state, block, options);
 
-      state = BlocksCorrect.SetLastBlockEffect(state, block);
+      state = BlocksCorrect.SetLastBlock(state, block);
 
       this.ProcessBlockFireEvents(block, options);
     } catch (error) {
@@ -522,7 +518,7 @@ export default class Blocks {
     timestamp: number,
     delegateList: string[]
   ) => {
-    let state = copyObject(old) as IState;
+    let state = BlocksCorrect.copyState(old);
 
     // TODO somehow fuel the state with the default state!
 
@@ -569,8 +565,9 @@ export default class Blocks {
 
     state = ConsensusHelper.addPendingVotes(state, localVotes);
 
-    state.proposeCache[propose.hash] = true;
-    state.privIsCollectingVotes = true;
+    state = BlocksCorrect.MarkProposeAsReceived(state, propose);
+
+    state = ConsensusHelper.CollectingVotes(state);
 
     this.library.bus.message('onNewPropose', propose, true);
     return {
@@ -875,7 +872,7 @@ export default class Blocks {
     let state = BlocksCorrect.getState();
 
     if (!blocksCount) {
-      state.lastBlock = { height: -1 } as IBlock;
+      state = BlocksCorrect.setPreGenesisBlock(state);
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
@@ -888,7 +885,7 @@ export default class Blocks {
     } else {
       const block = await global.app.sdb.getBlockByHeight(blocksCount - 1);
 
-      state.lastBlock = block;
+      state = BlocksCorrect.SetLastBlock(state, block);
     }
     return state;
   }
