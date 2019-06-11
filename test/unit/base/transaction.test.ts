@@ -1,6 +1,6 @@
 import { TransactionBase } from '../../../src/base/transaction';
 import basic from '../../../src/contract/basic';
-import { IScope, Transaction, Context, IBlock } from '../../../src/interfaces';
+import { Transaction, Context, IBlock } from '../../../src/interfaces';
 import extendedJoi from '../../../src/utils/extendedJoi';
 import { ILogger } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';

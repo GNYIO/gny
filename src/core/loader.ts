@@ -10,6 +10,7 @@ import {
 } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { BlocksCorrect } from './blocks-correct';
+import { isPeerNode } from '../../packages/type-validation';
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -164,7 +165,7 @@ export default class Loader {
         return cb(report.error.message);
       }
 
-      if (!BlocksCorrect.IsPeerNode(peer)) {
+      if (!isPeerNode(peer)) {
         return cb('validation of peer failed');
       }
 

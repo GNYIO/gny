@@ -28,7 +28,6 @@ import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';
 import { BlocksCorrect, BlockMessageFitInLineResult } from './blocks-correct';
-import { copyObject } from '../base/helpers';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 

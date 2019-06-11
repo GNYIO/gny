@@ -16,7 +16,10 @@ import {
 import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
 import { TransactionBase } from '../base/transaction';
-import { BlocksCorrect } from './blocks-correct';
+import {
+  isBlockPropose,
+  isNewBlockMessage,
+} from '../../packages/type-validation';
 
 export default class Transport {
   private readonly library: IScope;
@@ -122,13 +125,15 @@ export default class Transport {
       return;
     }
 
-    if (!BlocksCorrect.IsNewBlockMessage(newBlockMsg)) {
+    if (!isNewBlockMessage(newBlockMsg)) {
       return;
     }
 
+    const peer = message.peerInfo;
+
     let result: BlockAndVotes;
     try {
-      const params = { id };
+      const params = { id: newBlockMsg.id };
       result = await this.modules.peer.request('newBlock', params, peer);
     } catch (err) {
       this.library.logger.error('Failed to get latest block data', err);
@@ -180,7 +185,7 @@ export default class Transport {
       return;
     }
 
-    if (!BlocksCorrect.IsBlockPropose(propose)) {
+    if (!isBlockPropose(propose)) {
       this.library.logger.warn('block propose validation did not work');
       return;
     }

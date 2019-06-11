@@ -242,70 +242,6 @@ export class BlocksCorrect {
     }
   }
 
-  public static IsBlockPropose(propose: any): propose is BlockPropose {
-    const schema = joi.object().keys({
-      address: joi
-        .string()
-        .ipv4PlusPort()
-        .required(),
-      generatorPublicKey: joi
-        .string()
-        .hex()
-        .required(),
-      hash: joi
-        .string()
-        .hex()
-        .required(),
-      height: joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-      id: joi
-        .string()
-        .hex()
-        .required(),
-      signature: joi
-        .string()
-        .hex()
-        .required(),
-      timestamp: joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-    });
-    const report = joi.validate(propose, schema);
-    if (report.error) {
-      return false;
-    }
-    return true;
-  }
-
-  public static IsNewBlockMessage(body: any): body is NewBlockMessage {
-    const schema = joi.object({
-      id: joi
-        .string()
-        .hex()
-        .required(),
-      height: joi
-        .number()
-        .integer()
-        .positive()
-        .required(),
-      prevBlockId: joi
-        .string()
-        .hex()
-        .required(),
-    });
-    const report = joi.validate(body, schema);
-    if (report.error) {
-      return false;
-    }
-
-    return true;
-  }
-
   public static IsNewBlockMessageAndBlockTheSame(
     newBlockMsg: NewBlockMessage,
     block: IBlock
@@ -353,24 +289,6 @@ export class BlocksCorrect {
         lastSlot,
         lastBlockHeight: lastBlock.height,
       });
-      return false;
-    }
-    return true;
-  }
-
-  public static IsPeerNode(peer: any): peer is PeerNode {
-    const peerSchema = joi.object().keys({
-      host: joi
-        .string()
-        .ip()
-        .required(),
-      port: joi
-        .number()
-        .port()
-        .required(),
-    });
-    const peerReport = joi.validate(peer, peerSchema);
-    if (peerReport.error) {
       return false;
     }
     return true;
