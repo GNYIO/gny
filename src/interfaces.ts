@@ -207,7 +207,7 @@ export interface IConfig {
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
-  ormConfig: string;
+  ormConfigRaw: string;
   ssl: {
     enabled: boolean;
     options: {

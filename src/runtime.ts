@@ -128,9 +128,7 @@ export default async function runtime(options: IOptions) {
   const { dataDir } = options.appConfig;
 
   global.app.sdb = new SmartDB(options.logger, {
-    configFilePath: options.appConfig.ormConfig
-      ? path.join(process.cwd(), options.appConfig.ormConfig)
-      : 'ormconfig.json',
+    configRaw: options.appConfig.ormConfigRaw,
     cachedBlockCount: 10,
     maxBlockHistoryHold: 10,
   });

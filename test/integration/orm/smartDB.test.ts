@@ -9,6 +9,7 @@ import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import { deepCopy } from '../../../packages/database-postgres/src/codeContract';
+import * as fs from 'fs';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -102,11 +103,18 @@ async function saveGenesisBlock(smartDB: SmartDB) {
 
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
+  let configRaw: string;
+
+  beforeAll(done => {
+    configRaw = fs.readFileSync('ormconfig.sqljs.json', { encoding: 'utf8' });
+    done();
+  });
+
   beforeEach(async done => {
     sut = new SmartDB(logger, {
       cachedBlockCount: 10,
       maxBlockHistoryHold: 10,
-      configFilePath: 'ormconfig.sqljs.json',
+      configRaw: configRaw,
     });
     await sut.init();
     done();
