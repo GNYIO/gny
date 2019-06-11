@@ -13,6 +13,8 @@ const config = {
 
 describe('contract-env - basic.setUserName', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

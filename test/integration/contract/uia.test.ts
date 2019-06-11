@@ -107,6 +107,8 @@ async function registerAssetAsync(
 
 describe('uia', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

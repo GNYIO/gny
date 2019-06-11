@@ -67,6 +67,8 @@ async function beforeUiaTransfer() {
 
 describe('contract-env - uia.registerAsset', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

@@ -13,6 +13,8 @@ const genesisSecret =
 
 describe('transportApi', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

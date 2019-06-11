@@ -3,6 +3,7 @@ import * as dockerCompose from 'docker-compose';
 import * as Docker from 'dockerode';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../src/utils/address';
+import * as isRoot from 'is-root';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -121,3 +122,9 @@ export function createRandomAddress() {
 }
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
+
+export function exitIfNotRoot() {
+  if (!isRoot()) {
+    process.exit(1);
+  }
+}

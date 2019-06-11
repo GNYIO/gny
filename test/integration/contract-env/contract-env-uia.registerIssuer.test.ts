@@ -13,6 +13,8 @@ const config = {
 
 describe('contract-env - uia.registerIssuer', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
