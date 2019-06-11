@@ -240,7 +240,7 @@ export default class Loader {
     this.library.sequence.add(async cb => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       this.privSyncing = true;
-      const lastBlock = this.modules.blocks.getLastBlock();
+      const lastBlock = BlocksCorrect.getState().lastBlock; // TODO refactor whole method
       this.modules.transactions.clearUnconfirmed();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);

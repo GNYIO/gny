@@ -263,8 +263,10 @@ export default class TransportApi {
 
   // POST
   private getHeight = (req: Request, res: Response) => {
+    const lastBlock = BlocksCorrect.getState().lastBlock;
+
     return res.json({
-      height: this.modules.blocks.getLastBlock().height,
+      height: lastBlock.height,
     });
   };
 }

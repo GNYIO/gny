@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Modules, Next } from '../../../src/interfaces';
+import { BlocksCorrect } from '../../../src/core/blocks-correct';
 
 export default class LoaderApi {
   private modules: Modules;
@@ -55,10 +56,11 @@ export default class LoaderApi {
   };
 
   private sync = (req: Request, res: Response, next: Next) => {
+    const lastBlock = BlocksCorrect.getState().lastBlock;
     return res.json({
       syncing: this.modules.loader.syncing(),
       blocks: this.modules.loader.blocksToSync,
-      height: this.modules.blocks.getLastBlock().height,
+      height: lastBlock.height,
     });
   };
 }

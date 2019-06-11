@@ -360,4 +360,9 @@ export class BlocksCorrect {
     }
     return true;
   }
+
+  public static SetLastBlockEffect(state: IState, block: IBlock) {
+    state.lastBlock = block; // TODO: first make state copy
+    return state;
+  }
 }

@@ -112,8 +112,6 @@ export default class Blocks {
     this.lastBlock = block;
   };
 
-  public getLastBlock = () => this.lastBlock;
-
   public verifyBlock = (
     state: IState,
     block: IBlock,
@@ -296,11 +294,6 @@ export default class Blocks {
     }
   }
 
-  public ProcessBlockEffect(state: IState, block: Block) {
-    state.lastBlock = block;
-    return state;
-  }
-
   public ProcessBlockCleanupEffect(state: IState) {
     state.blockCache = {};
     state.proposeCache = {};
@@ -340,7 +333,7 @@ export default class Blocks {
 
       await this.ProcessBlockDbIO(state, block, options);
 
-      state = this.ProcessBlockEffect(state, block);
+      state = BlocksCorrect.SetLastBlockEffect(state, block);
 
       this.ProcessBlockFireEvents(block, options);
     } catch (error) {

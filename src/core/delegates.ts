@@ -313,7 +313,7 @@ export default class Delegates {
 
     delegates = delegates.sort(this.compare);
 
-    const lastBlock = this.modules.blocks.getLastBlock();
+    const lastBlock = BlocksCorrect.getState().lastBlock;
     const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {

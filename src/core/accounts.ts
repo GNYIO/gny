@@ -1,5 +1,6 @@
 import * as addressHelper from '../utils/address';
 import { Modules, IScope } from '../interfaces';
+import { BlocksCorrect } from './blocks-correct';
 
 export default class Account {
   private modules: Modules;
@@ -58,7 +59,7 @@ export default class Account {
           username: account.username,
         };
       }
-      const latestBlock = this.modules.blocks.getLastBlock();
+      const latestBlock = BlocksCorrect.getState().lastBlock;
       const ret = {
         account: accountData,
         latestBlock: {

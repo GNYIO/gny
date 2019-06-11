@@ -8,6 +8,7 @@ import {
   DelegateViewModel,
 } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
+import { BlocksCorrect } from '../../../src/core/blocks-correct';
 
 export default class DelegatesApi {
   private modules: Modules;
@@ -101,7 +102,7 @@ export default class DelegatesApi {
           },
         },
       });
-      const lastBlock = this.modules.blocks.getLastBlock();
+      const lastBlock = BlocksCorrect.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {
         a.balance = a.gny;
