@@ -107,7 +107,6 @@
     "pull-ws": "^3.3.2",
     "ramda": "^0.26.1",
     "redis": "^2.8.0",
-    "redux": "^4.0.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "=2.5.4",
     "shelljs": "=0.8.3",

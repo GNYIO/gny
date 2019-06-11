@@ -20,7 +20,6 @@ import * as SocketIO from 'socket.io';
 // IApp
 import { SmartDB } from '../packages/database-postgres/src/smartDB';
 import BalanceManager from './smartdb/balance-manager';
-import { Store } from 'redux';
 
 import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
@@ -141,7 +140,6 @@ interface IApp {
   };
   registerHook: (name: string, func: () => void) => void;
   logger: ILogger;
-  store: Store;
 }
 
 export type ILogger = tracer.Tracer.Logger;
