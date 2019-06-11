@@ -279,7 +279,7 @@ export default class Loader {
       if (!this.isLoaded || this.privSyncing) return;
       this.loadUnconfirmedTransactions(err => {
         if (err) {
-          this.library.logger.error('loadUnconfirmedTransactions timer:', err);
+          this.library.logger.warn('loadUnconfirmedTransactions timer:', err);
         }
       });
     });
