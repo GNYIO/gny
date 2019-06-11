@@ -139,8 +139,12 @@ function validateConfig(config: IConfig, logger: ILogger) {
       }),
     }),
     peers: extendedJoi.object().keys({
-      bootstrap: extendedJoi.string().allow(null),
+      bootstrap: extendedJoi
+        .string()
+        .allow(null)
+        .required(),
       p2pKeyFile: extendedJoi.string(),
+      rawPeerInfo: extendedJoi.string().required(),
       options: extendedJoi.object().keys({
         timeout: extendedJoi
           .number()

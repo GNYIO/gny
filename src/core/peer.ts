@@ -83,11 +83,8 @@ export default class Peer {
     }
   };
 
-  private preparePeerInfo = async () => {
-    let KEY = fs.readFileSync(this.library.config.peers.p2pKeyFile, {
-      encoding: 'utf8',
-    });
-    KEY = JSON.parse(KEY);
+  public preparePeerInfo = async (rawPeerInfo: string) => {
+    const KEY = JSON.parse(rawPeerInfo);
 
     const peerId = await createFromJSON(KEY);
     const peerInfo = await createPeerInfoArgs(peerId);
@@ -105,7 +102,9 @@ export default class Peer {
   };
 
   onBlockchainReady = async () => {
-    const peerInfo = await this.preparePeerInfo();
+    const peerInfo = await this.preparePeerInfo(
+      this.library.config.peers.rawPeerInfo
+    );
 
     // TODO persist peerBook of node
     this.p2p = new Peer2Peer(

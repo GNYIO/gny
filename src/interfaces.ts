@@ -191,7 +191,12 @@ export interface IConfig {
   peerPort: number;
   address: string;
   peers: {
-    list: { ip: string; port: string | number }[];
+    bootstrap: string | null;
+    p2pKeyFile: string;
+    rawPeerInfo: string;
+    options: {
+      timeout: number;
+    };
   };
   forging: {
     secret: string[];

@@ -113,6 +113,10 @@ function main() {
     appConfig.ormConfig = program.ormConfig;
   }
 
+  appConfig.peers.rawPeerInfo = fs.readFileSync(appConfig.peers.p2pKeyFile, {
+    encoding: 'utf8',
+  });
+
   const options = {
     appConfig,
     genesisBlock,
