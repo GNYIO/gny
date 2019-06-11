@@ -103,6 +103,42 @@ describe('blocks-correct', () => {
       });
       done();
     });
+
+    it('getState() - returns same values but deepCopy', done => {
+      const state = {
+        privIsCollectingVotes: false,
+      } as IState;
+      BlocksCorrect.setState(state);
+
+      const result = BlocksCorrect.getState();
+
+      expect(result).toEqual(state); // values are the same
+      expect(result).not.toBe(state); // object reference is not the same
+
+      done();
+    });
+
+    it('getState() - returns same values but deepCopy (also for nested objects)', done => {
+      const lastBlock = {
+        height: 10,
+      } as IBlock;
+      const state = {
+        privIsCollectingVotes: false,
+        lastBlock,
+      } as IState;
+      BlocksCorrect.setState(state);
+
+      const result = BlocksCorrect.getState();
+
+      expect(result).toEqual(state); // values are the same
+      expect(result).not.toBe(state); // object reference is not the same
+
+      // check nested object
+      expect(result.lastBlock).toEqual(state.lastBlock);
+      expect(result.lastBlock).not.toBe(state.lastBlock);
+
+      done();
+    });
   });
 
   describe('pure functions', () => {

@@ -88,7 +88,9 @@ export class BlockBase {
     }
   }
 
-  public static normalizeBlock(block: IBlock) {
+  public static normalizeBlock(old: IBlock) {
+    const block = copyObject(old);
+
     for (const i in block) {
       if (block[i] == undefined || typeof block[i] === 'undefined') {
         delete block[i];

@@ -18,6 +18,7 @@ import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
 import joi from '../../src/utils/extendedJoi';
 import slots from '../utils/slots';
+import { copyObject } from '../base/helpers';
 
 const blockreward = new Blockreward();
 
@@ -31,12 +32,13 @@ export class BlocksCorrect {
   public static setState(state: IState) {
     global.state = state;
   }
+
   /**
-   * Warning: The object reference returned from this function should never get changed,
-   * always make a copy first
+   * returns always a deepCopy of the current state
    */
   public static getState() {
-    return global.state;
+    const state = copyObject(global.state);
+    return state;
   }
 
   public static areTransactionsExceedingPayloadLength(

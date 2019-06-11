@@ -607,8 +607,7 @@ export default class Blocks {
     }
 
     this.library.sequence.add(async cb => {
-      const old = BlocksCorrect.getState();
-      let state = copyObject(old) as IState;
+      let state = BlocksCorrect.getState();
 
       // validate the received Block and NewBlockMessage against each other
       if (!BlocksCorrect.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
@@ -712,8 +711,7 @@ export default class Blocks {
     }
 
     this.library.sequence.add(cb => {
-      const old = BlocksCorrect.getState();
-      let state = copyObject(old) as IState;
+      let state = BlocksCorrect.getState();
 
       if (BlocksCorrect.AlreadyReceivedPropose(state, propose)) {
         return setImmediate(cb);
@@ -826,8 +824,7 @@ export default class Blocks {
     }
 
     this.library.sequence.add(async cb => {
-      const old = BlocksCorrect.getState();
-      let state = copyObject(old) as IState;
+      let state = BlocksCorrect.getState();
 
       state = ConsensusHelper.addPendingVotes(state, votes);
 
@@ -875,8 +872,7 @@ export default class Blocks {
 
   // belongs to "onBind"
   public async binding(blocksCount: number) {
-    const old = BlocksCorrect.getState();
-    let state = copyObject(old) as IState;
+    let state = BlocksCorrect.getState();
 
     if (!blocksCount) {
       state.lastBlock = { height: -1 } as IBlock;

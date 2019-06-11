@@ -131,8 +131,7 @@ export default class Delegates {
     }
 
     this.library.sequence.add(async done => {
-      const old = BlocksCorrect.getState();
-      let state = copyObject(old) as IState;
+      let state = BlocksCorrect.getState();
 
       try {
         const myTime = currentBlockData.time;
