@@ -9,13 +9,8 @@ import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from './utils/extendedJoi';
-import {
-  IScope,
-  IMessageEmitter,
-  IConfig,
-  ILogger,
-  IOptions,
-} from './interfaces';
+import { IScope, IMessageEmitter, IConfig, IOptions } from './interfaces';
+import { isConfig } from '../packages/type-validation';
 
 import initNetwork from '../packages/http/index';
 
@@ -43,13 +38,15 @@ function getPublicIp() {
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;
   const genesisBlock = options.genesisBlock;
-  let appConfig: IConfig = options.appConfig;
+
+  if (!isConfig(options.appConfig, options.logger)) {
+    throw new Error('Config validation failed');
+  }
+  const appConfig: IConfig = options.appConfig;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
   }
-
-  appConfig = validateConfig(appConfig, options.logger);
 
   const protoFile = path.join(__dirname, '..', 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
@@ -111,88 +108,6 @@ function sequence(options: any) {
       options.logger.warn(`Main sequence ${current}`);
     },
   });
-}
-
-function validateConfig(config: IConfig, logger: ILogger) {
-  const schema = extendedJoi.object().keys({
-    port: extendedJoi
-      .number()
-      .port()
-      .required(),
-    peerPort: extendedJoi
-      .number()
-      .port()
-      .required(), // always must be port + 1
-    address: extendedJoi.string().ip(),
-    publicIp: extendedJoi
-      .string()
-      .ip()
-      .required(),
-    logLevel: extendedJoi.string(),
-    magic: extendedJoi.string(),
-    api: extendedJoi.object().keys({
-      access: extendedJoi.object().keys({
-        whiteList: extendedJoi
-          .array()
-          .items(extendedJoi.string().ip())
-          .required(),
-      }),
-    }),
-    peers: extendedJoi.object().keys({
-      bootstrap: extendedJoi
-        .string()
-        .allow(null)
-        .required(),
-      p2pKeyFile: extendedJoi.string(),
-      rawPeerInfo: extendedJoi.string().required(),
-      options: extendedJoi.object().keys({
-        timeout: extendedJoi
-          .number()
-          .integer()
-          .min(0),
-      }),
-    }),
-    forging: extendedJoi.object().keys({
-      secret: extendedJoi.array().items(
-        extendedJoi
-          .string()
-          .secret()
-          .required()
-      ),
-      access: extendedJoi.object().keys({
-        whiteList: extendedJoi
-          .array()
-          .items(extendedJoi.string().ip())
-          .required(),
-      }),
-    }),
-    ssl: extendedJoi.object().keys({
-      enabled: extendedJoi.boolean(),
-      options: extendedJoi.object().keys({
-        port: extendedJoi.number().port(),
-        address: extendedJoi.string().ip(),
-        key: extendedJoi.string(),
-        cert: extendedJoi.string(),
-      }),
-    }),
-
-    version: extendedJoi.string(),
-    baseDir: extendedJoi.string(),
-    dataDir: extendedJoi.string(),
-    appDir: extendedJoi.string(),
-    buildVersion: extendedJoi.string(),
-    netVersion: extendedJoi.string(),
-    publicDir: extendedJoi.string(),
-    ormConfigRaw: extendedJoi.string().required(),
-  });
-
-  const report = extendedJoi.validate(config, schema);
-  if (report.error) {
-    logger.error(report.error.message);
-    throw new Error(report.error.message);
-  }
-
-  return config;
 }
 
 export default init_alt;
