@@ -510,7 +510,7 @@ describe('contract environment', () => {
   });
 
   describe('regression testing', () => {
-    it(
+    it.skip(
       '/peer/getUnconfirmedTransactions does not return secret by UNSIGNED transactions',
       async done => {
         const amount = 5 * 1e8;
