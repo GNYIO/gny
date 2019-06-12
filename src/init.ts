@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { EventEmitter } from 'events';
 import * as ip from 'ip';
 import * as _ from 'lodash';
 import Sequence from './utils/sequence';
@@ -9,8 +8,9 @@ import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from './utils/extendedJoi';
-import { IScope, IMessageEmitter, IConfig, IOptions } from './interfaces';
+import { IScope, IConfig, IOptions } from './interfaces';
 import { isConfig } from '../packages/type-validation';
+import { MessageBus } from './utils/messageBus';
 
 import initNetwork from '../packages/http/index';
 
@@ -79,25 +79,7 @@ async function init_alt(options: IOptions) {
       .send({ success: false, error: 'API endpoint not found' });
   });
 
-  class Bus extends EventEmitter implements IMessageEmitter {
-    message(topic: string, ...restArgs) {
-      Object.keys(scope.modules).forEach(moduleName => {
-        const module = scope.modules[moduleName];
-        if (typeof module[topic] === 'function') {
-          module[topic].apply(module[topic], [...restArgs]);
-        }
-      });
-
-      Object.keys(scope.coreApi).forEach(apiName => {
-        const oneApi = scope.coreApi[apiName];
-        if (typeof oneApi[topic] === 'function') {
-          oneApi[topic].apply(oneApi[topic], [...restArgs]);
-        }
-      });
-      this.emit(topic, ...restArgs);
-    }
-  }
-  scope.bus = new Bus();
+  scope.bus = new MessageBus(scope.modules, scope.coreApi);
   return scope;
 }
 

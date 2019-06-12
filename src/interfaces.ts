@@ -25,6 +25,18 @@ import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from './utils/address';
 
+import BlocksApi from '../packages/http/api/blocksApi';
+import AccountsApi from '../packages/http/api/accountsApi';
+import DelegatesApi from '../packages/http/api/delegatesApi';
+import PeerApi from '../packages/http/api/peerApi';
+import SystemApi from '../packages/http/api/systemApi';
+import TransactionsApi from '../packages/http/api/transactionsApi';
+import TransportApi from '../packages/http/api/transportApi';
+import UiaApi from '../packages/http/api/uiaApi';
+import LoaderApi from '../packages/http/api/loaderApi';
+import TransfersApi from '../packages/http/api/transfersApi';
+import { MessageBus } from './utils/messageBus';
+
 export interface IState {
   votesKeySet: Set<any>;
   pendingBlock: IBlock;
@@ -40,7 +52,7 @@ export interface IState {
 }
 
 declare interface IBase {
-  bus: any;
+  bus: MessageBus;
   genesisBlock: IGenesisBlock;
 }
 
@@ -53,9 +65,9 @@ export interface IScope {
   network: INetwork;
   sequence: Sequence;
   base: IBase;
-  bus: EventEmitter & IMessageEmitter;
+  bus: MessageBus;
   modules: Modules;
-  coreApi: any;
+  coreApi: CoreApi;
 }
 
 export interface Modules {
@@ -66,6 +78,19 @@ export interface Modules {
   transport: transport;
   delegates: delegates;
   blocks: blocks;
+}
+
+export interface CoreApi {
+  blocksApi: BlocksApi;
+  accountsApi: AccountsApi;
+  delgatesApi: DelegatesApi;
+  peerApi: PeerApi;
+  systemApi: SystemApi;
+  transactionsApi: TransactionsApi;
+  transportApi: TransportApi;
+  uiaApi: UiaApi;
+  transfersApi: TransfersApi;
+  loaderApi: LoaderApi;
 }
 
 export interface IMessageEmitter {

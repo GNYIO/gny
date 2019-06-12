@@ -8,7 +8,7 @@ import TransportApi from '../packages/http/api/transportApi';
 import UiaApi from '../packages/http/api/uiaApi';
 import LoaderApi from '../packages/http/api/loaderApi';
 import TransfersApi from '../packages/http/api/transfersApi';
-import { Modules, IScope } from './interfaces';
+import { Modules, IScope, CoreApi } from './interfaces';
 
 export default function loadCoreApi(modules: Modules, scope: IScope) {
   const blocksApi = new BlocksApi(modules, scope);
@@ -22,7 +22,7 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
   const transfersApi = new TransfersApi(scope);
   const loaderApi = new LoaderApi(modules, scope);
 
-  return {
+  const coreApi: CoreApi = {
     blocksApi,
     accountsApi,
     delgatesApi,
@@ -34,4 +34,5 @@ export default function loadCoreApi(modules: Modules, scope: IScope) {
     transfersApi,
     loaderApi,
   };
+  return coreApi;
 }
