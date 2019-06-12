@@ -157,8 +157,7 @@ export default class Delegates {
             activeDelegates,
             unconfirmedTransactions,
             currentBlockData.keypair,
-            myTime,
-            delegateList
+            myTime
           );
           state = newState;
 

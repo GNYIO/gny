@@ -3,31 +3,16 @@ import { EventEmitter } from 'events';
 import * as _ from 'lodash';
 import validate = require('validate.js');
 import { SmartDB } from '../packages/database-postgres/src/smartDB';
-// import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
-// import loadModels from './loadModels';
 import loadContracts from './loadContracts';
-import * as path from 'path';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
 import { IOptions } from './interfaces';
+import { BlocksCorrect } from './core/blocks-correct';
 
 export default async function runtime(options: IOptions) {
-  global.state = {
-    // TODO: check correct init values
-    votesKeySet: new Set(),
-    pendingBlock: undefined,
-    pendingVotes: undefined,
-
-    lastBlock: undefined,
-    blockCache: {},
-
-    proposeCache: {},
-    lastPropose: null,
-    privIsCollectingVotes: false,
-    lastVoteTime: undefined,
-  };
+  global.state = BlocksCorrect.getInitialState();
   global.app = {
     sdb: null,
     balances: null,

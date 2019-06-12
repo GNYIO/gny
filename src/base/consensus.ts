@@ -192,9 +192,14 @@ export class ConsensusBase {
   }
 
   public static acceptPropose(propose: BlockPropose) {
-    const hash = ConsensusBase.calculateProposeHash(propose);
+    let hash: Buffer;
+    try {
+      hash = ConsensusBase.calculateProposeHash(propose);
+    } catch (err) {
+      throw new Error('could not get propose hash');
+    }
     if (propose.hash !== hash.toString('hex')) {
-      throw new Error('Propose hash is not correct.');
+      throw new Error('Propose hash is not correct');
     }
     try {
       const signature = Buffer.from(propose.signature, 'hex');

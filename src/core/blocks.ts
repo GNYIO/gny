@@ -31,6 +31,9 @@ import { BlocksCorrect, BlockMessageFitInLineResult } from './blocks-correct';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 
+const blockreward = new Blockreward();
+export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
+
 export default class Blocks {
   private genesisBlock: IGenesisBlock;
   private modules: Modules;
@@ -40,10 +43,6 @@ export default class Blocks {
   private loaded: boolean = false;
   private blockCache: ISimpleCache<boolean> = {};
   private proposeCache: ISimpleCache<boolean> = {};
-  private lastPropose: BlockPropose = null;
-
-  private lastVoteTime: number;
-  private blockreward = new Blockreward();
 
   constructor(scope: IScope) {
     this.library = scope;
@@ -172,7 +171,7 @@ export default class Blocks {
       throw new Error('Invalid total fees');
     }
 
-    const expectedReward = this.blockreward.calculateReward(block.height);
+    const expectedReward = blockreward.calculateReward(block.height);
     if (expectedReward !== Number(block.reward)) {
       throw new Error('Invalid block reward');
     }
@@ -514,8 +513,7 @@ export default class Blocks {
     activeDelegates: KeyPair[],
     unconfirmedTransactions: Transaction[],
     keypair: KeyPair,
-    timestamp: number,
-    delegateList: string[]
+    timestamp: number
   ) => {
     let state = BlocksCorrect.copyState(old);
 
@@ -568,7 +566,7 @@ export default class Blocks {
 
     state = ConsensusHelper.CollectingVotes(state);
 
-    this.library.bus.message('onNewPropose', propose, true);
+    this.library.bus.message('onNewPropose', propose);
     return {
       // important
       state,
@@ -622,8 +620,7 @@ export default class Blocks {
       }
 
       // migrated from receivePeer_NewBlockHeader
-      const lastBlock = BlocksCorrect.getState().lastBlock;
-      if (!lastBlock) {
+      if (!state.lastBlock) {
         this.library.logger.error('Last does block not exists');
         return cb();
       }
@@ -653,6 +650,7 @@ export default class Blocks {
         } catch (e) {
           this.library.logger.error('Failed to process received block', e);
         } finally {
+          // delete already executed transactions
           for (const t of block.transactions) {
             pendingTrsMap.delete(t.id);
           }
@@ -667,6 +665,7 @@ export default class Blocks {
               'Failed to redo unconfirmed transactions',
               e
             );
+            // TODO: rollback?
           }
 
           // important
@@ -764,9 +763,12 @@ export default class Blocks {
               const votes = ConsensusBase.createVotes(activeKeypairs, propose);
 
               await this.modules.transport.sendVotes(votes, propose.address);
-              this.lastVoteTime = Date.now();
-              this.lastPropose = propose;
+
+              state = BlocksCorrect.SetLastPropose(state, Date.now(), propose);
             }
+
+            // important
+            BlocksCorrect.setState(state);
             setImmediate(next);
           },
         ],
@@ -866,23 +868,27 @@ export default class Blocks {
     cb();
   };
 
-  // belongs to "onBind"
-  public async binding(blocksCount: number) {
-    let state = BlocksCorrect.getState();
+  public async RunGenesisOrLoadLastBlock(
+    old: IState,
+    numberOfBlocksInDb: number | null,
+    genesisBlock: IGenesisBlock,
+    getBlocksByHeight: GetBlocksByHeight
+  ) {
+    let state = BlocksCorrect.copyState(old);
 
-    if (!blocksCount) {
+    if (!numberOfBlocksInDb) {
       state = BlocksCorrect.setPreGenesisBlock(state);
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
       state = await this.processBlock(
         state,
-        this.genesisBlock,
+        genesisBlock,
         options,
         delegateList
       );
     } else {
-      const block = await global.app.sdb.getBlockByHeight(blocksCount - 1);
+      const block = await getBlocksByHeight(numberOfBlocksInDb - 1); // global.app.sdb.getBlockByHeight(blocksCount - 1);
 
       state = BlocksCorrect.SetLastBlock(state, block);
     }
@@ -898,10 +904,18 @@ export default class Blocks {
     return this.library.sequence.add(
       async cb => {
         try {
-          const count = global.app.sdb.blocksCount;
-          const state = await this.binding(count);
+          let state = BlocksCorrect.getState();
+
+          const numberOfBlocksInDb = global.app.sdb.blocksCount;
+          state = await this.RunGenesisOrLoadLastBlock(
+            state,
+            numberOfBlocksInDb,
+            this.library.genesisBlock,
+            global.app.sdb.getBlockByHeight
+          );
+          // important
           BlocksCorrect.setState(state);
-          this.library.logger.info('Blocks found:', count);
+
           this.library.bus.message('onBlockchainReady');
           return cb();
         } catch (err) {

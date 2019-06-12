@@ -8,7 +8,6 @@ import {
   IConfig,
   NewBlockMessage,
   ILogger,
-  PeerNode,
 } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { MAX_PAYLOAD_LENGTH } from '../utils/constants';
@@ -16,7 +15,6 @@ import * as crypto from 'crypto';
 import Blockreward from '../utils/block-reward';
 import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
-import joi from '../../src/utils/extendedJoi';
 import slots from '../utils/slots';
 import { copyObject } from '../base/helpers';
 
@@ -29,6 +27,25 @@ export enum BlockMessageFitInLineResult {
 }
 
 export class BlocksCorrect {
+  public static getInitialState() {
+    const state: IState = {
+      // TODO: check correct init values
+      votesKeySet: new Set(),
+      pendingBlock: undefined,
+      pendingVotes: undefined,
+
+      lastBlock: undefined,
+      blockCache: {},
+
+      proposeCache: {},
+      lastPropose: null,
+      privIsCollectingVotes: false,
+      lastVoteTime: undefined,
+    };
+
+    return state;
+  }
+
   public static setState(state: IState) {
     global.state = state;
   }
@@ -316,6 +333,20 @@ export class BlocksCorrect {
     const state = BlocksCorrect.copyState(old);
 
     state.lastBlock = { height: -1 } as IBlock;
+
+    return state;
+  }
+
+  public static SetLastPropose(
+    old: IState,
+    lastVoteTime: number,
+    oldPropose: BlockPropose
+  ) {
+    const state = BlocksCorrect.copyState(old);
+    const propose = copyObject(oldPropose);
+
+    state.lastVoteTime = lastVoteTime;
+    state.lastPropose = propose;
 
     return state;
   }
