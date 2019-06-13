@@ -5,6 +5,7 @@ import {
   Modules,
   IBlock,
   KeyPair,
+  IGenesisBlock,
 } from '../../../src/interfaces';
 import { BlockBase } from '../../../src/base/block';
 import { TransactionBase } from '../../../src/base/transaction';
@@ -13,6 +14,25 @@ import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
 import slots from '../../../src/utils/slots';
+import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import * as fs from 'fs';
+import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import BalanceManager from '../../../src/smartdb/balance-manager';
+
+function loadGenesisBlock() {
+  const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
+    encoding: 'utf8',
+  });
+  const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
+  return genesisBlock;
+}
+
+function loadRawOrmSqljsConfig() {
+  const ormConfigRaw = fs.readFileSync('ormconfig.sqljs.json', {
+    encoding: 'utf8',
+  });
+  return ormConfigRaw;
+}
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
@@ -110,7 +130,66 @@ describe.skip('core/blocks', () => {
     done();
   });
 
-  describe('getCommonBlock()', () => {
+  describe('RunGenesisOrLoadLastBlock()', () => {
+    let blocks: Blocks;
+
+    beforeEach(async done => {
+      // global
+      global.app = {
+        sdb: new SmartDB(dummyLogger, {
+          configRaw: loadRawOrmSqljsConfig(),
+          cachedBlockCount: 10,
+          maxBlockHistoryHold: 10,
+        }),
+      };
+      await global.app.sdb.init();
+      global.app.balances = new BalanceManager(global.app.sdb);
+
+      const scope = {
+        logger: dummyLogger,
+      } as IScope;
+      blocks = new Blocks(scope);
+      blocks.loaded = true; // illegal
+      done();
+    });
+
+    afterEach(done => {
+      // cleanup global
+      global.app = {};
+      done();
+    });
+
+    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB saves genesis Block in db', async done => {
+      const state = BlocksCorrect.getInitialState();
+      const genesisBlock = loadGenesisBlock();
+
+      // TODO: prepare global sdb
+
+      const getBlocksByHeightRange = async (
+        height: number
+      ): Promise<IBlock> => {
+        throw new Error('should not be called');
+      };
+
+      const resultState = await blocks.RunGenesisOrLoadLastBlock(
+        state,
+        0,
+        genesisBlock,
+        getBlocksByHeightRange
+      );
+      // does not work because this.modules.transactions is undefined!
+      console.log(JSON.stringify(resultState));
+      expect(resultState).not.toBeUndefined();
+      expect(resultState.lastBlock).not.toBeUndefined();
+      expect(resultState.lastBlock.id).toEqual(genesisBlock.id);
+
+      done();
+    });
+
+    it.skip('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {});
+  });
+
+  describe.skip('getCommonBlock()', () => {
     beforeEach(done => {
       global.app = {
         sdb: {

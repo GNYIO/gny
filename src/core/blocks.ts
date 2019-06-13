@@ -888,8 +888,7 @@ export default class Blocks {
         delegateList
       );
     } else {
-      const block = await getBlocksByHeight(numberOfBlocksInDb - 1); // global.app.sdb.getBlockByHeight(blocksCount - 1);
-
+      const block = await getBlocksByHeight(numberOfBlocksInDb - 1);
       state = BlocksCorrect.SetLastBlock(state, block);
     }
     return state;
