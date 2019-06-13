@@ -1,11 +1,10 @@
 import { LimitCache } from '../utils/limit-cache';
 import { TransactionPool } from '../utils/transaction-pool';
-import { Modules, IScope, Transaction, Context, IState } from '../interfaces';
+import { IScope, Transaction, Context, IState } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 
 export default class Transactions {
   private readonly library: IScope;
-  private modules: Modules;
   private pool: TransactionPool;
   private failedTrsCache: LimitCache<string, boolean>;
 
@@ -15,26 +14,13 @@ export default class Transactions {
     this.failedTrsCache = new LimitCache<string, boolean>();
   }
 
-  getUnconfirmedTransaction = (id: string) => this.pool.get(id);
+  public getUnconfirmedTransaction = (id: string) => this.pool.get(id);
 
-  getUnconfirmedTransactionList = () => this.pool.getUnconfirmed();
-
-  removeUnconfirmedTransaction = (id: string) => this.pool.remove(id);
+  public getUnconfirmedTransactionList = () => this.pool.getUnconfirmed();
 
   public hasUnconfirmed = (id: string) => this.pool.has(id);
 
-  clearUnconfirmed = () => this.pool.clear();
-
-  getUnconfirmedTransactions = cb =>
-    setImmediate(cb, null, {
-      transactions: this.getUnconfirmedTransactionList(),
-    });
-
-  applyTransactionsAsync = async (transactions: Transaction[]) => {
-    for (let i = 0; i < transactions.length; ++i) {
-      await this.applyUnconfirmedTransactionAsync(transactions[i]);
-    }
-  };
+  public clearUnconfirmed = () => this.pool.clear();
 
   public processUnconfirmedTransactions = (
     state: IState,
@@ -62,7 +48,7 @@ export default class Transactions {
     }
   };
 
-  processUnconfirmedTransaction = (
+  public processUnconfirmedTransaction = (
     state: IState,
     transaction: Transaction,
     cb
@@ -77,7 +63,7 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionAsync = async (
+  public processUnconfirmedTransactionAsync = async (
     state: IState,
     transaction: Transaction
   ) => {
@@ -201,9 +187,4 @@ export default class Transactions {
     // transaction.executed = 1
     return null;
   }
-
-  // Events
-  onBind = (scope: Modules) => {
-    this.modules = scope;
-  };
 }
