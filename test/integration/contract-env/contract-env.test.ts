@@ -202,8 +202,82 @@ describe('contract environment', () => {
     it.skip('rejected transaction does not get into block', async () => {});
     it.skip('sending rejected transaction twice (within same block) returns erro', async () => {});
     it.skip('sending rejected transaction (after one block) returns error', async () => {});
-    it.skip('signing a transaction with a second password should throw error, if second password was not registered', async () => {});
-    it.skip('resending exact same transaction after 10 seconds should make block fail', async () => {});
+
+    it.skip(
+      'signing a transaction with a second password should return error (if second password was not registered)',
+      async () => {
+        const UNREGISTERED_SECOND_PASSWORD = 'pass';
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          10 * 1e8,
+          undefined,
+          genesisSecret,
+          UNREGISTERED_SECOND_PASSWORD
+        );
+        expect(basicTransfer).toHaveProperty('secondSignature');
+        // expect(basicTransfer).toHaveProperty('secondPublicKey');
+
+        const transData = {
+          transaction: basicTransfer,
+        };
+        const contractCallPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractCallPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: '',
+          }
+        );
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'resending exact same transaction also for next block should return error',
+      async () => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+        const transData = {
+          transaction: basicTransfer,
+        };
+        const contractCallResult = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        const secondHeight = await lib.onNewBlock(); // wait for next block
+        expect(secondHeight).toEqual(firstHeight + 1);
+
+        // resend exact same transaction
+        const contractCallResultPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractCallResultPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Error: Transaction already confirmed',
+          }
+        );
+      },
+      lib.oneMinute
+    );
 
     it(
       'negative fee with SIGNED transaction',
@@ -239,7 +313,10 @@ describe('contract environment', () => {
     it.skip('batch SIGNED transactions', async done => {
       done();
     });
-    it.skip('batch SIGNED transaction should stop if one error occurs', async done => {
+    it.skip('batch SIGNED transaction should stop if one error occurs (should execute all transactions until falsy transaction)', async done => {
+      done();
+    });
+    it.skip('batch - send in one batch a SIGNED transaction twice (should execute all transactions until second transaction)', async done => {
       done();
     });
   });
