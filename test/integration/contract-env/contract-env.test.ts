@@ -1,6 +1,7 @@
 import * as lib from '../lib';
 import axios from 'axios';
 import * as gnyJS from '../../../packages/gny-js';
+import { filter } from 'minimatch';
 
 const config = {
   headers: {
@@ -12,6 +13,30 @@ const UNSIGNED_URL = 'http://localhost:4096/api/transactions';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
+
+async function getAllDelegateData() {
+  const response = await axios.get(
+    'http://localhost:4096/api/delegates?limit=101'
+  );
+  const delegates = response.data.delegates;
+  const filtered = delegates.map(del => {
+    return {
+      username: del.username,
+      publicKey: del.publicKey,
+      address: del.address,
+    };
+  });
+
+  for (let i = 0; i < filtered.length; ++i) {
+    const one = filtered[i];
+    const x = await axios.get(
+      `http://localhost:4096/api/accounts/getBalance?address=${one.address}`
+    );
+    one.gny = Number(x.data.balances[0].gny);
+  }
+
+  return filtered;
+}
 
 describe('contract environment', () => {
   beforeAll(async done => {
@@ -319,6 +344,64 @@ describe('contract environment', () => {
     it.skip('batch - send in one batch a SIGNED transaction twice (should execute all transactions until second transaction)', async done => {
       done();
     });
+  });
+
+  describe('distributed fees (long running)', () => {
+    it(
+      'fees should get equally distributed to all delegates',
+      async done => {
+        // get data of deleges before
+        const delegatesBefore = await getAllDelegateData();
+
+        // every delegate should have 0 gny
+        expect(delegatesBefore).toHaveLength(101);
+        delegatesBefore.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0);
+        });
+
+        // create 101 simple transactions
+        // for every transaction there should be 0.1 GNY fee that should get distributed
+        for (let i = 0; i < 101; ++i) {
+          const trs = gnyJS.basic.transfer(
+            lib.createRandomAddress(),
+            1 * 1e8, // this is not imporant
+            undefined,
+            genesisSecret
+          );
+          const transData = {
+            transaction: trs,
+          };
+          await axios.post(
+            'http://localhost:4096/peer/transactions',
+            transData,
+            config
+          );
+        }
+
+        // wait for one block
+        await lib.onNewBlock();
+
+        // double check delegates for 0 GNY
+        const delegatesStillShouldNotHaveAnyMoney = await getAllDelegateData();
+        expect(delegatesStillShouldNotHaveAnyMoney).toHaveLength(101);
+        delegatesStillShouldNotHaveAnyMoney.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0);
+        });
+
+        // wait until block 101 (end of round 1)
+        await lib.waitUntilBlock(101);
+
+        // now every delegate should have 0.1 GNY
+        const result = await getAllDelegateData();
+        expect(result).toHaveLength(101);
+        result.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0.1 * 1e8);
+        });
+
+        done();
+      },
+      20 * 60 * 1000
+    );
   });
 
   describe('too big', () => {

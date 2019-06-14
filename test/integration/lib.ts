@@ -48,6 +48,19 @@ async function waitForLoaded() {
   }
 }
 
+export async function waitUntilBlock(height: number) {
+  let currentHeight = await getHeight();
+  if (height <= currentHeight) {
+    throw new Error(`the height "${height} was already reached`);
+  }
+
+  while (currentHeight <= height) {
+    currentHeight = await getHeight();
+    console.log(`currentHeight: ${currentHeight}`);
+    await sleep(2000);
+  }
+}
+
 export async function deleteOldDockerImages() {
   await dockerCompose.rm({
     cwd: process.cwd(),
