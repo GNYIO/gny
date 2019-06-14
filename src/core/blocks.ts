@@ -493,7 +493,8 @@ export default class Blocks {
         this.library.logger.info(`Loading ${num} blocks from ${address}`);
         try {
           for (const block of blocks) {
-            await this.processBlock(block, { syncing: true });
+            const options: ProcessBlockOptions = {};
+            await this.processBlock(block, options);
             lastCommonBlockId = block.id;
             this.library.logger.info(
               `Block ${block.id} loaded from ${address} at`,

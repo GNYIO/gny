@@ -276,7 +276,6 @@ export interface PeerNode {
 }
 
 export interface ProcessBlockOptions {
-  syncing?: boolean;
   local?: true;
   broadcast?: true;
   votes?: ManyVotes;
