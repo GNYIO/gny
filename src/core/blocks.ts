@@ -622,6 +622,7 @@ export default class Blocks {
 
       // migrated from receivePeer_NewBlockHeader
       if (!state.lastBlock) {
+        // state should always have a lastBlock? correct?
         this.library.logger.error('Last does block not exists');
         return cb();
       }

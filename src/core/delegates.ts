@@ -11,13 +11,12 @@ import {
   DelegateViewModel,
   BlockPropose,
   ProcessBlockOptions,
-  IState,
   BlockSlotData,
   IBlock,
+  IState,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
 import { BlocksCorrect } from './blocks-correct';
-import { copyObject } from '../base/helpers';
 import { ConsensusHelper } from './ConsensusHelper';
 
 export default class Delegates {
@@ -48,7 +47,7 @@ export default class Delegates {
     }
 
     const nextLoop = async () => {
-      await this.loop(); // const result =
+      await this.loop();
       setTimeout(nextLoop, 100);
     };
 
@@ -93,40 +92,49 @@ export default class Delegates {
     }
   };
 
-  public loop = async () => {
+  public isReady(state: IState, now: number, delList: string[]) {
     if (!this.isForgingEnabled) {
-      this.library.logger.trace('Loop:', 'forging disabled');
-      return;
+      return 'Loop: forging disabled';
     }
     if (!Object.keys(this.keyPairs).length) {
-      this.library.logger.trace('Loop:', 'no delegates');
-      return;
+      return 'Loop: no delegates';
     }
 
     if (!this.loaded || this.modules.loader.syncing()) {
-      this.library.logger.trace('Loop:', 'node not ready');
-      return;
+      return 'Loop: node not ready';
     }
 
-    const currentSlot = slots.getSlotNumber();
-    const lastBlock = BlocksCorrect.getState().lastBlock;
+    const currentEpochTime = slots.getEpochTime(now);
+    const currentSlot = slots.getSlotNumber(currentEpochTime);
+
+    const lastBlock = state.lastBlock;
     const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
     if (currentSlot === lastBlockSlotNumber) {
-      return;
+      return 'Loop: still in last Block slot';
     }
 
-    if (Date.now() % 10000 > 5000) {
-      this.library.logger.trace('Loop:', 'maybe too late to collect votes');
-      return;
+    if (now % 10000 > 5000) {
+      return 'Loop: maybe too late to collect votes';
     }
 
-    const delList = await this.generateDelegateList(
-      Number(lastBlock.height) + 1
-    );
     const currentBlockData = this.getBlockSlotData(currentSlot, delList);
     if (!currentBlockData) {
-      this.library.logger.trace('Loop:', 'skipping slot');
+      return 'Loop: skipping slot';
+    }
+
+    return currentBlockData;
+  }
+
+  public loop = async () => {
+    const preState = BlocksCorrect.getState();
+    const now = Date.now();
+    const delList = await this.generateDelegateList(
+      Number(preState.lastBlock.height) + 1
+    );
+    const currentBlockData = this.isReady(preState, now, delList);
+    if (typeof currentBlockData === 'string') {
+      this.library.logger.trace(currentBlockData);
       return;
     }
 

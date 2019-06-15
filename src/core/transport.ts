@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import LRU = require('lru-cache');
-import slots from '../utils/slots';
 import {
   Modules,
   IScope,
