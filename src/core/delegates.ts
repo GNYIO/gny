@@ -41,10 +41,9 @@ export default class Delegates {
   public onBlockchainReady = async () => {
     this.loaded = true;
 
-    const error = await this.loadMyDelegates();
-    if (error) {
-      this.library.logger.error('Failed to load delegates', error);
-    }
+    const secrets = global.Config.forging.secret;
+    const delegates: Delegate[] = await global.app.sdb.getAll('Delegate');
+    this.keyPairs = this.loadMyDelegates(secrets, delegates);
 
     const nextLoop = async () => {
       await this.loop();
@@ -92,15 +91,23 @@ export default class Delegates {
     }
   };
 
-  public isReady(state: IState, now: number, delList: string[]) {
-    if (!this.isForgingEnabled) {
+  public isLoopReady(
+    state: IState,
+    now: number,
+    isForgingEnabled: boolean,
+    isLoaded: boolean,
+    isSyncingRightNow: boolean,
+    keyPairs: KeyPairsIndexer
+  ) {
+    if (!isForgingEnabled) {
       return 'Loop: forging disabled';
     }
-    if (!Object.keys(this.keyPairs).length) {
+
+    if (!Object.keys(keyPairs).length) {
       return 'Loop: no delegates';
     }
 
-    if (!this.loaded || this.modules.loader.syncing()) {
+    if (!isLoaded || isSyncingRightNow) {
       return 'Loop: node not ready';
     }
 
@@ -118,23 +125,36 @@ export default class Delegates {
       return 'Loop: maybe too late to collect votes';
     }
 
-    const currentBlockData = this.getBlockSlotData(currentSlot, delList);
-    if (!currentBlockData) {
-      return 'Loop: skipping slot';
-    }
-
-    return currentBlockData;
+    return undefined;
   }
 
   public loop = async () => {
     const preState = BlocksCorrect.getState();
     const now = Date.now();
+    const isForgingEnabled = this.isForgingEnabled;
+    const isLoaded = this.loaded;
+    const isSyncingRightNow = this.modules.loader.syncing();
+
+    const error = this.isLoopReady(
+      preState,
+      now,
+      isForgingEnabled,
+      isLoaded,
+      isSyncingRightNow,
+      this.keyPairs
+    );
+    if (error) {
+      this.library.logger.trace(error);
+      return;
+    }
+
     const delList = await this.generateDelegateList(
       Number(preState.lastBlock.height) + 1
     );
-    const currentBlockData = this.isReady(preState, now, delList);
-    if (typeof currentBlockData === 'string') {
-      this.library.logger.trace(currentBlockData);
+    const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
+    const currentBlockData = this.getBlockSlotData(currentSlot, delList);
+    if (!currentBlockData) {
+      this.library.logger.trace('Loop: skipping slot');
       return;
     }
 
@@ -197,23 +217,22 @@ export default class Delegates {
     });
   };
 
-  private loadMyDelegates = async () => {
-    let secrets: string[] = [];
-    if (this.library.config.forging.secret) {
-      secrets = Array.isArray(this.library.config.forging.secret)
-        ? this.library.config.forging.secret
-        : [this.library.config.forging.secret];
+  public loadMyDelegates = (secrets: string[], delegates: Delegate[]) => {
+    const keyPairs: KeyPairsIndexer = {};
+
+    if (!secrets || !secrets.length) {
+      return keyPairs;
+    }
+    if (!delegates || !delegates.length) {
+      return keyPairs;
     }
 
     try {
-      const delegates = (await global.app.sdb.getAll('Delegate')) as Delegate[];
-      if (!delegates || !delegates.length) {
-        return 'Delegates not found in database';
-      }
       const delegateMap = new Map<string, Delegate>();
       for (const d of delegates) {
         delegateMap.set(d.publicKey, d);
       }
+
       for (const secret of secrets) {
         const keypair = ed.generateKeyPair(
           crypto
@@ -223,7 +242,7 @@ export default class Delegates {
         );
         const publicKey = keypair.publicKey.toString('hex');
         if (delegateMap.has(publicKey)) {
-          this.keyPairs[publicKey] = keypair;
+          keyPairs[publicKey] = keypair;
           this.library.logger.info(
             `Forging enabled on account: ${delegateMap.get(publicKey).address}`
           );
@@ -236,8 +255,10 @@ export default class Delegates {
         }
       }
     } catch (e) {
-      return e;
+      this.library.logger.error(e);
     }
+
+    return keyPairs;
   };
 
   public getActiveDelegateKeypairs = async (height: number) => {

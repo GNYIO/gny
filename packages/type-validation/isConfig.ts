@@ -40,20 +40,23 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
           .min(0),
       }),
     }),
-    forging: joi.object().keys({
-      secret: joi.array().items(
-        joi
-          .string()
-          .secret()
-          .required()
-      ),
-      access: joi.object().keys({
-        whiteList: joi
-          .array()
-          .items(joi.string().ip())
-          .required(),
-      }),
-    }),
+    forging: joi
+      .object()
+      .keys({
+        secret: joi.array().items(
+          joi
+            .string()
+            .secret()
+            .required()
+        ),
+        access: joi.object().keys({
+          whiteList: joi
+            .array()
+            .items(joi.string().ip())
+            .required(),
+        }),
+      })
+      .required(),
     ssl: joi.object().keys({
       enabled: joi.boolean(),
       options: joi.object().keys({
