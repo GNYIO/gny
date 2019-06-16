@@ -1,4 +1,4 @@
-import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import {
   IState,
   Transaction,
@@ -48,7 +48,7 @@ function createRandomTransaction() {
   return transaction;
 }
 
-describe('blocks-correct', () => {
+describe('BlocksHelper', () => {
   describe('setState()', () => {
     beforeEach(cb => {
       resetGlobalState();
@@ -61,7 +61,7 @@ describe('blocks-correct', () => {
 
     it('setState() - set global', done => {
       // check before
-      const oldState = BlocksCorrect.getState();
+      const oldState = BlocksHelper.getState();
       expect(oldState).toEqual({});
 
       // act
@@ -70,10 +70,10 @@ describe('blocks-correct', () => {
           height: -1,
         },
       } as IState;
-      BlocksCorrect.setState(newState);
+      BlocksHelper.setState(newState);
 
       // check after
-      const updatedState = BlocksCorrect.getState();
+      const updatedState = BlocksHelper.getState();
       expect(updatedState).toEqual({
         lastBlock: {
           height: -1,
@@ -88,7 +88,7 @@ describe('blocks-correct', () => {
       const state = {
         privIsCollectingVotes: true,
       } as IState;
-      BlocksCorrect.setState(state);
+      BlocksHelper.setState(state);
       cb();
     });
     afterEach(cb => {
@@ -97,7 +97,7 @@ describe('blocks-correct', () => {
     });
 
     it('getState() - returns current state', done => {
-      const state = BlocksCorrect.getState();
+      const state = BlocksHelper.getState();
       expect(state).toEqual({
         privIsCollectingVotes: true,
       });
@@ -108,9 +108,9 @@ describe('blocks-correct', () => {
       const state = {
         privIsCollectingVotes: false,
       } as IState;
-      BlocksCorrect.setState(state);
+      BlocksHelper.setState(state);
 
-      const result = BlocksCorrect.getState();
+      const result = BlocksHelper.getState();
 
       expect(result).toEqual(state); // values are the same
       expect(result).not.toBe(state); // object reference is not the same
@@ -126,9 +126,9 @@ describe('blocks-correct', () => {
         privIsCollectingVotes: false,
         lastBlock,
       } as IState;
-      BlocksCorrect.setState(state);
+      BlocksHelper.setState(state);
 
-      const result = BlocksCorrect.getState();
+      const result = BlocksHelper.getState();
 
       expect(result).toEqual(state); // values are the same
       expect(result).not.toBe(state); // object reference is not the same
@@ -155,7 +155,7 @@ describe('blocks-correct', () => {
         },
       ] as Transaction[];
 
-      const result = BlocksCorrect.AreTransactionsDuplicated(transactions);
+      const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(false);
 
       done();
@@ -174,7 +174,7 @@ describe('blocks-correct', () => {
         },
       ] as Transaction[];
 
-      const result = BlocksCorrect.AreTransactionsDuplicated(transactions);
+      const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(true);
 
       done();
@@ -187,7 +187,7 @@ describe('blocks-correct', () => {
         createRandomTransaction(),
       ];
 
-      const result = BlocksCorrect.CanAllTransactionsBeSerialized(transactions);
+      const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(true);
 
       done();
@@ -199,7 +199,7 @@ describe('blocks-correct', () => {
       delete wrongTrs.timestamp;
 
       const transactions = [correctTrs, wrongTrs];
-      const result = BlocksCorrect.CanAllTransactionsBeSerialized(transactions);
+      const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(false);
 
       done();
@@ -208,7 +208,7 @@ describe('blocks-correct', () => {
     it('CanAllTransactionsBeSerialized() - returns true if empty transactions array is passed in', done => {
       const transactions = [];
 
-      const result = BlocksCorrect.CanAllTransactionsBeSerialized(transactions);
+      const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(true);
 
       done();
@@ -218,7 +218,7 @@ describe('blocks-correct', () => {
       const transactions = null;
 
       expect(() =>
-        BlocksCorrect.CanAllTransactionsBeSerialized(transactions)
+        BlocksHelper.CanAllTransactionsBeSerialized(transactions)
       ).toThrow('transactions are null');
 
       done();
@@ -232,11 +232,7 @@ describe('blocks-correct', () => {
         peerPort: 4097,
       };
       // act
-      const result = BlocksCorrect.ManageProposeCreation(
-        keypair,
-        block,
-        config
-      );
+      const result = BlocksHelper.ManageProposeCreation(keypair, block, config);
 
       expect(result.address).toEqual(`${config.publicIp}:${config.peerPort}`);
       expect(result.generatorPublicKey).toEqual(block.delegate);
@@ -252,7 +248,7 @@ describe('blocks-correct', () => {
     it('NotEnoughActiveKeyPairs() - returns false if one KeyPair is provided', done => {
       const keypairs = [randomKeyPair()];
 
-      const result = BlocksCorrect.NotEnoughActiveKeyPairs(keypairs);
+      const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(false);
 
       done();
@@ -261,7 +257,7 @@ describe('blocks-correct', () => {
     it('NotEnoughActiveKeyPairs() - returns true if empty array is provided', done => {
       const keypairs = [];
 
-      const result = BlocksCorrect.NotEnoughActiveKeyPairs(keypairs);
+      const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(true);
 
       done();
@@ -270,7 +266,7 @@ describe('blocks-correct', () => {
     it('NotEnoughActiveKeyPairs() - returns true if null value is provided', done => {
       const keypairs = null;
 
-      const result = BlocksCorrect.NotEnoughActiveKeyPairs(keypairs);
+      const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(true);
 
       done();
@@ -286,7 +282,7 @@ describe('blocks-correct', () => {
       const unconfirmedTransactions = [];
 
       // act
-      const result = BlocksCorrect.generateBlockShort(
+      const result = BlocksHelper.generateBlockShort(
         keypair,
         timestamp,
         lastBlock,
@@ -319,7 +315,7 @@ describe('blocks-correct', () => {
           transactions.push(x);
         }
 
-        const result = BlocksCorrect.areTransactionsExceedingPayloadLength(
+        const result = BlocksHelper.areTransactionsExceedingPayloadLength(
           transactions
         );
         expect(result).toEqual(true);
@@ -337,7 +333,7 @@ describe('blocks-correct', () => {
         transactions.push(x);
       }
 
-      const result = BlocksCorrect.areTransactionsExceedingPayloadLength(
+      const result = BlocksHelper.areTransactionsExceedingPayloadLength(
         transactions
       );
       expect(result).toEqual(false);
@@ -356,7 +352,7 @@ describe('blocks-correct', () => {
 
       const transactions = [trs1, trs2, trs3];
 
-      const fees = BlocksCorrect.getFeesOfAll(transactions);
+      const fees = BlocksHelper.getFeesOfAll(transactions);
       expect(fees).toEqual(0.3 * 1e8);
 
       done();
@@ -374,7 +370,7 @@ describe('blocks-correct', () => {
 
       const transactions = [trs1, trs2, trs3];
 
-      const fees = BlocksCorrect.getFeesOfAll(transactions);
+      const fees = BlocksHelper.getFeesOfAll(transactions);
       expect(fees).toEqual(0.2 * 1e8);
 
       done();
@@ -386,7 +382,7 @@ describe('blocks-correct', () => {
         createRandomTransaction(),
       ];
 
-      const hash = BlocksCorrect.payloadHashOfAllTransactions(transactions);
+      const hash = BlocksHelper.payloadHashOfAllTransactions(transactions);
       expect(Buffer.isBuffer(hash)).toEqual(true);
 
       const hex = hash.toString('hex');
@@ -399,7 +395,7 @@ describe('blocks-correct', () => {
     it('payloadHashOfAllTransactions() - works for empty transactions array', done => {
       const transactions = [];
 
-      const hash = BlocksCorrect.payloadHashOfAllTransactions(transactions);
+      const hash = BlocksHelper.payloadHashOfAllTransactions(transactions);
       expect(Buffer.isBuffer(hash)).toEqual(true);
 
       const hex = hash.toString('hex');

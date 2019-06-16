@@ -13,7 +13,7 @@ import slots from '../../src/utils/slots';
 import queryParser from '../../src/utils/express-query-int';
 import ZSchemaExpress from './util';
 import { IConfig, Modules, ILogger } from '../../src/interfaces';
-import { BlocksCorrect } from '../../src/core/blocks-correct';
+import { BlocksHelper } from '../../src/core/BlocksHelper';
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
@@ -137,7 +137,7 @@ export default async function intNetwork(
         res.sendStatus(403);
       } else if (isApiOrPeer && req.headers['request-node-status'] === 'yes') {
         // Add server status info to response header
-        const lastBlock = BlocksCorrect.getState().lastBlock;
+        const lastBlock = BlocksHelper.getState().lastBlock;
         res.setHeader('Access-Control-Expose-Headers', 'node-status');
         res.setHeader(
           'node-status',

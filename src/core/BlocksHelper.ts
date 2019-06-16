@@ -26,7 +26,7 @@ export enum BlockMessageFitInLineResult {
   SyncBlocks = 2,
 }
 
-export class BlocksCorrect {
+export class BlocksHelper {
   public static getInitialState() {
     const state: IState = {
       // TODO: check correct init values
@@ -54,7 +54,7 @@ export class BlocksCorrect {
    * returns always a deepCopy of the current state
    */
   public static getState() {
-    const state = BlocksCorrect.copyState(global.state);
+    const state = BlocksHelper.copyState(global.state);
     return state;
   }
 
@@ -101,19 +101,19 @@ export class BlocksCorrect {
     unconfirmedTransactions: Transaction[]
   ) {
     if (
-      BlocksCorrect.areTransactionsExceedingPayloadLength(
+      BlocksHelper.areTransactionsExceedingPayloadLength(
         unconfirmedTransactions
       )
     ) {
       throw new Error('Playload length outof range');
     }
 
-    const payloadHash = BlocksCorrect.payloadHashOfAllTransactions(
+    const payloadHash = BlocksHelper.payloadHashOfAllTransactions(
       unconfirmedTransactions
     );
     const height = lastBlock.height + 1;
     const prevBlockId = lastBlock.id;
-    const fees = BlocksCorrect.getFeesOfAll(unconfirmedTransactions);
+    const fees = BlocksHelper.getFeesOfAll(unconfirmedTransactions);
     const count = unconfirmedTransactions.length;
     const reward = blockreward.calculateReward(height);
 
@@ -231,7 +231,7 @@ export class BlocksCorrect {
   }
 
   public static MarkProposeAsReceived(old: IState, propose: BlockPropose) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
 
     state.proposeCache[propose.hash] = true;
     return state;
@@ -242,7 +242,7 @@ export class BlocksCorrect {
     else return false;
   }
   public static MarkBlockAsReceived(old: IState, block: IBlock) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
 
     state.blockCache[block.id] = true;
     return state;
@@ -312,14 +312,14 @@ export class BlocksCorrect {
   }
 
   public static SetLastBlock(old: IState, block: IBlock) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
 
     state.lastBlock = block; // copy block?
     return state;
   }
 
   public static ProcessBlockCleanup(old: IState) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
 
     state.blockCache = {};
     state.proposeCache = {};
@@ -330,7 +330,7 @@ export class BlocksCorrect {
   }
 
   public static setPreGenesisBlock(old: IState) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
 
     state.lastBlock = { height: -1 } as IBlock;
 
@@ -342,7 +342,7 @@ export class BlocksCorrect {
     lastVoteTime: number,
     oldPropose: BlockPropose
   ) {
-    const state = BlocksCorrect.copyState(old);
+    const state = BlocksHelper.copyState(old);
     const propose = copyObject(oldPropose);
 
     state.lastVoteTime = lastVoteTime;

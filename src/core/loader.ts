@@ -9,7 +9,7 @@ import {
   Transaction,
 } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
-import { BlocksCorrect } from './blocks-correct';
+import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
 
 export default class Loader {
@@ -241,7 +241,7 @@ export default class Loader {
     this.library.sequence.add(async cb => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       this.privSyncing = true;
-      const lastBlock = BlocksCorrect.getState().lastBlock; // TODO refactor whole method
+      const lastBlock = BlocksHelper.getState().lastBlock; // TODO refactor whole method
       this.modules.transactions.clearUnconfirmed();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
@@ -267,7 +267,7 @@ export default class Loader {
   // Events
   public onPeerReady = () => {
     const nextSync = () => {
-      const lastBlock = BlocksCorrect.getState().lastBlock;
+      const lastBlock = BlocksHelper.getState().lastBlock;
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 3) {
         this.startSyncBlocks(lastBlock);

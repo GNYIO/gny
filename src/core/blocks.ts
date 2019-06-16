@@ -27,7 +27,7 @@ import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';
-import { BlocksCorrect, BlockMessageFitInLineResult } from './blocks-correct';
+import { BlocksHelper, BlockMessageFitInLineResult } from './BlocksHelper';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 
@@ -158,14 +158,14 @@ export default class Blocks {
     if (block.transactions.length !== block.count) {
       throw new Error('Invalid transaction count');
     }
-    if (BlocksCorrect.AreTransactionsDuplicated(block.transactions)) {
+    if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
       throw new Error(`Duplicate transaction id in block ${block.id}`);
     }
-    if (!BlocksCorrect.CanAllTransactionsBeSerialized(block.transactions)) {
+    if (!BlocksHelper.CanAllTransactionsBeSerialized(block.transactions)) {
       throw new Error('Failed to get transaction bytes');
     }
 
-    const totalFee = BlocksCorrect.getFeesOfAll(block.transactions);
+    const totalFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     if (Number(totalFee) !== Number(block.fees)) {
       throw new Error('Invalid total fees');
@@ -210,7 +210,7 @@ export default class Blocks {
     this.library.logger.trace('enter applyblock');
 
     try {
-      if (BlocksCorrect.AreTransactionsDuplicated(block.transactions)) {
+      if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
         throw new Error(`Duplicate transaction in block`);
       }
 
@@ -265,9 +265,9 @@ export default class Blocks {
     options: ProcessBlockOptions
   ) {
     if (!options.local) {
-      await BlocksCorrect.IsBlockAlreadyInDbIO(block);
+      await BlocksHelper.IsBlockAlreadyInDbIO(block);
 
-      await BlocksCorrect.AreAnyTransactionsAlreadyInDbIO(block.transactions);
+      await BlocksHelper.AreAnyTransactionsAlreadyInDbIO(block.transactions);
     }
   }
 
@@ -293,7 +293,7 @@ export default class Blocks {
   }
 
   public ProcessBlockCleanupEffect(state: IState) {
-    state = BlocksCorrect.ProcessBlockCleanup(state);
+    state = BlocksHelper.ProcessBlockCleanup(state);
     state = ConsensusHelper.clearState(state);
 
     return state;
@@ -327,7 +327,7 @@ export default class Blocks {
 
       await this.ProcessBlockDbIO(state, block, options);
 
-      state = BlocksCorrect.SetLastBlock(state, block);
+      state = BlocksHelper.SetLastBlock(state, block);
 
       this.ProcessBlockFireEvents(block, options);
     } catch (error) {
@@ -376,7 +376,7 @@ export default class Blocks {
       { address }
     );
 
-    const transFee = BlocksCorrect.getFeesOfAll(block.transactions);
+    const transFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
     const { fee, reward } = await this.increaseRoundData(
@@ -516,18 +516,18 @@ export default class Blocks {
     keypair: KeyPair,
     timestamp: number
   ) => {
-    let state = BlocksCorrect.copyState(old);
+    let state = BlocksHelper.copyState(old);
 
     // TODO somehow fuel the state with the default state!
 
-    const newBlock = BlocksCorrect.generateBlockShort(
+    const newBlock = BlocksHelper.generateBlockShort(
       keypair,
       timestamp,
       state.lastBlock,
       unconfirmedTransactions
     );
 
-    if (BlocksCorrect.NotEnoughActiveKeyPairs(activeDelegates)) {
+    if (BlocksHelper.NotEnoughActiveKeyPairs(activeDelegates)) {
       throw new Error('not enough active delegates');
     }
 
@@ -553,7 +553,7 @@ export default class Blocks {
     }
 
     const config = global.Config; // global access is bad
-    const propose = BlocksCorrect.ManageProposeCreation(
+    const propose = BlocksHelper.ManageProposeCreation(
       keypair,
       newBlock,
       config
@@ -563,7 +563,7 @@ export default class Blocks {
 
     state = ConsensusHelper.addPendingVotes(state, localVotes);
 
-    state = BlocksCorrect.MarkProposeAsReceived(state, propose);
+    state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
     state = ConsensusHelper.CollectingVotes(state);
 
@@ -602,15 +602,15 @@ export default class Blocks {
     }
 
     this.library.sequence.add(async cb => {
-      let state = BlocksCorrect.getState();
+      let state = BlocksHelper.getState();
 
       // validate the received Block and NewBlockMessage against each other
-      if (!BlocksCorrect.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
+      if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
         this.library.logger.warn('NewBlockMessage and Block do not');
         return cb();
       }
 
-      const fitInLineResult = BlocksCorrect.DoesTheNewBlockMessageFitInLine(
+      const fitInLineResult = BlocksHelper.DoesTheNewBlockMessageFitInLine(
         state,
         newBlockMsg
       );
@@ -627,13 +627,13 @@ export default class Blocks {
         return cb();
       }
 
-      if (BlocksCorrect.AlreadyReceivedThisBlock(state, block)) {
+      if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
         return cb();
       }
 
-      state = BlocksCorrect.MarkBlockAsReceived(state, block); // TODO this should be saved already in case of an error
+      state = BlocksHelper.MarkBlockAsReceived(state, block); // TODO this should be saved already in case of an error
 
-      if (BlocksCorrect.ReceivedBlockIsInRightOrder(state, block)) {
+      if (BlocksHelper.ReceivedBlockIsInRightOrder(state, block)) {
         const pendingTrsMap = new Map<string, Transaction>();
         try {
           const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
@@ -671,7 +671,7 @@ export default class Blocks {
           }
 
           // important
-          BlocksCorrect.setState(state);
+          BlocksHelper.setState(state);
           return cb();
         }
       }
@@ -708,14 +708,14 @@ export default class Blocks {
     }
 
     this.library.sequence.add(cb => {
-      let state = BlocksCorrect.getState();
+      let state = BlocksHelper.getState();
 
-      if (BlocksCorrect.AlreadyReceivedPropose(state, propose)) {
+      if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
         return setImmediate(cb);
       }
-      state = BlocksCorrect.MarkProposeAsReceived(state, propose);
+      state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
-      if (BlocksCorrect.DoesNewBlockProposeMatchOldOne(state, propose)) {
+      if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
         return setImmediate(cb);
       }
       if (propose.height !== state.lastBlock.height + 1) {
@@ -767,11 +767,11 @@ export default class Blocks {
 
               await this.modules.transport.sendVotes(votes, propose.address);
 
-              state = BlocksCorrect.SetLastPropose(state, Date.now(), propose);
+              state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
             }
 
             // important
-            BlocksCorrect.setState(state);
+            BlocksHelper.setState(state);
             setImmediate(next);
           },
         ],
@@ -805,8 +805,8 @@ export default class Blocks {
         return cb();
       }
 
-      const state = BlocksCorrect.getState();
-      if (!BlocksCorrect.IsBlockchainReady(state, this.library.logger)) {
+      const state = BlocksHelper.getState();
+      if (!BlocksHelper.IsBlockchainReady(state, this.library.logger)) {
         return cb();
       }
 
@@ -825,7 +825,7 @@ export default class Blocks {
     }
 
     this.library.sequence.add(async cb => {
-      let state = BlocksCorrect.getState();
+      let state = BlocksHelper.getState();
 
       state = ConsensusHelper.addPendingVotes(state, votes);
 
@@ -851,7 +851,7 @@ export default class Blocks {
             delegateList
           );
 
-          BlocksCorrect.setState(state); // imporantđ
+          BlocksHelper.setState(state); // imporantđ
         } catch (err) {
           this.library.logger.error(
             `Failed to process confirmed block: ${err}`
@@ -859,7 +859,7 @@ export default class Blocks {
         }
         return cb();
       } else {
-        BlocksCorrect.setState(state); // important
+        BlocksHelper.setState(state); // important
         return setImmediate(cb);
       }
     });
@@ -877,10 +877,10 @@ export default class Blocks {
     genesisBlock: IGenesisBlock,
     getBlocksByHeight: GetBlocksByHeight
   ) {
-    let state = BlocksCorrect.copyState(old);
+    let state = BlocksHelper.copyState(old);
 
     if (!numberOfBlocksInDb) {
-      state = BlocksCorrect.setPreGenesisBlock(state);
+      state = BlocksHelper.setPreGenesisBlock(state);
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
@@ -892,7 +892,7 @@ export default class Blocks {
       );
     } else {
       const block = await getBlocksByHeight(numberOfBlocksInDb - 1);
-      state = BlocksCorrect.SetLastBlock(state, block);
+      state = BlocksHelper.SetLastBlock(state, block);
     }
     return state;
   }
@@ -906,7 +906,7 @@ export default class Blocks {
     return this.library.sequence.add(
       async cb => {
         try {
-          let state = BlocksCorrect.getState();
+          let state = BlocksHelper.getState();
 
           const numberOfBlocksInDb = global.app.sdb.blocksCount;
           state = await this.RunGenesisOrLoadLastBlock(
@@ -916,7 +916,7 @@ export default class Blocks {
             global.app.sdb.getBlockByHeight
           );
           // important
-          BlocksCorrect.setState(state);
+          BlocksHelper.setState(state);
 
           this.library.bus.message('onBlockchainReady');
           return cb();

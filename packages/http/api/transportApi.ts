@@ -10,7 +10,7 @@ import {
   IBlock,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
-import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
 
 export default class TransportApi {
@@ -205,8 +205,8 @@ export default class TransportApi {
 
     return this.library.sequence.add(
       cb => {
-        const state = BlocksCorrect.getState();
-        if (!BlocksCorrect.IsBlockchainReady(state, this.library.logger)) {
+        const state = BlocksHelper.getState();
+        if (!BlocksHelper.IsBlockchainReady(state, this.library.logger)) {
           return cb('Blockchain is not ready');
         }
 
@@ -263,7 +263,7 @@ export default class TransportApi {
 
   // POST
   private getHeight = (req: Request, res: Response) => {
-    const lastBlock = BlocksCorrect.getState().lastBlock;
+    const lastBlock = BlocksHelper.getState().lastBlock;
 
     return res.json({
       height: lastBlock.height,

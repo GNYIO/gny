@@ -9,10 +9,10 @@ import loadContracts from './loadContracts';
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
 import { IOptions } from './interfaces';
-import { BlocksCorrect } from './core/blocks-correct';
+import { BlocksHelper } from './core/BlocksHelper';
 
 export default async function runtime(options: IOptions) {
-  global.state = BlocksCorrect.getInitialState();
+  global.state = BlocksHelper.getInitialState();
   global.app = {
     sdb: null,
     balances: null,

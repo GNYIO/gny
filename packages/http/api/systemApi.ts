@@ -2,7 +2,7 @@ import slots from '../../../src/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next } from '../../../src/interfaces';
-import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
 
 export default class SystemApi {
   private library: IScope;
@@ -42,7 +42,7 @@ export default class SystemApi {
   };
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
     try {
-      const lastBlock = BlocksCorrect.getState().lastBlock;
+      const lastBlock = BlocksHelper.getState().lastBlock;
 
       return res.json({
         os: `${os.platform()}_${os.release()}`,

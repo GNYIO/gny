@@ -11,7 +11,7 @@ import {
   IBlock,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
-import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -252,7 +252,7 @@ export default class TransactionsApi {
     this.library.sequence.add(
       callback => {
         (async () => {
-          const state = BlocksCorrect.getState();
+          const state = BlocksHelper.getState();
 
           try {
             const hash = crypto
@@ -319,7 +319,7 @@ export default class TransactionsApi {
     }
     return this.library.sequence.add(
       callback => {
-        const state = BlocksCorrect.getState();
+        const state = BlocksHelper.getState();
         this.modules.transactions.processUnconfirmedTransactions(
           state,
           trs,

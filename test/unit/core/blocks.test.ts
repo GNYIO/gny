@@ -14,7 +14,7 @@ import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
 import slots from '../../../src/utils/slots';
-import { BlocksCorrect } from '../../../src/core/blocks-correct';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
@@ -160,7 +160,7 @@ describe.skip('core/blocks', () => {
     });
 
     it('RunGenesisOrLoadLastBlock() - 0 blocks in DB saves genesis Block in db', async done => {
-      const state = BlocksCorrect.getInitialState();
+      const state = BlocksHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
       // TODO: prepare global sdb
