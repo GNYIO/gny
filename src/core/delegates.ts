@@ -177,9 +177,9 @@ export default class Delegates {
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
           const height = state.lastBlock.height + 1;
 
-          const activeDelegates = await this.getActiveDelegateKeypairs(height); // move to BlocksCorrect?
           const unconfirmedTransactions = this.modules.transactions.getUnconfirmedTransactionList();
           const delegateList = await this.generateDelegateList(height);
+          const activeDelegates = this.getActiveDelegateKeypairs(delegateList);
 
           const {
             block: newBlock,
@@ -266,10 +266,9 @@ export default class Delegates {
     return keyPairs;
   };
 
-  public getActiveDelegateKeypairs = async (height: number) => {
-    const delegates = await this.generateDelegateList(height);
+  public getActiveDelegateKeypairs = (delegates: string[]) => {
     if (!delegates) {
-      return;
+      return [];
     }
 
     const results: KeyPair[] = [];

@@ -375,6 +375,103 @@ describe('core/delegates', () => {
       expect(nr).toEqual(1);
       done();
     });
+
+    it('getBlockSlotData() - returns old slot if delegate secret is not available for this slot', done => {
+      const slot = 1;
+
+      const delegateList = delegatesTestData.delegateList;
+      const shortKeyPairs: KeyPairsIndexer = {
+        '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635': {
+          publicKey: Buffer.from(
+            '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635',
+            'hex'
+          ),
+          privateKey: Buffer.from([
+            7,
+            95,
+            224,
+            127,
+            91,
+            243,
+            251,
+            170,
+            154,
+            154,
+            85,
+            151,
+            69,
+            59,
+            85,
+            145,
+            252,
+            12,
+            71,
+            72,
+            105,
+            68,
+            60,
+            225,
+            232,
+            254,
+            241,
+            239,
+            232,
+            237,
+            115,
+            194,
+            118,
+            63,
+            82,
+            146,
+            7,
+            233,
+            211,
+            67,
+            122,
+            109,
+            189,
+            240,
+            34,
+            252,
+            140,
+            49,
+            199,
+            151,
+            68,
+            175,
+            231,
+            160,
+            164,
+            34,
+            191,
+            104,
+            75,
+            151,
+            150,
+            31,
+            38,
+            53,
+          ]),
+        },
+      };
+      const result = delegates.getBlockSlotData(
+        slot,
+        delegateList,
+        shortKeyPairs
+      );
+
+      const publicThatWasReturned =
+        result && result.keypair.publicKey.toString('hex');
+      expect(publicThatWasReturned).toEqual(
+        '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635'
+      );
+
+      const expectedTime = 10;
+      expect(result).toHaveProperty('time');
+      expect(result.time).not.toEqual(expectedTime);
+
+      done();
+    });
   });
 
   describe('loadMyDelegates', () => {
@@ -409,6 +506,69 @@ describe('core/delegates', () => {
       expect(Object.keys(result)).toHaveLength(1);
       expect(result).toHaveProperty(
         '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9'
+      );
+
+      done();
+    });
+  });
+
+  describe('getActiveDelegateKeypairs', () => {
+    let delegates: Delegates;
+    let delegatesTestData: DelegateTestData;
+
+    beforeAll(done => {
+      delegatesTestData = loadDelegatesTestData();
+      done();
+    });
+    beforeEach(done => {
+      const scope = {
+        logger: dummyLogger,
+      } as IScope;
+      delegates = new Delegates(scope);
+
+      delegates.keyPairs = delegatesTestData.keyPairs; // illegal
+      done();
+    });
+    afterEach(done => {
+      delegates = undefined;
+      done();
+    });
+
+    it('getActiveDelegateKeypairs() - passing empty array returns empty array', done => {
+      const del: string[] = [];
+
+      const result = delegates.getActiveDelegateKeypairs(del);
+      expect(result).toEqual([]);
+
+      done();
+    });
+
+    it('getActiveDelegateKeypairs() - passing in undefined returns empty array', done => {
+      const del = undefined;
+
+      const result = delegates.getActiveDelegateKeypairs(del);
+      expect(result).toEqual([]);
+      done();
+    });
+
+    it('getActiveDelegateKeypairs() - returns only keyPairs that are in this.keyPairs', done => {
+      // preparation
+      delegates.keyPairs = {
+        '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635':
+          delegates.keyPairs[
+            '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635'
+          ],
+      }; // illegal
+
+      const result = delegates.getActiveDelegateKeypairs(
+        delegatesTestData.delegateList
+      );
+
+      expect(result).not.toBeUndefined();
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('publicKey');
+      expect(result[0].publicKey.toString('hex')).toEqual(
+        '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635'
       );
 
       done();

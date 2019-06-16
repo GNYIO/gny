@@ -730,11 +730,12 @@ export default class Blocks {
       }
 
       // propose ok
+      let activeDelegates: string[];
       return async.waterfall(
         [
           async next => {
             try {
-              const activeDelegates = await this.modules.delegates.generateDelegateList(
+              activeDelegates = await this.modules.delegates.generateDelegateList(
                 propose.height
               );
               this.modules.delegates.validateProposeSlot(
@@ -755,8 +756,8 @@ export default class Blocks {
             }
           },
           async next => {
-            const activeKeypairs = await this.modules.delegates.getActiveDelegateKeypairs(
-              propose.height
+            const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(
+              activeDelegates
             );
             next(undefined, activeKeypairs);
           },
