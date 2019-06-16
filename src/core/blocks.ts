@@ -462,6 +462,7 @@ export default class Blocks {
   };
 
   public loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
+    // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
     let lastCommonBlockId = id;
@@ -493,15 +494,29 @@ export default class Blocks {
         this.library.logger.info(`Loading ${num} blocks from ${address}`);
         try {
           for (const block of blocks) {
+            let state = BlocksHelper.getState();
+
+            const activeDelegates = await this.modules.delegates.generateDelegateList(
+              block.height
+            );
             const options: ProcessBlockOptions = {};
-            await this.processBlock(block, options);
+            state = await this.processBlock(
+              state,
+              block,
+              options,
+              activeDelegates
+            );
+
             lastCommonBlockId = block.id;
             this.library.logger.info(
               `Block ${block.id} loaded from ${address} at`,
               block.height
             );
+
+            BlocksHelper.setState(state); // important
           }
         } catch (e) {
+          // Is it necessary to call the sdb.rollbackBlock()
           this.library.logger.error('Failed to process synced block', e);
           throw e;
         }
@@ -851,7 +866,7 @@ export default class Blocks {
             delegateList
           );
 
-          BlocksHelper.setState(state); // imporantđ
+          BlocksHelper.setState(state); // important
         } catch (err) {
           this.library.logger.error(
             `Failed to process confirmed block: ${err}`
