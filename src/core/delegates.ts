@@ -70,7 +70,8 @@ export default class Delegates {
 
   public getBlockSlotData = (
     slot: number,
-    activeDelegates: string[]
+    activeDelegates: string[],
+    keyPairs: KeyPairsIndexer
   ): void | BlockSlotData => {
     if (!activeDelegates || !activeDelegates.length) {
       return;
@@ -82,10 +83,10 @@ export default class Delegates {
 
       const delegateKey = activeDelegates[delegatePos];
 
-      if (delegateKey && this.keyPairs[delegateKey]) {
+      if (delegateKey && keyPairs[delegateKey]) {
         return {
           time: slots.getSlotTime(currentSlot),
-          keypair: this.keyPairs[delegateKey],
+          keypair: keyPairs[delegateKey],
         };
       }
     }
@@ -152,7 +153,11 @@ export default class Delegates {
       Number(preState.lastBlock.height) + 1
     );
     const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
-    const currentBlockData = this.getBlockSlotData(currentSlot, delList);
+    const currentBlockData = this.getBlockSlotData(
+      currentSlot,
+      delList,
+      this.keyPairs
+    );
     if (!currentBlockData) {
       this.library.logger.trace('Loop: skipping slot');
       return;
