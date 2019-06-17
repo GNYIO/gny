@@ -15,12 +15,10 @@ if (!isRoot()) {
 }
 
 (async () => {
-
   if (!fs.existsSync('./dist')) {
     console.error('first run: "npm run tsc"');
     process.exit(1);
   }
-
 
   const HOW_MANY_NODES = Number(process.argv[2]) || 2;
   if (Number.isNaN(HOW_MANY_NODES) || HOW_MANY_NODES > 101) {
@@ -32,12 +30,13 @@ if (!isRoot()) {
     process.exit(1);
   }
 
-
   // fillter all dist directories except "dist"
-  const distDirectories = fs.readdirSync(__dirname)
-    .filter((item) => RegExp('dist[1-9]+').test(item));
+  const distDirectories = fs
+    .readdirSync(__dirname)
+    .filter(item => RegExp('dist[1-9]+').test(item));
 
-  distDirectories.forEach((dir) => {
+  // delete old "dist" directories
+  distDirectories.forEach(dir => {
     shell.exec(`rm -rf ${dir}`);
   });
 
@@ -58,14 +57,15 @@ if (!isRoot()) {
     const id = await createPeerIdAsync();
 
     shell.exec(`rm ./dist${i}/p2p_key.json`);
-    fs.writeFileSync(`./dist${i}/p2p_key.json`, JSON.stringify(id, null, 2), { encoding: 'utf8' });
+    fs.writeFileSync(`./dist${i}/p2p_key.json`, JSON.stringify(id, null, 2), {
+      encoding: 'utf8',
+    });
   }
 
   let postgresPort = 3000;
   // docker-compose .env
   for (let i = 0; i < HOW_MANY_NODES; ++i) {
-    
-    const envContent = `POSTGRES_PORT=${postgresPort}`;
+    const envContent = `POSTGRES_INSTANCE=${postgresPort}`;
     const tempOrmConfig = JSON.parse(JSON.stringify(ormconfig));
     tempOrmConfig.port = postgresPort;
 
@@ -78,46 +78,55 @@ if (!isRoot()) {
 
     fs.writeFileSync(`${distDir}/.env`, envContent, { encoding: 'utf8' });
     shell.exec(`rm ${distDir}/ormconfig.json`);
-    fs.writeFileSync(`${distDir}/ormconfig.json`, JSON.stringify(tempOrmConfig, null, 2), { encoding: 'utf8' });
+    fs.writeFileSync(
+      `${distDir}/ormconfig.json`,
+      JSON.stringify(tempOrmConfig, null, 2),
+      { encoding: 'utf8' }
+    );
 
     postgresPort += 2;
   }
 
-
-
-  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.port + 1}/ipfs/${firstKey.id}`;
+  const MULTIADDRS_FIRST = `/ip4/${firstConfig.address}/tcp/${firstConfig.port +
+    1}/ipfs/${firstKey.id}`;
 
   const INTIAL_SECRETS = firstConfig.forging.secret;
   const count = INTIAL_SECRETS.length;
   const onePart = Math.floor(count / HOW_MANY_NODES);
 
   for (let i = 0; i < HOW_MANY_NODES; ++i) {
-
     const nthConfig = _.cloneDeep(firstConfig);
-    nthConfig.port += (i * 2);
+    nthConfig.port += i * 2;
 
     const from = i * onePart;
     let to = (i + 1) * onePart;
 
     // mind the rest of the division (affects only last node)
-    if ((i + 1) === HOW_MANY_NODES) {
+    if (i + 1 === HOW_MANY_NODES) {
       to = undefined;
     }
 
     const partitionedSecrets = INTIAL_SECRETS.slice(from, to);
     nthConfig.forging.secret = partitionedSecrets;
 
-
     if (i === 0) {
       nthConfig.peers.bootstrap = null;
 
       shell.exec('rm ./dist/config.json');
-      fs.writeFileSync('./dist/config.json', JSON.stringify(nthConfig, null, 2), { encoding: 'utf8' });
+      fs.writeFileSync(
+        './dist/config.json',
+        JSON.stringify(nthConfig, null, 2),
+        { encoding: 'utf8' }
+      );
     } else {
       nthConfig.peers.bootstrap = MULTIADDRS_FIRST;
 
       shell.exec(`rm ./dist${i}/config.json`);
-      fs.writeFileSync(`./dist${i}/config.json`, JSON.stringify(nthConfig, null, 2), { encoding: 'utf8' });
+      fs.writeFileSync(
+        `./dist${i}/config.json`,
+        JSON.stringify(nthConfig, null, 2),
+        { encoding: 'utf8' }
+      );
     }
   }
 
@@ -131,5 +140,4 @@ if (!isRoot()) {
   }
 
   process.exit(1);
-
 })();

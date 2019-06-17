@@ -49,7 +49,24 @@ sudo -s
 npm run test:integration
 ```
 
+<br/>
 
+
+## Run Many Nodes
+
+First rebuild the project with: `npm run tsc`
+
+Then create the different nodes with `sudo node createSecondNode.js`
+You can pass as argument how many nodes you want to run: E.g. 10 nodes `sudo node createSecondNode.js 10`
+
+Then lauch all nodes with `sudo node launchAllNodes.js`.
+
+If you want all nodes to stop, press `Ctrl + C`
+
+
+
+
+<br/>
 
 ## Installation
 
