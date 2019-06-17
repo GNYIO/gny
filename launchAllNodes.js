@@ -64,14 +64,7 @@ const DELAY = (ms = 5000) =>
   }
 
   const interval = setInterval(async () => {
-    try {
-      const result = await axios.get(
-        'http://localhost:4096/api/blocks/getHeight'
-      );
-      console.log(result.data);
-    } catch (err) {
-      console.log('error while requesting /blocks/getHeight');
-    }
+    await getHeights(distDirectories.length, 4096, 2);
   }, 10 * 1000);
 
   process.on('SIGINT', async () => {
@@ -87,3 +80,23 @@ const DELAY = (ms = 5000) =>
     }
   });
 })();
+
+async function getHeights(numberOfNodes, startingPort, incrementPortBy) {
+  try {
+    const tasks = [];
+    for (let i = 0; i < numberOfNodes; ++i) {
+      const request = axios.get(
+        `http://localhost:${startingPort}/api/blocks/getHeight`
+      );
+      tasks.push(request);
+
+      startingPort += incrementPortBy;
+    }
+
+    const results = await Promise.all(tasks);
+    const resultHeight = results.map(x => x.data);
+    console.log(JSON.stringify(resultHeight));
+  } catch (err) {
+    console.log('error while requesting /blocks/getHeight');
+  }
+}
