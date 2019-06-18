@@ -228,6 +228,7 @@ describe('contract environment', () => {
     it.skip('sending rejected transaction twice (within same block) returns erro', async () => {});
     it.skip('sending rejected transaction (after one block) returns error', async () => {});
     it.skip('sending SIGNED transaction with a random height property gets correctly saved to DB (we should differentiate between UNCONFIRMED and CONFIRMED transactions, one with height, one without)', async () => {});
+    it.skip('sending transaction from the "future" should return error', async () => {});
 
     it.skip(
       'signing a transaction with a second password should return error (if second password was not registered)',
