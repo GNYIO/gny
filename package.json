@@ -8,6 +8,7 @@
     "tsc": "tsc; ts-node copyStaticAssets",
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
+    "benchmark": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/benchmark",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
     "prettier": "prettier --config .prettierrc --write '{src,packages}/{**/*,*}[.ts|.js]' 'app.ts' 'index.ts'"
@@ -65,6 +66,7 @@
     "async": "=1.5.2",
     "axios": "^0.18.0",
     "babel-eslint": "^9.0.0",
+    "benchmark": "^2.1.4",
     "bignumber.js": "^8.0.1",
     "bip39": "^2.5.0",
     "body-parser": "=1.18.3",
