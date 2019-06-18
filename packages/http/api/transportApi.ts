@@ -12,6 +12,7 @@ import {
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
+import joi from '../../../src/utils/extendedJoi';
 
 export default class TransportApi {
   private modules: Modules;
@@ -119,8 +120,33 @@ export default class TransportApi {
   // POST
   private commonBlock = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    if (!Number.isInteger(body.max)) return next('Field max must be integer');
-    if (!Number.isInteger(body.min)) return next('Field min must be integer');
+
+    const schema = joi.object().keys({
+      max: joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      min: joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      ids: joi
+        .array()
+        .items(
+          joi
+            .string()
+            .hex()
+            .required()
+        )
+        .required(),
+    });
+    const report = joi.validate(body, schema);
+    if (report.error) {
+      return next('validation failed: ' + report.error.message);
+    }
+
     const max = body.max;
     const min = body.min;
     const ids = body.ids;
@@ -129,6 +155,9 @@ export default class TransportApi {
       if (!blocks || !blocks.length) {
         return next('Blocks not found');
       }
+      this.library.logger.warn(
+        `blocks-in-transportApi-commonBlock: ${JSON.stringify(blocks)}`
+      );
       blocks = blocks.reverse();
       let commonBlock: IBlock = null;
       for (const i in ids) {
@@ -150,14 +179,29 @@ export default class TransportApi {
   // POST
   private blocks = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    let blocksLimit = 200;
-    if (body.limit) {
-      blocksLimit = Math.min(blocksLimit, Number(body.limit));
+
+    const schema = joi.object().keys({
+      limit: joi
+        .number()
+        .integer()
+        .min(0)
+        .optional(),
+      lastBlockId: joi
+        .string()
+        .hex()
+        .required(),
+    });
+    const report = joi.validate(body, schema);
+    if (report.error) {
+      return next('Invalid params');
     }
+
+    const blocksLimit = body.limit || 200;
     const lastBlockId = body.lastBlockId;
     if (!lastBlockId) {
       return next('Invalid params');
     }
+
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
@@ -168,7 +212,10 @@ export default class TransportApi {
       const blocks = await getBlocksFromApi(minHeight, maxHeight, true);
       return res.json({ blocks });
     } catch (e) {
-      global.app.logger.error('Failed to get blocks or transactions', e);
+      global.app.logger.error(
+        '/peer/blocks (POST), Failed to get blocks with transactions',
+        e
+      );
       return res.json({ blocks: [] });
     }
   };
