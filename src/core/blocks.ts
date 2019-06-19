@@ -30,6 +30,7 @@ import { RoundBase } from '../base/round';
 import { BlocksHelper, BlockMessageFitInLineResult } from './BlocksHelper';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
+import { StateHelper } from './StateHelper';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
@@ -600,7 +601,7 @@ export default class Blocks {
     block: IBlock,
     votes: ManyVotes
   ) => {
-    if (this.modules.loader.syncing() || !this.loaded) {
+    if (StateHelper.IsSyncing() || !this.loaded) {
       // TODO access state
       return;
     }
@@ -706,7 +707,7 @@ export default class Blocks {
   };
 
   public onReceivePropose = (propose: BlockPropose) => {
-    if (this.modules.loader.syncing() || !this.loaded) {
+    if (StateHelper.IsSyncing() || !this.loaded) {
       // TODO access state
       return;
     }
@@ -804,7 +805,7 @@ export default class Blocks {
     };
 
     this.library.sequence.add(cb => {
-      if (this.modules.loader.syncing()) {
+      if (StateHelper.IsSyncing()) {
         // TODO this should access state
         return cb();
       }
@@ -823,7 +824,7 @@ export default class Blocks {
   };
 
   public onReceiveVotes = (votes: ManyVotes) => {
-    if (this.modules.loader.syncing() || !this.loaded) {
+    if (StateHelper.IsSyncing() || !this.loaded) {
       // TODO: use state
       return;
     }

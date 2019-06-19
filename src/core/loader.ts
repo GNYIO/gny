@@ -11,22 +11,15 @@ import {
 import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
+import { StateHelper } from './StateHelper';
 
 export default class Loader {
   private isLoaded: boolean = false;
-  private privSyncing: boolean = false;
   private readonly library: IScope;
   private modules: Modules;
-  private genesisBlock: IGenesisBlock;
-  public loadingLastBlock: IGenesisBlock = null;
-  private syncIntervalId: any;
-  public blocksToSync = 0;
-  public total = 0;
 
   constructor(scope: IScope) {
     this.library = scope;
-    this.genesisBlock = this.library.genesisBlock;
-    this.loadingLastBlock = this.library.genesisBlock;
   }
 
   private async findUpdate(
@@ -85,7 +78,10 @@ export default class Loader {
     return;
   }
 
-  private async loadBlocks(lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>) {
+  private async loadBlocks(
+    lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>,
+    genesisBlock: IGenesisBlock
+  ) {
     let result;
     try {
       result = await this.modules.peer.randomRequestAsync('getHeight', {});
@@ -116,9 +112,9 @@ export default class Loader {
       throw new Error('Failed to parse blockchain height');
     }
     if (new global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
-      this.blocksToSync = ret.height;
+      StateHelper.SetBlocksToSync(ret.height);
 
-      if (lastBlock.id !== this.genesisBlock.id) {
+      if (lastBlock.id !== genesisBlock.id) {
         try {
           await this.findUpdate(lastBlock, peer);
           return;
@@ -136,7 +132,7 @@ export default class Loader {
       );
       return await this.modules.blocks.loadBlocksFromPeer(
         peer,
-        this.genesisBlock.id
+        this.library.genesisBlock.id
       );
     }
     return undefined;
@@ -212,25 +208,23 @@ export default class Loader {
   };
 
   // Public methods
-  public syncing = () => this.privSyncing;
-
   public startSyncBlocks = (lastBlock: IBlock) => {
     this.library.logger.debug('startSyncBlocks enter');
-    if (!this.isLoaded || this.privSyncing) {
+    if (!this.isLoaded || StateHelper.IsSyncing()) {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
     this.library.sequence.add(async cb => {
       this.library.logger.debug('startSyncBlocks enter sequence');
-      this.privSyncing = true;
+      StateHelper.SetIsSyncing(true);
 
       try {
-        await this.loadBlocks(lastBlock);
+        await this.loadBlocks(lastBlock, this.library.genesisBlock);
       } catch (err) {
         this.library.logger.warn('loadBlocks warning:', err.message);
       }
-      this.privSyncing = false;
-      this.blocksToSync = 0;
+      StateHelper.SetIsSyncing(false);
+      StateHelper.SetBlocksToSync(0);
       this.library.logger.debug('startSyncBlocks end');
       cb();
     });
@@ -239,13 +233,13 @@ export default class Loader {
   public syncBlocksFromPeer = (peer: PeerNode) => {
     this.library.logger.debug('syncBlocksFromPeer enter');
 
-    if (!this.isLoaded || this.privSyncing) {
+    if (!this.isLoaded || StateHelper.IsSyncing()) {
       this.library.logger.debug('blockchain is already syncing');
       return;
     }
     this.library.sequence.add(async cb => {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
-      this.privSyncing = true;
+      StateHelper.SetIsSyncing(true);
       const lastBlock = BlocksHelper.getState().lastBlock; // TODO refactor whole method
       this.modules.transactions.clearUnconfirmed();
       try {
@@ -254,7 +248,7 @@ export default class Loader {
         this.library.logger.error('error while sdb.rollbackBlock()');
 
         // reset
-        this.privSyncing = false;
+        StateHelper.SetIsSyncing(false);
         throw err;
       }
       try {
@@ -262,7 +256,7 @@ export default class Loader {
       } catch (err) {
         throw err;
       } finally {
-        this.privSyncing = false;
+        StateHelper.SetIsSyncing(false);
         this.library.logger.debug('syncBlocksFromPeer end');
         cb();
       }
@@ -282,7 +276,7 @@ export default class Loader {
     setImmediate(nextSync);
 
     setImmediate(() => {
-      if (!this.isLoaded || this.privSyncing) return;
+      if (!this.isLoaded || StateHelper.IsSyncing()) return;
       this.loadUnconfirmedTransactions(err => {
         if (err) {
           this.library.logger.warn('loadUnconfirmedTransactions timer:', err);

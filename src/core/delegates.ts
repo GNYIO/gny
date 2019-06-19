@@ -120,7 +120,7 @@ export default class Delegates {
     const now = Date.now();
     const isForgingEnabled = StateHelper.IsForgingEnabled();
     const isLoaded = this.loaded;
-    const isSyncingRightNow = this.modules.loader.syncing();
+    const isSyncingRightNow = StateHelper.IsSyncing();
     const keyPairs = StateHelper.GetKeyPairs();
 
     const error = this.isLoopReady(

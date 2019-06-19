@@ -1,17 +1,15 @@
 import * as _ from 'lodash';
 import axios from 'axios';
 import * as Database from 'nedb';
-import * as fs from 'fs';
 import {
   createPeerInfoArgs,
   createFromJSON,
 } from '../../packages/p2p/createPeerInfo';
 import { Peer2Peer } from '../../packages/p2p/index';
-import { Modules, IScope, PeerNode } from '../interfaces';
+import { IScope, PeerNode } from '../interfaces';
 
 export default class Peer {
   private readonly library: IScope;
-  private modules: Modules;
   private nodesDb: Database = undefined;
 
   public p2p: Peer2Peer;
@@ -97,10 +95,6 @@ export default class Peer {
   };
 
   // Events
-  onBind = (scope: Modules) => {
-    this.modules = scope;
-  };
-
   onBlockchainReady = async () => {
     const peerInfo = await this.preparePeerInfo(
       this.library.config.peers.rawPeerInfo

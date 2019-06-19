@@ -13,6 +13,7 @@ import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
 import joi from '../../../src/utils/extendedJoi';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class TransportApi {
   private modules: Modules;
@@ -44,7 +45,7 @@ export default class TransportApi {
       if (this.loaded === false) {
         return res.json({ success: false, error: 'Blockchain is loading' });
       }
-      if (this.modules.loader.syncing()) {
+      if (StateHelper.IsSyncing()) {
         return res
           .status(500)
           .json({ success: false, error: 'Blockchain is syncing' });

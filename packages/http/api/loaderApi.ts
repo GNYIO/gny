@@ -2,6 +2,7 @@ import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Modules, Next } from '../../../src/interfaces';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class LoaderApi {
   private modules: Modules;
@@ -50,16 +51,16 @@ export default class LoaderApi {
   private status = (req: Request, res: Response, next: Next) => {
     return res.json({
       loaded: this.loaded,
-      lastBlockHeight: this.modules.loader.loadingLastBlock.height,
-      count: this.modules.loader.total,
     });
   };
 
   private sync = (req: Request, res: Response, next: Next) => {
     const lastBlock = BlocksHelper.getState().lastBlock;
+    const syncing = StateHelper.IsSyncing();
+    const blocksToSync = StateHelper.GetBlocksToSync();
     return res.json({
-      syncing: this.modules.loader.syncing(),
-      blocks: this.modules.loader.blocksToSync,
+      syncing: syncing,
+      blocks: blocksToSync,
       height: lastBlock.height,
     });
   };

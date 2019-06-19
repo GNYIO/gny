@@ -19,6 +19,7 @@ import {
   isBlockPropose,
   isNewBlockMessage,
 } from '../../packages/type-validation';
+import { StateHelper } from './StateHelper';
 
 export default class Transport {
   private readonly library: IScope;
@@ -109,7 +110,7 @@ export default class Transport {
 
   // peerEvent
   private receivePeer_NewBlockHeader = async (message: P2PMessage) => {
-    if (this.modules.loader.syncing()) {
+    if (StateHelper.IsSyncing()) {
       // TODO access state
       return;
     }

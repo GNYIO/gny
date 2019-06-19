@@ -28,8 +28,6 @@ describe('loaderApi', () => {
           'http://localhost:4096/api/loader/status'
         );
         expect(data).toHaveProperty('loaded');
-        expect(data).toHaveProperty('lastBlockHeight');
-        expect(data).toHaveProperty('count');
         done();
       },
       lib.oneMinute

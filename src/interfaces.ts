@@ -413,6 +413,8 @@ declare global {
       state: IState;
       keyPairs: KeyPairsIndexer;
       isForgingEnabled: boolean;
+      privSyncing: boolean;
+      blocksToSync: number;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

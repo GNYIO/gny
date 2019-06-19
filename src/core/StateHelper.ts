@@ -43,4 +43,20 @@ export class StateHelper {
   public static SetForgingEnabled(newStatus: boolean) {
     global.isForgingEnabled = newStatus;
   }
+
+  // privSyncing
+  public static IsSyncing() {
+    return global.privSyncing;
+  }
+  public static SetIsSyncing(newState: boolean) {
+    global.privSyncing = newState;
+  }
+
+  // blocksToSync
+  public static SetBlocksToSync(height: number) {
+    global.blocksToSync = height;
+  }
+  public static GetBlocksToSync() {
+    return global.blocksToSync;
+  }
 }
