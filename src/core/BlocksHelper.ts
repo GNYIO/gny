@@ -249,6 +249,10 @@ export class BlocksHelper {
   }
 
   public static ReceivedBlockIsInRightOrder(state: IState, block: IBlock) {
+    if (!state.lastBlock) {
+      throw new Error('ReceivedBlockIsInRightOrder - no state.lastBlock');
+    }
+
     const inCorrectOrder =
       block.prevBlockId === state.lastBlock.id &&
       state.lastBlock.height + 1 === block.height;

@@ -6,10 +6,38 @@ import {
   IBlock,
   KeyPair,
   BlockPropose,
+  IGenesisBlock,
+  NewBlockMessage,
 } from '../../../src/interfaces';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
+import * as fs from 'fs';
+
+function loadGenesisBlock() {
+  const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
+    encoding: 'utf8',
+  });
+  const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
+  return genesisBlock;
+}
+
+function createRandomBlock(height: number = 6, prevBlockId = randomHex(32)) {
+  const keyPair = randomKeyPair();
+  const timestamp = Date.now();
+  const lastBlock = {
+    id: prevBlockId,
+    height: height - 1,
+  } as IBlock;
+  const unconfirmedTrs: Transaction[] = [];
+  const block = BlocksHelper.generateBlockShort(
+    keyPair,
+    timestamp,
+    lastBlock,
+    unconfirmedTrs
+  );
+  return block;
+}
 
 function createRandomBlockPropose(
   height: number,
@@ -555,6 +583,179 @@ describe('BlocksHelper', () => {
 
       // act
       const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
+
+      expect(result).toEqual(true);
+      done();
+    });
+
+    it('MarkProposeAsReceived() - returns new object reference', done => {
+      const initialState = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(10);
+
+      const updatedState = BlocksHelper.MarkProposeAsReceived(
+        initialState,
+        propose
+      );
+
+      expect(initialState).not.toBe(updatedState);
+      done();
+    });
+
+    it('MarkProposeAsReceived() - marks propose as received', done => {
+      const initialState = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(10);
+
+      const updatedState = BlocksHelper.MarkProposeAsReceived(
+        initialState,
+        propose
+      );
+
+      expect(updatedState.proposeCache[propose.hash]).toEqual(true);
+      done();
+    });
+
+    it('AlreadyReceivedThisBlock() - returns false if cache is empty', done => {
+      const initialState = BlocksHelper.getInitialState();
+      const block = createRandomBlock();
+
+      const result = BlocksHelper.AlreadyReceivedThisBlock(initialState, block);
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('AlreadyReceivedThisBlock() - returns true if block was already received', done => {
+      let state = BlocksHelper.getInitialState();
+      const block = createRandomBlock();
+      state = BlocksHelper.MarkBlockAsReceived(state, block);
+
+      const result = BlocksHelper.AlreadyReceivedThisBlock(state, block);
+
+      expect(result).toEqual(true);
+      done();
+    });
+
+    it('MarkBlockAsReceived() - returns new object reference', done => {
+      const first = BlocksHelper.getInitialState();
+      const block = createRandomBlock();
+
+      const second = BlocksHelper.MarkBlockAsReceived(first, block);
+
+      expect(first).not.toBe(second);
+      done();
+    });
+
+    it('MarkBlockAsReceived() - sets block in cache', done => {
+      const state = BlocksHelper.getInitialState();
+      const block = createRandomBlock();
+
+      const result = BlocksHelper.MarkBlockAsReceived(state, block);
+
+      expect(result.blockCache[block.id]).toEqual(true);
+      done();
+    });
+
+    it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', done => {
+      const state = BlocksHelper.getInitialState();
+      state.lastBlock = loadGenesisBlock();
+
+      const block = createRandomBlock(2); // block should normally be height 1
+      expect(block.height).toEqual(2);
+
+      // act
+      const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('ReceivedBlockIsInRightOrder() - returns false if prevBlockId is not the same', done => {
+      const state = BlocksHelper.getInitialState();
+      const genesisBlock = loadGenesisBlock();
+      state.lastBlock = genesisBlock;
+
+      const wrongPrevBlockId = randomHex(32);
+
+      const block = createRandomBlock(1, wrongPrevBlockId); // correct height, but wrong prevBlockId
+      expect(block.height).toEqual(1);
+
+      // act
+      const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('ReceivedBlockIsInRightOrder() - returns true if height and prevBlockId are correct in correct order', done => {
+      const state = BlocksHelper.getInitialState();
+      const genesisBlock = loadGenesisBlock();
+      state.lastBlock = genesisBlock;
+
+      const block = createRandomBlock(1, genesisBlock.id); // correct height, correct prevBlockId
+      expect(block.height).toEqual(1);
+
+      // act
+      const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
+
+      expect(result).toEqual(true);
+      done();
+    });
+
+    it('ReceivedBlockIsInRightOrder() - throws if state has no lastBlock (should never happen)', done => {
+      const initialState = BlocksHelper.getInitialState();
+      const block = createRandomBlock(); // is never used
+
+      expect(initialState.lastBlock).toBeUndefined();
+
+      expect(() => {
+        BlocksHelper.ReceivedBlockIsInRightOrder(initialState, block);
+      }).toThrow('ReceivedBlockIsInRightOrder - no state.lastBlock');
+
+      done();
+    });
+
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', done => {
+      const newBlockMessage: NewBlockMessage = undefined;
+      const newBlock = createRandomBlock();
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', done => {
+      const newBlockMessage: NewBlockMessage = {
+        height: 1,
+        id: randomHex(32),
+        prevBlockId: randomHex(32),
+      };
+      const newBlock: IBlock = undefined;
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('IsNewBlockMessageAndBlockTheSame() - returns true if height, id and prevBlockId are the same', done => {
+      const newBlock: IBlock = createRandomBlock(14);
+      const newBlockMessage: NewBlockMessage = {
+        height: newBlock.height,
+        id: newBlock.id,
+        prevBlockId: newBlock.prevBlockId,
+      };
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
 
       expect(result).toEqual(true);
       done();
