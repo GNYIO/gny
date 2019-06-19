@@ -139,6 +139,40 @@ describe('BlocksHelper', () => {
 
       done();
     });
+
+    describe('getInitialState', () => {
+      it('getInitialState() - matches blue print', done => {
+        const initialState = BlocksHelper.getInitialState();
+
+        expect(initialState).toEqual({
+          votesKeySet: new Set(),
+          pendingBlock: undefined,
+          pendingVotes: undefined,
+
+          lastBlock: undefined,
+          blockCache: {},
+
+          proposeCache: {},
+          lastPropose: null,
+          privIsCollectingVotes: false,
+          lastVoteTime: undefined,
+        });
+
+        done();
+      });
+
+      it('getInitialState() - returns always a new object', done => {
+        const first = BlocksHelper.getInitialState();
+        const second = BlocksHelper.getInitialState();
+
+        // structure equals
+        expect(first).toEqual(second);
+        // object reference is different
+        expect(first).not.toBe(second);
+
+        done();
+      });
+    });
   });
 
   describe('pure functions', () => {
