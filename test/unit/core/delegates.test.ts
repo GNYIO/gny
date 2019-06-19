@@ -9,6 +9,7 @@ import {
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import * as path from 'path';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 interface DelegateTestData {
   delegateList: string[];
@@ -526,11 +527,13 @@ describe('core/delegates', () => {
       } as IScope;
       delegates = new Delegates(scope);
 
-      delegates.keyPairs = delegatesTestData.keyPairs; // illegal
+      StateHelper.SetKeyPairs(delegatesTestData.keyPairs);
       done();
     });
     afterEach(done => {
       delegates = undefined;
+      const emptyKeyPairs: KeyPairsIndexer = {};
+      StateHelper.SetKeyPairs(emptyKeyPairs);
       done();
     });
 
@@ -553,13 +556,15 @@ describe('core/delegates', () => {
 
     it('getActiveDelegateKeypairs() - returns only keyPairs that are in this.keyPairs', done => {
       // preparation
-      delegates.keyPairs = {
+      const oneDelegateKeyPair: KeyPairsIndexer = {
         '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635':
-          delegates.keyPairs[
+          delegatesTestData.keyPairs[
             '763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635'
           ],
-      }; // illegal
+      };
+      StateHelper.SetKeyPairs(oneDelegateKeyPair);
 
+      // act
       const result = delegates.getActiveDelegateKeypairs(
         delegatesTestData.delegateList
       );
