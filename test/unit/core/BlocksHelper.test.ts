@@ -5,10 +5,28 @@ import {
   IConfig,
   IBlock,
   KeyPair,
+  BlockPropose,
 } from '../../../src/interfaces';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
+
+function createRandomBlockPropose(
+  height: number,
+  generatorPublicKey = randomHex(32),
+  id = randomHex(32)
+) {
+  const propose: BlockPropose = {
+    address: randomAddress(),
+    hash: randomHex(64),
+    height,
+    generatorPublicKey,
+    id,
+    signature: randomHex(64),
+    timestamp: 124242243693,
+  };
+  return propose;
+}
 
 function resetGlobalState() {
   global.state = {} as IState;
@@ -436,6 +454,109 @@ describe('BlocksHelper', () => {
       expect(typeof hex).toEqual('string');
       expect(hex).toHaveLength(64);
 
+      done();
+    });
+
+    it('DoesNewBlockProposeMatchOldOne() - returns true if height, generatorPublicKey', done => {
+      // preparation
+      const id = randomHex(32);
+      const generatorPublicKey = randomHex(32);
+      const height = 11;
+
+      // prepare state
+      const state = BlocksHelper.getInitialState();
+      state.lastPropose = {
+        id,
+        generatorPublicKey,
+        height,
+      } as BlockPropose;
+
+      // prepare propose
+      const propose = createRandomBlockPropose(11, generatorPublicKey);
+
+      // double check
+      expect(state.lastPropose.id).not.toEqual(propose.id);
+
+      // act
+      const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
+        state,
+        propose
+      );
+
+      expect(result).toEqual(true);
+      done();
+    });
+
+    it('DoesNewBlockProposeMatchOldOne() - returns false if lastPropose does not exists', done => {
+      // preparation
+      const initialState = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(2);
+
+      // act
+      const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
+        initialState,
+        propose
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('DoesNewBlockProposeMatchOldOne() - returns false if height does not match', done => {
+      // preparation
+      const state = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(2);
+      state.lastPropose = propose;
+      state.lastPropose.height = 3; // different
+
+      // act
+      const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
+        state,
+        propose
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('DoesNewBlockProposeMatchOldOne() - returns false if generatorPublicKey does not match', done => {
+      // preparation
+      const state = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(2);
+      state.lastPropose = propose;
+      state.lastPropose.generatorPublicKey = randomHex(32); // different
+
+      // act
+      const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
+        state,
+        propose
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('AlreadyReceivedPropose() - returns false when ProposeCache is empty', done => {
+      const state = BlocksHelper.getInitialState();
+      const propose = createRandomBlockPropose(10);
+
+      const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('AlreadyReceivedPropose() - returns true when Propose hash was already received', done => {
+      // preparation
+      const propose = createRandomBlockPropose(10);
+
+      let state = BlocksHelper.getInitialState();
+      state = BlocksHelper.MarkProposeAsReceived(state, propose);
+
+      // act
+      const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
+
+      expect(result).toEqual(true);
       done();
     });
 
