@@ -9,6 +9,7 @@ import {
 } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class DelegatesApi {
   private modules: Modules;
@@ -205,7 +206,7 @@ export default class DelegatesApi {
     }
 
     const publicKey = keypair.publicKey.toString('hex');
-    if (this.modules.delegates.isPublicKeyInKeyPairs(publicKey)) {
+    if (StateHelper.isPublicKeyInKeyPairs(publicKey)) {
       return next('Forging is already enabled');
     }
 
@@ -216,7 +217,7 @@ export default class DelegatesApi {
     }
 
     if (accountInfo && accountInfo.account.isDelegate) {
-      this.modules.delegates.setKeyPair(publicKey, keypair);
+      StateHelper.setKeyPair(publicKey, keypair);
       this.library.logger.info(
         `Forging enabled on account: ${accountInfo.account.address}`
       );
@@ -262,11 +263,7 @@ export default class DelegatesApi {
     }
 
     const publicKey = keypair.publicKey.toString('hex');
-    if (
-      !this.modules.delegates.isPublicKeyInKeyPairs(
-        keypair.publicKey.toString('hex')
-      )
-    ) {
+    if (!StateHelper.isPublicKeyInKeyPairs(keypair.publicKey.toString('hex'))) {
       return next('Delegate not found');
     }
 
@@ -278,7 +275,7 @@ export default class DelegatesApi {
     }
 
     if (accountOverview.account && accountOverview.account.isDelegate) {
-      this.modules.delegates.removeKeyPair(keypair.publicKey.toString('hex'));
+      StateHelper.removeKeyPair(keypair.publicKey.toString('hex'));
       this.library.logger.info(
         `Forging disabled on account: ${accountOverview.account.address}`
       );
@@ -300,9 +297,7 @@ export default class DelegatesApi {
       return next(report.error.message);
     }
 
-    const isEnabled = !!this.modules.delegates.isPublicKeyInKeyPairs(
-      query.publicKey
-    );
+    const isEnabled = !!StateHelper.isPublicKeyInKeyPairs(query.publicKey);
     return res.json({
       success: true,
       enabled: isEnabled,
@@ -311,12 +306,12 @@ export default class DelegatesApi {
 
   // only used in DEBUG
   private forgingEnableAll = (req: Request, res: Response, next: Next) => {
-    this.modules.delegates.enableForging();
+    StateHelper.SetForgingEnabled(true);
     return res.json({ success: true });
   };
 
   public forgingDisableAll = (req: Request, res: Response, next: Next) => {
-    this.modules.delegates.disableForging();
+    StateHelper.SetForgingEnabled(false);
     return res.json({ success: true });
   };
 }

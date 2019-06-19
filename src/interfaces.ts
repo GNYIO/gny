@@ -411,6 +411,8 @@ declare global {
       app: Partial<IApp>;
       Config: Partial<IConfig>;
       state: IState;
+      keyPairs: KeyPairsIndexer;
+      isForgingEnabled: boolean;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

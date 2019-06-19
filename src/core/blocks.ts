@@ -35,25 +35,21 @@ const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
 
 export default class Blocks {
-  private genesisBlock: IGenesisBlock;
   private modules: Modules;
   private readonly library: IScope;
-
-  private lastBlock: IBlock;
   private loaded: boolean = false;
-  private blockCache: ISimpleCache<boolean> = {};
-  private proposeCache: ISimpleCache<boolean> = {};
 
   constructor(scope: IScope) {
     this.library = scope;
-    this.genesisBlock = scope.genesisBlock;
   }
 
   // priv methods
 
   private async getIdSequence2(height: number) {
     try {
-      const maxHeight = Math.max(height, this.lastBlock.height);
+      // TODO refactor
+      throw new Error('todo: refactor');
+      const maxHeight = Math.max(height /* this.lastBlock.height*/);
       const minHeight = Math.max(0, maxHeight - 4);
       let blocks = await global.app.sdb.getBlocksByHeightRange(
         minHeight,
@@ -101,13 +97,6 @@ export default class Blocks {
     }
 
     return ret.common;
-  };
-
-  public setLastBlock = (block: IBlock | Pick<IBlock, 'height'>) => {
-    if (typeof block.height === 'string') {
-      block.height = Number(block.height);
-    }
-    this.lastBlock = block;
   };
 
   public verifyBlock = (

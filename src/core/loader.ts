@@ -63,7 +63,12 @@ export default class Loader {
       this.modules.transactions.clearUnconfirmed();
       if (toRemove > 0) {
         await global.app.sdb.rollbackBlock(commonBlock.height);
-        this.modules.blocks.setLastBlock(await global.app.sdb.lastBlock);
+
+        // TODO refactor
+        let state = BlocksHelper.getState();
+        state = BlocksHelper.SetLastBlock(state, global.app.sdb.lastBlock);
+        BlocksHelper.setState(state);
+
         this.library.logger.debug(
           'set new last block',
           global.app.sdb.lastBlock

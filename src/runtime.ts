@@ -10,9 +10,11 @@ import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
 import { IOptions } from './interfaces';
 import { BlocksHelper } from './core/BlocksHelper';
+import { StateHelper } from './core/StateHelper';
 
 export default async function runtime(options: IOptions) {
   global.state = BlocksHelper.getInitialState();
+  StateHelper.SetForgingEnabled(true);
   global.app = {
     sdb: null,
     balances: null,

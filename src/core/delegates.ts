@@ -18,16 +18,16 @@ import {
 import { RoundBase } from '../base/round';
 import { BlocksHelper } from './BlocksHelper';
 import { ConsensusHelper } from './ConsensusHelper';
+import { StateHelper } from './StateHelper';
+
+const blockreward = new BlockReward();
 
 export default class Delegates {
   private loaded: boolean = false;
-  private keyPairs: KeyPairsIndexer = {};
-  private isForgingEnabled = true;
   private readonly library: IScope;
   private modules: Modules;
 
   private readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
-  private blockreward = new BlockReward();
 
   constructor(scope: IScope) {
     this.library = scope;
@@ -43,7 +43,8 @@ export default class Delegates {
 
     const secrets = global.Config.forging.secret;
     const delegates: Delegate[] = await global.app.sdb.getAll('Delegate');
-    this.keyPairs = this.loadMyDelegates(secrets, delegates);
+    const keyPairs = this.loadMyDelegates(secrets, delegates);
+    StateHelper.SetKeyPairs(keyPairs);
 
     const nextLoop = async () => {
       await this.loop();
@@ -51,21 +52,6 @@ export default class Delegates {
     };
 
     setImmediate(nextLoop);
-  };
-
-  public isPublicKeyInKeyPairs = (publicKey: string) => {
-    if (this.keyPairs[publicKey]) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  public setKeyPair = (publicKey: string, keys: KeyPair) => {
-    this.keyPairs[publicKey] = keys;
-  };
-  public removeKeyPair = (publicKey: string) => {
-    delete this.keyPairs[publicKey];
   };
 
   public getBlockSlotData = (
@@ -132,9 +118,10 @@ export default class Delegates {
   public loop = async () => {
     const preState = BlocksHelper.getState();
     const now = Date.now();
-    const isForgingEnabled = this.isForgingEnabled;
+    const isForgingEnabled = StateHelper.IsForgingEnabled();
     const isLoaded = this.loaded;
     const isSyncingRightNow = this.modules.loader.syncing();
+    const keyPairs = StateHelper.GetKeyPairs();
 
     const error = this.isLoopReady(
       preState,
@@ -142,7 +129,7 @@ export default class Delegates {
       isForgingEnabled,
       isLoaded,
       isSyncingRightNow,
-      this.keyPairs
+      keyPairs
     );
     if (error) {
       this.library.logger.trace(error);
@@ -156,7 +143,7 @@ export default class Delegates {
     const currentBlockData = this.getBlockSlotData(
       currentSlot,
       delList,
-      this.keyPairs
+      keyPairs
     );
     if (!currentBlockData) {
       this.library.logger.trace('Loop: skipping slot');
@@ -272,9 +259,10 @@ export default class Delegates {
     }
 
     const results: KeyPair[] = [];
-    for (const key in this.keyPairs) {
+    const keyPairs = StateHelper.GetKeyPairs();
+    for (const key in keyPairs) {
       if (delegates.indexOf(key) !== -1) {
-        results.push(this.keyPairs[key]);
+        results.push(keyPairs[key]);
       }
     }
     return results;
@@ -345,7 +333,7 @@ export default class Delegates {
     delegates = delegates.sort(this.compare);
 
     const lastBlock = BlocksHelper.getState().lastBlock;
-    const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
+    const totalSupply = blockreward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;
@@ -368,15 +356,7 @@ export default class Delegates {
     return delegates as DelegateViewModel[];
   };
 
-  public enableForging = () => {
-    this.isForgingEnabled = true;
-  };
-
-  public disableForging = () => {
-    this.isForgingEnabled = false;
-  };
-
-  private compare = (left: Delegate, right: Delegate) => {
+  public compare = (left: Delegate, right: Delegate) => {
     if (left.votes !== right.votes) {
       return right.votes - left.votes;
     }
