@@ -164,7 +164,7 @@ export default class Delegates {
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
           const height = state.lastBlock.height + 1;
 
-          const unconfirmedTransactions = this.modules.transactions.getUnconfirmedTransactionList();
+          const unconfirmedTransactions = StateHelper.GetUnconfirmedTransactionList();
           const delegateList = await this.generateDelegateList(height);
           const activeDelegates = this.getActiveDelegateKeypairs(delegateList);
 
@@ -183,7 +183,7 @@ export default class Delegates {
 
           // no pending block -> block can be created
           if (newBlock && !newState.pendingBlock && localVotes) {
-            this.modules.transactions.clearUnconfirmed(); // TODO, handle better
+            StateHelper.ClearUnconfirmedTransactions(); // TODO, handle better
             const options: ProcessBlockOptions = {
               local: true,
               broadcast: true,

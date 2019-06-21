@@ -53,7 +53,7 @@ export default class Loader {
     }
 
     try {
-      this.modules.transactions.clearUnconfirmed();
+      StateHelper.ClearUnconfirmedTransactions();
       if (toRemove > 0) {
         await global.app.sdb.rollbackBlock(commonBlock.height);
 
@@ -192,7 +192,7 @@ export default class Loader {
       const trs: Transaction[] = [];
       for (let i = 0; i < transactions.length; ++i) {
         const one = transactions[i];
-        if (!this.modules.transactions.hasUnconfirmed(one.id)) {
+        if (!StateHelper.HasUnconfirmedTransaction(one.id)) {
           trs.push(one);
         }
       }
@@ -241,7 +241,7 @@ export default class Loader {
       this.library.logger.debug('syncBlocksFromPeer enter sequence');
       StateHelper.SetIsSyncing(true);
       const lastBlock = BlocksHelper.getState().lastBlock; // TODO refactor whole method
-      this.modules.transactions.clearUnconfirmed();
+      StateHelper.ClearUnconfirmedTransactions();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
       } catch (err) {

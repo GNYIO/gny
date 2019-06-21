@@ -15,6 +15,9 @@ import { StateHelper } from './core/StateHelper';
 export default async function runtime(options: IOptions) {
   global.state = BlocksHelper.getInitialState();
   StateHelper.SetForgingEnabled(true);
+  StateHelper.InitializeTransactionPool();
+  StateHelper.InitializeFailedTrsCache();
+
   global.app = {
     sdb: null,
     balances: null,

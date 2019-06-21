@@ -36,6 +36,8 @@ import UiaApi from '../packages/http/api/uiaApi';
 import LoaderApi from '../packages/http/api/loaderApi';
 import TransfersApi from '../packages/http/api/transfersApi';
 import { MessageBus } from './utils/messageBus';
+import { TransactionPool } from './utils/transaction-pool';
+import { LimitCache } from './utils/limit-cache';
 
 export interface IState {
   votesKeySet: Set<any>;
@@ -415,6 +417,8 @@ declare global {
       isForgingEnabled: boolean;
       privSyncing: boolean;
       blocksToSync: number;
+      transactionPool: TransactionPool;
+      failedTrsCache: LimitCache<string, boolean>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

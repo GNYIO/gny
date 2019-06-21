@@ -1,26 +1,13 @@
-import { LimitCache } from '../utils/limit-cache';
-import { TransactionPool } from '../utils/transaction-pool';
 import { IScope, Transaction, Context, IState } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
+import { StateHelper } from './StateHelper';
 
 export default class Transactions {
   private readonly library: IScope;
-  private pool: TransactionPool;
-  private failedTrsCache: LimitCache<string, boolean>;
 
   constructor(scope: IScope) {
     this.library = scope;
-    this.pool = new TransactionPool();
-    this.failedTrsCache = new LimitCache<string, boolean>();
   }
-
-  public getUnconfirmedTransaction = (id: string) => this.pool.get(id);
-
-  public getUnconfirmedTransactionList = () => this.pool.getUnconfirmed();
-
-  public hasUnconfirmed = (id: string) => this.pool.has(id);
-
-  public clearUnconfirmed = () => this.pool.clear();
 
   public processUnconfirmedTransactions = (
     state: IState,
@@ -81,10 +68,10 @@ export default class Transactions {
         throw new Error('Block consensus in processing');
       }
 
-      if (this.failedTrsCache.has(transaction.id)) {
+      if (StateHelper.HasFailedTrsCache(transaction.id)) {
         throw new Error('Transaction already processed');
       }
-      if (this.pool.has(transaction.id)) {
+      if (StateHelper.HasUnconfirmedTransaction(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
       const exists = await global.app.sdb.exists('Transaction', {
@@ -94,10 +81,10 @@ export default class Transactions {
         throw new Error('Transaction already confirmed');
       }
       await this.applyUnconfirmedTransactionAsync(state, transaction);
-      this.pool.add(transaction);
+      StateHelper.AddUnconfirmedTransactions(transaction);
       return transaction;
     } catch (e) {
-      this.failedTrsCache.set(transaction.id, true);
+      StateHelper.AddFailedTrs(transaction.id);
       throw e;
     }
   };

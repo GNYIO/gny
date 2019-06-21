@@ -12,6 +12,7 @@ import {
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -148,8 +149,7 @@ export default class TransactionsApi {
     const typeSchema = this.library.joi.object().keys({
       id: this.library.joi
         .string()
-        .min(1)
-        .max(64)
+        .hex()
         .required(),
     });
     const report = this.library.joi.validate(query, typeSchema);
@@ -157,7 +157,7 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(
+    const unconfirmedTransaction = StateHelper.GetUnconfirmedTransaction(
       query.id
     );
 
@@ -181,7 +181,7 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const transactions = this.modules.transactions.getUnconfirmedTransactionList();
+    const transactions = StateHelper.GetUnconfirmedTransactionList();
     const toSend: Transaction[] = [];
 
     if (query.senderPublicKey || query.address) {

@@ -10,6 +10,8 @@ import {
   ILogger,
   KeyPairsIndexer,
 } from '../interfaces';
+import { TransactionPool } from '../utils/transaction-pool';
+import { LimitCache } from '../utils/limit-cache';
 
 export class StateHelper {
   // keyPairs
@@ -58,5 +60,36 @@ export class StateHelper {
   }
   public static GetBlocksToSync() {
     return global.blocksToSync;
+  }
+
+  // Transaction Pool
+  public static InitializeTransactionPool() {
+    global.transactionPool = new TransactionPool();
+  }
+  public static GetUnconfirmedTransaction(id: string) {
+    return global.transactionPool.get(id);
+  }
+  public static GetUnconfirmedTransactionList() {
+    return global.transactionPool.getUnconfirmed();
+  }
+  public static HasUnconfirmedTransaction(id: string) {
+    return global.transactionPool.has(id);
+  }
+  public static ClearUnconfirmedTransactions() {
+    global.transactionPool.clear();
+  }
+  public static AddUnconfirmedTransactions(transaction: Transaction) {
+    global.transactionPool.add(transaction);
+  }
+
+  // failedTrsCache
+  public static InitializeFailedTrsCache() {
+    global.failedTrsCache = new LimitCache<string, boolean>();
+  }
+  public static HasFailedTrsCache(key: string) {
+    return global.failedTrsCache.has(key);
+  }
+  public static AddFailedTrs(key: string) {
+    global.failedTrsCache.set(key, true);
   }
 }

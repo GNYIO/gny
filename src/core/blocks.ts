@@ -641,11 +641,11 @@ export default class Blocks {
       if (BlocksHelper.ReceivedBlockIsInRightOrder(state, block)) {
         const pendingTrsMap = new Map<string, Transaction>();
         try {
-          const pendingTrs = this.modules.transactions.getUnconfirmedTransactionList();
+          const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
           for (const t of pendingTrs) {
             pendingTrsMap.set(t.id, t);
           }
-          this.modules.transactions.clearUnconfirmed();
+          StateHelper.ClearUnconfirmedTransactions();
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
           const delegateList = await this.modules.delegates.generateDelegateList(
@@ -840,7 +840,7 @@ export default class Blocks {
         const pendingBlock = ConsensusHelper.getPendingBlock(state);
 
         try {
-          this.modules.transactions.clearUnconfirmed();
+          StateHelper.ClearUnconfirmedTransactions();
           const options: ProcessBlockOptions = {
             votes: totalVotes,
             local: true,

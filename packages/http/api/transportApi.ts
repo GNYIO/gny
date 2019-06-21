@@ -305,7 +305,7 @@ export default class TransportApi {
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
     return res.json({
-      transactions: this.modules.transactions.getUnconfirmedTransactionList(),
+      transactions: StateHelper.GetUnconfirmedTransactionList(),
     });
   };
 
