@@ -14,6 +14,7 @@ import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
 import joi from '../../../src/utils/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
+import Transactions from '../../../src/core/transactions';
 
 export default class TransportApi {
   private modules: Modules;
@@ -258,11 +259,7 @@ export default class TransportApi {
           return cb('Blockchain is not ready');
         }
 
-        this.modules.transactions.processUnconfirmedTransaction(
-          state,
-          transaction,
-          cb
-        );
+        Transactions.processUnconfirmedTransaction(state, transaction, cb);
       },
       undefined,
       finished

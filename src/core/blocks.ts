@@ -31,6 +31,7 @@ import { BlocksHelper, BlockMessageFitInLineResult } from './BlocksHelper';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
+import Transactions from './transactions';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
@@ -205,10 +206,7 @@ export default class Blocks {
       }
 
       for (const transaction of block.transactions) {
-        await this.modules.transactions.applyUnconfirmedTransactionAsync(
-          state,
-          transaction
-        );
+        await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       }
     } catch (e) {
       this.library.logger.error(`Failed to apply block ${e}`);
@@ -663,7 +661,7 @@ export default class Blocks {
           }
           try {
             const redoTransactions = [...pendingTrsMap.values()];
-            await this.modules.transactions.processUnconfirmedTransactionsAsync(
+            await Transactions.processUnconfirmedTransactionsAsync(
               state,
               redoTransactions
             );
@@ -815,11 +813,7 @@ export default class Blocks {
         return cb();
       }
 
-      this.modules.transactions.processUnconfirmedTransaction(
-        state,
-        transaction,
-        cb
-      );
+      Transactions.processUnconfirmedTransaction(state, transaction, cb);
     }, finishCallback);
   };
 

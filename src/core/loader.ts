@@ -12,6 +12,7 @@ import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
 import { StateHelper } from './StateHelper';
+import Transactions from './transactions';
 
 export default class Loader {
   private isLoaded: boolean = false;
@@ -202,7 +203,7 @@ export default class Loader {
         } unconfirmed transaction from peer ${peerStr}`
       );
       return this.library.sequence.add((done: any) => {
-        this.modules.transactions.processUnconfirmedTransactions(trs, done);
+        Transactions.processUnconfirmedTransactions(trs, done);
       }, cb);
     })();
   };

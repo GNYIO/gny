@@ -13,6 +13,7 @@ import {
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
+import Transactions from '../../../src/core/transactions';
 
 export default class TransactionsApi {
   private modules: Modules;
@@ -278,10 +279,7 @@ export default class TransactionsApi {
               secondKeypair,
               keypair,
             });
-            await this.modules.transactions.processUnconfirmedTransactionAsync(
-              state,
-              trs
-            );
+            await Transactions.processUnconfirmedTransactionAsync(state, trs);
             this.library.bus.message('onUnconfirmedTransaction', trs);
             callback(null, { success: true, transactionId: trs.id });
           } catch (e) {
@@ -320,11 +318,7 @@ export default class TransactionsApi {
     return this.library.sequence.add(
       callback => {
         const state = BlocksHelper.getState();
-        this.modules.transactions.processUnconfirmedTransactions(
-          state,
-          trs,
-          callback
-        );
+        Transactions.processUnconfirmedTransactions(state, trs, callback);
       },
       undefined,
       finishedCallback

@@ -1,15 +1,9 @@
-import { IScope, Transaction, Context, IState } from '../interfaces';
+import { Transaction, Context, IState } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 
 export default class Transactions {
-  private readonly library: IScope;
-
-  constructor(scope: IScope) {
-    this.library = scope;
-  }
-
-  public processUnconfirmedTransactions = (
+  public static processUnconfirmedTransactions = (
     state: IState,
     transactions: Transaction[],
     cb
@@ -17,7 +11,10 @@ export default class Transactions {
     (async () => {
       try {
         for (const transaction of transactions) {
-          await this.processUnconfirmedTransactionAsync(state, transaction);
+          await Transactions.processUnconfirmedTransactionAsync(
+            state,
+            transaction
+          );
         }
         cb(null, transactions);
       } catch (e) {
@@ -26,23 +23,26 @@ export default class Transactions {
     })();
   };
 
-  public processUnconfirmedTransactionsAsync = async (
+  public static processUnconfirmedTransactionsAsync = async (
     state: IState,
     transactions: Transaction[]
   ) => {
     for (const transaction of transactions) {
-      await this.processUnconfirmedTransactionAsync(state, transaction);
+      await Transactions.processUnconfirmedTransactionAsync(state, transaction);
     }
   };
 
-  public processUnconfirmedTransaction = (
+  public static processUnconfirmedTransaction = (
     state: IState,
     transaction: Transaction,
     cb
   ) => {
     (async () => {
       try {
-        await this.processUnconfirmedTransactionAsync(state, transaction);
+        await Transactions.processUnconfirmedTransactionAsync(
+          state,
+          transaction
+        );
         cb(null, transaction);
       } catch (e) {
         cb(e.toString(), transaction);
@@ -50,7 +50,7 @@ export default class Transactions {
     })();
   };
 
-  public processUnconfirmedTransactionAsync = async (
+  public static processUnconfirmedTransactionAsync = async (
     state: IState,
     transaction: Transaction
   ) => {
@@ -80,7 +80,7 @@ export default class Transactions {
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
-      await this.applyUnconfirmedTransactionAsync(state, transaction);
+      await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       StateHelper.AddUnconfirmedTransactions(transaction);
       return transaction;
     } catch (e) {
@@ -89,12 +89,10 @@ export default class Transactions {
     }
   };
 
-  public applyUnconfirmedTransactionAsync = async (
+  public static applyUnconfirmedTransactionAsync = async (
     state: IState,
     transaction: Transaction
   ) => {
-    this.library.logger.debug('apply unconfirmed trs', transaction);
-
     const height = state.lastBlock.height;
     const block = {
       height: height + 1,
@@ -133,16 +131,15 @@ export default class Transactions {
 
     try {
       global.app.sdb.beginContract();
-      await this.apply(context);
+      await Transactions.apply(context);
       global.app.sdb.commitContract();
     } catch (e) {
       global.app.sdb.rollbackContract();
-      this.library.logger.error(e);
       throw e;
     }
   };
 
-  public async apply(context: Context) {
+  public static async apply(context: Context) {
     const { block, trs, sender } = context;
     const name = global.app.getContractName(String(trs.type));
     if (!name) {
