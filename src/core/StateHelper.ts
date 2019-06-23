@@ -1,17 +1,13 @@
 import {
   Transaction,
   KeyPair,
-  IBlock,
-  BlockPropose,
-  IState,
-  ISimpleCache,
-  IConfig,
   NewBlockMessage,
-  ILogger,
   KeyPairsIndexer,
+  BlockAndVotes,
 } from '../interfaces';
 import { TransactionPool } from '../utils/transaction-pool';
 import { LimitCache } from '../utils/limit-cache';
+import LRU = require('lru-cache');
 
 export class StateHelper {
   // keyPairs
@@ -91,5 +87,55 @@ export class StateHelper {
   }
   public static AddFailedTrs(key: string) {
     global.failedTrsCache.set(key, true);
+  }
+
+  // allModulesLoaded (new)
+  public static InitializeModulesAreLoaded() {
+    global.areAllModulesLoaded = false;
+  }
+  public static ModulesAreLoaded() {
+    return global.areAllModulesLoaded;
+  }
+  public static SetAllModulesLoaded(newVal: boolean) {
+    global.areAllModulesLoaded = newVal;
+  }
+
+  // blockchainReady (new)
+  public static InitializeBlockchainReady() {
+    global.blockchainReady = false;
+  }
+  public static BlockchainReady() {
+    return global.blockchainReady;
+  }
+  public static SetBlockchainReady(newVal: boolean) {
+    global.blockchainReady = newVal;
+  }
+
+  // latestBlocksCache
+  public static InitializeLatestBlockCache() {
+    global.latestBlocksCache = new LRU<string, BlockAndVotes>(200);
+  }
+  public static SetBlockToLatestBlockCache(
+    blockId: string,
+    blockAndVotes: BlockAndVotes
+  ) {
+    global.latestBlocksCache.set(blockId, blockAndVotes);
+  }
+  public static GetBlockFromLatestBlockCache(blockId: string) {
+    return global.latestBlocksCache.get(blockId);
+  }
+
+  // blockHeaderMidCache
+  public static InitializeBlockHeaderMidCache() {
+    global.blockHeaderMidCache = new LRU<string, NewBlockMessage>(1000);
+  }
+  public static SetBlockHeaderMidCache(
+    blockId: string,
+    newBlockMsg: NewBlockMessage
+  ) {
+    global.blockHeaderMidCache.set(blockId, newBlockMsg);
+  }
+  public static GetBlockHeaderMidCache(blockId: string) {
+    return global.blockHeaderMidCache.get(blockId);
   }
 }

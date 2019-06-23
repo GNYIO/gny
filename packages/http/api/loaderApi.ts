@@ -1,31 +1,23 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Modules, Next } from '../../../src/interfaces';
+import { IScope, Next } from '../../../src/interfaces';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class LoaderApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
 
-  constructor(modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });
@@ -49,8 +41,9 @@ export default class LoaderApi {
   };
 
   private status = (req: Request, res: Response, next: Next) => {
+    const loaded = StateHelper.BlockchainReady(); // TODO: wrap in try/catch
     return res.json({
-      loaded: this.loaded,
+      loaded,
     });
   };
 

@@ -4,11 +4,8 @@ import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
 import {
-  Modules,
-  IScope,
   KeyPair,
   IGenesisBlock,
-  ISimpleCache,
   PeerNode,
   ProcessBlockOptions,
   BlockPropose,
@@ -32,22 +29,17 @@ import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
+import Peer from './peer';
+import Delegates from './delegates';
+import Loader from './loader';
+import Transport from './transport';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
 
 export default class Blocks {
-  private modules: Modules;
-  private readonly library: IScope;
-  private loaded: boolean = false;
-
-  constructor(scope: IScope) {
-    this.library = scope;
-  }
-
   // priv methods
-
-  private async getIdSequence2(height: number) {
+  public static async getIdSequence2(height: number) {
     try {
       // TODO refactor
       throw new Error('todo: refactor');
@@ -66,21 +58,17 @@ export default class Blocks {
   }
 
   // todo look at core/loader
-  public getCommonBlock = async (
+  public static getCommonBlock = async (
     peer: PeerNode,
     lastBlockHeight: number
   ): Promise<IBlock> => {
     let data: FirstHeightIds;
     try {
-      data = await this.getIdSequence2(lastBlockHeight);
+      data = await Blocks.getIdSequence2(lastBlockHeight);
     } catch (e) {
-      this.library.logger.error(
-        `Failed to get this.last block id sequence${e}`
-      );
       throw e;
     }
 
-    this.library.logger.trace('getIdSequence=========', data);
     const params: CommonBlockParams = {
       max: lastBlockHeight,
       min: data.firstHeight,
@@ -89,7 +77,7 @@ export default class Blocks {
 
     let ret: CommonBlockResult;
     try {
-      ret = await this.modules.peer.request('commonBlock', params, peer);
+      ret = await Peer.request('commonBlock', params, peer);
     } catch (err) {
       return err.toString();
     }
@@ -101,7 +89,7 @@ export default class Blocks {
     return ret.common;
   };
 
-  public verifyBlock = (
+  public static verifyBlock = (
     state: IState,
     block: IBlock,
     options: Pick<ProcessBlockOptions, 'votes'>,
@@ -113,7 +101,7 @@ export default class Blocks {
       throw new Error(`Failed to get block id: ${e.toString()}`);
     }
 
-    this.library.logger.debug(
+    global.library.logger.debug(
       `verifyBlock, id: ${block.id}, h: ${block.height}`
     );
 
@@ -181,11 +169,14 @@ export default class Blocks {
       if (!ConsensusBase.hasEnoughVotesRemote(votes)) {
         throw new Error('Not enough remote votes');
       }
-      this.verifyBlockVotes(votes, delegateList);
+      Blocks.verifyBlockVotes(votes, delegateList);
     }
   };
 
-  public verifyBlockVotes = (votes: ManyVotes, delegateList: string[]) => {
+  public static verifyBlockVotes = (
+    votes: ManyVotes,
+    delegateList: string[]
+  ) => {
     const publicKeySet = new Set(delegateList);
     for (const item of votes.signatures) {
       if (!publicKeySet.has(item.publicKey)) {
@@ -197,8 +188,8 @@ export default class Blocks {
     }
   };
 
-  public applyBlock = async (state: IState, block: IBlock) => {
-    this.library.logger.trace('enter applyblock');
+  public static applyBlock = async (state: IState, block: IBlock) => {
+    global.library.logger.trace('enter applyblock');
 
     try {
       if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
@@ -209,18 +200,18 @@ export default class Blocks {
         await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       }
     } catch (e) {
-      this.library.logger.error(`Failed to apply block ${e}`);
+      global.library.logger.error(`Failed to apply block ${e}`);
       throw new Error(`Failed to apply block: ${e}`);
     }
   };
 
-  public CheckBlockEffect(block: IBlock, options: ProcessBlockOptions) {
+  public static CheckBlockEffect(block: IBlock, options: ProcessBlockOptions) {
     if (!block.transactions) block.transactions = [];
     if (!options.local) {
       try {
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
-        this.library.logger.error(`Failed to normalize block: ${e}`, block);
+        global.library.logger.error(`Failed to normalize block: ${e}`, block);
         throw e;
       }
 
@@ -234,21 +225,21 @@ export default class Blocks {
     return block; // important
   }
 
-  public CheckBlock(
+  public static CheckBlock(
     state: IState,
     block: IBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) {
     if (!options.local) {
-      this.verifyBlock(state, block, options, delegateList);
+      Blocks.verifyBlock(state, block, options, delegateList);
       if (block.height !== 0) {
-        this.modules.delegates.validateBlockSlot(block, delegateList);
+        Delegates.validateBlockSlot(block, delegateList);
       }
     }
   }
 
-  public async CheckBlockWithDbAccessIO(
+  public static async CheckBlockWithDbAccessIO(
     block: IBlock,
     options: ProcessBlockOptions
   ) {
@@ -259,7 +250,7 @@ export default class Blocks {
     }
   }
 
-  public async ProcessBlockDbIO(
+  public static async ProcessBlockDbIO(
     state: IState,
     block: Block,
     options: ProcessBlockOptions
@@ -268,11 +259,11 @@ export default class Blocks {
 
     try {
       if (!options.local) {
-        await this.applyBlock(state, block);
+        await Blocks.applyBlock(state, block);
       }
 
-      await this.saveBlockTransactions(block);
-      await this.applyRound(block);
+      await Blocks.saveBlockTransactions(block);
+      await Blocks.applyRound(block);
       await global.app.sdb.commitBlock();
     } catch (e) {
       await global.app.sdb.rollbackBlock();
@@ -280,54 +271,58 @@ export default class Blocks {
     }
   }
 
-  public ProcessBlockCleanupEffect(state: IState) {
+  public static ProcessBlockCleanupEffect(state: IState) {
     state = BlocksHelper.ProcessBlockCleanup(state);
     state = ConsensusHelper.clearState(state);
 
     return state;
   }
 
-  public ProcessBlockFireEvents(block: Block, options: ProcessBlockOptions) {
+  public static ProcessBlockFireEvents(
+    block: Block,
+    options: ProcessBlockOptions
+  ) {
     if (options.broadcast && options.local) {
       options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
-      this.library.bus.message('onNewBlock', block, options.votes);
+      global.library.bus.message('onNewBlock', block, options.votes);
     }
-    this.library.bus.message('onProcessBlock', block); // TODO is this used?
+    global.library.bus.message('onProcessBlock', block); // TODO is this used?
   }
 
-  public processBlock = async (
+  public static processBlock = async (
     state: IState,
     block: IGenesisBlock | any,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) => {
-    if (!this.loaded) throw new Error('Blockchain is loading');
+    if (!StateHelper.ModulesAreLoaded())
+      throw new Error('Blockchain is loading');
 
     try {
       // check block fields
-      block = this.CheckBlockEffect(block, options);
+      block = Blocks.CheckBlockEffect(block, options);
 
       // Check block logic also to previous block
-      this.CheckBlock(state, block, options, delegateList);
+      Blocks.CheckBlock(state, block, options, delegateList);
 
       // Check block against DB
-      await this.CheckBlockWithDbAccessIO(block, options);
+      await Blocks.CheckBlockWithDbAccessIO(block, options);
 
-      await this.ProcessBlockDbIO(state, block, options);
+      await Blocks.ProcessBlockDbIO(state, block, options);
 
       state = BlocksHelper.SetLastBlock(state, block);
 
-      this.ProcessBlockFireEvents(block, options);
+      Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
-      this.library.logger.error('save block error: ', error);
+      global.library.logger.error('save block error: ', error);
     } finally {
-      state = this.ProcessBlockCleanupEffect(state);
+      state = Blocks.ProcessBlockCleanupEffect(state);
     }
     return state;
   };
 
-  public saveBlockTransactions = async (block: IBlock) => {
-    this.library.logger.trace(
+  public static saveBlockTransactions = async (block: IBlock) => {
+    global.library.logger.trace(
       'Blocks#saveBlockTransactions height',
       block.height
     );
@@ -338,10 +333,13 @@ export default class Blocks {
       trs.args = JSON.stringify(trs.args);
       await global.app.sdb.create('Transaction', trs);
     }
-    this.library.logger.trace('Blocks#save transactions');
+    global.library.logger.trace('Blocks#save transactions');
   };
 
-  public increaseRoundData = async (modifier, roundNumber): Promise<any> => {
+  public static increaseRoundData = async (
+    modifier,
+    roundNumber
+  ): Promise<any> => {
     await global.app.sdb.createOrLoad('Round', {
       fee: 0,
       reward: 0,
@@ -351,9 +349,9 @@ export default class Blocks {
     return await global.app.sdb.load('Round', { round: roundNumber });
   };
 
-  public applyRound = async (block: IBlock) => {
+  public static applyRound = async (block: IBlock) => {
     if (block.height === 0) {
-      await this.modules.delegates.updateBookkeeper();
+      await Delegates.updateBookkeeper();
       return;
     }
 
@@ -367,24 +365,22 @@ export default class Blocks {
     const transFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
-    const { fee, reward } = await this.increaseRoundData(
+    const { fee, reward } = await Blocks.increaseRoundData(
       { fee: transFee, reward: block.reward },
       roundNumber
     );
 
     if (block.height % 101 !== 0) return;
 
-    this.library.logger.debug(
+    global.library.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
     );
 
-    const delegates = await this.modules.delegates.generateDelegateList(
-      block.height
-    );
+    const delegates = await Delegates.generateDelegateList(block.height);
     if (!delegates || !delegates.length) {
       throw new Error('no delegates');
     }
-    this.library.logger.debug('delegate length', delegates.length);
+    global.library.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       block.height - 100,
@@ -445,11 +441,11 @@ export default class Blocks {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (block.height % 101 === 0) {
-      await this.modules.delegates.updateBookkeeper();
+      await Delegates.updateBookkeeper();
     }
   };
 
-  public loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
+  public static loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
@@ -466,7 +462,7 @@ export default class Blocks {
         };
         let body;
         try {
-          body = await this.modules.peer.request('blocks', params, peer);
+          body = await Peer.request('blocks', params, peer);
         } catch (err) {
           throw new Error(`Failed to request remote peer: ${err}`);
         }
@@ -479,16 +475,17 @@ export default class Blocks {
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
         const address = `${peer.host}:${peer.port - 1}`;
-        this.library.logger.info(`Loading ${num} blocks from ${address}`);
+        // refactor
+        global.library.logger.info(`Loading ${num} blocks from ${address}`);
         try {
           for (const block of blocks) {
             let state = BlocksHelper.getState();
 
-            const activeDelegates = await this.modules.delegates.generateDelegateList(
+            const activeDelegates = await Delegates.generateDelegateList(
               block.height
             );
             const options: ProcessBlockOptions = {};
-            state = await this.processBlock(
+            state = await Blocks.processBlock(
               state,
               block,
               options,
@@ -496,7 +493,7 @@ export default class Blocks {
             );
 
             lastCommonBlockId = block.id;
-            this.library.logger.info(
+            global.library.logger.info(
               `Block ${block.id} loaded from ${address} at`,
               block.height
             );
@@ -505,14 +502,14 @@ export default class Blocks {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          this.library.logger.error('Failed to process synced block', e);
+          global.library.logger.error('Failed to process synced block', e);
           throw e;
         }
       }
     );
   };
 
-  public generateBlock = async (
+  public static generateBlock = async (
     old: IState,
     activeDelegates: KeyPair[],
     unconfirmedTransactions: Transaction[],
@@ -548,10 +545,10 @@ export default class Blocks {
     /*
       not enough votes, so create a block propose and send it to all peers
     */
-    if (!this.library.config.publicIp) {
+    if (!global.Config.publicIp) {
       throw new Error('No public ip'); // throw or simple return?
     }
-    if (!this.library.config.peerPort) {
+    if (!global.Config.peerPort) {
       throw new Error('No peer port'); // throw or simple return?
     }
 
@@ -570,7 +567,7 @@ export default class Blocks {
 
     state = ConsensusHelper.CollectingVotes(state);
 
-    this.library.bus.message('onNewPropose', propose);
+    global.library.bus.message('onNewPropose', propose);
     return {
       // important
       state,
@@ -579,8 +576,8 @@ export default class Blocks {
     };
   };
 
-  public fork = (block: IBlock, cause: number) => {
-    this.library.logger.info('Fork', {
+  public static fork = (block: IBlock, cause: number) => {
+    global.library.logger.info('Fork', {
       delegate: block.delegate,
       block: {
         id: block.id,
@@ -593,23 +590,23 @@ export default class Blocks {
   };
 
   // Events
-  public onReceiveBlock = (
+  public static onReceiveBlock = (
     newBlockMsg: NewBlockMessage,
     peer: PeerNode,
     block: IBlock,
     votes: ManyVotes
   ) => {
-    if (StateHelper.IsSyncing() || !this.loaded) {
+    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
       // TODO access state
       return;
     }
 
-    this.library.sequence.add(async cb => {
+    global.library.sequence.add(async cb => {
       let state = BlocksHelper.getState();
 
       // validate the received Block and NewBlockMessage against each other
       if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
-        this.library.logger.warn('NewBlockMessage and Block do not');
+        global.library.logger.warn('NewBlockMessage and Block do not');
         return cb();
       }
 
@@ -619,14 +616,14 @@ export default class Blocks {
       );
       if (fitInLineResult === BlockMessageFitInLineResult.Exit) return cb();
       if (fitInLineResult === BlockMessageFitInLineResult.SyncBlocks) {
-        this.modules.loader.syncBlocksFromPeer(peer);
+        Loader.syncBlocksFromPeer(peer);
         return cb();
       }
 
       // migrated from receivePeer_NewBlockHeader
       if (!state.lastBlock) {
         // state should always have a lastBlock? correct?
-        this.library.logger.error('Last does block not exists');
+        global.library.logger.error('Last does block not exists');
         return cb();
       }
 
@@ -646,14 +643,19 @@ export default class Blocks {
           StateHelper.ClearUnconfirmedTransactions();
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
-          const delegateList = await this.modules.delegates.generateDelegateList(
+          const delegateList = await Delegates.generateDelegateList(
             block.height
           );
           const options: ProcessBlockOptions = { votes, broadcast: true };
-          state = await this.processBlock(state, block, options, delegateList);
+          state = await Blocks.processBlock(
+            state,
+            block,
+            options,
+            delegateList
+          );
           // TODO: save state?
         } catch (e) {
-          this.library.logger.error('Failed to process received block', e);
+          global.library.logger.error('Failed to process received block', e);
         } finally {
           // delete already executed transactions
           for (const t of block.transactions) {
@@ -666,7 +668,7 @@ export default class Blocks {
               redoTransactions
             );
           } catch (e) {
-            this.library.logger.error(
+            global.library.logger.error(
               'Failed to redo unconfirmed transactions',
               e
             );
@@ -682,7 +684,7 @@ export default class Blocks {
         block.prevBlockId !== state.lastBlock.id &&
         state.lastBlock.height + 1 === block.height
       ) {
-        this.fork(block, 1);
+        Blocks.fork(block, 1);
         return cb('Fork');
       }
       if (
@@ -690,27 +692,27 @@ export default class Blocks {
         block.height === state.lastBlock.height &&
         block.id !== state.lastBlock.id
       ) {
-        this.fork(block, 5);
+        Blocks.fork(block, 5);
         return cb('Fork');
       }
       if (block.height > state.lastBlock.height + 1) {
-        this.library.logger.info(
+        global.library.logger.info(
           `receive discontinuous block height ${block.height}`
         );
-        this.modules.loader.startSyncBlocks(state.lastBlock);
+        Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       return cb();
     });
   };
 
-  public onReceivePropose = (propose: BlockPropose) => {
-    if (StateHelper.IsSyncing() || !this.loaded) {
+  public static onReceivePropose = (propose: BlockPropose) => {
+    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
       // TODO access state
       return;
     }
 
-    this.library.sequence.add(cb => {
+    global.library.sequence.add(cb => {
       let state = BlocksHelper.getState();
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
@@ -723,12 +725,12 @@ export default class Blocks {
       }
       if (propose.height !== state.lastBlock.height + 1) {
         if (propose.height > state.lastBlock.height + 1) {
-          this.modules.loader.startSyncBlocks(state.lastBlock);
+          Loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
       }
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
-        this.library.logger.debug('ignore the frequently propose');
+        global.library.logger.debug('ignore the frequently propose');
         return setImmediate(cb);
       }
 
@@ -738,13 +740,10 @@ export default class Blocks {
         [
           async next => {
             try {
-              activeDelegates = await this.modules.delegates.generateDelegateList(
+              activeDelegates = await Delegates.generateDelegateList(
                 propose.height
               );
-              this.modules.delegates.validateProposeSlot(
-                propose,
-                activeDelegates
-              );
+              Delegates.validateProposeSlot(propose, activeDelegates);
               next();
             } catch (err) {
               next(err.toString());
@@ -759,7 +758,7 @@ export default class Blocks {
             }
           },
           async next => {
-            const activeKeypairs = this.modules.delegates.getActiveDelegateKeypairs(
+            const activeKeypairs = Delegates.getActiveDelegateKeypairs(
               activeDelegates
             );
             next(undefined, activeKeypairs);
@@ -768,7 +767,7 @@ export default class Blocks {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = ConsensusBase.createVotes(activeKeypairs, propose);
 
-              await this.modules.transport.sendVotes(votes, propose.address);
+              await Transport.sendVotes(votes, propose.address);
 
               state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
             }
@@ -780,19 +779,19 @@ export default class Blocks {
         ],
         (err: any) => {
           if (err) {
-            this.library.logger.error(`onReceivePropose error: ${err}`);
+            global.library.logger.error(`onReceivePropose error: ${err}`);
           }
-          this.library.logger.debug('onReceivePropose finished');
+          global.library.logger.debug('onReceivePropose finished');
           cb();
         }
       );
     });
   };
 
-  public onReceiveTransaction = (transaction: Transaction) => {
+  public static onReceiveTransaction = (transaction: Transaction) => {
     const finishCallback = err => {
       if (err) {
-        this.library.logger.warn(
+        global.library.logger.warn(
           `Receive invalid transaction ${transaction.id}`,
           err
         );
@@ -802,14 +801,14 @@ export default class Blocks {
       }
     };
 
-    this.library.sequence.add(cb => {
+    global.library.sequence.add(cb => {
       if (StateHelper.IsSyncing()) {
         // TODO this should access state
         return cb();
       }
 
       const state = BlocksHelper.getState();
-      if (!BlocksHelper.IsBlockchainReady(state, this.library.logger)) {
+      if (!BlocksHelper.IsBlockchainReady(state, global.library.logger)) {
         return cb();
       }
 
@@ -817,13 +816,13 @@ export default class Blocks {
     }, finishCallback);
   };
 
-  public onReceiveVotes = (votes: ManyVotes) => {
-    if (StateHelper.IsSyncing() || !this.loaded) {
+  public static onReceiveVotes = (votes: ManyVotes) => {
+    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
       // TODO: use state
       return;
     }
 
-    this.library.sequence.add(async cb => {
+    global.library.sequence.add(async cb => {
       let state = BlocksHelper.getState();
 
       state = ConsensusHelper.addPendingVotes(state, votes);
@@ -840,10 +839,10 @@ export default class Blocks {
             local: true,
             broadcast: true,
           };
-          const delegateList = await this.modules.delegates.generateDelegateList(
+          const delegateList = await Delegates.generateDelegateList(
             pendingBlock.height
           );
-          state = await this.processBlock(
+          state = await Blocks.processBlock(
             state,
             pendingBlock,
             options,
@@ -852,7 +851,7 @@ export default class Blocks {
 
           BlocksHelper.setState(state); // important
         } catch (err) {
-          this.library.logger.error(
+          global.library.logger.error(
             `Failed to process confirmed block: ${err}`
           );
         }
@@ -864,13 +863,7 @@ export default class Blocks {
     });
   };
 
-  public cleanup = cb => {
-    this.library.logger.debug('Cleaning up core/blocks');
-    this.loaded = false;
-    cb();
-  };
-
-  public async RunGenesisOrLoadLastBlock(
+  public static async RunGenesisOrLoadLastBlock(
     old: IState,
     numberOfBlocksInDb: number | null,
     genesisBlock: IGenesisBlock,
@@ -883,7 +876,7 @@ export default class Blocks {
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
-      state = await this.processBlock(
+      state = await Blocks.processBlock(
         state,
         genesisBlock,
         options,
@@ -897,30 +890,31 @@ export default class Blocks {
   }
 
   // Events
-  public onBind = (scope: Modules) => {
-    this.modules = scope;
+  public static onBind = () => {
+    // this.loaded = true; // TODO: use stateK
 
-    this.loaded = true; // TODO: use state
-
-    return this.library.sequence.add(
+    return global.library.sequence.add(
       async cb => {
         try {
           let state = BlocksHelper.getState();
 
           const numberOfBlocksInDb = global.app.sdb.blocksCount;
-          state = await this.RunGenesisOrLoadLastBlock(
+          state = await Blocks.RunGenesisOrLoadLastBlock(
             state,
             numberOfBlocksInDb,
-            this.library.genesisBlock,
+            global.library.genesisBlock,
             global.app.sdb.getBlockByHeight
           );
           // important
           BlocksHelper.setState(state);
 
-          this.library.bus.message('onBlockchainReady');
+          // refactor, reunite
+          StateHelper.SetBlockchainReady(true);
+          global.library.bus.message('onBlockchainReady');
+
           return cb();
         } catch (err) {
-          this.library.logger.error('Failed to prepare local blockchain', e);
+          global.library.logger.error('Failed to prepare local blockchain', e);
           return cb('Failed to prepare local blockchain');
         }
       },

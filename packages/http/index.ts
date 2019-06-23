@@ -14,6 +14,7 @@ import queryParser from '../../src/utils/express-query-int';
 import ZSchemaExpress from './util';
 import { IConfig, Modules, ILogger } from '../../src/interfaces';
 import { BlocksHelper } from '../../src/core/BlocksHelper';
+import Peer from '../../src/core/peer';
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:
@@ -147,7 +148,7 @@ export default async function intNetwork(
             blocksBehind:
               slots.getNextSlot() -
               (slots.getSlotNumber(lastBlock.timestamp) + 1),
-            version: modules.peer.getVersion(),
+            version: Peer.getVersion(),
           })
         );
         next();

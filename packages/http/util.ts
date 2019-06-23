@@ -1,4 +1,8 @@
 import { IBlock } from '../../src/interfaces';
+import * as addressHelper from '../../src/utils/address';
+import joi from '../../src/utils/extendedJoi';
+import { BlocksHelper } from '../../src/core/BlocksHelper';
+import Peer from '../../src/core/peer';
 
 export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
@@ -51,4 +55,72 @@ export async function getBlocks(
   }
 
   return blocks;
+}
+
+// account helper
+export function generateAddressByPublicKey(publicKey: string) {
+  return addressHelper.generateAddress(publicKey);
+}
+
+// account helper
+export async function getAccountByName(name: string) {
+  try {
+    const account = await global.app.sdb.findOne('Account', {
+      condition: { username: name },
+    });
+    return account;
+  } catch (err) {
+    return 'Server Error';
+  }
+}
+
+// account helper
+export async function getAccount(address: string) {
+  const schema = joi
+    .string()
+    .address()
+    .required();
+  const report = joi.validate(address, schema);
+  if (report.error) {
+    return 'provided address is not a GNY address';
+  }
+
+  try {
+    const account = await global.app.sdb.findOne('Account', {
+      condition: { address },
+    });
+    let accountData;
+    if (!account) {
+      accountData = {
+        address: address,
+        balance: 0,
+        secondPublicKey: '',
+        lockHeight: 0,
+        isDelegate: 0,
+        username: null,
+      };
+    } else {
+      accountData = {
+        address: account.address,
+        balance: account.gny,
+        secondPublicKey: account.secondPublicKey,
+        lockHeight: account.lockHeight || 0,
+        isDelegate: account.isDelegate,
+        username: account.username,
+      };
+    }
+    const latestBlock = BlocksHelper.getState().lastBlock;
+    const ret = {
+      account: accountData,
+      latestBlock: {
+        height: latestBlock.height,
+        timestamp: latestBlock.timestamp,
+      },
+      version: Peer.getVersion(),
+    };
+    return ret;
+  } catch (e) {
+    this.library.logger.error('Failed to get account', e);
+    return 'Server Error';
+  }
 }

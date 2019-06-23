@@ -1,4 +1,3 @@
-import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
 import peer from './core/peer';
@@ -38,6 +37,7 @@ import TransfersApi from '../packages/http/api/transfersApi';
 import { MessageBus } from './utils/messageBus';
 import { TransactionPool } from './utils/transaction-pool';
 import { LimitCache } from './utils/limit-cache';
+import LRU = require('lru-cache');
 
 export interface IState {
   votesKeySet: Set<any>;
@@ -73,7 +73,6 @@ export interface IScope {
 }
 
 export interface Modules {
-  accounts: accounts;
   transactions: transactions;
   loader: loader;
   peer: peer;
@@ -419,6 +418,10 @@ declare global {
       blocksToSync: number;
       transactionPool: TransactionPool;
       failedTrsCache: LimitCache<string, boolean>;
+      areAllModulesLoaded: boolean;
+      blockchainReady: boolean;
+      latestBlocksCache: LRU<string, BlockAndVotes>;
+      blockHeaderMidCache: LRU<string, NewBlockMessage>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

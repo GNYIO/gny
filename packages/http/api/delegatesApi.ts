@@ -1,38 +1,27 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import {
-  Modules,
-  IScope,
-  Next,
-  DelegateViewModel,
-} from '../../../src/interfaces';
+import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { generateAddressByPublicKey, getAccount } from '../util';
+import Delegates from '../../../src/core/delegates';
 
 export default class DelegatesApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
   private blockReward = new BlockReward();
-  constructor(modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });
@@ -128,7 +117,7 @@ export default class DelegatesApi {
       return next(report.error.message);
     }
 
-    const delegates = await this.modules.delegates.getDelegates();
+    const delegates = await Delegates.getDelegates();
     if (!delegates) {
       return next('no delegates');
     }
@@ -161,7 +150,7 @@ export default class DelegatesApi {
       return next('Invalid params');
     }
 
-    const delegates: DelegateViewModel[] = await this.modules.delegates.getDelegates();
+    const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) return next('No delegates found');
     return res.json({
       totalCount: delegates.length,
@@ -210,8 +199,8 @@ export default class DelegatesApi {
       return next('Forging is already enabled');
     }
 
-    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
-    const accountInfo = await this.modules.accounts.getAccount(address);
+    const address = generateAddressByPublicKey(publicKey);
+    const accountInfo = await getAccount(address);
     if (typeof accountInfo === 'string') {
       return next(accountInfo.toString());
     }
@@ -267,8 +256,8 @@ export default class DelegatesApi {
       return next('Delegate not found');
     }
 
-    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
-    const accountOverview = await this.modules.accounts.getAccount(address);
+    const address = generateAddressByPublicKey(publicKey);
+    const accountOverview = await getAccount(address);
 
     if (typeof accountOverview === 'string') {
       return next(accountOverview.toString());

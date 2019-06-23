@@ -16,25 +16,18 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 
 export default class TransactionsApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
-  constructor(modules: Modules, scope: IScope) {
-    this.modules = modules;
+  constructor(scope: IScope) {
     this.library = scope;
 
     this.attachApi();
   }
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .json({ success: false, error: 'Blockchain is loading' });

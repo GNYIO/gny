@@ -70,8 +70,8 @@ async function init_alt(options: IOptions) {
 
   global.library = scope;
 
-  scope.modules = loadedModules(scope);
-  scope.coreApi = loadCoreApi(scope.modules, scope);
+  scope.modules = loadedModules();
+  scope.coreApi = loadCoreApi(scope);
 
   scope.network.app.use((req, res) => {
     return res

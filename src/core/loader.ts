@@ -1,29 +1,17 @@
 import slots from '../utils/slots';
 import { TIMEOUT } from '../utils/constants';
-import {
-  Modules,
-  IScope,
-  IGenesisBlock,
-  PeerNode,
-  IBlock,
-  Transaction,
-} from '../interfaces';
+import { IGenesisBlock, PeerNode, IBlock, Transaction } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
+import Blocks from './blocks';
+import Peer from './peer';
+import joi from '../utils/extendedJoi';
 
 export default class Loader {
-  private isLoaded: boolean = false;
-  private readonly library: IScope;
-  private modules: Modules;
-
-  constructor(scope: IScope) {
-    this.library = scope;
-  }
-
-  private async findUpdate(
+  private static async findUpdate(
     lastBlock: IBlock | Pick<IBlock, 'height'>,
     peer: PeerNode
   ) {
@@ -31,16 +19,13 @@ export default class Loader {
 
     let commonBlock: IBlock;
     try {
-      commonBlock = await this.modules.blocks.getCommonBlock(
-        peer,
-        lastBlock.height
-      );
+      commonBlock = await Blocks.getCommonBlock(peer, lastBlock.height);
     } catch (err) {
-      this.library.logger.error('Failed to get common block:', err);
+      global.library.logger.error('Failed to get common block:', err);
       throw err;
     }
 
-    this.library.logger.info(
+    global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
       }) with peer ${peerStr}, last block height is ${lastBlock.height}`
@@ -49,7 +34,7 @@ export default class Loader {
     const toRemove = Number(lastBlock.height) - Number(commonBlock.height);
 
     if (toRemove >= 5) {
-      this.library.logger.error(`long fork with peer ${peerStr}`);
+      global.library.logger.error(`long fork with peer ${peerStr}`);
       throw new Error(`long fork with peer ${peerStr}`);
     }
 
@@ -63,7 +48,7 @@ export default class Loader {
         state = BlocksHelper.SetLastBlock(state, global.app.sdb.lastBlock);
         BlocksHelper.setState(state);
 
-        this.library.logger.debug(
+        global.library.logger.debug(
           'set new last block',
           global.app.sdb.lastBlock
         );
@@ -71,21 +56,21 @@ export default class Loader {
         await global.app.sdb.rollbackBlock(lastBlock.height);
       }
     } catch (e) {
-      this.library.logger.error('Failed to rollback block', e);
+      global.library.logger.error('Failed to rollback block', e);
       throw e;
     }
-    this.library.logger.debug(`Loading blocks from peer ${peerStr}`);
-    await this.modules.blocks.loadBlocksFromPeer(peer, commonBlock.id);
+    global.library.logger.debug(`Loading blocks from peer ${peerStr}`);
+    await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
     return;
   }
 
-  private async loadBlocks(
+  private static async loadBlocks(
     lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>,
     genesisBlock: IGenesisBlock
   ) {
     let result;
     try {
-      result = await this.modules.peer.randomRequestAsync('getHeight', {});
+      result = await Peer.randomRequestAsync('getHeight', {});
     } catch (err) {
       throw err;
     }
@@ -94,20 +79,20 @@ export default class Loader {
     const peer = result.node;
 
     const peerStr = `${peer.host}:${peer.port - 1}`;
-    this.library.logger.info(`Check blockchain on ${peerStr}`);
+    global.library.logger.info(`Check blockchain on ${peerStr}`);
 
     ret.height = Number.parseInt(ret.height, 10);
 
-    const schema = this.library.joi.object().keys({
-      height: this.library.joi
+    const schema = joi.object().keys({
+      height: joi
         .number()
         .integer()
         .min(0)
         .required(),
     });
-    const report = this.library.joi.validate(ret, schema);
+    const report = joi.validate(ret, schema);
     if (report.error) {
-      this.library.logger.info(
+      global.library.logger.info(
         `Failed to parse blockchain height: ${peerStr}\n${report.error.message}`
       );
       throw new Error('Failed to parse blockchain height');
@@ -117,10 +102,10 @@ export default class Loader {
 
       if (lastBlock.id !== genesisBlock.id) {
         try {
-          await this.findUpdate(lastBlock, peer);
+          await Loader.findUpdate(lastBlock, peer);
           return;
         } catch (err) {
-          this.library.logger.error(
+          global.library.logger.error(
             'error while calling loader.findUpdate()',
             err.messag
           );
@@ -128,23 +113,23 @@ export default class Loader {
         }
       }
 
-      this.library.logger.debug(
+      global.library.logger.debug(
         `Loading blocks from genesis from ${peer.host}:${peer.port - 1}`
       );
-      return await this.modules.blocks.loadBlocksFromPeer(
+      return await Blocks.loadBlocksFromPeer(
         peer,
-        this.library.genesisBlock.id
+        global.library.genesisBlock.id
       );
     }
     return undefined;
   }
 
   // next
-  private loadUnconfirmedTransactions = cb => {
+  private static loadUnconfirmedTransactions = cb => {
     (async () => {
       let result;
       try {
-        result = await this.modules.peer.randomRequestAsync(
+        result = await Peer.randomRequestAsync(
           'getUnconfirmedTransactions',
           {}
         );
@@ -155,14 +140,14 @@ export default class Loader {
       const data = result.data;
       const peer = result.node as PeerNode;
 
-      const schema = this.library.joi.object().keys({
+      const schema = joi.object().keys({
         // Todo: better schema
-        transactions: this.library.joi
+        transactions: joi
           .array()
           .unique()
           .required(),
       });
-      const report = this.library.joi.validate(data, schema);
+      const report = joi.validate(data, schema);
       if (report.error) {
         return cb(report.error.message);
       }
@@ -180,7 +165,7 @@ export default class Loader {
             transactions[i]
           );
         } catch (e) {
-          this.library.logger.info(
+          global.library.logger.info(
             `Transaction ${
               transactions[i] ? transactions[i].id : 'null'
             } is not valid, ban 60 min`,
@@ -197,106 +182,97 @@ export default class Loader {
           trs.push(one);
         }
       }
-      this.library.logger.info(
+      global.library.logger.info(
         `Loading ${
           transactions.length
         } unconfirmed transaction from peer ${peerStr}`
       );
-      return this.library.sequence.add((done: any) => {
+      return global.library.sequence.add((done: any) => {
         Transactions.processUnconfirmedTransactions(trs, done);
       }, cb);
     })();
   };
 
   // Public methods
-  public startSyncBlocks = (lastBlock: IBlock) => {
-    this.library.logger.debug('startSyncBlocks enter');
-    if (!this.isLoaded || StateHelper.IsSyncing()) {
-      this.library.logger.debug('blockchain is already syncing');
+  public static startSyncBlocks = (lastBlock: IBlock) => {
+    global.library.logger.debug('startSyncBlocks enter');
+    if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
+      global.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add(async cb => {
-      this.library.logger.debug('startSyncBlocks enter sequence');
+    global.library.sequence.add(async cb => {
+      global.library.logger.debug('startSyncBlocks enter sequence');
       StateHelper.SetIsSyncing(true);
 
       try {
-        await this.loadBlocks(lastBlock, this.library.genesisBlock);
+        await Loader.loadBlocks(lastBlock, global.library.genesisBlock);
       } catch (err) {
-        this.library.logger.warn('loadBlocks warning:', err.message);
+        global.library.logger.warn('loadBlocks warning:', err.message);
       }
       StateHelper.SetIsSyncing(false);
       StateHelper.SetBlocksToSync(0);
-      this.library.logger.debug('startSyncBlocks end');
+      global.library.logger.debug('startSyncBlocks end');
       cb();
     });
   };
 
-  public syncBlocksFromPeer = (peer: PeerNode) => {
-    this.library.logger.debug('syncBlocksFromPeer enter');
+  public static syncBlocksFromPeer = (peer: PeerNode) => {
+    global.library.logger.debug('syncBlocksFromPeer enter');
 
-    if (!this.isLoaded || StateHelper.IsSyncing()) {
-      this.library.logger.debug('blockchain is already syncing');
+    if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
+      global.library.logger.debug('blockchain is already syncing');
       return;
     }
-    this.library.sequence.add(async cb => {
-      this.library.logger.debug('syncBlocksFromPeer enter sequence');
+    global.library.sequence.add(async cb => {
+      global.library.logger.debug('syncBlocksFromPeer enter sequence');
       StateHelper.SetIsSyncing(true);
       const lastBlock = BlocksHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
       } catch (err) {
-        this.library.logger.error('error while sdb.rollbackBlock()');
+        global.library.logger.error('error while sdb.rollbackBlock()');
 
         // reset
         StateHelper.SetIsSyncing(false);
         throw err;
       }
       try {
-        await this.modules.blocks.loadBlocksFromPeer(peer, lastBlock.id);
+        await Blocks.loadBlocksFromPeer(peer, lastBlock.id);
       } catch (err) {
         throw err;
       } finally {
         StateHelper.SetIsSyncing(false);
-        this.library.logger.debug('syncBlocksFromPeer end');
+        global.library.logger.debug('syncBlocksFromPeer end');
         cb();
       }
     });
   };
 
   // Events
-  public onPeerReady = () => {
+  public static onPeerReady = () => {
     const nextSync = () => {
       const lastBlock = BlocksHelper.getState().lastBlock;
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 3) {
-        this.startSyncBlocks(lastBlock);
+        Loader.startSyncBlocks(lastBlock);
       }
       setTimeout(nextSync, TIMEOUT * 1000);
     };
     setImmediate(nextSync);
 
     setImmediate(() => {
-      if (!this.isLoaded || StateHelper.IsSyncing()) return;
-      this.loadUnconfirmedTransactions(err => {
+      if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) return;
+      Loader.loadUnconfirmedTransactions(err => {
         if (err) {
-          this.library.logger.warn('loadUnconfirmedTransactions timer:', err);
+          global.library.logger.warn('loadUnconfirmedTransactions timer:', err);
         }
       });
     });
   };
 
-  public onBind = (scope: Modules) => {
-    this.modules = scope;
-  };
-
-  public onBlockchainReady = () => {
-    this.isLoaded = true;
-  };
-
-  public cleanup = (cb: any) => {
-    this.library.logger.debug('Cleaning up core/loader');
-    this.isLoaded = false;
+  public static cleanup = (cb: any) => {
+    global.library.logger.debug('Cleaning up core/loader');
     cb();
   };
 }

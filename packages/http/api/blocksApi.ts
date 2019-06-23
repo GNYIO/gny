@@ -1,34 +1,27 @@
 import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
-import { Modules, IScope, Next } from '../../../src/interfaces';
+import { IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class BlocksApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
   private blockReward = new BlockReward();
 
-  constructor(modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi() {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });

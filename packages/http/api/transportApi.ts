@@ -17,12 +17,9 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 
 export default class TransportApi {
-  private modules: Modules;
   private library: IScope;
   private headers: any;
-  private loaded = false;
-  constructor(modules: Modules, scope: IScope) {
-    this.modules = modules;
+  constructor(scope: IScope) {
     this.library = scope;
     this.headers = {
       os: osInfo.getOS(),
@@ -34,16 +31,12 @@ export default class TransportApi {
   }
 
   // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi = () => {
     const router = express.Router();
 
     // Middleware
     router.use((req: Request, res: Response, next) => {
-      if (this.loaded === false) {
+      if (!StateHelper.BlockchainReady()) {
         return res.json({ success: false, error: 'Blockchain is loading' });
       }
       if (StateHelper.IsSyncing()) {
@@ -108,7 +101,7 @@ export default class TransportApi {
       return next('validation failed');
     }
 
-    const newBlock = this.modules.transport.latestBlocksCache.get(body.id);
+    const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
       return next('New block not found');
     }

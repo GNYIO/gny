@@ -17,6 +17,10 @@ export default async function runtime(options: IOptions) {
   StateHelper.SetForgingEnabled(true);
   StateHelper.InitializeTransactionPool();
   StateHelper.InitializeFailedTrsCache();
+  StateHelper.InitializeModulesAreLoaded();
+  StateHelper.InitializeBlockchainReady();
+  StateHelper.InitializeLatestBlockCache();
+  StateHelper.InitializeBlockHeaderMidCache();
 
   global.app = {
     sdb: null,

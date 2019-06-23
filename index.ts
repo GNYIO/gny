@@ -6,6 +6,7 @@ import initAlt from './src/init';
 import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
 import { TransactionBase } from './src/base/transaction';
 import { BlockBase } from './src/base/block';
+import { StateHelper } from './src/core/StateHelper';
 
 function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
   try {
@@ -54,6 +55,8 @@ export default class Application {
 
     process.once('cleanup', async () => {
       scope.logger.info('Cleaning up...');
+
+      StateHelper.SetAllModulesLoaded(false);
 
       try {
         for (const key in scope.modules) {
@@ -112,6 +115,7 @@ export default class Application {
       return;
     }
 
+    StateHelper.SetAllModulesLoaded(true);
     scope.bus.message('onBind', scope.modules);
 
     scope.logger.info('Modules ready and launched');
