@@ -1,11 +1,5 @@
 import Delegates from '../../../src/core/delegates';
-import {
-  IScope,
-  KeyPairsIndexer,
-  IBlock,
-  Delegate,
-  KeyPair,
-} from '../../../src/interfaces';
+import { KeyPairsIndexer, IBlock, Delegate } from '../../../src/interfaces';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -48,19 +42,6 @@ const dummyLogger = {
 
 describe('core/delegates', () => {
   describe('isLoopReady', () => {
-    let delegates: Delegates;
-    beforeEach(done => {
-      const scope = {
-        logger: dummyLogger,
-      } as IScope;
-      delegates = new Delegates(scope);
-      done();
-    });
-    afterEach(done => {
-      delegates = undefined;
-      done();
-    });
-
     it('isLoopReady() - forging disabled', done => {
       const state = BlocksHelper.getInitialState();
       const time = Date.now();
@@ -69,7 +50,7 @@ describe('core/delegates', () => {
       const isSyncingrightNow = false;
       const keyPairs: KeyPairsIndexer = {};
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -90,7 +71,7 @@ describe('core/delegates', () => {
       const isSyncingrightNow = false;
       const keyPairs: KeyPairsIndexer = {}; // test
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -116,7 +97,7 @@ describe('core/delegates', () => {
         },
       };
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -142,7 +123,7 @@ describe('core/delegates', () => {
         },
       };
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -174,7 +155,7 @@ describe('core/delegates', () => {
         },
       };
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -205,7 +186,7 @@ describe('core/delegates', () => {
         },
       };
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -236,7 +217,7 @@ describe('core/delegates', () => {
         },
       };
 
-      const result = delegates.isLoopReady(
+      const result = Delegates.isLoopReady(
         state,
         time,
         isForgingEnabled,
@@ -251,28 +232,16 @@ describe('core/delegates', () => {
   });
 
   describe('getBlockSlotData', () => {
-    let delegates: Delegates;
     let delegatesTestData: DelegateTestData;
     beforeAll(done => {
       delegatesTestData = loadDelegatesTestData();
-      done();
-    });
-    beforeEach(done => {
-      const scope = {
-        logger: dummyLogger,
-      } as IScope;
-      delegates = new Delegates(scope);
-      done();
-    });
-    afterEach(done => {
-      delegates = undefined;
       done();
     });
 
     it('getBlockSlotData() - slot 0 (returns delegate at index 0)', done => {
       const slot = 0;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -290,7 +259,7 @@ describe('core/delegates', () => {
     it('getBlockSlotData() - slot 1  (returns delegate at index 1)', done => {
       const slot = 1;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -308,7 +277,7 @@ describe('core/delegates', () => {
     it('getBlockSlotData() - slot 25  (returns delegate at index 25)', done => {
       const slot = 25;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -326,7 +295,7 @@ describe('core/delegates', () => {
     it('getBlockSlotData() - slot 100  (returns delegate at index 100)', done => {
       const slot = 100;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -344,7 +313,7 @@ describe('core/delegates', () => {
     it('getBlockSlotData() - slot 101  (returns delegate at index 0) (modulo)', done => {
       const slot = 101;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -362,7 +331,7 @@ describe('core/delegates', () => {
     it('getBlockSlotData() - slot 102  (returns delegate at index 1) (modulo)', done => {
       const slot = 102;
 
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegatesTestData.delegateList,
         delegatesTestData.keyPairs
@@ -455,7 +424,7 @@ describe('core/delegates', () => {
           ]),
         },
       };
-      const result = delegates.getBlockSlotData(
+      const result = Delegates.getBlockSlotData(
         slot,
         delegateList,
         shortKeyPairs
@@ -476,16 +445,14 @@ describe('core/delegates', () => {
   });
 
   describe('loadMyDelegates', () => {
-    let delegates: Delegates;
     beforeEach(done => {
-      const scope = {
+      global.library = {
         logger: dummyLogger,
-      } as IScope;
-      delegates = new Delegates(scope);
+      };
       done();
     });
     afterEach(done => {
-      delegates = undefined;
+      global.library = {};
       done();
     });
 
@@ -501,7 +468,7 @@ describe('core/delegates', () => {
         },
       ] as Delegate[];
 
-      const result = delegates.loadMyDelegates(secret, del);
+      const result = Delegates.loadMyDelegates(secret, del);
 
       expect(result).not.toBeUndefined();
       expect(Object.keys(result)).toHaveLength(1);
@@ -514,7 +481,6 @@ describe('core/delegates', () => {
   });
 
   describe('getActiveDelegateKeypairs', () => {
-    let delegates: Delegates;
     let delegatesTestData: DelegateTestData;
 
     beforeAll(done => {
@@ -522,16 +488,10 @@ describe('core/delegates', () => {
       done();
     });
     beforeEach(done => {
-      const scope = {
-        logger: dummyLogger,
-      } as IScope;
-      delegates = new Delegates(scope);
-
       StateHelper.SetKeyPairs(delegatesTestData.keyPairs);
       done();
     });
     afterEach(done => {
-      delegates = undefined;
       const emptyKeyPairs: KeyPairsIndexer = {};
       StateHelper.SetKeyPairs(emptyKeyPairs);
       done();
@@ -540,7 +500,7 @@ describe('core/delegates', () => {
     it('getActiveDelegateKeypairs() - passing empty array returns empty array', done => {
       const del: string[] = [];
 
-      const result = delegates.getActiveDelegateKeypairs(del);
+      const result = Delegates.getActiveDelegateKeypairs(del);
       expect(result).toEqual([]);
 
       done();
@@ -549,7 +509,7 @@ describe('core/delegates', () => {
     it('getActiveDelegateKeypairs() - passing in undefined returns empty array', done => {
       const del = undefined;
 
-      const result = delegates.getActiveDelegateKeypairs(del);
+      const result = Delegates.getActiveDelegateKeypairs(del);
       expect(result).toEqual([]);
       done();
     });
@@ -565,7 +525,7 @@ describe('core/delegates', () => {
       StateHelper.SetKeyPairs(oneDelegateKeyPair);
 
       // act
-      const result = delegates.getActiveDelegateKeypairs(
+      const result = Delegates.getActiveDelegateKeypairs(
         delegatesTestData.delegateList
       );
 
