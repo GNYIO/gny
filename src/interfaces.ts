@@ -37,7 +37,7 @@ import TransfersApi from '../packages/http/api/transfersApi';
 import { MessageBus } from './utils/messageBus';
 import { TransactionPool } from './utils/transaction-pool';
 import { LimitCache } from './utils/limit-cache';
-import LRU = require('lru-cache');
+import * as LRU from 'lru-cache';
 
 export interface IState {
   votesKeySet: Set<any>;
@@ -420,8 +420,8 @@ declare global {
       failedTrsCache: LimitCache<string, boolean>;
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
-      latestBlocksCache: LRU<string, BlockAndVotes>;
-      blockHeaderMidCache: LRU<string, NewBlockMessage>;
+      latestBlocksCache: LRU.Cache<string, BlockAndVotes>;
+      blockHeaderMidCache: LRU.Cache<string, NewBlockMessage>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

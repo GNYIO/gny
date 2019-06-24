@@ -7,7 +7,7 @@ import {
 } from '../interfaces';
 import { TransactionPool } from '../utils/transaction-pool';
 import { LimitCache } from '../utils/limit-cache';
-import LRU = require('lru-cache');
+import * as LRU from 'lru-cache';
 
 export class StateHelper {
   // keyPairs
