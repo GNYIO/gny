@@ -539,4 +539,60 @@ describe('core/delegates', () => {
       done();
     });
   });
+
+  describe('compare', () => {
+    it('compare() - sorts delegates after votes', done => {
+      const delegates = [
+        {
+          publicKey: 'second',
+          votes: 2,
+        },
+        {
+          publicKey: 'one',
+          votes: 5,
+        },
+      ] as Delegate[];
+
+      const result = delegates.sort(Delegates.compare);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        publicKey: 'one',
+        votes: 5,
+      });
+      expect(result[1]).toEqual({
+        publicKey: 'second',
+        votes: 2,
+      });
+
+      done();
+    });
+
+    it('compare() - sorts delegates after votes and then after publicKey descending', done => {
+      const delegates = [
+        {
+          publicKey: 'aaa',
+          votes: 10,
+        },
+        {
+          publicKey: 'bbb',
+          votes: 10,
+        },
+      ] as Delegate[];
+
+      const result = delegates.sort(Delegates.compare);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        publicKey: 'bbb',
+        votes: 10,
+      });
+      expect(result[1]).toEqual({
+        publicKey: 'aaa',
+        votes: 10,
+      });
+
+      done();
+    });
+  });
 });
