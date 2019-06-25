@@ -116,6 +116,7 @@ export async function stopAndKillPostgres() {
     log: true,
     config: 'docker-compose.postgres.yml',
   });
+  await sleep(10 * 1000);
 }
 
 export function createRandomAddress() {

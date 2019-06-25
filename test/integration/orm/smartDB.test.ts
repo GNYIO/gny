@@ -106,35 +106,45 @@ describe('integration - SmartDB', () => {
   let sut: SmartDB;
   let configRaw: string;
 
-  beforeAll(async done => {
-    lib.exitIfNotRoot();
+  beforeAll(done => {
+    (async () => {
+      lib.exitIfNotRoot();
 
-    await lib.stopAndKillPostgres();
+      await lib.stopAndKillPostgres();
+      configRaw = fs.readFileSync('ormconfig.postgres.json', {
+        encoding: 'utf8',
+      });
+      await lib.sleep(500);
 
-    configRaw = fs.readFileSync('ormconfig.postgres.json', {
-      encoding: 'utf8',
-    });
-    done();
+      done();
+    })();
   }, lib.oneMinute);
 
-  beforeEach(async done => {
-    await lib.spawnPostgres();
+  beforeEach(done => {
+    (async () => {
+      // stopping is safety in case a test before fails
+      await lib.stopAndKillPostgres();
+      await lib.spawnPostgres();
+      sut = new SmartDB(logger, {
+        cachedBlockCount: 10,
+        maxBlockHistoryHold: 10,
+        configRaw: configRaw,
+      });
+      await sut.init();
 
-    sut = new SmartDB(logger, {
-      cachedBlockCount: 10,
-      maxBlockHistoryHold: 10,
-      configRaw: configRaw,
-    });
-    await sut.init();
-    done();
+      done();
+    })();
   }, lib.oneMinute);
 
-  afterEach(async done => {
-    await sut.close();
-    sut = undefined;
+  afterEach(done => {
+    (async () => {
+      await sut.close();
+      await lib.sleep(4 * 1000);
+      await lib.stopAndKillPostgres();
+      await lib.sleep(15 * 1000);
 
-    await lib.stopAndKillPostgres();
-    done();
+      done();
+    })();
   }, lib.oneMinute);
 
   it(
