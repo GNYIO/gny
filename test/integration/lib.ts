@@ -101,38 +101,28 @@ export async function stopAndKillContainer() {
   });
 }
 
-export async function spawnOnlyDbContainer() {
-  const docker = new Docker();
-
-  return new Promise((resolve, reject) => {
-    const emitter = docker.run(
-      'postgres:9.6.12',
-      undefined,
-      process.stdout,
-      (err, result) => {
-        if (err) reject(err);
-        else resolve(result);
-      }
-    );
-    // wait for container and return it
-    emitter.once('container', container => {
-      console.log(`container: ${JSON.stringify(container, null, 2)}`);
-      resolve(container);
-    });
+export async function spawnPostgres() {
+  await dockerCompose.upAll({
+    cwd: process.cwd(),
+    log: true,
+    config: 'docker-compose.postgres.yml',
   });
+  await sleep(10 * 1000);
 }
 
-export async function stopAndRemoveOnlyDbContainer(
-  container: Docker.Container
-) {
-  await container.kill();
-  await sleep(10 * 1000);
+export async function stopAndKillPostgres() {
+  await dockerCompose.down({
+    cwd: process.cwd(),
+    log: true,
+    config: 'docker-compose.postgres.yml',
+  });
 }
 
 export function createRandomAddress() {
   const rand = randomBytes(10).toString('hex');
   return generateAddress(rand);
 }
+export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
 

@@ -10,6 +10,7 @@ import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import { deepCopy } from '../../../packages/database-postgres/src/codeContract';
 import * as fs from 'fs';
+import * as lib from '../lib';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -105,12 +106,20 @@ describe('integration - SmartDB', () => {
   let sut: SmartDB;
   let configRaw: string;
 
-  beforeAll(done => {
-    configRaw = fs.readFileSync('ormconfig.sqljs.json', { encoding: 'utf8' });
+  beforeAll(async done => {
+    lib.exitIfNotRoot();
+
+    await lib.stopAndKillPostgres();
+
+    configRaw = fs.readFileSync('ormconfig.postgres.json', {
+      encoding: 'utf8',
+    });
     done();
-  });
+  }, lib.oneMinute);
 
   beforeEach(async done => {
+    await lib.spawnPostgres();
+
     sut = new SmartDB(logger, {
       cachedBlockCount: 10,
       maxBlockHistoryHold: 10,
@@ -118,63 +127,78 @@ describe('integration - SmartDB', () => {
     });
     await sut.init();
     done();
-  }, 10000);
+  }, lib.oneMinute);
+
   afterEach(async done => {
     await sut.close();
     sut = undefined;
+
+    await lib.stopAndKillPostgres();
     done();
-  }, 10000);
+  }, lib.oneMinute);
 
-  it('getBlockByHeight()', async done => {
-    await saveGenesisBlock(sut);
+  it(
+    'getBlockByHeight()',
+    async done => {
+      await saveGenesisBlock(sut);
 
-    const loaded = await sut.getBlockByHeight(0);
+      const loaded = await sut.getBlockByHeight(0);
 
-    const expected = {
-      count: 0,
-      delegate:
-        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
-      fees: 0,
-      height: 0,
-      id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-      payloadHash:
-        '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
-      previousBlock: null,
-      reward: 0,
-      signature:
-        'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
-      timestamp: 0,
-      version: 0,
-    };
-    expect(loaded).toEqual(expected);
-    done();
-  }, 5000);
+      const expected = {
+        count: 0,
+        delegate:
+          'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+        fees: 0,
+        height: 0,
+        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
+        payloadHash:
+          '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
+        previousBlock: null,
+        reward: 0,
+        signature:
+          'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
+        timestamp: 0,
+        version: 0,
+      };
+      expect(loaded).toEqual(expected);
+      done();
+    },
+    lib.thirtySeconds
+  );
 
-  it('getBlockByHeight() - with transactions', async done => {
-    await saveGenesisBlock(sut);
+  it(
+    'getBlockByHeight() - with transactions',
+    async done => {
+      await saveGenesisBlock(sut);
 
-    const loaded = await sut.getBlockByHeight(0, true);
-    expect(loaded).toBeTruthy();
-    expect(loaded.transactions.length).toEqual(0);
-    done();
-  }, 5000);
+      const loaded = await sut.getBlockByHeight(0, true);
+      expect(loaded).toBeTruthy();
+      expect(loaded.transactions.length).toEqual(0);
+      done();
+    },
+    lib.thirtySeconds
+  );
 
-  it('getBlockById()', async done => {
-    await saveGenesisBlock(sut);
+  it(
+    'getBlockById()',
+    async done => {
+      await saveGenesisBlock(sut);
 
-    const first = createBlock(1);
-    sut.beginBlock(first);
-    await sut.commitBlock();
+      const first = createBlock(1);
+      sut.beginBlock(first);
+      await sut.commitBlock();
 
-    const result = await sut.getBlockById(first.id, false);
-    const expected = Object.assign({}, first);
-    delete expected.transactions;
-    delete expected._version_;
+      const result = await sut.getBlockById(first.id, false);
+      const expected = Object.assign({}, first);
+      delete expected.transactions;
+      delete expected._version_;
 
-    expect(result).toEqual(expected);
+      expect(result).toEqual(expected);
 
-    done();
-  });
+      done();
+    },
+    lib.thirtySeconds
+  );
 
   it('getBlockById() - with transactions', async done => {
     await saveGenesisBlock(sut);
