@@ -768,5 +768,23 @@ describe('BlocksHelper', () => {
     it.skip('IsBlockAlreadyInDbIO()', done => {
       done();
     });
+
+    it('setPreGenesisBlock() - returns lastBlock with height MINUS 1', done => {
+      const initialState = BlocksHelper.getInitialState();
+
+      const result = BlocksHelper.setPreGenesisBlock(initialState);
+
+      expect(result.lastBlock).toEqual({ height: -1 });
+      done();
+    });
+
+    it('setPreGenesisBlock() - returns other object reference', done => {
+      const initialState = BlocksHelper.getInitialState();
+
+      const result = BlocksHelper.setPreGenesisBlock(initialState);
+
+      expect(result).not.toBe(initialState);
+      done();
+    });
   });
 });
