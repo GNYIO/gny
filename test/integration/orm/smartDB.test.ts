@@ -218,6 +218,58 @@ describe('integration - SmartDB', () => {
     done();
   }, 5000);
 
+  it('getBlocksByHeightRange() - is always ordered in ascending order (without trs)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const withTransactions = false;
+    const blocks = await sut.getBlocksByHeightRange(0, 3, withTransactions);
+    expect(blocks.length).toEqual(4);
+    expect(blocks[0].height).toEqual(0);
+    expect(blocks[1].height).toEqual(1);
+    expect(blocks[2].height).toEqual(2);
+    expect(blocks[3].height).toEqual(3);
+
+    done();
+  }, 5000);
+
+  it('getBlocksByHeightRange() - is always ordered in ascending order (with trs)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const withTransactions = true;
+    const blocks = await sut.getBlocksByHeightRange(0, 3, withTransactions);
+    expect(blocks.length).toEqual(4);
+    expect(blocks[0].height).toEqual(0);
+    expect(blocks[1].height).toEqual(1);
+    expect(blocks[2].height).toEqual(2);
+    expect(blocks[3].height).toEqual(3);
+
+    done();
+  }, 5000);
+
   it('rollbackBlock() - rollback current block after beginBlock()', async done => {
     await saveGenesisBlock(sut);
 
