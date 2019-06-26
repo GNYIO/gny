@@ -9,17 +9,21 @@ import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
 import joi from '../utils/extendedJoi';
+import { LoaderHelper } from './LoaderHelper';
 
 export default class Loader {
-  private static async findUpdate(
-    lastBlock: IBlock | Pick<IBlock, 'height'>,
-    peer: PeerNode
-  ) {
-    const peerStr = `${peer.host}:${peer.port - 1}`;
+  public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
+    let state = BlocksHelper.getState(); // TODO: refactor
+    const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
+      state,
+      lastBlock
+    );
+
+    const peerStr = LoaderHelper.ExtractPeerInfosMinusOne(peer);
 
     let commonBlock: IBlock;
     try {
-      commonBlock = await Blocks.getCommonBlock(peer, lastBlock.height);
+      commonBlock = await Blocks.getCommonBlock(peer, newestLastBlock.height);
     } catch (err) {
       global.library.logger.error('Failed to get common block:', err);
       throw err;
@@ -28,12 +32,15 @@ export default class Loader {
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
-      }) with peer ${peerStr}, last block height is ${lastBlock.height}`
+      }) with peer ${peerStr}, last block height is ${newestLastBlock.height}`
     );
 
-    const toRemove = Number(lastBlock.height) - Number(commonBlock.height);
+    const toRemove = LoaderHelper.GetBlockDifference(
+      newestLastBlock,
+      commonBlock
+    );
 
-    if (toRemove >= 5) {
+    if (LoaderHelper.IsLongFork(toRemove)) {
       global.library.logger.error(`long fork with peer ${peerStr}`);
       throw new Error(`long fork with peer ${peerStr}`);
     }
@@ -44,7 +51,6 @@ export default class Loader {
         await global.app.sdb.rollbackBlock(commonBlock.height);
 
         // TODO refactor
-        let state = BlocksHelper.getState();
         state = BlocksHelper.SetLastBlock(state, global.app.sdb.lastBlock);
         BlocksHelper.setState(state);
 
@@ -53,7 +59,7 @@ export default class Loader {
           global.app.sdb.lastBlock
         );
       } else {
-        await global.app.sdb.rollbackBlock(lastBlock.height);
+        await global.app.sdb.rollbackBlock(newestLastBlock.height);
       }
     } catch (e) {
       global.library.logger.error('Failed to rollback block', e);
@@ -64,8 +70,8 @@ export default class Loader {
     return;
   }
 
-  private static async loadBlocks(
-    lastBlock: IBlock | Pick<IBlock, 'height' | 'id'>,
+  public static async loadBlocks(
+    lastBlock: IBlock,
     genesisBlock: IGenesisBlock
   ) {
     let result;
@@ -269,10 +275,5 @@ export default class Loader {
         }
       });
     });
-  };
-
-  public static cleanup = (cb: any) => {
-    global.library.logger.debug('Cleaning up core/loader');
-    cb();
   };
 }

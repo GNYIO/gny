@@ -6,6 +6,8 @@ import {
   IBlock,
   KeyPair,
   IGenesisBlock,
+  IState,
+  ProcessBlockOptions,
 } from '../../../src/interfaces';
 import { BlockBase } from '../../../src/base/block';
 import { TransactionBase } from '../../../src/base/transaction';
@@ -16,8 +18,6 @@ import * as ed from '../../../src/utils/ed';
 import slots from '../../../src/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import BalanceManager from '../../../src/smartdb/balance-manager';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
@@ -113,100 +113,144 @@ const dummyLogger = {
   fatal: x => x,
 };
 
-describe.skip('core/blocks', () => {
-  let coreBlocks: Blocks;
-  beforeAll(done => {
-    global.app = {};
-    done();
-  });
+describe('core/blocks', () => {
   beforeEach(done => {
-    const scope = {} as IScope;
-    coreBlocks = new Blocks(scope);
+    global.app = {
+      logger: dummyLogger,
+    };
     done();
   });
   afterEach(done => {
     global.app = {};
-    coreBlocks = undefined;
     done();
   });
 
   describe('RunGenesisOrLoadLastBlock()', () => {
-    let blocks: Blocks;
-
-    beforeEach(async done => {
-      // global
-      global.app = {
-        sdb: new SmartDB(dummyLogger, {
-          configRaw: loadRawOrmSqljsConfig(),
-          cachedBlockCount: 10,
-          maxBlockHistoryHold: 10,
-        }),
-      };
-      await global.app.sdb.init();
-      global.app.balances = new BalanceManager(global.app.sdb);
-
-      const scope = {
-        logger: dummyLogger,
-      } as IScope;
-      blocks = new Blocks(scope);
-      blocks.loaded = true; // illegal
-      done();
-    });
-
-    afterEach(done => {
-      // cleanup global
-      global.app = {};
-      done();
-    });
-
-    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB saves genesis Block in db', async done => {
+    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB processes genesisBlock and saves it in DB', async done => {
       const state = BlocksHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
-      // TODO: prepare global sdb
-
-      const getBlocksByHeightRange = async (
+      const getBlocksByHeightRangeFunc = async (
         height: number
       ): Promise<IBlock> => {
         throw new Error('should not be called');
       };
 
-      const resultState = await blocks.RunGenesisOrLoadLastBlock(
+      const expectedState = {
+        lastBlock: genesisBlock as IBlock,
+      } as IState;
+      const processBlockMock = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(expectedState));
+
+      const resultState = await Blocks.RunGenesisOrLoadLastBlock(
         state,
         0,
         genesisBlock,
-        getBlocksByHeightRange
+        processBlockMock,
+        getBlocksByHeightRangeFunc
       );
-      // does not work because this.modules.transactions is undefined!
-      console.log(JSON.stringify(resultState));
+
+      expect(processBlockMock).toBeCalledTimes(1);
       expect(resultState).not.toBeUndefined();
       expect(resultState.lastBlock).not.toBeUndefined();
       expect(resultState.lastBlock.id).toEqual(genesisBlock.id);
+      expect(resultState).not.toBe(state); // other object reference
 
       done();
     });
 
-    it.skip('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {});
+    it('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {
+      const state = BlocksHelper.getInitialState();
+      const genesisBlock = loadGenesisBlock();
+
+      const processBlockFunc = (
+        state: IState,
+        block: any,
+        options: ProcessBlockOptions,
+        delegateList: string[]
+      ) => Promise.reject('should not get called');
+
+      // TODO
+      const expected = {
+        height: 9,
+        id: 'nine',
+      } as IBlock;
+      const getBlocksByHeightMock = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(expected));
+
+      const BLOCK_IN_DB = 10;
+      const resultState = await Blocks.RunGenesisOrLoadLastBlock(
+        state,
+        BLOCK_IN_DB,
+        genesisBlock,
+        processBlockFunc,
+        getBlocksByHeightMock
+      );
+
+      expect(resultState).not.toBeUndefined();
+      expect(resultState.lastBlock).not.toBeUndefined();
+      expect(resultState.lastBlock.height).toEqual(9);
+      expect(resultState.lastBlock.id).toEqual('nine');
+      expect(resultState).not.toBe(state); // other object reference
+
+      done();
+    });
+  });
+
+  describe('getIdSequence2', () => {
+    it('getIdSequence2() - returns the 4 last blockIds in descending order (happy path)', async done => {
+      const currentLastBlockHeight = 59;
+
+      const blocksAscending = [
+        {
+          height: 55,
+          id: 'fivefive',
+        },
+        {
+          height: 56,
+          id: 'fivesix',
+        },
+        {
+          height: 57,
+          id: 'fiveseven',
+        },
+        {
+          height: 58,
+          id: 'fiveeight',
+        },
+        {
+          height: 59,
+          id: 'fivenine',
+        },
+      ];
+      const getBlocksByHeightRange = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(blocksAscending));
+
+      // act
+      const result = await Blocks.getIdSequence2(
+        currentLastBlockHeight,
+        getBlocksByHeightRange
+      );
+
+      expect(result).toHaveProperty('min', 55);
+      expect(result).toHaveProperty('max', 59);
+      expect(result).toHaveProperty('ids', [
+        'fivenine',
+        'fiveeight',
+        'fiveseven',
+        'fivesix',
+        'fivefive',
+      ]);
+
+      done();
+    });
   });
 
   describe.skip('getCommonBlock()', () => {
     beforeEach(done => {
-      global.app = {
-        sdb: {
-          getBlocksByHeightRange: jest.fn().mockReturnValue([
-            {
-              id:
-                '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-            },
-          ]),
-        },
-      } as any;
-
-      const scope = {
-        logger: dummyLogger,
-      };
-      coreBlocks = new Blocks(scope);
-
       const modules = {
         peer: {
           request: jest.fn().mockReturnValue({
@@ -217,7 +261,7 @@ describe.skip('core/blocks', () => {
           }),
         },
       } as any;
-      // coreBlocks.onBind(modules);
+      // Blocks.onBind(modules);
 
       done();
     });
@@ -228,7 +272,7 @@ describe.skip('core/blocks', () => {
         port: 5000,
       };
       const lastBlockHeight = 3;
-      const func = coreBlocks.getCommonBlock(peer, lastBlockHeight);
+      const func = Blocks.getCommonBlock(peer, lastBlockHeight);
       return expect(func).rejects.toHaveProperty(
         'message',
         "Cannot read property 'height' of undefined"
@@ -237,7 +281,7 @@ describe.skip('core/blocks', () => {
 
     it.skip('getCommonBlock() - returns commonBlock from peer', async done => {
       // prepare
-      coreBlocks.setLastBlock({
+      Blocks.setLastBlock({
         height: 0,
       });
 
@@ -247,7 +291,7 @@ describe.skip('core/blocks', () => {
       };
       const lastBlockHeight = 0;
 
-      const result = await coreBlocks.getCommonBlock(peer, lastBlockHeight);
+      const result = await Blocks.getCommonBlock(peer, lastBlockHeight);
       expect(result).toEqual({
         id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
       });
@@ -256,13 +300,9 @@ describe.skip('core/blocks', () => {
     });
   });
 
-  describe('getLastBlock()', () => {
-    it('getLastBlock() - returns lastBlock', done => {
-      coreBlocks.setLastBlock({
-        height: -1,
-      });
-
-      const result = coreBlocks.getLastBlock();
+  describe.skip('getLastBlock()', () => {
+    it.skip('getLastBlock() - returns lastBlock', done => {
+      const result = Blocks.getLastBlock();
       expect(result).toEqual({
         height: -1,
       });
@@ -278,47 +318,20 @@ describe.skip('core/blocks', () => {
         signature:
           'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
       };
-      coreBlocks.setLastBlock(EXPECTED_BlOCK);
+      Blocks.setLastBlock(EXPECTED_BlOCK);
 
-      const result = coreBlocks.getLastBlock();
+      const result = Blocks.getLastBlock();
       expect(result).toEqual(EXPECTED_BlOCK);
 
       done();
     });
   });
 
-  it('setLastBlock() - sets last block', done => {
-    const FIRST = {
-      height: -1,
-    };
-    const SECOND = {
-      height: 0,
-    };
-
-    coreBlocks.setLastBlock(FIRST);
-    coreBlocks.setLastBlock(SECOND);
-
-    const result = coreBlocks.getLastBlock();
-    expect(result).toEqual(SECOND);
-
-    done();
-  });
-
-  describe('verifyBlock()', () => {
-    beforeEach(done => {
-      // base.block.getId
-      const scope = {
-        logger: dummyLogger,
-      } as any;
-      coreBlocks = new Blocks(scope);
-
-      done();
-    });
-
+  describe.skip('verifyBlock()', () => {
     it('verifyBlock() - wrong Block can not get Id', async () => {
       const wrongBlock = {} as IBlock;
       const options = {};
-      const func = coreBlocks.verifyBlock(wrongBlock, options);
+      const func = Blocks.verifyBlock(wrongBlock, options);
       return expect(func).rejects.toMatchObject({
         message: expect.stringMatching(/^Failed to get block id:/),
       });
@@ -339,7 +352,7 @@ describe.skip('core/blocks', () => {
         signature: randomHex(64),
       };
       const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
+      const func = Blocks.verifyBlock(block, options);
 
       return expect(func).rejects.toHaveProperty(
         'message',
@@ -364,7 +377,7 @@ describe.skip('core/blocks', () => {
       };
       const options = {};
 
-      const func = coreBlocks.verifyBlock(block, options);
+      const func = Blocks.verifyBlock(block, options);
       return expect(func).rejects.toMatchObject({
         message: expect.stringMatching(
           /^Got exception while verify block signature/
@@ -381,13 +394,13 @@ describe.skip('core/blocks', () => {
       const previousBlock = createBlock(1, keypair, {
         prevBlockId: randomHex(32),
       } as IBlock);
-      coreBlocks.setLastBlock(previousBlock);
+      Blocks.setLastBlock(previousBlock);
 
       // act
       const block = createBlock(2, keypair, previousBlock);
 
       const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
+      const func = Blocks.verifyBlock(block, options);
       return expect(func).rejects.toMatchObject({
         message: expect.stringMatching(/^Can't verify block timestamp/),
       });
@@ -413,14 +426,14 @@ describe.skip('core/blocks', () => {
 
       // prepare lastBlock
       const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
-      coreBlocks.setLastBlock({
+      Blocks.setLastBlock({
         id: previousBlockId,
         timestamp: lastBlockTimestamp,
       } as any);
 
       // act
       const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
+      const func = Blocks.verifyBlock(block, options);
 
       return expect(func).rejects.toMatchObject({
         message: expect.stringMatching(/^Invalid amount of block assets/),

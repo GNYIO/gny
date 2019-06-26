@@ -38,22 +38,24 @@ const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
 
 export default class Blocks {
-  // priv methods
-  public static async getIdSequence2(height: number) {
+  public static async getIdSequence2(
+    height: number,
+    getBlocksByHeightRange: (min: number, max: number) => Promise<Block[]>
+  ) {
     try {
-      // TODO refactor
-      throw new Error('todo: refactor');
-      const maxHeight = Math.max(height /* this.lastBlock.height*/);
+      const maxHeight = height;
       const minHeight = Math.max(0, maxHeight - 4);
-      let blocks = await global.app.sdb.getBlocksByHeightRange(
-        minHeight,
-        maxHeight
-      );
+      let blocks = await getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
       const ids = blocks.map(b => b.id);
-      return { ids, firstHeight: minHeight } as FirstHeightIds;
+      const result: CommonBlockParams = {
+        ids,
+        min: minHeight,
+        max: maxHeight,
+      };
+      return result;
     } catch (e) {
-      throw e;
+      throw new Error('getIdSequence2 failed');
     }
   }
 
@@ -62,24 +64,21 @@ export default class Blocks {
     peer: PeerNode,
     lastBlockHeight: number
   ): Promise<IBlock> => {
-    let data: FirstHeightIds;
+    let params: CommonBlockParams;
     try {
-      data = await Blocks.getIdSequence2(lastBlockHeight);
+      params = await Blocks.getIdSequence2(
+        lastBlockHeight,
+        global.app.sdb.getBlocksByHeightRange
+      );
     } catch (e) {
       throw e;
     }
-
-    const params: CommonBlockParams = {
-      max: lastBlockHeight,
-      min: data.firstHeight,
-      ids: data.ids,
-    };
 
     let ret: CommonBlockResult;
     try {
       ret = await Peer.request('commonBlock', params, peer);
     } catch (err) {
-      return err.toString();
+      throw new Error('commonBlock could not be requested');
     }
 
     if (!ret.common) {
@@ -867,6 +866,12 @@ export default class Blocks {
     old: IState,
     numberOfBlocksInDb: number | null,
     genesisBlock: IGenesisBlock,
+    processBlock: (
+      state: IState,
+      block: any,
+      options: ProcessBlockOptions,
+      delegateList: string[]
+    ) => Promise<IState>,
     getBlocksByHeight: GetBlocksByHeight
   ) {
     let state = BlocksHelper.copyState(old);
@@ -876,12 +881,7 @@ export default class Blocks {
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
-      state = await Blocks.processBlock(
-        state,
-        genesisBlock,
-        options,
-        delegateList
-      );
+      state = await processBlock(state, genesisBlock, options, delegateList);
     } else {
       const block = await getBlocksByHeight(numberOfBlocksInDb - 1);
       state = BlocksHelper.SetLastBlock(state, block);
@@ -903,6 +903,7 @@ export default class Blocks {
             state,
             numberOfBlocksInDb,
             global.library.genesisBlock,
+            Blocks.processBlock,
             global.app.sdb.getBlockByHeight
           );
           // important

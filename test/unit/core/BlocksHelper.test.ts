@@ -786,5 +786,29 @@ describe('BlocksHelper', () => {
       expect(result).not.toBe(initialState);
       done();
     });
+
+    it('SetLastBlock() - sets last block', done => {
+      const initialState = BlocksHelper.getInitialState();
+
+      const blockId = randomHex(32);
+      const block = createRandomBlock(1, blockId);
+
+      const result = BlocksHelper.SetLastBlock(initialState, block);
+
+      expect(result.lastBlock).toEqual(block);
+      done();
+    });
+
+    it('SetLastBlock() - returns other object', done => {
+      const initialState = BlocksHelper.getInitialState();
+
+      const blockId = randomHex(32);
+      const block = createRandomBlock(1, blockId);
+
+      const result = BlocksHelper.SetLastBlock(initialState, block);
+
+      expect(result).not.toBe(initialState);
+      done();
+    });
   });
 });
