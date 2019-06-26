@@ -807,7 +807,13 @@ export default class Blocks {
       }
 
       const state = BlocksHelper.getState();
-      if (!BlocksHelper.IsBlockchainReady(state, global.library.logger)) {
+      if (
+        !BlocksHelper.IsBlockchainReady(
+          state,
+          Date.now(),
+          global.library.logger
+        )
+      ) {
         return cb();
       }
 

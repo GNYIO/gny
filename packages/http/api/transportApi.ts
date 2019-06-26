@@ -248,7 +248,13 @@ export default class TransportApi {
     return this.library.sequence.add(
       cb => {
         const state = BlocksHelper.getState();
-        if (!BlocksHelper.IsBlockchainReady(state, this.library.logger)) {
+        if (
+          !BlocksHelper.IsBlockchainReady(
+            state,
+            Date.now(),
+            this.library.logger
+          )
+        ) {
           return cb('Blockchain is not ready');
         }
 

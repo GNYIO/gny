@@ -13,6 +13,22 @@ import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
 import * as fs from 'fs';
+import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
+import slots from '../../../src/utils/slots';
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const dummyLogger = {
+  log: x => x,
+  trace: x => x,
+  debug: x => x,
+  info: x => x,
+  warn: x => x,
+  error: x => x,
+  fatal: x => x,
+};
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
@@ -24,7 +40,7 @@ function loadGenesisBlock() {
 
 function createRandomBlock(height: number = 6, prevBlockId = randomHex(32)) {
   const keyPair = randomKeyPair();
-  const timestamp = Date.now();
+  const timestamp = slots.getSlotNumber(slots.getSlotNumber());
   const lastBlock = {
     id: prevBlockId,
     height: height - 1,
@@ -808,6 +824,123 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.SetLastBlock(initialState, block);
 
       expect(result).not.toBe(initialState);
+      done();
+    });
+
+    it('ProcessBlockCleanup() - clears processingBlock state fields', done => {
+      let state = BlocksHelper.getInitialState();
+      state = ConsensusHelper.CollectingVotes(state);
+      state = BlocksHelper.MarkProposeAsReceived(state, {
+        id: 'blockId',
+      } as BlockPropose);
+      state = BlocksHelper.MarkBlockAsReceived(state, {
+        id: 'blockId',
+      } as IBlock);
+      state.lastVoteTime = 35235234;
+
+      // check before
+      expect(Object.keys(state.blockCache).length).toEqual(1);
+      expect(Object.keys(state.proposeCache).length).toEqual(1);
+      expect(state.lastVoteTime).toEqual(35235234);
+      expect(state.privIsCollectingVotes).toEqual(true);
+
+      // act
+      const result = BlocksHelper.ProcessBlockCleanup(state);
+
+      expect(result).toHaveProperty('blockCache', {});
+      expect(result).toHaveProperty('proposeCache', {});
+      expect(result).toHaveProperty('lastVoteTime', null);
+      expect(result).toHaveProperty('privIsCollectingVotes', false);
+
+      // returns other object reference
+      expect(result).not.toBe(state);
+
+      done();
+    });
+
+    it('SetLastPropose() - sets lastVoteTime and lastPropose', done => {
+      const state = BlocksHelper.getInitialState();
+
+      const lastVoteTime = Date.now();
+      const propose: BlockPropose = {
+        address: randomAddress(),
+        generatorPublicKey: randomHex(32),
+        height: 3,
+        timestamp: Date.now() - 20000,
+        hash: randomHex(64),
+        id: randomHex(32),
+        signature: randomHex(32),
+      };
+      const result = BlocksHelper.SetLastPropose(state, lastVoteTime, propose);
+
+      expect(result.lastVoteTime).toEqual(lastVoteTime);
+      expect(result.lastPropose).toEqual(propose);
+
+      // result should be other object reference
+      expect(result).not.toBe(state);
+      // propose should be other object refernce
+      expect(result.lastPropose).not.toBe(propose);
+
+      done();
+    });
+
+    it('IsBlockchainReady() - blockchain is not ready if lastSlot is 130 seconds ago', async done => {
+      // preparation
+      let state = BlocksHelper.getInitialState();
+      const block = createRandomBlock(1);
+      block.timestamp = slots.getEpochTime(undefined); // important
+      state = BlocksHelper.SetLastBlock(state, block);
+
+      const milliSeconds_130_SecondsAgo = Date.now() + 130 * 1000;
+
+      // act
+      const result = BlocksHelper.IsBlockchainReady(
+        state,
+        milliSeconds_130_SecondsAgo,
+        dummyLogger
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('IsBlockchainReady() - blockchain is ready if lastSlot is 100 seconds ago', async done => {
+      // preparation
+      let state = BlocksHelper.getInitialState();
+      const block = createRandomBlock(1);
+      block.timestamp = slots.getEpochTime(undefined); // important
+      state = BlocksHelper.SetLastBlock(state, block);
+
+      const milliSeconds_100_SecondsAgo = Date.now() + 100 * 1000;
+
+      // act
+      const result = BlocksHelper.IsBlockchainReady(
+        state,
+        milliSeconds_100_SecondsAgo,
+        dummyLogger
+      );
+
+      expect(result).toEqual(true);
+      done();
+    });
+
+    it('IsBlockchainReady() - blockchain is ready if lastSlot is 10 seconds ago', async done => {
+      // preparation
+      let state = BlocksHelper.getInitialState();
+      const block = createRandomBlock(1);
+      block.timestamp = slots.getEpochTime(undefined); // important
+      state = BlocksHelper.SetLastBlock(state, block);
+
+      const milliSeconds_10_SecondsAgo = Date.now() + 10 * 1000;
+
+      // act
+      const result = BlocksHelper.IsBlockchainReady(
+        state,
+        milliSeconds_10_SecondsAgo,
+        dummyLogger
+      );
+
+      expect(result).toEqual(true);
       done();
     });
   });

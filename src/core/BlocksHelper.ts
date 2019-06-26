@@ -300,9 +300,15 @@ export class BlocksHelper {
     return BlockMessageFitInLineResult.Success;
   }
 
-  public static IsBlockchainReady(state: IState, logger: ILogger) {
+  public static IsBlockchainReady(
+    state: IState,
+    currentMilliSeconds: number,
+    logger: ILogger
+  ) {
     const lastBlock = state.lastBlock;
-    const nextSlot = slots.getNextSlot();
+    // get next slot from current from current milliseconds (Date.now())
+    const nextSlot =
+      slots.getSlotNumber(slots.getEpochTime(currentMilliSeconds)) + 1;
     const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
     if (nextSlot - lastSlot >= 12) {
       logger.warn('Blockchain is not ready', {
