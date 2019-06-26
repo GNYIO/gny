@@ -84,7 +84,7 @@ export class BlockBase {
 
       return ed.verify(hash, blockSignatureBuffer, generatorPublicKeyBuffer);
     } catch (e) {
-      throw new Error(e.toString());
+      return false;
     }
   }
 
