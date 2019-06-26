@@ -100,9 +100,7 @@ export default class Blocks {
       throw new Error(`Failed to get block id: ${e.toString()}`);
     }
 
-    global.library.logger.debug(
-      `verifyBlock, id: ${block.id}, h: ${block.height}`
-    );
+    global.app.logger.debug(`verifyBlock, id: ${block.id}, h: ${block.height}`);
 
     if (!block.prevBlockId && block.height !== 0) {
       throw new Error('Previous block should not be null');
@@ -188,7 +186,7 @@ export default class Blocks {
   };
 
   public static applyBlock = async (state: IState, block: IBlock) => {
-    global.library.logger.trace('enter applyblock');
+    global.app.logger.trace('enter applyblock');
 
     try {
       if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
@@ -199,7 +197,7 @@ export default class Blocks {
         await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       }
     } catch (e) {
-      global.library.logger.error(`Failed to apply block ${e}`);
+      global.app.logger.error(`Failed to apply block ${e}`);
       throw new Error(`Failed to apply block: ${e}`);
     }
   };
@@ -210,7 +208,7 @@ export default class Blocks {
       try {
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
-        global.library.logger.error(`Failed to normalize block: ${e}`, block);
+        global.app.logger.error(`Failed to normalize block: ${e}`, block);
         throw e;
       }
 
@@ -313,7 +311,7 @@ export default class Blocks {
 
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
-      global.library.logger.error('save block error: ', error);
+      global.app.logger.error('save block error: ', error);
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
     }
@@ -321,7 +319,7 @@ export default class Blocks {
   };
 
   public static saveBlockTransactions = async (block: IBlock) => {
-    global.library.logger.trace(
+    global.app.logger.trace(
       'Blocks#saveBlockTransactions height',
       block.height
     );
@@ -332,7 +330,7 @@ export default class Blocks {
       trs.args = JSON.stringify(trs.args);
       await global.app.sdb.create('Transaction', trs);
     }
-    global.library.logger.trace('Blocks#save transactions');
+    global.app.logger.trace('Blocks#save transactions');
   };
 
   public static increaseRoundData = async (
@@ -371,7 +369,7 @@ export default class Blocks {
 
     if (block.height % 101 !== 0) return;
 
-    global.library.logger.debug(
+    global.app.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
     );
 
@@ -379,7 +377,7 @@ export default class Blocks {
     if (!delegates || !delegates.length) {
       throw new Error('no delegates');
     }
-    global.library.logger.debug('delegate length', delegates.length);
+    global.app.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       block.height - 100,
@@ -475,7 +473,7 @@ export default class Blocks {
         const num = Array.isArray(blocks) ? blocks.length : 0;
         const address = `${peer.host}:${peer.port - 1}`;
         // refactor
-        global.library.logger.info(`Loading ${num} blocks from ${address}`);
+        global.app.logger.info(`Loading ${num} blocks from ${address}`);
         try {
           for (const block of blocks) {
             let state = BlocksHelper.getState();
@@ -492,7 +490,7 @@ export default class Blocks {
             );
 
             lastCommonBlockId = block.id;
-            global.library.logger.info(
+            global.app.logger.info(
               `Block ${block.id} loaded from ${address} at`,
               block.height
             );
@@ -501,7 +499,7 @@ export default class Blocks {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          global.library.logger.error('Failed to process synced block', e);
+          global.app.logger.error('Failed to process synced block', e);
           throw e;
         }
       }
@@ -576,7 +574,7 @@ export default class Blocks {
   };
 
   public static fork = (block: IBlock, cause: number) => {
-    global.library.logger.info('Fork', {
+    global.app.logger.info('Fork', {
       delegate: block.delegate,
       block: {
         id: block.id,
@@ -605,7 +603,7 @@ export default class Blocks {
 
       // validate the received Block and NewBlockMessage against each other
       if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
-        global.library.logger.warn('NewBlockMessage and Block do not');
+        global.app.logger.warn('NewBlockMessage and Block do not');
         return cb();
       }
 
@@ -622,7 +620,7 @@ export default class Blocks {
       // migrated from receivePeer_NewBlockHeader
       if (!state.lastBlock) {
         // state should always have a lastBlock? correct?
-        global.library.logger.error('Last does block not exists');
+        global.app.logger.error('Last does block not exists');
         return cb();
       }
 
@@ -654,7 +652,7 @@ export default class Blocks {
           );
           // TODO: save state?
         } catch (e) {
-          global.library.logger.error('Failed to process received block', e);
+          global.app.logger.error('Failed to process received block', e);
         } finally {
           // delete already executed transactions
           for (const t of block.transactions) {
@@ -667,7 +665,7 @@ export default class Blocks {
               redoTransactions
             );
           } catch (e) {
-            global.library.logger.error(
+            global.app.logger.error(
               'Failed to redo unconfirmed transactions',
               e
             );
@@ -695,7 +693,7 @@ export default class Blocks {
         return cb('Fork');
       }
       if (block.height > state.lastBlock.height + 1) {
-        global.library.logger.info(
+        global.app.logger.info(
           `receive discontinuous block height ${block.height}`
         );
         Loader.startSyncBlocks(state.lastBlock);
@@ -729,7 +727,7 @@ export default class Blocks {
         return setImmediate(cb);
       }
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
-        global.library.logger.debug('ignore the frequently propose');
+        global.app.logger.debug('ignore the frequently propose');
         return setImmediate(cb);
       }
 
@@ -778,9 +776,9 @@ export default class Blocks {
         ],
         (err: any) => {
           if (err) {
-            global.library.logger.error(`onReceivePropose error: ${err}`);
+            global.app.logger.error(`onReceivePropose error: ${err}`);
           }
-          global.library.logger.debug('onReceivePropose finished');
+          global.app.logger.debug('onReceivePropose finished');
           cb();
         }
       );
@@ -790,7 +788,7 @@ export default class Blocks {
   public static onReceiveTransaction = (transaction: Transaction) => {
     const finishCallback = err => {
       if (err) {
-        global.library.logger.warn(
+        global.app.logger.warn(
           `Receive invalid transaction ${transaction.id}`,
           err
         );
@@ -808,11 +806,7 @@ export default class Blocks {
 
       const state = BlocksHelper.getState();
       if (
-        !BlocksHelper.IsBlockchainReady(
-          state,
-          Date.now(),
-          global.library.logger
-        )
+        !BlocksHelper.IsBlockchainReady(state, Date.now(), global.app.logger)
       ) {
         return cb();
       }
@@ -856,9 +850,7 @@ export default class Blocks {
 
           BlocksHelper.setState(state); // important
         } catch (err) {
-          global.library.logger.error(
-            `Failed to process confirmed block: ${err}`
-          );
+          global.app.logger.error(`Failed to process confirmed block: ${err}`);
         }
         return cb();
       } else {
@@ -921,7 +913,7 @@ export default class Blocks {
 
           return cb();
         } catch (err) {
-          global.library.logger.error('Failed to prepare local blockchain', e);
+          global.app.logger.error('Failed to prepare local blockchain', e);
           return cb('Failed to prepare local blockchain');
         }
       },
