@@ -1,9 +1,51 @@
 import { ConsensusBase } from '../../../src/base/consensus';
-import { IScope, ManyVotes, KeyPair, IBlock } from '../../../src/interfaces';
-import extendedJoi from '../../../src/utils/extendedJoi';
+import { KeyPair, IBlock, ManyVotes, Signature } from '../../../src/interfaces';
 import { BlockBase } from '../../../src/base/block';
+import * as ed from '../../../src/utils/ed';
+import * as crypto from 'crypto';
 
-import { createKeypair, createBlock } from './block.test';
+function createRandomSignature() {
+  const signature: Signature = {
+    publicKey: randomHex(32),
+    signature: randomHex(32),
+  };
+  return signature;
+}
+
+function randomHex(length: number) {
+  return crypto.randomBytes(length).toString('hex');
+}
+
+export function createKeypair() {
+  const randomstring = 'ABCDE';
+  const hash = crypto
+    .createHash('sha256')
+    .update(randomstring, 'utf8')
+    .digest();
+  return ed.generateKeyPair(hash);
+}
+
+export function createBlock(height: number, keypair: KeyPair) {
+  const block: IBlock = {
+    height: height,
+    version: 0,
+    timestamp: height + 2003502305230,
+    count: 0,
+    fees: 0,
+    reward: 0,
+    signature: null,
+    id: null,
+    transactions: [],
+    delegate: keypair.publicKey.toString('hex'),
+    payloadHash: createRandomBytes(32),
+  };
+
+  return block;
+}
+
+function createRandomBytes(length: number) {
+  return Buffer.from(crypto.randomBytes(length)).toString('hex');
+}
 
 describe('Consensus', () => {
   describe('normalizeVotes', () => {
@@ -75,37 +117,6 @@ describe('Consensus', () => {
     });
   });
 
-  describe.skip('addPendingVotes', () => {
-    let block: IBlock;
-    let keypairs: KeyPair[];
-    let votes: ManyVotes;
-
-    beforeEach(done => {
-      const keypair = createKeypair();
-      keypairs = [keypair];
-      block = createBlock(1, keypair);
-      block.signature = BlockBase.sign(block, keypair);
-      block.id = BlockBase.getId(block);
-      votes = ConsensusBase.createVotes(keypairs, block);
-      done();
-    });
-
-    it('should return undefined pendingBlocks property', done => {
-      const pendingVotes = ConsensusBase.addPendingVotes(votes);
-      expect(pendingVotes).toBeUndefined();
-      done();
-    });
-
-    it('should return the pending votes', done => {
-      ConsensusBase.pendingBlock = block;
-      const pendingVotes = ConsensusBase.addPendingVotes(votes);
-      expect(pendingVotes).toHaveProperty('height');
-      expect(votes).toHaveProperty('id');
-      expect(votes).toHaveProperty('signatures');
-      done();
-    });
-  });
-
   describe('hasEnoughVotes', () => {
     let block;
     let keypair;
@@ -172,30 +183,45 @@ describe('Consensus', () => {
     });
   });
 
-  describe.skip('hasEnoughVotesRemote', () => {
-    let block;
-    let keypair;
-    let timestamp;
+  describe('hasEnoughVotesRemote', () => {
+    it('hasEnoughVotesRemote() - succeeds with 6 signatures', done => {
+      // preparation
+      const votes: ManyVotes = {
+        height: 2,
+        id: randomHex(32),
+        signatures: [],
+      };
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
 
-    beforeEach(done => {
-      keypair = createKeypair();
-      block = createBlock(1, keypair);
-      block.signature = BlockBase.sign(block, keypair);
-      block.id = BlockBase.getId(block);
-      timestamp = block.timestamp;
+      // act
+      const result = ConsensusBase.hasEnoughVotesRemote(votes);
+
+      expect(result).toEqual(true);
       done();
     });
 
-    it('should return false when remote votes are not enough ', done => {
-      const existed = ConsensusBase.hasPendingBlock(timestamp);
-      expect(existed).toBeFalsy();
-      done();
-    });
+    it('hasEnoughVotesRemote() - fail if has only 5 or less signatures', done => {
+      // preparation
+      const votes: ManyVotes = {
+        height: 2,
+        id: randomHex(32),
+        signatures: [],
+      };
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
+      votes.signatures.push(createRandomSignature());
 
-    it('should return false when remote votes are not enough ', done => {
-      ConsensusBase.pendingBlock = block;
-      const existed = ConsensusBase.hasPendingBlock(timestamp);
-      expect(existed).toBeTruthy();
+      // act
+      const result = ConsensusBase.hasEnoughVotesRemote(votes);
+
+      expect(result).toEqual(false);
       done();
     });
   });
