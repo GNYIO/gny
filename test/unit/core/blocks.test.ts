@@ -1,8 +1,5 @@
 import Blocks from '../../../src/core/blocks';
 import {
-  IScope,
-  PeerNode,
-  Modules,
   IBlock,
   KeyPair,
   IGenesisBlock,
@@ -93,8 +90,8 @@ function createBlock(
     fees: 0,
     payloadHash: payloadHash.digest().toString('hex'),
     reward: 0,
-    signature: null,
-    id: null,
+    signature: undefined,
+    id: undefined,
   };
 
   block.signature = BlockBase.sign(block, keypair);
@@ -247,98 +244,56 @@ describe('core/blocks', () => {
 
       done();
     });
-  });
 
-  describe.skip('getCommonBlock()', () => {
-    beforeEach(done => {
-      const modules = {
-        peer: {
-          request: jest.fn().mockReturnValue({
-            common: {
-              id:
-                '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-            },
-          }),
-        },
-      } as any;
-      // Blocks.onBind(modules);
+    it('getIdSequence2() - throws Error with "getIdSequence2 failed" if something goes wrong', async () => {
+      // preparation
+      const currentLastBlockHeight = 30;
 
-      done();
-    });
+      const getBlocksByHeightRangeMock = jest
+        .fn()
+        .mockImplementation(() => Promise.reject('something wrong happend'));
 
-    it('getCommonBlock() - no lastBlock throws error', async () => {
-      const peer: PeerNode = {
-        host: '0.0.0.0',
-        port: 5000,
-      };
-      const lastBlockHeight = 3;
-      const func = Blocks.getCommonBlock(peer, lastBlockHeight);
-      return expect(func).rejects.toHaveProperty(
-        'message',
-        "Cannot read property 'height' of undefined"
+      // act
+      const resultPromise = Blocks.getIdSequence2(
+        currentLastBlockHeight,
+        getBlocksByHeightRangeMock
       );
-    });
 
-    it.skip('getCommonBlock() - returns commonBlock from peer', async done => {
-      // prepare
-      Blocks.setLastBlock({
-        height: 0,
-      });
-
-      const peer: PeerNode = {
-        host: '0.0.0.0',
-        port: 5000,
-      };
-      const lastBlockHeight = 0;
-
-      const result = await Blocks.getCommonBlock(peer, lastBlockHeight);
-      expect(result).toEqual({
-        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-      });
-
-      done();
-    });
-  });
-
-  describe.skip('getLastBlock()', () => {
-    it.skip('getLastBlock() - returns lastBlock', done => {
-      const result = Blocks.getLastBlock();
-      expect(result).toEqual({
-        height: -1,
-      });
-      done();
-    });
-
-    it('getLastBlock() - returns full block', done => {
-      const EXPECTED_BlOCK = {
-        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-        height: 0,
-        fees: 0,
-        reward: 0,
-        signature:
-          'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
-      };
-      Blocks.setLastBlock(EXPECTED_BlOCK);
-
-      const result = Blocks.getLastBlock();
-      expect(result).toEqual(EXPECTED_BlOCK);
-
-      done();
+      return expect(resultPromise).rejects.toHaveProperty(
+        'message',
+        'getIdSequence2 failed'
+      );
     });
   });
 
   describe.skip('verifyBlock()', () => {
-    it('verifyBlock() - wrong Block can not get Id', async () => {
+    beforeEach(done => {
+      global.app = {
+        logger: dummyLogger,
+      };
+      done();
+    });
+    afterEach(done => {
+      global.app = {};
+      done();
+    });
+
+    it('verifyBlock() - wrong Block can not get Id', () => {
+      const initialState = BlocksHelper.getInitialState();
       const wrongBlock = {} as IBlock;
       const options = {};
-      const func = Blocks.verifyBlock(wrongBlock, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(/^Failed to get block id:/),
-      });
+      const delegateList = [];
+
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(initialState, wrongBlock, options, delegateList)
+      ).toThrow(/^Failed to get block id:/);
     });
 
     it('verifyBlock() - previousBlock should not be null', async () => {
-      const block: BlockModel = {
+      const initialState = BlocksHelper.getInitialState();
+      // important: no "prevBlockId"
+      const block: IBlock = {
         height: 1,
         id: randomHex(32),
         _version_: 1,
@@ -352,15 +307,16 @@ describe('core/blocks', () => {
         signature: randomHex(64),
       };
       const options = {};
-      const func = Blocks.verifyBlock(block, options);
+      const delegateList = [];
 
-      return expect(func).rejects.toHaveProperty(
-        'message',
-        'Previous block should not be null'
-      );
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(initialState, block, options, delegateList)
+      ).toThrow('Previous block should not be null');
     });
 
-    it.skip('verifyBlock() - signature is not correct returns error', async () => {
+    it('verifyBlock() - signature is not correct returns error', () => {
+      const state = BlocksHelper.getInitialState();
       const block: BlockModel = {
         height: 1,
         id: randomHex(32),
@@ -376,37 +332,38 @@ describe('core/blocks', () => {
         prevBlockId: randomHex(32), // important
       };
       const options = {};
+      const delegateList = [];
 
-      const func = Blocks.verifyBlock(block, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /^Got exception while verify block signature/
-        ),
-      });
+      return expect(() =>
+        Blocks.verifyBlock(state, block, options, delegateList)
+      ).toThrow('Failed to verify block signature');
     });
 
-    it.skip('verifyBlock() - Incorrect previous block hash', async () => {});
+    it.skip('verifyBlock() - Incorrect previous block hash', () => {});
 
-    it("verifyBlock() - Can't verify block timestamp", async () => {
+    it.skip("verifyBlock() - Can't verify block timestamp", () => {
       const keypair = createRandomKeyPair('random secret');
+      let state = BlocksHelper.getInitialState();
+      const delegateList = [];
+      const options = {};
 
       // prepare setLastBlock
       const previousBlock = createBlock(1, keypair, {
         prevBlockId: randomHex(32),
       } as IBlock);
-      Blocks.setLastBlock(previousBlock);
+      // set previousBlock also for state
+      state = BlocksHelper.SetLastBlock(state, previousBlock);
 
-      // act
+      // create current block
       const block = createBlock(2, keypair, previousBlock);
 
-      const options = {};
-      const func = Blocks.verifyBlock(block, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(/^Can't verify block timestamp/),
-      });
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(state, block, options, delegateList)
+      ).toThrow(/^Can't verify block timestamp/);
     });
 
-    it('verifyBlock() - Invalid amount of block assets (too much transactions)', async () => {
+    it('verifyBlock() - Invalid amount of block assets (too much transactions)', () => {
       // prepare
       const TOO_MUCH_TRANSACTIONS = 20000 + 1;
 
