@@ -7,6 +7,9 @@ import { copyObject } from './helpers';
 import { TransactionBase } from './transaction';
 
 export class BlockBase {
+  /***
+   * @returns Block Id
+   */
   public static getId(old: IBlock) {
     const block = copyObject(old);
 
@@ -19,7 +22,7 @@ export class BlockBase {
   }
 
   /***
-   * returns signature
+   * @returns Block signature
    */
   public static sign(oldBlock: IBlock, oldKeypair: KeyPair): string {
     const block = copyObject(oldBlock);
@@ -29,6 +32,9 @@ export class BlockBase {
     return ed.sign(hash, keypair.privateKey).toString('hex');
   }
 
+  /***
+   * @returns Block bytes
+   */
   private static getBytes(block: IBlock, skipSignature?: any): Buffer {
     const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
@@ -64,7 +70,7 @@ export class BlockBase {
     return b;
   }
 
-  static verifySignature(block: IBlock) {
+  public static verifySignature(block: IBlock) {
     const remove = 64;
 
     try {

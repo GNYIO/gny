@@ -10,7 +10,7 @@ import * as ed from '../../../src/utils/ed';
 jest.mock('../../../packages/database-postgres/src/smartDB');
 jest.mock('../../../src/contract/basic');
 
-export function createTransation() {
+function createTransation() {
   const data: Transaction = {
     type: 10,
     fee: 10000000000,
