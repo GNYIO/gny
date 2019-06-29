@@ -739,11 +739,10 @@ export default class Blocks {
             }
           },
           async next => {
-            try {
-              ConsensusBase.acceptPropose(propose);
+            if (!ConsensusBase.acceptPropose(propose)) {
               next();
-            } catch (err) {
-              next(err);
+            } else {
+              next('did not accept propose');
             }
           },
           async next => {

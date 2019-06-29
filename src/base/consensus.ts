@@ -196,20 +196,20 @@ export class ConsensusBase {
     try {
       hash = ConsensusBase.calculateProposeHash(propose);
     } catch (err) {
-      throw new Error('could not get propose hash');
+      return false;
     }
     if (propose.hash !== hash.toString('hex')) {
-      throw new Error('Propose hash is not correct');
+      return false;
     }
     try {
       const signature = Buffer.from(propose.signature, 'hex');
       const publicKey = Buffer.from(propose.generatorPublicKey, 'hex');
       if (ed.verify(hash, signature, publicKey)) {
-        return;
+        return true;
       }
-      throw new Error('Propose signature verify failed.');
+      return false;
     } catch (e) {
-      throw new Error(`Propose signature exception: ${e.toString()}`);
+      return false;
     }
   }
 }

@@ -319,9 +319,67 @@ describe('Consensus', () => {
       done();
     });
 
-    it('acceptPropose() - should return undefined after successful verification', done => {
+    it('acceptPropose() - should return true after successful verification', done => {
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toBeUndefined();
+      expect(accepted).toBeTruthy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when propose is undefined', done => {
+      // prepration
+      propose = undefined;
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when propose is empty object', done => {
+      // prepration
+      propose = {} as BlockPropose;
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when propose hash is wrong', done => {
+      // prepration
+      propose.hash = Buffer.from('wrong hash').toString('hex');
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when "height" property was manipulated', done => {
+      // check before
+      expect(propose.height).toEqual(1);
+      // prepration
+      propose.height = 2;
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when "address" property was manipulated', done => {
+      // check before
+      expect(propose.address).toEqual('127.0.0.1:6379');
+      // prepration
+      propose.address = '49.1.91.33:1234';
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
+      done();
+    });
+
+    it('acceptPropose() - returns false when "generatorPublicKey" property was manipulated', done => {
+      // prepration
+      propose.generatorPublicKey = randomHex(32);
+
+      const accepted = ConsensusBase.acceptPropose(propose);
+      expect(accepted).toBeFalsy();
       done();
     });
   });
