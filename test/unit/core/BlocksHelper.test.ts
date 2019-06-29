@@ -943,5 +943,100 @@ describe('BlocksHelper', () => {
       expect(result).toEqual(true);
       done();
     });
+
+    it('verifyBlockSlot() - currentBlock and lastBlock having same timestamp makes check fail', done => {
+      const lastBlock = createRandomBlock(1);
+      const currentBlock = createRandomBlock(2);
+
+      // important: lastBlock and currentBlock have the same SlotNumber
+      const blockTimestamp = slots.getSlotTime(slots.getSlotNumber());
+      lastBlock.timestamp = blockTimestamp;
+      currentBlock.timestamp = blockTimestamp;
+
+      let state = BlocksHelper.getInitialState();
+      state = BlocksHelper.SetLastBlock(state, lastBlock);
+
+      // act
+      const result = BlocksHelper.verifyBlockSlot(
+        state,
+        Date.now(),
+        currentBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('verifyBlockSlot() - lastBock timestamp greater then current block makes check fail', done => {
+      const lastBlock = createRandomBlock(1);
+      const currentBlock = createRandomBlock(2);
+
+      // important: lastBlock has a greater slot number (which should not happen)
+      const currentSlotNumber = slots.getSlotNumber();
+      lastBlock.timestamp = slots.getSlotTime(currentSlotNumber + 1);
+      currentBlock.timestamp = slots.getSlotTime(currentSlotNumber);
+
+      let state = BlocksHelper.getInitialState();
+      state = BlocksHelper.SetLastBlock(state, lastBlock);
+
+      // act
+      const result = BlocksHelper.verifyBlockSlot(
+        state,
+        Date.now(),
+        currentBlock
+      );
+
+      expect(result).toEqual(false);
+
+      done();
+    });
+
+    it('verifyBlockSlot() - currentBlock timestamp is too high for next slot makes check fail', done => {
+      const lastBlock = createRandomBlock(1);
+      const currentBlock = createRandomBlock(2);
+
+      // important: currentBlock timestamp is too high for next slot
+      const currentSlotNumber = slots.getSlotNumber();
+      lastBlock.timestamp = slots.getSlotTime(currentSlotNumber);
+      currentBlock.timestamp = slots.getSlotTime(currentSlotNumber + 2);
+
+      let state = BlocksHelper.getInitialState();
+      state = BlocksHelper.SetLastBlock(state, lastBlock);
+
+      // act
+      const result = BlocksHelper.verifyBlockSlot(
+        state,
+        Date.now(),
+        currentBlock
+      );
+
+      expect(result).toEqual(false);
+
+      done();
+    });
+
+    it('verifyBlockSlot() - currentBlock is in time and a slot higher then lastBlock makes check pass', done => {
+      const lastBlock = createRandomBlock(1);
+      const currentBlock = createRandomBlock(2);
+
+      // important: current block is in time and a slot higher then lastBlock
+      const currentSlotNumber = slots.getSlotNumber();
+      lastBlock.timestamp = slots.getSlotTime(currentSlotNumber);
+      currentBlock.timestamp = slots.getSlotTime(currentSlotNumber + 1);
+
+      let state = BlocksHelper.getInitialState();
+      state = BlocksHelper.SetLastBlock(state, lastBlock);
+
+      // act
+      const result = BlocksHelper.verifyBlockSlot(
+        state,
+        Date.now(),
+        currentBlock
+      );
+
+      expect(result).toEqual(true);
+
+      done();
+    });
   });
 });

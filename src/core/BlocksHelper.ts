@@ -360,4 +360,24 @@ export class BlocksHelper {
 
     return state;
   }
+
+  public static verifyBlockSlot(
+    state: IState,
+    currentMilliSeconds: number,
+    block: IBlock
+  ) {
+    const blockSlotNumber = slots.getSlotNumber(block.timestamp);
+    const lastBlockSlotNumber = slots.getSlotNumber(state.lastBlock.timestamp);
+
+    const currentEpochTime = slots.getEpochTime(currentMilliSeconds);
+    const nextSlotNumber = slots.getSlotNumber(currentEpochTime) + 1;
+
+    if (blockSlotNumber > nextSlotNumber) {
+      return false;
+    }
+    if (blockSlotNumber <= lastBlockSlotNumber) {
+      return false;
+    }
+    return true;
+  }
 }

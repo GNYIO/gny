@@ -115,15 +115,7 @@ export default class Blocks {
     }
 
     if (block.height !== 0) {
-      const blockSlotNumber = slots.getSlotNumber(block.timestamp);
-      const lastBlockSlotNumber = slots.getSlotNumber(
-        state.lastBlock.timestamp
-      );
-
-      if (
-        blockSlotNumber > slots.getSlotNumber() + 1 ||
-        blockSlotNumber <= lastBlockSlotNumber
-      ) {
+      if (!BlocksHelper.verifyBlockSlot(state, Date.now(), block)) {
         throw new Error(`Can't verify block timestamp: ${block.id}`);
       }
     }
