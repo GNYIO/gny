@@ -1,5 +1,11 @@
 import { ConsensusBase } from '../../../src/base/consensus';
-import { KeyPair, IBlock, ManyVotes, Signature } from '../../../src/interfaces';
+import {
+  KeyPair,
+  IBlock,
+  ManyVotes,
+  Signature,
+  BlockPropose,
+} from '../../../src/interfaces';
 import { BlockBase } from '../../../src/base/block';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
@@ -49,9 +55,9 @@ function createRandomBytes(length: number) {
 
 describe('Consensus', () => {
   describe('normalizeVotes', () => {
-    let block;
-    let keypairs;
-    let votes;
+    let block: IBlock;
+    let keypairs: KeyPair[];
+    let votes: ManyVotes;
 
     beforeEach(done => {
       const keypair = createKeypair();
@@ -60,6 +66,13 @@ describe('Consensus', () => {
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       votes = ConsensusBase.createVotes(keypairs, block);
+      done();
+    });
+
+    afterEach(done => {
+      block = undefined;
+      keypairs = undefined;
+      votes = undefined;
       done();
     });
 
@@ -71,8 +84,8 @@ describe('Consensus', () => {
   });
 
   describe('createVotes', () => {
-    let block;
-    let keypairs;
+    let block: IBlock;
+    let keypairs: KeyPair[];
 
     beforeEach(done => {
       const keypair = createKeypair();
@@ -83,19 +96,33 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return votes', done => {
+    afterEach(done => {
+      block = undefined;
+      keypairs = undefined;
+      done();
+    });
+
+    it('createVotes() - should return vote signatures', done => {
+      // check before
+      expect(keypairs).toHaveLength(1);
+
+      // act
       const votes = ConsensusBase.createVotes(keypairs, block);
+
+      // assert
       expect(votes).toHaveProperty('height');
       expect(votes).toHaveProperty('id');
       expect(votes).toHaveProperty('signatures');
+      expect(votes.signatures).toHaveLength(1);
+
       done();
     });
   });
 
   describe('verifyVote', () => {
-    let block;
-    let keypairs;
-    let votes;
+    let block: IBlock;
+    let keypairs: KeyPair[];
+    let votes: ManyVotes;
 
     beforeEach(done => {
       const keypair = createKeypair();
@@ -107,7 +134,19 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return true when valid votes are checked ', done => {
+    afterEach(done => {
+      block = undefined;
+      keypairs = undefined;
+      votes = undefined;
+      done();
+    });
+
+    it('verifyVote() - should return true when valid votes are checked ', done => {
+      expect.assertions(2); // one check before, one actual assertion
+
+      // check before
+      expect(votes.signatures).toHaveLength(1);
+
       for (let i = 0; i < votes.signatures.length; ++i) {
         const item = votes.signatures[i];
         const verified = ConsensusBase.verifyVote(votes.height, votes.id, item);
@@ -118,10 +157,10 @@ describe('Consensus', () => {
   });
 
   describe('hasEnoughVotes', () => {
-    let block;
-    let keypair;
-    let keypairs;
-    let votes;
+    let block: IBlock;
+    let keypair: KeyPair;
+    let keypairs: KeyPair[];
+    let votes: ManyVotes;
 
     beforeEach(done => {
       keypair = createKeypair();
@@ -133,51 +172,43 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return false when votes are not enough ', done => {
+    afterEach(done => {
+      block = undefined;
+      keypair = undefined;
+      keypairs = undefined;
+      votes = undefined;
+      done();
+    });
+
+    it('hasEnoughVotes() - 1 vote is not enough', done => {
+      expect(votes.signatures).toHaveLength(1);
       const hasEnough = ConsensusBase.hasEnoughVotes(votes);
       expect(hasEnough).toBeFalsy();
       done();
     });
 
-    it('should return true when votes are not enough ', done => {
+    it('hasEnoughVotes() - 67 votes are not enough', done => {
+      keypairs = [];
       for (let i = 0; i < 67; i++) {
         keypairs.push(keypair);
       }
       votes = ConsensusBase.createVotes(keypairs, block);
+      expect(votes.signatures).toHaveLength(67);
+
       const hasEnough = ConsensusBase.hasEnoughVotes(votes);
-      expect(hasEnough).toBeTruthy();
-      done();
-    });
-  });
-
-  describe('hasEnoughVotesRemote', () => {
-    let block;
-    let keypair;
-    let keypairs;
-    let votes;
-
-    beforeEach(done => {
-      keypair = createKeypair();
-      keypairs = [keypair];
-      block = createBlock(1, keypair);
-      block.signature = BlockBase.sign(block, keypair);
-      block.id = BlockBase.getId(block);
-      votes = ConsensusBase.createVotes(keypairs, block);
-      done();
-    });
-
-    it('should return false when votes are not enough ', done => {
-      const hasEnough = ConsensusBase.hasEnoughVotesRemote(votes);
       expect(hasEnough).toBeFalsy();
       done();
     });
 
-    it('should return false when votes are not enough ', done => {
-      for (let i = 0; i < 6; i++) {
+    it('hasEnoughVotes() - 68 votes are enough', done => {
+      keypairs = [];
+      for (let i = 0; i < 68; i++) {
         keypairs.push(keypair);
       }
       votes = ConsensusBase.createVotes(keypairs, block);
-      const hasEnough = ConsensusBase.hasEnoughVotesRemote(votes);
+      expect(votes.signatures).toHaveLength(68);
+
+      const hasEnough = ConsensusBase.hasEnoughVotes(votes);
       expect(hasEnough).toBeTruthy();
       done();
     });
@@ -227,9 +258,9 @@ describe('Consensus', () => {
   });
 
   describe('createPropose', () => {
-    let block;
-    let keypair;
-    let address;
+    let block: IBlock;
+    let keypair: KeyPair;
+    let address: string;
 
     beforeEach(done => {
       keypair = createKeypair();
@@ -240,18 +271,35 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return a propse', done => {
+    afterEach(done => {
+      block = undefined;
+      keypair = undefined;
+      address = undefined;
+      done();
+    });
+
+    it('createPropose() - should return a propse', done => {
       const propose = ConsensusBase.createPropose(keypair, block, address);
       expect(propose).toHaveProperty('signature');
       done();
     });
+
+    it('createPropose() - should throw when public keys do not match', () => {
+      // preparation ()
+      keypair.publicKey = Buffer.from('wrong publicKey');
+
+      // act and assert
+      return expect(() =>
+        ConsensusBase.createPropose(keypair, block, address)
+      ).toThrow('delegate public keys do not match');
+    });
   });
 
   describe('acceptPropose', () => {
-    let block;
-    let keypair;
-    let address;
-    let propose;
+    let block: IBlock;
+    let keypair: KeyPair;
+    let address: string;
+    let propose: BlockPropose;
 
     beforeEach(done => {
       keypair = createKeypair();
@@ -263,7 +311,15 @@ describe('Consensus', () => {
       done();
     });
 
-    it('should return undefined after successful verification', done => {
+    afterEach(done => {
+      block = undefined;
+      keypair = undefined;
+      address = undefined;
+      propose = undefined;
+      done();
+    });
+
+    it('acceptPropose() - should return undefined after successful verification', done => {
       const accepted = ConsensusBase.acceptPropose(propose);
       expect(accepted).toBeUndefined();
       done();

@@ -58,10 +58,7 @@ export class ConsensusBase {
     return votes;
   }
 
-  public static createVotes(
-    keypairs: KeyPair[],
-    heightAndId: BlockHeightId
-  ): ManyVotes {
+  public static createVotes(keypairs: KeyPair[], heightAndId: BlockHeightId) {
     const hash = ConsensusBase.calculateVoteHash(
       heightAndId.height,
       heightAndId.id
@@ -134,7 +131,10 @@ export class ConsensusBase {
     block: IBlock,
     address: string
   ) {
-    assert(keypair.publicKey.toString('hex') === block.delegate);
+    assert(
+      keypair.publicKey.toString('hex') === block.delegate,
+      'delegate public keys do not match'
+    );
 
     const basePropose: Pick<
       BlockPropose,

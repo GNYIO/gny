@@ -10,7 +10,7 @@ import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
 
 export class TransactionBase {
-  public static normalizeTransaction(old) {
+  public static normalizeTransaction(old: any) {
     const transaction = copyObject(old);
 
     for (const i in transaction) {
