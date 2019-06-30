@@ -334,6 +334,69 @@ describe('contract environment', () => {
     );
 
     it.skip('negative fee with UNSIGNED transaction', async () => {});
+
+    it('message field (UNSIGNED transaction) allows empty string', async done => {
+      const recipient = lib.createRandomAddress();
+      const EMPTY_STRING = '';
+      const trs = {
+        type: 0,
+        fee: 0.1 * 1e8,
+        args: ['1', recipient],
+        secret: genesisSecret,
+        message: EMPTY_STRING,
+      };
+
+      const result = await axios.put(UNSIGNED_URL, trs, config);
+
+      expect(result.data).toHaveProperty('transactionId');
+      done();
+    });
+
+    it('message field (UNSIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
+      const recipient = lib.createRandomAddress();
+      const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
+      const trs = {
+        type: 0,
+        fee: 0.1 * 1e8,
+        args: ['1', recipient],
+        secret: genesisSecret,
+        message: NON_ALPHYNUMERICAL_MESSAGE,
+      };
+
+      const resultPromise = axios.put(UNSIGNED_URL, trs, config);
+
+      return expect(resultPromise).rejects.toHaveProperty('response.data', {
+        error: 'Invalid transaction body',
+        success: false,
+      });
+    });
+
+    it.only('message field (SIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
+      const recipient = lib.createRandomAddress();
+      const amount = 1 * 1e8;
+      const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
+
+      const trs = gnyJS.basic.transfer(
+        recipient,
+        amount,
+        NON_ALPHYNUMERICAL_MESSAGE,
+        genesisSecret
+      );
+
+      const transData = {
+        transaction: trs,
+      };
+
+      const contractPromise = axios.post(
+        'http://localhost:4096/peer/transactions',
+        transData,
+        config
+      );
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
+    });
   });
 
   describe('batch', () => {

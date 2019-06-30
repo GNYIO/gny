@@ -60,6 +60,7 @@ export class TransactionBase {
       message: joi
         .string()
         .max(256)
+        .alphanum()
         .allow('')
         .optional(),
       senderId: joi

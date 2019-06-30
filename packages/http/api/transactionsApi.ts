@@ -80,7 +80,12 @@ export default class TransactionsApi {
         .min(0)
         .max(1000),
       height: this.library.joi.number().min(0),
-      message: this.library.joi.string(),
+      message: this.library.joi
+        .string()
+        .max(256)
+        .alphanum()
+        .allow('')
+        .optional(),
     });
 
     const report = this.library.joi.validate(query, schema);
@@ -221,6 +226,8 @@ export default class TransactionsApi {
       message: this.library.joi
         .string()
         .max(256)
+        .alphanum()
+        .allow('')
         .optional(),
       senderId: this.library.joi
         .string()
