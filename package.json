@@ -119,7 +119,6 @@
     "type-fest": "^0.3.0",
     "typeorm": "^0.2.16",
     "typescript": "^3.3.3",
-    "validate.js": "=0.12.0",
     "z-schema": "https://github.com/AschPlatform/z-schema/tarball/v3.15.2+asch.1"
   },
   "devDependencies": {

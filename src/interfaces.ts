@@ -112,7 +112,7 @@ interface IUtil {
   bignumber: typeof BigNumber;
 }
 
-interface IValidatorConstraints {
+export interface IValidatorConstraints {
   length?: number;
   isEmail?: boolean;
   url?: boolean;
@@ -123,16 +123,17 @@ interface IValidators {
   amount: (amount: string) => string;
   name: (amount: string) => string;
   publickey: (value: string) => string;
-  string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
-type ICurrency = string;
-type IFee = string;
-
-interface ICurrencyFee {
-  currency: ICurrency;
-  min: IFee;
+interface IContractTypeMapping {
+  [type: string]: string;
 }
+
+type ValidateFuncs = (
+  type: string,
+  value: any,
+  constraints?: IValidatorConstraints
+) => void | never;
 
 interface IApp {
   sdb: SmartDB;
@@ -140,31 +141,12 @@ interface IApp {
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
-  validate: (
-    type: string,
-    value: any,
-    constraints?: IValidatorConstraints
-  ) => void | never;
-  registerContract: (type: number, name: string) => void;
+  validate: ValidateFuncs;
   getContractName: (type: string) => any;
-  contractTypeMapping: {
-    [type: string]: string;
-  };
+  contractTypeMapping: IContractTypeMapping;
   contract: {
     [name: string]: any;
   };
-  registerFee: (type: number, min: string, currency: string) => void;
-  defaultFee: ICurrencyFee;
-  feeMapping: {
-    [type: string]: ICurrencyFee;
-  };
-  getFee: (type: string) => ICurrencyFee;
-  setDefaultFee: (min: string, currency: string) => void;
-  addRoundFee: (fee: IFee, roundNumber: number) => void;
-  hooks: {
-    [name: string]: () => void;
-  };
-  registerHook: (name: string, func: () => void) => void;
   logger: ILogger;
 }
 
