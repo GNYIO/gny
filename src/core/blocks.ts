@@ -739,7 +739,7 @@ export default class Blocks {
             }
           },
           async next => {
-            if (!ConsensusBase.acceptPropose(propose)) {
+            if (ConsensusBase.acceptPropose(propose)) {
               next();
             } else {
               next('did not accept propose');
