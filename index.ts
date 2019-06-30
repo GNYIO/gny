@@ -1,33 +1,9 @@
-import * as assert from 'assert';
-import * as crypto from 'crypto';
 import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
 import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
-import { TransactionBase } from './src/base/transaction';
-import { BlockBase } from './src/base/block';
 import { StateHelper } from './src/core/StateHelper';
-
-function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
-  try {
-    const payloadHash = crypto.createHash('sha256');
-
-    for (let i = 0; i < block.transactions.length; i++) {
-      const trs = block.transactions[i];
-      const bytes = TransactionBase.getBytes(trs);
-      payloadHash.update(bytes);
-    }
-    const id = BlockBase.getId(block);
-    assert.equal(
-      payloadHash.digest().toString('hex'),
-      block.payloadHash,
-      'Unexpected payloadHash'
-    );
-    assert.equal(id, block.id, 'Unexpected block id');
-  } catch (e) {
-    throw e;
-  }
-}
+import { verifyGenesisBlock } from './src/utils/verifyGenesisBlock';
 
 interface LocalOptions {
   appConfig: IConfig;
@@ -103,7 +79,7 @@ export default class Application {
       process.emit('cleanup');
     });
 
-    verifyGenesisBlock(scope, scope.genesisBlock);
+    verifyGenesisBlock(scope.genesisBlock);
 
     options.library = scope;
 
