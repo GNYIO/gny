@@ -30,7 +30,7 @@ export class BlocksHelper {
   public static getInitialState() {
     const state: IState = {
       // TODO: check correct init values
-      votesKeySet: new Set(),
+      votesKeySet: {},
       pendingBlock: undefined,
       pendingVotes: undefined,
 

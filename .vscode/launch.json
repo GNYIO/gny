@@ -53,12 +53,12 @@
           "--verbose",
           "--runInBand",
           "--no-cache",
-          "test/unit/core/block"
+          "test/unit/core/ConsensusHelper"
       ],
       "runtimeArgs": [
           "--nolazy"
       ],
-      "console": "integratedTerminal",
+      "console": "internalConsole",
       "env": {
           "NODE_ENV": "test"
       },

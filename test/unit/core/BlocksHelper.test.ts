@@ -207,7 +207,7 @@ describe('BlocksHelper', () => {
         const initialState = BlocksHelper.getInitialState();
 
         expect(initialState).toEqual({
-          votesKeySet: new Set(),
+          votesKeySet: {},
           pendingBlock: undefined,
           pendingVotes: undefined,
 

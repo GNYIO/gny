@@ -20,6 +20,7 @@ export class ConsensusHelper {
     for (let i = 0; i < votes.signatures.length; ++i) {
       const item = votes.signatures[i];
       const votesKeySet = state.votesKeySet;
+      // check if same vote is already there
       if (votesKeySet[item.publicKey]) {
         continue;
       }
@@ -64,7 +65,7 @@ export class ConsensusHelper {
   public static clearState(old: IState) {
     const state = BlocksHelper.copyState(old);
 
-    state.votesKeySet = new Set();
+    state.votesKeySet = {};
     state.pendingBlock = undefined;
     state.pendingVotes = undefined;
 

@@ -40,7 +40,7 @@ import { LimitCache } from './utils/limit-cache';
 import * as LRU from 'lru-cache';
 
 export interface IState {
-  votesKeySet: Set<any>;
+  votesKeySet: ISimpleCache<boolean>;
   pendingBlock: IBlock;
   pendingVotes: ManyVotes;
 
