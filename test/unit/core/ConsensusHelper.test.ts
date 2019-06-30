@@ -61,11 +61,75 @@ describe('ConsensusHelper', () => {
       done();
     });
 
-    it.skip('addPendingVotes() - calling function with votes that have not same block "height" as the pendingBlock are not getting added', done => {});
+    it('addPendingVotes() - calling function with votes that have not same block "height" as the pendingBlock are not getting added', done => {
+      // preparation block 1
+      const block1 = {
+        height: 1,
+        id: 'id1',
+      } as IBlock;
+      let state = BlocksHelper.getInitialState();
+      state = ConsensusHelper.setPendingBlock(state, block1);
 
-    it.skip('addPendingVotes() - calling function with votes that have not the same block "id" as the pendingBlock are not getting added', done => {});
+      const keypairs = [randomKeyPair()];
 
-    it.skip('addingPendingVotes() - adding twice the same vote from a delegate (publicKey) has no effect on pendingVotes signatures', done => {});
+      // create votes for "almost" the same block (with other height)
+      const block2 = {
+        height: 2,
+        id: 'id1',
+      } as IBlock;
+      const votes = ConsensusBase.createVotes(keypairs, block2);
+
+      // pre check: the pendingBlock.id and votes.id are the same
+      expect(state.pendingBlock.id).toEqual(votes.id);
+      // pre check: the pendingBlock.height and votes.height are NOT the same
+      expect(state.pendingBlock.height).not.toEqual(votes.height);
+
+      // act
+      const result = ConsensusHelper.addPendingVotes(state, votes);
+
+      // assert that state did not change
+      expect(result).toEqual(state);
+      expect(result.pendingVotes).toBeUndefined();
+
+      done();
+    });
+
+    it.only('addPendingVotes() - calling function with votes that have not the same block "id" as the pendingBlock are not getting added', done => {
+      // preparation block 1
+      const block1 = {
+        height: 1,
+        id: 'id1',
+      } as IBlock;
+      let state = BlocksHelper.getInitialState();
+      state = ConsensusHelper.setPendingBlock(state, block1);
+
+      const keypairs = [randomKeyPair()];
+
+      // create votes for "almost" the same block (with other id)
+      const block2 = {
+        height: 1,
+        id: 'id2',
+      } as IBlock;
+      const votes = ConsensusBase.createVotes(keypairs, block2);
+
+      // pre check: the pendingBlock.id and votes.id are NOT the same
+      expect(state.pendingBlock.id).not.toEqual(votes.id);
+      // pre check: the pendingBlock.height and votes.height are the same
+      expect(state.pendingBlock.height).toEqual(votes.height);
+
+      // act
+      const result = ConsensusHelper.addPendingVotes(state, votes);
+
+      // assert that state did not change
+      expect(result).toEqual(state);
+      expect(result.pendingVotes).toBeUndefined();
+
+      done();
+    });
+
+    it.skip('addingPendingVotes() - adding twice the same vote from a delegate (publicKey) has no effect on pendingVotes signatures', done => {
+      // preparation
+    });
 
     it('addPendingVotes() - adds pendingVotes if no pendingVotes are available yet', done => {
       // prepration, important: first set the pendingBlock
