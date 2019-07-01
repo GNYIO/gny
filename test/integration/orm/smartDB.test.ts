@@ -304,6 +304,53 @@ describe('integration - SmartDB', () => {
     done();
   }, 5000);
 
+  it.only('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const fourth = createBlock(4);
+    sut.beginBlock(fourth);
+    await sut.commitBlock();
+
+    // act rollback to height 2
+    await sut.rollbackBlock(2);
+
+    const thrid2 = createBlock(3);
+    sut.beginBlock(thrid2);
+    await sut.commitBlock();
+
+    const fourth2 = createBlock(4);
+    sut.beginBlock(fourth2);
+    await sut.commitBlock();
+
+    const fifth = createBlock(5);
+    sut.beginBlock(fifth);
+    await sut.commitBlock();
+
+    // get result
+    const result = await sut.getBlocksByHeightRange(0, 5, false);
+    expect(result.length).toEqual(6);
+    expect(result[0].height).toEqual(0);
+    expect(result[1].height).toEqual(1);
+    expect(result[2].height).toEqual(2);
+    expect(result[3].height).toEqual(3);
+    expect(result[4].height).toEqual(4);
+    expect(result[5].height).toEqual(5);
+
+    done();
+  });
+
   it('getBlocksByHeightRange - WHERE height >= min AND height <= max', async done => {
     await saveGenesisBlock(sut);
 
