@@ -1,27 +1,39 @@
-/**
- * @jest-environment node
- */
 import * as gnyJS from '../../packages/gny-js';
 import * as crypto from 'crypto';
 import * as bs58 from 'bs58';
 import axios from 'axios';
-import * as lib from './lib';
 
+import si = require('systeminformation');
 import Benchmark = require('benchmark');
 
 async function onStart() {
-  console.log('Benchmark for single transaction started...');
-  // await lib.deleteOldDockerImages();
-  // await lib.buildDockerImage();
-  // await lib.spawnContainer();
-
-  // await lib.sleep(lib.tenMinutes);
+  console.log('Benchmark for batch transactions started...');
 }
 
-function onComplete(event) {
+async function onComplete(event) {
+  const sysData = await si.getStaticData();
+
+  const cpu = sysData.cpu;
+  console.log('CPU Information:');
+  console.log('- manufucturer: ' + cpu.manufacturer);
+  console.log('- brand: ' + cpu.brand);
+  console.log('- speed: ' + cpu.speed);
+  console.log('- cores: ' + cpu.cores);
+  console.log('- physical cores: ' + cpu.physicalCores);
+  console.log('...');
+
+  const memory = sysData.memLayout;
+  let size = 0;
+  for (const item of memory) {
+    size += item.size;
+  }
+
+  console.log('Memory Information:');
+  console.log('- size: ' + size);
+  console.log('- type: ' + memory[0].type);
+  console.log('...');
+
   console.log('Benchmark ended...');
-  console.log('The number of iterations per second: ' + event.target.hz);
-  console.log('Successful test: ' + this.filter('successful').map('name'));
 }
 
 function onAbort() {
@@ -68,63 +80,43 @@ const config = {
   },
 };
 
-describe('test single', () => {
-  beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
-    done();
-  }, lib.tenMinutes);
+async function batchTransaction() {
+  const test = createTransactions(100);
+  try {
+    const data = {
+      transactions: test,
+    };
 
-  beforeEach(async done => {
-    await lib.spawnContainer();
-    done();
-  }, lib.oneMinute);
+    const result = await axios.put(
+      'http://localhost:4096/api/transactions/batch',
+      data,
+      config
+    );
+    // console.log(JSON.stringify(result.data, null, 2));
+  } catch (e) {
+    console.log(e);
+    // console.log(JSON.stringify(e.response.data, null, 2));
+  }
+}
 
-  afterEach(async done => {
-    await lib.stopAndKillContainer();
-    done();
-  }, lib.oneMinute);
+const suite = new Benchmark.Suite('BatchTransactions', {
+  // called when the suite starts running
+  onStart: onStart,
 
-  it('test single', async () => {
-    async function batchTransaction() {
-      const test = createTransactions(10);
-      try {
-        const data = {
-          transactions: test,
-        };
+  // called between running benchmarks
+  onCycle: function(event) {
+    console.log(String(event.target));
+  },
 
-        const result = await axios.put(
-          'http://localhost:4096/api/transactions/batch',
-          data,
-          config
-        );
-        // console.log(JSON.stringify(result.data, null, 2));
-      } catch (e) {
-        console.log(e);
-        // console.log(JSON.stringify(e.response.data, null, 2));
-      }
-    }
+  // called when aborted
+  onAbort: onAbort,
 
-    const suite = new Benchmark.Suite('BatchTransactions', {
-      // called when the suite starts running
-      onStart: onStart,
+  // called when a test errors
+  onError: onError,
 
-      // called between running benchmarks
-      onCycle: function(event) {
-        console.log(String(event.target));
-      },
-
-      // called when aborted
-      onAbort: onAbort,
-
-      // called when a test errors
-      onError: onError,
-
-      // called when the suite completes running
-      onComplete: onComplete,
-    });
-    suite.add('BatchTransactions#test', batchTransaction);
-
-    suite.run();
-  });
+  // called when the suite completes running
+  onComplete: onComplete,
 });
+suite.add('BatchTransactions', batchTransaction);
+
+suite.run({ async: true });
