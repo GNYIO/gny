@@ -1,6 +1,12 @@
 import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
+import { CommonBlockParams } from '../../../src/interfaces';
+import * as crypto from 'crypto';
+
+function randomHex(length: number) {
+  return crypto.randomBytes(length).toString('hex');
+}
 
 const config = {
   headers: {
@@ -62,51 +68,171 @@ describe('transportApi', () => {
     );
   });
 
-  // describe('/commonBlock', () => {
-  //   it(
-  //     'should get common block',
-  //     async done => {
-  //       const height = 2;
-  //       // wait 3 blocks;
-  //       await lib.onNewBlock();
-  //       await lib.onNewBlock();
-  //       await lib.onNewBlock();
+  describe('/commonBlock', () => {
+    it(
+      'commonBlock() - returns validation error when no ids are send with request',
+      async () => {
+        // wait 3 blocks;
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
 
-  //       const blockData = await axios.get(
-  //         'http://localhost:4096/api/blocks/getBlock?height=' + height
-  //       );
+        const NO_BLOCK_IDS = [];
+        const query: CommonBlockParams = {
+          min: 0,
+          max: 2,
+          ids: NO_BLOCK_IDS,
+        };
 
-  //       // get common block
-  //       const query = {
-  //         min: 0,
-  //         max: 4,
-  //         ids: [blockData.data.block.id],
-  //       }
+        const resultPromise = axios.post(
+          'http://localhost:4096/peer/commonBlock',
+          query,
+          config
+        );
 
-  //       // const { data } = await axios.post(
-  //       //   'http://localhost:4096/peer/commonBlock',
-  //       //   query,
-  //       //   config
-  //       // );
-  //       // console.log(data);
+        return expect(resultPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: expect.stringMatching(/^validation failed/),
+        });
+      },
+      lib.oneMinute
+    );
 
-  //       try {
-  //         const { data } = await axios.post(
-  //           'http://localhost:4096/peer/commonBlock',
-  //           query,
-  //           config
-  //         );
-  //         console.log(data);
-  //       } catch (error) {
-  //         console.log(error);
-  //       }
-  //       // expect(data).toHaveProperty('block');
-  //       // expect(data).toHaveProperty('votes');
-  //       done();
-  //     },
-  //     lib.oneMinute
-  //   );
-  // });
+    it(
+      'commonBlock() - having min and max more then 10 blocks apart returns error',
+      async () => {
+        // wait 12 blocks
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        // this would search for 11 blocks in DB
+        const query: CommonBlockParams = {
+          min: 1,
+          max: 11,
+          ids: [randomHex(32)],
+        };
+
+        const resultPromise = axios.post(
+          'http://localhost:4096/peer/commonBlock',
+          query,
+          config
+        );
+
+        return expect(resultPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'too big min,max',
+        });
+      },
+      3 * lib.oneMinute
+    );
+
+    it(
+      'commonBlock() - returns error if no commonBlock was found',
+      async () => {
+        // wait 3 blocks;
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        // get common block
+        const query: CommonBlockParams = {
+          min: 0,
+          max: 3,
+          ids: [randomHex(32)],
+        };
+
+        const resultPromise = axios.post(
+          'http://localhost:4096/peer/commonBlock',
+          query,
+          config
+        );
+
+        return expect(resultPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Common block not found',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'commonBlock() - returns validation error when sending greater min then max',
+      async () => {
+        // wait 3 blocks;
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        const query: CommonBlockParams = {
+          min: 4,
+          max: 3,
+          ids: [randomHex(32)],
+        };
+
+        const resultPromise = axios.post(
+          'http://localhost:4096/peer/commonBlock',
+          query,
+          config
+        );
+
+        return expect(resultPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Failed to find common block',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'commonBlock() - should get common block',
+      async done => {
+        // wait 5 blocks;
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        const height = await lib.getHeight();
+
+        const blockData = await axios.get(
+          'http://localhost:4096/api/blocks/getBlock?height=' + height
+        );
+
+        // get common block
+        const query: CommonBlockParams = {
+          min: height - 4,
+          max: height,
+          ids: [blockData.data.block.id as string],
+        };
+
+        const { data } = await axios.post(
+          'http://localhost:4096/peer/commonBlock',
+          query,
+          config
+        );
+
+        expect(data.common).not.toBeUndefined();
+        expect(data.common.height).toEqual(height);
+
+        done();
+      },
+      2 * lib.oneMinute
+    );
+  });
 
   describe('/blocks', () => {
     it(
@@ -142,7 +268,7 @@ describe('transportApi', () => {
 
   describe('/transactions', () => {
     it(
-      'should get transactions',
+      '/transactions() - should execute one transaction transactions',
       async done => {
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;

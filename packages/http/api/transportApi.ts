@@ -2,12 +2,12 @@ import * as express from 'express';
 import osInfo from '../../../src/utils/osInfo';
 import { Request, Response } from 'express';
 import {
-  Modules,
   IScope,
   Next,
   ManyVotes,
   Transaction,
   IBlock,
+  CommonBlockResult,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
@@ -135,11 +135,17 @@ export default class TransportApi {
             .hex()
             .required()
         )
+        .min(1)
         .required(),
     });
     const report = joi.validate(body, schema);
     if (report.error) {
       return next('validation failed: ' + report.error.message);
+    }
+
+    // prevent DDOS attack
+    if (Math.abs(body.max - body.min) >= 10) {
+      return next('too big min,max');
     }
 
     const max = body.max;
@@ -164,7 +170,11 @@ export default class TransportApi {
       if (!commonBlock) {
         return next('Common block not found');
       }
-      return res.json({ success: true, common: commonBlock });
+      const result: CommonBlockResult = {
+        success: true,
+        common: commonBlock,
+      };
+      return res.json(result);
     } catch (e) {
       global.app.logger.error(`Failed to find common block: ${e}`);
       return next('Failed to find common block');
