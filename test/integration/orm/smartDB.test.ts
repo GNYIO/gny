@@ -3,12 +3,11 @@ import {
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
 import { ILogger } from '../../../src/interfaces';
-import { cloneDeep } from 'lodash';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
-import { deepCopy } from '../../../packages/database-postgres/src/codeContract';
+import { cloneDeep } from 'lodash';
 import * as fs from 'fs';
 import * as lib from '../lib';
 
@@ -304,7 +303,7 @@ describe('integration - SmartDB', () => {
     done();
   }, 5000);
 
-  it.only('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async done => {
+  it('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async done => {
     await saveGenesisBlock(sut);
 
     const first = createBlock(1);
@@ -389,6 +388,21 @@ describe('integration - SmartDB', () => {
     done();
   }, 5000);
 
+  it('getBlocksByHeightRange - throws if min param is greater then max param', async () => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const MIN = 1;
+    const MAX = 0;
+
+    const resultPromise = sut.getBlocksByHeightRange(MIN, MAX);
+
+    return expect(resultPromise).rejects.toThrow();
+  }, 5000);
+
   it('rollbackBlock() - rollback current block after beginBlock()', async done => {
     await saveGenesisBlock(sut);
 
@@ -431,7 +445,7 @@ describe('integration - SmartDB', () => {
     // before
     expect(sut.lastBlockHeight).toEqual(2);
     const existsSecond = await sut.load('Block', { height: 2 }); // get() loads only from cache
-    const secondWithoutTrs = deepCopy(second);
+    const secondWithoutTrs = cloneDeep(second);
     Reflect.deleteProperty(secondWithoutTrs, 'transactions');
     expect(existsSecond).toEqual(secondWithoutTrs);
 
