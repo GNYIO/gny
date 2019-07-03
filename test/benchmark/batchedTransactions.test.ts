@@ -85,23 +85,23 @@ describe('test batch', () => {
         const sysData = await si.getStaticData();
 
         const cpu = sysData.cpu;
-        console.log('CPU Information:');
-        console.log('- manufucturer: ' + cpu.manufacturer);
-        console.log('- brand: ' + cpu.brand);
-        console.log('- speed: ' + cpu.speed);
-        console.log('- cores: ' + cpu.cores);
-        console.log('- physical cores: ' + cpu.physicalCores);
-        console.log('...');
+        console.log(`CPU Information:
+        - manufucturer: ${cpu.manufacturer}
+        - brand: ${cpu.brand}
+        - speed: ${cpu.speed}
+        - cores: ${cpu.cores}
+        - cores: ${cpu.physicalCores}
+        `);
 
         const memory = sysData.memLayout;
         let size = 0;
         for (const item of memory) {
           size += item.size;
         }
-        console.log('Memory Information:');
-        console.log('- size: ' + size);
-        console.log('- type: ' + memory[0].type);
-        console.log('...');
+        console.log(`Memory Information:
+        - size: ${size}
+        - type: ${memory[0].type}
+        `);
 
         console.log('Benchmark ended...');
         done();
