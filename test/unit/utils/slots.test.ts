@@ -1,8 +1,7 @@
 import slots from '../../../src/utils/slots';
-import { EPOCH_TIME, INTERVAL, DELEGATES } from '../../../src/utils/constants';
+import { INTERVAL } from '../../../src/utils/constants';
 
 const lolex = require('lolex');
-// jest.mock('../../../src/utils/slots');
 
 describe('slots', () => {
   it('should be object', () => {
@@ -76,7 +75,6 @@ describe('slots', () => {
     const getRealTime = slots.getRealTime;
 
     it('should be a function', () => {
-      // getRealTime.should.be.type('function');
       expect(typeof getRealTime).toBe('function');
     });
 
@@ -152,7 +150,6 @@ describe('slots', () => {
       const clock = lolex.install({ now: date });
 
       const nextSlot = getNextSlot();
-      // nextSlot.should.be.type('number').and.not.NaN;
       expect(typeof nextSlot).toBe('number');
       expect(nextSlot).toBe(370081);
 
@@ -172,7 +169,6 @@ describe('slots', () => {
       const clock = lolex.install({ now: date });
 
       const lastSlot = getLastSlot(slots.getNextSlot());
-      // lastSlot.should.be.type('number').and.not.NaN;
       expect(typeof lastSlot).toBe('number');
       expect(lastSlot).toBe(370182);
 
