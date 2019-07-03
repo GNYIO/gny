@@ -1,7 +1,6 @@
 import { TransactionBase } from '../../../src/base/transaction';
 import basic from '../../../src/contract/basic';
 import { Transaction, Context, IBlock } from '../../../src/interfaces';
-import extendedJoi from '../../../src/utils/extendedJoi';
 import { ILogger } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
@@ -142,7 +141,7 @@ describe('Transaction', () => {
   });
 
   describe('verify', () => {
-    let context: Context;
+    let context: Pick<Context, 'trs' | 'sender'>;
     let trs: Transaction;
     let sender;
 

@@ -424,10 +424,6 @@ describe('core/blocks', () => {
 
   it.skip('event onReceiveVotes', async () => {});
 
-  it.skip('isCollectingVotes()', done => {
-    done();
-  });
-
   it.skip('event onBind', done => {
     done();
   });

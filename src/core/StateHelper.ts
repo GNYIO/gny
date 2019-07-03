@@ -68,7 +68,7 @@ export class StateHelper {
   public static GetUnconfirmedTransactionList() {
     return global.transactionPool.getUnconfirmed();
   }
-  public static HasUnconfirmedTransaction(id: string) {
+  public static TrsAlreadyInUnconfirmedPool(id: string) {
     return global.transactionPool.has(id);
   }
   public static ClearUnconfirmedTransactions() {
@@ -82,7 +82,7 @@ export class StateHelper {
   public static InitializeFailedTrsCache() {
     global.failedTrsCache = new LimitCache<string, boolean>();
   }
-  public static HasFailedTrsCache(key: string) {
+  public static TrsAlreadyFailed(key: string) {
     return global.failedTrsCache.has(key);
   }
   public static AddFailedTrs(key: string) {

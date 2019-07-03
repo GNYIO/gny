@@ -29,6 +29,13 @@ export default class Loader {
       throw err;
     }
 
+    /*
+    TODO: compare the received commonBlock with the savedCommonBlock
+    it would be possible that a malicious Peer sends a "commonBlock"
+    with the correct id but a smaller height and we rollback much more
+    then we actually would need to
+    */
+
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
@@ -184,7 +191,7 @@ export default class Loader {
       const trs: Transaction[] = [];
       for (let i = 0; i < transactions.length; ++i) {
         const one = transactions[i];
-        if (!StateHelper.HasUnconfirmedTransaction(one.id)) {
+        if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {
           trs.push(one);
         }
       }

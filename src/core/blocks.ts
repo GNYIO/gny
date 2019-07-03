@@ -85,6 +85,8 @@ export default class Blocks {
       throw new Error('Common block not found');
     }
 
+    // TODO: validate commonBlock
+
     return ret.common;
   };
 

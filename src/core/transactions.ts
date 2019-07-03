@@ -68,10 +68,10 @@ export default class Transactions {
         throw new Error('Block consensus in processing');
       }
 
-      if (StateHelper.HasFailedTrsCache(transaction.id)) {
+      if (StateHelper.TrsAlreadyFailed(transaction.id)) {
         throw new Error('Transaction already processed');
       }
-      if (StateHelper.HasUnconfirmedTransaction(transaction.id)) {
+      if (StateHelper.TrsAlreadyInUnconfirmedPool(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
       const exists = await global.app.sdb.exists('Transaction', {

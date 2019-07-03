@@ -156,7 +156,7 @@ export class TransactionBase {
     return undefined;
   }
 
-  public static async verify(context: Context) {
+  public static async verify(context: Pick<Context, 'trs' | 'sender'>) {
     const { trs, sender } = context;
     if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
       return 'Invalid transaction timestamp';
