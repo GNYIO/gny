@@ -144,6 +144,6 @@ describe('test single', () => {
       });
       suite.run();
     },
-    lib.oneMinute
+    lib.tenMinutes
   );
 });

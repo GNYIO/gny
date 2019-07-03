@@ -143,6 +143,6 @@ describe('test batch', () => {
       });
       suite.run();
     },
-    lib.oneMinute
+    lib.tenMinutes
   );
 });
