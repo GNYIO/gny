@@ -3,12 +3,12 @@
  */
 import * as gnyJS from '../../packages/gny-js';
 import * as crypto from 'crypto';
-import * as bs58 from 'bs58';
 import axios from 'axios';
 import * as lib from '../integration/lib';
 
 import si = require('systeminformation');
 import Benchmark = require('benchmark');
+import { generateAddress } from '../../src/utils/address';
 
 async function onStart() {
   console.log('Benchmark for single transaction started...');
@@ -23,17 +23,8 @@ function onError(error) {
 }
 
 function createRandomAccount() {
-  const PREFIX = 'G';
-  const random = crypto.randomBytes(10);
-  const hash1 = crypto
-    .createHash('sha256')
-    .update(random)
-    .digest();
-  const hash2 = crypto
-    .createHash('ripemd160')
-    .update(hash1)
-    .digest();
-  return PREFIX + bs58.encode(hash2);
+  const random = crypto.randomBytes(10).toString('hex');
+  return generateAddress(random);
 }
 
 function createTransactions(count) {
@@ -91,16 +82,6 @@ describe('test single', () => {
         - speed: ${cpu.speed}
         - cores: ${cpu.cores}
         - cores: ${cpu.physicalCores}
-        `);
-
-        const memory = sysData.memLayout;
-        let size = 0;
-        for (const item of memory) {
-          size += item.size;
-        }
-        console.log(`Memory Information:
-        - size: ${size}
-        - type: ${memory[0].type}
         `);
 
         console.log('Benchmark ended...');
