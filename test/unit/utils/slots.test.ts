@@ -60,13 +60,13 @@ describe('slots', () => {
     });
 
     it('should return time based on now time, equal to 3700800', () => {
-      const date = new Date('2019-1-1');
+      const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
       const d = undefined;
 
       const time = getTime(d);
       expect(typeof time).toBe('number');
-      expect(time).toEqual(3700800);
+      expect(time).toEqual(3729600);
       clock.uninstall();
     });
   });
@@ -86,13 +86,13 @@ describe('slots', () => {
     });
 
     it('should return based on Date.now()', () => {
-      const date = new Date('2019-1-1');
+      const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
       const d = undefined;
 
       const real = getRealTime(d);
       expect(typeof real).toBe('number');
-      expect(real).toEqual(1546272000000);
+      expect(real).toEqual(1546300800000);
       clock.uninstall();
     });
   });
@@ -111,14 +111,14 @@ describe('slots', () => {
       expect(slot).toEqual(19614);
     });
 
-    it('should return slot number based on Date.now, equal to 370080', () => {
-      const date = new Date('2019-1-1');
+    it('should return slot number based on Date.now, equal to 372960', () => {
+      const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
 
       const d = undefined;
       const slot = getSlotNumber(d);
       expect(typeof slot).toBe('number');
-      expect(slot).toEqual(370080);
+      expect(slot).toEqual(372960);
 
       clock.uninstall();
     });
@@ -146,12 +146,12 @@ describe('slots', () => {
     });
 
     it('should return next slot number', () => {
-      const date = new Date('2019-1-1');
+      const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
 
       const nextSlot = getNextSlot();
       expect(typeof nextSlot).toBe('number');
-      expect(nextSlot).toBe(370081);
+      expect(nextSlot).toBe(372961);
 
       clock.uninstall();
     });
@@ -165,12 +165,12 @@ describe('slots', () => {
     });
 
     it('should return last slot number', () => {
-      const date = new Date('2019-1-1');
+      const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
 
       const lastSlot = getLastSlot(slots.getNextSlot());
       expect(typeof lastSlot).toBe('number');
-      expect(lastSlot).toBe(370182);
+      expect(lastSlot).toBe(373062);
 
       clock.uninstall();
     });
