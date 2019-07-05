@@ -649,11 +649,11 @@ export class SmartDB extends EventEmitter {
     return await this.attachTransactions([block])[0];
   }
 
-  public async getBlocksByHeightRange(
+  public getBlocksByHeightRange = async (
     min: number,
     max: number,
     withTransactions = false
-  ) {
+  ) => {
     CodeContract.argument(
       'minHeight, maxHeight',
       min >= 0 && max >= min,
@@ -670,7 +670,7 @@ export class SmartDB extends EventEmitter {
     } else {
       return blocks;
     }
-  }
+  };
 
   private async getBlocksByIds(blockIds: string[], withTransactions = false) {
     CodeContract.argument('blockIds', function() {
