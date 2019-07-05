@@ -3,7 +3,6 @@ import BlockReward from '../../../src/utils/block-reward';
 import { IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
 
@@ -96,7 +95,7 @@ export default class BlocksApi {
     let needReverse = false;
     if (query.orderBy === 'height:desc') {
       needReverse = true;
-      maxHeight = BlocksHelper.getState().lastBlock.height - offset;
+      maxHeight = StateHelper.getState().lastBlock.height - offset;
       minHeight = maxHeight - limit + 1;
       minHeight = minHeight > 0 ? minHeight : 0;
     } else {
@@ -123,30 +122,30 @@ export default class BlocksApi {
   };
 
   private getHeight = (req: Request, res: Response, next: Next) => {
-    const height = BlocksHelper.getState().lastBlock.height;
+    const height = StateHelper.getState().lastBlock.height;
     return res.json({ height });
   };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
-    const height = BlocksHelper.getState().lastBlock.height;
+    const height = StateHelper.getState().lastBlock.height;
     const milestone = this.blockReward.calculateMilestone(height);
     return res.json({ milestone });
   };
 
   private getReward = (req: Request, res: Response, next: Next) => {
-    const height = BlocksHelper.getState().lastBlock.height;
+    const height = StateHelper.getState().lastBlock.height;
     const reward = this.blockReward.calculateReward(height);
     return res.json({ reward });
   };
 
   private getSupply = (req: Request, res: Response, next: Next) => {
-    const height = BlocksHelper.getState().lastBlock.height;
+    const height = StateHelper.getState().lastBlock.height;
     const supply = this.blockReward.calculateSupply(height);
     return res.json({ supply });
   };
 
   private getStatus = (req: Request, res: Response, next: Next) => {
-    const height = BlocksHelper.getState().lastBlock.height;
+    const height = StateHelper.getState().lastBlock.height;
     const fee = BlockBase.calculateFee();
     const milestone = this.blockReward.calculateMilestone(height);
     const reward = this.blockReward.calculateReward(height);

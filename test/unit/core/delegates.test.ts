@@ -1,6 +1,5 @@
 import Delegates from '../../../src/core/delegates';
 import { KeyPairsIndexer, IBlock, Delegate } from '../../../src/interfaces';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import * as path from 'path';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -43,7 +42,7 @@ const dummyLogger = {
 describe('core/delegates', () => {
   describe('isLoopReady', () => {
     it('isLoopReady() - forging disabled', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const time = Date.now();
       const isForgingEnabled = false; // test
       const isLoaded = true;
@@ -64,7 +63,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - no delegates', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const time = Date.now();
       const isForgingEnabled = true;
       const isLoaded = true;
@@ -85,7 +84,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - not loaded - node not ready', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const time = Date.now();
       const isForgingEnabled = true;
       const isLoaded = false; // test
@@ -111,7 +110,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - isSyncingRightNow - node not ready', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const time = Date.now();
       const isForgingEnabled = true;
       const isLoaded = false;
@@ -137,7 +136,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - lastBlock is still in same slot - returns string', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       state.lastBlock = {
         // test
         timestamp: 18106090,
@@ -169,7 +168,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - after 5 seconds within Block Slot it is too late to collect votes', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       state.lastBlock = {
         timestamp: 18106090,
       } as IBlock;
@@ -200,7 +199,7 @@ describe('core/delegates', () => {
     });
 
     it('isLoopReady() - works, if it is in next slote after block.lastBlock and under 5 seconds in block slot', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       state.lastBlock = {
         timestamp: 18106090,
       } as IBlock;

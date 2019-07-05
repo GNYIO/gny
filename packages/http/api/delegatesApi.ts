@@ -3,7 +3,6 @@ import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
@@ -92,7 +91,7 @@ export default class DelegatesApi {
           },
         },
       });
-      const lastBlock = BlocksHelper.getState().lastBlock;
+      const lastBlock = StateHelper.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {
         a.balance = a.gny;

@@ -1,12 +1,12 @@
 import { ManyVotes, IBlock, IState } from '../interfaces';
 import { ConsensusBase } from '../base/consensus';
 import slots from '../../src/utils/slots';
-import { BlocksHelper } from './BlocksHelper';
 import { copyObject } from '../base/helpers';
+import { StateHelper } from './StateHelper';
 
 export class ConsensusHelper {
   public static addPendingVotes(oldState: IState, oldVotes: ManyVotes) {
-    const state = BlocksHelper.copyState(oldState);
+    const state = StateHelper.copyState(oldState);
     const votes = copyObject(oldVotes);
 
     const pendingBlock = state.pendingBlock;
@@ -41,7 +41,7 @@ export class ConsensusHelper {
   }
 
   public static setPendingBlock(oldState: IState, block: IBlock) {
-    const state = BlocksHelper.copyState(oldState);
+    const state = StateHelper.copyState(oldState);
 
     state.pendingBlock = block; // deepCopy block?
     return state;
@@ -63,7 +63,7 @@ export class ConsensusHelper {
   }
 
   public static clearState(old: IState) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.votesKeySet = {};
     state.pendingBlock = undefined;
@@ -73,7 +73,7 @@ export class ConsensusHelper {
   }
 
   public static CollectingVotes(old: IState) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.privIsCollectingVotes = true;
     return state;

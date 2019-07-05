@@ -1,7 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next } from '../../../src/interfaces';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class LoaderApi {
@@ -48,7 +47,7 @@ export default class LoaderApi {
   };
 
   private sync = (req: Request, res: Response, next: Next) => {
-    const lastBlock = BlocksHelper.getState().lastBlock;
+    const lastBlock = StateHelper.getState().lastBlock;
     const syncing = StateHelper.IsSyncing();
     const blocksToSync = StateHelper.GetBlocksToSync();
     return res.json({

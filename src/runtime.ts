@@ -6,11 +6,10 @@ import loadContracts from './loadContracts';
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './interfaces';
-import { BlocksHelper } from './core/BlocksHelper';
 import { StateHelper } from './core/StateHelper';
 
 export default async function runtime(options: IOptions) {
-  global.state = BlocksHelper.getInitialState();
+  global.state = StateHelper.getInitialState();
   StateHelper.SetForgingEnabled(true);
   StateHelper.InitializeTransactionPool();
   StateHelper.InitializeFailedTrsCache();

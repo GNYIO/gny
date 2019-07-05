@@ -471,7 +471,7 @@ export default class Blocks {
         global.app.logger.info(`Loading ${num} blocks from ${address}`);
         try {
           for (const block of blocks) {
-            let state = BlocksHelper.getState();
+            let state = StateHelper.getState();
 
             const activeDelegates = await Delegates.generateDelegateList(
               block.height
@@ -490,7 +490,7 @@ export default class Blocks {
               block.height
             );
 
-            BlocksHelper.setState(state); // important
+            StateHelper.setState(state); // important
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
@@ -508,7 +508,7 @@ export default class Blocks {
     keypair: KeyPair,
     timestamp: number
   ) => {
-    let state = BlocksHelper.copyState(old);
+    let state = StateHelper.copyState(old);
 
     // TODO somehow fuel the state with the default state!
 
@@ -580,7 +580,7 @@ export default class Blocks {
     }
 
     global.library.sequence.add(async cb => {
-      let state = BlocksHelper.getState();
+      let state = StateHelper.getState();
 
       const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(
         state,
@@ -645,7 +645,7 @@ export default class Blocks {
           }
 
           // important
-          BlocksHelper.setState(state);
+          StateHelper.setState(state);
           return cb();
         }
       }
@@ -662,7 +662,7 @@ export default class Blocks {
     }
 
     global.library.sequence.add(cb => {
-      let state = BlocksHelper.getState();
+      let state = StateHelper.getState();
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
         return setImmediate(cb);
@@ -721,7 +721,7 @@ export default class Blocks {
             }
 
             // important
-            BlocksHelper.setState(state);
+            StateHelper.setState(state);
             setImmediate(next);
           },
         ],
@@ -755,7 +755,7 @@ export default class Blocks {
         return cb();
       }
 
-      const state = BlocksHelper.getState();
+      const state = StateHelper.getState();
       if (
         !BlocksHelper.IsBlockchainReady(state, Date.now(), global.app.logger)
       ) {
@@ -773,7 +773,7 @@ export default class Blocks {
     }
 
     global.library.sequence.add(async cb => {
-      let state = BlocksHelper.getState();
+      let state = StateHelper.getState();
 
       state = ConsensusHelper.addPendingVotes(state, votes);
 
@@ -799,13 +799,13 @@ export default class Blocks {
             delegateList
           );
 
-          BlocksHelper.setState(state); // important
+          StateHelper.setState(state); // important
         } catch (err) {
           global.app.logger.error(`Failed to process confirmed block: ${err}`);
         }
         return cb();
       } else {
-        BlocksHelper.setState(state); // important
+        StateHelper.setState(state); // important
         return setImmediate(cb);
       }
     });
@@ -823,7 +823,7 @@ export default class Blocks {
     ) => Promise<IState>,
     getBlocksByHeight: GetBlocksByHeight
   ) {
-    let state = BlocksHelper.copyState(old);
+    let state = StateHelper.copyState(old);
 
     if (!numberOfBlocksInDb) {
       state = BlocksHelper.setPreGenesisBlock(state);
@@ -845,7 +845,7 @@ export default class Blocks {
     return global.library.sequence.add(
       async cb => {
         try {
-          let state = BlocksHelper.getState();
+          let state = StateHelper.getState();
 
           const numberOfBlocksInDb = global.app.sdb.blocksCount;
           state = await Blocks.RunGenesisOrLoadLastBlock(
@@ -856,7 +856,7 @@ export default class Blocks {
             global.app.sdb.getBlockByHeight
           );
           // important
-          BlocksHelper.setState(state);
+          StateHelper.setState(state);
 
           // refactor, reunite
           StateHelper.SetBlockchainReady(true);

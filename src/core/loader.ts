@@ -13,7 +13,7 @@ import { LoaderHelper } from './LoaderHelper';
 
 export default class Loader {
   public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
-    let state = BlocksHelper.getState(); // TODO: refactor
+    let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
       state,
       lastBlock
@@ -59,7 +59,7 @@ export default class Loader {
 
         // TODO refactor
         state = BlocksHelper.SetLastBlock(state, global.app.sdb.lastBlock);
-        BlocksHelper.setState(state);
+        StateHelper.setState(state);
 
         global.library.logger.debug(
           'set new last block',
@@ -239,7 +239,7 @@ export default class Loader {
     global.library.sequence.add(async cb => {
       global.library.logger.debug('syncBlocksFromPeer enter sequence');
       StateHelper.SetIsSyncing(true);
-      const lastBlock = BlocksHelper.getState().lastBlock; // TODO refactor whole method
+      const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
@@ -265,7 +265,7 @@ export default class Loader {
   // Events
   public static onPeerReady = () => {
     const nextSync = () => {
-      const lastBlock = BlocksHelper.getState().lastBlock;
+      const lastBlock = StateHelper.getState().lastBlock;
       const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
       if (slots.getNextSlot() - lastSlot >= 3) {
         Loader.startSyncBlocks(lastBlock);

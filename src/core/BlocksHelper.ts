@@ -17,6 +17,7 @@ import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
 import slots from '../utils/slots';
 import { copyObject } from '../base/helpers';
+import { StateHelper } from './StateHelper';
 
 const blockreward = new Blockreward();
 
@@ -27,41 +28,6 @@ export enum BlockMessageFitInLineResult {
 }
 
 export class BlocksHelper {
-  public static getInitialState() {
-    const state: IState = {
-      // TODO: check correct init values
-      votesKeySet: {},
-      pendingBlock: undefined,
-      pendingVotes: undefined,
-
-      lastBlock: undefined,
-      blockCache: {},
-
-      proposeCache: {},
-      lastPropose: null,
-      privIsCollectingVotes: false,
-      lastVoteTime: undefined,
-    };
-
-    return state;
-  }
-
-  public static setState(state: IState) {
-    global.state = state;
-  }
-
-  /**
-   * returns always a deepCopy of the current state
-   */
-  public static getState() {
-    const state = BlocksHelper.copyState(global.state);
-    return state;
-  }
-
-  public static copyState(state: IState) {
-    return copyObject(state);
-  }
-
   public static areTransactionsExceedingPayloadLength(
     transactions: Transaction[]
   ) {
@@ -231,7 +197,7 @@ export class BlocksHelper {
   }
 
   public static MarkProposeAsReceived(old: IState, propose: BlockPropose) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.proposeCache[propose.hash] = true;
     return state;
@@ -242,7 +208,7 @@ export class BlocksHelper {
     else return false;
   }
   public static MarkBlockAsReceived(old: IState, block: IBlock) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.blockCache[block.id] = true;
     return state;
@@ -322,14 +288,14 @@ export class BlocksHelper {
   }
 
   public static SetLastBlock(old: IState, block: IBlock) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.lastBlock = block; // copy block?
     return state;
   }
 
   public static ProcessBlockCleanup(old: IState) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.blockCache = {};
     state.proposeCache = {};
@@ -340,7 +306,7 @@ export class BlocksHelper {
   }
 
   public static setPreGenesisBlock(old: IState) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
 
     state.lastBlock = { height: -1 } as IBlock;
 
@@ -352,7 +318,7 @@ export class BlocksHelper {
     lastVoteTime: number,
     oldPropose: BlockPropose
   ) {
-    const state = BlocksHelper.copyState(old);
+    const state = StateHelper.copyState(old);
     const propose = copyObject(oldPropose);
 
     state.lastVoteTime = lastVoteTime;

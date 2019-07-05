@@ -2,7 +2,6 @@ import slots from '../../../src/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next } from '../../../src/interfaces';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class SystemApi {
@@ -38,7 +37,7 @@ export default class SystemApi {
   };
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
     try {
-      const lastBlock = BlocksHelper.getState().lastBlock;
+      const lastBlock = StateHelper.getState().lastBlock;
 
       return res.json({
         os: `${os.platform()}_${os.release()}`,

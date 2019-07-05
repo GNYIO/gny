@@ -15,6 +15,7 @@ import * as ed from '../../../src/utils/ed';
 import slots from '../../../src/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
@@ -124,7 +125,7 @@ describe('core/blocks', () => {
 
   describe('RunGenesisOrLoadLastBlock()', () => {
     it('RunGenesisOrLoadLastBlock() - 0 blocks in DB processes genesisBlock and saves it in DB', async done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
       const getBlocksByHeightRangeFunc = async (
@@ -158,7 +159,7 @@ describe('core/blocks', () => {
     });
 
     it('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
       const processBlockFunc = (
@@ -279,7 +280,7 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - wrong Block can not get Id', () => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const wrongBlock = {} as IBlock;
       const options = {};
       const delegateList = [];
@@ -291,7 +292,7 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - previousBlock should not be null', async () => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       // important: no "prevBlockId"
       const block: IBlock = {
         height: 1,
@@ -316,7 +317,7 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - signature is not correct returns error', () => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const block: BlockModel = {
         height: 1,
         id: randomHex(32),
@@ -343,7 +344,7 @@ describe('core/blocks', () => {
 
     it.skip("verifyBlock() - Can't verify block timestamp", () => {
       const keypair = createRandomKeyPair('random secret');
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       const delegateList = [];
       const options = {};
 

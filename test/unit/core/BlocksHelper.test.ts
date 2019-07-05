@@ -15,6 +15,7 @@ import * as ed from '../../../src/utils/ed';
 import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import slots from '../../../src/utils/slots';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -111,132 +112,6 @@ function createRandomTransaction() {
 }
 
 describe('BlocksHelper', () => {
-  describe('setState()', () => {
-    beforeEach(cb => {
-      resetGlobalState();
-      cb();
-    });
-    afterEach(cb => {
-      resetGlobalState();
-      cb();
-    });
-
-    it('setState() - set global', done => {
-      // check before
-      const oldState = BlocksHelper.getState();
-      expect(oldState).toEqual({});
-
-      // act
-      const newState = {
-        lastBlock: {
-          height: -1,
-        },
-      } as IState;
-      BlocksHelper.setState(newState);
-
-      // check after
-      const updatedState = BlocksHelper.getState();
-      expect(updatedState).toEqual({
-        lastBlock: {
-          height: -1,
-        },
-      });
-      done();
-    });
-  });
-
-  describe('getState()', () => {
-    beforeEach(cb => {
-      const state = {
-        privIsCollectingVotes: true,
-      } as IState;
-      BlocksHelper.setState(state);
-      cb();
-    });
-    afterEach(cb => {
-      resetGlobalState();
-      cb();
-    });
-
-    it('getState() - returns current state', done => {
-      const state = BlocksHelper.getState();
-      expect(state).toEqual({
-        privIsCollectingVotes: true,
-      });
-      done();
-    });
-
-    it('getState() - returns same values but deepCopy', done => {
-      const state = {
-        privIsCollectingVotes: false,
-      } as IState;
-      BlocksHelper.setState(state);
-
-      const result = BlocksHelper.getState();
-
-      expect(result).toEqual(state); // values are the same
-      expect(result).not.toBe(state); // object reference is not the same
-
-      done();
-    });
-
-    it('getState() - returns same values but deepCopy (also for nested objects)', done => {
-      const lastBlock = {
-        height: 10,
-      } as IBlock;
-      const state = {
-        privIsCollectingVotes: false,
-        lastBlock,
-      } as IState;
-      BlocksHelper.setState(state);
-
-      const result = BlocksHelper.getState();
-
-      expect(result).toEqual(state); // values are the same
-      expect(result).not.toBe(state); // object reference is not the same
-
-      // check nested object
-      expect(result.lastBlock).toEqual(state.lastBlock);
-      expect(result.lastBlock).not.toBe(state.lastBlock);
-
-      done();
-    });
-
-    describe('getInitialState', () => {
-      it('getInitialState() - matches blue print', done => {
-        const initialState = BlocksHelper.getInitialState();
-
-        expect(initialState).toEqual({
-          votesKeySet: {},
-          pendingBlock: undefined,
-          pendingVotes: undefined,
-
-          lastBlock: undefined,
-          blockCache: {},
-
-          proposeCache: {},
-          lastPropose: null,
-          privIsCollectingVotes: false,
-          lastVoteTime: undefined,
-        });
-
-        done();
-      });
-
-      it('getInitialState() - returns always a new object', done => {
-        const first = BlocksHelper.getInitialState();
-        const second = BlocksHelper.getInitialState();
-
-        // structure equals
-        expect(first).toEqual(second);
-        // object reference is different
-        expect(first).not.toBe(second);
-
-        done();
-      });
-    });
-  });
-
   describe('pure functions', () => {
     it('AreTransactionsDuplicated() - returns false if no transaction-ID is duplicated', done => {
       const transactions = [
@@ -508,7 +383,7 @@ describe('BlocksHelper', () => {
       const height = 11;
 
       // prepare state
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       state.lastPropose = {
         id,
         generatorPublicKey,
@@ -533,7 +408,7 @@ describe('BlocksHelper', () => {
 
     it('DoesNewBlockProposeMatchOldOne() - returns false if lastPropose does not exists', done => {
       // preparation
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(2);
 
       // act
@@ -548,7 +423,7 @@ describe('BlocksHelper', () => {
 
     it('DoesNewBlockProposeMatchOldOne() - returns false if height does not match', done => {
       // preparation
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(2);
       state.lastPropose = propose;
       state.lastPropose.height = 3; // different
@@ -565,7 +440,7 @@ describe('BlocksHelper', () => {
 
     it('DoesNewBlockProposeMatchOldOne() - returns false if generatorPublicKey does not match', done => {
       // preparation
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(2);
       state.lastPropose = propose;
       state.lastPropose.generatorPublicKey = randomHex(32); // different
@@ -581,7 +456,7 @@ describe('BlocksHelper', () => {
     });
 
     it('AlreadyReceivedPropose() - returns false when ProposeCache is empty', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(10);
 
       const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
@@ -594,7 +469,7 @@ describe('BlocksHelper', () => {
       // preparation
       const propose = createRandomBlockPropose(10);
 
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
       // act
@@ -605,7 +480,7 @@ describe('BlocksHelper', () => {
     });
 
     it('MarkProposeAsReceived() - returns new object reference', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(10);
 
       const updatedState = BlocksHelper.MarkProposeAsReceived(
@@ -618,7 +493,7 @@ describe('BlocksHelper', () => {
     });
 
     it('MarkProposeAsReceived() - marks propose as received', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(10);
 
       const updatedState = BlocksHelper.MarkProposeAsReceived(
@@ -631,7 +506,7 @@ describe('BlocksHelper', () => {
     });
 
     it('AlreadyReceivedThisBlock() - returns false if cache is empty', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const block = createRandomBlock();
 
       const result = BlocksHelper.AlreadyReceivedThisBlock(initialState, block);
@@ -641,7 +516,7 @@ describe('BlocksHelper', () => {
     });
 
     it('AlreadyReceivedThisBlock() - returns true if block was already received', done => {
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       const block = createRandomBlock();
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
@@ -652,7 +527,7 @@ describe('BlocksHelper', () => {
     });
 
     it('MarkBlockAsReceived() - returns new object reference', done => {
-      const first = BlocksHelper.getInitialState();
+      const first = StateHelper.getInitialState();
       const block = createRandomBlock();
 
       const second = BlocksHelper.MarkBlockAsReceived(first, block);
@@ -662,7 +537,7 @@ describe('BlocksHelper', () => {
     });
 
     it('MarkBlockAsReceived() - sets block in cache', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const block = createRandomBlock();
 
       const result = BlocksHelper.MarkBlockAsReceived(state, block);
@@ -672,7 +547,7 @@ describe('BlocksHelper', () => {
     });
 
     it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       state.lastBlock = loadGenesisBlock();
 
       const block = createRandomBlock(2); // block should normally be height 1
@@ -686,7 +561,7 @@ describe('BlocksHelper', () => {
     });
 
     it('ReceivedBlockIsInRightOrder() - returns false if prevBlockId is not the same', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
       state.lastBlock = genesisBlock;
 
@@ -703,7 +578,7 @@ describe('BlocksHelper', () => {
     });
 
     it('ReceivedBlockIsInRightOrder() - returns true if height and prevBlockId are correct in correct order', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
       state.lastBlock = genesisBlock;
 
@@ -718,7 +593,7 @@ describe('BlocksHelper', () => {
     });
 
     it('ReceivedBlockIsInRightOrder() - throws if state has no lastBlock (should never happen)', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
       const block = createRandomBlock(); // is never used
 
       expect(initialState.lastBlock).toBeUndefined();
@@ -837,7 +712,7 @@ describe('BlocksHelper', () => {
     });
 
     it('setPreGenesisBlock() - returns lastBlock with height MINUS 1', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
 
       const result = BlocksHelper.setPreGenesisBlock(initialState);
 
@@ -846,7 +721,7 @@ describe('BlocksHelper', () => {
     });
 
     it('setPreGenesisBlock() - returns other object reference', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
 
       const result = BlocksHelper.setPreGenesisBlock(initialState);
 
@@ -855,7 +730,7 @@ describe('BlocksHelper', () => {
     });
 
     it('SetLastBlock() - sets last block', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
       const block = createRandomBlock(1, blockId);
@@ -867,7 +742,7 @@ describe('BlocksHelper', () => {
     });
 
     it('SetLastBlock() - returns other object', done => {
-      const initialState = BlocksHelper.getInitialState();
+      const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
       const block = createRandomBlock(1, blockId);
@@ -879,7 +754,7 @@ describe('BlocksHelper', () => {
     });
 
     it('ProcessBlockCleanup() - clears processingBlock state fields', done => {
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = ConsensusHelper.CollectingVotes(state);
       state = BlocksHelper.MarkProposeAsReceived(state, {
         id: 'blockId',
@@ -910,7 +785,7 @@ describe('BlocksHelper', () => {
     });
 
     it('SetLastPropose() - sets lastVoteTime and lastPropose', done => {
-      const state = BlocksHelper.getInitialState();
+      const state = StateHelper.getInitialState();
 
       const lastVoteTime = Date.now();
       const propose: BlockPropose = {
@@ -937,7 +812,7 @@ describe('BlocksHelper', () => {
 
     it('IsBlockchainReady() - blockchain is not ready if lastSlot is 130 seconds ago', async done => {
       // preparation
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       const block = createRandomBlock(1);
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
@@ -957,7 +832,7 @@ describe('BlocksHelper', () => {
 
     it('IsBlockchainReady() - blockchain is ready if lastSlot is 100 seconds ago', async done => {
       // preparation
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       const block = createRandomBlock(1);
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
@@ -977,7 +852,7 @@ describe('BlocksHelper', () => {
 
     it('IsBlockchainReady() - blockchain is ready if lastSlot is 10 seconds ago', async done => {
       // preparation
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       const block = createRandomBlock(1);
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
@@ -1004,7 +879,7 @@ describe('BlocksHelper', () => {
       lastBlock.timestamp = blockTimestamp;
       currentBlock.timestamp = blockTimestamp;
 
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = BlocksHelper.SetLastBlock(state, lastBlock);
 
       // act
@@ -1027,7 +902,7 @@ describe('BlocksHelper', () => {
       lastBlock.timestamp = slots.getSlotTime(currentSlotNumber + 1);
       currentBlock.timestamp = slots.getSlotTime(currentSlotNumber);
 
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = BlocksHelper.SetLastBlock(state, lastBlock);
 
       // act
@@ -1051,7 +926,7 @@ describe('BlocksHelper', () => {
       lastBlock.timestamp = slots.getSlotTime(currentSlotNumber);
       currentBlock.timestamp = slots.getSlotTime(currentSlotNumber + 2);
 
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = BlocksHelper.SetLastBlock(state, lastBlock);
 
       // act
@@ -1075,7 +950,7 @@ describe('BlocksHelper', () => {
       lastBlock.timestamp = slots.getSlotTime(currentSlotNumber);
       currentBlock.timestamp = slots.getSlotTime(currentSlotNumber + 1);
 
-      let state = BlocksHelper.getInitialState();
+      let state = StateHelper.getInitialState();
       state = BlocksHelper.SetLastBlock(state, lastBlock);
 
       // act

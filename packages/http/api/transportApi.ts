@@ -257,7 +257,7 @@ export default class TransportApi {
 
     return this.library.sequence.add(
       cb => {
-        const state = BlocksHelper.getState();
+        const state = StateHelper.getState();
         if (
           !BlocksHelper.IsBlockchainReady(
             state,
@@ -317,7 +317,7 @@ export default class TransportApi {
 
   // POST
   private getHeight = (req: Request, res: Response) => {
-    const lastBlock = BlocksHelper.getState().lastBlock;
+    const lastBlock = StateHelper.getState().lastBlock;
 
     return res.json({
       height: lastBlock.height,

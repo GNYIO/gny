@@ -3,7 +3,6 @@ import * as ed from '../../../src/utils/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
-  Modules,
   IScope,
   KeyPair,
   Next,
@@ -11,7 +10,6 @@ import {
   IBlock,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 
@@ -253,7 +251,7 @@ export default class TransactionsApi {
     this.library.sequence.add(
       callback => {
         (async () => {
-          const state = BlocksHelper.getState();
+          const state = StateHelper.getState();
 
           try {
             const hash = crypto
@@ -317,7 +315,7 @@ export default class TransactionsApi {
     }
     return this.library.sequence.add(
       callback => {
-        const state = BlocksHelper.getState();
+        const state = StateHelper.getState();
         Transactions.processUnconfirmedTransactions(state, trs, callback);
       },
       undefined,

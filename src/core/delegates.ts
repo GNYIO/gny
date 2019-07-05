@@ -14,7 +14,6 @@ import {
   IState,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
-import { BlocksHelper } from './BlocksHelper';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
@@ -103,7 +102,7 @@ export default class Delegates {
   }
 
   public static loop = async () => {
-    const preState = BlocksHelper.getState();
+    const preState = StateHelper.getState();
     const now = Date.now();
     const isForgingEnabled = StateHelper.IsForgingEnabled();
     const isLoaded = StateHelper.BlockchainReady();
@@ -138,7 +137,7 @@ export default class Delegates {
     }
 
     global.library.sequence.add(async done => {
-      let state = BlocksHelper.getState();
+      let state = StateHelper.getState();
 
       try {
         const myTime = currentBlockData.time;
@@ -187,7 +186,7 @@ export default class Delegates {
           }
 
           // set new state after successful finished
-          BlocksHelper.setState(state);
+          StateHelper.setState(state);
         }
       } catch (e) {
         global.library.logger.error('Failed generate block within slot:', e);
@@ -329,7 +328,7 @@ export default class Delegates {
 
     delegates = delegates.sort(Delegates.compare);
 
-    const lastBlock = BlocksHelper.getState().lastBlock;
+    const lastBlock = StateHelper.getState().lastBlock;
     const totalSupply = blockreward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {

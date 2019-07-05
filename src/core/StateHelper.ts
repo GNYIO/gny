@@ -4,12 +4,50 @@ import {
   NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
+  IState,
 } from '../interfaces';
 import { TransactionPool } from '../utils/transaction-pool';
 import { LimitCache } from '../utils/limit-cache';
 import * as LRU from 'lru-cache';
+import { copyObject } from '../base/helpers';
 
 export class StateHelper {
+  // state management
+  public static getInitialState() {
+    const state: IState = {
+      // TODO: check correct init values
+      votesKeySet: {},
+      pendingBlock: undefined,
+      pendingVotes: undefined,
+
+      lastBlock: undefined,
+      blockCache: {},
+
+      proposeCache: {},
+      lastPropose: null,
+      privIsCollectingVotes: false,
+      lastVoteTime: undefined,
+    };
+
+    return state;
+  }
+
+  public static setState(state: IState) {
+    global.state = state;
+  }
+
+  /**
+   * returns always a deepCopy of the current state
+   */
+  public static getState() {
+    const state = StateHelper.copyState(global.state);
+    return state;
+  }
+
+  public static copyState(state: IState) {
+    return copyObject(state);
+  }
+
   // keyPairs
   public static getInitialKeyPairs() {
     return {} as KeyPairsIndexer;

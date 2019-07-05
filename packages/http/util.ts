@@ -1,8 +1,8 @@
 import { IBlock } from '../../src/interfaces';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
-import { BlocksHelper } from '../../src/core/BlocksHelper';
 import Peer from '../../src/core/peer';
+import { StateHelper } from '../../src/core/StateHelper';
 
 export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
@@ -109,7 +109,7 @@ export async function getAccount(address: string) {
         username: account.username,
       };
     }
-    const latestBlock = BlocksHelper.getState().lastBlock;
+    const latestBlock = StateHelper.getState().lastBlock;
     const ret = {
       account: accountData,
       latestBlock: {
