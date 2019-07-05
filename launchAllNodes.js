@@ -83,19 +83,22 @@ const DELAY = (ms = 5000) =>
 
 async function getHeights(numberOfNodes, startingPort, incrementPortBy) {
   try {
-    const tasks = [];
+    const results = [];
     for (let i = 0; i < numberOfNodes; ++i) {
-      const request = axios.get(
-        `http://localhost:${startingPort}/api/blocks/getHeight`
-      );
-      tasks.push(request);
+      try {
+        const request = await axios.get(
+          `http://localhost:${startingPort}/api/blocks/getHeight`
+        );
+
+        results.push({ height: request.data.height });
+      } catch (err) {
+        results.push({ height: 'error' });
+      }
 
       startingPort += incrementPortBy;
     }
 
-    const results = await Promise.all(tasks);
-    const resultHeight = results.map(x => x.data);
-    console.log(JSON.stringify(resultHeight));
+    console.log(JSON.stringify(results));
   } catch (err) {
     console.log('error while requesting /blocks/getHeight');
   }
