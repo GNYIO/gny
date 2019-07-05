@@ -22,7 +22,7 @@ const blockreward = new Blockreward();
 
 export enum BlockMessageFitInLineResult {
   Success = 0,
-  Exit = 1,
+  LongFork = 1,
   SyncBlocks = 2,
 }
 
@@ -266,7 +266,7 @@ export class BlocksHelper {
   public static IsNewBlockMessageAndBlockTheSame(
     newBlockMsg: NewBlockMessage,
     block: IBlock
-  ): any {
+  ) {
     if (!newBlockMsg || !block) return false;
 
     if (
@@ -280,22 +280,22 @@ export class BlocksHelper {
     }
   }
 
-  public static DoesTheNewBlockMessageFitInLine(
+  public static DoesTheNewBlockFitInLine(
     state: IState,
-    newBlockMsg: NewBlockMessage
+    newBlock: Pick<IBlock, 'height' | 'id' | 'prevBlockId'>
   ) {
     const lastBlock = state.lastBlock;
 
     // TODO: compare to other "fitInLine" comparisons?! Aren't they equal?
     if (
-      newBlockMsg.height !== Number(lastBlock.height) + 1 ||
-      newBlockMsg.prevBlockId !== lastBlock.id
+      Number(newBlock.height) !== Number(lastBlock.height) + 1 ||
+      newBlock.prevBlockId !== lastBlock.id
     ) {
-      if (newBlockMsg.height > Number(lastBlock.height) + 5) {
+      if (Number(newBlock.height) > Number(lastBlock.height) + 5) {
+        return BlockMessageFitInLineResult.LongFork;
       } else {
         return BlockMessageFitInLineResult.SyncBlocks;
       }
-      return BlockMessageFitInLineResult.Exit;
     }
     return BlockMessageFitInLineResult.Success;
   }

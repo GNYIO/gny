@@ -18,6 +18,7 @@ import {
 } from '../../packages/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
+import { BlocksHelper } from './BlocksHelper';
 
 export default class Transport {
   // subscribe to peer events
@@ -133,6 +134,13 @@ export default class Transport {
       block = BlockBase.normalizeBlock(block);
       votes = ConsensusBase.normalizeVotes(votes);
 
+      // validate the received Block and NewBlockMessage against each other
+      // a malicious Peer could send a wrong block
+      if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
+        global.app.logger.warn('NewBlockMessage and Block do not');
+        return;
+      }
+
       StateHelper.SetBlockToLatestBlockCache(block.id, result); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
@@ -144,7 +152,6 @@ export default class Transport {
 
     global.library.bus.message(
       'onReceiveBlock',
-      newBlockMsg,
       message.peerInfo,
       block,
       votes

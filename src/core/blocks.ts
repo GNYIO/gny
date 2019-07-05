@@ -13,18 +13,19 @@ import {
   IBlock,
   ManyVotes,
   Transaction,
-  FirstHeightIds,
   CommonBlockParams,
   CommonBlockResult,
   IState,
-  NewBlockMessage,
 } from '../interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';
-import { BlocksHelper, BlockMessageFitInLineResult } from './BlocksHelper';
+import {
+  BlocksHelper,
+  BlockMessageFitInLineResult as BlockFitsInLine,
+} from './BlocksHelper';
 import { Block } from '../../packages/database-postgres/entity/Block';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
@@ -567,22 +568,8 @@ export default class Blocks {
     };
   };
 
-  public static fork = (block: IBlock, cause: number) => {
-    global.app.logger.info('Fork', {
-      delegate: block.delegate,
-      block: {
-        id: block.id,
-        timestamp: block.timestamp,
-        height: block.height,
-        prevBlockId: block.prevBlockId,
-      },
-      cause,
-    });
-  };
-
   // Events
   public static onReceiveBlock = (
-    newBlockMsg: NewBlockMessage,
     peer: PeerNode,
     block: IBlock,
     votes: ManyVotes
@@ -595,26 +582,16 @@ export default class Blocks {
     global.library.sequence.add(async cb => {
       let state = BlocksHelper.getState();
 
-      // validate the received Block and NewBlockMessage against each other
-      if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
-        global.app.logger.warn('NewBlockMessage and Block do not');
-        return cb();
-      }
-
-      const fitInLineResult = BlocksHelper.DoesTheNewBlockMessageFitInLine(
+      const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(
         state,
-        newBlockMsg
+        block
       );
-      if (fitInLineResult === BlockMessageFitInLineResult.Exit) return cb();
-      if (fitInLineResult === BlockMessageFitInLineResult.SyncBlocks) {
-        Loader.syncBlocksFromPeer(peer);
+      if (fitInLineResult === BlockFitsInLine.LongFork) {
+        global.library.logger.warn('Receive new block header from long fork');
         return cb();
       }
-
-      // migrated from receivePeer_NewBlockHeader
-      if (!state.lastBlock) {
-        // state should always have a lastBlock? correct?
-        global.app.logger.error('Last does block not exists');
+      if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
+        Loader.syncBlocksFromPeer(peer);
         return cb();
       }
 
@@ -622,9 +599,10 @@ export default class Blocks {
         return cb();
       }
 
-      state = BlocksHelper.MarkBlockAsReceived(state, block); // TODO this should be saved already in case of an error
+      // TODO this should be saved already in case of an error
+      state = BlocksHelper.MarkBlockAsReceived(state, block);
 
-      if (BlocksHelper.ReceivedBlockIsInRightOrder(state, block)) {
+      if (fitInLineResult === BlockFitsInLine.Success) {
         const pendingTrsMap = new Map<string, Transaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
@@ -671,28 +649,8 @@ export default class Blocks {
           return cb();
         }
       }
-      if (
-        block.prevBlockId !== state.lastBlock.id &&
-        state.lastBlock.height + 1 === block.height
-      ) {
-        Blocks.fork(block, 1);
-        return cb('Fork');
-      }
-      if (
-        block.prevBlockId === state.lastBlock.prevBlockId &&
-        block.height === state.lastBlock.height &&
-        block.id !== state.lastBlock.id
-      ) {
-        Blocks.fork(block, 5);
-        return cb('Fork');
-      }
-      if (block.height > state.lastBlock.height + 1) {
-        global.app.logger.info(
-          `receive discontinuous block height ${block.height}`
-        );
-        Loader.startSyncBlocks(state.lastBlock);
-        return cb();
-      }
+
+      // this should never get here
       return cb();
     });
   };

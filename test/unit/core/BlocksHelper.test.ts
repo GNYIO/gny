@@ -777,6 +777,57 @@ describe('BlocksHelper', () => {
       done();
     });
 
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if height is not the same', done => {
+      const newBlock: IBlock = createRandomBlock(13);
+      const newBlockMessage: NewBlockMessage = {
+        height: 12, // different
+        id: newBlock.id,
+        prevBlockId: newBlock.prevBlockId,
+      };
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if id is not the same', done => {
+      const newBlock: IBlock = createRandomBlock(13);
+      const newBlockMessage: NewBlockMessage = {
+        height: newBlock.height,
+        id: randomHex(32), // different
+        prevBlockId: newBlock.prevBlockId,
+      };
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if prevBlockId is not the same', done => {
+      const newBlock: IBlock = createRandomBlock(13);
+      const newBlockMessage: NewBlockMessage = {
+        height: newBlock.height,
+        id: newBlock.id,
+        prevBlockId: randomHex(32),
+      };
+
+      const result = BlocksHelper.IsNewBlockMessageAndBlockTheSame(
+        newBlockMessage,
+        newBlock
+      );
+
+      expect(result).toEqual(false);
+      done();
+    });
+
     it.skip('AreAnyTransactionsAlreadyInDbIO()', done => {
       done();
     });
