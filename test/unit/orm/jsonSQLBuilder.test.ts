@@ -116,12 +116,16 @@ describe('orm jsonSQLBuilder', () => {
 
   it('buildInsert', done => {
     const data = createAccount('liangpeili');
+    const address = data.address;
+    const publicKey = data.publicKey;
     const accountModelSchema = schemas.get('Account');
 
     const result = sut.buildInsert(accountModelSchema, data);
 
+    const expected = `insert into "account" ("address", "username", "gny", "publicKey", "secondPublicKey", "isDelegate", "isLocked", "lockHeight", "lockAmount") values (\'${address}\', \'liangpeili\', 0, \'${publicKey}\', null, 0, 0, null, null);`;
+
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query');
+    expect(result).toHaveProperty('query', expected);
 
     done();
   });
@@ -133,8 +137,12 @@ describe('orm jsonSQLBuilder', () => {
     const accountModelSchema = schemas.get('Account');
     const result = sut.buildDelete(accountModelSchema, primaryKey);
 
+    const expected = `delete from "account" where "address" = \'${
+      primaryKey.address
+    }\';`;
+
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query');
+    expect(result).toHaveProperty('query', expected);
 
     done();
   });
@@ -153,8 +161,16 @@ describe('orm jsonSQLBuilder', () => {
       version
     );
 
+    const expected = `update "account" set "address" = \'${
+      data.address
+    }\', "username" = \'liangpeili\', "gny" = 0, "publicKey" = \'${
+      data.publicKey
+    }\', "secondPublicKey" = null, "isDelegate" = 0, "isLocked" = 0, "lockHeight" = null, "lockAmount" = null where "address" = \'${
+      primaryKey.address
+    }\' and "_version_" = 1;`;
+
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query');
+    expect(result).toHaveProperty('query', expected);
 
     done();
   });
@@ -165,8 +181,12 @@ describe('orm jsonSQLBuilder', () => {
     const where = { username: 'liangpeili' };
     const result = sut.buildSelect(accountModelSchema, field, where);
 
+    const expected = `select "username", "address" from "account" where "username" = \'${
+      where.username
+    }\';`;
+
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query');
+    expect(result).toHaveProperty('query', expected);
 
     done();
   });

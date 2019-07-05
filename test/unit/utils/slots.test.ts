@@ -59,7 +59,7 @@ describe('slots', () => {
       expect(time).toEqual(4410100);
     });
 
-    it('should return time based on now time, equal to 3700800', () => {
+    it('should return time based on now time, equal to 3729600', () => {
       const date = new Date('2019-1-1Z00:00:00+00:00');
       const clock = lolex.install({ now: date });
       const d = undefined;
