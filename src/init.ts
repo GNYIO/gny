@@ -66,7 +66,7 @@ async function init_alt(options: IOptions) {
   scope.genesisBlock = genesisBlock;
 
   scope.joi = extendedJoi;
-  scope.network = await initNetwork(appConfig, scope.modules, options.logger);
+
   scope.sequence = sequence(options);
 
   scope.base = {
@@ -80,6 +80,7 @@ async function init_alt(options: IOptions) {
   global.library = scope;
 
   scope.modules = loadedModules(scope);
+  scope.network = await initNetwork(appConfig, scope.modules, options.logger);
   scope.coreApi = loadCoreApi(scope.modules, scope);
 
   scope.network.app.use((req, res) => {
