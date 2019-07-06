@@ -1,5 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
+import BigNumber from 'bignumber.js';
+import { BigNumberTransformer } from '../BigNumberTransformer';
 
 @Config({ memory: false })
 @Entity()
@@ -48,14 +50,16 @@ export class Block {
   @Column({
     nullable: false,
     type: 'bigint',
+    transformer: new BigNumberTransformer(),
   })
-  public fees: number;
+  public fees: BigNumber;
 
   @Column({
     nullable: false,
     type: 'bigint',
+    transformer: new BigNumberTransformer(),
   })
-  public reward: number;
+  public reward: BigNumber;
 
   @Column({
     length: 64,

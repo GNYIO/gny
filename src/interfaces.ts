@@ -160,8 +160,8 @@ export interface IGenesisBlock {
   delegate: string;
   height: number;
   count: number;
-  fees: number;
-  reward: number;
+  fees: BigNumber;
+  reward: BigNumber;
   signature: string;
   id: string;
   transactions: {
@@ -279,8 +279,8 @@ export interface IBlock {
   timestamp: number;
   prevBlockId?: any;
   count: number;
-  fees: number;
-  reward: number;
+  fees: BigNumber;
+  reward: BigNumber;
   payloadHash: string;
   delegate: string;
   signature: string;

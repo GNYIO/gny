@@ -1,6 +1,5 @@
 import async = require('async');
 import { MAX_TXS_PER_BLOCK } from '../utils/constants';
-import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
 import {
@@ -34,6 +33,7 @@ import Peer from './peer';
 import Delegates from './delegates';
 import Loader from './loader';
 import Transport from './transport';
+import { BigNumber } from 'bignumber.js';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
@@ -138,12 +138,12 @@ export default class Blocks {
 
     const totalFee = BlocksHelper.getFeesOfAll(block.transactions);
 
-    if (Number(totalFee) !== Number(block.fees)) {
+    if (!new BigNumber(totalFee).isEqualTo(block.fees)) {
       throw new Error('Invalid total fees');
     }
 
     const expectedReward = blockreward.calculateReward(block.height);
-    if (expectedReward !== Number(block.reward)) {
+    if (!new BigNumber(expectedReward).isEqualTo(block.reward)) {
       throw new Error('Invalid block reward');
     }
 

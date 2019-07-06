@@ -16,6 +16,7 @@ import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import slots from '../../../src/utils/slots';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -263,8 +264,13 @@ describe('BlocksHelper', () => {
       expect(result.prevBlockId).toEqual(lastBlock.id);
       expect(result.count).toEqual(unconfirmedTransactions.length);
       expect(result.delegate).toEqual(keypair.publicKey.toString('hex'));
-      expect(result.fees).toEqual(0);
-      expect(result.reward).toEqual(0);
+
+      expect(BigNumber.isBigNumber(result.fees)).toEqual(true);
+      expect(new BigNumber(0).isEqualTo(result.fees)).toEqual(true);
+
+      expect(BigNumber.isBigNumber(result.reward)).toEqual(true);
+      expect(new BigNumber(0).isEqualTo(result.reward)).toEqual(true);
+
       expect(result.timestamp).toEqual(timestamp);
       expect(result.transactions).toEqual(unconfirmedTransactions);
       expect(result.version).toEqual(0);

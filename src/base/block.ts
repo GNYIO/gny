@@ -43,8 +43,8 @@ export class BlockBase {
     bb.writeInt(block.timestamp);
     bb.writeInt64(block.height);
     bb.writeInt(block.count);
-    bb.writeInt64(block.fees);
-    bb.writeInt64(block.reward);
+    bb.writeInt64((block.fees.toString() as unknown) as number);
+    bb.writeInt64((block.reward.toString() as unknown) as number);
     bb.writeString(block.delegate);
 
     if (block.prevBlockId) {

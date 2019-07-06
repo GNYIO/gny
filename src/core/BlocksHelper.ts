@@ -18,6 +18,7 @@ import { ConsensusBase } from '../base/consensus';
 import slots from '../utils/slots';
 import { copyObject } from '../base/helpers';
 import { StateHelper } from './StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 const blockreward = new Blockreward();
 
@@ -91,9 +92,9 @@ export class BlocksHelper {
       timestamp,
       transactions: unconfirmedTransactions,
       count,
-      fees,
+      fees: new BigNumber(fees),
       payloadHash: payloadHash.toString('hex'),
-      reward,
+      reward: new BigNumber(reward),
       signature: null,
       id: null,
     };
