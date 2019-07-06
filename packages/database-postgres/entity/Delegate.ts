@@ -68,7 +68,7 @@ export class Delegate {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
   public _version_: number;

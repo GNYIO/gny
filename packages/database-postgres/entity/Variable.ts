@@ -19,7 +19,7 @@ export class Variable {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
   public _version_: number;
