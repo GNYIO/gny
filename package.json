@@ -67,7 +67,7 @@
     "axios": "^0.18.0",
     "babel-eslint": "^9.0.0",
     "benchmark": "^2.1.4",
-    "bignumber.js": "^8.0.1",
+    "bignumber.js": "^9.0.0",
     "bip39": "^2.5.0",
     "body-parser": "=1.18.3",
     "bs58": "^3.0.0",
