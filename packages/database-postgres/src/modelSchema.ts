@@ -59,19 +59,21 @@ export class ModelSchema {
 
     this.name = meta.name;
     this.memory = true === meta.memory;
-    this.maxCachedCount = this.memory ? Number.POSITIVE_INFINITY : meta.maxCachedCount;
+    this.maxCachedCount = this.memory
+      ? Number.POSITIVE_INFINITY
+      : meta.maxCachedCount;
 
     this.allUniqueIndexes = meta.indices
       .filter(x => x.isUnique)
-      .map((index) => {
-        return  {
+      .map(index => {
+        return {
           name: index.columns[0].propertyName,
           properties: index.columns.map(col => col.propertyName),
         };
       });
     this.allNormalIndexes = meta.indices
       .filter(x => !x.isUnique)
-      .map((index) => {
+      .map(index => {
         return {
           name: index.columns[0].propertyName,
           properties: index.columns.map(col => col.propertyName),
@@ -79,7 +81,7 @@ export class ModelSchema {
       });
 
     if (this.allNormalIndexes.length >= 2) {
-      this.compositKeyProperties = this.allNormalIndexes.map((one) => {
+      this.compositKeyProperties = this.allNormalIndexes.map(one => {
         return one.name;
       });
     } else {
@@ -87,17 +89,19 @@ export class ModelSchema {
     }
 
     this.allProperties = meta.columns.map(col => col.name);
-    this.allProperties.forEach((item) => {
+    this.allProperties.forEach(item => {
       this.propertiesSet.add(item);
     });
 
     this.allUniqueIndexes.forEach(unique => {
-      unique.properties.forEach((uniqueColumn) => {
+      unique.properties.forEach(uniqueColumn => {
         this.uniquePropertiesSet.add(uniqueColumn);
       });
     });
 
-    this.primaryKeyProperty = this.allNormalIndexes[0] ? this.allNormalIndexes[0].name : undefined;
+    this.primaryKeyProperty = this.allNormalIndexes[0]
+      ? this.allNormalIndexes[0].name
+      : undefined;
 
     this.columns = meta.columns;
 
@@ -105,7 +109,7 @@ export class ModelSchema {
   }
 
   public hasUniqueProperty(...args: string[]) {
-    return args.some((geomData) => {
+    return args.some(geomData => {
       return this.uniquePropertiesSet.has(geomData);
     });
   }
@@ -123,12 +127,19 @@ export class ModelSchema {
       return;
     }
     const canvas = Object.keys(params);
-    return this.isCompsiteKey ? this.isValidPrimaryKey(params) : 1 === canvas.length && canvas[0] === this.primaryKey;
+    return this.isCompsiteKey
+      ? this.isValidPrimaryKey(params)
+      : 1 === canvas.length && canvas[0] === this.primaryKey;
   }
 
   public setPrimaryKey(source: ObjectLiteral, key) {
     if (!this.isValidPrimaryKey(key)) {
-      throw new Error("Invalid PrimaryKey of model '" + this.modelName + "', key=''" + JSON.stringify(key));
+      throw new Error(
+        "Invalid PrimaryKey of model '" +
+          this.modelName +
+          "', key=''" +
+          JSON.stringify(key)
+      );
     }
     if (!this.isCompsiteKey && codeContract.isPrimitiveKey(key)) {
       source[this.primaryKey] = key;
@@ -149,7 +160,9 @@ export class ModelSchema {
   }
 
   public getNormalizedPrimaryKey(obj) {
-    return this.isCompsiteKey ? codeContract.partialCopy(obj, this.compositeKeys) : codeContract.partialCopy(obj, [this.primaryKey]);
+    return this.isCompsiteKey
+      ? codeContract.partialCopy(obj, this.compositeKeys)
+      : codeContract.partialCopy(obj, [this.primaryKey]);
   }
 
   private normalizePrimaryKey(result) {
@@ -162,7 +175,12 @@ export class ModelSchema {
   }
 
   public isValidPrimaryKey(key) {
-    return !this.isCompsiteKey && (codeContract.isPrimitiveKey(key) || this.isNormalizedPrimaryKey(key)) || 0 === lodash.xor(Object.keys(key), this.compositeKeys).length;
+    return (
+      (!this.isCompsiteKey &&
+        (codeContract.isPrimitiveKey(key) ||
+          this.isNormalizedPrimaryKey(key))) ||
+      0 === lodash.xor(Object.keys(key), this.compositeKeys).length
+    );
   }
 
   private isValidUniqueKey(name) {
@@ -195,7 +213,8 @@ export class ModelSchema {
 
   public copyProperties(data: Object, noformat = true) {
     if (data) {
-      const alternative = (newScaleKey) => this.allProperties.includes(newScaleKey);
+      const alternative = newScaleKey =>
+        this.allProperties.includes(newScaleKey);
       const secondParam = noformat ? this.allProperties : alternative;
       return codeContract.partialCopy(data, secondParam);
     } else {
@@ -204,8 +223,9 @@ export class ModelSchema {
   }
 
   public setDefaultValues(data: ObjectLiteral) {
-    this.columns.forEach((column) => {
-      const propIsNotSet = (null === data[column.name] || undefined === data[column.name]);
+    this.columns.forEach(column => {
+      const propIsNotSet =
+        null === data[column.name] || undefined === data[column.name];
 
       if (undefined !== column.default && propIsNotSet) {
         data[column.name] = column.default;
@@ -215,24 +235,29 @@ export class ModelSchema {
 
   private splitEntityAndVersion(obj) {
     const result = obj[ENTITY_VERSION_PROPERTY];
-    return Reflect.deleteProperty(obj, ENTITY_VERSION_PROPERTY), {
-      version : result,
-      entity : obj
-    };
+    return (
+      Reflect.deleteProperty(obj, ENTITY_VERSION_PROPERTY),
+      {
+        version: result,
+        entity: obj,
+      }
+    );
   }
 
   public resolveKey(data: Object) {
     const up = this.getUniqueName(data);
     if (undefined !== up) {
-      return this.isPrimaryKeyUniqueName(up) ? {
-        isPrimaryKey : true,
-        uniqueName : up,
-        key : this.setPrimaryKey({}, data)
-      } : {
-        isUniqueKey : true,
-        uniqueName : up,
-        key : data
-      };
+      return this.isPrimaryKeyUniqueName(up)
+        ? {
+            isPrimaryKey: true,
+            uniqueName: up,
+            key: this.setPrimaryKey({}, data),
+          }
+        : {
+            isUniqueKey: true,
+            uniqueName: up,
+            key: data,
+          };
     }
   }
 
@@ -244,12 +269,14 @@ export class ModelSchema {
     return this.allJsonProperties;
   }
 
-  public get schemaObject() { // TODO test
+  public get schemaObject() {
+    // TODO test
     throw new Error('not ready');
     return this.schema;
   }
 
   public get isCompsiteKey() {
+    // TODO fix typo
     return this.compositeKeys.length > 1;
   }
 
