@@ -288,6 +288,24 @@ export interface IBlock {
   transactions?: any;
 }
 
+export interface IAccount {
+  address: string;
+  username?: string;
+  gny: BigNumber;
+  publicKey?: string;
+  secondPublicKey?: string;
+  isDelegate: number;
+  isLocked: number;
+  lockHeight: BigNumber;
+  lockAmount: BigNumber;
+  _version_?: number;
+}
+
+export type AccountViewModel = Pick<
+  IAccount,
+  'address' | 'secondPublicKey' | 'lockHeight' | 'isDelegate' | 'username'
+> & { balance: BigNumber };
+
 export interface Transaction {
   id: string;
   type: number;
@@ -383,7 +401,7 @@ export interface CommonBlockResult {
 export interface Context {
   trs: Transaction;
   block: Pick<IBlock, 'height'>;
-  sender: any;
+  sender: IAccount;
 }
 
 declare global {
