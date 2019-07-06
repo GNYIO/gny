@@ -2,7 +2,7 @@ import {
   SmartDB,
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
-import { ILogger } from '../../../src/interfaces';
+import { ILogger, IBlock } from '../../../src/interfaces';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
@@ -10,6 +10,7 @@ import { generateAddress } from '../../../src/utils/address';
 import { cloneDeep } from 'lodash';
 import * as fs from 'fs';
 import * as lib from '../lib';
+import { BigNumber } from 'bignumber.js';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -37,9 +38,9 @@ function createBlock(height: number) {
     delegate: createRandomBytes(32),
     prevBlockId: createRandomBytes(32),
     timestamp: height * 1024,
-    fees: 0,
+    fees: new BigNumber(0),
     payloadHash: createRandomBytes(32),
-    reward: 0,
+    reward: new BigNumber(0),
     signature: createRandomBytes(64),
     _version_: 1,
   };
@@ -153,17 +154,17 @@ describe('integration - SmartDB', () => {
 
       const loaded = await sut.getBlockByHeight(0);
 
-      const expected = {
+      const expected: IBlock = {
         count: 0,
         delegate:
           'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
-        fees: 0,
+        fees: new BigNumber(0),
         height: 0,
         id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
         payloadHash:
           '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
-        previousBlock: null,
-        reward: 0,
+        prevBlockId: null,
+        reward: new BigNumber(0),
         signature:
           'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
         timestamp: 0,

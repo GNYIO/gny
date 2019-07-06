@@ -1,7 +1,7 @@
-
 import { BlockCache } from '../../../packages/database-postgres/src/blockCache';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
+import { BigNumber } from 'bignumber.js';
 
 function createRandomBytes(length: number) {
   return Buffer.from(randomBytes(length)).toString('hex');
@@ -13,11 +13,10 @@ function createBlock(height: number) {
     version: 0,
     timestamp: height + 2003502305230,
     count: 0,
-    fees: 0,
-    reward: 0,
+    fees: new BigNumber(0),
+    reward: new BigNumber(0),
     signature: createRandomBytes(64),
     id: createRandomBytes(32),
-    transactions: [],
     delegate: createRandomBytes(32),
     payloadHash: createRandomBytes(32),
     _version_: 1,
@@ -27,19 +26,19 @@ function createBlock(height: number) {
 }
 
 describe('orm - BlockCache', () => {
-  it('creation succeeded', (done) => {
+  it('creation succeeded', done => {
     const TEN = 10;
     const sut = new BlockCache(TEN);
     done();
   });
-  it('empty cache -> isCached(1) -> false', (done) => {
+  it('empty cache -> isCached(1) -> false', done => {
     const sut = new BlockCache(10);
 
     const BLOCK_HEIGHT = 1;
     expect(sut.get(BLOCK_HEIGHT)).toBeUndefined();
     done();
   });
-  it('empty cache -> add block 1 -> isCached(1) -> true', (done) => {
+  it('empty cache -> add block 1 -> isCached(1) -> true', done => {
     const sut = new BlockCache(10);
 
     const height1 = createBlock(1);
@@ -48,31 +47,39 @@ describe('orm - BlockCache', () => {
     expect(sut.get(1)).toEqual(height1);
     done();
   });
-  it('throws if not subsequent blocks are added', (done) => {
+  it('throws if not subsequent blocks are added', done => {
     const sut = new BlockCache(10);
 
     const height1000 = createBlock(1000);
     const height1002 = createBlock(1002);
 
     sut.push(height1000);
-    expect(() => sut.push(height1002)).toThrowError(new RegExp('^invalid block height', 'i'));
+    expect(() => sut.push(height1002)).toThrowError(
+      new RegExp('^invalid block height', 'i')
+    );
 
     done();
   });
-  it('throws if no integer is provided in the constructor', (done) => {
+  it('throws if no integer is provided in the constructor', done => {
     const someWrongVariable: any = 't';
-    expect(() => new BlockCache(someWrongVariable)).toThrow('please provide a positive integer');
+    expect(() => new BlockCache(someWrongVariable)).toThrow(
+      'please provide a positive integer'
+    );
     done();
   });
-  it('throws if no positive integer is provided in the constructor', (done) => {
+  it('throws if no positive integer is provided in the constructor', done => {
     const size_zero: number = 0;
-    expect(() => new BlockCache(size_zero)).toThrow('please provide a positive integer');
+    expect(() => new BlockCache(size_zero)).toThrow(
+      'please provide a positive integer'
+    );
 
     const size_minus_one: number = -1;
-    expect(() => new BlockCache(size_minus_one)).toThrow('please provide a positive integer');
+    expect(() => new BlockCache(size_minus_one)).toThrow(
+      'please provide a positive integer'
+    );
     done();
   });
-  it('cachedHeightRange is min: -1, max: -1 after initialization', (done) => {
+  it('cachedHeightRange is min: -1, max: -1 after initialization', done => {
     const sut = new BlockCache(10);
     const expected = {
       min: -1,
@@ -81,11 +88,11 @@ describe('orm - BlockCache', () => {
     expect(sut.cachedHeightRange).toEqual(expected);
     done();
   });
-  it('cachedHeightRange should be min: 7, max: 15, when added block(15) after 0::15 blocks are cached, BlockCache(10)', (done) => {
+  it('cachedHeightRange should be min: 7, max: 15, when added block(15) after 0::15 blocks are cached, BlockCache(10)', done => {
     const sut = new BlockCache(10);
     const heights = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    heights.forEach((one) => {
+    heights.forEach(one => {
       const block = createBlock(one);
       sut.push(block);
     });
@@ -97,7 +104,7 @@ describe('orm - BlockCache', () => {
     expect(sut.cachedHeightRange).toEqual(expected);
     done();
   });
-  it('cahedHeightRange should be min: 12, max: 12, after only block(12) was added, BlockCache(10)', (done) => {
+  it('cahedHeightRange should be min: 12, max: 12, after only block(12) was added, BlockCache(10)', done => {
     const sut = new BlockCache(10);
     const height_12 = createBlock(12);
 
@@ -110,7 +117,7 @@ describe('orm - BlockCache', () => {
     expect(sut.cachedHeightRange).toEqual(expected);
     done();
   });
-  it('get(10) should return undefined when BlockCache(size: 2) after push(11) and push(12)', (done) => {
+  it('get(10) should return undefined when BlockCache(size: 2) after push(11) and push(12)', done => {
     const sut = new BlockCache(2);
 
     const height_10 = createBlock(10);
@@ -124,13 +131,13 @@ describe('orm - BlockCache', () => {
     expect(sut.get(10)).toBeUndefined();
     done();
   });
-  it('getById returns undefined if blockId was not found', (done) => {
+  it('getById returns undefined if blockId was not found', done => {
     const sut = new BlockCache(10);
 
     expect(sut.getById('4jpwmCTt136j')).toBeUndefined();
     done();
   });
-  it('getById returns correct Block after Block was cached', (done) => {
+  it('getById returns correct Block after Block was cached', done => {
     const sut = new BlockCache(10);
 
     const height_2 = createBlock(2);
@@ -138,12 +145,12 @@ describe('orm - BlockCache', () => {
     expect(sut.getById(height_2.id)).toEqual(height_2);
     done();
   });
-  it('pass invalid blockId to getById() -> returns undefined', (done) => {
+  it('pass invalid blockId to getById() -> returns undefined', done => {
     const sut = new BlockCache(10);
     expect(sut.getById(undefined)).toBeUndefined();
     done();
   });
-  it('can cache Block(0) (genesisBlock)', (done) => {
+  it('can cache Block(0) (genesisBlock)', done => {
     const sut = new BlockCache(10);
     const block_zero = createBlock(0);
     sut.push(block_zero);
@@ -151,11 +158,11 @@ describe('orm - BlockCache', () => {
     expect(sut.get(0)).toEqual(block_zero);
     done();
   });
-  it('evitUntil(rollback) rollback to height', (done) => {
+  it('evitUntil(rollback) rollback to height', done => {
     const sut = new BlockCache(10);
     const heights = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    heights.forEach((one) => {
+    heights.forEach(one => {
       const block = createBlock(one);
       sut.push(block);
     });

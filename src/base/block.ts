@@ -141,13 +141,12 @@ export class BlockBase {
         .min(0)
         .required(),
       reward: joi
-        .number()
-        .integer()
-        .min(0)
+        .object()
+        .positiveIntegerBigNumber()
         .required(),
       fees: joi
-        .number()
-        .integer()
+        .object()
+        .positiveIntegerBigNumber()
         .required(),
       count: joi
         .number()

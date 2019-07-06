@@ -2,7 +2,7 @@ import { BlockBase } from '../../../src/base/block';
 import { KeyPair, IBlock, Transaction } from '../../../src/interfaces';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import BigNumber from 'bignumber.js';
 
 function createTransation() {
   const data: Transaction = {
@@ -43,8 +43,8 @@ function createBlock(height: number, keypair: KeyPair) {
     version: 0,
     timestamp: height + 2003502305230,
     count: 0,
-    fees: 0,
-    reward: 0,
+    fees: new BigNumber(0),
+    reward: new BigNumber(0),
     signature: null,
     id: null,
     transactions: [],

@@ -16,6 +16,7 @@ import slots from '../../../src/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
@@ -88,9 +89,9 @@ function createBlock(
     timestamp: timestamp,
     transactions: transactions,
     count: transactions.length,
-    fees: 0,
+    fees: new BigNumber(0),
     payloadHash: payloadHash.digest().toString('hex'),
-    reward: 0,
+    reward: new BigNumber(0),
     signature: undefined,
     id: undefined,
   };
@@ -302,8 +303,8 @@ describe('core/blocks', () => {
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: 0,
-        reward: 0,
+        fees: new BigNumber(0),
+        reward: new BigNumber(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
       };
@@ -326,8 +327,8 @@ describe('core/blocks', () => {
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: 0,
-        reward: 0,
+        fees: new BigNumber(0),
+        reward: new BigNumber(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
         prevBlockId: randomHex(32), // important
