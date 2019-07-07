@@ -1,6 +1,7 @@
-import { Transaction, Context, IState } from '../interfaces';
+import { Transaction, Context, IState, IAccount } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default class Transactions {
   public static processUnconfirmedTransactions = (
@@ -115,8 +116,8 @@ export default class Transactions {
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: 0,
-      });
+        gny: new BigNumber(0),
+      } as IAccount);
     }
 
     const context: Context = {
@@ -155,8 +156,9 @@ export default class Transactions {
     }
 
     if (block.height !== 0) {
-      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
-      sender.gny -= trs.fee;
+      if (new BigNumber(sender.gny).isLessThan(trs.fee))
+        throw new Error('Insufficient sender balance');
+      sender.gny = new BigNumber(sender.gny).minus(trs.fee);
       await global.app.sdb.update(
         'Account',
         { gny: sender.gny },

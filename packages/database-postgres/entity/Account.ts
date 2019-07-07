@@ -1,5 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
+import { BigNumberTransformerNullable } from '../BigNumberTransformer';
+import { BigNumber } from 'bignumber.js';
 
 @Config({ memory: false })
 @Entity()
@@ -20,10 +22,11 @@ export class Account {
   public username: string;
 
   @Column({
-    default: 0,
+    default: new BigNumber(0),
     type: 'bigint',
+    transformer: new BigNumberTransformerNullable(),
   })
-  public gny: number;
+  public gny: BigNumber;
 
   @Column({
     length: 64,
@@ -52,16 +55,18 @@ export class Account {
   public isLocked: number;
 
   @Column({
-    default: 0,
+    default: new BigNumber(0),
     type: 'bigint',
+    transformer: new BigNumberTransformerNullable(),
   })
-  public lockHeight: number;
+  public lockHeight: BigNumber;
 
   @Column({
-    default: 0,
+    default: new BigNumber(0),
     type: 'bigint',
+    transformer: new BigNumberTransformerNullable(),
   })
-  public lockAmount: number;
+  public lockAmount: BigNumber;
 
   @Column({
     default: 0,

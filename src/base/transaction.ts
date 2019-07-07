@@ -1,13 +1,22 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import { KeyPair } from '../interfaces';
+import { KeyPair, IAccount } from '../interfaces';
 import { copyObject } from './helpers';
 import { Transaction, Context } from '../../src/interfaces';
 import slots from '../../src/utils/slots';
 import feeCalculators from '../../src/utils/calculate-fee';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
+
+export interface CreateTransactionType {
+  type: number;
+  keypair: KeyPair;
+  message?: string;
+  args: any;
+  fee: Number;
+  secondKeypair?: KeyPair;
+}
 
 export class TransactionBase {
   public static normalizeTransaction(old: any) {
@@ -123,13 +132,13 @@ export class TransactionBase {
       const publicKeyBuffer = Buffer.from(publicKey, 'hex');
       return ed.verify(hash, signatureBuffer, publicKeyBuffer);
     } catch (e) {
-      throw new Error(e.toString());
+      return false;
     }
   }
 
   public static verifyNormalSignature(
     transaction: Transaction,
-    sender,
+    sender: IAccount,
     bytes: Buffer
   ) {
     if (
@@ -185,8 +194,8 @@ export class TransactionBase {
     return undefined;
   }
 
-  public static create(data) {
-    const transaction = {
+  public static create(data: CreateTransactionType) {
+    const transaction: Transaction = {
       type: data.type,
       senderId: addressHelper.generateAddress(
         data.keypair.publicKey.toString('hex')
@@ -196,7 +205,7 @@ export class TransactionBase {
       message: data.message,
       args: data.args,
       fee: data.fee,
-    } as Transaction;
+    };
 
     transaction.signatures = [TransactionBase.sign(data.keypair, transaction)];
 

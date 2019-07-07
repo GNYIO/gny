@@ -1,4 +1,7 @@
-import { DefaultEntityUniqueIndex, ModelIndex } from './defaultEntityUniqueIndex';
+import {
+  DefaultEntityUniqueIndex,
+  ModelIndex,
+} from './defaultEntityUniqueIndex';
 import { CustomCache } from './customCache';
 import * as codeContract from './codeContract';
 
@@ -15,7 +18,7 @@ export class UniquedCache {
     this.cache = cache;
     this.cache.onEvit = this.afterEvit.bind(this);
     this.indexes = new Map<string, DefaultEntityUniqueIndex>();
-    modelIndex.forEach((one) => {
+    modelIndex.forEach(one => {
       return this.indexes.set(one.name, this.createUniqueIndex(one));
     });
   }
@@ -29,7 +32,7 @@ export class UniquedCache {
 
   /**
    * @param {string} component - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}"
-   * @param {Object} test - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh","username":null,"gny":0,"isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"_version_":2}"
+   * @param {Object} test - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh","username":null,"gny":"0","isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"_version_":2}"
    */
   private afterEvit(component: string, test) {
     this.indexes.forEach(function(index) {
@@ -51,7 +54,7 @@ export class UniquedCache {
    * @param {Object} obj - Example: "{
    * "address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5",
    * "username":null,
-   * "gny":0,
+   * "gny":"0",
    * "isDelegate":0,
    * "isLocked":0,
    * "lockHeight":0,
@@ -65,7 +68,8 @@ export class UniquedCache {
     }
     this.cache.set(key, obj);
     this.indexes.forEach(function(oneIndex) {
-      if (oneIndex.fields.some((prop) => !obj[prop])) { // inverts falsey value
+      if (oneIndex.fields.some(prop => !obj[prop])) {
+        // inverts falsey value
         return;
       }
       const r = codeContract.partialCopy(obj, oneIndex.fields);

@@ -1,8 +1,9 @@
-import { IBlock } from '../../src/interfaces';
+import { IBlock, IAccount, AccountViewModel } from '../../src/interfaces';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
@@ -65,9 +66,9 @@ export function generateAddressByPublicKey(publicKey: string) {
 // account helper
 export async function getAccountByName(name: string) {
   try {
-    const account = await global.app.sdb.findOne('Account', {
+    const account = (await global.app.sdb.findOne('Account', {
       condition: { username: name },
-    });
+    })) as IAccount;
     return account;
   } catch (err) {
     return 'Server Error';
@@ -86,16 +87,18 @@ export async function getAccount(address: string) {
   }
 
   try {
-    const account = await global.app.sdb.findOne('Account', {
+    const account = (await global.app.sdb.findOne('Account', {
       condition: { address },
-    });
-    let accountData;
+    })) as IAccount;
+
+    // TODO change balance -> gny in AccountViewModel
+    let accountData: AccountViewModel = undefined;
     if (!account) {
       accountData = {
         address: address,
-        balance: 0,
+        balance: new BigNumber(0),
         secondPublicKey: '',
-        lockHeight: 0,
+        lockHeight: new BigNumber(0),
         isDelegate: 0,
         username: null,
       };
@@ -104,7 +107,7 @@ export async function getAccount(address: string) {
         address: account.address,
         balance: account.gny,
         secondPublicKey: account.secondPublicKey,
-        lockHeight: account.lockHeight || 0,
+        lockHeight: account.lockHeight || new BigNumber(0),
         isDelegate: account.isDelegate,
         username: account.username,
       };

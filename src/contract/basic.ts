@@ -1,3 +1,6 @@
+import { BigNumber } from 'bignumber.js';
+import { IAccount } from '../interfaces';
+
 async function deleteCreatedVotes(account) {
   interface Vote {
     voterAddress: string;
@@ -45,7 +48,7 @@ export default {
     amount = Number(amount);
     const sender = this.sender;
     const senderId = sender.address;
-    if (this.block.height > 0 && sender.gny < amount)
+    if (this.block.height > 0 && new BigNumber(sender.gny).isLessThan(amount))
       return 'Insufficient balance';
 
     let recipientAccount;
@@ -151,12 +154,14 @@ export default {
     // const MIN_LOCK_HEIGHT = 8640 * 30
     // 60/15 * 60 * 24 = 5760
     const MIN_LOCK_HEIGHT = 5760 * 30;
-    const sender = this.sender;
-    if (sender.gny - 100000000 < amount) return 'Insufficient balance';
+    const sender = this.sender as IAccount;
+    if (new BigNumber(sender.gny).minus(100000000).isLessThan(amount))
+      return 'Insufficient balance';
     if (sender.isLocked) {
       if (
-        height <
-        Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
+        BigNumber.max(this.block.height, sender.lockHeight)
+          .plus(MIN_LOCK_HEIGHT)
+          .isGreaterThan(height)
       ) {
         return 'Invalid lock height';
       }
@@ -179,7 +184,7 @@ export default {
       sender.lockHeight = height;
     }
     if (amount !== 0) {
-      sender.gny -= amount;
+      sender.gny = new BigNumber(sender.gny).minus(amount);
       sender.lockAmount += amount;
       await global.app.sdb.update('Account', sender, {
         address: sender.address,
@@ -225,7 +230,7 @@ export default {
 
   async registerDelegate() {
     if (arguments.length !== 0) return 'Invalid arguments length';
-    const sender = this.sender;
+    const sender = this.sender as IAccount;
     if (!sender) return 'Account not found';
 
     const senderId = this.sender.address;

@@ -1,7 +1,12 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
+import {
+  IScope,
+  Next,
+  DelegateViewModel,
+  IAccount,
+} from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
@@ -84,13 +89,13 @@ export default class DelegatesApi {
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = await global.app.sdb.findAll('Account', {
+      const accounts = (await global.app.sdb.findAll('Account', {
         condition: {
           address: {
             $in: addresses,
           },
         },
-      });
+      })) as IAccount[];
       const lastBlock = StateHelper.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {

@@ -271,7 +271,6 @@ export default class TransactionsApi {
             const trs = TransactionBase.create({
               fee: query.fee,
               type: query.type,
-              senderId: query.senderId || null,
               args: query.args || null,
               message: query.message || null,
               secondKeypair,
