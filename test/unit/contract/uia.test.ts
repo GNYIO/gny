@@ -1,6 +1,11 @@
 import uia from '../../../src/contract/uia';
 import BigNumber from 'bignumber.js';
-import { ILogger } from '../../../src/interfaces';
+import {
+  ILogger,
+  IAccount,
+  IBlock,
+  Transaction,
+} from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
 import address from '../../../src/utils/address';
@@ -33,10 +38,26 @@ describe('uia', () => {
     done();
   });
 
+  afterEach(done => {
+    delete (uia as any).sender;
+    delete (uia as any).block;
+    delete (uia as any).trs;
+
+    done();
+  });
+
   describe('registerIssuer', () => {
-    let name;
+    let name: string;
     let desc;
-    beforeEach(done => {
+
+    afterEach(done => {
+      delete (uia as any).sender;
+      delete (uia as any).block;
+      delete (uia as any).trs;
+
+      name = undefined;
+      desc = undefined;
+
       done();
     });
 
@@ -45,12 +66,12 @@ describe('uia', () => {
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      };
+      } as Transaction;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.exists.mockReturnValue(null);
@@ -99,8 +120,8 @@ describe('uia', () => {
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.exists.mockReturnValueOnce(null).mockReturnValueOnce(true);
@@ -112,12 +133,21 @@ describe('uia', () => {
   });
 
   describe('registerAsset', () => {
-    let symbol;
+    let symbol: string;
     let desc;
-    let maximum;
-    let precision;
+    let maximum: number;
+    let precision: number;
 
-    beforeEach(done => {
+    afterEach(done => {
+      delete (uia as any).sender;
+      delete (uia as any).block;
+      delete (uia as any).trs;
+
+      symbol = undefined;
+      desc = undefined;
+      maximum = undefined;
+      precision = undefined;
+
       done();
     });
 
@@ -128,12 +158,12 @@ describe('uia', () => {
       precision = 8;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      };
+      } as Transaction;
 
       global.app.sdb.findOne.mockReturnValue(true);
       global.app.sdb.lock.mockReturnValue(null);
@@ -196,6 +226,10 @@ describe('uia', () => {
     });
 
     it('should return Account is not an issuer', async done => {
+      (uia as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: new BigNumber(200 * 1e8),
+      } as IAccount;
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
@@ -214,6 +248,10 @@ describe('uia', () => {
     });
 
     it('should return Asset already exists', async done => {
+      (uia as any).sender = {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        gny: new BigNumber(200 * 1e8),
+      } as IAccount;
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
@@ -237,7 +275,13 @@ describe('uia', () => {
     let name;
     let amount;
 
-    beforeEach(done => {
+    afterEach(done => {
+      delete (uia as any).sender;
+      delete (uia as any).block;
+      delete (uia as any).trs;
+
+      name = undefined;
+      amount = undefined;
       done();
     });
 
@@ -246,8 +290,8 @@ describe('uia', () => {
       amount = 10000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
 
       const asset = {
         issuerId: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -282,8 +326,8 @@ describe('uia', () => {
       amount = 10000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
 
       const asset = {
         issuerId: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -304,8 +348,8 @@ describe('uia', () => {
       amount = 1000000000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
 
       const asset = {
         issuerId: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -323,9 +367,9 @@ describe('uia', () => {
   });
 
   describe('transfer', () => {
-    let currency;
-    let amount;
-    let recipient;
+    let currency: string;
+    let amount: number;
+    let recipient: string;
 
     beforeEach(done => {
       currency = 'gny';
@@ -334,19 +378,30 @@ describe('uia', () => {
       done();
     });
 
+    afterEach(done => {
+      delete (uia as any).sender;
+      delete (uia as any).block;
+      delete (uia as any).trs;
+
+      currency = undefined;
+      amount = undefined;
+      recipient = undefined;
+      done();
+    });
+
     it('should transfer some amount of currency to a recipient', async done => {
       const balance = new global.app.util.bignumber(100000000);
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: 100000000,
-      };
+        gny: new BigNumber(100000000),
+      } as IAccount;
       (uia as any).block = {
         height: 1,
-      };
+      } as IBlock;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      };
+      } as Transaction;
 
       global.app.balances.get.mockReturnValue(balance);
       global.app.balances.transfer.mockReturnValue(null);
@@ -379,7 +434,11 @@ describe('uia', () => {
     });
 
     it('should return Insufficient balance', async done => {
-      const balance = new global.app.util.bignumber(1000);
+      (uia as any).sender = {
+        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+        gny: new BigNumber(200),
+      } as IAccount;
+      const balance = new BigNumber(1000);
 
       global.app.balances.get.mockReturnValue(balance);
       const transfered = await uia.transfer(currency, amount, recipient);
@@ -388,8 +447,12 @@ describe('uia', () => {
     });
 
     it('should return Recipient name not exist', async done => {
+      (uia as any).sender = {
+        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+        gny: new BigNumber(200),
+      } as IAccount;
       recipient = 'xpgeng';
-      const balance = new global.app.util.bignumber(1000000000);
+      const balance = new BigNumber(1000000000);
 
       global.app.balances.get.mockReturnValue(balance);
       global.app.sdb.findOne.mockReturnValue(null);

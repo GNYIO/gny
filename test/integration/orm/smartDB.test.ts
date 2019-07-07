@@ -2,7 +2,7 @@ import {
   SmartDB,
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
-import { ILogger, IBlock } from '../../../src/interfaces';
+import { ILogger, IBlock, IAccount } from '../../../src/interfaces';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
@@ -65,8 +65,8 @@ function createAccount(address: string) {
   const account = {
     address,
     username: undefined,
-    gny: 0,
-  };
+    gny: new BigNumber(0),
+  } as IAccount;
   return account;
 }
 
@@ -671,13 +671,13 @@ describe('integration - SmartDB', () => {
       create: false,
       entity: {
         address: 'Gjfw7B8WyHq7bw22TwG6gPtdXD19',
-        gny: 0,
+        gny: new BigNumber(0),
         isDelegate: 0,
         isLocked: 0,
-        lockAmount: 0,
-        lockHeight: 0,
+        lockAmount: new BigNumber(0),
+        lockHeight: new BigNumber(0),
         _version_: 1,
-      },
+      } as IAccount,
     };
 
     const result = await sut.createOrLoad('Account', key);
@@ -722,8 +722,8 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       username: 'a1300',
-      gny: 0,
-    };
+      gny: new BigNumber(0),
+    } as IAccount;
     const created = await sut.create('Account', account);
 
     const uniqueKey = {
@@ -757,8 +757,8 @@ describe('integration - SmartDB', () => {
 
     const data = {
       address: 'GZr2NYvHqp9keXPVsAp6EDHTiT3y',
-      gny: 0,
-    };
+      gny: new BigNumber(0),
+    } as IAccount;
     const result = await sut.create('Account', data);
     expect(result).toBeTruthy();
     expect(result._version_).toEqual(1);
@@ -789,12 +789,12 @@ describe('integration - SmartDB', () => {
     const expected = {
       _version_: 1,
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: 0,
+      gny: new BigNumber(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: 0,
-      lockHeight: 0,
-    };
+      lockAmount: new BigNumber(0),
+      lockHeight: new BigNumber(0),
+    } as IAccount;
 
     expect(createResult).not.toBe(expected); // not same reference
     expect(createResult).toEqual(expected); // deepEquals (same values)
@@ -1214,14 +1214,14 @@ describe('integration - SmartDB', () => {
 
     const data = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: 4000,
-    };
+      gny: new BigNumber(4000),
+    } as IAccount;
     await sut.create('Account', data);
 
     await sut.increase(
       'Account',
       {
-        gny: -1000,
+        gny: new BigNumber(-1000),
       },
       {
         address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
@@ -1241,8 +1241,8 @@ describe('integration - SmartDB', () => {
 
     const account = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: 0,
-    };
+      gny: new BigNumber(0),
+    } as IAccount;
     await sut.create('Account', account);
 
     // check before
@@ -1271,8 +1271,8 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
       username: 'a1300',
-      gny: 0,
-    };
+      gny: new BigNumber(0),
+    } as IAccount;
     await sut.create('Account', account);
 
     // delete
@@ -1323,8 +1323,8 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       username: 'a1300',
-      gny: 0,
-    };
+      gny: new BigNumber(0),
+    } as IAccount;
     await sut.create('Account', account);
 
     // first create account and persist with next block
@@ -1360,8 +1360,8 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       username: 'xpgeng',
-      gny: 100000,
-    };
+      gny: new BigNumber(100000),
+    } as IAccount;
     await sut.create('Account', account);
 
     const result = await sut.findAll('Account', {
@@ -1422,7 +1422,7 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it('findAll() - WHERE IN clause', async done => {
+  it('findAll() - WHERE IN clause ($in)', async done => {
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -1608,16 +1608,16 @@ describe('integration - SmartDB', () => {
 
     const expected = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
-      gny: 0,
+      gny: new BigNumber(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: 0,
-      lockHeight: 0,
+      lockAmount: new BigNumber(0),
+      lockHeight: new BigNumber(0),
       publicKey: null,
       secondPublicKey: null,
       username: null,
       _version_: 1,
-    };
+    } as IAccount;
 
     const key = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
@@ -1641,16 +1641,16 @@ describe('integration - SmartDB', () => {
 
     const expected = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
-      gny: 0,
+      gny: new BigNumber(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: 0,
-      lockHeight: 0,
+      lockAmount: new BigNumber(0),
+      lockHeight: new BigNumber(0),
       publicKey: null,
       secondPublicKey: null,
       username: 'xpgeng',
       _version_: 1,
-    };
+    } as IAccount;
 
     const key = {
       username: 'xpgeng',
@@ -1755,11 +1755,11 @@ describe('integration - SmartDB', () => {
 
     const account = {
       address: generateAddress(createRandomBytes(32)),
-      gny: 0,
+      gny: new BigNumber(0),
       username: null,
       publicKey: createRandomBytes(32),
       isDelegate: 0,
-    };
+    } as IAccount;
     await sut.create('Account', account);
 
     const balance = {
