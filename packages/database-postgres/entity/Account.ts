@@ -22,7 +22,7 @@ export class Account {
   public username: string;
 
   @Column({
-    default: new BigNumber(0),
+    default: 0,
     type: 'bigint',
     transformer: new BigNumberTransformerNullable(),
   })
@@ -55,14 +55,14 @@ export class Account {
   public isLocked: number;
 
   @Column({
-    default: new BigNumber(0),
+    default: 0,
     type: 'bigint',
     transformer: new BigNumberTransformerNullable(),
   })
   public lockHeight: BigNumber;
 
   @Column({
-    default: new BigNumber(0),
+    default: 0,
     type: 'bigint',
     transformer: new BigNumberTransformerNullable(),
   })

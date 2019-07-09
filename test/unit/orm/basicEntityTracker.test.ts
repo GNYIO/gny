@@ -13,6 +13,32 @@ import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
 import { BigNumber } from 'bignumber.js';
 
+function getMetaSchemaWithBigNumberPrimaryKey() {
+  const testMetaSchema: MetaSchema = {
+    memory: false,
+    name: 'Test',
+    indices: [
+      {
+        isUnique: false, // primary key
+        columns: [
+          {
+            propertyName: 'height',
+          },
+        ],
+      },
+    ],
+    columns: [
+      {
+        name: 'height',
+      },
+      {
+        name: 'transactionCount',
+      },
+    ],
+  };
+  return testMetaSchema;
+}
+
 function getAccountMetaSchema() {
   const accountMetaSchema: MetaSchema = {
     memory: false,
@@ -123,6 +149,10 @@ describe('orm - BasicEntityTracker', () => {
     const accountMetaSchema = getAccountMetaSchema();
     const accountModelSchema = new ModelSchema(accountMetaSchema);
     modelSchemas.set('Account', accountModelSchema);
+
+    const testMetaSchema = getMetaSchemaWithBigNumberPrimaryKey();
+    const testModelSchema = new ModelSchema(testMetaSchema);
+    modelSchemas.set('Test', testModelSchema);
 
     const lruEntityCache = new LRUEntityCache(modelSchemas);
     const MAXVERSIONHOLD = 10;
@@ -1022,6 +1052,31 @@ describe('orm - BasicEntityTracker', () => {
       ) as IAccount;
       expect(BigNumber.isBigNumber(after.gny)).toEqual(true);
       expect(after.gny.toString()).toEqual('100');
+
+      done();
+    });
+    it.only('can track entity with BigNumber as PrimaryKey', done => {
+      const testSchema = schemas.get('Test');
+      const data = {
+        height: new BigNumber(10),
+        transactionCount: 0,
+      };
+
+      // act
+      const x = sut.trackNew(testSchema, data);
+
+      // see if data can be fetched
+      const result = sut.getTrackingEntity(testSchema, {
+        height: new BigNumber(10),
+      });
+
+      const expected = {
+        height: new BigNumber(10),
+        transactionCount: 0,
+        _version_: 1,
+      };
+      expect(result).not.toBeUndefined();
+      expect(result).toEqual(expected);
 
       done();
     });
