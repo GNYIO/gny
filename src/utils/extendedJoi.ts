@@ -116,7 +116,7 @@ const stringExtensions: Joi.Extension = {
     {
       name: 'asset',
       validate(params, value, state, options) {
-        const regname = /^[A-Za-z]{1,16}.[A-Z]{3,6}$/;
+        const regname = /^[A-Za-z]{1,16}\.[A-Z]{3,6}$/;
         if (!regname.test(value))
           return this.createError('string.asset', { v: value }, state, options);
         return value;
