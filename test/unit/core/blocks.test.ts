@@ -1,18 +1,36 @@
 import Blocks from '../../../src/core/blocks';
 import {
-  IScope,
-  PeerNode,
-  Modules,
   IBlock,
   KeyPair,
+  IGenesisBlock,
+  IState,
+  ProcessBlockOptions,
 } from '../../../src/interfaces';
-import { Block as BaseBlock } from '../../../src/base/block';
-import { Transaction as BaseTransaction } from '../../../src/base/transaction';
+import { BlockBase } from '../../../src/base/block';
+import { TransactionBase } from '../../../src/base/transaction';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';
 import slots from '../../../src/utils/slots';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import * as fs from 'fs';
+import { StateHelper } from '../../../src/core/StateHelper';
+
+function loadGenesisBlock() {
+  const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
+    encoding: 'utf8',
+  });
+  const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
+  return genesisBlock;
+}
+
+function loadRawOrmSqljsConfig() {
+  const ormConfigRaw = fs.readFileSync('ormconfig.sqljs.json', {
+    encoding: 'utf8',
+  });
+  return ormConfigRaw;
+}
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
@@ -41,10 +59,8 @@ function createBlock(
 
   const transactions = [];
   if (transactionsAmount > 0) {
-    const baseTransaction = new BaseTransaction({} as IScope);
-
     for (let i = 0; i < transactionsAmount; ++i) {
-      const trans = baseTransaction.create({
+      const trans = TransactionBase.create({
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
         fee: 0,
@@ -57,7 +73,7 @@ function createBlock(
     }
 
     for (const trans of transactions) {
-      const bytes = baseTransaction.getBytes(trans);
+      const bytes = TransactionBase.getBytes(trans);
       payloadHash.update(bytes);
     }
   }
@@ -75,13 +91,12 @@ function createBlock(
     fees: 0,
     payloadHash: payloadHash.digest().toString('hex'),
     reward: 0,
-    signature: null,
-    id: null,
+    signature: undefined,
+    id: undefined,
   };
 
-  const baseBlock = new BaseBlock({} as any);
-  block.signature = baseBlock.sign(block, keypair);
-  block.id = baseBlock.getId(block);
+  block.signature = BlockBase.sign(block, keypair);
+  block.id = BlockBase.getId(block);
 
   return block;
 }
@@ -97,162 +112,189 @@ const dummyLogger = {
 };
 
 describe('core/blocks', () => {
-  let coreBlocks: Blocks;
-  beforeAll(done => {
-    global.app = {};
-    done();
-  });
   beforeEach(done => {
-    const scope = {} as IScope;
-    coreBlocks = new Blocks(scope);
+    global.app = {
+      logger: dummyLogger,
+    };
     done();
   });
   afterEach(done => {
     global.app = {};
-    coreBlocks = undefined;
     done();
   });
 
-  describe('getCommonBlock()', () => {
-    beforeEach(done => {
-      global.app = {
-        sdb: {
-          getBlocksByHeightRange: jest.fn().mockReturnValue([
-            {
-              id:
-                '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-            },
-          ]),
-        },
-      } as any;
+  describe('RunGenesisOrLoadLastBlock()', () => {
+    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB processes genesisBlock and saves it in DB', async done => {
+      const state = StateHelper.getInitialState();
+      const genesisBlock = loadGenesisBlock();
 
-      const scope = {
-        logger: dummyLogger,
+      const getBlocksByHeightRangeFunc = async (
+        height: number
+      ): Promise<IBlock> => {
+        throw new Error('should not be called');
       };
-      coreBlocks = new Blocks(scope);
 
-      const modules = {
-        peer: {
-          request: jest.fn().mockReturnValue({
-            common: {
-              id:
-                '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-            },
-          }),
-        },
-      } as any;
-      coreBlocks.onBind(modules);
+      const expectedState = {
+        lastBlock: genesisBlock as IBlock,
+      } as IState;
+      const processBlockMock = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(expectedState));
+
+      const resultState = await Blocks.RunGenesisOrLoadLastBlock(
+        state,
+        0,
+        genesisBlock,
+        processBlockMock,
+        getBlocksByHeightRangeFunc
+      );
+
+      expect(processBlockMock).toBeCalledTimes(1);
+      expect(resultState).not.toBeUndefined();
+      expect(resultState.lastBlock).not.toBeUndefined();
+      expect(resultState.lastBlock.id).toEqual(genesisBlock.id);
+      expect(resultState).not.toBe(state); // other object reference
 
       done();
     });
 
-    it('getCommonBlock() - no lastBlock throws error', async () => {
-      const peer: PeerNode = {
-        host: '0.0.0.0',
-        port: 5000,
-      };
-      const lastBlockHeight = 3;
-      const func = coreBlocks.getCommonBlock(peer, lastBlockHeight);
-      return expect(func).rejects.toHaveProperty(
+    it('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {
+      const state = StateHelper.getInitialState();
+      const genesisBlock = loadGenesisBlock();
+
+      const processBlockFunc = (
+        state: IState,
+        block: any,
+        options: ProcessBlockOptions,
+        delegateList: string[]
+      ) => Promise.reject('should not get called');
+
+      // TODO
+      const expected = {
+        height: 9,
+        id: 'nine',
+      } as IBlock;
+      const getBlocksByHeightMock = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(expected));
+
+      const BLOCK_IN_DB = 10;
+      const resultState = await Blocks.RunGenesisOrLoadLastBlock(
+        state,
+        BLOCK_IN_DB,
+        genesisBlock,
+        processBlockFunc,
+        getBlocksByHeightMock
+      );
+
+      expect(resultState).not.toBeUndefined();
+      expect(resultState.lastBlock).not.toBeUndefined();
+      expect(resultState.lastBlock.height).toEqual(9);
+      expect(resultState.lastBlock.id).toEqual('nine');
+      expect(resultState).not.toBe(state); // other object reference
+
+      done();
+    });
+  });
+
+  describe('getIdSequence2', () => {
+    it('getIdSequence2() - returns the 4 last blockIds in descending order (happy path)', async done => {
+      const currentLastBlockHeight = 59;
+
+      const blocksAscending = [
+        {
+          height: 55,
+          id: 'fivefive',
+        },
+        {
+          height: 56,
+          id: 'fivesix',
+        },
+        {
+          height: 57,
+          id: 'fiveseven',
+        },
+        {
+          height: 58,
+          id: 'fiveeight',
+        },
+        {
+          height: 59,
+          id: 'fivenine',
+        },
+      ];
+      const getBlocksByHeightRange = jest
+        .fn()
+        .mockImplementation(() => Promise.resolve(blocksAscending));
+
+      // act
+      const result = await Blocks.getIdSequence2(
+        currentLastBlockHeight,
+        getBlocksByHeightRange
+      );
+
+      expect(result).toHaveProperty('min', 55);
+      expect(result).toHaveProperty('max', 59);
+      expect(result).toHaveProperty('ids', [
+        'fivenine',
+        'fiveeight',
+        'fiveseven',
+        'fivesix',
+        'fivefive',
+      ]);
+
+      done();
+    });
+
+    it('getIdSequence2() - throws Error with "getIdSequence2 failed" if something goes wrong', async () => {
+      // preparation
+      const currentLastBlockHeight = 30;
+
+      const getBlocksByHeightRangeMock = jest
+        .fn()
+        .mockImplementation(() => Promise.reject('something wrong happend'));
+
+      // act
+      const resultPromise = Blocks.getIdSequence2(
+        currentLastBlockHeight,
+        getBlocksByHeightRangeMock
+      );
+
+      return expect(resultPromise).rejects.toHaveProperty(
         'message',
-        "Cannot read property 'height' of undefined"
+        'getIdSequence2 failed'
       );
     });
-
-    it('getCommonBlock() - returns commonBlock from peer', async done => {
-      // prepare
-      coreBlocks.setLastBlock({
-        height: 0,
-      });
-
-      const peer: PeerNode = {
-        host: '0.0.0.0',
-        port: 5000,
-      };
-      const lastBlockHeight = 0;
-
-      const result = await coreBlocks.getCommonBlock(peer, lastBlockHeight);
-      expect(result).toEqual({
-        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-      });
-
-      done();
-    });
   });
 
-  describe('getLastBlock()', () => {
-    it('getLastBlock() - returns lastBlock', done => {
-      coreBlocks.setLastBlock({
-        height: -1,
-      });
-
-      const result = coreBlocks.getLastBlock();
-      expect(result).toEqual({
-        height: -1,
-      });
-      done();
-    });
-
-    it('getLastBlock() - returns full block', done => {
-      const EXPECTED_BlOCK = {
-        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-        height: 0,
-        fees: 0,
-        reward: 0,
-        signature:
-          'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
-      };
-      coreBlocks.setLastBlock(EXPECTED_BlOCK);
-
-      const result = coreBlocks.getLastBlock();
-      expect(result).toEqual(EXPECTED_BlOCK);
-
-      done();
-    });
-  });
-
-  it('setLastBlock() - sets last block', done => {
-    const FIRST = {
-      height: -1,
-    };
-    const SECOND = {
-      height: 0,
-    };
-
-    coreBlocks.setLastBlock(FIRST);
-    coreBlocks.setLastBlock(SECOND);
-
-    const result = coreBlocks.getLastBlock();
-    expect(result).toEqual(SECOND);
-
-    done();
-  });
-
-  describe('verifyBlock()', () => {
+  describe.skip('verifyBlock()', () => {
     beforeEach(done => {
-      // base.block.getId
-      const scope = {
-        base: {
-          block: new BaseBlock({} as any),
-        },
+      global.app = {
         logger: dummyLogger,
-      } as any;
-      coreBlocks = new Blocks(scope);
-
+      };
+      done();
+    });
+    afterEach(done => {
+      global.app = {};
       done();
     });
 
-    it('verifyBlock() - wrong Block can not get Id', async () => {
+    it('verifyBlock() - wrong Block can not get Id', () => {
+      const initialState = StateHelper.getInitialState();
       const wrongBlock = {} as IBlock;
       const options = {};
-      const func = coreBlocks.verifyBlock(wrongBlock, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(/^Failed to get block id:/),
-      });
+      const delegateList = [];
+
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(initialState, wrongBlock, options, delegateList)
+      ).toThrow(/^Failed to get block id:/);
     });
 
     it('verifyBlock() - previousBlock should not be null', async () => {
-      const block: BlockModel = {
+      const initialState = StateHelper.getInitialState();
+      // important: no "prevBlockId"
+      const block: IBlock = {
         height: 1,
         id: randomHex(32),
         _version_: 1,
@@ -266,15 +308,16 @@ describe('core/blocks', () => {
         signature: randomHex(64),
       };
       const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
+      const delegateList = [];
 
-      return expect(func).rejects.toHaveProperty(
-        'message',
-        'Previous block should not be null'
-      );
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(initialState, block, options, delegateList)
+      ).toThrow('Previous block should not be null');
     });
 
-    it('verifyBlock() - signature is not correct returns error', async () => {
+    it('verifyBlock() - signature is not correct returns error', () => {
+      const state = StateHelper.getInitialState();
       const block: BlockModel = {
         height: 1,
         id: randomHex(32),
@@ -290,37 +333,38 @@ describe('core/blocks', () => {
         prevBlockId: randomHex(32), // important
       };
       const options = {};
+      const delegateList = [];
 
-      const func = coreBlocks.verifyBlock(block, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /^Got exception while verify block signature/
-        ),
-      });
+      return expect(() =>
+        Blocks.verifyBlock(state, block, options, delegateList)
+      ).toThrow('Failed to verify block signature');
     });
 
-    it.skip('verifyBlock() - Incorrect previous block hash', async () => {});
+    it.skip('verifyBlock() - Incorrect previous block hash', () => {});
 
-    it("verifyBlock() - Can't verify block timestamp", async () => {
+    it.skip("verifyBlock() - Can't verify block timestamp", () => {
       const keypair = createRandomKeyPair('random secret');
+      let state = StateHelper.getInitialState();
+      const delegateList = [];
+      const options = {};
 
       // prepare setLastBlock
       const previousBlock = createBlock(1, keypair, {
         prevBlockId: randomHex(32),
       } as IBlock);
-      coreBlocks.setLastBlock(previousBlock);
+      // set previousBlock also for state
+      state = BlocksHelper.SetLastBlock(state, previousBlock);
 
-      // act
+      // create current block
       const block = createBlock(2, keypair, previousBlock);
 
-      const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
-      return expect(func).rejects.toMatchObject({
-        message: expect.stringMatching(/^Can't verify block timestamp/),
-      });
+      // act and assert
+      return expect(() =>
+        Blocks.verifyBlock(state, block, options, delegateList)
+      ).toThrow(/^Can't verify block timestamp/);
     });
 
-    it('verifyBlock() - Invalid amount of block assets (too much transactions)', async () => {
+    it('verifyBlock() - Invalid amount of block assets (too much transactions)', () => {
       // prepare
       const TOO_MUCH_TRANSACTIONS = 20000 + 1;
 
@@ -340,14 +384,14 @@ describe('core/blocks', () => {
 
       // prepare lastBlock
       const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
-      coreBlocks.setLastBlock({
+      Blocks.setLastBlock({
         id: previousBlockId,
         timestamp: lastBlockTimestamp,
       } as any);
 
       // act
       const options = {};
-      const func = coreBlocks.verifyBlock(block, options);
+      const func = Blocks.verifyBlock(block, options);
 
       return expect(func).rejects.toMatchObject({
         message: expect.stringMatching(/^Invalid amount of block assets/),
@@ -380,10 +424,6 @@ describe('core/blocks', () => {
   });
 
   it.skip('event onReceiveVotes', async () => {});
-
-  it.skip('isCollectingVotes()', done => {
-    done();
-  });
 
   it.skip('event onBind', done => {
     done();

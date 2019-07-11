@@ -1,6 +1,6 @@
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 
-function getCurrencyFlag(currency) {
+function getCurrencyFlag(currency: string) {
   if (currency === 'GNY') {
     return 1;
   } else if (currency.indexOf('.') !== -1) {

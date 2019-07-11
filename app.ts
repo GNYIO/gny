@@ -110,8 +110,18 @@ function main() {
   }
 
   if (program.ormConfig) {
-    appConfig.ormConfig = program.ormConfig;
+    appConfig.ormConfigRaw = fs.readFileSync(program.ormConfig, {
+      encoding: 'utf8',
+    });
+  } else {
+    appConfig.ormConfigRaw = fs.readFileSync('ormconfig.json', {
+      encoding: 'utf8',
+    });
   }
+
+  appConfig.peers.rawPeerInfo = fs.readFileSync(appConfig.peers.p2pKeyFile, {
+    encoding: 'utf8',
+  });
 
   const options = {
     appConfig,

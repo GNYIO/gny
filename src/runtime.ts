@@ -1,30 +1,28 @@
-// import * as path from 'path';
-import { EventEmitter } from 'events';
 import * as _ from 'lodash';
-import validate = require('validate.js');
 import { SmartDB } from '../packages/database-postgres/src/smartDB';
-// import slots from './utils/slots';
 import BalanceManager from './smartdb/balance-manager';
-// import loadModels from './loadModels';
 import loadContracts from './loadContracts';
-import * as path from 'path';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
-import { IOptions } from './interfaces';
+import { IOptions, IValidatorConstraints } from './interfaces';
+import { StateHelper } from './core/StateHelper';
 
 export default async function runtime(options: IOptions) {
+  global.state = StateHelper.getInitialState();
+  StateHelper.SetForgingEnabled(true);
+  StateHelper.InitializeTransactionPool();
+  StateHelper.InitializeFailedTrsCache();
+  StateHelper.InitializeModulesAreLoaded();
+  StateHelper.InitializeBlockchainReady();
+  StateHelper.InitializeLatestBlockCache();
+  StateHelper.InitializeBlockHeaderMidCache();
+
   global.app = {
     sdb: null,
     balances: null,
     contract: {},
     contractTypeMapping: {},
-    feeMapping: {},
-    defaultFee: {
-      currency: 'GNY',
-      min: '10000000',
-    },
-    hooks: {},
     logger: options.logger,
   };
   global.app.validators = {
@@ -51,85 +49,32 @@ export default async function runtime(options: IOptions) {
       if (!reghex.test(value)) return 'Invalid public key';
       return null;
     },
-    string: (value, constraints) => {
-      if (constraints.length) {
-        return JSON.stringify(
-          validate({ data: value }, { data: { length: constraints.length } })
-        );
-      }
-      if (constraints.isEmail) {
-        return JSON.stringify(
-          validate({ email: value }, { email: { email: true } })
-        );
-      }
-      if (constraints.url) {
-        return JSON.stringify(
-          validate({ url: value }, { url: { url: constraints.url } })
-        );
-      }
-      if (constraints.number) {
-        return JSON.stringify(
-          validate(
-            { number: value },
-            { number: { numericality: constraints.number } }
-          )
-        );
-      }
-      return null;
-    },
   };
-  global.app.validate = (type, value, constraints) => {
+  global.app.validate = (
+    type: string,
+    value: any,
+    constraints: IValidatorConstraints
+  ) => {
     if (!global.app.validators[type])
       throw new Error(`Validator not found: ${type}`);
     const error = global.app.validators[type](value, constraints);
     if (error) throw new Error(error);
   };
-  global.app.registerContract = (type, name) => {
-    // if (type < 1000) throw new Error('Contract types that small than 1000 are reserved')
-    global.app.contractTypeMapping[type] = name;
-  };
   global.app.getContractName = type => global.app.contractTypeMapping[type];
 
-  global.app.registerFee = (type, min, currency) => {
-    global.app.feeMapping[type] = {
-      currency: currency || global.app.defaultFee.currency,
-      min,
-    };
-  };
-  global.app.getFee = type => global.app.feeMapping[type];
-
-  global.app.setDefaultFee = (min, currency) => {
-    global.app.defaultFee.currency = currency;
-    global.app.defaultFee.min = min;
-  };
-
-  global.app.addRoundFee = (fee, roundNumber) => {
-    options.modules.blocks.increaseRoundData({ fees: fee }, roundNumber);
-  };
-
-  global.app.registerHook = (name, func) => {
-    global.app.hooks[name] = func;
-  };
-
-  const { dataDir } = options.appConfig;
-
   global.app.sdb = new SmartDB(options.logger, {
-    configFilePath: options.appConfig.ormConfig
-      ? path.join(process.cwd(), options.appConfig.ormConfig)
-      : 'ormconfig.json',
+    configRaw: options.appConfig.ormConfigRaw,
     cachedBlockCount: 10,
     maxBlockHistoryHold: 10,
   });
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);
-  global.app.events = new EventEmitter();
 
   global.app.util = {
     address: address,
     bignumber: BigNumber,
   };
 
-  // await loadModels();
   await loadContracts();
 
   global.app.contractTypeMapping[0] = 'basic.transfer';

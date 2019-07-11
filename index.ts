@@ -1,30 +1,9 @@
-import * as assert from 'assert';
-import * as crypto from 'crypto';
 import * as fs from 'fs';
 import initRuntime from './src/runtime';
 import initAlt from './src/init';
 import { IScope, IConfig, ILogger, IGenesisBlock } from './src/interfaces';
-
-function verifyGenesisBlock(scope: Partial<IScope>, block: IGenesisBlock) {
-  try {
-    const payloadHash = crypto.createHash('sha256');
-
-    for (let i = 0; i < block.transactions.length; i++) {
-      const trs = block.transactions[i];
-      const bytes = scope.base.transaction.getBytes(trs);
-      payloadHash.update(bytes);
-    }
-    const id = scope.base.block.getId(block);
-    assert.equal(
-      payloadHash.digest().toString('hex'),
-      block.payloadHash,
-      'Unexpected payloadHash'
-    );
-    assert.equal(id, block.id, 'Unexpected block id');
-  } catch (e) {
-    throw e;
-  }
-}
+import { StateHelper } from './src/core/StateHelper';
+import { verifyGenesisBlock } from './src/utils/verifyGenesisBlock';
 
 interface LocalOptions {
   appConfig: IConfig;
@@ -52,6 +31,8 @@ export default class Application {
 
     process.once('cleanup', async () => {
       scope.logger.info('Cleaning up...');
+
+      StateHelper.SetAllModulesLoaded(false);
 
       try {
         for (const key in scope.modules) {
@@ -98,7 +79,7 @@ export default class Application {
       process.emit('cleanup');
     });
 
-    verifyGenesisBlock(scope, scope.genesisBlock);
+    verifyGenesisBlock(scope.genesisBlock);
 
     options.library = scope;
 
@@ -110,6 +91,7 @@ export default class Application {
       return;
     }
 
+    StateHelper.SetAllModulesLoaded(true);
     scope.bus.message('onBind', scope.modules);
 
     scope.logger.info('Modules ready and launched');

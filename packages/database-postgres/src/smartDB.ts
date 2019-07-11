@@ -34,7 +34,7 @@ export interface SmartDBOptions {
   cachedBlockCount?: number;
   maxBlockHistoryHold?: number;
   checkModifier?: boolean;
-  configFilePath?: string;
+  configRaw: string;
 }
 
 export class SmartDB extends EventEmitter {
@@ -60,7 +60,7 @@ export class SmartDB extends EventEmitter {
     this.options = options || {
       cachedBlockCount: 10,
       maxBlockHistoryHold: 10,
-      configFilePath: path.join(process.cwd(), 'ormconfig.json'),
+      configRaw: options.configRaw,
     };
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
@@ -74,7 +74,7 @@ export class SmartDB extends EventEmitter {
   async init() {
     this.connection = await loadConfig(
       this.originalLogger,
-      this.options.configFilePath
+      this.options.configRaw
     );
 
     this.schemas = createMetaSchema();
@@ -649,11 +649,11 @@ export class SmartDB extends EventEmitter {
     return await this.attachTransactions([block])[0];
   }
 
-  public async getBlocksByHeightRange(
+  public getBlocksByHeightRange = async (
     min: number,
     max: number,
     withTransactions = false
-  ) {
+  ) => {
     CodeContract.argument(
       'minHeight, maxHeight',
       min >= 0 && max >= min,
@@ -670,7 +670,7 @@ export class SmartDB extends EventEmitter {
     } else {
       return blocks;
     }
-  }
+  };
 
   private async getBlocksByIds(blockIds: string[], withTransactions = false) {
     CodeContract.argument('blockIds', function() {

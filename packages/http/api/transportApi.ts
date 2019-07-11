@@ -1,23 +1,25 @@
 import * as express from 'express';
-import slots from '../../../src/utils/slots';
 import osInfo from '../../../src/utils/osInfo';
 import { Request, Response } from 'express';
 import {
-  Modules,
   IScope,
   Next,
   ManyVotes,
   Transaction,
   IBlock,
+  CommonBlockResult,
 } from '../../../src/interfaces';
+import { TransactionBase } from '../../../src/base/transaction';
+import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { getBlocks as getBlocksFromApi } from '../util';
+import joi from '../../../src/utils/extendedJoi';
+import { StateHelper } from '../../../src/core/StateHelper';
+import Transactions from '../../../src/core/transactions';
 
 export default class TransportApi {
-  private modules: Modules;
   private library: IScope;
   private headers: any;
-  private loaded = false;
-  constructor(modules: Modules, scope: IScope) {
-    this.modules = modules;
+  constructor(scope: IScope) {
     this.library = scope;
     this.headers = {
       os: osInfo.getOS(),
@@ -29,19 +31,15 @@ export default class TransportApi {
   }
 
   // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi = () => {
     const router = express.Router();
 
     // Middleware
     router.use((req: Request, res: Response, next) => {
-      if (this.loaded === false) {
+      if (!StateHelper.BlockchainReady()) {
         return res.json({ success: false, error: 'Blockchain is loading' });
       }
-      if (this.modules.loader.syncing()) {
+      if (StateHelper.IsSyncing()) {
         return res
           .status(500)
           .json({ success: false, error: 'Blockchain is syncing' });
@@ -91,7 +89,19 @@ export default class TransportApi {
     if (!body.id) {
       return next('Invalid params');
     }
-    const newBlock = this.modules.transport.latestBlocksCache.get(body.id);
+    // validate id
+    const schema = this.library.joi.object().keys({
+      id: this.library.joi
+        .string()
+        .hex()
+        .required(),
+    });
+    const report = this.library.joi.validate(body, schema);
+    if (report.error) {
+      return next('validation failed');
+    }
+
+    const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
       return next('New block not found');
     }
@@ -105,8 +115,39 @@ export default class TransportApi {
   // POST
   private commonBlock = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    if (!Number.isInteger(body.max)) return next('Field max must be integer');
-    if (!Number.isInteger(body.min)) return next('Field min must be integer');
+
+    const schema = joi.object().keys({
+      max: joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      min: joi
+        .number()
+        .integer()
+        .min(0)
+        .required(),
+      ids: joi
+        .array()
+        .items(
+          joi
+            .string()
+            .hex()
+            .required()
+        )
+        .min(1)
+        .required(),
+    });
+    const report = joi.validate(body, schema);
+    if (report.error) {
+      return next('validation failed: ' + report.error.message);
+    }
+
+    // prevent DDOS attack
+    if (Math.abs(body.max - body.min) >= 10) {
+      return next('too big min,max');
+    }
+
     const max = body.max;
     const min = body.min;
     const ids = body.ids;
@@ -115,6 +156,9 @@ export default class TransportApi {
       if (!blocks || !blocks.length) {
         return next('Blocks not found');
       }
+      this.library.logger.warn(
+        `blocks-in-transportApi-commonBlock: ${JSON.stringify(blocks)}`
+      );
       blocks = blocks.reverse();
       let commonBlock: IBlock = null;
       for (const i in ids) {
@@ -126,7 +170,11 @@ export default class TransportApi {
       if (!commonBlock) {
         return next('Common block not found');
       }
-      return res.json({ success: true, common: commonBlock });
+      const result: CommonBlockResult = {
+        success: true,
+        common: commonBlock,
+      };
+      return res.json(result);
     } catch (e) {
       global.app.logger.error(`Failed to find common block: ${e}`);
       return next('Failed to find common block');
@@ -136,49 +184,52 @@ export default class TransportApi {
   // POST
   private blocks = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    let blocksLimit = 200;
-    if (body.limit) {
-      blocksLimit = Math.min(blocksLimit, Number(body.limit));
+
+    const schema = joi.object().keys({
+      limit: joi
+        .number()
+        .integer()
+        .min(0)
+        .optional(),
+      lastBlockId: joi
+        .string()
+        .hex()
+        .required(),
+    });
+    const report = joi.validate(body, schema);
+    if (report.error) {
+      return next('Invalid params');
     }
+
+    const blocksLimit = body.limit || 200;
     const lastBlockId = body.lastBlockId;
     if (!lastBlockId) {
       return next('Invalid params');
     }
+
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
 
       const minHeight = Number(lastBlock.height) + 1;
       const maxHeight = minHeight + blocksLimit - 1;
-      const blocks = await this.modules.blocks.getBlocks(
-        minHeight,
-        maxHeight,
-        true
-      );
+      // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
+      const blocks = await getBlocksFromApi(minHeight, maxHeight, true);
       return res.json({ blocks });
     } catch (e) {
-      global.app.logger.error('Failed to get blocks or transactions', e);
+      global.app.logger.error(
+        '/peer/blocks (POST), Failed to get blocks with transactions',
+        e
+      );
       return res.json({ blocks: [] });
     }
   };
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
-    const lastBlock = this.modules.blocks.getLastBlock();
-    const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-    if (slots.getNextSlot() - lastSlot >= 12) {
-      this.library.logger.error('Blockchain is not ready', {
-        getNextSlot: slots.getNextSlot(),
-        lastSlot,
-        lastBlockHeight: lastBlock.height,
-      });
-      return next('Blockchain is not ready');
-    }
     let transaction: Transaction;
     try {
-      transaction = this.library.base.transaction.objectNormalize(
-        req.body.transaction
-      );
+      transaction = TransactionBase.normalizeTransaction(req.body.transaction);
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         raw: req.body,
@@ -206,13 +257,18 @@ export default class TransportApi {
 
     return this.library.sequence.add(
       cb => {
-        this.library.logger.info(
-          `Received transaction ${transaction.id} from http client`
-        );
-        this.modules.transactions.processUnconfirmedTransaction(
-          transaction,
-          cb
-        );
+        const state = StateHelper.getState();
+        if (
+          !BlocksHelper.IsBlockchainReady(
+            state,
+            Date.now(),
+            this.library.logger
+          )
+        ) {
+          return cb('Blockchain is not ready');
+        }
+
+        Transactions.processUnconfirmedTransaction(state, transaction, cb);
       },
       undefined,
       finished
@@ -255,14 +311,16 @@ export default class TransportApi {
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
     return res.json({
-      transactions: this.modules.transactions.getUnconfirmedTransactionList(),
+      transactions: StateHelper.GetUnconfirmedTransactionList(),
     });
   };
 
   // POST
   private getHeight = (req: Request, res: Response) => {
+    const lastBlock = StateHelper.getState().lastBlock;
+
     return res.json({
-      height: this.modules.blocks.getLastBlock().height,
+      height: lastBlock.height,
     });
   };
 }

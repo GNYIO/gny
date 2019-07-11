@@ -1,31 +1,26 @@
 import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
-import { Modules, IScope, Next } from '../../../src/interfaces';
+import { IScope, Next } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
+import { BlockBase } from '../../../src/base/block';
+import { getBlocks as getBlocksFromApi } from '../util';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class BlocksApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
   private blockReward = new BlockReward();
 
-  constructor(modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi() {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });
@@ -100,7 +95,7 @@ export default class BlocksApi {
     let needReverse = false;
     if (query.orderBy === 'height:desc') {
       needReverse = true;
-      maxHeight = this.modules.blocks.getLastBlock().height - offset;
+      maxHeight = StateHelper.getState().lastBlock.height - offset;
       minHeight = maxHeight - limit + 1;
       minHeight = minHeight > 0 ? minHeight : 0;
     } else {
@@ -110,7 +105,8 @@ export default class BlocksApi {
     const withTransactions = !!query.transactions;
 
     try {
-      let blocks = await this.modules.blocks.getBlocks(
+      // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
+      let blocks = await getBlocksFromApi(
         minHeight,
         maxHeight,
         withTransactions
@@ -126,31 +122,31 @@ export default class BlocksApi {
   };
 
   private getHeight = (req: Request, res: Response, next: Next) => {
-    const height = this.modules.blocks.getLastBlock().height;
+    const height = StateHelper.getState().lastBlock.height;
     return res.json({ height });
   };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
-    const height = this.modules.blocks.getLastBlock().height;
+    const height = StateHelper.getState().lastBlock.height;
     const milestone = this.blockReward.calculateMilestone(height);
     return res.json({ milestone });
   };
 
   private getReward = (req: Request, res: Response, next: Next) => {
-    const height = this.modules.blocks.getLastBlock().height;
+    const height = StateHelper.getState().lastBlock.height;
     const reward = this.blockReward.calculateReward(height);
     return res.json({ reward });
   };
 
   private getSupply = (req: Request, res: Response, next: Next) => {
-    const height = this.modules.blocks.getLastBlock().height;
+    const height = StateHelper.getState().lastBlock.height;
     const supply = this.blockReward.calculateSupply(height);
     return res.json({ supply });
   };
 
   private getStatus = (req: Request, res: Response, next: Next) => {
-    const height = this.modules.blocks.getLastBlock().height;
-    const fee = this.library.base.block.calculateFee();
+    const height = StateHelper.getState().lastBlock.height;
+    const fee = BlockBase.calculateFee();
     const milestone = this.blockReward.calculateMilestone(height);
     const reward = this.blockReward.calculateReward(height);
     const supply = this.blockReward.calculateSupply(height);

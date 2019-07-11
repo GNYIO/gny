@@ -1,6 +1,7 @@
 import * as lib from '../lib';
 import axios from 'axios';
 import * as gnyJS from '../../../packages/gny-js';
+import { filter } from 'minimatch';
 
 const config = {
   headers: {
@@ -13,8 +14,34 @@ const UNSIGNED_URL = 'http://localhost:4096/api/transactions';
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
+async function getAllDelegateData() {
+  const response = await axios.get(
+    'http://localhost:4096/api/delegates?limit=101'
+  );
+  const delegates = response.data.delegates;
+  const filtered = delegates.map(del => {
+    return {
+      username: del.username,
+      publicKey: del.publicKey,
+      address: del.address,
+    };
+  });
+
+  for (let i = 0; i < filtered.length; ++i) {
+    const one = filtered[i];
+    const x = await axios.get(
+      `http://localhost:4096/api/accounts/getBalance?address=${one.address}`
+    );
+    one.gny = Number(x.data.balances[0].gny);
+  }
+
+  return filtered;
+}
+
 describe('contract environment', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -200,7 +227,84 @@ describe('contract environment', () => {
     it.skip('rejected transaction does not get into block', async () => {});
     it.skip('sending rejected transaction twice (within same block) returns erro', async () => {});
     it.skip('sending rejected transaction (after one block) returns error', async () => {});
-    it.skip('signing a transaction with a second password should throw error, if second password was not registered', async () => {});
+    it.skip('sending SIGNED transaction with a random height property gets correctly saved to DB (we should differentiate between UNCONFIRMED and CONFIRMED transactions, one with height, one without)', async () => {});
+    it.skip('sending transaction from the "future" should return error', async () => {});
+
+    it.skip(
+      'signing a transaction with a second password should return error (if second password was not registered)',
+      async () => {
+        const UNREGISTERED_SECOND_PASSWORD = 'pass';
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          10 * 1e8,
+          undefined,
+          genesisSecret,
+          UNREGISTERED_SECOND_PASSWORD
+        );
+        expect(basicTransfer).toHaveProperty('secondSignature');
+        // expect(basicTransfer).toHaveProperty('secondPublicKey');
+
+        const transData = {
+          transaction: basicTransfer,
+        };
+        const contractCallPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractCallPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: '',
+          }
+        );
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'resending exact same transaction also for next block should return error',
+      async () => {
+        const firstHeight = await lib.onNewBlock();
+
+        const basicTransfer = gnyJS.basic.transfer(
+          lib.createRandomAddress(),
+          22 * 1e8,
+          undefined,
+          genesisSecret
+        );
+        const transData = {
+          transaction: basicTransfer,
+        };
+        const contractCallResult = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        const secondHeight = await lib.onNewBlock(); // wait for next block
+        expect(secondHeight).toEqual(firstHeight + 1);
+
+        // resend exact same transaction
+        const contractCallResultPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(contractCallResultPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Error: Transaction already confirmed',
+          }
+        );
+      },
+      lib.oneMinute
+    );
 
     it(
       'negative fee with SIGNED transaction',
@@ -230,15 +334,139 @@ describe('contract environment', () => {
     );
 
     it.skip('negative fee with UNSIGNED transaction', async () => {});
+
+    it('message field (UNSIGNED transaction) allows empty string', async done => {
+      const recipient = lib.createRandomAddress();
+      const EMPTY_STRING = '';
+      const trs = {
+        type: 0,
+        fee: 0.1 * 1e8,
+        args: ['1', recipient],
+        secret: genesisSecret,
+        message: EMPTY_STRING,
+      };
+
+      const result = await axios.put(UNSIGNED_URL, trs, config);
+
+      expect(result.data).toHaveProperty('transactionId');
+      done();
+    });
+
+    it('message field (UNSIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
+      const recipient = lib.createRandomAddress();
+      const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
+      const trs = {
+        type: 0,
+        fee: 0.1 * 1e8,
+        args: ['1', recipient],
+        secret: genesisSecret,
+        message: NON_ALPHYNUMERICAL_MESSAGE,
+      };
+
+      const resultPromise = axios.put(UNSIGNED_URL, trs, config);
+
+      return expect(resultPromise).rejects.toHaveProperty('response.data', {
+        error: 'Invalid transaction body',
+        success: false,
+      });
+    });
+
+    it.only('message field (SIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
+      const recipient = lib.createRandomAddress();
+      const amount = 1 * 1e8;
+      const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
+
+      const trs = gnyJS.basic.transfer(
+        recipient,
+        amount,
+        NON_ALPHYNUMERICAL_MESSAGE,
+        genesisSecret
+      );
+
+      const transData = {
+        transaction: trs,
+      };
+
+      const contractPromise = axios.post(
+        'http://localhost:4096/peer/transactions',
+        transData,
+        config
+      );
+      return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        success: false,
+        error: 'Invalid transaction body',
+      });
+    });
   });
 
   describe('batch', () => {
     it.skip('batch SIGNED transactions', async done => {
       done();
     });
-    it.skip('batch SIGNED transaction should stop if one error occurs', async done => {
+    it.skip('batch SIGNED transaction should stop if one error occurs (should execute all transactions until falsy transaction)', async done => {
       done();
     });
+    it.skip('batch - send in one batch a SIGNED transaction twice (should execute all transactions until second transaction)', async done => {
+      done();
+    });
+  });
+
+  describe('distributed fees (long running)', () => {
+    it(
+      'fees should get equally distributed to all delegates',
+      async done => {
+        // get data of deleges before
+        const delegatesBefore = await getAllDelegateData();
+
+        // every delegate should have 0 gny
+        expect(delegatesBefore).toHaveLength(101);
+        delegatesBefore.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0);
+        });
+
+        // create 101 simple transactions
+        // for every transaction there should be 0.1 GNY fee that should get distributed
+        for (let i = 0; i < 101; ++i) {
+          const trs = gnyJS.basic.transfer(
+            lib.createRandomAddress(),
+            1 * 1e8, // this is not imporant
+            undefined,
+            genesisSecret
+          );
+          const transData = {
+            transaction: trs,
+          };
+          await axios.post(
+            'http://localhost:4096/peer/transactions',
+            transData,
+            config
+          );
+        }
+
+        // wait for one block
+        await lib.onNewBlock();
+
+        // double check delegates for 0 GNY
+        const delegatesStillShouldNotHaveAnyMoney = await getAllDelegateData();
+        expect(delegatesStillShouldNotHaveAnyMoney).toHaveLength(101);
+        delegatesStillShouldNotHaveAnyMoney.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0);
+        });
+
+        // wait until block 101 (end of round 1)
+        await lib.waitUntilBlock(101);
+
+        // now every delegate should have 0.1 GNY
+        const result = await getAllDelegateData();
+        expect(result).toHaveLength(101);
+        result.forEach(ele => {
+          expect(ele).toHaveProperty('gny', 0.1 * 1e8);
+        });
+
+        done();
+      },
+      20 * 60 * 1000
+    );
   });
 
   describe('too big', () => {
@@ -507,7 +735,7 @@ describe('contract environment', () => {
   });
 
   describe('regression testing', () => {
-    it.only(
+    it.skip(
       '/peer/getUnconfirmedTransactions does not return secret by UNSIGNED transactions',
       async done => {
         const amount = 5 * 1e8;

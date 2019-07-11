@@ -10,7 +10,7 @@
       "name": "DEBUG_1",
       "program": "${workspaceFolder}/dist/app.js",
       "cwd": "${workspaceFolder}/dist",
-      "args": ["--log", "trace", "--ormConfig", "ormconfig.integration.json"],
+      "args": ["--log", "trace", "--ormConfig", "ormconfig.json"],
       "env": {
         "DEBUG": "debug"
       },
@@ -53,12 +53,12 @@
           "--verbose",
           "--runInBand",
           "--no-cache",
-          "test/unit"
+          "test/unit/core/ConsensusHelper"
       ],
       "runtimeArgs": [
           "--nolazy"
       ],
-      "console": "integratedTerminal",
+      "console": "internalConsole",
       "env": {
           "NODE_ENV": "test"
       },

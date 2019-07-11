@@ -24,14 +24,14 @@ message Block {
 message Transaction {
   required int32 type = 1;
   required int32 timestamp = 2;
-  required bytes senderPublicKey = 3;
-  required bytes signatures = 4;
-  optional string senderId = 5;
-  optional int64 fee = 6;
-  optional bytes secondSignature = 7;
-  optional string id = 8;
-  optional int64 height = 9;
-  repeated bytes args = 10;
+  required string senderPublicKey = 3;
+  required string signatures = 4;
+  required string senderId = 5;
+  required int64 fee = 6;
+  required string id = 7;
+  optional string args = 8;
+  optional string secondSignature = 9;
+  optional int64 height = 10;
   optional string message = 11;
 }
 

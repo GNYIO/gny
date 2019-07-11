@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { createConnection } from 'typeorm';
 import { OrmLogger } from './ormLogger';
 import { ILogger } from '../../src/interfaces';
@@ -19,11 +17,12 @@ import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 import { BlockHistory } from './entity/BlockHistory';
 
-export async function loadConfig(logger: ILogger, configFilePath: string) {
-  let options: PostgresConnectionOptions = undefined;
+export async function loadConfig(logger: ILogger, optionsRaw: string) {
+  let options: PostgresConnectionOptions | SqljsConnectionOptions = undefined;
 
-  const optionsRaw = fs.readFileSync(configFilePath, { encoding: 'utf8' });
-  options = JSON.parse(optionsRaw) as PostgresConnectionOptions;
+  options = JSON.parse(optionsRaw) as
+    | PostgresConnectionOptions
+    | SqljsConnectionOptions;
 
   Object.assign(options, {
     entities: [
@@ -48,6 +47,7 @@ export async function loadConfig(logger: ILogger, configFilePath: string) {
   logger.info('Initialized smartdb');
 
   if ((process.env.NODE_ENV = 'test')) {
+    // TODO: remove
     await connection.dropDatabase();
     await connection.synchronize();
   }

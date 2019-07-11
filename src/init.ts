@@ -1,24 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { EventEmitter } from 'events';
 import * as ip from 'ip';
 import * as _ from 'lodash';
 import Sequence from './utils/sequence';
-import { Transaction } from './base/transaction';
-import { Block } from './base/block';
-import { Consensus } from './base/consensus';
 import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from './utils/extendedJoi';
-import {
-  IScope,
-  IMessageEmitter,
-  IConfig,
-  ILogger,
-  IOptions,
-} from './interfaces';
+import { IScope, IConfig, IOptions } from './interfaces';
+import { isConfig } from '../packages/type-validation';
+import { MessageBus } from './utils/messageBus';
 
 import initNetwork from '../packages/http/index';
 
@@ -46,13 +38,15 @@ function getPublicIp() {
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;
   const genesisBlock = options.genesisBlock;
-  let appConfig: IConfig = options.appConfig;
+
+  if (!isConfig(options.appConfig, options.logger)) {
+    throw new Error('Config validation failed');
+  }
+  const appConfig: IConfig = options.appConfig;
 
   if (!appConfig.publicIp) {
     appConfig.publicIp = getPublicIp();
   }
-
-  appConfig = validateConfig(appConfig, options.logger);
 
   const protoFile = path.join(__dirname, '..', 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
@@ -72,16 +66,13 @@ async function init_alt(options: IOptions) {
   scope.base = {
     bus: scope.bus,
     genesisBlock: scope.genesisBlock,
-    consensus: new Consensus(scope),
-    transaction: new Transaction(scope),
-    block: new Block(scope),
   };
 
   global.library = scope;
 
-  scope.modules = loadedModules(scope);
+  scope.modules = loadedModules();
   scope.network = await initNetwork(appConfig, scope.modules, options.logger);
-  scope.coreApi = loadCoreApi(scope.modules, scope);
+  scope.coreApi = loadCoreApi(scope);
 
   scope.network.app.use((req, res) => {
     return res
@@ -89,25 +80,7 @@ async function init_alt(options: IOptions) {
       .send({ success: false, error: 'API endpoint not found' });
   });
 
-  class Bus extends EventEmitter implements IMessageEmitter {
-    message(topic: string, ...restArgs) {
-      Object.keys(scope.modules).forEach(moduleName => {
-        const module = scope.modules[moduleName];
-        if (typeof module[topic] === 'function') {
-          module[topic].apply(module[topic], [...restArgs]);
-        }
-      });
-
-      Object.keys(scope.coreApi).forEach(apiName => {
-        const oneApi = scope.coreApi[apiName];
-        if (typeof oneApi[topic] === 'function') {
-          oneApi[topic].apply(oneApi[topic], [...restArgs]);
-        }
-      });
-      this.emit(topic, ...restArgs);
-    }
-  }
-  scope.bus = new Bus();
+  scope.bus = new MessageBus(scope.modules, scope.coreApi);
   return scope;
 }
 
@@ -118,73 +91,6 @@ function sequence(options: any) {
       options.logger.warn(`Main sequence ${current}`);
     },
   });
-}
-
-function validateConfig(config: IConfig, logger: ILogger) {
-  const schema = extendedJoi.object().keys({
-    port: extendedJoi.number().port(),
-    address: extendedJoi.string().ip(),
-    publicIp: extendedJoi.string().ip(),
-    logLevel: extendedJoi.string(),
-    magic: extendedJoi.string(),
-    api: extendedJoi.object().keys({
-      access: extendedJoi.object().keys({
-        whiteList: extendedJoi
-          .array()
-          .items(extendedJoi.string().ip())
-          .required(),
-      }),
-    }),
-    peers: extendedJoi.object().keys({
-      bootstrap: extendedJoi.string().allow(null),
-      p2pKeyFile: extendedJoi.string(),
-      options: extendedJoi.object().keys({
-        timeout: extendedJoi
-          .number()
-          .integer()
-          .min(0),
-      }),
-    }),
-    forging: extendedJoi.object().keys({
-      secret: extendedJoi.array().items(
-        extendedJoi
-          .string()
-          .secret()
-          .required()
-      ),
-      access: extendedJoi.object().keys({
-        whiteList: extendedJoi
-          .array()
-          .items(extendedJoi.string().ip())
-          .required(),
-      }),
-    }),
-    ssl: extendedJoi.object().keys({
-      enabled: extendedJoi.boolean(),
-      options: extendedJoi.object().keys({
-        port: extendedJoi.number().port(),
-        address: extendedJoi.string().ip(),
-        key: extendedJoi.string(),
-        cert: extendedJoi.string(),
-      }),
-    }),
-
-    version: extendedJoi.string(),
-    baseDir: extendedJoi.string(),
-    dataDir: extendedJoi.string(),
-    appDir: extendedJoi.string(),
-    buildVersion: extendedJoi.string(),
-    netVersion: extendedJoi.string(),
-    publicDir: extendedJoi.string(),
-    peerPort: extendedJoi.number().port(),
-  });
-
-  const report = extendedJoi.validate(config, schema);
-  if (report.error) {
-    logger.error(report.error.message);
-  }
-
-  return config;
 }
 
 export default init_alt;

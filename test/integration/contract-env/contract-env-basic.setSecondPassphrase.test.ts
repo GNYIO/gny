@@ -37,6 +37,8 @@ async function setSecondPassPhrase(secondPassPhrase: string) {
 
 describe('contract-env - basic.setSecondPassphrase', () => {
   beforeAll(async done => {
+    lib.exitIfNotRoot();
+
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

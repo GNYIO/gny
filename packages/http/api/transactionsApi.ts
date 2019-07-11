@@ -3,34 +3,29 @@ import * as ed from '../../../src/utils/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
-  Modules,
   IScope,
   KeyPair,
   Next,
   Transaction,
   IBlock,
 } from '../../../src/interfaces';
+import { TransactionBase } from '../../../src/base/transaction';
+import { StateHelper } from '../../../src/core/StateHelper';
+import Transactions from '../../../src/core/transactions';
 
 export default class TransactionsApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
-  constructor(modules: Modules, scope: IScope) {
-    this.modules = modules;
+  constructor(scope: IScope) {
     this.library = scope;
 
     this.attachApi();
   }
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .json({ success: false, error: 'Blockchain is loading' });
@@ -83,7 +78,12 @@ export default class TransactionsApi {
         .min(0)
         .max(1000),
       height: this.library.joi.number().min(0),
-      message: this.library.joi.string(),
+      message: this.library.joi
+        .string()
+        .max(256)
+        .alphanum()
+        .allow('')
+        .optional(),
     });
 
     const report = this.library.joi.validate(query, schema);
@@ -146,8 +146,7 @@ export default class TransactionsApi {
     const typeSchema = this.library.joi.object().keys({
       id: this.library.joi
         .string()
-        .min(1)
-        .max(64)
+        .hex()
         .required(),
     });
     const report = this.library.joi.validate(query, typeSchema);
@@ -155,7 +154,7 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const unconfirmedTransaction = this.modules.transactions.getUnconfirmedTransaction(
+    const unconfirmedTransaction = StateHelper.GetUnconfirmedTransaction(
       query.id
     );
 
@@ -179,7 +178,7 @@ export default class TransactionsApi {
       return next(report.error.message);
     }
 
-    const transactions = this.modules.transactions.getUnconfirmedTransactionList();
+    const transactions = StateHelper.GetUnconfirmedTransactionList();
     const toSend: Transaction[] = [];
 
     if (query.senderPublicKey || query.address) {
@@ -225,6 +224,8 @@ export default class TransactionsApi {
       message: this.library.joi
         .string()
         .max(256)
+        .alphanum()
+        .allow('')
         .optional(),
       senderId: this.library.joi
         .string()
@@ -250,6 +251,8 @@ export default class TransactionsApi {
     this.library.sequence.add(
       callback => {
         (async () => {
+          const state = StateHelper.getState();
+
           try {
             const hash = crypto
               .createHash('sha256')
@@ -265,8 +268,7 @@ export default class TransactionsApi {
                   .digest()
               );
             }
-            const trs = this.library.base.transaction.create({
-              secret: query.secret,
+            const trs = TransactionBase.create({
               fee: query.fee,
               type: query.type,
               senderId: query.senderId || null,
@@ -275,10 +277,8 @@ export default class TransactionsApi {
               secondKeypair,
               keypair,
             });
-            await this.modules.transactions.processUnconfirmedTransactionAsync(
-              trs
-            );
-            this.library.bus.message('unconfirmedTransaction', trs);
+            await Transactions.processUnconfirmedTransactionAsync(state, trs);
+            this.library.bus.message('onUnconfirmedTransaction', trs);
             callback(null, { success: true, transactionId: trs.id });
           } catch (e) {
             this.library.logger.warn(
@@ -307,15 +307,16 @@ export default class TransactionsApi {
 
     const trs = req.body.transactions;
     try {
-      for (const t of trs) {
-        this.library.base.transaction.objectNormalize(t);
+      for (let i = 0; i < trs.length; ++i) {
+        trs[i] = TransactionBase.normalizeTransaction(trs[i]);
       }
     } catch (e) {
       return next(`Invalid transaction body: ${e.toString()}`);
     }
     return this.library.sequence.add(
       callback => {
-        this.modules.transactions.processUnconfirmedTransactions(trs, callback);
+        const state = StateHelper.getState();
+        Transactions.processUnconfirmedTransactions(state, trs, callback);
       },
       undefined,
       finishedCallback

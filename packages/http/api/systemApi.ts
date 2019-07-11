@@ -2,25 +2,21 @@ import slots from '../../../src/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next } from '../../../src/interfaces';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class SystemApi {
   private library: IScope;
-  private loaded = false;
   constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
 
   private attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.library && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });
@@ -41,7 +37,7 @@ export default class SystemApi {
   };
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
     try {
-      const lastBlock = this.library.modules.blocks.getLastBlock();
+      const lastBlock = StateHelper.getState().lastBlock;
 
       return res.json({
         os: `${os.platform()}_${os.release()}`,

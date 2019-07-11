@@ -1,16 +1,9 @@
-import accounts from './core/accounts';
 import transactions from './core/transactions';
 import loader from './core/loader';
 import peer from './core/peer';
 import transport from './core/transport';
 import delegates from './core/delegates';
-import round from './core/round';
-import uia from './core/uia';
 import blocks from './core/blocks';
-
-import { Consensus as BaseConsensus } from './base/consensus';
-import { Transaction as BaseTransaction } from './base/transaction';
-import { Block as BaseBlock } from './base/block';
 
 import { Protobuf } from './utils/protobuf';
 import * as tracer from 'tracer';
@@ -31,12 +24,38 @@ import { ExtendedJoi } from './utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from './utils/address';
 
+import BlocksApi from '../packages/http/api/blocksApi';
+import AccountsApi from '../packages/http/api/accountsApi';
+import DelegatesApi from '../packages/http/api/delegatesApi';
+import PeerApi from '../packages/http/api/peerApi';
+import SystemApi from '../packages/http/api/systemApi';
+import TransactionsApi from '../packages/http/api/transactionsApi';
+import TransportApi from '../packages/http/api/transportApi';
+import UiaApi from '../packages/http/api/uiaApi';
+import LoaderApi from '../packages/http/api/loaderApi';
+import TransfersApi from '../packages/http/api/transfersApi';
+import { MessageBus } from './utils/messageBus';
+import { TransactionPool } from './utils/transaction-pool';
+import { LimitCache } from './utils/limit-cache';
+import * as LRU from 'lru-cache';
+
+export interface IState {
+  votesKeySet: ISimpleCache<boolean>;
+  pendingBlock: IBlock;
+  pendingVotes: ManyVotes;
+
+  lastBlock: IBlock;
+  blockCache: ISimpleCache<boolean>;
+
+  proposeCache: ISimpleCache<boolean>;
+  lastPropose: BlockPropose;
+  privIsCollectingVotes: boolean;
+  lastVoteTime: number;
+}
+
 declare interface IBase {
-  bus: any;
+  bus: MessageBus;
   genesisBlock: IGenesisBlock;
-  consensus: BaseConsensus;
-  transaction: BaseTransaction;
-  block: BaseBlock;
 }
 
 export interface IScope {
@@ -48,21 +67,31 @@ export interface IScope {
   network: INetwork;
   sequence: Sequence;
   base: IBase;
-  bus: EventEmitter & IMessageEmitter;
+  bus: MessageBus;
   modules: Modules;
-  coreApi: any;
+  coreApi: CoreApi;
 }
 
 export interface Modules {
-  accounts: accounts;
   transactions: transactions;
   loader: loader;
   peer: peer;
   transport: transport;
   delegates: delegates;
-  round: round;
-  uia: uia;
   blocks: blocks;
+}
+
+export interface CoreApi {
+  blocksApi: BlocksApi;
+  accountsApi: AccountsApi;
+  delgatesApi: DelegatesApi;
+  peerApi: PeerApi;
+  systemApi: SystemApi;
+  transactionsApi: TransactionsApi;
+  transportApi: TransportApi;
+  uiaApi: UiaApi;
+  transfersApi: TransfersApi;
+  loaderApi: LoaderApi;
 }
 
 export interface IMessageEmitter {
@@ -83,7 +112,7 @@ interface IUtil {
   bignumber: typeof BigNumber;
 }
 
-interface IValidatorConstraints {
+export interface IValidatorConstraints {
   length?: number;
   isEmail?: boolean;
   url?: boolean;
@@ -94,16 +123,17 @@ interface IValidators {
   amount: (amount: string) => string;
   name: (amount: string) => string;
   publickey: (value: string) => string;
-  string: (value: any, constraints: IValidatorConstraints) => any;
 }
 
-type ICurrency = string;
-type IFee = string;
-
-interface ICurrencyFee {
-  currency: ICurrency;
-  min: IFee;
+interface IContractTypeMapping {
+  [type: string]: string;
 }
+
+type ValidateFuncs = (
+  type: string,
+  value: any,
+  constraints?: IValidatorConstraints
+) => void | never;
 
 interface IApp {
   sdb: SmartDB;
@@ -111,31 +141,12 @@ interface IApp {
   events: EventEmitter;
   util: IUtil;
   validators: IValidators;
-  validate: (
-    type: string,
-    value: any,
-    constraints?: IValidatorConstraints
-  ) => void | never;
-  registerContract: (type: number, name: string) => void;
+  validate: ValidateFuncs;
   getContractName: (type: string) => any;
-  contractTypeMapping: {
-    [type: string]: string;
-  };
+  contractTypeMapping: IContractTypeMapping;
   contract: {
     [name: string]: any;
   };
-  registerFee: (type: number, min: string, currency: string) => void;
-  defaultFee: ICurrencyFee;
-  feeMapping: {
-    [type: string]: ICurrencyFee;
-  };
-  getFee: (type: string) => ICurrencyFee;
-  setDefaultFee: (min: string, currency: string) => void;
-  addRoundFee: (fee: IFee, roundNumber: number) => void;
-  hooks: {
-    [name: string]: () => void;
-  };
-  registerHook: (name: string, func: () => void) => void;
   logger: ILogger;
 }
 
@@ -188,7 +199,12 @@ export interface IConfig {
   peerPort: number;
   address: string;
   peers: {
-    list: { ip: string; port: string | number }[];
+    bootstrap: string | null;
+    p2pKeyFile: string;
+    rawPeerInfo: string;
+    options: {
+      timeout: number;
+    };
   };
   forging: {
     secret: string[];
@@ -199,7 +215,7 @@ export interface IConfig {
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
-  ormConfig: string;
+  ormConfigRaw: string;
   ssl: {
     enabled: boolean;
     options: {
@@ -231,8 +247,8 @@ export interface Signature {
   signature: string;
 }
 
-export interface ISimpleCache {
-  [id: string]: boolean;
+export interface ISimpleCache<VALUE_TYPE> {
+  [id: string]: VALUE_TYPE;
 }
 
 export type Next = (err?: string) => any;
@@ -243,11 +259,17 @@ export interface PeerNode {
 }
 
 export interface ProcessBlockOptions {
-  syncing?: boolean;
   local?: true;
   broadcast?: true;
   votes?: ManyVotes;
 }
+
+export interface BlockSlotData {
+  time: number;
+  keypair: KeyPair;
+}
+
+export type BlockHeightId = Pick<IBlock, 'height' | 'id'>;
 
 // Models
 export interface IBlock {
@@ -358,6 +380,12 @@ export interface CommonBlockResult {
   common: IBlock;
 }
 
+export interface Context {
+  trs: Transaction;
+  block: Pick<IBlock, 'height'>;
+  sender: any;
+}
+
 declare global {
   namespace NodeJS {
     interface Global {
@@ -365,6 +393,17 @@ declare global {
       modules: Modules;
       app: Partial<IApp>;
       Config: Partial<IConfig>;
+      state: IState;
+      keyPairs: KeyPairsIndexer;
+      isForgingEnabled: boolean;
+      privSyncing: boolean;
+      blocksToSync: number;
+      transactionPool: TransactionPool;
+      failedTrsCache: LimitCache<string, boolean>;
+      areAllModulesLoaded: boolean;
+      blockchainReady: boolean;
+      latestBlocksCache: LRU.Cache<string, BlockAndVotes>;
+      blockHeaderMidCache: LRU.Cache<string, NewBlockMessage>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

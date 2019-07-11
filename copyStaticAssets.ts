@@ -11,10 +11,11 @@ shell.cp('gnyd', 'dist');
 
 shell.cp('ormconfig.integration.json', 'dist');
 shell.cp('ormconfig.json', 'dist');
-shell.cp('ormconfig.sqljs.json', 'dist');
+shell.cp('ormconfig.postgres.json', 'dist');
 shell.cp('ormconfig.test.json', 'dist');
 
 shell.cp('docker-compose.yml', 'dist');
+shell.cp('docker-compose.many.yml', 'dist');
 
 shell.mkdir('-p', 'dist/data/blocks');
 shell.mkdir('-p', 'dist/logs');

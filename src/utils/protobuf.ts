@@ -20,7 +20,7 @@ export class Protobuf {
     return obj;
   }
 
-  encodeBlockVotes(obj): Buffer {
+  encodeBlockVotes(obj: any): Buffer {
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];
       signature.publicKey = Buffer.from(signature.publicKey, 'hex');
@@ -53,6 +53,10 @@ export class Protobuf {
 
   decodeTransaction(data: Buffer) {
     const obj = this.schema.Transaction.decode(data);
+    // this is default protobuf behaviour to add an empty string
+    if (obj.secondSignature === '') {
+      delete obj.secondSignature;
+    }
     return obj;
   }
 

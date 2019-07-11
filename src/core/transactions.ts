@@ -1,45 +1,20 @@
-import { LimitCache } from '../utils/limit-cache';
-import { TransactionPool } from '../utils/transaction-pool';
-import { Modules, IScope, Transaction } from '../interfaces';
+import { Transaction, Context, IState } from '../interfaces';
+import { TransactionBase } from '../base/transaction';
+import { StateHelper } from './StateHelper';
 
 export default class Transactions {
-  private readonly library: IScope;
-  private modules: Modules;
-  private pool: TransactionPool;
-  private failedTrsCache: LimitCache<string, boolean>;
-
-  constructor(scope: IScope) {
-    this.library = scope;
-    this.pool = new TransactionPool();
-    this.failedTrsCache = new LimitCache<string, boolean>();
-  }
-
-  getUnconfirmedTransaction = (id: string) => this.pool.get(id);
-
-  getUnconfirmedTransactionList = () => this.pool.getUnconfirmed();
-
-  removeUnconfirmedTransaction = (id: string) => this.pool.remove(id);
-
-  hasUnconfirmed = (id: string) => this.pool.has(id);
-
-  clearUnconfirmed = () => this.pool.clear();
-
-  getUnconfirmedTransactions = cb =>
-    setImmediate(cb, null, {
-      transactions: this.getUnconfirmedTransactionList(),
-    });
-
-  applyTransactionsAsync = async (transactions: Transaction[]) => {
-    for (let i = 0; i < transactions.length; ++i) {
-      await this.applyUnconfirmedTransactionAsync(transactions[i]);
-    }
-  };
-
-  processUnconfirmedTransactions = (transactions: Transaction[], cb) => {
+  public static processUnconfirmedTransactions = (
+    state: IState,
+    transactions: Transaction[],
+    cb
+  ) => {
     (async () => {
       try {
         for (const transaction of transactions) {
-          await this.processUnconfirmedTransactionAsync(transaction);
+          await Transactions.processUnconfirmedTransactionAsync(
+            state,
+            transaction
+          );
         }
         cb(null, transactions);
       } catch (e) {
@@ -48,16 +23,26 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionsAsync = async (transactions: Transaction[]) => {
+  public static processUnconfirmedTransactionsAsync = async (
+    state: IState,
+    transactions: Transaction[]
+  ) => {
     for (const transaction of transactions) {
-      await this.processUnconfirmedTransactionAsync(transaction);
+      await Transactions.processUnconfirmedTransactionAsync(state, transaction);
     }
   };
 
-  processUnconfirmedTransaction = (transaction: Transaction, cb) => {
+  public static processUnconfirmedTransaction = (
+    state: IState,
+    transaction: Transaction,
+    cb
+  ) => {
     (async () => {
       try {
-        await this.processUnconfirmedTransactionAsync(transaction);
+        await Transactions.processUnconfirmedTransactionAsync(
+          state,
+          transaction
+        );
         cb(null, transaction);
       } catch (e) {
         cb(e.toString(), transaction);
@@ -65,25 +50,28 @@ export default class Transactions {
     })();
   };
 
-  processUnconfirmedTransactionAsync = async (transaction: Transaction) => {
+  public static processUnconfirmedTransactionAsync = async (
+    state: IState,
+    transaction: Transaction
+  ) => {
     try {
       if (!transaction.id) {
-        transaction.id = this.library.base.transaction.getId(transaction);
+        transaction.id = TransactionBase.getId(transaction);
       } else {
-        const id = this.library.base.transaction.getId(transaction);
+        const id = TransactionBase.getId(transaction);
         if (transaction.id !== id) {
           throw new Error('Invalid transaction id');
         }
       }
 
-      if (this.modules.blocks.isCollectingVotes()) {
+      if (state.privIsCollectingVotes) {
         throw new Error('Block consensus in processing');
       }
 
-      if (this.failedTrsCache.has(transaction.id)) {
+      if (StateHelper.TrsAlreadyFailed(transaction.id)) {
         throw new Error('Transaction already processed');
       }
-      if (this.pool.has(transaction.id)) {
+      if (StateHelper.TrsAlreadyInUnconfirmedPool(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
       const exists = await global.app.sdb.exists('Transaction', {
@@ -92,19 +80,20 @@ export default class Transactions {
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
-      await this.applyUnconfirmedTransactionAsync(transaction);
-      this.pool.add(transaction);
+      await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
+      StateHelper.AddUnconfirmedTransactions(transaction);
       return transaction;
     } catch (e) {
-      this.failedTrsCache.set(transaction.id, true);
+      StateHelper.AddFailedTrs(transaction.id);
       throw e;
     }
   };
 
-  applyUnconfirmedTransactionAsync = async (transaction: Transaction) => {
-    this.library.logger.debug('apply unconfirmed trs', transaction);
-
-    const height = await this.modules.blocks.getLastBlock().height;
+  public static applyUnconfirmedTransactionAsync = async (
+    state: IState,
+    transaction: Transaction
+  ) => {
+    const height = state.lastBlock.height;
     const block = {
       height: height + 1,
     };
@@ -130,29 +119,56 @@ export default class Transactions {
       });
     }
 
-    const context = {
+    const context: Context = {
       trs: transaction,
       block,
       sender,
     };
     if (height > 0) {
-      const error = await this.library.base.transaction.verify(context);
+      const error = await TransactionBase.verify(context);
       if (error) throw new Error(error);
     }
 
     try {
       global.app.sdb.beginContract();
-      await this.library.base.transaction.apply(context);
+      await Transactions.apply(context);
       global.app.sdb.commitContract();
     } catch (e) {
       global.app.sdb.rollbackContract();
-      this.library.logger.error(e);
       throw e;
     }
   };
 
-  // Events
-  onBind = (scope: Modules) => {
-    this.modules = scope;
-  };
+  public static async apply(context: Context) {
+    const { block, trs, sender } = context;
+    const name = global.app.getContractName(String(trs.type));
+    if (!name) {
+      throw new Error(`Unsupported transaction type: ${trs.type}`);
+    }
+    const [mod, func] = name.split('.');
+    if (!mod || !func) {
+      throw new Error('Invalid transaction function');
+    }
+    const fn = global.app.contract[mod][func];
+    if (!fn) {
+      throw new Error('Contract not found');
+    }
+
+    if (block.height !== 0) {
+      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
+      sender.gny -= trs.fee;
+      await global.app.sdb.update(
+        'Account',
+        { gny: sender.gny },
+        { address: sender.address }
+      );
+    }
+
+    const error = await fn.apply(context, trs.args);
+    if (error) {
+      throw new Error(error);
+    }
+    // transaction.executed = 1
+    return null;
+  }
 }

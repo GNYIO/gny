@@ -1,0 +1,42 @@
+import { BlockPropose } from '../../src/interfaces';
+import joi from '../../src/utils/extendedJoi';
+
+export function isBlockPropose(propose: any): propose is BlockPropose {
+  const schema = joi.object().keys({
+    address: joi
+      .string()
+      .ipv4PlusPort()
+      .required(),
+    generatorPublicKey: joi
+      .string()
+      .hex()
+      .required(),
+    hash: joi
+      .string()
+      .hex()
+      .required(),
+    height: joi
+      .number()
+      .integer()
+      .positive()
+      .required(),
+    id: joi
+      .string()
+      .hex()
+      .required(),
+    signature: joi
+      .string()
+      .hex()
+      .required(),
+    timestamp: joi
+      .number()
+      .integer()
+      .positive()
+      .required(),
+  });
+  const report = joi.validate(propose, schema);
+  if (report.error) {
+    return false;
+  }
+  return true;
+}

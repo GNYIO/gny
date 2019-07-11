@@ -2,25 +2,21 @@ import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next, Transfer } from '../../../src/interfaces';
 import { Merge } from 'type-fest';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class TransfersApi {
   private library: IScope;
-  private loaded = false;
   constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
 
   private attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .json({ success: false, error: 'Blockchain is loading' });

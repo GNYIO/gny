@@ -2,12 +2,14 @@ import * as ed from '../../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
+import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
 import {
-  Modules,
-  IScope,
-  Next,
-  DelegateViewModel,
-} from '../../../src/interfaces';
+  generateAddressByPublicKey,
+  getAccountByName,
+  getAccount,
+} from '../util';
+import Delegates from '../../../src/core/delegates';
+import { StateHelper } from '../../../src/core/StateHelper';
 
 interface BalanceCondition {
   address: string;
@@ -15,27 +17,19 @@ interface BalanceCondition {
 }
 
 export default class AccountsApi {
-  private modules: Modules;
   private library: IScope;
-  private loaded = false;
 
-  constructor(modules: Modules, library: IScope) {
-    this.modules = modules;
+  constructor(library: IScope) {
     this.library = library;
 
     this.attachApi();
   }
 
-  // Events
-  public onBlockchainReady = () => {
-    this.loaded = true;
-  };
-
   private attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {
-      if (this.modules && this.loaded === true) return next();
+      if (StateHelper.BlockchainReady()) return next();
       return res
         .status(500)
         .send({ success: false, error: 'Blockchain is loading' });
@@ -43,7 +37,7 @@ export default class AccountsApi {
 
     router.get('/generateAccount', this.generateAccount);
     router.post('/open', this.open);
-    router.get('/', this.getAccount);
+    router.get('/', this.getAccountEndpoint);
     router.get('/getBalance', this.getBalance);
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
     router.get('/getVotes', this.getVotedDelegates);
@@ -79,7 +73,7 @@ export default class AccountsApi {
         .update(secret, 'utf8')
         .digest()
     );
-    const address = this.modules.accounts.generateAddressByPublicKey(
+    const address = generateAddressByPublicKey(
       keypair.publicKey.toString('hex')
     );
     return res.json({
@@ -126,7 +120,11 @@ export default class AccountsApi {
     }
   };
 
-  private getAccount = async (req: Request, res: Response, next: Next) => {
+  private getAccountEndpoint = async (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
     const { query } = req;
     const addressOrAccountName = this.library.joi
       .object()
@@ -141,16 +139,14 @@ export default class AccountsApi {
     }
 
     if (query.username) {
-      const account = await this.modules.accounts.getAccountByName(
-        query.username
-      );
+      const account = await getAccountByName(query.username);
       if (typeof account === 'string') {
         return next(account);
       }
       return res.json(account);
     }
 
-    const account = await this.modules.accounts.getAccount(query.address);
+    const account = await getAccount(query.address);
     if (typeof account === 'string') {
       return next(account);
     }
@@ -170,9 +166,7 @@ export default class AccountsApi {
       return next(report.error.message);
     }
 
-    const accountOverview = await this.modules.accounts.getAccount(
-      query.address
-    );
+    const accountOverview = await getAccount(query.address);
     if (typeof accountOverview === 'string') {
       return next(accountOverview);
     }
@@ -295,7 +289,7 @@ export default class AccountsApi {
       for (const v of votes) {
         delegateNames.add(v.delegate);
       }
-      const delegates: DelegateViewModel[] = await this.modules.delegates.getDelegates();
+      const delegates: DelegateViewModel[] = await Delegates.getDelegates();
       if (!delegates || !delegates.length) {
         return res.json({ delegates: [] });
       }
@@ -329,9 +323,7 @@ export default class AccountsApi {
       return next(report.error.message);
     }
 
-    const accountInfoOrError = await this.modules.accounts.getAccount(
-      query.address
-    );
+    const accountInfoOrError = await getAccount(query.address);
     if (typeof accountInfoOrError === 'string') {
       return res.json(accountInfoOrError);
     }
@@ -376,9 +368,9 @@ export default class AccountsApi {
       .digest();
     const keyPair = ed.generateKeyPair(hash);
     const publicKey = keyPair.publicKey.toString('hex');
-    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
+    const address = generateAddressByPublicKey(publicKey);
 
-    const accountInfoOrError = await this.modules.accounts.getAccount(address);
+    const accountInfoOrError = await getAccount(address);
     if (typeof accountInfoOrError === 'string') {
       return accountInfoOrError;
     }
@@ -394,8 +386,8 @@ export default class AccountsApi {
   };
 
   private openAccount2 = async (publicKey: string) => {
-    const address = this.modules.accounts.generateAddressByPublicKey(publicKey);
-    const accountInfoOrError = await this.modules.accounts.getAccount(address);
+    const address = generateAddressByPublicKey(publicKey);
+    const accountInfoOrError = await getAccount(address);
     if (typeof accountInfoOrError === 'string') {
       return accountInfoOrError;
     }

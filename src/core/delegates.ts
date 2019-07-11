@@ -3,71 +3,49 @@ import * as ed from '../utils/ed';
 import slots from '../utils/slots';
 import BlockReward from '../utils/block-reward';
 import {
-  Modules,
-  IScope,
   KeyPairsIndexer,
   KeyPair,
   Delegate,
   DelegateViewModel,
   BlockPropose,
+  ProcessBlockOptions,
+  BlockSlotData,
+  IBlock,
+  IState,
 } from '../interfaces';
+import { RoundBase } from '../base/round';
+import { ConsensusHelper } from './ConsensusHelper';
+import { StateHelper } from './StateHelper';
+import Blocks from './blocks';
+
+const blockreward = new BlockReward();
 
 export default class Delegates {
-  private loaded: boolean = false;
-  private keyPairs: KeyPairsIndexer = {};
-  private isForgingEnabled = true;
-  private readonly library: IScope;
-  private modules: Modules;
-
-  private readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
-  private blockreward = new BlockReward();
-
-  constructor(scope: IScope) {
-    this.library = scope;
-  }
+  private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
 
   // Events
-  public onBind = (scope: Modules) => {
-    this.modules = scope;
-  };
+  public static onBlockchainReady = async () => {
+    // this.loaded = true;
 
-  public onBlockchainReady = async () => {
-    this.loaded = true;
-
-    const error = await this.loadMyDelegates();
-    if (error) {
-      this.library.logger.error('Failed to load delegates', error);
-    }
+    const secrets = global.Config.forging.secret;
+    const delegates: Delegate[] = await global.app.sdb.getAll('Delegate');
+    const keyPairs = Delegates.loadMyDelegates(secrets, delegates);
+    StateHelper.SetKeyPairs(keyPairs);
 
     const nextLoop = async () => {
-      await this.loop(); // const result =
+      await Delegates.loop();
       setTimeout(nextLoop, 100);
     };
 
     setImmediate(nextLoop);
   };
 
-  public isPublicKeyInKeyPairs = (publicKey: string) => {
-    if (this.keyPairs[publicKey]) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  public setKeyPair = (publicKey: string, keys: KeyPair) => {
-    this.keyPairs[publicKey] = keys;
-  };
-  public removeKeyPair = (publicKey: string) => {
-    delete this.keyPairs[publicKey];
-  };
-
-  private getBlockSlotData = async (
+  public static getBlockSlotData = (
     slot: number,
-    height: number
-  ): Promise<{ time: number; keypair: KeyPair }> => {
-    const activeDelegates = await this.generateDelegateList(height);
-    if (!activeDelegates) {
+    activeDelegates: string[],
+    keyPairs: KeyPairsIndexer
+  ): void | BlockSlotData => {
+    if (!activeDelegates || !activeDelegates.length) {
       return;
     }
     const lastSlot = slots.getLastSlot(slot);
@@ -77,65 +55,141 @@ export default class Delegates {
 
       const delegateKey = activeDelegates[delegatePos];
 
-      if (delegateKey && this.keyPairs[delegateKey]) {
+      if (delegateKey && keyPairs[delegateKey]) {
         return {
           time: slots.getSlotTime(currentSlot),
-          keypair: this.keyPairs[delegateKey],
+          keypair: keyPairs[delegateKey],
         };
       }
     }
   };
 
-  public loop = async () => {
-    if (!this.isForgingEnabled) {
-      this.library.logger.trace('Loop:', 'forging disabled');
-      return;
+  public static isLoopReady(
+    state: IState,
+    now: number,
+    isForgingEnabled: boolean,
+    isLoaded: boolean,
+    isSyncingRightNow: boolean,
+    keyPairs: KeyPairsIndexer
+  ) {
+    if (!isForgingEnabled) {
+      return 'Loop: forging disabled';
     }
-    if (!Object.keys(this.keyPairs).length) {
-      this.library.logger.trace('Loop:', 'no delegates');
+
+    if (!Object.keys(keyPairs).length) {
+      return 'Loop: no delegates';
+    }
+
+    if (!isLoaded || isSyncingRightNow) {
+      return 'Loop: node not ready';
+    }
+
+    const currentEpochTime = slots.getEpochTime(now);
+    const currentSlot = slots.getSlotNumber(currentEpochTime);
+
+    const lastBlock = state.lastBlock;
+    const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+
+    if (currentSlot === lastBlockSlotNumber) {
+      return 'Loop: still in last Block slot';
+    }
+
+    if (now % 10000 > 5000) {
+      return 'Loop: maybe too late to collect votes';
+    }
+
+    return undefined;
+  }
+
+  public static loop = async () => {
+    const preState = StateHelper.getState();
+    const now = Date.now();
+    const isForgingEnabled = StateHelper.IsForgingEnabled();
+    const isLoaded = StateHelper.BlockchainReady();
+    const isSyncingRightNow = StateHelper.IsSyncing();
+    const keyPairs = StateHelper.GetKeyPairs();
+
+    const error = Delegates.isLoopReady(
+      preState,
+      now,
+      isForgingEnabled,
+      isLoaded,
+      isSyncingRightNow,
+      keyPairs
+    );
+    if (error) {
+      global.library.logger.trace(error);
       return;
     }
 
-    if (!this.loaded || this.modules.loader.syncing()) {
-      this.library.logger.trace('Loop:', 'node not ready');
-      return;
-    }
-
-    const currentSlot = slots.getSlotNumber();
-    const lastBlock = this.modules.blocks.getLastBlock();
-
-    if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-      return;
-    }
-
-    if (Date.now() % 10000 > 5000) {
-      this.library.logger.trace('Loop:', 'maybe too late to collect votes');
-      return;
-    }
-
-    const currentBlockData = await this.getBlockSlotData(
+    const delList = await Delegates.generateDelegateList(
+      Number(preState.lastBlock.height) + 1
+    );
+    const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
+    const currentBlockData = Delegates.getBlockSlotData(
       currentSlot,
-      Number(lastBlock.height) + 1
+      delList,
+      keyPairs
     );
     if (!currentBlockData) {
-      this.library.logger.trace('Loop:', 'skipping slot');
+      global.library.logger.trace('Loop: skipping slot');
       return;
     }
 
-    this.library.sequence.add(async done => {
+    global.library.sequence.add(async done => {
+      let state = StateHelper.getState();
+
       try {
-        if (
-          slots.getSlotNumber(currentBlockData.time) ===
-            slots.getSlotNumber() &&
-          this.modules.blocks.getLastBlock().timestamp < currentBlockData.time
-        ) {
-          await this.modules.blocks.generateBlock(
-            currentBlockData.keypair,
-            currentBlockData.time
+        const myTime = currentBlockData.time;
+        const isCurrentSlot =
+          slots.getSlotNumber(myTime) === slots.getSlotNumber();
+        const lastBlockWasBefore = state.lastBlock.timestamp < myTime;
+        const noPendingBlock =
+          ConsensusHelper.hasPendingBlock(state, myTime) === false;
+
+        if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
+          const height = state.lastBlock.height + 1;
+
+          const unconfirmedTransactions = StateHelper.GetUnconfirmedTransactionList();
+          const delegateList = await Delegates.generateDelegateList(height);
+          const activeDelegates = Delegates.getActiveDelegateKeypairs(
+            delegateList
           );
+
+          const {
+            block: newBlock,
+            state: newState,
+            votes: localVotes,
+          } = await Blocks.generateBlock(
+            state,
+            activeDelegates,
+            unconfirmedTransactions,
+            currentBlockData.keypair,
+            myTime
+          );
+          state = newState;
+
+          // no pending block -> block can be created
+          if (newBlock && !newState.pendingBlock && localVotes) {
+            StateHelper.ClearUnconfirmedTransactions(); // TODO, handle better
+            const options: ProcessBlockOptions = {
+              local: true,
+              broadcast: true,
+              votes: localVotes,
+            };
+            state = await Blocks.processBlock(
+              newState,
+              newBlock,
+              options,
+              delegateList
+            );
+          }
+
+          // set new state after successful finished
+          StateHelper.setState(state);
         }
       } catch (e) {
-        this.library.logger.error('Failed generate block within slot:', e);
+        global.library.logger.error('Failed generate block within slot:', e);
         return;
       } finally {
         return done();
@@ -143,23 +197,25 @@ export default class Delegates {
     });
   };
 
-  private loadMyDelegates = async () => {
-    let secrets: string[] = [];
-    if (this.library.config.forging.secret) {
-      secrets = Array.isArray(this.library.config.forging.secret)
-        ? this.library.config.forging.secret
-        : [this.library.config.forging.secret];
+  public static loadMyDelegates = (
+    secrets: string[],
+    delegates: Delegate[]
+  ) => {
+    const keyPairs: KeyPairsIndexer = {};
+
+    if (!secrets || !secrets.length) {
+      return keyPairs;
+    }
+    if (!delegates || !delegates.length) {
+      return keyPairs;
     }
 
     try {
-      const delegates = (await global.app.sdb.getAll('Delegate')) as Delegate[];
-      if (!delegates || !delegates.length) {
-        return 'Delegates not found in database';
-      }
       const delegateMap = new Map<string, Delegate>();
       for (const d of delegates) {
         delegateMap.set(d.publicKey, d);
       }
+
       for (const secret of secrets) {
         const keypair = ed.generateKeyPair(
           crypto
@@ -169,12 +225,12 @@ export default class Delegates {
         );
         const publicKey = keypair.publicKey.toString('hex');
         if (delegateMap.has(publicKey)) {
-          this.keyPairs[publicKey] = keypair;
-          this.library.logger.info(
+          keyPairs[publicKey] = keypair;
+          global.library.logger.info(
             `Forging enabled on account: ${delegateMap.get(publicKey).address}`
           );
         } else {
-          this.library.logger.info(
+          global.library.logger.info(
             `Delegate with this public key not found: ${keypair.publicKey.toString(
               'hex'
             )}`
@@ -182,27 +238,31 @@ export default class Delegates {
         }
       }
     } catch (e) {
-      return e;
+      global.library.logger.error(e);
     }
+
+    return keyPairs;
   };
 
-  public getActiveDelegateKeypairs = async (height: number) => {
-    const delegates = await this.generateDelegateList(height);
+  public static getActiveDelegateKeypairs = (delegates: string[]) => {
     if (!delegates) {
-      return;
+      return [];
     }
 
     const results: KeyPair[] = [];
-    for (const key in this.keyPairs) {
+    const keyPairs = StateHelper.GetKeyPairs();
+    for (const key in keyPairs) {
       if (delegates.indexOf(key) !== -1) {
-        results.push(this.keyPairs[key]);
+        results.push(keyPairs[key]);
       }
     }
     return results;
   };
 
-  public validateProposeSlot = async (propose: BlockPropose) => {
-    const activeDelegates = await this.generateDelegateList(propose.height);
+  public static validateProposeSlot = (
+    propose: BlockPropose,
+    activeDelegates: string[]
+  ) => {
     const currentSlot = slots.getSlotNumber(propose.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
@@ -213,10 +273,12 @@ export default class Delegates {
     throw new Error('Failed to validate propose slot');
   };
 
-  public generateDelegateList = async (height: number): Promise<string[]> => {
+  public static generateDelegateList = async (
+    height: number
+  ): Promise<string[]> => {
     try {
-      const truncDelegateList = await this.getBookkeeper();
-      const seedSource = this.modules.round.calculateRound(height).toString();
+      const truncDelegateList = await Delegates.getBookkeeper();
+      const seedSource = RoundBase.calculateRound(height).toString();
 
       let currentSeed = crypto
         .createHash('sha256')
@@ -242,22 +304,10 @@ export default class Delegates {
     }
   };
 
-  public fork = (block, cause) => {
-    this.library.logger.info('Fork', {
-      delegate: block.delegate,
-      block: {
-        id: block.id,
-        timestamp: block.timestamp,
-        height: block.height,
-        prevBlockId: block.prevBlockId,
-      },
-      cause,
-    });
-  };
-
-  public validateBlockSlot = async (block): Promise<void> => {
-    const activeDelegates = await this.generateDelegateList(block.height);
-
+  public static validateBlockSlot = (
+    block: IBlock,
+    activeDelegates: string[]
+  ) => {
     const currentSlot = slots.getSlotNumber(block.timestamp);
     const delegateKey = activeDelegates[currentSlot % slots.delegates];
 
@@ -268,7 +318,7 @@ export default class Delegates {
     throw new Error(`Failed to verify slot, expected delegate: ${delegateKey}`);
   };
 
-  public getDelegates = async () => {
+  public static getDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll('Delegate');
     let delegates = allDelegates.map(d => Object.assign({}, d)) as Delegate[];
     if (!delegates || !delegates.length) {
@@ -276,10 +326,10 @@ export default class Delegates {
       return undefined;
     }
 
-    delegates = delegates.sort(this.compare);
+    delegates = delegates.sort(Delegates.compare);
 
-    const lastBlock = this.modules.blocks.getLastBlock();
-    const totalSupply = this.blockreward.calculateSupply(lastBlock.height);
+    const lastBlock = StateHelper.getState().lastBlock;
+    const totalSupply = blockreward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;
@@ -302,54 +352,40 @@ export default class Delegates {
     return delegates as DelegateViewModel[];
   };
 
-  public enableForging = () => {
-    this.isForgingEnabled = true;
-  };
-
-  public disableForging = () => {
-    this.isForgingEnabled = false;
-  };
-
-  private compare = (left: Delegate, right: Delegate) => {
+  public static compare = (left: Delegate, right: Delegate) => {
     if (left.votes !== right.votes) {
       return right.votes - left.votes;
     }
     return left.publicKey < right.publicKey ? 1 : -1;
   };
 
-  public cleanup = cb => {
-    this.library.logger.debug('Cleaning up core/delegates');
-    this.loaded = false;
-    cb();
-  };
-
-  private getTopDelegates = async () => {
+  public static getTopDelegates = async () => {
     const allDelegates = (await global.app.sdb.getAll(
       'Delegate'
     )) as Delegate[];
     const sortedPublicKeys = allDelegates
-      .sort(this.compare)
+      .sort(Delegates.compare)
       .map(d => d.publicKey)
       .slice(0, 101);
     return sortedPublicKeys;
   };
 
-  private getBookkeeper = async (): Promise<string[]> => {
+  private static getBookkeeper = async () => {
     const item = await global.app.sdb.get('Variable', {
-      key: this.BOOK_KEEPER_NAME,
+      key: Delegates.BOOK_KEEPER_NAME,
     });
     if (!item) {
       throw new Error('Bookkeeper variable not found');
     }
 
     // TODO: ?? make field type as JSON
-    return JSON.parse(item.value);
+    return JSON.parse(item.value) as string[];
   };
 
-  public updateBookkeeper = async () => {
-    const value = JSON.stringify(await this.getTopDelegates());
+  public static updateBookkeeper = async () => {
+    const value = JSON.stringify(await Delegates.getTopDelegates());
     const { create } = await global.app.sdb.createOrLoad('Variable', {
-      key: this.BOOK_KEEPER_NAME,
+      key: Delegates.BOOK_KEEPER_NAME,
       value: value,
     });
     // It seems there is no need to update
@@ -357,7 +393,7 @@ export default class Delegates {
       await global.app.sdb.update(
         'Variable',
         { value },
-        { key: this.BOOK_KEEPER_NAME }
+        { key: Delegates.BOOK_KEEPER_NAME }
       );
     }
   };

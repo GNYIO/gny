@@ -3,12 +3,13 @@ import {
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
 import { ILogger } from '../../../src/interfaces';
-import { cloneDeep } from 'lodash';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
-import { deepCopy } from '../../../packages/database-postgres/src/codeContract';
+import { cloneDeep } from 'lodash';
+import * as fs from 'fs';
+import * as lib from '../lib';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -68,6 +69,22 @@ function createAccount(address: string) {
   return account;
 }
 
+function createTransaction(height: number) {
+  const publicKey = createRandomBytes(32);
+  const transaction = {
+    height,
+    type: 0,
+    args: JSON.stringify([10 * 1e8, 'G3SSkWs6UFuoVHU3N4rLvXoobbQCt']),
+    fee: 0.1 * 1e8,
+    id: randomBytes(32).toString('hex'),
+    senderId: generateAddress(publicKey),
+    senderPublicKey: publicKey,
+    signatures: JSON.stringify([randomBytes(32).toString('hex')]),
+    timestamp: 300235235,
+  };
+  return transaction;
+}
+
 async function saveGenesisBlock(smartDB: SmartDB) {
   const block = cloneDeep(CUSTOM_GENESIS);
 
@@ -86,71 +103,111 @@ async function saveGenesisBlock(smartDB: SmartDB) {
 
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
-  beforeEach(async done => {
-    sut = new SmartDB(logger, {
-      cachedBlockCount: 10,
-      maxBlockHistoryHold: 10,
-      configFilePath: 'ormconfig.sqljs.json',
-    });
-    await sut.init();
-    done();
-  }, 10000);
-  afterEach(async done => {
-    await sut.close();
-    sut = undefined;
-    done();
-  }, 10000);
+  let configRaw: string;
 
-  it('getBlockByHeight()', async done => {
-    await saveGenesisBlock(sut);
+  beforeAll(done => {
+    (async () => {
+      lib.exitIfNotRoot();
 
-    const loaded = await sut.getBlockByHeight(0);
+      await lib.stopAndKillPostgres();
+      configRaw = fs.readFileSync('ormconfig.postgres.json', {
+        encoding: 'utf8',
+      });
+      await lib.sleep(500);
 
-    const expected = {
-      count: 0,
-      delegate:
-        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
-      fees: 0,
-      height: 0,
-      id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-      payloadHash:
-        '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
-      previousBlock: null,
-      reward: 0,
-      signature:
-        'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
-      timestamp: 0,
-      version: 0,
-    };
-    expect(loaded).toEqual(expected);
-    done();
-  }, 5000);
+      done();
+    })();
+  }, lib.oneMinute);
 
-  it('getBlockByHeight() - with transactions', async done => {
-    await saveGenesisBlock(sut);
+  beforeEach(done => {
+    (async () => {
+      // stopping is safety in case a test before fails
+      await lib.stopAndKillPostgres();
+      await lib.spawnPostgres();
+      sut = new SmartDB(logger, {
+        cachedBlockCount: 10,
+        maxBlockHistoryHold: 10,
+        configRaw: configRaw,
+      });
+      await sut.init();
 
-    const loaded = await sut.getBlockByHeight(0, true);
-    expect(loaded).toBeTruthy();
-    expect(loaded.transactions.length).toEqual(0);
-    done();
-  }, 5000);
+      done();
+    })();
+  }, lib.oneMinute);
 
-  it('getBlockById()', async done => {
-    await saveGenesisBlock(sut);
+  afterEach(done => {
+    (async () => {
+      await sut.close();
+      await lib.sleep(4 * 1000);
+      await lib.stopAndKillPostgres();
+      await lib.sleep(15 * 1000);
 
-    const first = createBlock(1);
-    sut.beginBlock(first);
-    await sut.commitBlock();
+      done();
+    })();
+  }, lib.oneMinute);
 
-    const result = await sut.getBlockById(first.id, false);
-    const expected = Object.assign({}, first);
-    delete expected.transactions;
-    delete expected._version_;
+  it(
+    'getBlockByHeight()',
+    async done => {
+      await saveGenesisBlock(sut);
 
-    expect(result).toEqual(expected);
+      const loaded = await sut.getBlockByHeight(0);
 
-    done();
-  });
+      const expected = {
+        count: 0,
+        delegate:
+          'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+        fees: 0,
+        height: 0,
+        id: '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
+        payloadHash:
+          '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
+        previousBlock: null,
+        reward: 0,
+        signature:
+          'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
+        timestamp: 0,
+        version: 0,
+      };
+      expect(loaded).toEqual(expected);
+      done();
+    },
+    lib.thirtySeconds
+  );
+
+  it(
+    'getBlockByHeight() - with transactions',
+    async done => {
+      await saveGenesisBlock(sut);
+
+      const loaded = await sut.getBlockByHeight(0, true);
+      expect(loaded).toBeTruthy();
+      expect(loaded.transactions.length).toEqual(0);
+      done();
+    },
+    lib.thirtySeconds
+  );
+
+  it(
+    'getBlockById()',
+    async done => {
+      await saveGenesisBlock(sut);
+
+      const first = createBlock(1);
+      sut.beginBlock(first);
+      await sut.commitBlock();
+
+      const result = await sut.getBlockById(first.id, false);
+      const expected = Object.assign({}, first);
+      delete expected.transactions;
+      delete expected._version_;
+
+      expect(result).toEqual(expected);
+
+      done();
+    },
+    lib.thirtySeconds
+  );
 
   it('getBlockById() - with transactions', async done => {
     await saveGenesisBlock(sut);
@@ -192,6 +249,158 @@ describe('integration - SmartDB', () => {
     expect(blocks[0].transactions.length).toEqual(0);
 
     done();
+  }, 5000);
+
+  it('getBlocksByHeightRange() - is always ordered in ascending order (without trs)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const withTransactions = false;
+    const blocks = await sut.getBlocksByHeightRange(0, 3, withTransactions);
+    expect(blocks.length).toEqual(4);
+    expect(blocks[0].height).toEqual(0);
+    expect(blocks[1].height).toEqual(1);
+    expect(blocks[2].height).toEqual(2);
+    expect(blocks[3].height).toEqual(3);
+
+    done();
+  }, 5000);
+
+  it('getBlocksByHeightRange() - is always ordered in ascending order (with trs)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const withTransactions = true;
+    const blocks = await sut.getBlocksByHeightRange(0, 3, withTransactions);
+    expect(blocks.length).toEqual(4);
+    expect(blocks[0].height).toEqual(0);
+    expect(blocks[1].height).toEqual(1);
+    expect(blocks[2].height).toEqual(2);
+    expect(blocks[3].height).toEqual(3);
+
+    done();
+  }, 5000);
+
+  it('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const fourth = createBlock(4);
+    sut.beginBlock(fourth);
+    await sut.commitBlock();
+
+    // act rollback to height 2
+    await sut.rollbackBlock(2);
+
+    const thrid2 = createBlock(3);
+    sut.beginBlock(thrid2);
+    await sut.commitBlock();
+
+    const fourth2 = createBlock(4);
+    sut.beginBlock(fourth2);
+    await sut.commitBlock();
+
+    const fifth = createBlock(5);
+    sut.beginBlock(fifth);
+    await sut.commitBlock();
+
+    // get result
+    const result = await sut.getBlocksByHeightRange(0, 5, false);
+    expect(result.length).toEqual(6);
+    expect(result[0].height).toEqual(0);
+    expect(result[1].height).toEqual(1);
+    expect(result[2].height).toEqual(2);
+    expect(result[3].height).toEqual(3);
+    expect(result[4].height).toEqual(4);
+    expect(result[5].height).toEqual(5);
+
+    done();
+  });
+
+  it('getBlocksByHeightRange - WHERE height >= min AND height <= max', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(2);
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const third = createBlock(3);
+    sut.beginBlock(third);
+    await sut.commitBlock();
+
+    const fourth = createBlock(4);
+    sut.beginBlock(fourth);
+    await sut.commitBlock();
+
+    const fifth = createBlock(5);
+    sut.beginBlock(fifth);
+    await sut.commitBlock();
+
+    const sixth = createBlock(6);
+    sut.beginBlock(sixth);
+    await sut.commitBlock();
+
+    const result = await sut.getBlocksByHeightRange(3, 5);
+
+    // should have blocks 4, 5, 6
+    expect(result).toHaveLength(3);
+    expect(result[0].height).toEqual(3);
+    expect(result[1].height).toEqual(4);
+    expect(result[2].height).toEqual(5);
+
+    done();
+  }, 5000);
+
+  it('getBlocksByHeightRange - throws if min param is greater then max param', async () => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(1);
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const MIN = 1;
+    const MAX = 0;
+
+    const resultPromise = sut.getBlocksByHeightRange(MIN, MAX);
+
+    return expect(resultPromise).rejects.toThrow();
   }, 5000);
 
   it('rollbackBlock() - rollback current block after beginBlock()', async done => {
@@ -236,7 +445,7 @@ describe('integration - SmartDB', () => {
     // before
     expect(sut.lastBlockHeight).toEqual(2);
     const existsSecond = await sut.load('Block', { height: 2 }); // get() loads only from cache
-    const secondWithoutTrs = deepCopy(second);
+    const secondWithoutTrs = cloneDeep(second);
     Reflect.deleteProperty(secondWithoutTrs, 'transactions');
     expect(existsSecond).toEqual(secondWithoutTrs);
 
@@ -1348,6 +1557,43 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('findAll() - search for a range of values with $gte and $lte', async done => {
+    await saveGenesisBlock(sut);
+
+    // save first transaction in block 1
+    const trs1 = createTransaction(1);
+    const createdTrs1 = await sut.create('Transaction', trs1);
+    const block1 = createBlock(1);
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    // save another transaction in block 2
+    const trs2 = createTransaction(2);
+    const createdTrs2 = await sut.create('Transaction', trs2);
+    const block2 = createBlock(2);
+    sut.beginBlock(block2);
+    await sut.commitBlock();
+
+    // load data directly from DB
+    const minHeight = 0;
+    const maxHeight = 1;
+    const result = await sut.findAll('Transaction', {
+      condition: {
+        height: { $gte: minHeight, $lte: maxHeight },
+      },
+    });
+
+    const expected = {
+      ...createdTrs1,
+      message: null,
+      secondSignature: null,
+    };
+
+    expect(result).toEqual([expected]);
+
+    done();
+  });
+
   it('findOne() - load entity from DB by primary key', async done => {
     await saveGenesisBlock(sut);
 
@@ -1786,6 +2032,111 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('exists() - pass in Array[], should return true if one of the elements is in db', async done => {
+    await saveGenesisBlock(sut);
+
+    // create block to persist changes to db
+    const createdTrans = await sut.create('Transaction', {
+      type: 0,
+      fee: 0,
+      timestamp: 0,
+      senderId: 'G3VU8VKndrpzDVbKzNTExoBrDAnw5',
+      senderPublicKey:
+        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+      signatures: JSON.stringify([
+        '62d8eda0130fff84f75b7937421dff50bd4553b4e30a2ca01e4a8138a0442a6c48f50e45994c8c14d473f8e283f3daf05cc04532d8760cd581ee8660208f280b',
+      ]),
+      args: JSON.stringify([
+        40000000000000000,
+        'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+      ]),
+      id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+      height: 1,
+    });
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Transaction', {
+      id: [
+        'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+        '0f9c04265f537f389e06aa74bb4c080f77154418ce826607374a3b82af7027ec',
+      ],
+    });
+    expect(result).toEqual(true);
+
+    done();
+  });
+
+  it('exists() - pass in Array[], should return false if no of the elements are in db', async done => {
+    await saveGenesisBlock(sut);
+
+    // the following transaction will be saved to the db
+    const createdTrans = await sut.create('Transaction', {
+      type: 0,
+      fee: 0,
+      timestamp: 0,
+      senderId: 'G3VU8VKndrpzDVbKzNTExoBrDAnw5',
+      senderPublicKey:
+        'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
+      signatures: JSON.stringify([
+        '62d8eda0130fff84f75b7937421dff50bd4553b4e30a2ca01e4a8138a0442a6c48f50e45994c8c14d473f8e283f3daf05cc04532d8760cd581ee8660208f280b',
+      ]),
+      args: JSON.stringify([
+        40000000000000000,
+        'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+      ]),
+      id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
+      height: 1,
+    });
+
+    // create block to persist changes to db
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Transaction', {
+      id: [
+        '9af76a7c85d5f3cb96b9d3b0dc81fdaba1cd5fe2a6722d0a364de02477e6a489',
+        '0f9c04265f537f389e06aa74bb4c080f77154418ce826607374a3b82af7027ec',
+      ],
+    });
+    expect(result).toEqual(false);
+
+    done();
+  });
+
+  it('exists() - commit Block, now block should exist in DB', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const result = await sut.exists('Block', {
+      id: block.id,
+    });
+    expect(result).toEqual(true);
+
+    done();
+  });
+
+  it('exists() - begin Block, now block should NOT exist in DB', async done => {
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(1);
+    sut.beginBlock(block);
+    // no commitBlock() so block is only in memory and not in DB
+
+    const result = await sut.exists('Block', {
+      id: block.id,
+    });
+    expect(result).toEqual(false);
+
+    done();
+  });
+
   it.skip('should createOrLoad("Variable") be cached and returned with "sdb.get()"', async done => {
     done();
   });
@@ -1807,5 +2158,52 @@ describe('integration - SmartDB', () => {
       value: 'value',
     });
     done();
+  });
+
+  describe('use cases', () => {
+    it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
+      await saveGenesisBlock(sut);
+
+      const variable = await sut.createOrLoad('Variable', {
+        key: 'key',
+        value: 'value',
+      });
+
+      const block1 = createBlock(1);
+      sut.beginBlock(block1);
+      await sut.commitBlock();
+
+      // pre check
+      const preCheckResult = await sut.findAll('Variable', {
+        key: 'key',
+      });
+      expect(preCheckResult).toHaveLength(1);
+      expect(preCheckResult[0]).toEqual({
+        key: 'key',
+        value: 'value',
+        _version_: 1,
+      });
+
+      // act
+      await sut.update('Variable', { value: 'newValue' }, { key: 'key' });
+
+      // persist changes
+      const block2 = createBlock(2);
+      sut.beginBlock(block2);
+      await sut.commitBlock();
+
+      // check
+      const result = await sut.findAll('Variable', {
+        key: 'key',
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        key: 'key',
+        value: 'newValue',
+        _version_: 2,
+      });
+
+      done();
+    });
   });
 });
