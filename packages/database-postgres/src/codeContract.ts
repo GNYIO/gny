@@ -110,51 +110,27 @@ export function deepCopy(thing) {
 /**
  * @param {Object} source - The source object of which properties are getting copied
  * @param {string[]} props - A list of properties to copy off source. Example ['gny', 'address', 'isDelegate']
- * @param {Object} [target] - Optioanl target property
- * @return {?}
+ * @param {Object} [target] - Optional target property
+ * @return {Object}
  */
-export function partialCopy(source, props, target?) {
+export function partialCopy(
+  source: Object,
+  props: string[] | ((a: any) => boolean),
+  target?: Object
+) {
   CodeContract.argument('src', function() {
     return CodeContract.notNull(source);
   });
   CodeContract.argument('keysOrKeyFilter', function() {
     return CodeContract.notNull(props);
   });
-  const newValues = isFunction(props)
-    ? Object.keys(source).filter(props)
-    : props;
+  const newValues =
+    typeof props === 'function' ? Object.keys(source).filter(props) : props;
   const copy = target || {};
-  /** @type {boolean} */
-  let _iteratorNormalCompletion3 = true;
-  /** @type {boolean} */
-  let _didIteratorError2 = false;
-  let _iteratorError2 = undefined;
-  try {
-    const _iterator3 = newValues[Symbol.iterator]();
-    let _step2;
-    for (
-      ;
-      !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done);
-      _iteratorNormalCompletion3 = true
-    ) {
-      const prop = _step2.value;
-      if (Reflect.has(source, prop)) {
-        copy[prop] = source[prop];
-      }
-    }
-  } catch (err) {
-    /** @type {boolean} */
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
+
+  for (const prop of newValues) {
+    if (Reflect.has(source, prop)) {
+      copy[prop] = source[prop];
     }
   }
   return copy;

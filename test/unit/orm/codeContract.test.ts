@@ -39,4 +39,68 @@ describe('codeContract', () => {
       done();
     });
   });
+
+  describe('partialCopy', () => {
+    it('partialCopy() - returns new object with selected properties', done => {
+      const start = {
+        a: 1,
+        b: 'hello',
+        c: 'world',
+      };
+      const properties = ['b', 'c'];
+
+      const result = CodeContract.partialCopy(start, properties);
+
+      expect(result).toEqual({
+        b: 'hello',
+        c: 'world',
+      });
+      done();
+    });
+
+    it('partialCopy() - returns empty object when no properties are passed in', done => {
+      const start = {
+        x: 10,
+        y: 20,
+      };
+      const properties = [];
+
+      const result = CodeContract.partialCopy(start, properties);
+      expect(result).toEqual({});
+      done();
+    });
+
+    it('partialCopy() - assigns properties on passed in object (third parameter)', done => {
+      const start = {
+        x: 10,
+        y: 20,
+      };
+      const properties = ['x'];
+      const target = {
+        a: 'hello world',
+      };
+
+      const result = CodeContract.partialCopy(start, properties, target);
+      expect(result).toEqual({
+        a: 'hello world',
+        x: 10,
+      });
+      done();
+    });
+
+    it('partialCopy() - second parameter accepts property filter function', done => {
+      const start = {
+        a: 1,
+        b: 2,
+        c: 3,
+      };
+      const propertiesfilter = (prop: any) => prop === 'b';
+
+      const result = CodeContract.partialCopy(start, propertiesfilter);
+      expect(result).toEqual({
+        b: 2,
+      });
+      done();
+    });
+  });
 });
