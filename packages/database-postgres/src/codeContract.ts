@@ -1,5 +1,4 @@
-const { isFunction, isString, isNumber } = require('util');
-
+import { isFunction } from 'util';
 
 export class CodeContract {
   static verify(message, callback) {
@@ -29,24 +28,26 @@ export class CodeContract {
     /** @type {boolean} */
     const request = null !== prop && undefined !== prop;
     return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined'
+      result: request,
+      message: request ? undefined : 'cannot be null or undefined',
     };
   }
 
   static notNullOrEmpty(key) {
     const request = CodeContract.notNull(key) && '' !== key;
     return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined or empty'
+      result: request,
+      message: request ? undefined : 'cannot be null or undefined or empty',
     };
   }
 
   static notNullOrWhitespace(text) {
     const request = CodeContract.notNullOrEmpty(text) && '' !== text.trim();
     return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined or whitespace'
+      result: request,
+      message: request
+        ? undefined
+        : 'cannot be null or undefined or whitespace',
     };
   }
 }
@@ -67,17 +68,21 @@ export function makeJsonObject(iterable, getKey, getValue) {
   CodeContract.argument('getValue', function() {
     return CodeContract.notNull(getValue);
   });
-  let dataArray = {};
+  const dataArray = {};
   /** @type {boolean} */
   let _iteratorNormalCompletion3 = true;
   /** @type {boolean} */
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
+  let _didIteratorError = false;
+  let _iteratorError = undefined;
   try {
-    var _iterator3 = iterable[Symbol.iterator]();
-    var _step2;
-    for (; !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var data = _step2.value;
+    const _iterator3 = iterable[Symbol.iterator]();
+    let _step2;
+    for (
+      ;
+      !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done);
+      _iteratorNormalCompletion3 = true
+    ) {
+      const data = _step2.value;
       dataArray[getKey(data)] = getValue(data);
     }
   } catch (err) {
@@ -98,11 +103,9 @@ export function makeJsonObject(iterable, getKey, getValue) {
   return dataArray;
 }
 
-
 export function deepCopy(thing) {
   return thing ? JSON.parse(JSON.stringify(thing)) : thing;
 }
-
 
 /**
  * @param {Object} source - The source object of which properties are getting copied
@@ -117,18 +120,24 @@ export function partialCopy(source, props, target?) {
   CodeContract.argument('keysOrKeyFilter', function() {
     return CodeContract.notNull(props);
   });
-  var newValues = isFunction(props) ? Object.keys(source).filter(props) : props;
-  var copy = target || {};
+  const newValues = isFunction(props)
+    ? Object.keys(source).filter(props)
+    : props;
+  const copy = target || {};
   /** @type {boolean} */
-  var _iteratorNormalCompletion3 = true;
+  let _iteratorNormalCompletion3 = true;
   /** @type {boolean} */
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
+  let _didIteratorError2 = false;
+  let _iteratorError2 = undefined;
   try {
-    var _iterator3 = newValues[Symbol.iterator]();
-    var _step2;
-    for (; !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var prop = _step2.value;
+    const _iterator3 = newValues[Symbol.iterator]();
+    let _step2;
+    for (
+      ;
+      !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done);
+      _iteratorNormalCompletion3 = true
+    ) {
+      const prop = _step2.value;
       if (Reflect.has(source, prop)) {
         copy[prop] = source[prop];
       }
@@ -151,14 +160,6 @@ export function partialCopy(source, props, target?) {
   return copy;
 }
 
-
-export function isPrimitiveKey(str: any) {
-  return str && (isString(str) || isNumber(str));
+export function isPrimitiveKey(val: any): val is string | number {
+  return typeof val === 'string' || typeof val === 'number';
 }
-
-export class NotImplementError extends Error {
-  constructor(props) {
-    super(props);
-  }
-}
-
