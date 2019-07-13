@@ -1,5 +1,5 @@
 import * as CodeContract from '../../../packages/database-postgres/src/codeContract';
-import { isParenthesizedExpression } from '@babel/types';
+import { PropertyChange } from '../../../packages/database-postgres/src/basicEntityTracker';
 
 describe('codeContract', () => {
   describe('isPrimitiveKey', () => {
@@ -99,6 +99,33 @@ describe('codeContract', () => {
       const result = CodeContract.partialCopy(start, propertiesfilter);
       expect(result).toEqual({
         b: 2,
+      });
+      done();
+    });
+  });
+
+  describe('makeJsonObject', () => {
+    it('makeJsonObject() - builds object from an array of property values', done => {
+      const propChanges: PropertyChange[] = [
+        {
+          name: 'gny',
+          current: 1 * 1e8,
+          original: 0,
+        },
+        {
+          name: 'username',
+          current: 'liangpeili',
+          original: '',
+        },
+      ];
+
+      const getKey = (one: PropertyChange) => one.name;
+      const getValue = (one: PropertyChange) => one.current;
+      const result = CodeContract.makeJsonObject(propChanges, getKey, getValue);
+
+      expect(result).toEqual({
+        gny: 1 * 1e8,
+        username: 'liangpeili',
       });
       done();
     });

@@ -53,12 +53,16 @@ export class CodeContract {
 }
 
 /**
- * @param {?} iterable
- * @param {!Function} getKey
- * @param {!Function} getValue
- * @return {?}
+ * @param {Object[]} iterable
+ * @param {Function} getKey
+ * @param {Function} getValue
+ * @return {Object}
  */
-export function makeJsonObject(iterable, getKey, getValue) {
+export function makeJsonObject<T, K extends keyof T>(
+  iterable: T[],
+  getKey: (one: T) => string,
+  getValue: (one: T) => T[K]
+) {
   CodeContract.argument('iterable', function() {
     return CodeContract.notNull(iterable);
   });
@@ -68,39 +72,16 @@ export function makeJsonObject(iterable, getKey, getValue) {
   CodeContract.argument('getValue', function() {
     return CodeContract.notNull(getValue);
   });
-  const dataArray = {};
-  /** @type {boolean} */
-  let _iteratorNormalCompletion3 = true;
-  /** @type {boolean} */
-  let _didIteratorError = false;
-  let _iteratorError = undefined;
-  try {
-    const _iterator3 = iterable[Symbol.iterator]();
-    let _step2;
-    for (
-      ;
-      !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done);
-      _iteratorNormalCompletion3 = true
-    ) {
-      const data = _step2.value;
-      dataArray[getKey(data)] = getValue(data);
-    }
-  } catch (err) {
-    /** @type {boolean} */
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
+  interface Result {
+    [key: string]: T[K];
   }
-  return dataArray;
+  const result: Result = {};
+
+  for (const data of iterable) {
+    result[getKey(data)] = getValue(data);
+  }
+
+  return result;
 }
 
 export function deepCopy(thing) {
