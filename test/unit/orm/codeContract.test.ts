@@ -130,4 +130,79 @@ describe('codeContract', () => {
       done();
     });
   });
+
+  describe.skip('notNullOrWhitespace', () => {
+    it('notNullOrWhitespace() - returns true for ordinary string', done => {
+      const result = CodeContract.CodeContract.notNullOrWhitespace('hello');
+      expect(result).toEqual({
+        result: true,
+        message: undefined,
+      });
+      done();
+    });
+
+    it('notNullOrWhitespace() - returns false for empty string', done => {
+      const result = CodeContract.CodeContract.notNullOrWhitespace('');
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or whitespace',
+      });
+      done();
+    });
+
+    it('notNullOrWhitespace() - returns false for undefined', done => {
+      const result = CodeContract.CodeContract.notNullOrWhitespace(undefined);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or whitespace',
+      });
+      done();
+    });
+  });
+
+  describe('argument', () => {
+    it.skip('argument()', done => {
+      CodeContract.CodeContract.argument('name', () => {
+        return CodeContract.CodeContract.arg;
+      });
+
+      done();
+    });
+  });
+
+  describe('verify', () => {
+    it('verify() - throws if first argument is false', done => {
+      const someVariable = undefined;
+
+      expect(() =>
+        CodeContract.CodeContract.verify(
+          someVariable !== undefined,
+          () => 'exact error message'
+        )
+      ).toThrow('exact error message');
+
+      done();
+    });
+
+    it('verify() - throws if first argument is a boolean function that returns false', done => {
+      const booleanExpression = [1, 2, 3].length === 0;
+      const booleanFunc = () => booleanExpression;
+
+      expect(() =>
+        CodeContract.CodeContract.verify(booleanFunc, 'weird error')
+      ).toThrow('weird error');
+      done();
+    });
+
+    it('verify() - does not throw if passed a true expression', done => {
+      const booleanExpression = true;
+
+      const result = CodeContract.CodeContract.verify(
+        booleanExpression,
+        'when things go wrong'
+      );
+      expect(result).toBeUndefined();
+      done();
+    });
+  });
 });

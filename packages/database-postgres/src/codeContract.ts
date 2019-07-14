@@ -1,54 +1,66 @@
-import { isFunction } from 'util';
+export type CheckResult = {
+  result: boolean;
+  message: undefined | string;
+};
 
 export class CodeContract {
-  static verify(message, callback) {
-    if (undefined === message || null === message) {
+  static verify(
+    expression: (() => boolean) | boolean,
+    errorMsg: (() => string) | string
+  ) {
+    if (undefined === expression || null === expression) {
       throw new Error('Invalid verify condition');
     }
-    const messageObject = isFunction(message) ? message() : message;
-    const errors = isFunction(callback) ? callback() : callback;
+    const messageObject =
+      typeof expression === 'function' ? expression() : expression;
+    const errors = typeof errorMsg === 'function' ? errorMsg() : errorMsg;
     if (!messageObject) {
-      throw new Error(errors); // before: UnsubscriptionError
+      throw new Error(errors);
     }
   }
 
-  static argument(data, key, password?: any) {
-    if (!data || !key) {
+  static argument(data: any, check: () => CheckResult, errorMsg?: string) {
+    if (!data || !check) {
       throw new Error('argName or verify can not be null or undefined');
     }
-    if (password) {
-      CodeContract.verify(key, password);
+    if (errorMsg) {
+      CodeContract.verify(check, errorMsg);
     } else {
-      const obj = key();
+      const obj = check();
       CodeContract.verify(obj.result, "argument '" + data + "' " + obj.message);
     }
   }
 
-  static notNull(prop) {
-    /** @type {boolean} */
-    const request = null !== prop && undefined !== prop;
+  static notNull(data: any) {
+    const boolExpression = data !== null && data !== undefined;
+    const result: CheckResult = {
+      result: boolExpression,
+      message: boolExpression ? undefined : 'cannot be null or undefined',
+    };
+    return result;
+  }
+
+  static notNullOrEmpty(data: any) {
+    const booleanExpression =
+      CodeContract.notNull(data).result === true && data !== '';
     return {
-      result: request,
-      message: request ? undefined : 'cannot be null or undefined',
+      result: booleanExpression,
+      message: booleanExpression
+        ? undefined
+        : 'cannot be null or undefined or empty',
     };
   }
 
-  static notNullOrEmpty(key) {
-    const request = CodeContract.notNull(key) && '' !== key;
-    return {
-      result: request,
-      message: request ? undefined : 'cannot be null or undefined or empty',
-    };
-  }
-
-  static notNullOrWhitespace(text) {
-    const request = CodeContract.notNullOrEmpty(text) && '' !== text.trim();
-    return {
+  static notNullOrWhitespace(data: any) {
+    const request =
+      CodeContract.notNullOrEmpty(data).result === true && data.trim() !== '';
+    const checkResult: CheckResult = {
       result: request,
       message: request
         ? undefined
         : 'cannot be null or undefined or whitespace',
     };
+    return checkResult;
   }
 }
 
