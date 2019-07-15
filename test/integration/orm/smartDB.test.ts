@@ -65,7 +65,7 @@ function createAccount(address: string) {
   const account = {
     address,
     username: undefined,
-    gny: new BigNumber(0),
+    gny: new BigNumber(0).toFixed(),
   } as IAccount;
   return account;
 }
@@ -671,11 +671,11 @@ describe('integration - SmartDB', () => {
       create: false,
       entity: {
         address: 'Gjfw7B8WyHq7bw22TwG6gPtdXD19',
-        gny: new BigNumber(0),
+        gny: new BigNumber(0).toFixed(),
         isDelegate: 0,
         isLocked: 0,
-        lockAmount: new BigNumber(0),
-        lockHeight: new BigNumber(0),
+        lockAmount: new BigNumber(0).toFixed(),
+        lockHeight: new BigNumber(0).toFixed(),
         _version_: 1,
       } as IAccount,
     };
@@ -722,7 +722,7 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       username: 'a1300',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
     } as IAccount;
     const created = await sut.create('Account', account);
 
@@ -757,7 +757,7 @@ describe('integration - SmartDB', () => {
 
     const data = {
       address: 'GZr2NYvHqp9keXPVsAp6EDHTiT3y',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
     } as IAccount;
     const result = await sut.create('Account', data);
     expect(result).toBeTruthy();
@@ -789,11 +789,11 @@ describe('integration - SmartDB', () => {
     const expected = {
       _version_: 1,
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: new BigNumber(0).toFixed(),
+      lockHeight: new BigNumber(0).toFixed(),
     } as IAccount;
 
     expect(createResult).not.toBe(expected); // not same reference
@@ -1214,7 +1214,7 @@ describe('integration - SmartDB', () => {
 
     const data = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: new BigNumber(4000),
+      gny: new BigNumber(4000).toFixed(),
     } as IAccount;
     await sut.create('Account', data);
 
@@ -1241,7 +1241,7 @@ describe('integration - SmartDB', () => {
 
     const account = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
     } as IAccount;
     await sut.create('Account', account);
 
@@ -1271,7 +1271,7 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
       username: 'a1300',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
     } as IAccount;
     await sut.create('Account', account);
 
@@ -1323,7 +1323,7 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       username: 'a1300',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
     } as IAccount;
     await sut.create('Account', account);
 
@@ -1360,7 +1360,7 @@ describe('integration - SmartDB', () => {
     const account = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       username: 'xpgeng',
-      gny: new BigNumber(100000),
+      gny: new BigNumber(100000).toFixed(),
     } as IAccount;
     await sut.create('Account', account);
 
@@ -1608,11 +1608,11 @@ describe('integration - SmartDB', () => {
 
     const expected = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: new BigNumber(0).toFixed(),
+      lockHeight: new BigNumber(0).toFixed(),
       publicKey: null,
       secondPublicKey: null,
       username: null,
@@ -1641,11 +1641,11 @@ describe('integration - SmartDB', () => {
 
     const expected = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: new BigNumber(0).toFixed(),
+      lockHeight: new BigNumber(0).toFixed(),
       publicKey: null,
       secondPublicKey: null,
       username: 'xpgeng',
@@ -1755,7 +1755,7 @@ describe('integration - SmartDB', () => {
 
     const account = {
       address: generateAddress(createRandomBytes(32)),
-      gny: new BigNumber(0),
+      gny: new BigNumber(0).toFixed(),
       username: null,
       publicKey: createRandomBytes(32),
       isDelegate: 0,

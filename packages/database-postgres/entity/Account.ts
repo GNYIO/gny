@@ -1,7 +1,5 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
-import { BigNumberTransformerNullable } from '../BigNumberTransformer';
-import { BigNumber } from 'bignumber.js';
 
 @Config({ memory: false })
 @Entity()
@@ -24,9 +22,8 @@ export class Account {
   @Column({
     default: 0,
     type: 'bigint',
-    transformer: new BigNumberTransformerNullable(),
   })
-  public gny: BigNumber;
+  public gny: string;
 
   @Column({
     length: 64,
@@ -57,16 +54,14 @@ export class Account {
   @Column({
     default: 0,
     type: 'bigint',
-    transformer: new BigNumberTransformerNullable(),
   })
-  public lockHeight: BigNumber;
+  public lockHeight: string;
 
   @Column({
     default: 0,
     type: 'bigint',
-    transformer: new BigNumberTransformerNullable(),
   })
-  public lockAmount: BigNumber;
+  public lockAmount: string;
 
   @Column({
     default: 0,

@@ -184,8 +184,10 @@ export default {
       sender.lockHeight = height;
     }
     if (amount !== 0) {
-      sender.gny = new BigNumber(sender.gny).minus(amount);
-      sender.lockAmount += amount;
+      sender.gny = new BigNumber(sender.gny).minus(amount).toFixed();
+      sender.lockAmount = new BigNumber(sender.lockAmount)
+        .plus(amount)
+        .toFixed();
       await global.app.sdb.update('Account', sender, {
         address: sender.address,
       });

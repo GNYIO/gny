@@ -43,8 +43,8 @@ export class BlockBase {
     bb.writeInt(block.timestamp);
     bb.writeInt64(block.height);
     bb.writeInt(block.count);
-    bb.writeInt64((block.fees.toString() as unknown) as number);
-    bb.writeInt64((block.reward.toString() as unknown) as number);
+    bb.writeInt64((block.fees as unknown) as number);
+    bb.writeInt64((block.reward as unknown) as number);
     bb.writeString(block.delegate);
 
     if (block.prevBlockId) {
@@ -141,12 +141,12 @@ export class BlockBase {
         .min(0)
         .required(),
       reward: joi
-        .object()
-        .positiveIntegerBigNumber()
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       fees: joi
-        .object()
-        .positiveIntegerBigNumber()
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       count: joi
         .number()

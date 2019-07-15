@@ -116,7 +116,7 @@ export default class Transactions {
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: new BigNumber(0),
+        gny: new BigNumber(0).toFixed(),
       } as IAccount);
     }
 

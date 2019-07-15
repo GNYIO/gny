@@ -870,6 +870,7 @@ export default class Blocks {
       },
       err => {
         if (err) {
+          global.app.logger.error(err.message);
           process.exit(0);
         }
       }

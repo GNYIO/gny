@@ -40,31 +40,31 @@ export class Delegate {
     nullable: true,
   })
   @Index()
-  public votes: number;
+  public votes: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  public producedBlocks: number;
+  public producedBlocks: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  public missedBlocks: number;
+  public missedBlocks: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  public fees: number;
+  public fees: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
   })
-  public rewards: number;
+  public rewards: string;
 
   @Column({
     default: 0,

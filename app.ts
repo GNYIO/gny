@@ -8,7 +8,6 @@ import { createLogger, LogLevel } from './packages/logger/logger';
 import Application from './index';
 import * as packageJson from './package.json';
 import { IConfig, IGenesisBlock } from './src/interfaces';
-import BigNumber from 'bignumber.js';
 
 const version = packageJson.version;
 
@@ -70,8 +69,6 @@ function main() {
   const genesisBlock: IGenesisBlock = JSON.parse(
     fs.readFileSync(genesisBlockFile, 'utf8')
   );
-  genesisBlock.fees = new BigNumber(genesisBlock.fees);
-  genesisBlock.reward = new BigNumber(genesisBlock.reward);
 
   if (program.port) {
     appConfig.port = program.port;

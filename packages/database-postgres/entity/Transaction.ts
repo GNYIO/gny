@@ -43,7 +43,7 @@ export class Transaction {
     nullable: false,
     type: 'bigint',
   })
-  public fee: number;
+  public fee: string;
 
   @Column({
     length: 164,

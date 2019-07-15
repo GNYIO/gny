@@ -92,9 +92,9 @@ export class BlocksHelper {
       timestamp,
       transactions: unconfirmedTransactions,
       count,
-      fees: new BigNumber(fees),
+      fees: new BigNumber(fees).toFixed(),
       payloadHash: payloadHash.toString('hex'),
-      reward: new BigNumber(reward),
+      reward: new BigNumber(reward).toFixed(),
       signature: null,
       id: null,
     };

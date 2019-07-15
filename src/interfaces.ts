@@ -160,8 +160,8 @@ export interface IGenesisBlock {
   delegate: string;
   height: number;
   count: number;
-  fees: BigNumber;
-  reward: BigNumber;
+  fees: string;
+  reward: string;
   signature: string;
   id: string;
   transactions: {
@@ -279,8 +279,8 @@ export interface IBlock {
   timestamp: number;
   prevBlockId?: any;
   count: number;
-  fees: BigNumber;
-  reward: BigNumber;
+  fees: string;
+  reward: string;
   payloadHash: string;
   delegate: string;
   signature: string;
@@ -291,20 +291,20 @@ export interface IBlock {
 export interface IAccount {
   address: string;
   username?: string;
-  gny: BigNumber;
+  gny: string;
   publicKey?: string;
   secondPublicKey?: string;
   isDelegate: number;
   isLocked: number;
-  lockHeight: BigNumber;
-  lockAmount: BigNumber;
+  lockHeight: string;
+  lockAmount: string;
   _version_?: number;
 }
 
 export type AccountViewModel = Pick<
   IAccount,
   'address' | 'secondPublicKey' | 'lockHeight' | 'isDelegate' | 'username'
-> & { balance: BigNumber };
+> & { balance: string };
 
 export interface Transaction {
   id: string;

@@ -96,9 +96,9 @@ export async function getAccount(address: string) {
     if (!account) {
       accountData = {
         address: address,
-        balance: new BigNumber(0),
+        balance: new BigNumber(0).toFixed(),
         secondPublicKey: '',
-        lockHeight: new BigNumber(0),
+        lockHeight: new BigNumber(0).toFixed(),
         isDelegate: 0,
         username: null,
       };
@@ -107,7 +107,7 @@ export async function getAccount(address: string) {
         address: account.address,
         balance: account.gny,
         secondPublicKey: account.secondPublicKey,
-        lockHeight: account.lockHeight || new BigNumber(0),
+        lockHeight: account.lockHeight || new BigNumber(0).toFixed(),
         isDelegate: account.isDelegate,
         username: account.username,
       };
