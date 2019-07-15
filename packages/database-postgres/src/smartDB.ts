@@ -105,7 +105,22 @@ export class SmartDB extends EventEmitter {
 
     await this.blockSession.initSerial(this.lastBlockHeight);
 
+    await this.loadMemoryModels();
+
     this.emit('ready', this);
+  }
+
+  private async loadMemoryModels() {
+    const schemas = Array.from(this.schemas).map(([key, value]) => ({
+      key,
+      value,
+    }));
+    for (let i = 0; i < schemas.length; ++i) {
+      const one = schemas[i].value;
+      if (one.memCached) {
+        await this.blockSession.getMany(one, {}, true);
+      }
+    }
   }
 
   private getSchema(
@@ -605,7 +620,10 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public async getBlockByHeight(height: number, withTransactions = false) {
+  public getBlockByHeight = async (
+    height: number,
+    withTransactions = false
+  ) => {
     CodeContract.argument(
       'height',
       height >= 0,
@@ -624,8 +642,9 @@ export class SmartDB extends EventEmitter {
     if (!withTransactions || undefined === block) {
       return block;
     }
-    return await this.attachTransactions([block])[0];
-  }
+    const result = await this.attachTransactions([block]);
+    return result[0];
+  };
 
   public async getBlockById(id: string, withTransactions = false) {
     CodeContract.argument('blockId', function() {
@@ -646,7 +665,8 @@ export class SmartDB extends EventEmitter {
     if (!withTransactions || undefined === block) {
       return block;
     }
-    return await this.attachTransactions([block])[0];
+    const result = await this.attachTransactions([block]);
+    return result[0];
   }
 
   public getBlocksByHeightRange = async (
