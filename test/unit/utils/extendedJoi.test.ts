@@ -262,6 +262,42 @@ describe('extendedJoi', () => {
       const report = joi.validate(hex, schema);
       expect(report.error.name).toBe('ValidationError');
     });
+
+    it('passes test for ordinary hex string (no length parameter)', () => {
+      const hex = Buffer.from('123456').toString('hex');
+
+      const schema = joi
+        .string()
+        .hex()
+        .required();
+
+      const report = joi.validate(hex, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('reports error when value is not hex string (no length parameter)', () => {
+      const NOT_HEX = 'somestring';
+
+      const schema = joi
+        .string()
+        .hex()
+        .required();
+
+      const report = joi.validate(NOT_HEX, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return report when string is not hex (with length parameter)', () => {
+      const NOT_HEX = 'nothexstring';
+
+      const schema = joi
+        .string()
+        .hex(16)
+        .required();
+
+      const report = joi.validate(NOT_HEX, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
   });
 
   describe('ipv4PlusPort', () => {
