@@ -15,6 +15,7 @@ import { ModelSchema } from './modelSchema';
 import { Block } from '../entity/Block';
 import { Transaction } from '../entity/Transaction';
 import * as _ from 'lodash';
+import { BigNumber } from 'bignumber.js';
 
 export class DbSession {
   public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;
@@ -113,7 +114,7 @@ export class DbSession {
     return this.sessionCache.getAll(modelClass.modelName);
   }
 
-  private loadAll(schema: ModelSchema) {
+  public loadAll(schema: ModelSchema) {
     if (schema.memCached && this.sessionCache.existsModel(schema.modelName)) {
       const artistTrack = this.sessionCache.getAll(schema.modelName) || [];
       return this.trackPersistentEntities(schema, artistTrack, true);
@@ -460,12 +461,19 @@ export class DbSession {
     obj: ObjectLiteral
   ) {
     const end = await this.ensureEntityTracking(schema, keyObj);
-    const endColorCoords = {};
-    Object.keys(obj).forEach(i => {
-      endColorCoords[i] = undefined === end[i] ? obj[i] : obj[i] + end[i];
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'string' && typeof end[key] === 'string') {
+        result[key] =
+          end[key] === undefined
+            ? obj[key]
+            : new BigNumber(obj[key]).plus(end[key]).toFixed();
+      } else {
+        result[key] = end[key] === undefined ? obj[key] : obj[key] + end[key];
+      }
     });
-    this.entityTracker.trackModify(schema, end, endColorCoords);
-    return endColorCoords;
+    this.entityTracker.trackModify(schema, end, result);
+    return result;
   }
 
   public async delete(schema: ModelSchema, condition: ObjectLiteral) {
