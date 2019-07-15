@@ -131,7 +131,7 @@ describe('codeContract', () => {
     });
   });
 
-  describe.skip('notNullOrWhitespace', () => {
+  describe('notNullOrWhitespace', () => {
     it('notNullOrWhitespace() - returns true for ordinary string', done => {
       const result = CodeContract.CodeContract.notNullOrWhitespace('hello');
       expect(result).toEqual({
@@ -150,11 +150,105 @@ describe('codeContract', () => {
       done();
     });
 
+    it('notNullOrWhitespace() - returns false for longer empty string', done => {
+      const result = CodeContract.CodeContract.notNullOrWhitespace('      ');
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or whitespace',
+      });
+      done();
+    });
+
     it('notNullOrWhitespace() - returns false for undefined', done => {
       const result = CodeContract.CodeContract.notNullOrWhitespace(undefined);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or whitespace',
+      });
+      done();
+    });
+
+    it('notNullOrWhitespace() - returns false for null', done => {
+      const result = CodeContract.CodeContract.notNullOrWhitespace(null);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or whitespace',
+      });
+      done();
+    });
+  });
+
+  describe('notNullOrEmpty', () => {
+    it('notNullOrEmpty() - returns false for null', done => {
+      const result = CodeContract.CodeContract.notNullOrEmpty(null);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or empty',
+      });
+      done();
+    });
+
+    it('notNullOrEmpty() - returns false for undefined', done => {
+      const result = CodeContract.CodeContract.notNullOrEmpty(undefined);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or empty',
+      });
+      done();
+    });
+
+    it('notNullOrEmpty() - returns false for empty string', done => {
+      const result = CodeContract.CodeContract.notNullOrEmpty('');
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined or empty',
+      });
+      done();
+    });
+
+    it('notNullOrEmpty() - returns true for long empty string', done => {
+      const result = CodeContract.CodeContract.notNullOrEmpty('    ');
+      expect(result).toEqual({
+        result: true,
+        message: undefined,
+      });
+      done();
+    });
+  });
+
+  describe('notNull', () => {
+    it('notNull() - returns false for null', done => {
+      const result = CodeContract.CodeContract.notNull(null);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined',
+      });
+      done();
+    });
+
+    it('notNull() - returns false for undefined', done => {
+      const result = CodeContract.CodeContract.notNull(undefined);
+      expect(result).toEqual({
+        result: false,
+        message: 'cannot be null or undefined',
+      });
+      done();
+    });
+
+    it('notNull() - returns true for empty string', done => {
+      const result = CodeContract.CodeContract.notNull('');
+      expect(result).toEqual({
+        result: true,
+        message: undefined,
+      });
+      done();
+    });
+
+    it('notNull() - returns true for ordinary string', done => {
+      const result = CodeContract.CodeContract.notNull('hello');
+      expect(result).toEqual({
+        result: true,
+        message: undefined,
       });
       done();
     });

@@ -75,15 +75,10 @@ export function makeJsonObject<T, K extends keyof T>(
   getKey: (one: T) => string,
   getValue: (one: T) => T[K]
 ) {
-  CodeContract.argument('iterable', function() {
-    return CodeContract.notNull(iterable);
-  });
-  CodeContract.argument('getKey', function() {
-    return CodeContract.notNull(getKey);
-  });
-  CodeContract.argument('getValue', function() {
-    return CodeContract.notNull(getValue);
-  });
+  CodeContract.argument('iterable', () => CodeContract.notNull(iterable));
+  CodeContract.argument('getKey', () => CodeContract.notNull(getKey));
+  CodeContract.argument('getValue', () => CodeContract.notNull(getValue));
+
   interface Result {
     [key: string]: T[K];
   }
@@ -102,23 +97,24 @@ export function deepCopy(thing) {
 
 /**
  * @param {Object} source - The source object of which properties are getting copied
- * @param {string[]} props - A list of properties to copy off source. Example ['gny', 'address', 'isDelegate']
+ * @param {string[]} keysOrKeyFilter - A list of properties to copy off source. Example ['gny', 'address', 'isDelegate']
  * @param {Object} [target] - Optional target property
  * @return {Object}
  */
 export function partialCopy(
   source: Object,
-  props: string[] | ((a: any) => boolean),
+  keysOrKeyFilter: string[] | ((a: any) => boolean),
   target?: Object
 ) {
-  CodeContract.argument('src', function() {
-    return CodeContract.notNull(source);
-  });
-  CodeContract.argument('keysOrKeyFilter', function() {
-    return CodeContract.notNull(props);
-  });
+  CodeContract.argument('source', () => CodeContract.notNull(source));
+  CodeContract.argument('keysOrKeyFilter', () =>
+    CodeContract.notNull(keysOrKeyFilter)
+  );
+
   const newValues =
-    typeof props === 'function' ? Object.keys(source).filter(props) : props;
+    typeof keysOrKeyFilter === 'function'
+      ? Object.keys(source).filter(keysOrKeyFilter)
+      : keysOrKeyFilter;
   const copy = target || {};
 
   for (const prop of newValues) {
