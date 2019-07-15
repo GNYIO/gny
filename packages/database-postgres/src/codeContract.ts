@@ -19,15 +19,21 @@ export class CodeContract {
     }
   }
 
-  static argument(data: any, check: () => CheckResult, errorMsg?: string) {
-    if (!data || !check) {
-      throw new Error('argName or verify can not be null or undefined');
+  static argument(name: string, check: () => CheckResult);
+  static argument(name: string, check: boolean, errorMsg: string);
+  static argument(
+    name: string,
+    check: (() => CheckResult) | boolean,
+    errorMsg?: string
+  ) {
+    if (!name) {
+      throw new Error('argName can not be null or undefined');
     }
-    if (errorMsg) {
+    if (typeof check === 'boolean') {
       CodeContract.verify(check, errorMsg);
     } else {
       const obj = check();
-      CodeContract.verify(obj.result, "argument '" + data + "' " + obj.message);
+      CodeContract.verify(obj.result, "argument '" + name + "' " + obj.message);
     }
   }
 

@@ -255,11 +255,47 @@ describe('codeContract', () => {
   });
 
   describe('argument', () => {
-    it.skip('argument()', done => {
-      CodeContract.CodeContract.argument('name', () => {
-        return CodeContract.CodeContract.arg;
-      });
+    it('argument() - call function - no error (2 parameters)', done => {
+      const someVar = 'some variable';
 
+      CodeContract.CodeContract.argument('name', () =>
+        CodeContract.CodeContract.notNull(someVar)
+      );
+      done();
+    });
+
+    it('argument() - call function - throws error (2 parameters)', done => {
+      const someVar = undefined;
+
+      expect(() =>
+        CodeContract.CodeContract.argument('name', () =>
+          CodeContract.CodeContract.notNull(someVar)
+        )
+      ).toThrowError("argument 'name' cannot be null or undefined");
+      done();
+    });
+
+    it('argument() - call function - no error (3 parameters)', done => {
+      const someVar = 'hello';
+
+      CodeContract.CodeContract.argument(
+        'someVar',
+        someVar !== undefined,
+        'custom error message'
+      );
+      done();
+    });
+
+    it('argument() - call function - throws error (3 parameters)', done => {
+      const someVar = undefined;
+
+      expect(() =>
+        CodeContract.CodeContract.argument(
+          'someVar',
+          someVar !== undefined,
+          'should throw custom error message'
+        )
+      ).toThrowError('should throw custom error message');
       done();
     });
   });
