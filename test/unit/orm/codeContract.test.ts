@@ -133,7 +133,7 @@ describe('codeContract', () => {
 
   describe('notNullOrWhitespace', () => {
     it('notNullOrWhitespace() - returns true for ordinary string', done => {
-      const result = CodeContract.CodeContract.notNullOrWhitespace('hello');
+      const result = CodeContract.notNullOrWhitespace('hello');
       expect(result).toEqual({
         result: true,
         message: undefined,
@@ -142,7 +142,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrWhitespace() - returns false for empty string', done => {
-      const result = CodeContract.CodeContract.notNullOrWhitespace('');
+      const result = CodeContract.notNullOrWhitespace('');
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or whitespace',
@@ -151,7 +151,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrWhitespace() - returns false for longer empty string', done => {
-      const result = CodeContract.CodeContract.notNullOrWhitespace('      ');
+      const result = CodeContract.notNullOrWhitespace('      ');
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or whitespace',
@@ -160,7 +160,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrWhitespace() - returns false for undefined', done => {
-      const result = CodeContract.CodeContract.notNullOrWhitespace(undefined);
+      const result = CodeContract.notNullOrWhitespace(undefined);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or whitespace',
@@ -169,7 +169,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrWhitespace() - returns false for null', done => {
-      const result = CodeContract.CodeContract.notNullOrWhitespace(null);
+      const result = CodeContract.notNullOrWhitespace(null);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or whitespace',
@@ -180,7 +180,7 @@ describe('codeContract', () => {
 
   describe('notNullOrEmpty', () => {
     it('notNullOrEmpty() - returns false for null', done => {
-      const result = CodeContract.CodeContract.notNullOrEmpty(null);
+      const result = CodeContract.notNullOrEmpty(null);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or empty',
@@ -189,7 +189,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrEmpty() - returns false for undefined', done => {
-      const result = CodeContract.CodeContract.notNullOrEmpty(undefined);
+      const result = CodeContract.notNullOrEmpty(undefined);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or empty',
@@ -198,7 +198,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrEmpty() - returns false for empty string', done => {
-      const result = CodeContract.CodeContract.notNullOrEmpty('');
+      const result = CodeContract.notNullOrEmpty('');
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined or empty',
@@ -207,7 +207,7 @@ describe('codeContract', () => {
     });
 
     it('notNullOrEmpty() - returns true for long empty string', done => {
-      const result = CodeContract.CodeContract.notNullOrEmpty('    ');
+      const result = CodeContract.notNullOrEmpty('    ');
       expect(result).toEqual({
         result: true,
         message: undefined,
@@ -218,7 +218,7 @@ describe('codeContract', () => {
 
   describe('notNull', () => {
     it('notNull() - returns false for null', done => {
-      const result = CodeContract.CodeContract.notNull(null);
+      const result = CodeContract.notNull(null);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined',
@@ -227,7 +227,7 @@ describe('codeContract', () => {
     });
 
     it('notNull() - returns false for undefined', done => {
-      const result = CodeContract.CodeContract.notNull(undefined);
+      const result = CodeContract.notNull(undefined);
       expect(result).toEqual({
         result: false,
         message: 'cannot be null or undefined',
@@ -236,7 +236,7 @@ describe('codeContract', () => {
     });
 
     it('notNull() - returns true for empty string', done => {
-      const result = CodeContract.CodeContract.notNull('');
+      const result = CodeContract.notNull('');
       expect(result).toEqual({
         result: true,
         message: undefined,
@@ -245,7 +245,7 @@ describe('codeContract', () => {
     });
 
     it('notNull() - returns true for ordinary string', done => {
-      const result = CodeContract.CodeContract.notNull('hello');
+      const result = CodeContract.notNull('hello');
       expect(result).toEqual({
         result: true,
         message: undefined,
@@ -258,9 +258,7 @@ describe('codeContract', () => {
     it('argument() - call function - no error (2 parameters)', done => {
       const someVar = 'some variable';
 
-      CodeContract.CodeContract.argument('name', () =>
-        CodeContract.CodeContract.notNull(someVar)
-      );
+      CodeContract.argument('name', () => CodeContract.notNull(someVar));
       done();
     });
 
@@ -268,9 +266,7 @@ describe('codeContract', () => {
       const someVar = undefined;
 
       expect(() =>
-        CodeContract.CodeContract.argument('name', () =>
-          CodeContract.CodeContract.notNull(someVar)
-        )
+        CodeContract.argument('name', () => CodeContract.notNull(someVar))
       ).toThrowError("argument 'name' cannot be null or undefined");
       done();
     });
@@ -278,7 +274,7 @@ describe('codeContract', () => {
     it('argument() - call function - no error (3 parameters)', done => {
       const someVar = 'hello';
 
-      CodeContract.CodeContract.argument(
+      CodeContract.argument(
         'someVar',
         someVar !== undefined,
         'custom error message'
@@ -290,7 +286,7 @@ describe('codeContract', () => {
       const someVar = undefined;
 
       expect(() =>
-        CodeContract.CodeContract.argument(
+        CodeContract.argument(
           'someVar',
           someVar !== undefined,
           'should throw custom error message'
@@ -305,7 +301,7 @@ describe('codeContract', () => {
       const someVariable = undefined;
 
       expect(() =>
-        CodeContract.CodeContract.verify(
+        CodeContract.verify(
           someVariable !== undefined,
           () => 'exact error message'
         )
@@ -318,16 +314,16 @@ describe('codeContract', () => {
       const booleanExpression = [1, 2, 3].length === 0;
       const booleanFunc = () => booleanExpression;
 
-      expect(() =>
-        CodeContract.CodeContract.verify(booleanFunc, 'weird error')
-      ).toThrow('weird error');
+      expect(() => CodeContract.verify(booleanFunc, 'weird error')).toThrow(
+        'weird error'
+      );
       done();
     });
 
     it('verify() - does not throw if passed a true expression', done => {
       const booleanExpression = true;
 
-      const result = CodeContract.CodeContract.verify(
+      const result = CodeContract.verify(
         booleanExpression,
         'when things go wrong'
       );

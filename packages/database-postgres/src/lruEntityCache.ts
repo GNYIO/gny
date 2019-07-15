@@ -3,7 +3,7 @@ import { LoggerWrapper, LogManager } from './logger';
 import { ModelSchema } from './modelSchema';
 import { ModelIndex } from './defaultEntityUniqueIndex';
 import { UniquedCache } from './uniquedCache';
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 import { isString } from 'util';
 import { toArray } from './helpers/index';
 
@@ -13,16 +13,12 @@ export interface PropertyValue {
 }
 
 export class LRUEntityCache {
-
   public static readonly MIN_CACHED_COUNT = 100;
   public static readonly DEFULT_MAX_CACHED_COUNT = 5e4;
-
-
 
   private log: LoggerWrapper;
   private modelSchemas: Map<string, ModelSchema>;
   private modelCaches: Map<string, UniquedCache>;
-
 
   /**
    * @constructor
@@ -34,7 +30,8 @@ export class LRUEntityCache {
   }
 
   private getMaxCachedCount(schema: ModelSchema) {
-    const maxPrimaryDepth = schema.maxCached || LRUEntityCache.DEFULT_MAX_CACHED_COUNT;
+    const maxPrimaryDepth =
+      schema.maxCached || LRUEntityCache.DEFULT_MAX_CACHED_COUNT;
     return Math.max(LRUEntityCache.MIN_CACHED_COUNT, maxPrimaryDepth);
   }
 
@@ -51,14 +48,17 @@ export class LRUEntityCache {
     this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
-  private unRegisterModel(model: string) { // can be deleted? clear('Account') is the same
+  private unRegisterModel(model: string) {
+    // can be deleted? clear('Account') is the same
     this.modelCaches.delete(model);
   }
 
   private getModelCache(model: string) {
     const schema = this.modelSchemas.get(model);
     if (undefined === schema) {
-      throw new Error("Model schema ( name = '" + model + "' )  does not exists");
+      throw new Error(
+        "Model schema ( name = '" + model + "' )  does not exists"
+      );
     }
     // TODO: check logic
     if (!this.modelCaches.has(model)) {
@@ -71,7 +71,7 @@ export class LRUEntityCache {
    * @param objOrString - Example: {address:"G3VU8VKndrpzDVbKzNTExoBrDAnw5"}
    */
   private getCacheKey(objOrString: string | number | {}) {
-    if (codeContract.isPrimitiveKey(objOrString)) {
+    if (CodeContract.isPrimitiveKey(objOrString)) {
       return String(objOrString);
     } else {
       return JSON.stringify(objOrString);
@@ -84,14 +84,18 @@ export class LRUEntityCache {
       this.modelCaches.delete(name);
       return undefined;
     }
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError5 = false;
-    var _iteratorError5 = undefined;
+    let _iteratorNormalCompletion3 = true;
+    let _didIteratorError5 = false;
+    let _iteratorError5 = undefined;
     try {
-      var _iterator3 = this.modelCaches.values()[Symbol.iterator]();
-      var $__6;
-      for (; !(_iteratorNormalCompletion3 = ($__6 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var item = $__6.value;
+      const _iterator3 = this.modelCaches.values()[Symbol.iterator]();
+      let $__6;
+      for (
+        ;
+        !(_iteratorNormalCompletion3 = ($__6 = _iterator3.next()).done);
+        _iteratorNormalCompletion3 = true
+      ) {
+        const item = $__6.value;
         item.clear();
       }
     } catch (err) {
@@ -144,20 +148,41 @@ export class LRUEntityCache {
     if (undefined === element) {
       return false;
     }
-    const columns = data.map((column) => column.name);
+    const columns = data.map(column => column.name);
 
     // TODO: refactor
-    return (componentRef = this.modelSchemas.get(model)).hasUniqueProperty.apply(componentRef, toArray(columns)) ? (this.log.trace('refresh cached with uniqued index, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), this.evit(model, value), data.forEach(function(attr) {
-      return element[attr.name] = attr.value;
-    }), this.put(model, value, element), true) : (this.log.trace('refresh cached entity, key = ' + JSON.stringify(value) + ' modifier = ' + JSON.stringify(data)), data.forEach(function(attr) {
-      return element[attr.name] = attr.value;
-    }), false);
+    return (componentRef = this.modelSchemas.get(
+      model
+    )).hasUniqueProperty.apply(componentRef, toArray(columns))
+      ? (this.log.trace(
+          'refresh cached with uniqued index, key = ' +
+            JSON.stringify(value) +
+            ' modifier = ' +
+            JSON.stringify(data)
+        ),
+        this.evit(model, value),
+        data.forEach(function(attr) {
+          return (element[attr.name] = attr.value);
+        }),
+        this.put(model, value, element),
+        true)
+      : (this.log.trace(
+          'refresh cached entity, key = ' +
+            JSON.stringify(value) +
+            ' modifier = ' +
+            JSON.stringify(data)
+        ),
+        data.forEach(function(attr) {
+          return (element[attr.name] = attr.value);
+        }),
+        false);
   }
 
   /**
    * @param {string} model - Example: 'Delegate'
    */
-  public getAll(model: string) { // TODO: checkout
+  public getAll(model: string) {
+    // TODO: checkout
     const result = [];
     const keys = this.getModelCache(model);
     if (undefined !== keys) {
@@ -174,7 +199,14 @@ export class LRUEntityCache {
    * @param {Object} data - Example: "{"username":null,"gny":0,"isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5","_version_":1}"
    */
   put(model: string, key: any, data: any) {
-    this.log.trace('put cache, model = ' + model + ', key = ' + JSON.stringify(key) + ', entity = ' + JSON.stringify(data));
+    this.log.trace(
+      'put cache, model = ' +
+        model +
+        ', key = ' +
+        JSON.stringify(key) +
+        ', entity = ' +
+        JSON.stringify(data)
+    );
 
     this.getModelCache(model).set(this.getCacheKey(key), data);
   }

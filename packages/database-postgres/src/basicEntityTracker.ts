@@ -1,4 +1,4 @@
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 import * as enumerations from './entityChangeType';
 import { isFunction } from 'util';
 import * as lodash from 'lodash';
@@ -349,7 +349,7 @@ export class BasicEntityTracker {
         );
         break;
       case enumerations.EntityChangeType.Delete:
-        const obj: ObjectLiteral = codeContract.makeJsonObject(
+        const obj: ObjectLiteral = CodeContract.makeJsonObject(
           change.propertyChanges,
           one => one.name,
           one => one.original

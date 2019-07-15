@@ -1,4 +1,4 @@
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 import * as enumerations from './entityChangeType';
 import { BasicEntityTracker, EntityChanges } from './basicEntityTracker';
 import { ModelSchema } from './modelSchema';
@@ -116,13 +116,13 @@ export class BasicTrackerSqlBuilder {
     option = false
   ) {
     if (option) {
-      return codeContract.makeJsonObject(
+      return CodeContract.makeJsonObject(
         entityChanges.propertyChanges,
         one => one.name,
         one => one.original
       );
     } else {
-      return codeContract.makeJsonObject(
+      return CodeContract.makeJsonObject(
         entityChanges.propertyChanges,
         one => one.name,
         one => one.current

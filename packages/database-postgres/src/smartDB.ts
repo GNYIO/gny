@@ -2,10 +2,9 @@ import 'reflect-metadata';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { loadConfig } from '../loadConfig';
 import { ILogger } from '../../../src/interfaces';
-
 import { EventEmitter } from 'events';
 import { isString } from 'util';
-import { CodeContract } from './codeContract';
+import * as CodeContract from './codeContract';
 import { DbSession } from './dbSession';
 import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
@@ -16,7 +15,6 @@ import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
-import * as path from 'path';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {

@@ -3,71 +3,65 @@ export type CheckResult = {
   message: undefined | string;
 };
 
-export class CodeContract {
-  static verify(
-    expression: (() => boolean) | boolean,
-    errorMsg: (() => string) | string
-  ) {
-    if (undefined === expression || null === expression) {
-      throw new Error('Invalid verify condition');
-    }
-    const messageObject =
-      typeof expression === 'function' ? expression() : expression;
-    const errors = typeof errorMsg === 'function' ? errorMsg() : errorMsg;
-    if (!messageObject) {
-      throw new Error(errors);
-    }
+export function verify(
+  expression: (() => boolean) | boolean,
+  errorMsg: (() => string) | string
+) {
+  if (undefined === expression || null === expression) {
+    throw new Error('Invalid verify condition');
   }
+  const messageObject =
+    typeof expression === 'function' ? expression() : expression;
+  const errors = typeof errorMsg === 'function' ? errorMsg() : errorMsg;
+  if (!messageObject) {
+    throw new Error(errors);
+  }
+}
 
-  static argument(name: string, check: () => CheckResult);
-  static argument(name: string, check: boolean, errorMsg: string);
-  static argument(
-    name: string,
-    check: (() => CheckResult) | boolean,
-    errorMsg?: string
-  ) {
-    if (!name) {
-      throw new Error('argName can not be null or undefined');
-    }
-    if (typeof check === 'boolean') {
-      CodeContract.verify(check, errorMsg);
-    } else {
-      const obj = check();
-      CodeContract.verify(obj.result, "argument '" + name + "' " + obj.message);
-    }
+export function argument(name: string, check: () => CheckResult);
+export function argument(name: string, check: boolean, errorMsg: string);
+export function argument(
+  name: string,
+  check: (() => CheckResult) | boolean,
+  errorMsg?: string
+) {
+  if (!name) {
+    throw new Error('argName can not be null or undefined');
   }
+  if (typeof check === 'boolean') {
+    verify(check, errorMsg);
+  } else {
+    const obj = check();
+    verify(obj.result, "argument '" + name + "' " + obj.message);
+  }
+}
 
-  static notNull(data: any) {
-    const boolExpression = data !== null && data !== undefined;
-    const result: CheckResult = {
-      result: boolExpression,
-      message: boolExpression ? undefined : 'cannot be null or undefined',
-    };
-    return result;
-  }
+export function notNull(data: any) {
+  const boolExpression = data !== null && data !== undefined;
+  const result: CheckResult = {
+    result: boolExpression,
+    message: boolExpression ? undefined : 'cannot be null or undefined',
+  };
+  return result;
+}
 
-  static notNullOrEmpty(data: any) {
-    const booleanExpression =
-      CodeContract.notNull(data).result === true && data !== '';
-    return {
-      result: booleanExpression,
-      message: booleanExpression
-        ? undefined
-        : 'cannot be null or undefined or empty',
-    };
-  }
+export function notNullOrEmpty(data: any) {
+  const booleanExpression = notNull(data).result === true && data !== '';
+  return {
+    result: booleanExpression,
+    message: booleanExpression
+      ? undefined
+      : 'cannot be null or undefined or empty',
+  };
+}
 
-  static notNullOrWhitespace(data: any) {
-    const request =
-      CodeContract.notNullOrEmpty(data).result === true && data.trim() !== '';
-    const checkResult: CheckResult = {
-      result: request,
-      message: request
-        ? undefined
-        : 'cannot be null or undefined or whitespace',
-    };
-    return checkResult;
-  }
+export function notNullOrWhitespace(data: any) {
+  const request = notNullOrEmpty(data).result === true && data.trim() !== '';
+  const checkResult: CheckResult = {
+    result: request,
+    message: request ? undefined : 'cannot be null or undefined or whitespace',
+  };
+  return checkResult;
 }
 
 /**
@@ -81,9 +75,9 @@ export function makeJsonObject<T, K extends keyof T>(
   getKey: (one: T) => string,
   getValue: (one: T) => T[K]
 ) {
-  CodeContract.argument('iterable', () => CodeContract.notNull(iterable));
-  CodeContract.argument('getKey', () => CodeContract.notNull(getKey));
-  CodeContract.argument('getValue', () => CodeContract.notNull(getValue));
+  argument('iterable', () => notNull(iterable));
+  argument('getKey', () => notNull(getKey));
+  argument('getValue', () => notNull(getValue));
 
   interface Result {
     [key: string]: T[K];
@@ -112,10 +106,8 @@ export function partialCopy(
   keysOrKeyFilter: string[] | ((a: any) => boolean),
   target?: Object
 ) {
-  CodeContract.argument('source', () => CodeContract.notNull(source));
-  CodeContract.argument('keysOrKeyFilter', () =>
-    CodeContract.notNull(keysOrKeyFilter)
-  );
+  argument('source', () => notNull(source));
+  argument('keysOrKeyFilter', () => notNull(keysOrKeyFilter));
 
   const newValues =
     typeof keysOrKeyFilter === 'function'
