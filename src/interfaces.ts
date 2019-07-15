@@ -306,13 +306,13 @@ export type AccountViewModel = Pick<
   'address' | 'secondPublicKey' | 'lockHeight' | 'isDelegate' | 'username'
 > & { balance: string };
 
-export interface Transaction {
+export interface ITransaction {
   id: string;
   type: number;
   timestamp: number;
   senderId: string;
   senderPublicKey: string;
-  fee: number;
+  fee: string;
   signatures?: any;
   secondSignature?: any;
   args: any;
@@ -349,6 +349,13 @@ export interface DelegateViewModel extends Delegate {
   rate: number;
   approval: number;
   productivity: string;
+}
+
+export interface IRound {
+  round: string;
+  fee: string;
+  reward: string;
+  _version_?: number;
 }
 
 export interface NewBlockMessage {
@@ -399,7 +406,7 @@ export interface CommonBlockResult {
 }
 
 export interface Context {
-  trs: Transaction;
+  trs: ITransaction;
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
 }

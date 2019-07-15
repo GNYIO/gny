@@ -1,5 +1,5 @@
 import {
-  Transaction,
+  ITransaction,
   KeyPair,
   IBlock,
   BlockPropose,
@@ -30,7 +30,7 @@ export enum BlockMessageFitInLineResult {
 
 export class BlocksHelper {
   public static areTransactionsExceedingPayloadLength(
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) {
     let payloadLength = 0;
 
@@ -44,7 +44,7 @@ export class BlocksHelper {
     return false;
   }
 
-  public static payloadHashOfAllTransactions(transactions: Transaction[]) {
+  public static payloadHashOfAllTransactions(transactions: ITransaction[]) {
     const payloadHash = crypto.createHash('sha256');
 
     for (const one of transactions) {
@@ -54,10 +54,11 @@ export class BlocksHelper {
     return payloadHash.digest();
   }
 
-  public static getFeesOfAll(transactions: Transaction[]) {
+  public static getFeesOfAll(transactions: ITransaction[]) {
     return transactions.reduce(
-      (prev: number, oneTrs: Transaction) => prev + (oneTrs.fee || 0),
-      0
+      (prev: string, oneTrs: ITransaction) =>
+        new BigNumber(prev).plus(oneTrs.fee || 0).toFixed(),
+      String(0)
     );
   }
 
@@ -65,7 +66,7 @@ export class BlocksHelper {
     keypair: KeyPair,
     timestamp: number,
     lastBlock: IBlock,
-    unconfirmedTransactions: Transaction[]
+    unconfirmedTransactions: ITransaction[]
   ) {
     if (
       BlocksHelper.areTransactionsExceedingPayloadLength(
@@ -105,8 +106,8 @@ export class BlocksHelper {
     return block;
   }
 
-  public static AreTransactionsDuplicated(transactions: Transaction[]) {
-    const appliedTransactions: ISimpleCache<Transaction> = {};
+  public static AreTransactionsDuplicated(transactions: ITransaction[]) {
+    const appliedTransactions: ISimpleCache<ITransaction> = {};
     for (const transaction of transactions) {
       if (appliedTransactions[transaction.id]) {
         return true;
@@ -116,7 +117,7 @@ export class BlocksHelper {
     return false;
   }
 
-  public static CanAllTransactionsBeSerialized(transactions: Transaction[]) {
+  public static CanAllTransactionsBeSerialized(transactions: ITransaction[]) {
     if (!transactions) throw new Error('transactions are null');
     for (const transaction of transactions) {
       try {
@@ -162,7 +163,7 @@ export class BlocksHelper {
   }
 
   public static async AreAnyTransactionsAlreadyInDbIO(
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) {
     const idList = transactions.map(t => t.id);
 

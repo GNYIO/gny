@@ -11,10 +11,11 @@ import {
   Next,
   IBlock,
   ManyVotes,
-  Transaction,
+  ITransaction,
   CommonBlockParams,
   CommonBlockResult,
   IState,
+  IRound,
 } from '../interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
@@ -329,16 +330,20 @@ export default class Blocks {
   };
 
   public static increaseRoundData = async (
-    modifier,
-    roundNumber
-  ): Promise<any> => {
-    await global.app.sdb.createOrLoad('Round', {
-      fee: 0,
-      reward: 0,
+    modifier: { fee: string; reward: string },
+    roundNumber: string
+  ): Promise<{ fee: string; reward: string }> => {
+    const round: IRound = {
+      fee: String(0),
+      reward: String(0),
+      round: roundNumber,
+    };
+    await global.app.sdb.createOrLoad('Round', round);
+    const result = await global.app.sdb.increase('Round', modifier, {
       round: roundNumber,
     });
-    await global.app.sdb.increase('Round', modifier, { round: roundNumber });
-    return await global.app.sdb.load('Round', { round: roundNumber });
+    return result as { fee: string; reward: string };
+    // removed .load() line
   };
 
   public static applyRound = async (block: IBlock) => {
@@ -350,16 +355,21 @@ export default class Blocks {
     const address = addressHelper.generateAddress(block.delegate);
     await global.app.sdb.increase(
       'Delegate',
-      { producedBlocks: 1 },
+      { producedBlocks: String(1) },
       { address }
     );
 
     const transFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
+
+    // TODO: refactor, this will not go good!
     const { fee, reward } = await Blocks.increaseRoundData(
-      { fee: transFee, reward: block.reward },
-      roundNumber
+      {
+        fee: transFee,
+        reward: block.reward,
+      },
+      String(roundNumber)
     );
 
     if (block.height % 101 !== 0) return;
@@ -391,7 +401,7 @@ export default class Blocks {
       const adr = addressHelper.generateAddress(md);
       await global.app.sdb.increase(
         'Delegate',
-        { missedBlocks: 1 },
+        { missedBlocks: String(1) },
         { address: adr }
       );
     }
@@ -410,7 +420,7 @@ export default class Blocks {
       // TODO should account be all cached?
       await global.app.sdb.increase(
         'Account',
-        { gny: fee + reward },
+        { gny: String(fee + reward) },
         { address: delegateAdr }
       );
     }
@@ -504,7 +514,7 @@ export default class Blocks {
   public static generateBlock = async (
     old: IState,
     activeDelegates: KeyPair[],
-    unconfirmedTransactions: Transaction[],
+    unconfirmedTransactions: ITransaction[],
     keypair: KeyPair,
     timestamp: number
   ) => {
@@ -603,7 +613,7 @@ export default class Blocks {
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
       if (fitInLineResult === BlockFitsInLine.Success) {
-        const pendingTrsMap = new Map<string, Transaction>();
+        const pendingTrsMap = new Map<string, ITransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
           for (const t of pendingTrs) {
@@ -736,7 +746,7 @@ export default class Blocks {
     });
   };
 
-  public static onReceiveTransaction = (transaction: Transaction) => {
+  public static onReceiveTransaction = (transaction: ITransaction) => {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
@@ -811,7 +821,7 @@ export default class Blocks {
     });
   };
 
-  public static async RunGenesisOrLoadLastBlock(
+  public static RunGenesisOrLoadLastBlock = async (
     old: IState,
     numberOfBlocksInDb: number | null,
     genesisBlock: IGenesisBlock,
@@ -822,7 +832,7 @@ export default class Blocks {
       delegateList: string[]
     ) => Promise<IState>,
     getBlocksByHeight: GetBlocksByHeight
-  ) {
+  ) => {
     let state = StateHelper.copyState(old);
 
     if (!numberOfBlocksInDb) {
@@ -836,7 +846,7 @@ export default class Blocks {
       state = BlocksHelper.SetLastBlock(state, block);
     }
     return state;
-  }
+  };
 
   // Events
   public static onBind = () => {

@@ -7,7 +7,7 @@
   "transactions": [
     {
       "type": 0,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3VU8VKndrpzDVbKzNTExoBrDAnw5",
       "senderPublicKey": "bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47",
@@ -23,7 +23,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GM5CevQY3brUyRtDMng5Co41nWHh",
       "senderPublicKey": "0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9",
@@ -38,7 +38,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GM5CevQY3brUyRtDMng5Co41nWHh",
       "senderPublicKey": "0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9",
@@ -50,7 +50,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SSkWs6UFuoVHU3N4rLvXoobbQCt",
       "senderPublicKey": "98ed2021ee0e89dbd40c8f1df234e15b022fb7cbba8d1de061db78f024ab5978",
@@ -65,7 +65,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SSkWs6UFuoVHU3N4rLvXoobbQCt",
       "senderPublicKey": "98ed2021ee0e89dbd40c8f1df234e15b022fb7cbba8d1de061db78f024ab5978",
@@ -77,7 +77,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2S8FueDjrk3jN7pkeui7VmrA8eMU",
       "senderPublicKey": "551b045270be2651c41a7251746561a87814d8abb9be6bee226fcf47a5272f49",
@@ -92,7 +92,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2S8FueDjrk3jN7pkeui7VmrA8eMU",
       "senderPublicKey": "551b045270be2651c41a7251746561a87814d8abb9be6bee226fcf47a5272f49",
@@ -104,7 +104,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3DDP47cyZiLi6nrm7kzbdvAqK5Cz",
       "senderPublicKey": "e8349a2285181e1c856cbeffef320d7b979f6a809fd9f7ac15ef4c4f8f35f816",
@@ -119,7 +119,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3DDP47cyZiLi6nrm7kzbdvAqK5Cz",
       "senderPublicKey": "e8349a2285181e1c856cbeffef320d7b979f6a809fd9f7ac15ef4c4f8f35f816",
@@ -131,7 +131,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2QvwiGhjbG5xPixfzstB9qxBqep6",
       "senderPublicKey": "bd9e4cca46d201d2c89e1f29eb5384c28e7f571832b79ee4aa61b46d512a11a5",
@@ -146,7 +146,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2QvwiGhjbG5xPixfzstB9qxBqep6",
       "senderPublicKey": "bd9e4cca46d201d2c89e1f29eb5384c28e7f571832b79ee4aa61b46d512a11a5",
@@ -158,7 +158,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LNZorUUGjt3rimMv5Cr2zod9PoS",
       "senderPublicKey": "4639d7520fefe6f3523aa1cd0bcf609373193c2c7dc64472e74e0fb38b0b272d",
@@ -173,7 +173,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LNZorUUGjt3rimMv5Cr2zod9PoS",
       "senderPublicKey": "4639d7520fefe6f3523aa1cd0bcf609373193c2c7dc64472e74e0fb38b0b272d",
@@ -185,7 +185,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3igL8sTPQzNquy87bYAR37NoYRNn",
       "senderPublicKey": "0bc1f67b35da09c546fd4f25c962aae18dab3ff63e528a8c2fccab57c3f33a4b",
@@ -200,7 +200,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3igL8sTPQzNquy87bYAR37NoYRNn",
       "senderPublicKey": "0bc1f67b35da09c546fd4f25c962aae18dab3ff63e528a8c2fccab57c3f33a4b",
@@ -212,7 +212,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3y6swmiyCguASMfm46yyUrKWv17w",
       "senderPublicKey": "e28066fe2185e950f2df851772d346af68119c96b882d41b8cd5283a901cff63",
@@ -227,7 +227,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3y6swmiyCguASMfm46yyUrKWv17w",
       "senderPublicKey": "e28066fe2185e950f2df851772d346af68119c96b882d41b8cd5283a901cff63",
@@ -239,7 +239,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3yepz3vN85RcbGa9WwyvWG4YseBy",
       "senderPublicKey": "ce7debf57bd6c3f44256be23cd7751fbea6793683ee2ba84b06ced108103a9a4",
@@ -254,7 +254,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3yepz3vN85RcbGa9WwyvWG4YseBy",
       "senderPublicKey": "ce7debf57bd6c3f44256be23cd7751fbea6793683ee2ba84b06ced108103a9a4",
@@ -266,7 +266,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr",
       "senderPublicKey": "399add0d2d3525f6ee47aadfcf746004497ed992d000a9f14d0be9b1eafd1fff",
@@ -281,7 +281,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr",
       "senderPublicKey": "399add0d2d3525f6ee47aadfcf746004497ed992d000a9f14d0be9b1eafd1fff",
@@ -293,7 +293,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gwwsn2BHCTPswfPkv4bQAPzgs8Gr",
       "senderPublicKey": "47affc7358eef12bd40b92de868769cc1a7dc2a765835989bd9554615cb00e31",
@@ -308,7 +308,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gwwsn2BHCTPswfPkv4bQAPzgs8Gr",
       "senderPublicKey": "47affc7358eef12bd40b92de868769cc1a7dc2a765835989bd9554615cb00e31",
@@ -320,7 +320,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4WuRoNbDfPKgBPDB3nUqQdAs91Rd",
       "senderPublicKey": "0c7f418c5ff908a692099e6620d26466f6db7610e551197e6f670a49ec3c5834",
@@ -335,7 +335,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4WuRoNbDfPKgBPDB3nUqQdAs91Rd",
       "senderPublicKey": "0c7f418c5ff908a692099e6620d26466f6db7610e551197e6f670a49ec3c5834",
@@ -347,7 +347,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G9XBeoVtDy74gtXzbKmSDRt5vPp7",
       "senderPublicKey": "a71ec9e6eebbd70068a6c3a3c74addd5e51172a6ce96ac40c92203995a205e10",
@@ -362,7 +362,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G9XBeoVtDy74gtXzbKmSDRt5vPp7",
       "senderPublicKey": "a71ec9e6eebbd70068a6c3a3c74addd5e51172a6ce96ac40c92203995a205e10",
@@ -374,7 +374,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HJjCkEV8u6fsK7juspdz5UDstrx",
       "senderPublicKey": "bf649a187051de6a6d357fd3f00ec14f93983d1b19c34ac98562066864467616",
@@ -389,7 +389,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HJjCkEV8u6fsK7juspdz5UDstrx",
       "senderPublicKey": "bf649a187051de6a6d357fd3f00ec14f93983d1b19c34ac98562066864467616",
@@ -401,7 +401,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G49TFUujviHc8FxBc14pj7X7CJTLH",
       "senderPublicKey": "5ac8e1b535a197e7c7020e0b543dc51f83aad6ebd20d04fab6e7df1ccfee9f10",
@@ -416,7 +416,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G49TFUujviHc8FxBc14pj7X7CJTLH",
       "senderPublicKey": "5ac8e1b535a197e7c7020e0b543dc51f83aad6ebd20d04fab6e7df1ccfee9f10",
@@ -428,7 +428,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2J9HuCT5RGx7pwNJAm4hqZzDj1At",
       "senderPublicKey": "8565719f8d23487be7ac0b7d885a6071d3cd021840a727a8eaa309e1b987a436",
@@ -443,7 +443,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2J9HuCT5RGx7pwNJAm4hqZzDj1At",
       "senderPublicKey": "8565719f8d23487be7ac0b7d885a6071d3cd021840a727a8eaa309e1b987a436",
@@ -455,7 +455,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G28aWzLNE7AgJG3w285Zno9wLo88c",
       "senderPublicKey": "f4f3070adff9bcc924d34496fca666436b5777cfe0db862d260749853a83371e",
@@ -470,7 +470,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G28aWzLNE7AgJG3w285Zno9wLo88c",
       "senderPublicKey": "f4f3070adff9bcc924d34496fca666436b5777cfe0db862d260749853a83371e",
@@ -482,7 +482,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G23HXtWCUfV9FQV9JmvbTWsiU1w8S",
       "senderPublicKey": "0273d776186eef17356abe149e247de85eabf298643ea1d8c170cf468ebadc81",
@@ -497,7 +497,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G23HXtWCUfV9FQV9JmvbTWsiU1w8S",
       "senderPublicKey": "0273d776186eef17356abe149e247de85eabf298643ea1d8c170cf468ebadc81",
@@ -509,7 +509,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3u4EzpDU65jmqMPQLyQ9YREtFNUR",
       "senderPublicKey": "b24bdf0e43937df21120e98a338ad9bc9ab8d7e236b47ef99eec107badd20165",
@@ -524,7 +524,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3u4EzpDU65jmqMPQLyQ9YREtFNUR",
       "senderPublicKey": "b24bdf0e43937df21120e98a338ad9bc9ab8d7e236b47ef99eec107badd20165",
@@ -536,7 +536,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3NFhX7zT2aue1WhLHqAwaEnfdWnX",
       "senderPublicKey": "e3ecd10908a2aaed782f0682da626026f8e59e444e22291e433c9bd41b187daf",
@@ -551,7 +551,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3NFhX7zT2aue1WhLHqAwaEnfdWnX",
       "senderPublicKey": "e3ecd10908a2aaed782f0682da626026f8e59e444e22291e433c9bd41b187daf",
@@ -563,7 +563,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3DpbtT5QNF5smWYTyLTzJ8812SRx",
       "senderPublicKey": "2f3accd77b9d2279716c9c5b53a3bbaa502ae7409f4588cff687dccdbf4ac77a",
@@ -578,7 +578,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3DpbtT5QNF5smWYTyLTzJ8812SRx",
       "senderPublicKey": "2f3accd77b9d2279716c9c5b53a3bbaa502ae7409f4588cff687dccdbf4ac77a",
@@ -590,7 +590,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2XyMyiVFMZHZLsTidXRjCRxWpBPz",
       "senderPublicKey": "9a185827a39e7f6a75f42378219dfed2218ba77f3cb6fd6d4f3fea9df5676f0c",
@@ -605,7 +605,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2XyMyiVFMZHZLsTidXRjCRxWpBPz",
       "senderPublicKey": "9a185827a39e7f6a75f42378219dfed2218ba77f3cb6fd6d4f3fea9df5676f0c",
@@ -617,7 +617,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GtXXB4qRtwzngLYpHGGLGmbFBCTw",
       "senderPublicKey": "5d5be2685edb3b49c53acc68114e1e3fcf829f0f05a3eb6203642bf3615dc450",
@@ -632,7 +632,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GtXXB4qRtwzngLYpHGGLGmbFBCTw",
       "senderPublicKey": "5d5be2685edb3b49c53acc68114e1e3fcf829f0f05a3eb6203642bf3615dc450",
@@ -644,7 +644,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GzPJiP2mJ8cv1g8j3xd1hS2uuoYB",
       "senderPublicKey": "b9b21adf1132283ca000bedd756a003a8e0371e1c5d7edbb7ed6d553dc435c3c",
@@ -659,7 +659,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GzPJiP2mJ8cv1g8j3xd1hS2uuoYB",
       "senderPublicKey": "b9b21adf1132283ca000bedd756a003a8e0371e1c5d7edbb7ed6d553dc435c3c",
@@ -671,7 +671,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4QuND1h6n1AqF9jJsVQ1ehk5y1vS",
       "senderPublicKey": "48dd4ed8d9a98c989d3c3a3846a3e178874dce65700755c997f511d74b9d2000",
@@ -686,7 +686,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4QuND1h6n1AqF9jJsVQ1ehk5y1vS",
       "senderPublicKey": "48dd4ed8d9a98c989d3c3a3846a3e178874dce65700755c997f511d74b9d2000",
@@ -698,7 +698,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HWZL5vryPZ5bHamaE9uFtwU3Gca",
       "senderPublicKey": "0d8a0f37501caf561a12cfb84d7d2b1d6e93cb2212a3f067f968b925d045fe82",
@@ -713,7 +713,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3HWZL5vryPZ5bHamaE9uFtwU3Gca",
       "senderPublicKey": "0d8a0f37501caf561a12cfb84d7d2b1d6e93cb2212a3f067f968b925d045fe82",
@@ -725,7 +725,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G45bu64FwHeShUrty7viXpRUSfoiL",
       "senderPublicKey": "82752959d2055b776a9c09c893d748c5921d9fca46ca0ea47d6f6105d70bb2d7",
@@ -740,7 +740,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G45bu64FwHeShUrty7viXpRUSfoiL",
       "senderPublicKey": "82752959d2055b776a9c09c893d748c5921d9fca46ca0ea47d6f6105d70bb2d7",
@@ -752,7 +752,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GQ6hcPj74Tgj89KeCkQJGgUcCqLZ",
       "senderPublicKey": "c27114394261096ecd290bf2f7864015dbff136be7d57db3067f10bc9f41054c",
@@ -767,7 +767,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GQ6hcPj74Tgj89KeCkQJGgUcCqLZ",
       "senderPublicKey": "c27114394261096ecd290bf2f7864015dbff136be7d57db3067f10bc9f41054c",
@@ -779,7 +779,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z",
       "senderPublicKey": "128ca63d1c55058694a7aea7bea4ab169bd9d3638cf2c3f9263362d3deaa9bcd",
@@ -794,7 +794,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z",
       "senderPublicKey": "128ca63d1c55058694a7aea7bea4ab169bd9d3638cf2c3f9263362d3deaa9bcd",
@@ -806,7 +806,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GH7ZBNjRXCoJwRN8ddws37V3jEmn",
       "senderPublicKey": "316ed144872f41036892eac36d30248e852a6085c20982a78e4ef53ea28d8880",
@@ -821,7 +821,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GH7ZBNjRXCoJwRN8ddws37V3jEmn",
       "senderPublicKey": "316ed144872f41036892eac36d30248e852a6085c20982a78e4ef53ea28d8880",
@@ -833,7 +833,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GuGD9McasETcrw7tEcBfoz9UiYZs",
       "senderPublicKey": "b1aea0514629b75cace0ffaeb491beb521da9535c6f7d453c79fa1ab35a012df",
@@ -848,7 +848,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GuGD9McasETcrw7tEcBfoz9UiYZs",
       "senderPublicKey": "b1aea0514629b75cace0ffaeb491beb521da9535c6f7d453c79fa1ab35a012df",
@@ -860,7 +860,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gsc5hAVNut3YBLfQLXrbBPAWe2fb",
       "senderPublicKey": "ae33b7c3c9dc43c50a25d42141b74dcd483dffe64c2dcb1107c03a43448fe1a3",
@@ -875,7 +875,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gsc5hAVNut3YBLfQLXrbBPAWe2fb",
       "senderPublicKey": "ae33b7c3c9dc43c50a25d42141b74dcd483dffe64c2dcb1107c03a43448fe1a3",
@@ -887,7 +887,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LVh65UtV6k7Ax9jbB6C6QihWcea",
       "senderPublicKey": "7a0fbcbdd4a42bd423f0a5af6f515fd18aa189fb19d6561f699f0131ff0e7d2a",
@@ -902,7 +902,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LVh65UtV6k7Ax9jbB6C6QihWcea",
       "senderPublicKey": "7a0fbcbdd4a42bd423f0a5af6f515fd18aa189fb19d6561f699f0131ff0e7d2a",
@@ -914,7 +914,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3Ha6rNU6WHZvAE1kjWHkNhjkpoLA",
       "senderPublicKey": "406e055b029f2c6ed6b833abe12be707005ee242bacae46dca53db95c64cbce7",
@@ -929,7 +929,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3Ha6rNU6WHZvAE1kjWHkNhjkpoLA",
       "senderPublicKey": "406e055b029f2c6ed6b833abe12be707005ee242bacae46dca53db95c64cbce7",
@@ -941,7 +941,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gu83duWXehxDPbJEY3QjWxnk7mh1",
       "senderPublicKey": "fcfa7c264972cb5ae40799706ee0f1724be7c4b8772334c12dcdff9c397323a9",
@@ -956,7 +956,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gu83duWXehxDPbJEY3QjWxnk7mh1",
       "senderPublicKey": "fcfa7c264972cb5ae40799706ee0f1724be7c4b8772334c12dcdff9c397323a9",
@@ -968,7 +968,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2pP3u9ai4Wif7skC2jNC4xSDURbn",
       "senderPublicKey": "7dd98a38dea942bd4151add41aee385be0a1338ff52e7358efbb108ed30d2067",
@@ -983,7 +983,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2pP3u9ai4Wif7skC2jNC4xSDURbn",
       "senderPublicKey": "7dd98a38dea942bd4151add41aee385be0a1338ff52e7358efbb108ed30d2067",
@@ -995,7 +995,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3xWGRMeARojC9XyYKhivdLqBPLkc",
       "senderPublicKey": "026f696b9fbd59d423f7eb88429f326afbd2ce6504bb16be8da3f94ba3fb31f9",
@@ -1010,7 +1010,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3xWGRMeARojC9XyYKhivdLqBPLkc",
       "senderPublicKey": "026f696b9fbd59d423f7eb88429f326afbd2ce6504bb16be8da3f94ba3fb31f9",
@@ -1022,7 +1022,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4Gyh1jTbbhJTSxYtFM6XxoMQGHoV",
       "senderPublicKey": "01046d1d35b8a3526225540c25d09f1e7745c0fc23dfbfdc926b7f05c25c91b8",
@@ -1037,7 +1037,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4Gyh1jTbbhJTSxYtFM6XxoMQGHoV",
       "senderPublicKey": "01046d1d35b8a3526225540c25d09f1e7745c0fc23dfbfdc926b7f05c25c91b8",
@@ -1049,7 +1049,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3kGQyrHWNyHoGvaAbibgU3tnEreA",
       "senderPublicKey": "409883ec707211a1aafb8ae636873c6067b83d0f1ced10f10b93cec896f0aa4e",
@@ -1064,7 +1064,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3kGQyrHWNyHoGvaAbibgU3tnEreA",
       "senderPublicKey": "409883ec707211a1aafb8ae636873c6067b83d0f1ced10f10b93cec896f0aa4e",
@@ -1076,7 +1076,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SXME2YejaCw9a7f8hwi1yCBLEH",
       "senderPublicKey": "810dfafe71e2784b750619bc1d4e1e5f8d7b996a2951dab48506620b23370a93",
@@ -1091,7 +1091,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SXME2YejaCw9a7f8hwi1yCBLEH",
       "senderPublicKey": "810dfafe71e2784b750619bc1d4e1e5f8d7b996a2951dab48506620b23370a93",
@@ -1103,7 +1103,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GW25gtEZx43SzWNpn9Ntggv65yTZ",
       "senderPublicKey": "e2736c6e14375f45bf2773a3d10d7cae527cd151df28bd52e40d38dc6ab07612",
@@ -1118,7 +1118,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GW25gtEZx43SzWNpn9Ntggv65yTZ",
       "senderPublicKey": "e2736c6e14375f45bf2773a3d10d7cae527cd151df28bd52e40d38dc6ab07612",
@@ -1130,7 +1130,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GDa1MoqYVgn9PcDVDrKWFyecf4Vz",
       "senderPublicKey": "9b1c78a6028d52605a19f3845b47c71f3118a3b34bfaf8c094cf7415a52f7bb9",
@@ -1145,7 +1145,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GDa1MoqYVgn9PcDVDrKWFyecf4Vz",
       "senderPublicKey": "9b1c78a6028d52605a19f3845b47c71f3118a3b34bfaf8c094cf7415a52f7bb9",
@@ -1157,7 +1157,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2yS6YgA77kNy92tc1qQax3JgE6rq",
       "senderPublicKey": "6a2986249a44ed64d531438e3a7c0b16945f4e2ee579fc73936628beeb08b422",
@@ -1172,7 +1172,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2yS6YgA77kNy92tc1qQax3JgE6rq",
       "senderPublicKey": "6a2986249a44ed64d531438e3a7c0b16945f4e2ee579fc73936628beeb08b422",
@@ -1184,7 +1184,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LH3SBrTWcPiQbV2FPjibWVtJKn9",
       "senderPublicKey": "411a5e3956ec8fc37a64ed1535ec91a7bc007ce534f3035f6f4c4e92c5087fc1",
@@ -1199,7 +1199,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4LH3SBrTWcPiQbV2FPjibWVtJKn9",
       "senderPublicKey": "411a5e3956ec8fc37a64ed1535ec91a7bc007ce534f3035f6f4c4e92c5087fc1",
@@ -1211,7 +1211,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3oCLYRv6Z9AzD35w8RvbpNeWqpvL",
       "senderPublicKey": "6f74a80ba0f15a4bfc442b825c672071b761bf973f906da5dece18921fc96904",
@@ -1226,7 +1226,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3oCLYRv6Z9AzD35w8RvbpNeWqpvL",
       "senderPublicKey": "6f74a80ba0f15a4bfc442b825c672071b761bf973f906da5dece18921fc96904",
@@ -1238,7 +1238,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3A7J9BUcufGs8y2SBxrhfprwiv9v",
       "senderPublicKey": "4d026286be2a932d942d4a80c45c4849039c50da1b38ae0b8d9e03aeb1852383",
@@ -1253,7 +1253,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3A7J9BUcufGs8y2SBxrhfprwiv9v",
       "senderPublicKey": "4d026286be2a932d942d4a80c45c4849039c50da1b38ae0b8d9e03aeb1852383",
@@ -1265,7 +1265,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2yY6XpLzt1Zx69QJX1t6mhJeGZyH",
       "senderPublicKey": "712ee616912efaf95e94157f6b5e6681fdf7cc7a3bc4caa7cd8359ee8c4c33b6",
@@ -1280,7 +1280,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2yY6XpLzt1Zx69QJX1t6mhJeGZyH",
       "senderPublicKey": "712ee616912efaf95e94157f6b5e6681fdf7cc7a3bc4caa7cd8359ee8c4c33b6",
@@ -1292,7 +1292,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G32Wx3yXazyR8YLDtc7AJoaoSNcW7",
       "senderPublicKey": "ba96c51c307d3f2376cc90bb0f4fb27f36edf67357d71abb22953ac03ac21637",
@@ -1307,7 +1307,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G32Wx3yXazyR8YLDtc7AJoaoSNcW7",
       "senderPublicKey": "ba96c51c307d3f2376cc90bb0f4fb27f36edf67357d71abb22953ac03ac21637",
@@ -1319,7 +1319,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G44ek8ATFDyriUnrKgq6kmVwWVdu3",
       "senderPublicKey": "767cb6947cf2802cb8e1afd286b36dee60b85b1faed054754f0466e90ae80453",
@@ -1334,7 +1334,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G44ek8ATFDyriUnrKgq6kmVwWVdu3",
       "senderPublicKey": "767cb6947cf2802cb8e1afd286b36dee60b85b1faed054754f0466e90ae80453",
@@ -1346,7 +1346,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4L6HufZrVKK8BnzEGbQuX5N9qL6",
       "senderPublicKey": "cf1f9bb05b6601167a0233d45e8a4bca6c2473852e7b52416bfc3774e5a66f6f",
@@ -1361,7 +1361,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4L6HufZrVKK8BnzEGbQuX5N9qL6",
       "senderPublicKey": "cf1f9bb05b6601167a0233d45e8a4bca6c2473852e7b52416bfc3774e5a66f6f",
@@ -1373,7 +1373,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3GWB1K1G1xAE4EHi5BYi2CsGDUq1",
       "senderPublicKey": "5aebd76998d18fdf284500208663e8e23d7af4da23798ca60ad5b50c74db8a5f",
@@ -1388,7 +1388,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3GWB1K1G1xAE4EHi5BYi2CsGDUq1",
       "senderPublicKey": "5aebd76998d18fdf284500208663e8e23d7af4da23798ca60ad5b50c74db8a5f",
@@ -1400,7 +1400,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GVqsbeh7Ac44mP5GBV4xLmKYmmDd",
       "senderPublicKey": "abf63439714d9ac014cc43e5ca95f2dc82363c51695362d589892c0a0b861bef",
@@ -1415,7 +1415,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GVqsbeh7Ac44mP5GBV4xLmKYmmDd",
       "senderPublicKey": "abf63439714d9ac014cc43e5ca95f2dc82363c51695362d589892c0a0b861bef",
@@ -1427,7 +1427,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2J17Wmi3aYTBfZuHeP5HkmXXdW3e",
       "senderPublicKey": "b1f4bef1e28bb58c48172614627f641ecc54e379efbd6df61d2724bded9bce54",
@@ -1442,7 +1442,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2J17Wmi3aYTBfZuHeP5HkmXXdW3e",
       "senderPublicKey": "b1f4bef1e28bb58c48172614627f641ecc54e379efbd6df61d2724bded9bce54",
@@ -1454,7 +1454,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GpkuwZmwxH1n8xZ83saabPQC9PxN",
       "senderPublicKey": "779cdcc707dd6acf519cf79c1b9ee03ced5fd1b43b7461e322f51a9db424e212",
@@ -1469,7 +1469,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GpkuwZmwxH1n8xZ83saabPQC9PxN",
       "senderPublicKey": "779cdcc707dd6acf519cf79c1b9ee03ced5fd1b43b7461e322f51a9db424e212",
@@ -1481,7 +1481,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3XyTB8xQD8uc7NjQ2au1fBJuvEaf",
       "senderPublicKey": "f287f18046c07d35e9ce3aca0672b0f72233c29eaeae87ea9141bf26f3420ad4",
@@ -1496,7 +1496,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3XyTB8xQD8uc7NjQ2au1fBJuvEaf",
       "senderPublicKey": "f287f18046c07d35e9ce3aca0672b0f72233c29eaeae87ea9141bf26f3420ad4",
@@ -1508,7 +1508,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2dpx9S7rTHL49nzrxYi5F6DxDXS4",
       "senderPublicKey": "efaaddc962e7675410519cf6308f681b743e6b0f3bf9f495c261a9be5bb777b4",
@@ -1523,7 +1523,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2dpx9S7rTHL49nzrxYi5F6DxDXS4",
       "senderPublicKey": "efaaddc962e7675410519cf6308f681b743e6b0f3bf9f495c261a9be5bb777b4",
@@ -1535,7 +1535,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2VnLNhPXsxphF2XwBz8EYmwSDy5y",
       "senderPublicKey": "682d02d746909d01b69995ee3d01feb8ceffa57a8dd7576c0ed3ff3ff98cb6a4",
@@ -1550,7 +1550,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2VnLNhPXsxphF2XwBz8EYmwSDy5y",
       "senderPublicKey": "682d02d746909d01b69995ee3d01feb8ceffa57a8dd7576c0ed3ff3ff98cb6a4",
@@ -1562,7 +1562,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GtZDocCVQ6iNR6JzjPCqgJPzmoRN",
       "senderPublicKey": "fbc95173f63a02239ff37f81236e283504d247d551143d16c2fee80c692b25bd",
@@ -1577,7 +1577,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GtZDocCVQ6iNR6JzjPCqgJPzmoRN",
       "senderPublicKey": "fbc95173f63a02239ff37f81236e283504d247d551143d16c2fee80c692b25bd",
@@ -1589,7 +1589,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GFTKdq7VsFhWSbtFAAE2dEFcjEw2",
       "senderPublicKey": "41d4ddc5b4adb3476e1a3816929c053e0904e0b093442a4ecf98ae32efcfec39",
@@ -1604,7 +1604,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GFTKdq7VsFhWSbtFAAE2dEFcjEw2",
       "senderPublicKey": "41d4ddc5b4adb3476e1a3816929c053e0904e0b093442a4ecf98ae32efcfec39",
@@ -1616,7 +1616,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G28WJWbDP5GLjjxyo6VRQT3URX7Hi",
       "senderPublicKey": "f8b7aff00cb57e66e2f2c6b769879e200a8a7a2fd44f3f77032f5c58f0fd4b99",
@@ -1631,7 +1631,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G28WJWbDP5GLjjxyo6VRQT3URX7Hi",
       "senderPublicKey": "f8b7aff00cb57e66e2f2c6b769879e200a8a7a2fd44f3f77032f5c58f0fd4b99",
@@ -1643,7 +1643,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GRuLM2NVEJoCVkXyVJpHwao2DJ4S",
       "senderPublicKey": "f97882246ceeb7a57535e59796e267a5d8a8442116f7d9507bf78a873762ff9a",
@@ -1658,7 +1658,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GRuLM2NVEJoCVkXyVJpHwao2DJ4S",
       "senderPublicKey": "f97882246ceeb7a57535e59796e267a5d8a8442116f7d9507bf78a873762ff9a",
@@ -1670,7 +1670,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G44Yc9HD5d5YT81yQJYUgiQ7vyf7b",
       "senderPublicKey": "7565d9c708bd000c77476a9004377f54f928a7559fe0c78ed175a31ba122acc1",
@@ -1685,7 +1685,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G44Yc9HD5d5YT81yQJYUgiQ7vyf7b",
       "senderPublicKey": "7565d9c708bd000c77476a9004377f54f928a7559fe0c78ed175a31ba122acc1",
@@ -1697,7 +1697,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GACixozyzhKC9xTK4SRJzUKvr1i1",
       "senderPublicKey": "ed7b40cff0fcfbbb72b9c144caf46b27eefcabdb0f928d3a8f9952b73c1c687f",
@@ -1712,7 +1712,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GACixozyzhKC9xTK4SRJzUKvr1i1",
       "senderPublicKey": "ed7b40cff0fcfbbb72b9c144caf46b27eefcabdb0f928d3a8f9952b73c1c687f",
@@ -1724,7 +1724,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gz2RgZdg3MExieoF5Nbti9WUnzY8",
       "senderPublicKey": "42fce5f99b7adb0e5ccdcf355ea34e2a0bb232c9264a21514eeeaff94309258d",
@@ -1739,7 +1739,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gz2RgZdg3MExieoF5Nbti9WUnzY8",
       "senderPublicKey": "42fce5f99b7adb0e5ccdcf355ea34e2a0bb232c9264a21514eeeaff94309258d",
@@ -1751,7 +1751,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3ndytn75sL8fPqSBKj2u729AXhJf",
       "senderPublicKey": "3920b9e5a8f74198dc427ed070d2c5ecbe29ea2f8e1006bcfaca3bc2c8a71018",
@@ -1766,7 +1766,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3ndytn75sL8fPqSBKj2u729AXhJf",
       "senderPublicKey": "3920b9e5a8f74198dc427ed070d2c5ecbe29ea2f8e1006bcfaca3bc2c8a71018",
@@ -1778,7 +1778,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G278ro2Y4tunbXPrXrrqPm9AW3Gya",
       "senderPublicKey": "4d4be9c05274d9047eeacac567ee9a1e17a05ade7f7e419aaf54e2142af0a463",
@@ -1793,7 +1793,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G278ro2Y4tunbXPrXrrqPm9AW3Gya",
       "senderPublicKey": "4d4be9c05274d9047eeacac567ee9a1e17a05ade7f7e419aaf54e2142af0a463",
@@ -1805,7 +1805,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GUKPjcdiRr28sjY322SqSFxef8W1",
       "senderPublicKey": "d40b8b9bbb665e9fda6bac465f900b0815704a1e72f2f57eab4651710755d2e5",
@@ -1820,7 +1820,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GUKPjcdiRr28sjY322SqSFxef8W1",
       "senderPublicKey": "d40b8b9bbb665e9fda6bac465f900b0815704a1e72f2f57eab4651710755d2e5",
@@ -1832,7 +1832,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3bh654XQD3V6TP5aH4KspdPybYgX",
       "senderPublicKey": "e43bb2cc9d5591d00344c1c49b99b6404a73fd98380386276670a0111a72c6fc",
@@ -1847,7 +1847,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3bh654XQD3V6TP5aH4KspdPybYgX",
       "senderPublicKey": "e43bb2cc9d5591d00344c1c49b99b6404a73fd98380386276670a0111a72c6fc",
@@ -1859,7 +1859,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2EjKCgA4SBpApcHKzTXFEG4aN2fX",
       "senderPublicKey": "4c4e68d8ac18f73787e016fbfd07dbfdb946354f9de5934699ddc1dad71e6ef4",
@@ -1874,7 +1874,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2EjKCgA4SBpApcHKzTXFEG4aN2fX",
       "senderPublicKey": "4c4e68d8ac18f73787e016fbfd07dbfdb946354f9de5934699ddc1dad71e6ef4",
@@ -1886,7 +1886,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4X3t9GWrPU65U3nZzqR6z5LQdfP1",
       "senderPublicKey": "edbf629c3c058f97bc560d45812ffb47a4e9233ecf3a814c9dae51adae05c9e0",
@@ -1901,7 +1901,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4X3t9GWrPU65U3nZzqR6z5LQdfP1",
       "senderPublicKey": "edbf629c3c058f97bc560d45812ffb47a4e9233ecf3a814c9dae51adae05c9e0",
@@ -1913,7 +1913,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2Av9Fzma9svmj8hD1X76Ar5FHY1z",
       "senderPublicKey": "3a6a54b906d2b3939a83c1f5ff10b192e1e30652bb9473d6acbe0b42d6e86a39",
@@ -1928,7 +1928,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2Av9Fzma9svmj8hD1X76Ar5FHY1z",
       "senderPublicKey": "3a6a54b906d2b3939a83c1f5ff10b192e1e30652bb9473d6acbe0b42d6e86a39",
@@ -1940,7 +1940,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3yguB3tazFf6bia3CU1RjXtv2iV6",
       "senderPublicKey": "feda901bb63e494e2f30865734e40aa0464f59f2a526a61648c86ba2faf1a952",
@@ -1955,7 +1955,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3yguB3tazFf6bia3CU1RjXtv2iV6",
       "senderPublicKey": "feda901bb63e494e2f30865734e40aa0464f59f2a526a61648c86ba2faf1a952",
@@ -1967,7 +1967,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3UafUGkt1z8X7bPa7QM37z961UGn",
       "senderPublicKey": "8862c8b62ca2d9e5a02108ea7367a38c3fa88e17c91043b85d3b0f336c12b580",
@@ -1982,7 +1982,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3UafUGkt1z8X7bPa7QM37z961UGn",
       "senderPublicKey": "8862c8b62ca2d9e5a02108ea7367a38c3fa88e17c91043b85d3b0f336c12b580",
@@ -1994,7 +1994,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GJxxR6kG8SpF3w13NZBMFiJbLNGz",
       "senderPublicKey": "1af368b3d0b3de38388b8c96344fe5912705e97dce73d76d44bf52d591ed9814",
@@ -2009,7 +2009,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GJxxR6kG8SpF3w13NZBMFiJbLNGz",
       "senderPublicKey": "1af368b3d0b3de38388b8c96344fe5912705e97dce73d76d44bf52d591ed9814",
@@ -2021,7 +2021,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G29SwgjogWKkM3T6w7ePJWz9P2A1m",
       "senderPublicKey": "3480e86a8279f9a1d6f1da69dbd129de588947202354af690b225f6791b807eb",
@@ -2036,7 +2036,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G29SwgjogWKkM3T6w7ePJWz9P2A1m",
       "senderPublicKey": "3480e86a8279f9a1d6f1da69dbd129de588947202354af690b225f6791b807eb",
@@ -2048,7 +2048,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3fdU3roD2S3h2bL2Ymmw6QFs36H3",
       "senderPublicKey": "329906d331dfe9ed91fb54e3bf5c07ef9c29c35b505b17f474fee6f0a7cc5344",
@@ -2063,7 +2063,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3fdU3roD2S3h2bL2Ymmw6QFs36H3",
       "senderPublicKey": "329906d331dfe9ed91fb54e3bf5c07ef9c29c35b505b17f474fee6f0a7cc5344",
@@ -2075,7 +2075,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G365YpGX55EyXNfBVvTaLKSogMsM3",
       "senderPublicKey": "2841f52ec8971c9ccb7a77a40593a27e4f65807a8c45a351c451e9deb1c16ac4",
@@ -2090,7 +2090,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G365YpGX55EyXNfBVvTaLKSogMsM3",
       "senderPublicKey": "2841f52ec8971c9ccb7a77a40593a27e4f65807a8c45a351c451e9deb1c16ac4",
@@ -2102,7 +2102,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gqb6byHDcQwx6xdJQgGaNCm2JeY8",
       "senderPublicKey": "daf2d0dba97e548ed0c3a160d80ae761ae354fa9ae6ed37167e4dcca400d5b9b",
@@ -2117,7 +2117,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gqb6byHDcQwx6xdJQgGaNCm2JeY8",
       "senderPublicKey": "daf2d0dba97e548ed0c3a160d80ae761ae354fa9ae6ed37167e4dcca400d5b9b",
@@ -2129,7 +2129,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2ouNZpEQfWEbEsh5nQCN9aLBEJMk",
       "senderPublicKey": "e7ea1c1d2bd7a30876ed57efc21728cdaed20417903691b7ba232e11904860c9",
@@ -2144,7 +2144,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2ouNZpEQfWEbEsh5nQCN9aLBEJMk",
       "senderPublicKey": "e7ea1c1d2bd7a30876ed57efc21728cdaed20417903691b7ba232e11904860c9",
@@ -2156,7 +2156,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G7LFsrk4YEHLBKMWNKSk3654XNcJ",
       "senderPublicKey": "6b9e8e34ac78991f8fcdfdee9e8b5b299846302f7c779f7e9e061c024918c359",
@@ -2171,7 +2171,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G7LFsrk4YEHLBKMWNKSk3654XNcJ",
       "senderPublicKey": "6b9e8e34ac78991f8fcdfdee9e8b5b299846302f7c779f7e9e061c024918c359",
@@ -2183,7 +2183,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GNNocmHTwMeEByMqH2FVzvRaeabM",
       "senderPublicKey": "47c3ba46624f42204bbfd3efddc734a9ef7da146e716d30ec27b2d425c810f1d",
@@ -2198,7 +2198,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GNNocmHTwMeEByMqH2FVzvRaeabM",
       "senderPublicKey": "47c3ba46624f42204bbfd3efddc734a9ef7da146e716d30ec27b2d425c810f1d",
@@ -2210,7 +2210,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3U1GAzPxpJ1QeQgTmHp3Mq6sE4AL",
       "senderPublicKey": "acec2b2d6f0c164c4b5db5f6fa8917dd9963418ab1580f01e7e5bc68bb1060ca",
@@ -2225,7 +2225,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3U1GAzPxpJ1QeQgTmHp3Mq6sE4AL",
       "senderPublicKey": "acec2b2d6f0c164c4b5db5f6fa8917dd9963418ab1580f01e7e5bc68bb1060ca",
@@ -2237,7 +2237,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G25H9dHD7jZE8qp1rJzCGwaX6Cqz3",
       "senderPublicKey": "2893b584e9507f1db9812ea391bcf816af4fc1f4d98054572d047f996e24db2d",
@@ -2252,7 +2252,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G25H9dHD7jZE8qp1rJzCGwaX6Cqz3",
       "senderPublicKey": "2893b584e9507f1db9812ea391bcf816af4fc1f4d98054572d047f996e24db2d",
@@ -2264,7 +2264,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2pHBxHtH7BF8NjpJGurfFj9r5asa",
       "senderPublicKey": "de5606b3e2e0b626c64caef5e2f49d1bfe0ab1d54b742066db217aae8ce84b54",
@@ -2279,7 +2279,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2pHBxHtH7BF8NjpJGurfFj9r5asa",
       "senderPublicKey": "de5606b3e2e0b626c64caef5e2f49d1bfe0ab1d54b742066db217aae8ce84b54",
@@ -2291,7 +2291,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SdpveZUfzLv9JYUJeB5NCV8UGLq",
       "senderPublicKey": "68c77f42335f15fa94065ee62bd5d4468b8fe40b3c4703cef1ffedd18ef38df1",
@@ -2306,7 +2306,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3SdpveZUfzLv9JYUJeB5NCV8UGLq",
       "senderPublicKey": "68c77f42335f15fa94065ee62bd5d4468b8fe40b3c4703cef1ffedd18ef38df1",
@@ -2318,7 +2318,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GEbSdBW51dum8zKQknomMELoZnLC",
       "senderPublicKey": "ad67a00ce94ea411e9448d36030088c4c46216cfdfd5cd433a107ebef0155acc",
@@ -2333,7 +2333,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GEbSdBW51dum8zKQknomMELoZnLC",
       "senderPublicKey": "ad67a00ce94ea411e9448d36030088c4c46216cfdfd5cd433a107ebef0155acc",
@@ -2345,7 +2345,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GxatYhGUuhXj7wr1ys3bvCTUN1E",
       "senderPublicKey": "84e0cb73204eebafde9e598e07e64622d5364ad2302c3722e5566d53bf06358c",
@@ -2360,7 +2360,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GxatYhGUuhXj7wr1ys3bvCTUN1E",
       "senderPublicKey": "84e0cb73204eebafde9e598e07e64622d5364ad2302c3722e5566d53bf06358c",
@@ -2372,7 +2372,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gjfw7B8WyHq7bw22TwG6gPtdXD19",
       "senderPublicKey": "3bdfe51c36dee03e767200a79c088dbdfb75fdc7292a7a25c4bdccb2ef46e28e",
@@ -2387,7 +2387,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "Gjfw7B8WyHq7bw22TwG6gPtdXD19",
       "senderPublicKey": "3bdfe51c36dee03e767200a79c088dbdfb75fdc7292a7a25c4bdccb2ef46e28e",
@@ -2399,7 +2399,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GBR31pwhxvsgtrQDfzRxjfoPB62r",
       "senderPublicKey": "a63ca3ece902ac55acbf37bb3a772723ad76634a9113a49c0e9e29c177763ea1",
@@ -2414,7 +2414,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GBR31pwhxvsgtrQDfzRxjfoPB62r",
       "senderPublicKey": "a63ca3ece902ac55acbf37bb3a772723ad76634a9113a49c0e9e29c177763ea1",
@@ -2426,7 +2426,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2QP6FBxZj19bzdBKKWxW8xoUo2vx",
       "senderPublicKey": "d606920b97708ee1ef80a539c0ed1fd91b2219b85c2c593457e0fccbc9502999",
@@ -2441,7 +2441,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2QP6FBxZj19bzdBKKWxW8xoUo2vx",
       "senderPublicKey": "d606920b97708ee1ef80a539c0ed1fd91b2219b85c2c593457e0fccbc9502999",
@@ -2453,7 +2453,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GRgor74w6tEZJ2hSVQkS5yCNKjmg",
       "senderPublicKey": "75c0712996fae2ee087aae024d0b197ac23231299ca0ba5e1400d00af42f4f07",
@@ -2468,7 +2468,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GRgor74w6tEZJ2hSVQkS5yCNKjmg",
       "senderPublicKey": "75c0712996fae2ee087aae024d0b197ac23231299ca0ba5e1400d00af42f4f07",
@@ -2480,7 +2480,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G26gsyu1VkF1z4JJ6UGa5VTa4wdWj",
       "senderPublicKey": "5506452f720896f3eda69d734e453a60b7a14ff3863fbd09cca4b8a234b38c06",
@@ -2495,7 +2495,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G26gsyu1VkF1z4JJ6UGa5VTa4wdWj",
       "senderPublicKey": "5506452f720896f3eda69d734e453a60b7a14ff3863fbd09cca4b8a234b38c06",
@@ -2507,7 +2507,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G8UggaUy5aio4weHWm8fJSsFS9D2",
       "senderPublicKey": "3141d93d159e40ffc1f01376b4e1ff611822651bbf668028bd976c96c1d2cdf7",
@@ -2522,7 +2522,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G8UggaUy5aio4weHWm8fJSsFS9D2",
       "senderPublicKey": "3141d93d159e40ffc1f01376b4e1ff611822651bbf668028bd976c96c1d2cdf7",
@@ -2534,7 +2534,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn",
       "senderPublicKey": "f01ea52cba3a957a9a1be5684930c5b214e601debd80ee8eeceb3c89e4a00a97",
@@ -2549,7 +2549,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn",
       "senderPublicKey": "f01ea52cba3a957a9a1be5684930c5b214e601debd80ee8eeceb3c89e4a00a97",
@@ -2561,7 +2561,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2EX4yLiTdqtn2bZRsTMWppvffkQ8",
       "senderPublicKey": "5d03f35333ac51920801a0b9ea1619f8b01f8639541efaf4030b4a0590731098",
@@ -2576,7 +2576,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2EX4yLiTdqtn2bZRsTMWppvffkQ8",
       "senderPublicKey": "5d03f35333ac51920801a0b9ea1619f8b01f8639541efaf4030b4a0590731098",
@@ -2588,7 +2588,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN",
       "senderPublicKey": "763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635",
@@ -2603,7 +2603,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN",
       "senderPublicKey": "763f529207e9d3437a6dbdf022fc8c31c79744afe7a0a422bf684b97961f2635",
@@ -2615,7 +2615,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3avVDiYyPRkzVWZ4QTW93yoJZMXg",
       "senderPublicKey": "22220e022647567bfe15e4eeb27c5e6c18df53dd9d7b73796b9dbb28ad048fd1",
@@ -2630,7 +2630,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G3avVDiYyPRkzVWZ4QTW93yoJZMXg",
       "senderPublicKey": "22220e022647567bfe15e4eeb27c5e6c18df53dd9d7b73796b9dbb28ad048fd1",
@@ -2642,7 +2642,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G77TLqGkKcU3tzVM9acAB3V1iGsd",
       "senderPublicKey": "a9672d7bffea1d4880ab0f24594365c7204fdf5232ad210a5b87a983184abc62",
@@ -2657,7 +2657,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G77TLqGkKcU3tzVM9acAB3V1iGsd",
       "senderPublicKey": "a9672d7bffea1d4880ab0f24594365c7204fdf5232ad210a5b87a983184abc62",
@@ -2669,7 +2669,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GZr2NYvHqp9keXPVsAp6EDHTiT3y",
       "senderPublicKey": "f8fda61a900942f4d7217d4ea60eab4e0dce4f767ef5d78a97da08dcf509a925",
@@ -2684,7 +2684,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "GZr2NYvHqp9keXPVsAp6EDHTiT3y",
       "senderPublicKey": "f8fda61a900942f4d7217d4ea60eab4e0dce4f767ef5d78a97da08dcf509a925",
@@ -2696,7 +2696,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2zx8qtg4FKm8jz9AsvAJb75idrXS",
       "senderPublicKey": "a887240db9dba4b3d0931e4bc19dc8b5060eff843dde2cf4fb9a7b4a7504ddf7",
@@ -2711,7 +2711,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G2zx8qtg4FKm8jz9AsvAJb75idrXS",
       "senderPublicKey": "a887240db9dba4b3d0931e4bc19dc8b5060eff843dde2cf4fb9a7b4a7504ddf7",
@@ -2723,7 +2723,7 @@
     },
     {
       "type": 1,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4GNdWmigYht2C9ipfexSzn67mLZE",
       "senderPublicKey": "9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f",
@@ -2738,7 +2738,7 @@
     },
     {
       "type": 10,
-      "fee": 0,
+      "fee": "0",
       "timestamp": 0,
       "senderId": "G4GNdWmigYht2C9ipfexSzn67mLZE",
       "senderPublicKey": "9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f",

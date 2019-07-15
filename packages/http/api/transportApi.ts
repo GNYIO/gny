@@ -5,7 +5,7 @@ import {
   IScope,
   Next,
   ManyVotes,
-  Transaction,
+  ITransaction,
   IBlock,
   CommonBlockResult,
 } from '../../../src/interfaces';
@@ -227,7 +227,7 @@ export default class TransportApi {
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
-    let transaction: Transaction;
+    let transaction: ITransaction;
     try {
       transaction = TransactionBase.normalizeTransaction(req.body.transaction);
     } catch (e) {

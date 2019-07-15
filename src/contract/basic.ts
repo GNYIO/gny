@@ -15,7 +15,7 @@ async function deleteCreatedVotes(account) {
 
       await global.app.sdb.increase(
         'Delegate',
-        { votes: -account.lockAmount },
+        { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
       await global.app.sdb.del('Vote', {
@@ -60,7 +60,7 @@ export default {
       if (recipientAccount) {
         await global.app.sdb.increase(
           'Account',
-          { gny: amount },
+          { gny: String(amount) },
           { address: recipientAccount.address }
         );
       } else {
@@ -77,13 +77,13 @@ export default {
       if (!recipientAccount) return 'Recipient name not exist';
       await global.app.sdb.increase(
         'Account',
-        { gny: amount },
+        { gny: String(amount) },
         { address: recipientAccount.address }
       );
     }
     await global.app.sdb.increase(
       'Account',
-      { gny: -amount },
+      { gny: String(-amount) },
       { address: sender.address }
     );
 
@@ -199,7 +199,7 @@ export default {
         for (const voteItem of voteList) {
           await global.app.sdb.increase(
             'Delegate',
-            { votes: amount },
+            { votes: String(amount) },
             { username: voteItem.delegate }
           );
         }
@@ -301,7 +301,11 @@ export default {
 
     for (const username of delegates) {
       const votes = sender.lockAmount;
-      await global.app.sdb.increase('Delegate', { votes }, { username });
+      await global.app.sdb.increase(
+        'Delegate',
+        { votes: String(votes) },
+        { username }
+      );
       await global.app.sdb.create('Vote', {
         voterAddress: senderId,
         delegate: username,
@@ -345,7 +349,11 @@ export default {
 
     for (const username of delegates) {
       const votes = -sender.lockAmount;
-      await global.app.sdb.increase('Delegate', { votes }, { username });
+      await global.app.sdb.increase(
+        'Delegate',
+        { votes: String(votes) },
+        { username }
+      );
 
       await global.app.sdb.del('Vote', {
         voterAddress: senderId,

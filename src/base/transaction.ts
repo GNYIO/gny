@@ -3,18 +3,19 @@ import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
 import { KeyPair, IAccount } from '../interfaces';
 import { copyObject } from './helpers';
-import { Transaction, Context } from '../../src/interfaces';
+import { ITransaction, Context } from '../../src/interfaces';
 import slots from '../../src/utils/slots';
 import feeCalculators from '../../src/utils/calculate-fee';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
+import BigNumber from 'bignumber.js';
 
 export interface CreateTransactionType {
   type: number;
   keypair: KeyPair;
   message?: string;
   args: any;
-  fee: Number;
+  fee: string;
   secondKeypair?: KeyPair;
 }
 
@@ -137,7 +138,7 @@ export class TransactionBase {
   }
 
   public static verifyNormalSignature(
-    transaction: Transaction,
+    transaction: ITransaction,
     sender: IAccount,
     bytes: Buffer
   ) {
@@ -178,7 +179,7 @@ export class TransactionBase {
     const feeCalculator = feeCalculators[trs.type];
     if (!feeCalculator) return 'Fee calculator not found';
     const minFee = 100000000 * feeCalculator(trs);
-    if (trs.fee < minFee) return 'Fee not enough';
+    if (new BigNumber(trs.fee).lt(minFee)) return 'Fee not enough';
 
     try {
       const bytes = TransactionBase.getBytes(trs, true, true);
@@ -195,7 +196,7 @@ export class TransactionBase {
   }
 
   public static create(data: CreateTransactionType) {
-    const transaction: Transaction = {
+    const transaction: Partial<ITransaction> = {
       type: data.type,
       senderId: addressHelper.generateAddress(
         data.keypair.publicKey.toString('hex')
@@ -218,7 +219,7 @@ export class TransactionBase {
 
     transaction.id = TransactionBase.getHash(transaction).toString('hex');
 
-    return transaction;
+    return transaction as ITransaction;
   }
 
   private static sign(keypair: KeyPair, transaction) {

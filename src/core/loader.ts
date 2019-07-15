@@ -1,6 +1,6 @@
 import slots from '../utils/slots';
 import { TIMEOUT } from '../utils/constants';
-import { IGenesisBlock, PeerNode, IBlock, Transaction } from '../interfaces';
+import { IGenesisBlock, PeerNode, IBlock, ITransaction } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
@@ -169,7 +169,7 @@ export default class Loader {
         return cb('validation of peer failed');
       }
 
-      const transactions = data.transactions as Transaction[];
+      const transactions = data.transactions as ITransaction[];
       const peerStr = `${peer.host}:${peer.port - 1}`;
 
       for (let i = 0; i < transactions.length; i++) {
@@ -188,7 +188,7 @@ export default class Loader {
         }
       }
 
-      const trs: Transaction[] = [];
+      const trs: ITransaction[] = [];
       for (let i = 0; i < transactions.length; ++i) {
         const one = transactions[i];
         if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {

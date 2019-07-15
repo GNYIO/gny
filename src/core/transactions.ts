@@ -1,4 +1,4 @@
-import { Transaction, Context, IState, IAccount } from '../interfaces';
+import { ITransaction, Context, IState, IAccount } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
@@ -6,7 +6,7 @@ import { BigNumber } from 'bignumber.js';
 export default class Transactions {
   public static processUnconfirmedTransactions = (
     state: IState,
-    transactions: Transaction[],
+    transactions: ITransaction[],
     cb
   ) => {
     (async () => {
@@ -26,7 +26,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransactionsAsync = async (
     state: IState,
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) => {
     for (const transaction of transactions) {
       await Transactions.processUnconfirmedTransactionAsync(state, transaction);
@@ -35,7 +35,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransaction = (
     state: IState,
-    transaction: Transaction,
+    transaction: ITransaction,
     cb
   ) => {
     (async () => {
@@ -53,7 +53,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: Transaction
+    transaction: ITransaction
   ) => {
     try {
       if (!transaction.id) {
@@ -92,7 +92,7 @@ export default class Transactions {
 
   public static applyUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: Transaction
+    transaction: ITransaction
   ) => {
     const height = state.lastBlock.height;
     const block = {
@@ -158,7 +158,7 @@ export default class Transactions {
     if (block.height !== 0) {
       if (new BigNumber(sender.gny).isLessThan(trs.fee))
         throw new Error('Insufficient sender balance');
-      sender.gny = new BigNumber(sender.gny).minus(trs.fee);
+      sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
       await global.app.sdb.update(
         'Account',
         { gny: sender.gny },
