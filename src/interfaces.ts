@@ -321,16 +321,24 @@ export interface ITransaction {
   _version_?: number;
 }
 
-export interface Transfer {
+export interface ITransfer {
   tid: string;
   senderId: string;
   recipientId: string;
   recipientName?: string;
   currency: string;
-  amount: number;
+  amount: string;
   timestamp: number;
-  height: number;
-  _version_: number;
+  height: string;
+  _version_?: number;
+}
+
+export interface IBalance {
+  address: string;
+  currency: string;
+  balance: string;
+  flag: number;
+  _version_?: number;
 }
 
 export interface Delegate {

@@ -7,6 +7,7 @@ import {
   Next,
   DelegateViewModel,
   IAccount,
+  IBalance,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
@@ -190,7 +191,7 @@ export default class AccountsApi {
       condition.flag = Number(req.query.flag);
     }
     const count = await global.app.sdb.count('Balance', condition);
-    let balances = [];
+    let balances: IBalance[] = [];
     if (count > 0) {
       balances = await global.app.sdb.findAll('Balance', {
         condition,

@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount } from '../interfaces';
+import { IAccount, ITransfer } from '../interfaces';
 
 async function deleteCreatedVotes(account) {
   interface Vote {
@@ -51,7 +51,7 @@ export default {
     if (this.block.height > 0 && new BigNumber(sender.gny).isLessThan(amount))
       return 'Insufficient balance';
 
-    let recipientAccount;
+    let recipientAccount: IAccount;
     // Validate recipient is valid address
     if (recipient && global.app.util.address.isAddress(recipient)) {
       recipientAccount = await global.app.sdb.load('Account', {
@@ -66,7 +66,7 @@ export default {
       } else {
         recipientAccount = await global.app.sdb.create('Account', {
           address: recipient,
-          gny: amount,
+          gny: String(amount),
           username: null,
         });
       }
@@ -87,16 +87,17 @@ export default {
       { address: sender.address }
     );
 
-    await global.app.sdb.create('Transfer', {
+    const transfer: ITransfer = {
       tid: this.trs.id,
-      height: this.block.height,
+      height: String(this.block.height),
       senderId,
       recipientId: recipientAccount.address,
       recipientName: recipientAccount.username,
       currency: 'GNY',
       amount: String(amount),
       timestamp: this.trs.timestamp,
-    });
+    };
+    await global.app.sdb.create('Transfer', transfer);
     return null;
   },
 

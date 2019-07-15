@@ -1,4 +1,5 @@
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
+import { IBalance } from '../interfaces';
 
 function getCurrencyFlag(currency: string) {
   if (currency === 'GNY') {
@@ -12,40 +13,45 @@ function getCurrencyFlag(currency: string) {
 
 export default class BalanceManager {
   private sdb: SmartDB;
-  constructor(sdb) {
+  constructor(sdb: SmartDB) {
     this.sdb = sdb;
   }
 
-  async get(address, currency) {
-    const item = await this.sdb.get('Balance', { address, currency });
-    const balance = item ? item.balance : '0';
+  async get(address: string, currency: string) {
+    const item: IBalance = await this.sdb.get('Balance', { address, currency });
+    const balance = item ? item.balance : String(0);
     return new global.app.util.bignumber(balance);
   }
 
-  async increase(address, currency, amount) {
+  async increase(address: string, currency: string, amount) {
     if (new global.app.util.bignumber(amount).eq(0)) return;
     const key = { address, currency };
-    let item = await this.sdb.get('Balance', key);
+    let item: IBalance = await this.sdb.get('Balance', key);
     if (item) {
       item.balance = new global.app.util.bignumber(item.balance)
         .plus(amount)
         .toString(10);
-      await global.app.sdb.update('Balance', { balance: item.balance }, key);
+      await global.app.sdb.update(
+        'Balance',
+        { balance: String(item.balance) },
+        key
+      );
     } else {
-      item = await this.sdb.create('Balance', {
+      const newBalance: IBalance = {
         address,
         currency,
-        balance: amount,
+        balance: String(amount),
         flag: getCurrencyFlag(currency),
-      });
+      };
+      item = await this.sdb.create('Balance', newBalance);
     }
   }
 
-  async decrease(address, currency, amount) {
+  async decrease(address: string, currency: string, amount) {
     await this.increase(address, currency, `-${amount}`);
   }
 
-  async transfer(currency, amount, from, to) {
+  async transfer(currency: string, amount, from: string, to: string) {
     await this.decrease(from, currency, amount);
     await this.increase(to, currency, amount);
   }

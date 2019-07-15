@@ -1,3 +1,5 @@
+import { ITransfer } from '../interfaces';
+
 export default {
   async registerIssuer(name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
@@ -113,16 +115,17 @@ export default {
       senderId,
       recipientAddress
     );
-    await global.app.sdb.create('Transfer', {
+    const transfer: ITransfer = {
       tid: this.trs.id,
-      height: this.block.height,
+      height: String(this.block.height),
       senderId,
       recipientId: recipientAddress,
       recipientName,
       currency,
-      amount,
+      amount: String(amount),
       timestamp: this.trs.timestamp,
-    });
+    };
+    await global.app.sdb.create('Transfer', transfer);
     return null;
   },
 };

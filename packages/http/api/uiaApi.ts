@@ -1,7 +1,7 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../src/interfaces';
+import { IScope, Next, IBalance } from '../../../src/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class UiaApi {
@@ -259,7 +259,7 @@ export default class UiaApi {
     try {
       const condition = { address: req.params.address };
       const count = await global.app.sdb.count('Balance', condition);
-      const balances = await global.app.sdb.findAll('Balance', {
+      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
         condition,
         limit: query.limit,
         offset: query.offset,
@@ -291,7 +291,9 @@ export default class UiaApi {
         address: req.params.address,
         currency: req.params.currency,
       };
-      const balances = await global.app.sdb.findAll('Balance', { condition });
+      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
+        condition,
+      });
       if (!balances || balances.length === 0)
         return next('Balance info not found');
       return res.json({ balance: balances[0] });
