@@ -116,7 +116,7 @@ export default class Transactions {
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: new BigNumber(0).toFixed(),
+        gny: String(0),
       } as IAccount);
     }
 
@@ -161,7 +161,7 @@ export default class Transactions {
       sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
       await global.app.sdb.update(
         'Account',
-        { gny: sender.gny },
+        { gny: String(sender.gny) },
         { address: sender.address }
       );
     }

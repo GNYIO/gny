@@ -182,7 +182,7 @@ export default class AccountsApi {
     const gnyBalance =
       accountOverview && accountOverview.account
         ? accountOverview.account.balance
-        : new BigNumber(0);
+        : String(0);
 
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;

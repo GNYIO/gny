@@ -240,7 +240,7 @@ describe('orm jsonSQLBuilder', () => {
     done();
   });
 
-  it.only('buildSelect with BigNumber property', done => {
+  it('buildSelect with BigNumber property', done => {
     const field = ['height', 'transactionCount'];
     const testModelSchema = schemas.get('Test');
     const where = {

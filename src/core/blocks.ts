@@ -414,7 +414,7 @@ export default class Blocks {
       const delegateAdr = addressHelper.generateAddress(publicKey);
       await global.app.sdb.increase(
         'Delegate',
-        { fees: fee, rewards: reward },
+        { fees: String(fee), rewards: String(reward) },
         { address: delegateAdr }
       );
       // TODO should account be all cached?
@@ -427,15 +427,16 @@ export default class Blocks {
 
     const ratio = 1;
 
+    // const actualFees = new BigNumber(fee).times(ratio).toFixed();
+    // const feeAverage = new BigNumber(actualFees).dividedToIntegerBy(delegates.length).toFixed();
+    // const feeRemainder = new BigNumber(feeAverage).times(delegates.length).minus(actualFees);
     const actualFees = Math.floor(fee * ratio);
     const feeAverage = Math.floor(actualFees / delegates.length);
     const feeRemainder = actualFees - feeAverage * delegates.length;
-    // let feeFounds = fees - actualFees
 
     const actualRewards = Math.floor(reward * ratio);
     const rewardAverage = Math.floor(actualRewards / delegates.length);
     const rewardRemainder = actualRewards - rewardAverage * delegates.length;
-    // let rewardFounds = rewards - actualRewards
 
     for (const fd of forgedDelegates) {
       await updateDelegate(fd, feeAverage, rewardAverage);

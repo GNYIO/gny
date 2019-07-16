@@ -2,19 +2,20 @@ import { BlockCache } from '../../../packages/database-postgres/src/blockCache';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
 import { BigNumber } from 'bignumber.js';
+import { IBlock } from '../../../src/interfaces';
 
 function createRandomBytes(length: number) {
   return Buffer.from(randomBytes(length)).toString('hex');
 }
 
 function createBlock(height: number) {
-  const block: Block = {
+  const block: IBlock = {
     height: height,
     version: 0,
     timestamp: height + 2003502305230,
     count: 0,
-    fees: new BigNumber(0),
-    reward: new BigNumber(0),
+    fees: String(0),
+    reward: String(0),
     signature: createRandomBytes(64),
     id: createRandomBytes(32),
     delegate: createRandomBytes(32),

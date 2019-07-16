@@ -379,6 +379,14 @@ export interface IRound {
   _version_?: number;
 }
 
+export interface IIssuer {
+  name: string;
+  tid: string;
+  issuerId: string;
+  desc: string;
+  _version_?: number;
+}
+
 export interface NewBlockMessage {
   id: string;
   height: number;

@@ -89,9 +89,9 @@ function createBlock(
     timestamp: timestamp,
     transactions: transactions,
     count: transactions.length,
-    fees: new BigNumber(0),
+    fees: String(0),
     payloadHash: payloadHash.digest().toString('hex'),
-    reward: new BigNumber(0),
+    reward: String(0),
     signature: undefined,
     id: undefined,
   };
@@ -303,8 +303,8 @@ describe('core/blocks', () => {
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: new BigNumber(0),
-        reward: new BigNumber(0),
+        fees: String(0),
+        reward: String(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
       };
@@ -327,8 +327,8 @@ describe('core/blocks', () => {
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: new BigNumber(0),
-        reward: new BigNumber(0),
+        fees: String(0),
+        reward: String(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
         prevBlockId: randomHex(32), // important

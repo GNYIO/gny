@@ -66,7 +66,7 @@ describe('uia', () => {
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
@@ -120,7 +120,7 @@ describe('uia', () => {
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
@@ -158,7 +158,7 @@ describe('uia', () => {
       precision = 8;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
@@ -228,7 +228,7 @@ describe('uia', () => {
     it('should return Account is not an issuer', async done => {
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(200 * 1e8),
+        gny: String(200 * 1e8),
       } as IAccount;
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
@@ -250,7 +250,7 @@ describe('uia', () => {
     it('should return Asset already exists', async done => {
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(200 * 1e8),
+        gny: String(200 * 1e8),
       } as IAccount;
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
@@ -290,7 +290,7 @@ describe('uia', () => {
       amount = 10000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
 
       const asset = {
@@ -326,7 +326,7 @@ describe('uia', () => {
       amount = 10000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
 
       const asset = {
@@ -348,7 +348,7 @@ describe('uia', () => {
       amount = 1000000000;
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
 
       const asset = {
@@ -393,7 +393,7 @@ describe('uia', () => {
       const balance = new global.app.util.bignumber(100000000);
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
       (uia as any).block = {
         height: 1,
@@ -436,7 +436,7 @@ describe('uia', () => {
     it('should return Insufficient balance', async done => {
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: new BigNumber(200),
+        gny: String(200),
       } as IAccount;
       const balance = new BigNumber(1000);
 
@@ -449,7 +449,7 @@ describe('uia', () => {
     it('should return Recipient name not exist', async done => {
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: new BigNumber(200),
+        gny: String(200),
       } as IAccount;
       recipient = 'xpgeng';
       const balance = new BigNumber(1000000000);

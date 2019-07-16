@@ -45,10 +45,10 @@ describe('basic', () => {
   });
 
   describe('transfer', () => {
-    let amount: BigNumber;
+    let amount: string;
     let recipient: string;
     beforeEach(done => {
-      amount = new BigNumber(100000);
+      amount = String(100000);
       recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
       done();
     });
@@ -71,7 +71,7 @@ describe('basic', () => {
       };
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -97,7 +97,7 @@ describe('basic', () => {
       username = 'xpgeng';
       account = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         username: username,
       } as IAccount;
       done();
@@ -117,7 +117,7 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         username: null,
       } as IAccount;
 
@@ -136,7 +136,7 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         username: null,
       } as IAccount;
 
@@ -153,7 +153,7 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         username: 'xpgeng',
       } as IAccount;
 
@@ -187,7 +187,7 @@ describe('basic', () => {
     it('should set the second passphrase', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         secondPublicKey: null,
       } as IAccount;
 
@@ -202,7 +202,7 @@ describe('basic', () => {
     it('should return Invalid account type', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         secondPublicKey: null,
       } as IAccount;
 
@@ -218,7 +218,7 @@ describe('basic', () => {
     it('should return Password already set', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000000),
+        gny: String(100000000),
         secondPublicKey: publicKey,
       } as IAccount;
 
@@ -252,10 +252,10 @@ describe('basic', () => {
       const vote = { delegate: 'liangpeili' };
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -284,10 +284,10 @@ describe('basic', () => {
       amount = 101;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
 
       const locked = await basic.lock(height, amount);
@@ -300,10 +300,10 @@ describe('basic', () => {
       amount = 99;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -319,10 +319,10 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -338,10 +338,10 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -357,10 +357,10 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
         height: 1,
@@ -384,10 +384,10 @@ describe('basic', () => {
     it('should unlock the account', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(1),
-        lockAmount: new BigNumber(99),
+        lockHeight: String(1),
+        lockAmount: String(99),
         isDelegate: 0,
       } as IAccount;
       (basic as any).block = {
@@ -413,10 +413,10 @@ describe('basic', () => {
     it('should return Account is not locked', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: new BigNumber(0),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(0),
+        lockAmount: String(0),
         isDelegate: 0,
       } as IAccount;
 
@@ -430,10 +430,10 @@ describe('basic', () => {
     it('should return Account cannot unlock', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(3),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 0,
       } as IAccount;
       (basic as any).block = {
@@ -460,10 +460,10 @@ describe('basic', () => {
     it('should return null', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(1),
-        lockAmount: new BigNumber(99),
+        lockHeight: String(1),
+        lockAmount: String(99),
         isDelegate: 0,
         username: 'xpgeng',
       } as IAccount;
@@ -507,10 +507,10 @@ describe('basic', () => {
     it('should return Account has not a name', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(3),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 0,
         username: null,
       } as IAccount;
@@ -528,10 +528,10 @@ describe('basic', () => {
     it('should return Account is already Delegate', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: new BigNumber(3),
-        lockAmount: new BigNumber(0),
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 1,
         username: 'xpgeng',
       } as IAccount;
@@ -555,7 +555,7 @@ describe('basic', () => {
       delegates = 'xpgeng,liangpeili,a1300';
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
       } as IAccount;
       currentVotes = [
@@ -683,7 +683,7 @@ describe('basic', () => {
       delegates = 'xpgeng,liangpeili,a1300';
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: new BigNumber(100000100),
+        gny: String(100000100),
         isLocked: 1,
       } as IAccount;
 

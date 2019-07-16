@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate } from '../interfaces';
+import { IAccount, ITransfer, IDelegate, Context } from '../interfaces';
 
 async function deleteCreatedVotes(account) {
   interface Vote {

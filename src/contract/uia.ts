@@ -1,4 +1,4 @@
-import { ITransfer, IAsset } from '../interfaces';
+import { ITransfer, IAsset, IIssuer } from '../interfaces';
 
 export default {
   async registerIssuer(name, desc) {
@@ -16,12 +16,13 @@ export default {
     exists = await global.app.sdb.exists('Issuer', { issuerId: senderId });
     if (exists) return 'Account is already an issuer';
 
-    await global.app.sdb.create('Issuer', {
+    const issuer: IIssuer = {
       tid: this.trs.id,
       issuerId: senderId,
       name,
       desc: descJson,
-    });
+    };
+    await global.app.sdb.create('Issuer', issuer);
     return null;
   },
 
@@ -34,7 +35,7 @@ export default {
     if (precision > 16 || precision < 0) return 'Invalid asset precision';
     global.app.validate('amount', maximum);
 
-    const issuer = await global.app.sdb.findOne('Issuer', {
+    const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
       condition: { issuerId: this.sender.address },
     });
     if (!issuer) return 'Account is not an issuer';

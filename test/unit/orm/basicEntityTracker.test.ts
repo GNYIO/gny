@@ -78,7 +78,7 @@ function getAccountMetaSchema() {
       },
       {
         name: 'gny',
-        default: new BigNumber(0),
+        default: String(0),
       },
       {
         name: 'publicKey',
@@ -96,11 +96,11 @@ function getAccountMetaSchema() {
       },
       {
         name: 'lockHeight',
-        default: new BigNumber(0),
+        default: String(0),
       },
       {
         name: 'lockAmount',
-        default: new BigNumber(0),
+        default: String(0),
       },
     ],
   };
@@ -113,7 +113,7 @@ function createAccount(username: string) {
   const account: IAccount = {
     address,
     username,
-    gny: new BigNumber(0),
+    gny: String(0),
     publicKey,
     secondPublicKey: null,
     isDelegate: 0,
@@ -365,22 +365,22 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('trackNew() returns entity with set default values', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'xpgeng',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
 
     const accountModelSchema = schemas.get('Account');
 
     const expected: IAccount = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'xpgeng',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       _version_: 1,
     };
 
@@ -392,14 +392,14 @@ describe('orm - BasicEntityTracker', () => {
     const data: IAccount = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'liangpeili',
-      gny: new BigNumber(0),
+      gny: String(0),
       publicKey:
         '06080f836e63cfb10516153b97f27a18177637d9b40665b2f1f08b41ad08946a',
       secondPublicKey: null,
       isDelegate: 0,
       isLocked: 0,
-      lockHeight: new BigNumber(0),
-      lockAmount: new BigNumber(0),
+      lockHeight: String(0),
+      lockAmount: String(0),
     };
     const accountModelSchema = schemas.get('Account');
 
@@ -423,7 +423,7 @@ describe('orm - BasicEntityTracker', () => {
         },
         {
           name: 'gny',
-          current: new BigNumber(0),
+          current: String(0),
         },
         {
           name: 'publicKey',
@@ -444,11 +444,11 @@ describe('orm - BasicEntityTracker', () => {
         },
         {
           name: 'lockHeight',
-          current: new BigNumber(0),
+          current: String(0),
         },
         {
           name: 'lockAmount',
-          current: new BigNumber(0),
+          current: String(0),
         },
       ],
     };
@@ -462,21 +462,21 @@ describe('orm - BasicEntityTracker', () => {
     const data: IAccount = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'liangpeili',
-      gny: new BigNumber(0),
+      gny: String(0),
       publicKey:
         '06080f836e63cfb10516153b97f27a18177637d9b40665b2f1f08b41ad08946a',
       secondPublicKey: null,
       isDelegate: 0,
       isLocked: 0,
-      lockHeight: new BigNumber(0),
-      lockAmount: new BigNumber(0),
+      lockHeight: String(0),
+      lockAmount: String(0),
     };
     const accountModelSchema = schemas.get('Account');
 
     const returnedNew = sut.trackNew(accountModelSchema, data);
 
     const changes = {
-      gny: new BigNumber(2000000),
+      gny: String(2000000),
     };
     sut.trackModify(accountModelSchema, returnedNew, changes);
     const expected: EntityChanges = {
@@ -487,9 +487,9 @@ describe('orm - BasicEntityTracker', () => {
       },
       propertyChanges: [
         {
-          current: new BigNumber(2000000),
+          current: String(2000000),
           name: 'gny',
-          original: new BigNumber(0),
+          original: String(0),
         },
         {
           current: 2,
@@ -571,11 +571,11 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('trackDelete() removes entity from cache', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
       username: 'liangpeili',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const key = {
       address: data.address,
     };
@@ -592,12 +592,12 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('trackPersistent() tracks no changes', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'liangpeili',
-      gny: new BigNumber(0),
+      gny: String(0),
       _version_: 2,
-    } as IAccount;
+    };
 
     const accountSchema = schemas.get('Account');
     sut.trackPersistent(accountSchema, data);
@@ -606,10 +606,10 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('trackPersistent() returns same data but not same reference', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'liangpeili',
-      gny: new BigNumber(0),
+      gny: String(0),
       _version_: 2,
     };
 
@@ -620,16 +620,17 @@ describe('orm - BasicEntityTracker', () => {
     expect(returnedValue).not.toBe(data);
 
     expect(returnedValue.gny).toEqual(data.gny);
-    expect(returnedValue.gny).not.toBe(data.gny);
+    expect(typeof returnedValue.gny).toEqual('string');
+    expect(typeof data.gny).toEqual('string');
     done();
   });
   it('trackPersistent() throws if called twice', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       username: 'liangpeili',
-      gny: new BigNumber(0),
+      gny: String(0),
       _version_: 2,
-    } as IAccount;
+    };
 
     const accountSchema = schemas.get('Account');
     sut.trackPersistent(accountSchema, data);
@@ -657,11 +658,11 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('acceptChanges(10) should set history for block height 10', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2S8FueDjrk3jN7pkeui7VmrA8eMU',
       username: 'a1300',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
@@ -687,10 +688,10 @@ describe('orm - BasicEntityTracker', () => {
     sut.beginConfirm();
     expect(sut.isConfirming).toEqual(true);
 
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G3DDP47cyZiLi6nrm7kzbdvAqK5Cz',
       username: 'liangpeili',
-    } as IAccount;
+    };
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
@@ -704,21 +705,21 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('getTrackingEntity() by primary key', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
       username: 'liangpeili',
-    } as IAccount;
+    };
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
     const expected: IAccount = {
       _version_: 1,
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
 
@@ -729,21 +730,21 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('getTrackingEntity() by unique constraint (unique column)', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
       username: 'liangpeili',
-    } as IAccount;
+    };
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
     const expected: IAccount = {
       _version_: 1,
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
 
@@ -754,10 +755,10 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('getTrackingEntity() still works for cached entities after block is accepted', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
       username: 'liangpeili',
-    } as IAccount;
+    };
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
@@ -765,14 +766,14 @@ describe('orm - BasicEntityTracker', () => {
     sut.acceptChanges(0);
 
     // is entity still tracked?
-    const expected = {
+    const expected: Partial<IAccount> = {
       _version_: 1,
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
 
@@ -783,11 +784,11 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
   it('rejectChanges() rejects all unconfirmed changes', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'GuGD9McasETcrw7tEcBfoz9UiYZs',
       username: 'liangpeili',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const accountSchema = schemas.get('Account');
 
     sut.beginConfirm();
@@ -815,11 +816,11 @@ describe('orm - BasicEntityTracker', () => {
   });
   it('rejectChanges() correctly updates cache after trackNew()', done => {
     const accountSchema = schemas.get('Account');
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
       username: 'liangpeili',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const primaryKey = {
       address: data.address,
     };
@@ -834,11 +835,11 @@ describe('orm - BasicEntityTracker', () => {
     const expected: IAccount = {
       _version_: 1,
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
     expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expected);
@@ -854,11 +855,11 @@ describe('orm - BasicEntityTracker', () => {
   });
   it('rejectChanges() correctly updates cache after trackModify()', done => {
     const accountSchema = schemas.get('Account');
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
       username: 'liangpeili',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const primaryKey = {
       address: data.address,
     };
@@ -878,11 +879,11 @@ describe('orm - BasicEntityTracker', () => {
       // is the same as trackedDat
       _version_: 1,
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
     expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(
@@ -893,17 +894,17 @@ describe('orm - BasicEntityTracker', () => {
     );
 
     // modify
-    sut.trackModify(accountSchema, trackedDat, { gny: new BigNumber(900000) });
+    sut.trackModify(accountSchema, trackedDat, { gny: String(900000) });
 
     // before rejectChanges()
     const updatedData: IAccount = {
       _version_: 2, // changed
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
-      gny: new BigNumber(900000), // changed
+      gny: String(900000), // changed
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
     expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(
@@ -929,11 +930,11 @@ describe('orm - BasicEntityTracker', () => {
   // test will fail because after the trackDelete() the cached entity is missing the _version_ property
   it.skip('rejectChanges() correctly updates cache after trackDelete()', done => {
     const accountSchema = schemas.get('Account');
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
       username: 'liangpeili',
-      gny: new BigNumber(0),
-    } as IAccount;
+      gny: String(0),
+    };
     const primaryKey = {
       address: data.address,
     };
@@ -947,14 +948,14 @@ describe('orm - BasicEntityTracker', () => {
     sut.acceptChanges(0);
 
     // check before delete
-    const expected = {
+    const expected: IAccount = {
       _version_: 1,
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
-      gny: new BigNumber(0),
+      gny: String(0),
       isDelegate: 0,
       isLocked: 0,
-      lockAmount: new BigNumber(0),
-      lockHeight: new BigNumber(0),
+      lockAmount: String(0),
+      lockHeight: String(0),
       username: 'liangpeili',
     };
     expect(sut.getTrackingEntity(accountSchema, primaryKey)).toEqual(expected);
@@ -982,11 +983,11 @@ describe('orm - BasicEntityTracker', () => {
 
     sut.beginConfirm();
     const accountSchema = schemas.get('Account');
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'Gsc5hAVNut3YBLfQLXrbBPAWe2fb',
       username: 'liangpeili',
-      gny: new BigNumber(1000),
-    } as IAccount;
+      gny: String(1000),
+    };
     const trackedData = sut.trackNew(accountSchema, data);
     sut.confirm();
     sut.acceptChanges(2);
@@ -997,7 +998,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getHistoryByVersion(2).length).toEqual(1);
 
     sut.beginConfirm();
-    sut.trackModify(accountSchema, trackedData, { gny: new BigNumber(2000) });
+    sut.trackModify(accountSchema, trackedData, { gny: String(2000) });
     sut.rejectChanges();
 
     expect(sut.isConfirming).toEqual(false);
@@ -1017,68 +1018,5 @@ describe('orm - BasicEntityTracker', () => {
   });
   it.skip('automatically clear block-history after exceeding maxCachedBlocks', done => {
     done();
-  });
-
-  describe('BigNumber support', () => {
-    it('make sure that BigNumber references can not be changed when in cache', done => {
-      const publicKey = createHexString(32);
-      const address = generateAddress(publicKey);
-      const account = {
-        address: address,
-        gny: new BigNumber(100),
-      } as IAccount;
-      const primaryKey = {
-        address: account.address,
-      };
-
-      const accountSchema = schemas.get('Account');
-      const x = sut.trackNew(accountSchema, account);
-
-      // check before
-      const before = sut.getTrackingEntity(
-        accountSchema,
-        primaryKey
-      ) as IAccount;
-      expect(BigNumber.isBigNumber(before.gny)).toEqual(true);
-      expect(before.gny.toString()).toEqual('100');
-
-      // act
-      account.gny = new BigNumber(200);
-
-      // check after
-      const after = sut.getTrackingEntity(
-        accountSchema,
-        primaryKey
-      ) as IAccount;
-      expect(BigNumber.isBigNumber(after.gny)).toEqual(true);
-      expect(after.gny.toString()).toEqual('100');
-
-      done();
-    });
-    it.only('can track entity with BigNumber as PrimaryKey', done => {
-      const testSchema = schemas.get('Test');
-      const data = {
-        height: new BigNumber(10),
-        transactionCount: 0,
-      };
-
-      // act
-      const x = sut.trackNew(testSchema, data);
-
-      // see if data can be fetched
-      const result = sut.getTrackingEntity(testSchema, {
-        height: new BigNumber(10),
-      });
-
-      const expected = {
-        height: new BigNumber(10),
-        transactionCount: 0,
-        _version_: 1,
-      };
-      expect(result).not.toBeUndefined();
-      expect(result).toEqual(expected);
-
-      done();
-    });
   });
 });
