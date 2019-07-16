@@ -431,7 +431,7 @@ export class DbSession {
   private async ensureEntityTracking(schema: ModelSchema, key: ObjectLiteral) {
     let cachedObj = this.getCached(schema, key);
     if (undefined === cachedObj) {
-      const data = this.loadEntityByKey(schema, key);
+      const data = await this.loadEntityByKey(schema, key);
       if (undefined === data) {
         throw Error(
           "Entity not found ( model = '" +
