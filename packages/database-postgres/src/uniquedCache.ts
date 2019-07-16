@@ -1,6 +1,9 @@
-import { DefaultEntityUniqueIndex, ModelIndex } from './defaultEntityUniqueIndex';
+import {
+  DefaultEntityUniqueIndex,
+  ModelIndex,
+} from './defaultEntityUniqueIndex';
 import { CustomCache } from './customCache';
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 
 export class UniquedCache {
   private cache: CustomCache;
@@ -15,7 +18,7 @@ export class UniquedCache {
     this.cache = cache;
     this.cache.onEvit = this.afterEvit.bind(this);
     this.indexes = new Map<string, DefaultEntityUniqueIndex>();
-    modelIndex.forEach((one) => {
+    modelIndex.forEach(one => {
       return this.indexes.set(one.name, this.createUniqueIndex(one));
     });
   }
@@ -33,7 +36,7 @@ export class UniquedCache {
    */
   private afterEvit(component: string, test) {
     this.indexes.forEach(function(index) {
-      const handler = codeContract.partialCopy(test, index.fields);
+      const handler = CodeContract.partialCopy(test, index.fields);
       index.delete(handler);
     });
   }
@@ -65,10 +68,11 @@ export class UniquedCache {
     }
     this.cache.set(key, obj);
     this.indexes.forEach(function(oneIndex) {
-      if (oneIndex.fields.some((prop) => !obj[prop])) { // inverts falsey value
+      if (oneIndex.fields.some(prop => !obj[prop])) {
+        // inverts falsey value
         return;
       }
-      const r = codeContract.partialCopy(obj, oneIndex.fields);
+      const r = CodeContract.partialCopy(obj, oneIndex.fields);
       oneIndex.add(r, String(key));
     });
   }

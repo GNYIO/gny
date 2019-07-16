@@ -2,10 +2,9 @@ import 'reflect-metadata';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { loadConfig } from '../loadConfig';
 import { ILogger } from '../../../src/interfaces';
-
 import { EventEmitter } from 'events';
 import { isString } from 'util';
-import { CodeContract } from './codeContract';
+import * as CodeContract from './codeContract';
 import { DbSession } from './dbSession';
 import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
@@ -16,7 +15,6 @@ import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
-import * as path from 'path';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -153,17 +151,12 @@ export class SmartDB extends EventEmitter {
   }
 
   public registerCommitBlockHook(name: string, hookFunc: CommitBlockHook) {
-    CodeContract.argument('hookFunc', function() {
-      return CodeContract.notNull(hookFunc);
-    });
-    CodeContract.argument('name', function() {
-      return CodeContract.notNullOrWhitespace(name);
-    });
+    CodeContract.argument('hookFunc', () => CodeContract.notNull(hookFunc));
+    CodeContract.argument('name', () => CodeContract.notNullOrWhitespace(name));
+
     CodeContract.argument(
       'name',
-      this.commitBlockHooks.every(function(engineDiscovery) {
-        return engineDiscovery.name !== name.trim();
-      }),
+      this.commitBlockHooks.every(one => one.name !== name.trim()),
       "hook named '" + name + "' exist already"
     );
     this.commitBlockHooks.push({
@@ -173,9 +166,7 @@ export class SmartDB extends EventEmitter {
   }
 
   public unregisterCommitBlockHook(name: string) {
-    CodeContract.argument('name', function() {
-      return CodeContract.notNullOrWhitespace(name);
-    });
+    CodeContract.argument('name', () => CodeContract.notNullOrWhitespace(name));
     const index = this.commitBlockHooks.findIndex(function(engineDiscovery) {
       return engineDiscovery.name === name.trim();
     });
@@ -185,17 +176,12 @@ export class SmartDB extends EventEmitter {
   }
 
   public registerRollbackBlockHook(name: string, hookFunc: RollbackBlockHook) {
-    CodeContract.argument('hookFunc', function() {
-      return CodeContract.notNull(hookFunc);
-    });
-    CodeContract.argument('name', function() {
-      return CodeContract.notNullOrWhitespace(name);
-    });
+    CodeContract.argument('hookFunc', () => CodeContract.notNull(hookFunc));
+    CodeContract.argument('name', () => CodeContract.notNullOrWhitespace(name));
+
     CodeContract.argument(
       'name',
-      this.rollbackBlockHooks.some(function(engineDiscovery) {
-        return engineDiscovery.name === name.trim();
-      }),
+      this.rollbackBlockHooks.some(one => one.name === name.trim()),
       "hook named '" + name + "' exist already"
     );
     this.rollbackBlockHooks.push({
@@ -205,9 +191,7 @@ export class SmartDB extends EventEmitter {
   }
 
   public unregisterRollbackBlockHook(name: string) {
-    CodeContract.argument('name', function() {
-      return CodeContract.notNullOrWhitespace(name);
-    });
+    CodeContract.argument('name', () => CodeContract.notNullOrWhitespace(name));
     const index = this.rollbackBlockHooks.findIndex(one => {
       return one.name === name.trim();
     });
@@ -248,9 +232,8 @@ export class SmartDB extends EventEmitter {
 
   public beginBlock(block: Block) {
     block.height = Number(block.height);
-    CodeContract.argument('block', function() {
-      return CodeContract.notNull(block);
-    });
+    CodeContract.argument('block', () => CodeContract.notNull(block));
+
     // TODO refactor Number()
     CodeContract.argument(
       'block',
@@ -389,24 +372,18 @@ export class SmartDB extends EventEmitter {
 
   public async create(model: string, entity: ObjectLiteral) {
     // TODO, no need for async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('entity', function() {
-      return CodeContract.notNull(entity);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('entity', () => CodeContract.notNull(entity));
+
     const schema = this.getSchema(model, true);
     return this.getSession().create(schema, entity);
   }
 
   public async createOrLoad(model: string, entity: ObjectLiteral) {
     // TODO, no need for async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('entity', function() {
-      return CodeContract.notNull(entity);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('entity', () => CodeContract.notNull(entity));
+
     const schema = this.getSchema(model, true);
     const result = await this.load(
       model,
@@ -424,15 +401,12 @@ export class SmartDB extends EventEmitter {
     key: ObjectLiteral
   ) {
     // TODO, remove async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('increasements', function() {
-      return CodeContract.notNull(increaseBy);
-    });
-    CodeContract.argument('key', function() {
-      return CodeContract.notNull(key);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('increasements', () =>
+      CodeContract.notNull(increaseBy)
+    );
+    CodeContract.argument('key', () => CodeContract.notNull(key));
+
     const sessionId = this.getSchema(model, true);
     return await this.getSession().increase(sessionId, key, increaseBy);
   }
@@ -443,15 +417,10 @@ export class SmartDB extends EventEmitter {
     key: ObjectLiteral
   ) {
     // TODO remove async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('modifier', function() {
-      return CodeContract.notNull(modifier);
-    });
-    CodeContract.argument('key', function() {
-      return CodeContract.notNull(key);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('modifier', () => CodeContract.notNull(modifier));
+    CodeContract.argument('key', () => CodeContract.notNull(key));
+
     const schema = this.getSchema(model, true);
     if (true === this.options.checkModifier) {
       const modifierKeys = Object.keys(modifier);
@@ -469,12 +438,9 @@ export class SmartDB extends EventEmitter {
 
   public async del(model: string, key: ObjectLiteral) {
     // TODO remove async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('key', function() {
-      return CodeContract.notNull(key);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('key', () => CodeContract.notNull(key));
+
     const schema = this.getSchema(model, true);
     await this.getSession().delete(schema, key);
   }
@@ -484,12 +450,9 @@ export class SmartDB extends EventEmitter {
    */
   public async load(model: string, key: ObjectLiteral) {
     // TODO remove async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('key', function() {
-      return CodeContract.notNull(key);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('key', () => CodeContract.notNull(key));
+
     const schema = this.getSchema(model, true);
     return await this.getSession().load(schema, key);
   }
@@ -511,12 +474,9 @@ export class SmartDB extends EventEmitter {
    */
   public async get(model: string, key: ObjectLiteral) {
     // TODO remove async
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
-    CodeContract.argument('key', function() {
-      return CodeContract.notNull(key);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('key', () => CodeContract.notNull(key));
+
     const schema = this.getSchema(model, true);
     return this.getSession().getCachedEntity(schema, key);
   }
@@ -527,9 +487,7 @@ export class SmartDB extends EventEmitter {
    * @param filter filter result
    */
   public async getAll(model: string) {
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
     const schema = this.getSchema(model, true);
     CodeContract.argument(
       'model',
@@ -560,25 +518,22 @@ export class SmartDB extends EventEmitter {
    * @param condition
    */
   public async findAll(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+
     const schema = this.getSchema(model, true);
     return await this.getSession().queryByJson(schema, condition);
   }
 
   public async exists(model: string, key: ObjectLiteral) {
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+
     const schema = this.getSchema(model, true);
     return await this.getSession().exists(schema, key);
   }
 
   public async count(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', function() {
-      return CodeContract.notNull(model);
-    });
+    CodeContract.argument('model', () => CodeContract.notNull(model));
+
     const schema = this.getSchema(model, true);
     return await this.getSession().count(schema, condition);
   }
@@ -628,9 +583,10 @@ export class SmartDB extends EventEmitter {
   }
 
   public async getBlockById(id: string, withTransactions = false) {
-    CodeContract.argument('blockId', function() {
-      return CodeContract.notNullOrWhitespace(id);
-    });
+    CodeContract.argument('blockId', () =>
+      CodeContract.notNullOrWhitespace(id)
+    );
+
     const cachedBlock = this.copyCachedBlock(() => {
       return this.cachedBlocks.getById(id);
     }, withTransactions);
@@ -673,9 +629,8 @@ export class SmartDB extends EventEmitter {
   };
 
   private async getBlocksByIds(blockIds: string[], withTransactions = false) {
-    CodeContract.argument('blockIds', function() {
-      return CodeContract.notNull(blockIds);
-    });
+    CodeContract.argument('blockIds', () => CodeContract.notNull(blockIds));
+
     const result = [];
     for (let i = 0; i < result.length; ++i) {
       const id = blockIds[i];

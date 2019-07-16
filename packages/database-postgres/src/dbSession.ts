@@ -2,7 +2,7 @@ import { LogManager, LoggerWrapper } from './logger';
 import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache';
 import * as _jsonSqlBuilder from './jsonSQLBuilder';
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import {
   BasicEntityTracker,
@@ -200,7 +200,7 @@ export class DbSession {
           "' )"
       );
     }
-    return codeContract.deepCopy(this.entityTracker.trackNew(schema, entity));
+    return CodeContract.deepCopy(this.entityTracker.trackNew(schema, entity));
   }
 
   private async loadEntityByKey(schema: ModelSchema, obj: ObjectLiteral) {
@@ -292,12 +292,12 @@ export class DbSession {
 
   private getTrackingOrCachedEntity(url, id) {
     const cached = this.getCached(url, id);
-    return undefined === cached ? undefined : codeContract.deepCopy(cached);
+    return undefined === cached ? undefined : CodeContract.deepCopy(cached);
   }
 
   public getCachedEntity(schema: ModelSchema, key: ObjectLiteral) {
     const cached = this.getCached(schema, key);
-    return undefined === cached ? undefined : codeContract.deepCopy(cached);
+    return undefined === cached ? undefined : CodeContract.deepCopy(cached);
   }
 
   private clearLocks() {

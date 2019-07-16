@@ -1,164 +1,128 @@
-const { isFunction, isString, isNumber } = require('util');
+export type CheckResult = {
+  result: boolean;
+  message: undefined | string;
+};
 
-
-export class CodeContract {
-  static verify(message, callback) {
-    if (undefined === message || null === message) {
-      throw new Error('Invalid verify condition');
-    }
-    const messageObject = isFunction(message) ? message() : message;
-    const errors = isFunction(callback) ? callback() : callback;
-    if (!messageObject) {
-      throw new Error(errors); // before: UnsubscriptionError
-    }
+export function verify(
+  expression: (() => boolean) | boolean,
+  errorMsg: (() => string) | string
+) {
+  if (undefined === expression || null === expression) {
+    throw new Error('Invalid verify condition');
   }
-
-  static argument(data, key, password?: any) {
-    if (!data || !key) {
-      throw new Error('argName or verify can not be null or undefined');
-    }
-    if (password) {
-      CodeContract.verify(key, password);
-    } else {
-      const obj = key();
-      CodeContract.verify(obj.result, "argument '" + data + "' " + obj.message);
-    }
+  const messageObject =
+    typeof expression === 'function' ? expression() : expression;
+  const errors = typeof errorMsg === 'function' ? errorMsg() : errorMsg;
+  if (!messageObject) {
+    throw new Error(errors);
   }
+}
 
-  static notNull(prop) {
-    /** @type {boolean} */
-    const request = null !== prop && undefined !== prop;
-    return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined'
-    };
+export function argument(name: string, check: () => CheckResult);
+export function argument(name: string, check: boolean, errorMsg: string);
+export function argument(
+  name: string,
+  check: (() => CheckResult) | boolean,
+  errorMsg?: string
+) {
+  if (!name) {
+    throw new Error('argName can not be null or undefined');
   }
+  if (typeof check === 'boolean') {
+    verify(check, errorMsg);
+  } else {
+    const obj = check();
+    verify(obj.result, "argument '" + name + "' " + obj.message);
+  }
+}
 
-  static notNullOrEmpty(key) {
-    const request = CodeContract.notNull(key) && '' !== key;
-    return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined or empty'
-    };
-  }
+export function notNull(data: any) {
+  const boolExpression = data !== null && data !== undefined;
+  const result: CheckResult = {
+    result: boolExpression,
+    message: boolExpression ? undefined : 'cannot be null or undefined',
+  };
+  return result;
+}
 
-  static notNullOrWhitespace(text) {
-    const request = CodeContract.notNullOrEmpty(text) && '' !== text.trim();
-    return {
-      result : request,
-      message : request ? undefined : 'cannot be null or undefined or whitespace'
-    };
-  }
+export function notNullOrEmpty(data: any) {
+  const booleanExpression = notNull(data).result === true && data !== '';
+  return {
+    result: booleanExpression,
+    message: booleanExpression
+      ? undefined
+      : 'cannot be null or undefined or empty',
+  };
+}
+
+export function notNullOrWhitespace(data: any) {
+  const request = notNullOrEmpty(data).result === true && data.trim() !== '';
+  const checkResult: CheckResult = {
+    result: request,
+    message: request ? undefined : 'cannot be null or undefined or whitespace',
+  };
+  return checkResult;
 }
 
 /**
- * @param {?} iterable
- * @param {!Function} getKey
- * @param {!Function} getValue
- * @return {?}
+ * @param {Object[]} iterable
+ * @param {Function} getKey
+ * @param {Function} getValue
+ * @return {Object}
  */
-export function makeJsonObject(iterable, getKey, getValue) {
-  CodeContract.argument('iterable', function() {
-    return CodeContract.notNull(iterable);
-  });
-  CodeContract.argument('getKey', function() {
-    return CodeContract.notNull(getKey);
-  });
-  CodeContract.argument('getValue', function() {
-    return CodeContract.notNull(getValue);
-  });
-  let dataArray = {};
-  /** @type {boolean} */
-  let _iteratorNormalCompletion3 = true;
-  /** @type {boolean} */
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-  try {
-    var _iterator3 = iterable[Symbol.iterator]();
-    var _step2;
-    for (; !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var data = _step2.value;
-      dataArray[getKey(data)] = getValue(data);
-    }
-  } catch (err) {
-    /** @type {boolean} */
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-  return dataArray;
-}
+export function makeJsonObject<T, K extends keyof T>(
+  iterable: T[],
+  getKey: (one: T) => string,
+  getValue: (one: T) => T[K]
+) {
+  argument('iterable', () => notNull(iterable));
+  argument('getKey', () => notNull(getKey));
+  argument('getValue', () => notNull(getValue));
 
+  interface Result {
+    [key: string]: T[K];
+  }
+  const result: Result = {};
+
+  for (const data of iterable) {
+    result[getKey(data)] = getValue(data);
+  }
+
+  return result;
+}
 
 export function deepCopy(thing) {
   return thing ? JSON.parse(JSON.stringify(thing)) : thing;
 }
 
-
 /**
  * @param {Object} source - The source object of which properties are getting copied
- * @param {string[]} props - A list of properties to copy off source. Example ['gny', 'address', 'isDelegate']
- * @param {Object} [target] - Optioanl target property
- * @return {?}
+ * @param {string[]} keysOrKeyFilter - A list of properties to copy off source. Example ['gny', 'address', 'isDelegate']
+ * @param {Object} [target] - Optional target property
+ * @return {Object}
  */
-export function partialCopy(source, props, target?) {
-  CodeContract.argument('src', function() {
-    return CodeContract.notNull(source);
-  });
-  CodeContract.argument('keysOrKeyFilter', function() {
-    return CodeContract.notNull(props);
-  });
-  var newValues = isFunction(props) ? Object.keys(source).filter(props) : props;
-  var copy = target || {};
-  /** @type {boolean} */
-  var _iteratorNormalCompletion3 = true;
-  /** @type {boolean} */
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-  try {
-    var _iterator3 = newValues[Symbol.iterator]();
-    var _step2;
-    for (; !(_iteratorNormalCompletion3 = (_step2 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var prop = _step2.value;
-      if (Reflect.has(source, prop)) {
-        copy[prop] = source[prop];
-      }
-    }
-  } catch (err) {
-    /** @type {boolean} */
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
+export function partialCopy(
+  source: Object,
+  keysOrKeyFilter: string[] | ((a: any) => boolean),
+  target?: Object
+) {
+  argument('source', () => notNull(source));
+  argument('keysOrKeyFilter', () => notNull(keysOrKeyFilter));
+
+  const newValues =
+    typeof keysOrKeyFilter === 'function'
+      ? Object.keys(source).filter(keysOrKeyFilter)
+      : keysOrKeyFilter;
+  const copy = target || {};
+
+  for (const prop of newValues) {
+    if (Reflect.has(source, prop)) {
+      copy[prop] = source[prop];
     }
   }
   return copy;
 }
 
-
-export function isPrimitiveKey(str: any) {
-  return str && (isString(str) || isNumber(str));
+export function isPrimitiveKey(val: any): val is string | number {
+  return typeof val === 'string' || typeof val === 'number';
 }
-
-export class NotImplementError extends Error {
-  constructor(props) {
-    super(props);
-  }
-}
-
