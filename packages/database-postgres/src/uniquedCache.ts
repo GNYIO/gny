@@ -3,7 +3,7 @@ import {
   ModelIndex,
 } from './defaultEntityUniqueIndex';
 import { CustomCache } from './customCache';
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 
 export class UniquedCache {
   private cache: CustomCache;
@@ -36,7 +36,7 @@ export class UniquedCache {
    */
   private afterEvit(component: string, test) {
     this.indexes.forEach(function(index) {
-      const handler = codeContract.partialCopy(test, index.fields);
+      const handler = CodeContract.partialCopy(test, index.fields);
       index.delete(handler);
     });
   }
@@ -72,7 +72,7 @@ export class UniquedCache {
         // inverts falsey value
         return;
       }
-      const r = codeContract.partialCopy(obj, oneIndex.fields);
+      const r = CodeContract.partialCopy(obj, oneIndex.fields);
       oneIndex.add(r, String(key));
     });
   }

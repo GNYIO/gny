@@ -1,4 +1,4 @@
-import * as codeContract from './codeContract';
+import * as CodeContract from './codeContract';
 import { ENTITY_VERSION_PROPERTY } from './entityChangeType';
 import * as lodash from 'lodash';
 import { ObjectLiteral } from 'typeorm';
@@ -141,19 +141,19 @@ export class ModelSchema {
           JSON.stringify(key)
       );
     }
-    if (!this.isCompsiteKey && codeContract.isPrimitiveKey(key)) {
+    if (!this.isCompsiteKey && CodeContract.isPrimitiveKey(key)) {
       source[this.primaryKey] = key;
     } else if (this.isCompsiteKey) {
-      codeContract.partialCopy(key, this.compositeKeys, source);
+      CodeContract.partialCopy(key, this.compositeKeys, source);
     } else {
-      codeContract.partialCopy(key, [this.primaryKey], source);
+      CodeContract.partialCopy(key, [this.primaryKey], source);
     }
     return source;
   }
 
   public getPrimaryKey(val: Object) {
     if (this.isCompsiteKey) {
-      return codeContract.partialCopy(val, this.compositeKeys);
+      return CodeContract.partialCopy(val, this.compositeKeys);
     } else {
       return val[this.primaryKey];
     }
@@ -161,12 +161,12 @@ export class ModelSchema {
 
   public getNormalizedPrimaryKey(obj) {
     return this.isCompsiteKey
-      ? codeContract.partialCopy(obj, this.compositeKeys)
-      : codeContract.partialCopy(obj, [this.primaryKey]);
+      ? CodeContract.partialCopy(obj, this.compositeKeys)
+      : CodeContract.partialCopy(obj, [this.primaryKey]);
   }
 
   private normalizePrimaryKey(result) {
-    if (!codeContract.isPrimitiveKey(result)) {
+    if (!CodeContract.isPrimitiveKey(result)) {
       return result;
     }
     const item = {};
@@ -177,7 +177,7 @@ export class ModelSchema {
   public isValidPrimaryKey(key) {
     return (
       (!this.isCompsiteKey &&
-        (codeContract.isPrimitiveKey(key) ||
+        (CodeContract.isPrimitiveKey(key) ||
           this.isNormalizedPrimaryKey(key))) ||
       0 === lodash.xor(Object.keys(key), this.compositeKeys).length
     );
@@ -216,7 +216,7 @@ export class ModelSchema {
       const alternative = newScaleKey =>
         this.allProperties.includes(newScaleKey);
       const secondParam = noformat ? this.allProperties : alternative;
-      return codeContract.partialCopy(data, secondParam);
+      return CodeContract.partialCopy(data, secondParam);
     } else {
       return data;
     }
