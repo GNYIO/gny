@@ -1,15 +1,15 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate, Context } from '../interfaces';
+import { IAccount, ITransfer, IDelegate, IVote } from '../interfaces';
 
-async function deleteCreatedVotes(account) {
-  interface Vote {
-    voterAddress: string;
-    delegate: string;
-  }
-  const voteList = (await global.app.sdb.findAll('Vote', {
+async function deleteCreatedVotes(account: IAccount) {
+  const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
     condition: { voterAddress: account.address },
-  })) as Vote[];
-  if (voteList && voteList.length > 0 && account.lockAmount > 0) {
+  });
+  if (
+    voteList &&
+    voteList.length > 0 &&
+    new BigNumber(account.lockAmount).isGreaterThan(0)
+  ) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
@@ -18,10 +18,11 @@ async function deleteCreatedVotes(account) {
         { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
-      await global.app.sdb.del('Vote', {
+      const vote: IVote = {
         voterAddress: voteItem.voterAddress,
         delegate: voteItem.delegate,
-      });
+      };
+      await global.app.sdb.del('Vote', vote);
     }
   }
 }
@@ -193,7 +194,7 @@ export default {
         address: sender.address,
       });
 
-      const voteList = await global.app.sdb.findAll('Vote', {
+      const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: { voterAddress: senderId },
       });
       if (voteList && voteList.length > 0) {
@@ -278,7 +279,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', {
+    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -308,10 +309,11 @@ export default {
         { votes: String(votes) },
         { username }
       );
-      await global.app.sdb.create('Vote', {
+      const v: IVote = {
         voterAddress: senderId,
         delegate: username,
-      });
+      };
+      await global.app.sdb.create('Vote', v);
     }
     return null;
   },
@@ -321,7 +323,7 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const sender = this.sender;
+    const sender = this.sender as IAccount;
     if (!sender.isLocked) return 'Account is not locked';
 
     delegates = delegates.split(',');
@@ -329,7 +331,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', {
+    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -350,17 +352,18 @@ export default {
     }
 
     for (const username of delegates) {
-      const votes = -sender.lockAmount;
+      const votes = new BigNumber(sender.lockAmount).times(-1).toFixed();
       await global.app.sdb.increase(
         'Delegate',
         { votes: String(votes) },
         { username }
       );
 
-      await global.app.sdb.del('Vote', {
+      const v: IVote = {
         voterAddress: senderId,
         delegate: username,
-      });
+      };
+      await global.app.sdb.del('Vote', v);
     }
     return null;
   },

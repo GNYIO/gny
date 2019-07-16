@@ -9,6 +9,7 @@ import {
   IAccount,
   IBalance,
   IAsset,
+  IVote,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
@@ -285,7 +286,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes = await global.app.sdb.findAll('Vote', {
+      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: {
           voterAddress: addr,
         },

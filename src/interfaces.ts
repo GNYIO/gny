@@ -387,6 +387,18 @@ export interface IIssuer {
   _version_?: number;
 }
 
+export interface IVariable {
+  key: string;
+  value: string;
+  _version_?: number;
+}
+
+export interface IVote {
+  voterAddress: string;
+  delegate: string;
+  _version_?: number;
+}
+
 export interface NewBlockMessage {
   id: string;
   height: number;

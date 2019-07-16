@@ -9,6 +9,7 @@ import {
   IDelegate,
   IAsset,
   ITransaction,
+  IVariable,
 } from '../../../src/interfaces';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
@@ -2026,10 +2027,11 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     // create() or createOrLoad() does not save entity directly to DB
-    const account = await sut.createOrLoad('Variable', {
+    const variable: IVariable = {
       key: 'key',
       value: 'value',
-    });
+    };
+    const account = await sut.createOrLoad('Variable', variable);
 
     const exists = await sut.exists('Variable', { key: 'key' });
     expect(exists).toEqual(false);
@@ -2154,12 +2156,13 @@ describe('integration - SmartDB', () => {
   });
 
   it('createOrLoad() - after createOrLoad entity should be cached', async done => {
-    const variable = await sut.createOrLoad('Variable', {
+    const variable: IVariable = {
       key: 'key',
       value: 'value',
-    });
+    };
+    const x = await sut.createOrLoad('Variable', variable);
 
-    const result = await sut.get('Variable', { key: 'key' });
+    const result: IVariable = await sut.get('Variable', { key: 'key' });
     expect(result).toEqual({
       _version_: 1,
       key: 'key',
@@ -2172,7 +2175,7 @@ describe('integration - SmartDB', () => {
     it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
       await saveGenesisBlock(sut);
 
-      const variable = await sut.createOrLoad('Variable', {
+      const variable: IVariable = await sut.createOrLoad('Variable', {
         key: 'key',
         value: 'value',
       });
@@ -2182,7 +2185,7 @@ describe('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // pre check
-      const preCheckResult = await sut.findAll('Variable', {
+      const preCheckResult: IVariable[] = await sut.findAll('Variable', {
         key: 'key',
       });
       expect(preCheckResult).toHaveLength(1);
@@ -2201,7 +2204,7 @@ describe('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // check
-      const result = await sut.findAll('Variable', {
+      const result: IVariable[] = await sut.findAll('Variable', {
         key: 'key',
       });
       expect(result).toHaveLength(1);

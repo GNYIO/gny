@@ -12,6 +12,7 @@ import {
   BlockSlotData,
   IBlock,
   IState,
+  IVariable,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
@@ -377,7 +378,7 @@ export default class Delegates {
   };
 
   private static getBookkeeper = async () => {
-    const item = await global.app.sdb.get('Variable', {
+    const item: IVariable = await global.app.sdb.get('Variable', {
       key: Delegates.BOOK_KEEPER_NAME,
     });
     if (!item) {
@@ -390,10 +391,11 @@ export default class Delegates {
 
   public static updateBookkeeper = async () => {
     const value = JSON.stringify(await Delegates.getTopDelegates());
-    const { create } = await global.app.sdb.createOrLoad('Variable', {
+    const variable: IVariable = {
       key: Delegates.BOOK_KEEPER_NAME,
       value: value,
-    });
+    };
+    const { create } = await global.app.sdb.createOrLoad('Variable', variable);
     // It seems there is no need to update
     if (!create) {
       await global.app.sdb.update(

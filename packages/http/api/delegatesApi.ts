@@ -6,6 +6,7 @@ import {
   Next,
   DelegateViewModel,
   IAccount,
+  IVote,
 } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -82,7 +83,7 @@ export default class DelegatesApi {
     }
 
     try {
-      const votes = await global.app.sdb.findAll('Vote', {
+      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: {
           delegate: query.username,
         },
