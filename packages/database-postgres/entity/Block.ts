@@ -83,5 +83,5 @@ export class Block {
     type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

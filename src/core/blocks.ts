@@ -245,7 +245,7 @@ export default class Blocks {
 
   public static async ProcessBlockDbIO(
     state: IState,
-    block: Block,
+    block: IBlock,
     options: ProcessBlockOptions
   ) {
     await global.app.sdb.beginBlock(block);
@@ -284,7 +284,7 @@ export default class Blocks {
 
   public static processBlock = async (
     state: IState,
-    block: IGenesisBlock | any,
+    block: IBlock | IGenesisBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) => {
@@ -472,7 +472,7 @@ export default class Blocks {
         if (!body) {
           throw new Error('Invalid response for blocks request');
         }
-        const blocks = body.blocks;
+        const blocks = body.blocks as IBlock[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
           loaded = true;
         }
@@ -828,7 +828,7 @@ export default class Blocks {
     genesisBlock: IGenesisBlock,
     processBlock: (
       state: IState,
-      block: any,
+      block: IBlock | IGenesisBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
     ) => Promise<IState>,

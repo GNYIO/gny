@@ -68,5 +68,5 @@ export class Account {
     type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

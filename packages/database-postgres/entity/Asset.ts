@@ -67,5 +67,5 @@ export class Asset {
     type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }
