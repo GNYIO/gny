@@ -5,33 +5,6 @@ import {
 } from '../../../packages/database-postgres/src/modelSchema';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
-import { BigNumber } from 'bignumber.js';
-
-function getMetaSchemaWithBigNumberPrimaryKey() {
-  const testMetaSchema: MetaSchema = {
-    memory: false,
-    name: 'Test',
-    indices: [
-      {
-        isUnique: false, // primary key
-        columns: [
-          {
-            propertyName: 'height',
-          },
-        ],
-      },
-    ],
-    columns: [
-      {
-        name: 'height',
-      },
-      {
-        name: 'transactionCount',
-      },
-    ],
-  };
-  return testMetaSchema;
-}
 
 function getAccountMetaSchema() {
   const accountMetaSchema: MetaSchema = {
@@ -133,10 +106,6 @@ describe('orm jsonSQLBuilder', () => {
     const accountModelSchema = new ModelSchema(accountMetaSchema);
     modelSchemas.set('Account', accountModelSchema);
 
-    const testMetaSchema = getMetaSchemaWithBigNumberPrimaryKey();
-    const testModelSchema = new ModelSchema(testMetaSchema);
-    modelSchemas.set('Test', testModelSchema);
-
     sut = new JsonSqlBuilder();
     schemas = modelSchemas;
   });
@@ -206,24 +175,6 @@ describe('orm jsonSQLBuilder', () => {
     done();
   });
 
-  it.skip('buildUpdate with BigNumber property', done => {
-    const testModelSchema = schemas.get('Test');
-    const primaryKey = {
-      height: new BigNumber(10),
-    };
-    const data = {
-      height: new BigNumber(11),
-      transactionCount: 20,
-    };
-    const version = 1;
-
-    const result = sut.buildUpdate(testModelSchema, primaryKey, data, version);
-
-    expect(result).toEqual('');
-
-    done();
-  });
-
   it('buildSelect', done => {
     const field = ['username', 'address'];
     const accountModelSchema = schemas.get('Account');
@@ -233,23 +184,6 @@ describe('orm jsonSQLBuilder', () => {
     const expected = `select "username", "address" from "account" where "username" = \'${
       where.username
     }\';`;
-
-    expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expected);
-
-    done();
-  });
-
-  it('buildSelect with BigNumber property', done => {
-    const field = ['height', 'transactionCount'];
-    const testModelSchema = schemas.get('Test');
-    const where = {
-      height: new BigNumber(60),
-    };
-    const result = sut.buildSelect(testModelSchema, field, where);
-
-    const expected =
-      'select "height", "transactionCount" from "test" where "height" = \'60\';';
 
     expect(result).toHaveProperty('type');
     expect(result).toHaveProperty('query', expected);
