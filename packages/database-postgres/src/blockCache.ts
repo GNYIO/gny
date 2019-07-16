@@ -1,9 +1,15 @@
 import { Block } from '../entity/Block';
+import BigNumber from 'bignumber.js';
 
+/**
+ * Warning1: The oldest cached block is never removed
+ * Warning2: When rolling back to the "oldest" block, we can
+ * then start caching blocks where its height IS NOT +1
+ */
 export class BlockCache {
-  private cache: Map<number, Block>;
-  private minHeight: number;
-  private maxHeight: number;
+  private cache: Map<string, Block>;
+  private minHeight: string;
+  private maxHeight: string;
   private maxCachedCount: number;
 
   constructor(maxCached: number) {
@@ -11,18 +17,25 @@ export class BlockCache {
       throw new Error('please provide a positive integer');
     }
 
-    this.cache = new Map<number, Block>();
-    this.minHeight = -1;
-    this.maxHeight = -1;
+    this.cache = new Map<string, Block>();
+    this.minHeight = String(-1);
+    this.maxHeight = String(-1);
     this.maxCachedCount = maxCached;
   }
 
-  public isCached(height: number) {
-    return height > 0 && height >= this.minHeight && height <= this.maxHeight;
+  public isCached(height: string) {
+    return (
+      new BigNumber(height).isGreaterThanOrEqualTo(0) &&
+      new BigNumber(height).isGreaterThanOrEqualTo(this.minHeight) &&
+      new BigNumber(height).isLessThanOrEqualTo(this.maxHeight)
+    );
   }
 
-  push(block: Block) {
-    if (this.maxHeight >= 0 && block.height !== this.maxHeight + 1) {
+  public push(block: Block) {
+    if (
+      new BigNumber(this.maxHeight).isGreaterThanOrEqualTo(0) &&
+      !new BigNumber(this.maxHeight).plus(1).isEqualTo(block.height)
+    ) {
       throw new Error(
         'invalid block height, expected : ' +
           (this.maxHeight + 1) +
@@ -32,60 +45,50 @@ export class BlockCache {
     }
     this.cache.set(block.height, block);
     this.maxHeight = block.height;
-    this.minHeight = -1 === this.minHeight ? block.height : this.minHeight;
-    if (this.cache.size >= this.maxCachedCount) {
-      this.cache.delete(this.minHeight++);
+    this.minHeight = new BigNumber(-1).isEqualTo(this.minHeight)
+      ? block.height
+      : this.minHeight;
+    if (this.cache.size > this.maxCachedCount) {
+      const key = new BigNumber(this.minHeight).toFixed();
+      this.cache.delete(key);
+      this.minHeight = new BigNumber(this.minHeight).plus(1).toFixed();
     }
   }
 
-  get(height: number) {
+  get(height: string) {
     return this.cache.get(height);
   }
 
   getById(blockId: string): Block {
-    let _iteratorNormalCompletion4 = true;
-    let _didIteratorError4 = false;
-    let _iteratorError4 = undefined;
-    const _iterator4 = this.cache.values()[Symbol.iterator]();
-    try {
-      let _step4;
-      for (
-        ;
-        !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done);
-        _iteratorNormalCompletion4 = true
-      ) {
-        const domain = _step4.value;
-        if (domain.id === blockId) {
-          return domain;
-        }
-      }
-    } catch (err) {
-      _didIteratorError4 = true;
-      _iteratorError4 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion4 && _iterator4.return) {
-          _iterator4.return();
-        }
-      } finally {
-        if (_didIteratorError4) {
-          throw _iteratorError4;
-        }
+    for (const [, block] of this.cache.entries()) {
+      if (block.id === blockId) {
+        return block;
       }
     }
+    return undefined;
   }
 
-  evitUntil(minEvitHeight: number) {
-    if (minEvitHeight > this.maxHeight) {
+  evitUntil(minEvitHeight: string) {
+    if (new BigNumber(minEvitHeight).isGreaterThan(this.maxHeight)) {
       return;
     }
-    const height = Math.max(minEvitHeight, this.minHeight);
-    let type = height + 1;
-    for (; type <= this.maxHeight; type++) {
+    const height = BigNumber.maximum(minEvitHeight, this.minHeight).toFixed();
+    let type: string = new BigNumber(height).plus(1).toFixed();
+    for (
+      ;
+      new BigNumber(type).isLessThanOrEqualTo(this.maxHeight);
+      type = new BigNumber(type).plus(1).toFixed()
+    ) {
       this.cache.delete(type);
     }
-    this.minHeight = height === this.minHeight ? -1 : this.minHeight;
-    this.maxHeight = -1 === this.minHeight ? -1 : height;
+    this.minHeight = new BigNumber(height).isEqualTo(this.minHeight)
+      ? String(-1)
+      : this.minHeight;
+    this.maxHeight = new BigNumber(-1).isEqualTo(this.minHeight)
+      ? String(-1)
+      : height;
+
+    // this.maxHeight = height;
   }
 
   get cachedHeightRange() {
