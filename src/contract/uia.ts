@@ -1,4 +1,4 @@
-import { ITransfer } from '../interfaces';
+import { ITransfer, IAsset } from '../interfaces';
 
 export default {
   async registerIssuer(name, desc) {
@@ -45,16 +45,17 @@ export default {
     const exists = await global.app.sdb.exists('Asset', { name: fullName });
     if (exists) return 'Asset already exists';
 
-    await global.app.sdb.create('Asset', {
+    const asset: IAsset = {
       tid: this.trs.id,
       name: fullName,
       timestamp: this.trs.timestamp,
       desc,
-      maximum,
+      maximum: String(maximum),
       precision,
-      quantity: '0',
+      quantity: String(0),
       issuerId: this.sender.address,
-    });
+    };
+    await global.app.sdb.create('Asset', asset);
     return null;
   },
 
@@ -67,7 +68,7 @@ export default {
     // if it is not in use(can not find in cache), it can be updated.
     await global.app.sdb.lock(`uia.issue@${name}`);
 
-    const asset = await global.app.sdb.findOne('Asset', { name });
+    const asset: IAsset = await global.app.sdb.findOne('Asset', { name });
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
@@ -77,7 +78,7 @@ export default {
     asset.quantity = quantity.toString(10);
     await global.app.sdb.update(
       'Asset',
-      { quantity: asset.quantity },
+      { quantity: String(asset.quantity) },
       { name }
     );
 

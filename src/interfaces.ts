@@ -341,19 +341,32 @@ export interface IBalance {
   _version_?: number;
 }
 
-export interface Delegate {
+export interface IAsset {
+  name: string;
+  tid: string;
+  timestamp: string;
+  maximum: string;
+  precision: number;
+  quantity: string;
+  desc: string;
+  issuerId: string;
+  _version_?: number;
+}
+
+export interface IDelegate {
   address: string;
   tid: string;
   username: string;
   publicKey: string;
-  votes: number;
-  producedBlocks: number;
-  missedBlocks: number;
-  fees: number;
-  rewards: number;
+  votes: string;
+  producedBlocks: string;
+  missedBlocks: string;
+  fees: string;
+  rewards: string;
+  _version_?: number;
 }
 
-export interface DelegateViewModel extends Delegate {
+export interface DelegateViewModel extends IDelegate {
   rate: number;
   approval: number;
   productivity: string;

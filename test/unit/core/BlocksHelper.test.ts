@@ -265,11 +265,11 @@ describe('BlocksHelper', () => {
       expect(result.count).toEqual(unconfirmedTransactions.length);
       expect(result.delegate).toEqual(keypair.publicKey.toString('hex'));
 
-      expect(BigNumber.isBigNumber(result.fees)).toEqual(true);
-      expect(new BigNumber(0).isEqualTo(result.fees)).toEqual(true);
+      expect(typeof result.fees).toEqual('string');
+      expect(result.fees).toEqual(String(0));
 
-      expect(BigNumber.isBigNumber(result.reward)).toEqual(true);
-      expect(new BigNumber(0).isEqualTo(result.reward)).toEqual(true);
+      expect(typeof result.reward).toEqual('string');
+      expect(result.reward).toEqual(String(0));
 
       expect(result.timestamp).toEqual(timestamp);
       expect(result.transactions).toEqual(unconfirmedTransactions);
@@ -330,7 +330,7 @@ describe('BlocksHelper', () => {
       const transactions = [trs1, trs2, trs3];
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
-      expect(fees).toEqual(0.3 * 1e8);
+      expect(fees).toEqual(String(0.3 * 1e8));
 
       done();
     });
@@ -348,7 +348,7 @@ describe('BlocksHelper', () => {
       const transactions = [trs1, trs2, trs3];
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
-      expect(fees).toEqual(0.2 * 1e8);
+      expect(fees).toEqual(String(0.2 * 1e8));
 
       done();
     });

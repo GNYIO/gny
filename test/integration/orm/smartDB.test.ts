@@ -2,7 +2,13 @@ import {
   SmartDB,
   SmartDBOptions,
 } from '../../../packages/database-postgres/src/smartDB';
-import { ILogger, IBlock, IAccount } from '../../../src/interfaces';
+import {
+  ILogger,
+  IBlock,
+  IAccount,
+  IDelegate,
+  IAsset,
+} from '../../../src/interfaces';
 import { CUSTOM_GENESIS } from './data';
 import { Block } from '../../../packages/database-postgres/entity/Block';
 import { randomBytes } from 'crypto';
@@ -48,13 +54,13 @@ function createBlock(height: number) {
 }
 
 function createAsset(name: string) {
-  const asset = {
+  const asset: IAsset = {
     name,
     tid: createRandomBytes(32),
-    timestamp: 3000,
-    maximum: 4e8,
+    timestamp: String(3000),
+    maximum: String(4e8),
     precision: 8,
-    quantity: 0,
+    quantity: String(0),
     desc: name,
     issuerId: generateAddress(createRandomBytes(32)),
   };
@@ -1004,17 +1010,17 @@ describe('integration - SmartDB', () => {
 
     sut.beginContract(); // start
 
-    const delegate = {
+    const delegate: IDelegate = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
       username: 'a1300',
       tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
       publicKey:
         '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
     };
     await sut.create('Delegate', delegate);
 
@@ -1042,17 +1048,17 @@ describe('integration - SmartDB', () => {
 
     // first contract
     sut.beginContract();
-    const data = {
+    const data: IDelegate = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
       username: 'liangpeili',
       tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
       publicKey:
         '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
     };
     const created = sut.create('Delegate', data);
     sut.commitContract(); // end first contract
@@ -1094,17 +1100,17 @@ describe('integration - SmartDB', () => {
   it('increase() - increases by number x', async done => {
     await saveGenesisBlock(sut);
 
-    const data = {
+    const data: IDelegate = {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
       username: 'liangpeili',
       tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
       publicKey:
         '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
-      votes: 0,
-      producedBlocks: 1,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
+      votes: String(0),
+      producedBlocks: String(1),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
     };
 
     await sut.create('Delegate', data);
@@ -1129,17 +1135,17 @@ describe('integration - SmartDB', () => {
   it('increase() - can increase more than one property at time', async done => {
     await saveGenesisBlock(sut);
 
-    const data = {
+    const data: IDelegate = {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
       username: 'liangpeili',
       tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
       publicKey:
         '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
     };
 
     await sut.create('Delegate', data);
@@ -1147,8 +1153,8 @@ describe('integration - SmartDB', () => {
     await sut.increase(
       'Delegate',
       {
-        producedBlocks: 2,
-        missedBlocks: 1,
+        producedBlocks: String(2),
+        missedBlocks: String(1),
       },
       {
         address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
@@ -1158,8 +1164,8 @@ describe('integration - SmartDB', () => {
     const result = await sut.get('Delegate', {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
     });
-    expect(result.producedBlocks).toEqual(2);
-    expect(result.missedBlocks).toEqual(1);
+    expect(result.producedBlocks).toEqual(String(2));
+    expect(result.missedBlocks).toEqual(String(1));
     done();
   });
 
@@ -1442,7 +1448,7 @@ describe('integration - SmartDB', () => {
 
     // load only one
     const names = ['ABC.ABC'];
-    const result = await sut.findAll('Asset', {
+    const result: IAsset[] = await sut.findAll('Asset', {
       condition: {
         name: {
           $in: names,
@@ -1469,11 +1475,11 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // load both normal
-    const both = await sut.findAll('Asset', {});
+    const both: IAsset[] = await sut.findAll('Asset', {});
     expect(both.length).toEqual(2);
 
     // load only one with limit
-    const limit = await sut.findAll('Asset', {
+    const limit: IAsset[] = await sut.findAll('Asset', {
       limit: 1,
     });
     expect(limit.length).toEqual(1);
@@ -1494,11 +1500,11 @@ describe('integration - SmartDB', () => {
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const loadFirst = await sut.findAll('Asset', {
+    const loadFirst: IAsset[] = await sut.findAll('Asset', {
       limit: 1,
       offset: 0,
     });
-    const loadSecond = await sut.findAll('Asset', {
+    const loadSecond: IAsset[] = await sut.findAll('Asset', {
       limit: 1,
       offset: 1,
     });
@@ -1512,17 +1518,17 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
-    const createdABC = await sut.create('Asset', abc);
+    const createdABC: IAsset = await sut.create('Asset', abc);
 
     const tec = createAsset('TEC.TEC');
-    const createdTEC = await sut.create('Asset', tec);
+    const createdTEC: IAsset = await sut.create('Asset', tec);
 
     // persist Assets in DB with new block
     const block = createBlock(1);
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const result = await sut.findAll('Asset', {
+    const result: IAsset[] = await sut.findAll('Asset', {
       sort: {
         name: 1,
       },
@@ -1537,17 +1543,17 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
-    const createdABC = await sut.create('Asset', abc);
+    const createdABC: IAsset = await sut.create('Asset', abc);
 
     const tec = createAsset('TEC.TEC');
-    const createdTEC = await sut.create('Asset', tec);
+    const createdTEC: IAsset = await sut.create('Asset', tec);
 
     // persist Assets in DB with new block
     const block = createBlock(1);
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const result = await sut.findAll('Asset', {
+    const result: IAsset[] = await sut.findAll('Asset', {
       sort: {
         name: -1,
       },
@@ -1881,16 +1887,16 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     // first save a new entity
-    const delegate = {
+    const delegate: IDelegate = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
       tid: createRandomBytes(32),
       username: 'a1300',
       publicKey: createRandomBytes(32),
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      rewards: 0,
-      fees: 0,
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      rewards: String(0),
+      fees: String(0),
     };
     const createdDelegate = await sut.create('Delegate', delegate);
 
@@ -1924,16 +1930,16 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     // first create entity
-    const delegate = {
+    const delegate: IDelegate = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
       tid: createRandomBytes(32),
       username: 'a1300',
       publicKey: createRandomBytes(32),
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      rewards: 0,
-      fees: 0,
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      rewards: String(0),
+      fees: String(0),
     };
     const createdDelegate = await sut.create('Delegate', delegate);
 

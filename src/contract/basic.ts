@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer } from '../interfaces';
+import { IAccount, ITransfer, IDelegate } from '../interfaces';
 
 async function deleteCreatedVotes(account) {
   interface Vote {
@@ -243,17 +243,18 @@ export default {
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 
-    await global.app.sdb.create('Delegate', {
+    const delegate: IDelegate = {
       address: senderId,
       username: sender.username,
       tid: this.trs.id,
       publicKey: this.trs.senderPublicKey,
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
-    });
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
+    };
+    await global.app.sdb.create('Delegate', delegate);
     sender.isDelegate = 1;
     await global.app.sdb.update(
       'Account',

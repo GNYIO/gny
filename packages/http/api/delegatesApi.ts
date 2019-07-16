@@ -11,6 +11,7 @@ import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
+import { BigNumber } from 'bignumber.js';
 
 export default class DelegatesApi {
   private library: IScope;
@@ -97,7 +98,9 @@ export default class DelegatesApi {
         },
       })) as IAccount[];
       const lastBlock = StateHelper.getState().lastBlock;
-      const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
+      const totalSupply = this.blockReward.calculateSupply(
+        lastBlock.height
+      ) as BigNumber;
       for (const a of accounts) {
         a.balance = a.gny;
         a.weightRatio = (a.weight * 100) / totalSupply;

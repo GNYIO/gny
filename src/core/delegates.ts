@@ -5,7 +5,7 @@ import BlockReward from '../utils/block-reward';
 import {
   KeyPairsIndexer,
   KeyPair,
-  Delegate,
+  IDelegate,
   DelegateViewModel,
   BlockPropose,
   ProcessBlockOptions,
@@ -17,6 +17,7 @@ import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
+import BigNumber from 'bignumber.js';
 
 const blockreward = new BlockReward();
 
@@ -28,7 +29,7 @@ export default class Delegates {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
-    const delegates: Delegate[] = await global.app.sdb.getAll('Delegate');
+    const delegates: IDelegate[] = await global.app.sdb.getAll('Delegate');
     const keyPairs = Delegates.loadMyDelegates(secrets, delegates);
     StateHelper.SetKeyPairs(keyPairs);
 
@@ -199,7 +200,7 @@ export default class Delegates {
 
   public static loadMyDelegates = (
     secrets: string[],
-    delegates: Delegate[]
+    delegates: IDelegate[]
   ) => {
     const keyPairs: KeyPairsIndexer = {};
 
@@ -211,7 +212,7 @@ export default class Delegates {
     }
 
     try {
-      const delegateMap = new Map<string, Delegate>();
+      const delegateMap = new Map<string, IDelegate>();
       for (const d of delegates) {
         delegateMap.set(d.publicKey, d);
       }
@@ -320,7 +321,7 @@ export default class Delegates {
 
   public static getDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll('Delegate');
-    let delegates = allDelegates.map(d => Object.assign({}, d)) as Delegate[];
+    let delegates = allDelegates.map(d => Object.assign({}, d)) as IDelegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
       return undefined;
@@ -352,9 +353,14 @@ export default class Delegates {
     return delegates as DelegateViewModel[];
   };
 
-  public static compare = (left: Delegate, right: Delegate) => {
+  public static compare = (left: IDelegate, right: IDelegate) => {
+    if (typeof left.votes !== 'string' || typeof right.votes !== 'string') {
+      throw new Error('delegates votes must be strings');
+    }
     if (left.votes !== right.votes) {
-      return right.votes - left.votes;
+      return new BigNumber(right.votes).minus(left.votes).isGreaterThan(0)
+        ? 1
+        : -1;
     }
     return left.publicKey < right.publicKey ? 1 : -1;
   };
@@ -362,7 +368,7 @@ export default class Delegates {
   public static getTopDelegates = async () => {
     const allDelegates = (await global.app.sdb.getAll(
       'Delegate'
-    )) as Delegate[];
+    )) as IDelegate[];
     const sortedPublicKeys = allDelegates
       .sort(Delegates.compare)
       .map(d => d.publicKey)

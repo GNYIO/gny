@@ -1,7 +1,7 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IBalance } from '../../../src/interfaces';
+import { IScope, Next, IBalance, IAsset } from '../../../src/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class UiaApi {
@@ -166,7 +166,7 @@ export default class UiaApi {
 
       const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -194,7 +194,7 @@ export default class UiaApi {
     try {
       const condition = {};
       const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -219,7 +219,7 @@ export default class UiaApi {
     }
 
     try {
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition: {
           name: query.name,
         },

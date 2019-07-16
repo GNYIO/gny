@@ -8,6 +8,7 @@ import {
   DelegateViewModel,
   IAccount,
   IBalance,
+  IAsset,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
@@ -206,7 +207,7 @@ export default class AccountsApi {
       const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
       if (uiaNameList && uiaNameList.length) {
-        const assets = await global.app.sdb.findAll('Asset', {
+        const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
           condition: {
             name: {
               $in: uiaNameList,
@@ -245,9 +246,9 @@ export default class AccountsApi {
     const balance = await global.app.sdb.findOne('Balance', condition);
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = await global.app.sdb.findOne('Asset', {
+      balance.asset = (await global.app.sdb.findOne('Asset', {
         name: balance.currency,
-      });
+      })) as IAsset;
     }
 
     return res.json({ balance });
