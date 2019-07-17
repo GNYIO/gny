@@ -11,7 +11,34 @@ import { LogManager } from '../../../packages/database-postgres/src/logger';
 import { ILogger, IAccount } from '../../../src/interfaces';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
-import { BigNumber } from 'bignumber.js';
+
+function createEntityChanges(account: string, username: string) {
+  const value: EntityChanges[] = [
+    {
+      type: 1,
+      model: 'Account',
+      primaryKey: {
+        address: account,
+      },
+      dbVersion: 1,
+      propertyChanges: [
+        {
+          name: 'address',
+          current: account,
+        },
+        {
+          name: 'username',
+          current: username,
+        },
+        {
+          name: 'gny',
+          current: String(0),
+        },
+      ],
+    },
+  ];
+  return value;
+}
 
 function getMetaSchemaWithBigNumberPrimaryKey() {
   const testMetaSchema: MetaSchema = {
@@ -158,8 +185,8 @@ describe('orm - BasicEntityTracker', () => {
     const MAXVERSIONHOLD = 10;
 
     const logger = LogManager.getLogger('BasicEntityTracker');
-    const onLoadHistory = async (from: number, till: number) => {
-      return Promise.resolve(new Map<number, EntityChanges[]>());
+    const onLoadHistory = async (from: string, till: string) => {
+      return Promise.resolve(new Map<string, EntityChanges[]>());
     };
     sut = new BasicEntityTracker(
       lruEntityCache,
@@ -188,10 +215,10 @@ describe('orm - BasicEntityTracker', () => {
     const MAXVERSIONHOLD = 10;
 
     const logger = LogManager.getLogger('BasicEntityTracker');
-    const onLoadHistory = async (from: number, till: number) => {
-      const history = new Map<number, EntityChanges[]>();
-      const blockHeight = 0;
-      history.set(blockHeight, [
+    const onLoadHistory = async (from: string, till: string) => {
+      const history = new Map<string, EntityChanges[]>();
+      const height_0 = String(0);
+      history.set(height_0, [
         {
           type: 1,
           model: 'Account',
@@ -210,7 +237,7 @@ describe('orm - BasicEntityTracker', () => {
             },
             {
               name: 'gny',
-              current: '0',
+              current: String(0),
             },
           ],
         },
@@ -228,70 +255,43 @@ describe('orm - BasicEntityTracker', () => {
       mockOnLoadHistory
     );
 
-    await customSut.initVersion(0);
+    await customSut.initVersion(String(0));
 
-    expect(customSut.getHistoryByVersion(0).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(0)).length).toEqual(1);
     expect(mockOnLoadHistory).toBeCalledTimes(1);
-    expect(mockOnLoadHistory).toBeCalledWith(0, 0);
+    expect(mockOnLoadHistory).toBeCalledWith(String(0), String(0));
     done();
   });
+
   it('initVersion(height) loads all blocks up to height', async done => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
     const logger = LogManager.getLogger('BasicEntityTracker');
-    const onLoadHistory = async (from: number, till: number) => {
-      const createEntityChanges = (account: string, username: string) => {
-        const value: EntityChanges[] = [
-          {
-            type: 1,
-            model: 'Account',
-            primaryKey: {
-              address: account,
-            },
-            dbVersion: 1,
-            propertyChanges: [
-              {
-                name: 'address',
-                current: account,
-              },
-              {
-                name: 'username',
-                current: username,
-              },
-              {
-                name: 'gny',
-                current: '0',
-              },
-            ],
-          },
-        ];
-        return value;
-      };
-
-      const history = new Map<number, EntityChanges[]>();
+    const onLoadHistory = async (from: string, till: string) => {
+      const history = new Map<string, EntityChanges[]>();
       history.set(
-        0,
+        String(0),
         createEntityChanges('G3igL8sTPQzNquy87bYAR37NoYRNn', 'zero')
       );
       history.set(
-        1,
+        String(1),
         createEntityChanges('G3y6swmiyCguASMfm46yyUrKWv17w', 'one')
       );
       history.set(
-        2,
+        String(2),
         createEntityChanges('G3yepz3vN85RcbGa9WwyvWG4YseBy', 'two')
       );
       history.set(
-        3,
+        String(3),
         createEntityChanges('G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr', 'three')
       );
       history.set(
-        4,
+        String(4),
         createEntityChanges('Gwwsn2BHCTPswfPkv4bQAPzgs8Gr', 'four')
       );
       history.set(
-        5,
+        String(5),
         createEntityChanges('G4WuRoNbDfPKgBPDB3nUqQdAs91Rd', 'five')
       );
 
@@ -306,27 +306,28 @@ describe('orm - BasicEntityTracker', () => {
       logger,
       mockOnLoadHistory
     );
-    const LOAD_UP_TO_HEIGHT = 5;
+    const LOAD_UP_TO_HEIGHT = String(5);
     await customSut.initVersion(LOAD_UP_TO_HEIGHT);
 
     expect(mockOnLoadHistory).toBeCalledTimes(1);
 
-    expect(customSut.getHistoryByVersion(0).length).toEqual(1);
-    expect(customSut.getHistoryByVersion(1).length).toEqual(1);
-    expect(customSut.getHistoryByVersion(2).length).toEqual(1);
-    expect(customSut.getHistoryByVersion(3).length).toEqual(1);
-    expect(customSut.getHistoryByVersion(4).length).toEqual(1);
-    expect(customSut.getHistoryByVersion(5).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(0)).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(1)).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(2)).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(3)).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(4)).length).toEqual(1);
+    expect(customSut.getHistoryByVersion(String(5)).length).toEqual(1);
 
     done();
   });
+
   it('initVersion(height) does not load if other block was already set', async done => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
     const logger = LogManager.getLogger('BasicEntityTracker');
-    const onLoadHistory = async (from: number, till: number) => {
-      const history = new Map<number, EntityChanges[]>();
+    const onLoadHistory = async (from: string, till: string) => {
+      const history = new Map<string, EntityChanges[]>();
       return Promise.resolve(history);
     };
 
@@ -348,6 +349,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(mockOnLoadHistory).toBeCalledTimes(0);
     done();
   });
+
   it('trackNew("Account")', done => {
     const data = createAccount('liangpeili');
     const accountModelSchema = schemas.get('Account');
@@ -356,6 +358,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges().length).toEqual(1);
     done();
   });
+
   it('trackNew() throws if called twice', done => {
     const data = createAccount('liangpeili');
     const accountModelSchema = schemas.get('Account');
@@ -364,6 +367,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(() => sut.trackNew(accountModelSchema, data)).toThrow(); // twice
     done();
   });
+
   it('trackNew() returns entity with set default values', done => {
     const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
@@ -388,6 +392,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(result).toEqual(expected);
     done();
   });
+
   it('changes after trackNew("Account")', done => {
     const data: IAccount = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
@@ -475,10 +480,11 @@ describe('orm - BasicEntityTracker', () => {
 
     const returnedNew = sut.trackNew(accountModelSchema, data);
 
-    const changes = {
+    const changes: Partial<IAccount> = {
       gny: String(2000000),
     };
     sut.trackModify(accountModelSchema, returnedNew, changes);
+
     const expected: EntityChanges = {
       dbVersion: 2,
       model: 'Account',
@@ -504,10 +510,27 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges()[1]).toEqual(expected);
     done();
   });
+
+  it('trackModify() returns undefined', done => {
+    const account = createAccount('liangpeili');
+
+    const accountSchema = schemas.get('Account');
+    const returnedNew = sut.trackNew(accountSchema, account);
+
+    const modifier: Partial<IAccount> = {
+      gny: String(20 * 1e8),
+    };
+
+    const result = sut.trackModify(accountSchema, returnedNew, modifier);
+    expect(result).toBeUndefined();
+
+    done();
+  });
+
   it('trackDelete() without _version_', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
-    } as IAccount;
+    };
 
     const accountSchema = schemas.get('Account');
     sut.trackDelete(accountSchema, data);
@@ -531,8 +554,9 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges()[0]).toEqual(expected);
     done();
   });
+
   it('trackDelete() with _version_', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
       _version_: 3,
     };
@@ -540,7 +564,7 @@ describe('orm - BasicEntityTracker', () => {
     const accountSchema = schemas.get('Account');
     sut.trackDelete(accountSchema, data);
 
-    const expected = {
+    const expected: EntityChanges = {
       dbVersion: 3,
       model: 'Account',
       primaryKey: {
@@ -559,10 +583,11 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges()[0]).toEqual(expected);
     done();
   });
+
   it('trackDelete() returns undefined', done => {
-    const data = {
+    const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
-    } as IAccount;
+    };
 
     const accountSchema = schemas.get('Account');
     const returnedData = sut.trackDelete(accountSchema, data);
@@ -570,13 +595,14 @@ describe('orm - BasicEntityTracker', () => {
     expect(returnedData).toBeUndefined();
     done();
   });
+
   it('trackDelete() removes entity from cache', done => {
     const data: Partial<IAccount> = {
       address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
       username: 'liangpeili',
       gny: String(0),
     };
-    const key = {
+    const key: Partial<IAccount> = {
       address: data.address,
     };
 
@@ -591,6 +617,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getTrackingEntity(accountSchema, key)).toBeUndefined(); // second check
     done();
   });
+
   it('trackPersistent() tracks no changes', done => {
     const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
@@ -605,6 +632,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges().length).toEqual(0);
     done();
   });
+
   it('trackPersistent() returns same data but not same reference', done => {
     const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
@@ -624,6 +652,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(typeof data.gny).toEqual('string');
     done();
   });
+
   it('trackPersistent() throws if called twice', done => {
     const data: Partial<IAccount> = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
@@ -638,14 +667,16 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
-  it('historyVersions - is min: -1, max: -1 after initialization', done => {
+
+  it('historyVersions - is min: "-1", max: "-1" after initialization', done => {
     expect(sut.historyVersion).toEqual({
-      min: -1,
-      max: -1,
+      min: String(-1),
+      max: String(-1),
     });
     done();
   });
-  it.skip('', done => {
+
+  it.skip('historyVersion', done => {
     sut.beginConfirm();
     sut.confirm();
 
@@ -657,6 +688,7 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
+
   it('acceptChanges(10) should set history for block height 10', done => {
     const data: Partial<IAccount> = {
       address: 'G2S8FueDjrk3jN7pkeui7VmrA8eMU',
@@ -666,12 +698,12 @@ describe('orm - BasicEntityTracker', () => {
     const accountSchema = schemas.get('Account');
     sut.trackNew(accountSchema, data);
 
-    const resultBefore = sut.getHistoryByVersion(10, false);
+    const resultBefore = sut.getHistoryByVersion(String(10), false);
     expect(resultBefore).toBeUndefined();
 
-    sut.acceptChanges(10);
+    sut.acceptChanges(String(10));
 
-    const result = sut.getHistoryByVersion(10, false);
+    const result = sut.getHistoryByVersion(String(10), false);
     expect(result).toBeTruthy();
     expect(result.length).toEqual(1);
     expect(result[0].primaryKey).toEqual({
@@ -680,9 +712,78 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
-  it.skip('getChangesUntil', done => {
+
+  it('getChangesUntil() - loads EntityChanges from DB', async done => {
+    const lruEntityCache = new LRUEntityCache(schemas);
+    const MAXVERSIONHOLD = 10;
+
+    const logger = LogManager.getLogger('BasicEntityTracker');
+
+    const history1 = new Map<string, EntityChanges[]>();
+    history1.set(
+      String(5),
+      createEntityChanges('G3igL8sTPQzNquy87bYAR37NoYRNn', 'zero')
+    );
+    history1.set(
+      String(6),
+      createEntityChanges('G3y6swmiyCguASMfm46yyUrKWv17w', 'one')
+    );
+    history1.set(
+      String(7),
+      createEntityChanges('G3yepz3vN85RcbGa9WwyvWG4YseBy', 'two')
+    );
+    history1.set(
+      String(8),
+      createEntityChanges('G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr', 'three')
+    );
+    history1.set(
+      String(9),
+      createEntityChanges('Gwwsn2BHCTPswfPkv4bQAPzgs8Gr', 'four')
+    );
+    history1.set(
+      String(10),
+      createEntityChanges('G4WuRoNbDfPKgBPDB3nUqQdAs91Rd', 'five')
+    );
+
+    const history2 = new Map<string, EntityChanges[]>();
+    history2.set(
+      String(4),
+      createEntityChanges('G3SSkWs6UFuoVHU3N4rLvXoobbQCt', 'zeroMinusOne')
+    );
+
+    // on first call return "history1", on second call return "history2"
+    const mockOnLoadHistory = jest
+      .fn()
+      .mockReturnValueOnce(Promise.resolve(history1))
+      .mockReturnValueOnce(Promise.resolve(history2));
+
+    const customSut = new BasicEntityTracker(
+      lruEntityCache,
+      schemas,
+      MAXVERSIONHOLD,
+      logger,
+      mockOnLoadHistory
+    );
+
+    await customSut.initVersion(String(10));
+
+    // act
+    const result = await customSut.getChangesUntil(String(4));
+
+    expect(mockOnLoadHistory).toBeCalledTimes(2);
+    expect(result).toBeTruthy();
+    expect(result).toHaveLength(7);
+
+    // make sure that the EntityChanges from the Height 4 are present
+    const expectedFirstPrimaryKey = {
+      address: 'G3SSkWs6UFuoVHU3N4rLvXoobbQCt',
+    };
+    expect(result[0].primaryKey).toEqual(expectedFirstPrimaryKey);
+    expect(mockOnLoadHistory).nthCalledWith(2, String(4), String(5));
+
     done();
   });
+
   it('populate unconfirmedChanges during isConfirming phase', done => {
     expect(sut.isConfirming).toEqual(false);
     sut.beginConfirm();
@@ -704,6 +805,7 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
+
   it('getTrackingEntity() by primary key', done => {
     const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
@@ -723,12 +825,13 @@ describe('orm - BasicEntityTracker', () => {
       username: 'liangpeili',
     };
 
-    const key = {
+    const key: Partial<IAccount> = {
       address: data.address,
     };
     expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
     done();
   });
+
   it('getTrackingEntity() by unique constraint (unique column)', done => {
     const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
@@ -748,12 +851,13 @@ describe('orm - BasicEntityTracker', () => {
       username: 'liangpeili',
     };
 
-    const key = {
+    const key: Partial<IAccount> = {
       username: data.username,
     };
     expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
     done();
   });
+
   it('getTrackingEntity() still works for cached entities after block is accepted', done => {
     const data: Partial<IAccount> = {
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
@@ -763,10 +867,10 @@ describe('orm - BasicEntityTracker', () => {
     sut.trackNew(accountSchema, data);
 
     // accept changes for block 0
-    sut.acceptChanges(0);
+    sut.acceptChanges(String(0));
 
     // is entity still tracked?
-    const expected: Partial<IAccount> = {
+    const expected: IAccount = {
       _version_: 1,
       address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
       gny: String(0),
@@ -777,12 +881,13 @@ describe('orm - BasicEntityTracker', () => {
       username: 'liangpeili',
     };
 
-    const key = {
+    const key: Partial<IAccount> = {
       address: data.address,
     };
     expect(sut.getTrackingEntity(accountSchema, key)).toEqual(expected);
     done();
   });
+
   it('rejectChanges() rejects all unconfirmed changes', done => {
     const data: Partial<IAccount> = {
       address: 'GuGD9McasETcrw7tEcBfoz9UiYZs',
@@ -804,6 +909,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getTrackingEntity(accountSchema, data)).toBeUndefined();
     done();
   });
+
   it('rejectChanges() correctly sets isConfirming to false', done => {
     expect(sut.isConfirming).toEqual(false);
 
@@ -814,6 +920,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.isConfirming).toEqual(false);
     done();
   });
+
   it('rejectChanges() correctly updates cache after trackNew()', done => {
     const accountSchema = schemas.get('Account');
     const data: Partial<IAccount> = {
@@ -821,10 +928,10 @@ describe('orm - BasicEntityTracker', () => {
       username: 'liangpeili',
       gny: String(0),
     };
-    const primaryKey = {
+    const primaryKey: Partial<IAccount> = {
       address: data.address,
     };
-    const uniqueKey = {
+    const uniqueKey: Partial<IAccount> = {
       username: data.username,
     };
 
@@ -853,6 +960,7 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toBeUndefined();
     done();
   });
+
   it('rejectChanges() correctly updates cache after trackModify()', done => {
     const accountSchema = schemas.get('Account');
     const data: Partial<IAccount> = {
@@ -860,17 +968,17 @@ describe('orm - BasicEntityTracker', () => {
       username: 'liangpeili',
       gny: String(0),
     };
-    const primaryKey = {
+    const primaryKey: Partial<IAccount> = {
       address: data.address,
     };
-    const uniqueKey = {
+    const uniqueKey: Partial<IAccount> = {
       username: data.username,
     };
 
     sut.beginConfirm();
     const trackedDat = sut.trackNew(accountSchema, data);
     sut.confirm();
-    sut.acceptChanges(0);
+    sut.acceptChanges(String(0));
 
     sut.beginConfirm();
 
@@ -927,6 +1035,7 @@ describe('orm - BasicEntityTracker', () => {
 
     done();
   });
+
   // test will fail because after the trackDelete() the cached entity is missing the _version_ property
   it.skip('rejectChanges() correctly updates cache after trackDelete()', done => {
     const accountSchema = schemas.get('Account');
@@ -977,9 +1086,10 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getTrackingEntity(accountSchema, uniqueKey)).toEqual(expected);
     done();
   });
+
   it('rejectChanges() does not affect already saved block changes', done => {
-    sut.acceptChanges(0);
-    sut.acceptChanges(1);
+    sut.acceptChanges(String(0));
+    sut.acceptChanges(String(1));
 
     sut.beginConfirm();
     const accountSchema = schemas.get('Account');
@@ -990,12 +1100,12 @@ describe('orm - BasicEntityTracker', () => {
     };
     const trackedData = sut.trackNew(accountSchema, data);
     sut.confirm();
-    sut.acceptChanges(2);
+    sut.acceptChanges(String(2));
 
     // test before
-    expect(sut.getHistoryByVersion(0).length).toEqual(0);
-    expect(sut.getHistoryByVersion(1).length).toEqual(0);
-    expect(sut.getHistoryByVersion(2).length).toEqual(1);
+    expect(sut.getHistoryByVersion(String(0)).length).toEqual(0);
+    expect(sut.getHistoryByVersion(String(1)).length).toEqual(0);
+    expect(sut.getHistoryByVersion(String(2)).length).toEqual(1);
 
     sut.beginConfirm();
     sut.trackModify(accountSchema, trackedData, { gny: String(2000) });
@@ -1006,17 +1116,24 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.getConfirmedChanges().length).toEqual(0);
 
     // test after
-    expect(sut.getHistoryByVersion(0).length).toEqual(0);
-    expect(sut.getHistoryByVersion(1).length).toEqual(0);
-    expect(sut.getHistoryByVersion(2).length).toEqual(1);
+    expect(sut.getHistoryByVersion(String(0)).length).toEqual(0);
+    expect(sut.getHistoryByVersion(String(1)).length).toEqual(0);
+    expect(sut.getHistoryByVersion(String(2)).length).toEqual(1);
 
     done();
   });
+
   it.skip('rollbackChanges()', done => {
     // sut.rollbackChanges()
     done();
   });
   it.skip('automatically clear block-history after exceeding maxCachedBlocks', done => {
+    done();
+  });
+  it.skip('getHistoryByVersion() creates an empty entry if second parameter is true', done => {
+    done();
+  });
+  it.skip('test MAXVERSIONHOLD', done => {
     done();
   });
 });
