@@ -12,14 +12,14 @@ export class Round {
   @Column({
     type: 'bigint',
     nullable: true,
-    default: 0,
+    default: String(0),
   })
   public fee: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
-    default: 0,
+    default: String(0),
   })
   public reward: string;
 

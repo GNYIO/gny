@@ -66,10 +66,10 @@ export class Transaction {
   public args: any;
 
   @Column({
-    type: 'int',
+    type: 'bigint',
     nullable: false,
   })
-  public height: number;
+  public height: string;
 
   @Column({
     length: 256,

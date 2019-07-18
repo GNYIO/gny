@@ -7,7 +7,7 @@ import {
   MetaSchema,
 } from '../../../packages/database-postgres/src/modelSchema';
 import { LogManager } from '../../../packages/database-postgres/src/logger';
-import { ILogger, IDelegate } from '../../../src/interfaces';
+import { ILogger, IDelegate, IAccount } from '../../../src/interfaces';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
@@ -130,7 +130,7 @@ function getAccountMetaSchema() {
       },
       {
         name: 'gny',
-        default: 0,
+        default: String(0),
       },
       {
         name: 'publicKey',
@@ -148,11 +148,11 @@ function getAccountMetaSchema() {
       },
       {
         name: 'lockHeight',
-        default: 0,
+        default: String(0),
       },
       {
         name: 'lockAmount',
-        default: 0,
+        default: String(0),
       },
     ],
   };
@@ -183,10 +183,10 @@ function createDelegate(username: string) {
 function createAccount(username: string) {
   const publicKey = createHexString(32);
   const address = generateAddress(publicKey);
-  const account = {
+  const account: IAccount = {
     address,
     username,
-    gny: 0,
+    gny: String(0),
     publicKey,
     secondPublicKey: null,
     isDelegate: 0,

@@ -7,7 +7,7 @@ export const CUSTOM_GENESIS: IGenesisBlock = {
   timestamp: 0,
   previousBlock: null,
   delegate: 'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
-  height: 0,
+  height: String(0),
   count: 0,
   fees: String(0),
   reward: String(0),

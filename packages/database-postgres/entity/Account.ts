@@ -20,7 +20,7 @@ export class Account {
   public username: string;
 
   @Column({
-    default: 0,
+    default: String(0),
     type: 'bigint',
   })
   public gny: string;
@@ -52,13 +52,13 @@ export class Account {
   public isLocked: number;
 
   @Column({
-    default: 0,
+    default: String(0),
     type: 'bigint',
   })
   public lockHeight: string;
 
   @Column({
-    default: 0,
+    default: String(0),
     type: 'bigint',
   })
   public lockAmount: string;
