@@ -326,4 +326,102 @@ describe('extendedJoi', () => {
       expect(report.error.name).toBe('ValidationError');
     });
   });
+
+  describe('positiveOrZeroBigInt', () => {
+    it('should return a report when passed in "-1"', () => {
+      const VALUE = String(-1);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report when passed in empty string', () => {
+      const VALUE = '';
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report when passed in "0.5"', () => {
+      const VALUE = String(0.5);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report when passed in a negative integer "-1"', () => {
+      const VALUE = String(-1);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report when passed in a negative decimal "-8.4"', () => {
+      const VALUE = String(-1);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report when passed in a decimal "3.8"', () => {
+      const VALUE = String(4.8);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should pass when passed in a INTEGER "0"', () => {
+      const VALUE = String(0);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should pass when passed in a INTEGER "1"', () => {
+      const VALUE = String(1);
+
+      const schema = joi
+        .string()
+        .positiveOrZeroBigInt()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+  });
 });
