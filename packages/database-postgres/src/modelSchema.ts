@@ -175,6 +175,7 @@ export class ModelSchema {
   }
 
   public isValidPrimaryKey(key) {
+    // TODO: refactor
     return (
       (!this.isCompsiteKey &&
         (CodeContract.isPrimitiveKey(key) ||
