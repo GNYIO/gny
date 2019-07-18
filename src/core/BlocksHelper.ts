@@ -79,7 +79,7 @@ export class BlocksHelper {
     const payloadHash = BlocksHelper.payloadHashOfAllTransactions(
       unconfirmedTransactions
     );
-    const height = lastBlock.height + 1;
+    const height = new BigNumber(lastBlock.height).plus(1).toFixed();
     const prevBlockId = lastBlock.id;
     const fees = BlocksHelper.getFeesOfAll(unconfirmedTransactions);
     const count = unconfirmedTransactions.length;
@@ -156,7 +156,7 @@ export class BlocksHelper {
   }
 
   public static async IsBlockAlreadyInDbIO(block: IBlock) {
-    if (block.height !== 0) {
+    if (!new BigNumber(block.height).isEqualTo(0)) {
       const exists = await global.app.sdb.exists('Block', { id: block.id });
       if (exists) throw new Error(`Block already exists: ${block.id}`);
     }
@@ -223,7 +223,7 @@ export class BlocksHelper {
 
     const inCorrectOrder =
       block.prevBlockId === state.lastBlock.id &&
-      state.lastBlock.height + 1 === block.height;
+      new BigNumber(state.lastBlock.height).plus(1).isEqualTo(block.height);
     if (inCorrectOrder) {
       return true;
     } else {
@@ -255,11 +255,13 @@ export class BlocksHelper {
     const lastBlock = state.lastBlock;
 
     // TODO: compare to other "fitInLine" comparisons?! Aren't they equal?
+    const lastBlockPlus1 = new BigNumber(lastBlock.height).plus(1).toFixed();
     if (
-      Number(newBlock.height) !== Number(lastBlock.height) + 1 ||
+      !new BigNumber(newBlock.height).isEqualTo(lastBlockPlus1) ||
       newBlock.prevBlockId !== lastBlock.id
     ) {
-      if (Number(newBlock.height) > Number(lastBlock.height) + 5) {
+      const lastBlockPlus5 = new BigNumber(lastBlock.height).plus(5).toFixed();
+      if (new BigNumber(newBlock.height).isGreaterThan(lastBlockPlus5)) {
         return BlockMessageFitInLineResult.LongFork;
       } else {
         return BlockMessageFitInLineResult.SyncBlocks;
@@ -310,7 +312,9 @@ export class BlocksHelper {
   public static setPreGenesisBlock(old: IState) {
     const state = StateHelper.copyState(old);
 
-    state.lastBlock = { height: -1 } as IBlock;
+    state.lastBlock = {
+      height: String(-1),
+    } as IBlock;
 
     return state;
   }

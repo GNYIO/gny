@@ -6,9 +6,9 @@ import { Config } from '../decorator/config';
 export class BlockHistory {
   @PrimaryColumn({
     nullable: false,
-    type: 'int',
+    type: 'bigint',
   })
-  public height: number;
+  public height: string;
 
   @Column({
     type: 'varchar',

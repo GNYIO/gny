@@ -10,6 +10,7 @@ import Blocks from './blocks';
 import Peer from './peer';
 import joi from '../utils/extendedJoi';
 import { LoaderHelper } from './LoaderHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default class Loader {
   public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
@@ -42,7 +43,7 @@ export default class Loader {
       }) with peer ${peerStr}, last block height is ${newestLastBlock.height}`
     );
 
-    const toRemove = LoaderHelper.GetBlockDifference(
+    const toRemove: string = LoaderHelper.GetBlockDifference(
       newestLastBlock,
       commonBlock
     );
@@ -54,7 +55,7 @@ export default class Loader {
 
     try {
       StateHelper.ClearUnconfirmedTransactions();
-      if (toRemove > 0) {
+      if (new BigNumber(toRemove).isGreaterThan(0)) {
         await global.app.sdb.rollbackBlock(commonBlock.height);
 
         // TODO refactor
@@ -94,13 +95,13 @@ export default class Loader {
     const peerStr = `${peer.host}:${peer.port - 1}`;
     global.library.logger.info(`Check blockchain on ${peerStr}`);
 
-    ret.height = Number.parseInt(ret.height, 10);
+    // TODO: check if really integer!
+    ret.height = new BigNumber(ret.height).toFixed();
 
     const schema = joi.object().keys({
       height: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
     });
     const report = joi.validate(ret, schema);

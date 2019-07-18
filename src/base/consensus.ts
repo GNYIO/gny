@@ -15,10 +15,10 @@ import {
 import { DELEGATES } from '../utils/constants';
 
 export class ConsensusBase {
-  private static calculateVoteHash(height: number, id: string) {
+  private static calculateVoteHash(height: string, id: string) {
     const byteBuffer = new ByteBuffer();
 
-    byteBuffer.writeInt64(height);
+    byteBuffer.writeInt64((height as unknown) as number);
     byteBuffer.writeString(id);
     byteBuffer.flip();
 
@@ -77,7 +77,7 @@ export class ConsensusBase {
     return votes;
   }
 
-  public static verifyVote(height: number, id: string, vote: Signature) {
+  public static verifyVote(height: string, id: string, vote: Signature) {
     try {
       const hash = ConsensusBase.calculateVoteHash(height, id);
       const signature = Buffer.from(vote.signature, 'hex');

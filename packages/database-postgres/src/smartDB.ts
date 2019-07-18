@@ -15,6 +15,7 @@ import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
 import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
+import { BigNumber } from 'bignumber.js';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -22,7 +23,7 @@ export type Hooks = {
   hook: CommitBlockHook;
 };
 
-export type RollbackBlockHook = (fromHeight: number, toHeight: number) => void;
+export type RollbackBlockHook = (fromHeight: string, toHeight: string) => void;
 export type RHooks = {
   name: string;
   hook: RollbackBlockHook;
@@ -45,7 +46,7 @@ export class SmartDB extends EventEmitter {
   private log: LoggerWrapper;
   private cachedBlocks: BlockCache;
   private connection: Connection;
-  private _lastBlockHeight?: number;
+  private _lastBlockHeight?: string;
   private blockSession: DbSession;
   private currentBlock: Block;
 
@@ -78,8 +79,8 @@ export class SmartDB extends EventEmitter {
     this.schemas = createMetaSchema();
 
     const history: LoadChangesHistoryAction = async (
-      fromVersion: number,
-      toVersion: number
+      fromVersion: string,
+      toVersion: string
     ) => {
       const result = await this.connection
         .createQueryBuilder()
@@ -90,7 +91,7 @@ export class SmartDB extends EventEmitter {
           toVersion,
         })
         .getMany();
-      const transformed = new Map<number, EntityChanges[]>();
+      const transformed = new Map<string, EntityChanges[]>();
       result.map(bh =>
         transformed.set(bh.height, JSON.parse(bh.history) as EntityChanges[])
       );
@@ -142,9 +143,9 @@ export class SmartDB extends EventEmitter {
     return this.blockSession;
   }
 
-  private preCommitBlock(className: Block) {
+  private preCommitBlock(block: Block) {
     this.commitBlockHooks.forEach(oneHook => {
-      return oneHook.hook(className);
+      return oneHook.hook(block);
     });
   }
 
@@ -152,13 +153,13 @@ export class SmartDB extends EventEmitter {
     this.emit('newBlock', block);
   }
 
-  private preRollbackBlock(currentHeight: number, targetHeight: number) {
+  private preRollbackBlock(currentHeight: string, targetHeight: string) {
     this.rollbackBlockHooks.forEach(oneHook => {
       return oneHook.hook(currentHeight, targetHeight);
     });
   }
 
-  private postRollbackBlock(currentHeight: number, targetHeight: number) {
+  private postRollbackBlock(currentHeight: string, targetHeight: string) {
     this.emit('rollbackBlock', {
       from: currentHeight,
       to: targetHeight,
@@ -182,9 +183,10 @@ export class SmartDB extends EventEmitter {
 
   public unregisterCommitBlockHook(name: string) {
     CodeContract.argument('name', () => CodeContract.notNullOrWhitespace(name));
-    const index = this.commitBlockHooks.findIndex(function(engineDiscovery) {
-      return engineDiscovery.name === name.trim();
-    });
+    const index = this.commitBlockHooks.findIndex(
+      one => one.name === name.trim()
+    );
+
     if (index >= 0) {
       this.commitBlockHooks.slice(index);
     }
@@ -246,13 +248,14 @@ export class SmartDB extends EventEmitter {
   }
 
   public beginBlock(block: Block) {
-    block.height = Number(block.height);
     CodeContract.argument('block', () => CodeContract.notNull(block));
 
     // TODO refactor Number()
     CodeContract.argument(
       'block',
-      Number(block.height) === this.lastBlockHeight + 1,
+      new BigNumber(block.height).isEqualTo(
+        new BigNumber(this.lastBlockHeight).plus(1)
+      ),
       'invalid block height ' +
         block.height +
         ', last = ' +
@@ -284,7 +287,7 @@ export class SmartDB extends EventEmitter {
       .execute();
   }
 
-  private async deleteLastBlock(height: number) {
+  private async deleteLastBlock(height: string) {
     // if (height !== this.lastBlockHeight) throw new Error("invalid last block height '" + token + "'");
 
     await this.connection
@@ -299,7 +302,9 @@ export class SmartDB extends EventEmitter {
       .from(BlockHistory)
       .where('height = :height', { height })
       .execute();
-    this._lastBlockHeight--;
+    this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
+      .minus(1)
+      .toFixed();
   }
 
   public async commitBlock() {
@@ -316,7 +321,9 @@ export class SmartDB extends EventEmitter {
     // await this.blockDB.appendBlock(value, this.blockSession.getChanges());
     await this.appendBlock(value, this.blockSession.getChanges());
 
-    this._lastBlockHeight++;
+    this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
+      .plus(1)
+      .toFixed();
     performance.Utils.Performace.endTime();
     try {
       await this.blockSession.saveChanges(this.currentBlock.height);
@@ -336,10 +343,11 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public async rollbackBlock(height?: number) {
+  public async rollbackBlock(height?: string) {
     CodeContract.argument(
       'height',
-      !height || height <= this.lastBlockHeight,
+      !height ||
+        new BigNumber(height).isLessThanOrEqualTo(this.lastBlockHeight),
       'height must less or equal lastBlockHeight ' + this.lastBlockHeight
     );
     const currentHeight = this.currentBlock
@@ -559,7 +567,10 @@ export class SmartDB extends EventEmitter {
   }
 
   private async ensureLastBlockLoaded() {
-    if (undefined === this.lastBlock && this.lastBlockHeight >= 0) {
+    if (
+      undefined === this.lastBlock &&
+      new BigNumber(this.lastBlockHeight).isGreaterThanOrEqualTo(0)
+    ) {
       const loadedBlock = await this.getBlockByHeight(
         this.lastBlockHeight,
         true
@@ -576,12 +587,12 @@ export class SmartDB extends EventEmitter {
   }
 
   public getBlockByHeight = async (
-    height: number,
+    height: string,
     withTransactions = false
   ) => {
     CodeContract.argument(
       'height',
-      height >= 0,
+      new BigNumber(height).isGreaterThanOrEqualTo(0),
       'height must great or equal zero'
     );
     const cachedBlock = this.copyCachedBlock(() => {
@@ -626,13 +637,14 @@ export class SmartDB extends EventEmitter {
   }
 
   public getBlocksByHeightRange = async (
-    min: number,
-    max: number,
+    min: string,
+    max: string,
     withTransactions = false
   ) => {
     CodeContract.argument(
       'minHeight, maxHeight',
-      min >= 0 && max >= min,
+      new BigNumber(min).isGreaterThanOrEqualTo(0) &&
+        new BigNumber(max).isGreaterThanOrEqualTo(min),
       'minHeight or maxHeight is invalid'
     );
     const blocks = await this.blockSession.getBlocksByHeightRange(min, max);
@@ -701,7 +713,7 @@ export class SmartDB extends EventEmitter {
   }
 
   public get blocksCount() {
-    return this.lastBlockHeight + 1;
+    return new BigNumber(this.lastBlockHeight).plus(1).toFixed();
   }
 
   public get lastBlock() {

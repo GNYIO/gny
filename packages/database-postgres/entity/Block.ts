@@ -26,10 +26,10 @@ export class Block {
 
   @Column({
     nullable: false,
-    type: 'int',
+    type: 'bigint',
     unique: true,
   })
-  public height: number;
+  public height: string;
 
   @Column({
     length: 64,

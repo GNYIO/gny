@@ -37,7 +37,7 @@ import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
 
 const blockreward = new Blockreward();
-export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
+export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks {
   public static async getIdSequence2(
@@ -106,7 +106,7 @@ export default class Blocks {
 
     global.app.logger.debug(`verifyBlock, id: ${block.id}, h: ${block.height}`);
 
-    if (!block.prevBlockId && block.height !== 0) {
+    if (!block.prevBlockId && !new BigNumber(block.height).isEqualTo(0)) {
       throw new Error('Previous block should not be null');
     }
 
@@ -118,7 +118,7 @@ export default class Blocks {
       throw new Error('Incorrect previous block hash');
     }
 
-    if (block.height !== 0) {
+    if (!new BigNumber(block.height).isEqualTo(0)) {
       if (!BlocksHelper.verifyBlockSlot(state, Date.now(), block)) {
         throw new Error(`Can't verify block timestamp: ${block.id}`);
       }
@@ -226,7 +226,7 @@ export default class Blocks {
   ) {
     if (!options.local) {
       Blocks.verifyBlock(state, block, options, delegateList);
-      if (block.height !== 0) {
+      if (!new BigNumber(block.height).isEqualTo(0)) {
         Delegates.validateBlockSlot(block, delegateList);
       }
     }
@@ -347,7 +347,7 @@ export default class Blocks {
   };
 
   public static applyRound = async (block: IBlock) => {
-    if (block.height === 0) {
+    if (new BigNumber(block.height).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
       return;
     }
@@ -372,7 +372,7 @@ export default class Blocks {
       String(roundNumber)
     );
 
-    if (block.height % 101 !== 0) return;
+    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
 
     global.app.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
@@ -683,8 +683,12 @@ export default class Blocks {
       if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
         return setImmediate(cb);
       }
-      if (propose.height !== state.lastBlock.height + 1) {
-        if (propose.height > state.lastBlock.height + 1) {
+      // TODO: check
+      const lastBlockPlus1 = new BigNumber(state.lastBlock.height)
+        .plus(1)
+        .toFixed();
+      if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
+        if (new BigNumber(propose.height).isGreaterThan(lastBlockPlus1)) {
           Loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
@@ -824,7 +828,7 @@ export default class Blocks {
 
   public static RunGenesisOrLoadLastBlock = async (
     old: IState,
-    numberOfBlocksInDb: number | null,
+    numberOfBlocksInDb: string | null,
     genesisBlock: IGenesisBlock,
     processBlock: (
       state: IState,
@@ -836,14 +840,16 @@ export default class Blocks {
   ) => {
     let state = StateHelper.copyState(old);
 
-    if (!numberOfBlocksInDb) {
+    if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
       state = await processBlock(state, genesisBlock, options, delegateList);
     } else {
-      const block = await getBlocksByHeight(numberOfBlocksInDb - 1);
+      const block = await getBlocksByHeight(
+        new BigNumber(numberOfBlocksInDb).minus(1).toFixed()
+      );
       state = BlocksHelper.SetLastBlock(state, block);
     }
     return state;

@@ -125,7 +125,7 @@ export default class Delegates {
     }
 
     const delList = await Delegates.generateDelegateList(
-      Number(preState.lastBlock.height) + 1
+      new BigNumber(preState.lastBlock.height).plus(1).toFixed()
     );
     const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
     const currentBlockData = Delegates.getBlockSlotData(
@@ -276,7 +276,7 @@ export default class Delegates {
   };
 
   public static generateDelegateList = async (
-    height: number
+    height: string
   ): Promise<string[]> => {
     try {
       const truncDelegateList = await Delegates.getBookkeeper();

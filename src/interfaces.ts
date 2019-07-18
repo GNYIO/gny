@@ -158,23 +158,13 @@ export interface IGenesisBlock {
   timestamp: number;
   previousBlock: null;
   delegate: string;
-  height: number;
+  height: string;
   count: number;
   fees: string;
   reward: string;
   signature: string;
   id: string;
-  transactions: {
-    type: number;
-    fee: number;
-    timestamp: number;
-    senderId: string;
-    senderPublicKey: string;
-    signatures: string[];
-    message: string;
-    args: any[];
-    id: string;
-  }[];
+  transactions: ITransaction[];
 }
 
 type ILogLevel =
@@ -237,7 +227,7 @@ export interface KeyPair {
 }
 
 export interface ManyVotes {
-  height: number;
+  height: string;
   id: string;
   signatures: Signature[];
 }
@@ -274,7 +264,7 @@ export type BlockHeightId = Pick<IBlock, 'height' | 'id'>;
 // Models
 export interface IBlock {
   id: string;
-  height: number;
+  height: string;
   version: number;
   timestamp: number;
   prevBlockId?: any;
@@ -285,7 +275,7 @@ export interface IBlock {
   delegate: string;
   signature: string;
   _version_?: number;
-  transactions?: any;
+  transactions?: ITransaction[];
 }
 
 export interface IAccount {
@@ -316,7 +306,7 @@ export interface ITransaction {
   signatures?: any;
   secondSignature?: any;
   args: any;
-  height: number;
+  height: string;
   message?: string;
   _version_?: number;
 }
@@ -401,7 +391,7 @@ export interface IVote {
 
 export interface NewBlockMessage {
   id: string;
-  height: number;
+  height: string;
   prevBlockId: string;
 }
 
@@ -419,7 +409,7 @@ export interface BlockPropose {
   address: string;
   generatorPublicKey: string;
   hash: string;
-  height: number;
+  height: string;
   id: string;
   signature: string;
   timestamp: number;
@@ -430,14 +420,9 @@ export interface BlockAndVotes {
   votes: string;
 }
 
-export interface FirstHeightIds {
-  ids: string[];
-  firstHeight: number;
-}
-
 export interface CommonBlockParams {
-  max: number;
-  min: number;
+  max: string;
+  min: string;
   ids: string[];
 }
 
