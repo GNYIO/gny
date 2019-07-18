@@ -3,10 +3,6 @@ import { isAddress } from './address';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 
-interface ExtendedObjectSchema extends Joi.ObjectSchema {
-  positiveIntegerBigNumber(): this;
-}
-
 interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
   secret(): this;
@@ -22,47 +18,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
 
 export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
-  object(): ExtendedObjectSchema;
 }
-
-const objectExtensions: Joi.Extension = {
-  base: Joi.object(),
-  name: 'object',
-  language: {
-    positiveIntegerBigNumber: 'is not a positive integer bignum instance',
-  },
-  rules: [
-    {
-      name: 'positiveIntegerBigNumber',
-      validate(params, value, state, options) {
-        try {
-          // warning: new BigNumber(2.0).isInteger() returns "true"
-          if (
-            BigNumber.isBigNumber(value) &&
-            new BigNumber(value).isPositive() &&
-            new BigNumber(value).isInteger()
-          ) {
-            return value;
-          }
-
-          return this.createError(
-            'object.positiveIntegerBigNumber',
-            { v: value },
-            state,
-            options
-          );
-        } catch (err) {
-          return this.createError(
-            'object.positiveIntegerBigNumber',
-            { v: value },
-            state,
-            options
-          );
-        }
-      },
-    },
-  ],
-};
 
 const stringExtensions: Joi.Extension = {
   base: Joi.string(),
@@ -292,6 +248,6 @@ const stringExtensions: Joi.Extension = {
   ],
 };
 
-const newJoi: ExtendedJoi = Joi.extend([stringExtensions, objectExtensions]);
+const newJoi: ExtendedJoi = Joi.extend(stringExtensions);
 
 export default newJoi;
