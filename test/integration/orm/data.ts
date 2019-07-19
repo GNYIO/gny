@@ -5,7 +5,7 @@ export const CUSTOM_GENESIS: IGenesisBlock = {
   payloadHash:
     '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',
   timestamp: 0,
-  previousBlock: null,
+  prevBlockId: null,
   delegate: 'bb7fc99aae209658bfb1987367e6881cdf648975438abd05aefd16ac214e4f47',
   height: String(0),
   count: 0,

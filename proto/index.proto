@@ -15,7 +15,7 @@ message Block {
   required bytes payloadHash = 8;
   required bytes generatorPublicKey = 9;
   optional bytes blockSignature = 10;
-  optional string previousBlock = 11;
+  optional string prevBlockId = 11;
   optional string id = 12;
   optional int64 height = 13;
   repeated Transaction transactions = 14;

@@ -156,7 +156,7 @@ export interface IGenesisBlock {
   version: number;
   payloadHash: string;
   timestamp: number;
-  previousBlock: null;
+  prevBlockId: null;
   delegate: string;
   height: string;
   count: number;
