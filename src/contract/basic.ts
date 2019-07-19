@@ -171,7 +171,11 @@ export default {
         return 'Invalid amount';
       }
     } else {
-      if (height < this.block.height + MIN_LOCK_HEIGHT) {
+      if (
+        new BigNumber(height).isLessThan(
+          new BigNumber(this.block.height).plus(MIN_LOCK_HEIGHT)
+        )
+      ) {
         return 'Invalid lock height';
       }
       if (amount === 0) {

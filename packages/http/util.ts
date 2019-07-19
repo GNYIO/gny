@@ -22,8 +22,8 @@ export default zscheme => (req, res, next) => {
 };
 
 export async function getBlocks(
-  minHeight: number,
-  maxHeight: number,
+  minHeight: string,
+  maxHeight: string,
   withTransaction: boolean
 ) {
   const blocks: IBlock[] = await global.app.sdb.getBlocksByHeightRange(
@@ -44,8 +44,8 @@ export async function getBlocks(
     });
     const firstHeight = blocks[0].height;
     for (const t of transactions) {
-      const h = t.height;
-      const b = blocks[h - firstHeight];
+      const index = new BigNumber(t.height).minus(firstHeight).toFixed();
+      const b = blocks[index];
       if (b) {
         if (!b.transactions) {
           b.transactions = [];
@@ -101,6 +101,7 @@ export async function getAccount(address: string) {
         lockHeight: String(0),
         isDelegate: 0,
         username: null,
+        publicKey: null,
       };
     } else {
       accountData = {
@@ -110,6 +111,7 @@ export async function getAccount(address: string) {
         lockHeight: account.lockHeight || String(0),
         isDelegate: account.isDelegate,
         username: account.username,
+        publicKey: account.publicKey,
       };
     }
     const latestBlock = StateHelper.getState().lastBlock;

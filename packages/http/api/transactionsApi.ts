@@ -77,7 +77,7 @@ export default class TransactionsApi {
         .number()
         .min(0)
         .max(1000),
-      height: this.library.joi.number().min(0),
+      height: this.library.joi.number().min(0), // TODO: add string option
       message: this.library.joi
         .string()
         .max(256)

@@ -293,7 +293,12 @@ export interface IAccount {
 
 export type AccountViewModel = Pick<
   IAccount,
-  'address' | 'secondPublicKey' | 'lockHeight' | 'isDelegate' | 'username'
+  | 'address'
+  | 'publicKey'
+  | 'secondPublicKey'
+  | 'lockHeight'
+  | 'isDelegate'
+  | 'username'
 > & { balance: string };
 
 export interface ITransaction {

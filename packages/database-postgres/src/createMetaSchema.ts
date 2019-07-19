@@ -52,7 +52,6 @@ export function transform(entity: any) {
       };
     }
   });
-  console.log(`columns: ${JSON.stringify(columns)}`);
 
   const config = MetaDataStore.getOptionsFor(name);
 

@@ -244,7 +244,10 @@ export default class AccountsApi {
       address: req.params.address,
       currency,
     };
-    const balance = await global.app.sdb.findOne('Balance', condition);
+    const balance: IBalance = await global.app.sdb.findOne(
+      'Balance',
+      condition
+    );
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
       balance.asset = (await global.app.sdb.findOne('Asset', {

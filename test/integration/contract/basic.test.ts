@@ -97,7 +97,7 @@ describe('basic', () => {
         const beforeTrs = await axios.get(
           'http://localhost:4096/api/accounts/getBalance?address=' + recipient
         );
-        expect(beforeTrs.data.balances[0].gny).toBe(0);
+        expect(beforeTrs.data.balances[0].gny).toBe(String(0));
 
         // Transaction
         const trs = gnyJS.basic.transfer(
@@ -140,7 +140,9 @@ describe('basic', () => {
         const beforeTrs = await axios.get(
           'http://localhost:4096/api/accounts/getBalance?address=' + senderId
         );
-        expect(beforeTrs.data.balances[0].gny).toBe('40000000000000000');
+        expect(beforeTrs.data.balances[0].gny).toBe(
+          String('40000000000000000')
+        );
         await lib.onNewBlock();
 
         // Transaction
@@ -170,7 +172,7 @@ describe('basic', () => {
         const afterTrs = await axios.get(
           'http://localhost:4096/api/accounts/getBalance?address=' + senderId
         );
-        expect(afterTrs.data.balances[0].gny).toBe('40000000000000000');
+        expect(afterTrs.data.balances[0].gny).toBe(String('40000000000000000'));
       },
       lib.oneMinute
     );

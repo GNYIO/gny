@@ -41,12 +41,15 @@ export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks {
   public static async getIdSequence2(
-    height: number,
-    getBlocksByHeightRange: (min: number, max: number) => Promise<Block[]>
+    height: string,
+    getBlocksByHeightRange: (min: string, max: string) => Promise<Block[]>
   ) {
     try {
       const maxHeight = height;
-      const minHeight = Math.max(0, maxHeight - 4);
+      const minHeight = BigNumber.maximum(
+        0,
+        new BigNumber(maxHeight).minus(4).toFixed()
+      ).toFixed();
       let blocks = await getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
       const ids = blocks.map(b => b.id);
@@ -64,7 +67,7 @@ export default class Blocks {
   // todo look at core/loader
   public static getCommonBlock = async (
     peer: PeerNode,
-    lastBlockHeight: number
+    lastBlockHeight: string
   ): Promise<IBlock> => {
     let params: CommonBlockParams;
     try {
