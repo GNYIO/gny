@@ -111,7 +111,7 @@ async function saveGenesisBlock(smartDB: SmartDB) {
   await smartDB.commitBlock();
 }
 
-describe('integration - SmartDB', () => {
+describe.skip('integration - SmartDB', () => {
   let sut: SmartDB;
   let configRaw: string;
 
