@@ -49,7 +49,10 @@ export default {
     amount = Number(amount);
     const sender = this.sender;
     const senderId = sender.address;
-    if (this.block.height > 0 && new BigNumber(sender.gny).isLessThan(amount))
+    if (
+      new BigNumber(this.block.height).isGreaterThan(0) &&
+      new BigNumber(sender.gny).isLessThan(amount)
+    )
       return 'Insufficient balance';
 
     let recipientAccount: IAccount;
@@ -221,7 +224,8 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
-    if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
+    if (new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight))
+      return 'Account cannot unlock';
 
     if (this.sender.isDelegate) {
       await deleteCreatedVotes(this.sender);
@@ -242,7 +246,7 @@ export default {
     if (!sender) return 'Account not found';
 
     const senderId = this.sender.address;
-    if (this.block.height > 0)
+    if (new BigNumber(this.block.height).isGreaterThan(0))
       await global.app.sdb.lock(`basic.account@${senderId}`);
 
     if (!sender.username) return 'Account has not a name';
