@@ -37,11 +37,11 @@ function createKeypair() {
   return ed.generateKeyPair(hash);
 }
 
-function createBlock(height: number, keypair: KeyPair) {
+function createBlock(height: string, keypair: KeyPair) {
   const block: IBlock = {
     height: height,
     version: 0,
-    timestamp: height + 2003502305230,
+    timestamp: 2003502305230,
     count: 0,
     fees: String(0),
     reward: String(0),
@@ -62,7 +62,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       done();
     });
 
@@ -87,7 +87,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       done();
     });
 
@@ -104,7 +104,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
 
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
@@ -136,7 +136,7 @@ describe('Transaction', () => {
     beforeEach(done => {
       trs = createTransation();
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
 
       block.transactions = [trs];
       block.signature = BlockBase.sign(block, keypair);

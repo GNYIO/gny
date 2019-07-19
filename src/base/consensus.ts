@@ -100,7 +100,7 @@ export class ConsensusBase {
 
   private static calculateProposeHash(propose: BlockPropose) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeInt64(propose.height);
+    byteBuffer.writeInt64((propose.height as unknown) as number);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(
@@ -165,7 +165,7 @@ export class ConsensusBase {
     >
   ) {
     const byteBuffer = new ByteBuffer();
-    byteBuffer.writeInt64(propose.height);
+    byteBuffer.writeInt64((propose.height as unknown) as number);
     byteBuffer.writeString(propose.id);
 
     const generatorPublicKeyBuffer = Buffer.from(

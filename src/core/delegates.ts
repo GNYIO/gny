@@ -150,7 +150,9 @@ export default class Delegates {
           ConsensusHelper.hasPendingBlock(state, myTime) === false;
 
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
-          const height = state.lastBlock.height + 1;
+          const height = new BigNumber(state.lastBlock.height)
+            .plus(1)
+            .toFixed();
 
           const unconfirmedTransactions = StateHelper.GetUnconfirmedTransactionList();
           const delegateList = await Delegates.generateDelegateList(height);
@@ -336,7 +338,10 @@ export default class Delegates {
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;
       current.rate = i + 1;
-      current.approval = (current.votes / totalSupply) * 100;
+      current.approval = new BigNumber(current.votes)
+        .dividedBy(totalSupply)
+        .times(100)
+        .toFixed();
 
       let percent =
         100 -

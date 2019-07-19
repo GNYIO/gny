@@ -32,11 +32,11 @@ export function createKeypair() {
   return ed.generateKeyPair(hash);
 }
 
-export function createBlock(height: number, keypair: KeyPair) {
+export function createBlock(height: string, keypair: KeyPair) {
   const block: IBlock = {
     height: height,
     version: 0,
-    timestamp: height + 2003502305230,
+    timestamp: 2003502305230,
     count: 0,
     fees: String(0),
     reward: String(0),
@@ -63,7 +63,7 @@ describe('Consensus', () => {
     beforeEach(done => {
       const keypair = createKeypair();
       keypairs = [keypair];
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       votes = ConsensusBase.createVotes(keypairs, block);
@@ -91,7 +91,7 @@ describe('Consensus', () => {
     beforeEach(done => {
       const keypair = createKeypair();
       keypairs = [keypair];
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       done();
@@ -128,7 +128,7 @@ describe('Consensus', () => {
     beforeEach(done => {
       const keypair = createKeypair();
       keypairs = [keypair];
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       votes = ConsensusBase.createVotes(keypairs, block);
@@ -166,7 +166,7 @@ describe('Consensus', () => {
     beforeEach(done => {
       keypair = createKeypair();
       keypairs = [keypair];
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       votes = ConsensusBase.createVotes(keypairs, block);
@@ -265,7 +265,7 @@ describe('Consensus', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       address = '127.0.0.1:6379';
@@ -304,7 +304,7 @@ describe('Consensus', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
       address = '127.0.0.1:6379';
@@ -355,9 +355,9 @@ describe('Consensus', () => {
 
     it('acceptPropose() - returns false when "height" property was manipulated', done => {
       // check before
-      expect(propose.height).toEqual(1);
+      expect(propose.height).toEqual(String(1));
       // prepration
-      propose.height = 2;
+      propose.height = String(2);
 
       const accepted = ConsensusBase.acceptPropose(propose);
       expect(accepted).toBeFalsy();

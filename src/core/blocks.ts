@@ -388,8 +388,8 @@ export default class Blocks {
     global.app.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
-      block.height - 100,
-      block.height - 1
+      new BigNumber(block.height).minus(100).toFixed(),
+      new BigNumber(block.height).minus(1).toFixed()
     );
     const forgedDelegates: string[] = [
       ...forgedBlocks.map(b => b.delegate),
@@ -411,42 +411,58 @@ export default class Blocks {
 
     async function updateDelegate(
       publicKey: string,
-      fee: number,
-      reward: number
+      fee: string,
+      reward: string
     ) {
       const delegateAdr = addressHelper.generateAddress(publicKey);
       await global.app.sdb.increase(
         'Delegate',
-        { fees: String(fee), rewards: String(reward) },
-        { address: delegateAdr }
+        {
+          fees: String(fee),
+          rewards: String(reward),
+        },
+        {
+          address: delegateAdr,
+        }
       );
       // TODO should account be all cached?
       await global.app.sdb.increase(
         'Account',
-        { gny: String(fee + reward) },
-        { address: delegateAdr }
+        {
+          gny: new BigNumber(fee).plus(reward).toFixed(),
+        },
+        {
+          address: delegateAdr,
+        }
       );
     }
 
     const ratio = 1;
 
-    // const actualFees = new BigNumber(fee).times(ratio).toFixed();
-    // const feeAverage = new BigNumber(actualFees).dividedToIntegerBy(delegates.length).toFixed();
-    // const feeRemainder = new BigNumber(feeAverage).times(delegates.length).minus(actualFees);
-    const actualFees = Math.floor(fee * ratio);
-    const feeAverage = Math.floor(actualFees / delegates.length);
-    const feeRemainder = actualFees - feeAverage * delegates.length;
+    const actualFees = new BigNumber(fee).times(ratio).toFixed();
+    const feeAverage = new BigNumber(actualFees)
+      .dividedToIntegerBy(delegates.length)
+      .toFixed();
+    const feeRemainder = new BigNumber(feeAverage)
+      .times(delegates.length)
+      .minus(actualFees)
+      .toFixed();
 
-    const actualRewards = Math.floor(reward * ratio);
-    const rewardAverage = Math.floor(actualRewards / delegates.length);
-    const rewardRemainder = actualRewards - rewardAverage * delegates.length;
+    const actualRewards = new BigNumber(reward).times(ratio).toFixed();
+    const rewardAverage = new BigNumber(actualRewards)
+      .dividedToIntegerBy(delegates.length)
+      .toFixed();
+    const rewardRemainder = new BigNumber(rewardAverage)
+      .times(delegates.length)
+      .minus(actualRewards)
+      .toFixed();
 
     for (const fd of forgedDelegates) {
       await updateDelegate(fd, feeAverage, rewardAverage);
     }
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
-    if (block.height % 101 === 0) {
+    if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
     }
   };

@@ -96,7 +96,7 @@ export default class Transactions {
   ) => {
     const height = state.lastBlock.height;
     const block = {
-      height: height + 1,
+      height: new BigNumber(height).plus(1).toFixed(),
     };
 
     const senderId = transaction.senderId;
@@ -110,9 +110,12 @@ export default class Transactions {
       throw new Error('Sender public key not provided');
     }
 
-    let sender = await global.app.sdb.load('Account', { address: senderId });
+    let sender: IAccount = await global.app.sdb.load('Account', {
+      address: senderId,
+    });
     if (!sender) {
-      if (height > 0) throw new Error('Sender account not found');
+      if (new BigNumber(height).isGreaterThan(0))
+        throw new Error('Sender account not found');
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
@@ -125,7 +128,7 @@ export default class Transactions {
       block,
       sender,
     };
-    if (height > 0) {
+    if (new BigNumber(height).isGreaterThan(0)) {
       const error = await TransactionBase.verify(context);
       if (error) throw new Error(error);
     }
@@ -155,7 +158,7 @@ export default class Transactions {
       throw new Error('Contract not found');
     }
 
-    if (block.height !== 0) {
+    if (!new BigNumber(block.height).isEqualTo(0)) {
       if (new BigNumber(sender.gny).isLessThan(trs.fee))
         throw new Error('Insufficient sender balance');
       sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
