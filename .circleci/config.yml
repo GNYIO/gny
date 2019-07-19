@@ -109,6 +109,15 @@ jobs:
       - run:
           name: benchmark tests
           command: npm run benchmark
+  security@npm-audit:
+    docker:
+      - image: circleci/node:8.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: npm audit dependencies
+          command: npm audit
 workflows:
   version: 2
   all_unit_tests_every_commit:
@@ -127,3 +136,6 @@ workflows:
                - develop
     jobs:
       - node@8.13-benchmark
+  run_npm_audit_on_every_commit:
+    jobs:
+      - security@npm-audit
