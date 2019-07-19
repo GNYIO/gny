@@ -684,7 +684,7 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it.only('createOrLoad() - load entity by composite key', async done => {
+  it('createOrLoad() - load entity by composite key', async done => {
     await saveGenesisBlock(sut);
 
     const account = createAccount('Gjfw7B8WyHq7bw22TwG6gPtdXD19');
@@ -809,7 +809,7 @@ describe('integration - SmartDB', () => {
     );
   }, 5000);
 
-  it.only('create() - returns other object reference', async done => {
+  it('create() - returns other object reference', async done => {
     await saveGenesisBlock(sut);
 
     const data: Partial<IAccount> = {
@@ -1871,7 +1871,7 @@ describe('integration - SmartDB', () => {
     done();
   });
 
-  it.only('rollbackBlock() - revert persisted and cached CREATE', async done => {
+  it('rollbackBlock() - revert persisted and cached CREATE', async done => {
     await saveGenesisBlock(sut);
 
     // changes for block 1
