@@ -369,7 +369,7 @@ describe('contract environment', () => {
       });
     });
 
-    it.only('message field (SIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
+    it('message field (SIGNED transaction) rejects if it consists non-alphynumerical letter', async () => {
       const recipient = lib.createRandomAddress();
       const amount = 1 * 1e8;
       const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
