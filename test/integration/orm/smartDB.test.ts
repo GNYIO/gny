@@ -117,8 +117,6 @@ describe('integration - SmartDB', () => {
 
   beforeAll(done => {
     (async () => {
-      lib.exitIfNotRoot();
-
       await lib.stopAndKillPostgres();
       configRaw = fs.readFileSync('ormconfig.postgres.json', {
         encoding: 'utf8',
