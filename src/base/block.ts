@@ -41,10 +41,10 @@ export class BlockBase {
     const bb = new ByteBuffer(size, true);
     bb.writeInt(block.version);
     bb.writeInt(block.timestamp);
-    bb.writeInt64(block.height);
+    bb.writeInt64((block.height as unknown) as number);
     bb.writeInt(block.count);
-    bb.writeInt64(block.fees);
-    bb.writeInt64(block.reward);
+    bb.writeInt64((block.fees as unknown) as number);
+    bb.writeInt64((block.reward as unknown) as number);
     bb.writeString(block.delegate);
 
     if (block.prevBlockId) {
@@ -109,9 +109,9 @@ export class BlockBase {
     const schema = joi.object().keys({
       id: joi.string(),
       height: joi
-        .number()
-        .integer()
-        .min(0),
+        .string()
+        .positiveOrZeroBigInt()
+        .required(),
       signature: joi
         .string()
         .signature()
@@ -141,13 +141,12 @@ export class BlockBase {
         .min(0)
         .required(),
       reward: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       fees: joi
-        .number()
-        .integer()
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       count: joi
         .number()

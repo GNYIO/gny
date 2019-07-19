@@ -5,7 +5,7 @@ import {
   NewBlockMessage,
   P2PMessage,
   BlockPropose,
-  Transaction,
+  ITransaction,
   IBlock,
   BlockAndVotes,
 } from '../interfaces';
@@ -29,7 +29,9 @@ export default class Transport {
   };
 
   // broadcast to peers Transaction
-  public static onUnconfirmedTransaction = async (transaction: Transaction) => {
+  public static onUnconfirmedTransaction = async (
+    transaction: ITransaction
+  ) => {
     const encodedTransaction = global.library.protobuf.encodeTransaction(
       transaction
     );
@@ -180,7 +182,7 @@ export default class Transport {
 
   // peerEvent
   public static receivePeer_Transaction = (message: P2PMessage) => {
-    let transaction: Transaction;
+    let transaction: ITransaction;
     try {
       transaction = global.library.protobuf.decodeTransaction(message.data);
     } catch (e) {

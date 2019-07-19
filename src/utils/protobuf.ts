@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as protocolBuffers from 'protocol-buffers';
-import { NewBlockMessage, BlockPropose, Transaction } from '../interfaces';
+import { NewBlockMessage, BlockPropose, ITransaction } from '../interfaces';
 
 export class Protobuf {
   public schema;
@@ -39,7 +39,7 @@ export class Protobuf {
     return obj;
   }
 
-  encodeTransaction(trs: Transaction): Buffer {
+  encodeTransaction(trs: ITransaction): Buffer {
     const obj = _.cloneDeep(trs);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
@@ -56,6 +56,9 @@ export class Protobuf {
     // this is default protobuf behaviour to add an empty string
     if (obj.secondSignature === '') {
       delete obj.secondSignature;
+    }
+    if (obj.height === '') {
+      delete obj.height;
     }
     return obj;
   }

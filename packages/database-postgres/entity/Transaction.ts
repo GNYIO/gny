@@ -43,7 +43,7 @@ export class Transaction {
     nullable: false,
     type: 'bigint',
   })
-  public fee: number;
+  public fee: string;
 
   @Column({
     length: 164,
@@ -66,10 +66,10 @@ export class Transaction {
   public args: any;
 
   @Column({
-    type: 'int',
+    type: 'bigint',
     nullable: false,
   })
-  public height: number;
+  public height: string;
 
   @Column({
     length: 256,
@@ -81,8 +81,8 @@ export class Transaction {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

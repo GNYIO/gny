@@ -6,6 +6,7 @@ import { ModelSchema } from './modelSchema';
 import { LRUEntityCache, PropertyValue } from './lruEntityCache';
 import { LoggerWrapper } from './logger';
 import { ObjectLiteral } from 'typeorm';
+import BigNumber from 'bignumber.js';
 
 export interface PropertyChange {
   name: string;
@@ -22,9 +23,9 @@ export interface EntityChanges {
 }
 
 export type LoadChangesHistoryAction = (
-  fromVersion: number,
-  toVersion: number
-) => Promise<Map<number, EntityChanges[]>>;
+  fromVersion: string,
+  toVersion: string
+) => Promise<Map<string, EntityChanges[]>>;
 
 export class BasicEntityTracker {
   private log: LoggerWrapper;
@@ -32,12 +33,12 @@ export class BasicEntityTracker {
   private confirming: boolean;
   private schemas: Map<string, ModelSchema>;
   private doLoadHistory: LoadChangesHistoryAction;
-  private history: Map<number, EntityChanges[]>;
+  private history: Map<string, EntityChanges[]>;
   private allTrackingEntities: Map<string, any>;
   private unconfirmedChanges: EntityChanges[];
   private confirmedChanges: EntityChanges[];
-  private minVersion: number;
-  private currentVersion: number;
+  private minVersion: string;
+  private currentVersion: string;
   private maxHistoryVersionsHold: number;
 
   /**
@@ -60,24 +61,24 @@ export class BasicEntityTracker {
     this.confirming = false;
     this.schemas = schemas;
     this.doLoadHistory = onLoadHistory;
-    this.history = new Map<number, EntityChanges[]>();
+    this.history = new Map<string, EntityChanges[]>();
     this.allTrackingEntities = new Map<string, any>();
     this.unconfirmedChanges = [];
     this.confirmedChanges = [];
-    this.minVersion = -1;
-    this.currentVersion = -1;
+    this.minVersion = String(-1);
+    this.currentVersion = String(-1);
     this.maxHistoryVersionsHold = maxHistoryVersionsHold;
   }
 
-  private async loadHistory(height: number, minHeight: number) {
+  private async loadHistory(height: string, minHeight: string) {
     if (isFunction(this.doLoadHistory)) {
       return await this.doLoadHistory(height, minHeight);
     }
-    return Promise.resolve(new Map<number, EntityChanges[]>());
+    return Promise.resolve(new Map<string, EntityChanges[]>());
   }
 
-  public async initVersion(version: number) {
-    if (-1 === this.currentVersion) {
+  public async initVersion(version: string) {
+    if (new BigNumber(-1).isEqualTo(this.currentVersion)) {
       const history = await this.loadHistory(version, version);
       this.attachHistory(history);
     }
@@ -237,14 +238,16 @@ export class BasicEntityTracker {
     }
   }
 
-  public acceptChanges(height: number) {
+  public acceptChanges(height: string) {
     this.log.trace('BEGIN acceptChanges Version = ' + height);
 
     this.history.set(height, this.confirmedChanges);
     this.confirmedChanges = [];
     this.removeExpiredHistory();
     this.allTrackingEntities.clear();
-    this.minVersion = -1 === this.minVersion ? height : this.minVersion;
+    this.minVersion = new BigNumber(-1).isEqualTo(this.minVersion)
+      ? height
+      : this.minVersion;
     this.currentVersion = height;
 
     this.log.trace('SUCCESS acceptChanges Version = ' + height);
@@ -377,20 +380,29 @@ export class BasicEntityTracker {
     this.undoChanges(this.confirmedChanges);
   }
 
-  public async rollbackChanges(toBlockHeight: number) {
-    if (toBlockHeight > this.currentVersion) {
+  public async rollbackChanges(toBlockHeight: string) {
+    if (new BigNumber(toBlockHeight).isLessThan(this.currentVersion)) {
       return;
     }
     const copyOfVersion = this.currentVersion;
     this.log.trace('BEGIN rollbackChanges Version : ' + copyOfVersion);
 
     await this.loadHistoryUntil(toBlockHeight);
-    for (; this.currentVersion >= toBlockHeight; ) {
+    for (
+      ;
+      new BigNumber(this.currentVersion).isGreaterThanOrEqualTo(toBlockHeight);
+
+    ) {
       const changes = this.getHistoryByVersion(this.currentVersion);
       this.undoChanges(changes);
-      this.currentVersion--;
+      this.currentVersion = new BigNumber(this.currentVersion)
+        .minus(1)
+        .toFixed();
     }
-    this.minVersion = Math.min(this.minVersion, this.currentVersion);
+    this.minVersion = BigNumber.minimum(
+      this.minVersion,
+      this.currentVersion
+    ).toFixed();
 
     this.log.trace(
       'SUCCESS rollbackChanges Version : ' +
@@ -429,7 +441,7 @@ export class BasicEntityTracker {
     this.log.trace('SUCCESS cancelConfirm ');
   }
 
-  private attachHistory(history: Map<number, EntityChanges[]>) {
+  private attachHistory(history: Map<string, EntityChanges[]>) {
     this.log.info(
       'BEGIN attachHistory history version = ' +
         JSON.stringify(this.historyVersion)
@@ -437,9 +449,13 @@ export class BasicEntityTracker {
 
     history.forEach((ideaExample, index) => {
       this.history.set(index, ideaExample);
-      this.minVersion =
-        this.minVersion < 0 ? index : Math.min(index, this.minVersion);
-      this.currentVersion = Math.max(index, this.currentVersion);
+      this.minVersion = new BigNumber(this.minVersion).isLessThan(0)
+        ? index
+        : BigNumber.minimum(index, this.minVersion).toFixed();
+      this.currentVersion = BigNumber.maximum(
+        index,
+        this.currentVersion
+      ).toFixed();
     });
 
     this.log.info(
@@ -448,38 +464,56 @@ export class BasicEntityTracker {
     );
   }
 
-  public getHistoryByVersion(item: number, option = false) {
+  /**
+   * @param height The history version
+   * @param createEntryIfNotAvailable Creates an history entry for this height if not available
+   */
+  public getHistoryByVersion(
+    height: string,
+    createEntryIfNotAvailable = false
+  ) {
     // public for testing
     // !this.history.has(item) && isSelectionByClickEnabled && this.history.set(item, new Array);
-    if (!this.history.has(item) && option) {
-      this.history.set(item, []);
+    if (!this.history.has(height) && createEntryIfNotAvailable) {
+      this.history.set(height, []);
     }
-    return this.history.get(item);
+    return this.history.get(height);
   }
 
-  private async loadHistoryUntil(height: number) {
-    if (height < this.minVersion) {
+  private async loadHistoryUntil(height: string) {
+    if (new BigNumber(height).isLessThan(this.minVersion)) {
       const history = await this.loadHistory(height, this.minVersion);
       this.attachHistory(history);
     }
   }
 
   private removeExpiredHistory() {
-    if (this.currentVersion - this.minVersion > this.maxHistoryVersionsHold) {
-      this.clearHistoryBefore(
-        this.currentVersion - this.maxHistoryVersionsHold
-      );
+    if (
+      new BigNumber(this.currentVersion)
+        .minus(this.minVersion)
+        .isGreaterThan(this.maxHistoryVersionsHold)
+    ) {
+      const toRemove = new BigNumber(this.currentVersion)
+        .minus(this.maxHistoryVersionsHold)
+        .toFixed();
+      this.clearHistoryBefore(toRemove);
     }
   }
 
   // TODO check logic
-  public async getChangesUntil(height: number) {
+  public async getChangesUntil(height: string) {
     await this.loadHistoryUntil(height);
     const result: EntityChanges[] = [];
-    let heightCopy = height;
+    let heightCopy: string = height;
 
-    for (; heightCopy <= this.currentVersion; ) {
-      const oneHistory = this.getHistoryByVersion(heightCopy++);
+    for (
+      ;
+      new BigNumber(heightCopy).isLessThanOrEqualTo(this.currentVersion);
+
+    ) {
+      const oneHistory = this.getHistoryByVersion(heightCopy);
+      heightCopy = new BigNumber(heightCopy).plus(1).toFixed();
+
       if (oneHistory) {
         result.push(...oneHistory);
       }
@@ -487,10 +521,24 @@ export class BasicEntityTracker {
     return result;
   }
 
-  private clearHistoryBefore(height: number) {
-    if (!(this.minVersion >= height || this.currentVersion < height)) {
-      let index = this.minVersion;
-      for (; index < height; index++) {
+  private clearHistoryBefore(height: string) {
+    const minVersionGreaterOrEqualToHeight = new BigNumber(
+      this.minVersion
+    ).isGreaterThanOrEqualTo(height);
+    const currentVersionSmallerThanHeight = new BigNumber(
+      this.currentVersion
+    ).isLessThan(height);
+
+    if (
+      !(minVersionGreaterOrEqualToHeight || currentVersionSmallerThanHeight)
+    ) {
+      let index: string = this.minVersion;
+
+      for (
+        ;
+        new BigNumber(index).isLessThan(height);
+        index = new BigNumber(index).plus(1).toFixed()
+      ) {
         this.history.delete(index);
       }
       this.minVersion = height;

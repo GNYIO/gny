@@ -32,7 +32,7 @@ export class UniquedCache {
 
   /**
    * @param {string} component - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh"}"
-   * @param {Object} test - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh","username":null,"gny":0,"isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"_version_":2}"
+   * @param {Object} test - Example: "{"address":"GM5CevQY3brUyRtDMng5Co41nWHh","username":null,"gny":"0","isDelegate":0,"isLocked":0,"lockHeight":0,"lockAmount":0,"_version_":2}"
    */
   private afterEvit(component: string, test) {
     this.indexes.forEach(function(index) {
@@ -54,7 +54,7 @@ export class UniquedCache {
    * @param {Object} obj - Example: "{
    * "address":"G3VU8VKndrpzDVbKzNTExoBrDAnw5",
    * "username":null,
-   * "gny":0,
+   * "gny":"0",
    * "isDelegate":0,
    * "isLocked":0,
    * "lockHeight":0,

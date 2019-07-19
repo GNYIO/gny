@@ -156,25 +156,15 @@ export interface IGenesisBlock {
   version: number;
   payloadHash: string;
   timestamp: number;
-  previousBlock: null;
+  prevBlockId: null;
   delegate: string;
-  height: number;
+  height: string;
   count: number;
-  fees: number;
-  reward: number;
+  fees: string;
+  reward: string;
   signature: string;
   id: string;
-  transactions: {
-    type: number;
-    fee: number;
-    timestamp: number;
-    senderId: string;
-    senderPublicKey: string;
-    signatures: string[];
-    message: string;
-    args: any[];
-    id: string;
-  }[];
+  transactions: ITransaction[];
 }
 
 type ILogLevel =
@@ -237,7 +227,7 @@ export interface KeyPair {
 }
 
 export interface ManyVotes {
-  height: number;
+  height: string;
   id: string;
   signatures: Signature[];
 }
@@ -274,68 +264,139 @@ export type BlockHeightId = Pick<IBlock, 'height' | 'id'>;
 // Models
 export interface IBlock {
   id: string;
-  height: number;
+  height: string;
   version: number;
   timestamp: number;
   prevBlockId?: any;
   count: number;
-  fees: number;
-  reward: number;
+  fees: string;
+  reward: string;
   payloadHash: string;
   delegate: string;
   signature: string;
   _version_?: number;
-  transactions?: any;
+  transactions?: ITransaction[];
 }
 
-export interface Transaction {
+export interface IAccount {
+  address: string;
+  username?: string;
+  gny: string;
+  publicKey?: string;
+  secondPublicKey?: string;
+  isDelegate: number;
+  isLocked: number;
+  lockHeight: string;
+  lockAmount: string;
+  _version_?: number;
+}
+
+export type AccountViewModel = Pick<
+  IAccount,
+  | 'address'
+  | 'publicKey'
+  | 'secondPublicKey'
+  | 'lockHeight'
+  | 'isDelegate'
+  | 'username'
+> & { balance: string };
+
+export interface ITransaction {
   id: string;
   type: number;
   timestamp: number;
   senderId: string;
   senderPublicKey: string;
-  fee: number;
+  fee: string;
   signatures?: any;
   secondSignature?: any;
   args: any;
-  height: number;
+  height: string;
   message?: string;
   _version_?: number;
 }
 
-export interface Transfer {
+export interface ITransfer {
   tid: string;
   senderId: string;
   recipientId: string;
   recipientName?: string;
   currency: string;
-  amount: number;
+  amount: string;
   timestamp: number;
-  height: number;
-  _version_: number;
+  height: string;
+  _version_?: number;
 }
 
-export interface Delegate {
+export interface IBalance {
+  address: string;
+  currency: string;
+  balance: string;
+  flag: number;
+  _version_?: number;
+}
+
+export interface IAsset {
+  name: string;
+  tid: string;
+  timestamp: string;
+  maximum: string;
+  precision: number;
+  quantity: string;
+  desc: string;
+  issuerId: string;
+  _version_?: number;
+}
+
+export interface IDelegate {
   address: string;
   tid: string;
   username: string;
   publicKey: string;
-  votes: number;
-  producedBlocks: number;
-  missedBlocks: number;
-  fees: number;
-  rewards: number;
+  votes: string;
+  producedBlocks: string;
+  missedBlocks: string;
+  fees: string;
+  rewards: string;
+  _version_?: number;
 }
 
-export interface DelegateViewModel extends Delegate {
+export interface DelegateViewModel extends IDelegate {
   rate: number;
   approval: number;
   productivity: string;
 }
 
+export interface IRound {
+  round: string;
+  fee: string;
+  reward: string;
+  _version_?: number;
+}
+
+export interface IIssuer {
+  name: string;
+  tid: string;
+  issuerId: string;
+  desc: string;
+  _version_?: number;
+}
+
+export interface IVariable {
+  key: string;
+  value: string;
+  _version_?: number;
+}
+
+export interface IVote {
+  voterAddress: string;
+  delegate: string;
+  _version_?: number;
+}
+
 export interface NewBlockMessage {
   id: string;
-  height: number;
+  height: string;
   prevBlockId: string;
 }
 
@@ -353,7 +414,7 @@ export interface BlockPropose {
   address: string;
   generatorPublicKey: string;
   hash: string;
-  height: number;
+  height: string;
   id: string;
   signature: string;
   timestamp: number;
@@ -364,14 +425,9 @@ export interface BlockAndVotes {
   votes: string;
 }
 
-export interface FirstHeightIds {
-  ids: string[];
-  firstHeight: number;
-}
-
 export interface CommonBlockParams {
-  max: number;
-  min: number;
+  max: string;
+  min: string;
   ids: string[];
 }
 
@@ -381,9 +437,9 @@ export interface CommonBlockResult {
 }
 
 export interface Context {
-  trs: Transaction;
+  trs: ITransaction;
   block: Pick<IBlock, 'height'>;
-  sender: any;
+  sender: IAccount;
 }
 
 declare global {

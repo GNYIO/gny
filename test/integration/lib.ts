@@ -4,6 +4,7 @@ import * as Docker from 'dockerode';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../src/utils/address';
 import * as isRoot from 'is-root';
+import { BigNumber } from 'bignumber.js';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -18,7 +19,7 @@ export async function apiGetAsync(endpoint: string) {
 
 export async function getHeight() {
   const ret = await apiGetAsync('/blocks/getHeight');
-  return ret.height;
+  return ret.height as string;
 }
 
 export function sleep(ms) {
@@ -27,11 +28,11 @@ export function sleep(ms) {
 
 export async function onNewBlock() {
   const firstHeight = await getHeight();
-  let height: number;
+  let height: string;
   do {
     await sleep(2000);
     height = await getHeight();
-  } while (height <= firstHeight);
+  } while (new BigNumber(height).isLessThanOrEqualTo(firstHeight));
   return height;
 }
 
@@ -40,7 +41,10 @@ async function waitForLoaded() {
   while (loaded === false) {
     try {
       const height = await getHeight();
-      if (typeof height === 'number' && height > 0) {
+      if (
+        typeof height === 'string' &&
+        new BigNumber(height).isGreaterThan(0)
+      ) {
         loaded = true;
       }
     } catch (err) {}
@@ -48,13 +52,13 @@ async function waitForLoaded() {
   }
 }
 
-export async function waitUntilBlock(height: number) {
+export async function waitUntilBlock(height: string) {
   let currentHeight = await getHeight();
-  if (height <= currentHeight) {
+  if (new BigNumber(height).isLessThanOrEqualTo(currentHeight)) {
     throw new Error(`the height "${height} was already reached`);
   }
 
-  while (currentHeight <= height) {
+  while (new BigNumber(currentHeight).isLessThanOrEqualTo(height)) {
     currentHeight = await getHeight();
     console.log(`currentHeight: ${currentHeight}`);
     await sleep(2000);

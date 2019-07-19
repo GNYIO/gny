@@ -15,12 +15,13 @@ import { ModelSchema } from './modelSchema';
 import { Block } from '../entity/Block';
 import { Transaction } from '../entity/Transaction';
 import * as _ from 'lodash';
+import { BigNumber } from 'bignumber.js';
 
 export class DbSession {
   public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;
 
   private log: LoggerWrapper;
-  private sessionSerial: number;
+  private sessionSerial: string;
   private connection: Connection;
   private unconfirmedLocks: Set<string>;
   private confirmedLocks: Set<string>;
@@ -37,7 +38,7 @@ export class DbSession {
     maxHistoryVersionsHold?: number
   ) {
     this.log = LogManager.getLogger('DbSession');
-    this.sessionSerial = -1;
+    this.sessionSerial = String(-1);
     this.connection = connection;
     this.unconfirmedLocks = new Set<string>();
     this.confirmedLocks = new Set<string>();
@@ -65,15 +66,19 @@ export class DbSession {
     return schema.resolveKey(key).key;
   }
 
-  private trackPersistentEntities(schema: ModelSchema, remove, props = false) {
+  private trackPersistentEntities(
+    schema: ModelSchema,
+    entities,
+    option = false
+  ) {
     const result = [];
-    remove.forEach(val => {
-      const end = schema.getPrimaryKey(val);
+    entities.forEach(entity => {
+      const end = schema.getPrimaryKey(entity);
       const height = this.entityTracker.getTrackingEntity(schema, end);
       const param =
-        props && undefined !== height
+        option && undefined !== height
           ? height
-          : this.entityTracker.trackPersistent(schema, val);
+          : this.entityTracker.trackPersistent(schema, entity);
       result.push(schema.copyProperties(param, true));
     });
     return result;
@@ -93,9 +98,9 @@ export class DbSession {
     return this.replaceEntitiesJsonPropertis(schema, result);
   }
 
-  public async initSerial(serial: number) {
+  public async initSerial(serial: string) {
     this.sessionSerial = serial;
-    if (serial >= 0) {
+    if (new BigNumber(serial).isGreaterThanOrEqualTo(0)) {
       await this.entityTracker.initVersion(serial);
     }
   }
@@ -113,10 +118,10 @@ export class DbSession {
     return this.sessionCache.getAll(modelClass.modelName);
   }
 
-  private loadAll(schema: ModelSchema) {
+  public loadAll(schema: ModelSchema) {
     if (schema.memCached && this.sessionCache.existsModel(schema.modelName)) {
-      const artistTrack = this.sessionCache.getAll(schema.modelName) || [];
-      return this.trackPersistentEntities(schema, artistTrack, true);
+      const entities = this.sessionCache.getAll(schema.modelName) || [];
+      return this.trackPersistentEntities(schema, entities, true);
     }
     return [];
   }
@@ -332,8 +337,12 @@ export class DbSession {
     return false;
   }
 
-  public async saveChanges(height?: number) {
-    const realHeight = height || ++this.sessionSerial;
+  public async saveChanges(height?: string) {
+    const realHeight =
+      height ||
+      (this.sessionSerial = new BigNumber(this.sessionSerial)
+        .plus(1)
+        .toFixed());
     this.log.trace('BEGIN saveChanges ( serial = ' + realHeight + ' )');
 
     this.commitEntityTransaction();
@@ -361,28 +370,25 @@ export class DbSession {
       this.sessionSerial = realHeight;
       this.log.trace('SUCCESS saveChanges ( serial = ' + realHeight + ' )');
       return realHeight;
-    } catch (expectedCommand) {
-      this.log.error(
-        'FAILD saveChanges ( serial = ' + realHeight + ' )',
-        expectedCommand
-      );
+    } catch (err) {
+      this.log.error('FAILD saveChanges ( serial = ' + realHeight + ' )', err);
       await queryRunner.rollbackTransaction();
       this.entityTracker.rejectChanges();
-      throw expectedCommand;
+      throw err;
     } finally {
       await queryRunner.release();
     }
   }
 
-  public async rollbackChanges(height: number) {
-    if (this.sessionSerial < height) {
+  public async rollbackChanges(height: string) {
+    if (new BigNumber(this.sessionSerial).isLessThan(height)) {
       return this.sessionSerial;
     }
     const t = this.sessionSerial;
 
     this.log.trace('BEGIN rollbackChanges ( serial = ' + height + ' )');
     const rollbackSql = await this.trackerSqlBuilder.buildRollbackChangeSqls(
-      height + 1
+      new BigNumber(height).plus(1).toFixed()
     );
     // const transaction = await this.connection.beginTrans();
 
@@ -400,7 +406,9 @@ export class DbSession {
       await queryRunner.commitTransaction();
 
       this.entityTracker.rejectChanges();
-      await this.entityTracker.rollbackChanges(height + 1);
+      await this.entityTracker.rollbackChanges(
+        new BigNumber(height).plus(1).toFixed()
+      );
       this.clearLocks();
       this.sessionSerial = height;
       this.log.trace(
@@ -411,17 +419,17 @@ export class DbSession {
           ')'
       );
       return this.sessionSerial;
-    } catch (expectedCommand) {
+    } catch (err) {
       this.log.error(
         'FAILD rollbackChanges (serial : ' +
           t +
           ' -> ' +
           this.sessionSerial +
           ')',
-        expectedCommand
+        err
       );
       await queryRunner.rollbackTransaction();
-      throw expectedCommand;
+      throw err;
     } finally {
       await queryRunner.release();
     }
@@ -430,7 +438,7 @@ export class DbSession {
   private async ensureEntityTracking(schema: ModelSchema, key: ObjectLiteral) {
     let cachedObj = this.getCached(schema, key);
     if (undefined === cachedObj) {
-      const data = this.loadEntityByKey(schema, key);
+      const data = await this.loadEntityByKey(schema, key);
       if (undefined === data) {
         throw Error(
           "Entity not found ( model = '" +
@@ -460,12 +468,19 @@ export class DbSession {
     obj: ObjectLiteral
   ) {
     const end = await this.ensureEntityTracking(schema, keyObj);
-    const endColorCoords = {};
-    Object.keys(obj).forEach(i => {
-      endColorCoords[i] = undefined === end[i] ? obj[i] : obj[i] + end[i];
+    const result = {};
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'string' && typeof end[key] === 'string') {
+        result[key] =
+          end[key] === undefined
+            ? obj[key]
+            : new BigNumber(obj[key]).plus(end[key]).toFixed();
+      } else {
+        result[key] = end[key] === undefined ? obj[key] : obj[key] + end[key];
+      }
     });
-    this.entityTracker.trackModify(schema, end, endColorCoords);
-    return endColorCoords;
+    this.entityTracker.trackModify(schema, end, result);
+    return result;
   }
 
   public async delete(schema: ModelSchema, condition: ObjectLiteral) {
@@ -510,13 +525,13 @@ export class DbSession {
     const value = result[0].maxheight;
 
     if (value === undefined || value == null) {
-      return -1;
+      return String(-1);
     } else {
-      return Number(value);
+      return String(value);
     }
   }
 
-  public async getBlockByHeight(height: number) {
+  public async getBlockByHeight(height: string) {
     const result = await this.connection
       .createQueryBuilder()
       .select('b')
@@ -536,7 +551,7 @@ export class DbSession {
     return result;
   }
 
-  public async getBlocksByHeightRange(min: number, max: number) {
+  public async getBlocksByHeightRange(min: string, max: string) {
     const blocks = await this.connection
       .createQueryBuilder()
       .select('b')
@@ -549,12 +564,12 @@ export class DbSession {
     return blocks;
   }
 
-  public async getTransactionsByBlockHeight(height: number) {
+  public async getTransactionsByBlockHeight(height: string) {
     const trans = await this.connection
       .createQueryBuilder()
       .select('t')
       .from(Transaction, 't')
-      .where('t.height = :height', { height: Number(height) })
+      .where('t.height = :height', { height })
       .getMany();
     return trans;
   }

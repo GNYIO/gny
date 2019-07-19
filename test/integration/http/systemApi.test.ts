@@ -3,8 +3,6 @@ import axios from 'axios';
 
 describe('systemApi', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

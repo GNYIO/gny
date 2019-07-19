@@ -1,8 +1,9 @@
-import { IBlock } from '../../src/interfaces';
+import { IBlock, IAccount, AccountViewModel } from '../../src/interfaces';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
@@ -21,8 +22,8 @@ export default zscheme => (req, res, next) => {
 };
 
 export async function getBlocks(
-  minHeight: number,
-  maxHeight: number,
+  minHeight: string,
+  maxHeight: string,
   withTransaction: boolean
 ) {
   const blocks: IBlock[] = await global.app.sdb.getBlocksByHeightRange(
@@ -43,8 +44,8 @@ export async function getBlocks(
     });
     const firstHeight = blocks[0].height;
     for (const t of transactions) {
-      const h = t.height;
-      const b = blocks[h - firstHeight];
+      const index = new BigNumber(t.height).minus(firstHeight).toFixed();
+      const b = blocks[index];
       if (b) {
         if (!b.transactions) {
           b.transactions = [];
@@ -65,9 +66,9 @@ export function generateAddressByPublicKey(publicKey: string) {
 // account helper
 export async function getAccountByName(name: string) {
   try {
-    const account = await global.app.sdb.findOne('Account', {
+    const account = (await global.app.sdb.findOne('Account', {
       condition: { username: name },
-    });
+    })) as IAccount;
     return account;
   } catch (err) {
     return 'Server Error';
@@ -86,27 +87,31 @@ export async function getAccount(address: string) {
   }
 
   try {
-    const account = await global.app.sdb.findOne('Account', {
+    const account = (await global.app.sdb.findOne('Account', {
       condition: { address },
-    });
-    let accountData;
+    })) as IAccount;
+
+    // TODO change balance -> gny in AccountViewModel
+    let accountData: AccountViewModel = undefined;
     if (!account) {
       accountData = {
         address: address,
-        balance: 0,
+        balance: String(0),
         secondPublicKey: '',
-        lockHeight: 0,
+        lockHeight: String(0),
         isDelegate: 0,
         username: null,
+        publicKey: null,
       };
     } else {
       accountData = {
         address: account.address,
         balance: account.gny,
         secondPublicKey: account.secondPublicKey,
-        lockHeight: account.lockHeight || 0,
+        lockHeight: account.lockHeight || String(0),
         isDelegate: account.isDelegate,
         username: account.username,
+        publicKey: account.publicKey,
       };
     }
     const latestBlock = StateHelper.getState().lastBlock;

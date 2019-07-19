@@ -175,6 +175,7 @@ export class ModelSchema {
   }
 
   public isValidPrimaryKey(key) {
+    // TODO: refactor
     return (
       (!this.isCompsiteKey &&
         (CodeContract.isPrimitiveKey(key) ||
@@ -276,6 +277,7 @@ export class ModelSchema {
   }
 
   public get isCompsiteKey() {
+    // TODO fix typo
     return this.compositeKeys.length > 1;
   }
 

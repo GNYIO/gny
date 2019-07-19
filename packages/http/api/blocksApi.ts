@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
-import { IScope, Next } from '../../../src/interfaces';
+import { IScope, Next, IBlock } from '../../../src/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default class BlocksApi {
   private library: IScope;
@@ -60,7 +61,10 @@ export default class BlocksApi {
       .object()
       .keys({
         id: this.library.joi.string().min(1),
-        height: this.library.joi.number().min(0),
+        height: [
+          this.library.joi.number().min(0),
+          this.library.joi.string().positiveOrZeroBigInt(),
+        ],
       })
       .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);
@@ -69,7 +73,7 @@ export default class BlocksApi {
     }
 
     try {
-      let block;
+      let block: IBlock;
       if (query.id) {
         block = await global.app.sdb.getBlockById(query.id);
       } else if (query.height !== undefined) {
@@ -90,17 +94,28 @@ export default class BlocksApi {
     const { query } = req;
     const offset: number = query.offset ? Number(query.offset) : 0;
     const limit: number = query.limit ? Number(query.limit) : 20;
-    let minHeight: number;
-    let maxHeight: number;
+
+    let minHeight: string;
+    let maxHeight: string;
     let needReverse = false;
     if (query.orderBy === 'height:desc') {
       needReverse = true;
-      maxHeight = StateHelper.getState().lastBlock.height - offset;
-      minHeight = maxHeight - limit + 1;
-      minHeight = minHeight > 0 ? minHeight : 0;
+      maxHeight = new BigNumber(StateHelper.getState().lastBlock.height)
+        .minus(offset)
+        .toFixed();
+      minHeight = new BigNumber(maxHeight)
+        .minus(limit)
+        .plus(1)
+        .toFixed();
+      minHeight = new BigNumber(minHeight).isGreaterThan(0)
+        ? String(minHeight)
+        : String(0);
     } else {
-      minHeight = offset;
-      maxHeight = offset + limit - 1;
+      minHeight = String(offset);
+      maxHeight = new BigNumber(offset)
+        .plus(limit)
+        .minus(1)
+        .toFixed();
     }
     const withTransactions = !!query.transactions;
 

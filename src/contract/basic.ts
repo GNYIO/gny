@@ -1,24 +1,28 @@
-async function deleteCreatedVotes(account) {
-  interface Vote {
-    voterAddress: string;
-    delegate: string;
-  }
-  const voteList = (await global.app.sdb.findAll('Vote', {
+import { BigNumber } from 'bignumber.js';
+import { IAccount, ITransfer, IDelegate, IVote } from '../interfaces';
+
+async function deleteCreatedVotes(account: IAccount) {
+  const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
     condition: { voterAddress: account.address },
-  })) as Vote[];
-  if (voteList && voteList.length > 0 && account.lockAmount > 0) {
+  });
+  if (
+    voteList &&
+    voteList.length > 0 &&
+    new BigNumber(account.lockAmount).isGreaterThan(0)
+  ) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
       await global.app.sdb.increase(
         'Delegate',
-        { votes: -account.lockAmount },
+        { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
-      await global.app.sdb.del('Vote', {
+      const vote: IVote = {
         voterAddress: voteItem.voterAddress,
         delegate: voteItem.delegate,
-      });
+      };
+      await global.app.sdb.del('Vote', vote);
     }
   }
 }
@@ -45,10 +49,13 @@ export default {
     amount = Number(amount);
     const sender = this.sender;
     const senderId = sender.address;
-    if (this.block.height > 0 && sender.gny < amount)
+    if (
+      new BigNumber(this.block.height).isGreaterThan(0) &&
+      new BigNumber(sender.gny).isLessThan(amount)
+    )
       return 'Insufficient balance';
 
-    let recipientAccount;
+    let recipientAccount: IAccount;
     // Validate recipient is valid address
     if (recipient && global.app.util.address.isAddress(recipient)) {
       recipientAccount = await global.app.sdb.load('Account', {
@@ -57,13 +64,13 @@ export default {
       if (recipientAccount) {
         await global.app.sdb.increase(
           'Account',
-          { gny: amount },
+          { gny: String(amount) },
           { address: recipientAccount.address }
         );
       } else {
         recipientAccount = await global.app.sdb.create('Account', {
           address: recipient,
-          gny: amount,
+          gny: String(amount),
           username: null,
         });
       }
@@ -74,26 +81,27 @@ export default {
       if (!recipientAccount) return 'Recipient name not exist';
       await global.app.sdb.increase(
         'Account',
-        { gny: amount },
+        { gny: String(amount) },
         { address: recipientAccount.address }
       );
     }
     await global.app.sdb.increase(
       'Account',
-      { gny: -amount },
+      { gny: String(-amount) },
       { address: sender.address }
     );
 
-    await global.app.sdb.create('Transfer', {
+    const transfer: ITransfer = {
       tid: this.trs.id,
-      height: this.block.height,
+      height: String(this.block.height),
       senderId,
       recipientId: recipientAccount.address,
       recipientName: recipientAccount.username,
       currency: 'GNY',
       amount: String(amount),
       timestamp: this.trs.timestamp,
-    });
+    };
+    await global.app.sdb.create('Transfer', transfer);
     return null;
   },
 
@@ -151,12 +159,14 @@ export default {
     // const MIN_LOCK_HEIGHT = 8640 * 30
     // 60/15 * 60 * 24 = 5760
     const MIN_LOCK_HEIGHT = 5760 * 30;
-    const sender = this.sender;
-    if (sender.gny - 100000000 < amount) return 'Insufficient balance';
+    const sender = this.sender as IAccount;
+    if (new BigNumber(sender.gny).minus(100000000).isLessThan(amount))
+      return 'Insufficient balance';
     if (sender.isLocked) {
       if (
-        height <
-        Math.max(this.block.height, sender.lockHeight) + MIN_LOCK_HEIGHT
+        BigNumber.max(this.block.height, sender.lockHeight)
+          .plus(MIN_LOCK_HEIGHT)
+          .isGreaterThan(height)
       ) {
         return 'Invalid lock height';
       }
@@ -164,7 +174,11 @@ export default {
         return 'Invalid amount';
       }
     } else {
-      if (height < this.block.height + MIN_LOCK_HEIGHT) {
+      if (
+        new BigNumber(height).isLessThan(
+          new BigNumber(this.block.height).plus(MIN_LOCK_HEIGHT)
+        )
+      ) {
         return 'Invalid lock height';
       }
       if (amount === 0) {
@@ -179,20 +193,22 @@ export default {
       sender.lockHeight = height;
     }
     if (amount !== 0) {
-      sender.gny -= amount;
-      sender.lockAmount += amount;
+      sender.gny = new BigNumber(sender.gny).minus(amount).toFixed();
+      sender.lockAmount = new BigNumber(sender.lockAmount)
+        .plus(amount)
+        .toFixed();
       await global.app.sdb.update('Account', sender, {
         address: sender.address,
       });
 
-      const voteList = await global.app.sdb.findAll('Vote', {
+      const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: { voterAddress: senderId },
       });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
           await global.app.sdb.increase(
             'Delegate',
-            { votes: amount },
+            { votes: String(amount) },
             { username: voteItem.delegate }
           );
         }
@@ -208,7 +224,8 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
-    if (this.block.height <= sender.lockHeight) return 'Account cannot unlock';
+    if (new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight))
+      return 'Account cannot unlock';
 
     if (this.sender.isDelegate) {
       await deleteCreatedVotes(this.sender);
@@ -225,27 +242,28 @@ export default {
 
   async registerDelegate() {
     if (arguments.length !== 0) return 'Invalid arguments length';
-    const sender = this.sender;
+    const sender = this.sender as IAccount;
     if (!sender) return 'Account not found';
 
     const senderId = this.sender.address;
-    if (this.block.height > 0)
+    if (new BigNumber(this.block.height).isGreaterThan(0))
       await global.app.sdb.lock(`basic.account@${senderId}`);
 
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 
-    await global.app.sdb.create('Delegate', {
+    const delegate: IDelegate = {
       address: senderId,
       username: sender.username,
       tid: this.trs.id,
       publicKey: this.trs.senderPublicKey,
-      votes: 0,
-      producedBlocks: 0,
-      missedBlocks: 0,
-      fees: 0,
-      rewards: 0,
-    });
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      fees: String(0),
+      rewards: String(0),
+    };
+    await global.app.sdb.create('Delegate', delegate);
     sender.isDelegate = 1;
     await global.app.sdb.update(
       'Account',
@@ -269,7 +287,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', {
+    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -294,11 +312,16 @@ export default {
 
     for (const username of delegates) {
       const votes = sender.lockAmount;
-      await global.app.sdb.increase('Delegate', { votes }, { username });
-      await global.app.sdb.create('Vote', {
+      await global.app.sdb.increase(
+        'Delegate',
+        { votes: String(votes) },
+        { username }
+      );
+      const v: IVote = {
         voterAddress: senderId,
         delegate: username,
-      });
+      };
+      await global.app.sdb.create('Vote', v);
     }
     return null;
   },
@@ -308,7 +331,7 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const sender = this.sender;
+    const sender = this.sender as IAccount;
     if (!sender.isLocked) return 'Account is not locked';
 
     delegates = delegates.split(',');
@@ -316,7 +339,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes = await global.app.sdb.findAll('Vote', {
+    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -337,13 +360,18 @@ export default {
     }
 
     for (const username of delegates) {
-      const votes = -sender.lockAmount;
-      await global.app.sdb.increase('Delegate', { votes }, { username });
+      const votes = new BigNumber(sender.lockAmount).times(-1).toFixed();
+      await global.app.sdb.increase(
+        'Delegate',
+        { votes: String(votes) },
+        { username }
+      );
 
-      await global.app.sdb.del('Vote', {
+      const v: IVote = {
         voterAddress: senderId,
         delegate: username,
-      });
+      };
+      await global.app.sdb.del('Vote', v);
     }
     return null;
   },

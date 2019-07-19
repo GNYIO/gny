@@ -1,8 +1,15 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../src/interfaces';
+import {
+  IScope,
+  Next,
+  IBalance,
+  IAsset,
+  IIssuer,
+} from '../../../src/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { Issuer } from '../../database-postgres/entity/Issuer';
 
 export default class UiaApi {
   private library: IScope;
@@ -56,7 +63,7 @@ export default class UiaApi {
       return next(report.error.message);
     }
     try {
-      const issuer = await global.app.sdb.findOne('Issuer', {
+      const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
         issuerId: query.address,
       });
 
@@ -85,7 +92,7 @@ export default class UiaApi {
     }
     try {
       const count = await global.app.sdb.count('Issuer', {});
-      const issues = await global.app.sdb.findAll('Issuer', {
+      const issues: IIssuer[] = await global.app.sdb.findAll('Issuer', {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
@@ -111,7 +118,7 @@ export default class UiaApi {
     const name: string = query.name;
     try {
       if (addressHelper.isAddress(name)) {
-        const issuer = await global.app.sdb.findOne('Issuer', {
+        const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
           condition: { issuerId: name },
         });
         if (!issuer) {
@@ -119,7 +126,7 @@ export default class UiaApi {
         }
         return res.json({ issuer });
       } else {
-        const issuer = await global.app.sdb.findOne('Issuer', {
+        const issuer: Issuer = await global.app.sdb.findOne('Issuer', {
           name: req.params.name,
         });
         if (!issuer) return next('Issuer not found');
@@ -157,7 +164,7 @@ export default class UiaApi {
 
     try {
       const issuerName = req.params.name;
-      const issuer = await global.app.sdb.findOne('Issuer', {
+      const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
         condition: { name: issuerName },
       });
       if (!issuer) {
@@ -166,7 +173,7 @@ export default class UiaApi {
 
       const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -194,7 +201,7 @@ export default class UiaApi {
     try {
       const condition = {};
       const count = await global.app.sdb.count('Asset', condition);
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -219,7 +226,7 @@ export default class UiaApi {
     }
 
     try {
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition: {
           name: query.name,
         },
@@ -259,7 +266,7 @@ export default class UiaApi {
     try {
       const condition = { address: req.params.address };
       const count = await global.app.sdb.count('Balance', condition);
-      const balances = await global.app.sdb.findAll('Balance', {
+      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
         condition,
         limit: query.limit,
         offset: query.offset,
@@ -291,7 +298,9 @@ export default class UiaApi {
         address: req.params.address,
         currency: req.params.currency,
       };
-      const balances = await global.app.sdb.findAll('Balance', { condition });
+      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
+        condition,
+      });
       if (!balances || balances.length === 0)
         return next('Balance info not found');
       return res.json({ balance: balances[0] });

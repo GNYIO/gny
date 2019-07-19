@@ -46,10 +46,5 @@ export async function loadConfig(logger: ILogger, optionsRaw: string) {
   const connection = await createConnection(options);
   logger.info('Initialized smartdb');
 
-  if ((process.env.NODE_ENV = 'test')) {
-    // TODO: remove
-    await connection.dropDatabase();
-    await connection.synchronize();
-  }
   return connection;
 }

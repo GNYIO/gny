@@ -5,7 +5,7 @@ import {
   IScope,
   Next,
   ManyVotes,
-  Transaction,
+  ITransaction,
   IBlock,
   CommonBlockResult,
 } from '../../../src/interfaces';
@@ -15,6 +15,7 @@ import { getBlocks as getBlocksFromApi } from '../util';
 import joi from '../../../src/utils/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
+import { BigNumber } from 'bignumber.js';
 
 export default class TransportApi {
   private library: IScope;
@@ -118,14 +119,12 @@ export default class TransportApi {
 
     const schema = joi.object().keys({
       max: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       min: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       ids: joi
         .array()
@@ -144,13 +143,14 @@ export default class TransportApi {
     }
 
     // prevent DDOS attack
-    if (Math.abs(body.max - body.min) >= 10) {
+    const difference = new BigNumber(body.max).minus(body.min).absoluteValue();
+    if (difference.isGreaterThanOrEqualTo(10)) {
       return next('too big min,max');
     }
 
-    const max = body.max;
-    const min = body.min;
-    const ids = body.ids;
+    const max: string = body.max;
+    const min: string = body.min;
+    const ids: string[] = body.ids;
     try {
       let blocks = await global.app.sdb.getBlocksByHeightRange(min, max);
       if (!blocks || !blocks.length) {
@@ -201,8 +201,8 @@ export default class TransportApi {
       return next('Invalid params');
     }
 
-    const blocksLimit = body.limit || 200;
-    const lastBlockId = body.lastBlockId;
+    const blocksLimit: number = body.limit || 200;
+    const lastBlockId: string = body.lastBlockId;
     if (!lastBlockId) {
       return next('Invalid params');
     }
@@ -211,8 +211,11 @@ export default class TransportApi {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
 
-      const minHeight = Number(lastBlock.height) + 1;
-      const maxHeight = minHeight + blocksLimit - 1;
+      const minHeight = new BigNumber(lastBlock.height).plus(1).toFixed();
+      const maxHeight = new BigNumber(minHeight)
+        .plus(blocksLimit)
+        .minus(1)
+        .toFixed();
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
       const blocks = await getBlocksFromApi(minHeight, maxHeight, true);
       return res.json({ blocks });
@@ -227,7 +230,7 @@ export default class TransportApi {
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
-    let transaction: Transaction;
+    let transaction: ITransaction;
     try {
       transaction = TransactionBase.normalizeTransaction(req.body.transaction);
     } catch (e) {
@@ -280,9 +283,8 @@ export default class TransportApi {
     const votes = req.body.votes;
     const schema = this.library.joi.object().keys({
       height: this.library.joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       id: this.library.joi
         .string()

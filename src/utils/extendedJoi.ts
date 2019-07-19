@@ -1,6 +1,7 @@
 import * as bip39 from 'bip39';
 import { isAddress } from './address';
 import * as Joi from 'joi';
+import { BigNumber } from 'bignumber.js';
 
 interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
@@ -12,6 +13,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   signature(): this;
   hex(bufferLength?: any): this;
   ipv4PlusPort(): this;
+  positiveOrZeroBigInt(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -31,6 +33,7 @@ const stringExtensions: Joi.Extension = {
     signature: 'is not a valid GNY signature',
     hex: 'is not a hex string{{q}}',
     ipv4PlusPort: 'is not a ipv4:port',
+    positiveOrZeroBigInt: 'is not an positive or zero big integer amount',
   },
   rules: [
     {
@@ -205,6 +208,40 @@ const stringExtensions: Joi.Extension = {
             state,
             options
           );
+        return value;
+      },
+    },
+    {
+      name: 'positiveOrZeroBigInt',
+      validate(params, value, state, options) {
+        if (!/^[0-9]*$/.test(value)) {
+          return this.createError(
+            'string.positiveOrZeroBigInt',
+            { v: value },
+            state,
+            options
+          );
+        }
+
+        let bnAmount;
+        try {
+          bnAmount = new BigNumber(value);
+        } catch (e) {
+          return this.createError(
+            'string.positiveOrZeroBigInt',
+            { v: value },
+            state,
+            options
+          );
+        }
+        if (bnAmount.lt(0) || bnAmount.gt('1e48')) {
+          return this.createError(
+            'string.positiveOrZeroBigInt',
+            { v: value },
+            state,
+            options
+          );
+        }
         return value;
       },
     },

@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, Transfer } from '../../../src/interfaces';
+import { IScope, Next, ITransfer, IAsset } from '../../../src/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 
@@ -41,9 +41,12 @@ export default class TransfersApi {
 
   private getRoot = async (req: Request, res: Response, next: Next) => {
     const condition = {} as Merge<
-      Pick<Transfer, 'senderId' | 'recipientId' | 'currency'>,
+      Pick<ITransfer, 'senderId' | 'recipientId' | 'currency'>,
       { $or: any }
     >;
+
+    // TODO: add validation
+
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;
@@ -64,7 +67,7 @@ export default class TransfersApi {
       condition.recipientId = req.query.recipientId;
     }
     const count = await global.app.sdb.count('Transfer', condition);
-    let transfers = [];
+    let transfers: ITransfer[] = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,
@@ -109,7 +112,7 @@ export default class TransfersApi {
     condition.currency = 'GNY';
 
     const count = await global.app.sdb.count('Transfer', condition);
-    let transfers = [];
+    let transfers: ITransfer[] = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll('Transfer', {
         condition,
@@ -152,7 +155,7 @@ export default class TransfersApi {
     const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
     if (uiaNameList && uiaNameList.length) {
-      const assets = await global.app.sdb.findAll('Asset', {
+      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
         condition: {
           name: {
             $in: uiaNameList,

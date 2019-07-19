@@ -1,11 +1,12 @@
-import { Transaction, Context, IState } from '../interfaces';
+import { ITransaction, Context, IState, IAccount } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 export default class Transactions {
   public static processUnconfirmedTransactions = (
     state: IState,
-    transactions: Transaction[],
+    transactions: ITransaction[],
     cb
   ) => {
     (async () => {
@@ -25,7 +26,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransactionsAsync = async (
     state: IState,
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) => {
     for (const transaction of transactions) {
       await Transactions.processUnconfirmedTransactionAsync(state, transaction);
@@ -34,7 +35,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransaction = (
     state: IState,
-    transaction: Transaction,
+    transaction: ITransaction,
     cb
   ) => {
     (async () => {
@@ -52,7 +53,7 @@ export default class Transactions {
 
   public static processUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: Transaction
+    transaction: ITransaction
   ) => {
     try {
       if (!transaction.id) {
@@ -91,11 +92,11 @@ export default class Transactions {
 
   public static applyUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: Transaction
+    transaction: ITransaction
   ) => {
     const height = state.lastBlock.height;
     const block = {
-      height: height + 1,
+      height: new BigNumber(height).plus(1).toFixed(),
     };
 
     const senderId = transaction.senderId;
@@ -109,14 +110,17 @@ export default class Transactions {
       throw new Error('Sender public key not provided');
     }
 
-    let sender = await global.app.sdb.load('Account', { address: senderId });
+    let sender: IAccount = await global.app.sdb.load('Account', {
+      address: senderId,
+    });
     if (!sender) {
-      if (height > 0) throw new Error('Sender account not found');
+      if (new BigNumber(height).isGreaterThan(0))
+        throw new Error('Sender account not found');
       sender = await global.app.sdb.create('Account', {
         address: senderId,
         username: null,
-        gny: 0,
-      });
+        gny: String(0),
+      } as IAccount);
     }
 
     const context: Context = {
@@ -124,7 +128,7 @@ export default class Transactions {
       block,
       sender,
     };
-    if (height > 0) {
+    if (new BigNumber(height).isGreaterThan(0)) {
       const error = await TransactionBase.verify(context);
       if (error) throw new Error(error);
     }
@@ -154,12 +158,13 @@ export default class Transactions {
       throw new Error('Contract not found');
     }
 
-    if (block.height !== 0) {
-      if (sender.gny < trs.fee) throw new Error('Insufficient sender balance');
-      sender.gny -= trs.fee;
+    if (!new BigNumber(block.height).isEqualTo(0)) {
+      if (new BigNumber(sender.gny).isLessThan(trs.fee))
+        throw new Error('Insufficient sender balance');
+      sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
       await global.app.sdb.update(
         'Account',
-        { gny: sender.gny },
+        { gny: String(sender.gny) },
         { address: sender.address }
       );
     }

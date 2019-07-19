@@ -26,10 +26,10 @@ export class Block {
 
   @Column({
     nullable: false,
-    type: 'int',
+    type: 'bigint',
     unique: true,
   })
-  public height: number;
+  public height: string;
 
   @Column({
     length: 64,
@@ -49,13 +49,13 @@ export class Block {
     nullable: false,
     type: 'bigint',
   })
-  public fees: number;
+  public fees: string;
 
   @Column({
     nullable: false,
     type: 'bigint',
   })
-  public reward: number;
+  public reward: string;
 
   @Column({
     length: 64,
@@ -80,8 +80,8 @@ export class Block {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

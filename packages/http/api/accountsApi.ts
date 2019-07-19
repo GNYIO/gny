@@ -2,7 +2,15 @@ import * as ed from '../../../src/utils/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
+import {
+  IScope,
+  Next,
+  DelegateViewModel,
+  IAccount,
+  IBalance,
+  IAsset,
+  IVote,
+} from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
   getAccountByName,
@@ -10,6 +18,7 @@ import {
 } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 interface BalanceCondition {
   address: string;
@@ -174,7 +183,7 @@ export default class AccountsApi {
     const gnyBalance =
       accountOverview && accountOverview.account
         ? accountOverview.account.balance
-        : 0;
+        : String(0);
 
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
@@ -184,7 +193,7 @@ export default class AccountsApi {
       condition.flag = Number(req.query.flag);
     }
     const count = await global.app.sdb.count('Balance', condition);
-    let balances = [];
+    let balances: IBalance[] = [];
     if (count > 0) {
       balances = await global.app.sdb.findAll('Balance', {
         condition,
@@ -199,7 +208,7 @@ export default class AccountsApi {
       const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
       if (uiaNameList && uiaNameList.length) {
-        const assets = await global.app.sdb.findAll('Asset', {
+        const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
           condition: {
             name: {
               $in: uiaNameList,
@@ -235,12 +244,15 @@ export default class AccountsApi {
       address: req.params.address,
       currency,
     };
-    const balance = await global.app.sdb.findOne('Balance', condition);
+    const balance: IBalance = await global.app.sdb.findOne(
+      'Balance',
+      condition
+    );
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = await global.app.sdb.findOne('Asset', {
+      balance.asset = (await global.app.sdb.findOne('Asset', {
         name: balance.currency,
-      });
+      })) as IAsset;
     }
 
     return res.json({ balance });
@@ -267,9 +279,9 @@ export default class AccountsApi {
     try {
       let addr: string;
       if (query.username) {
-        const account = await global.app.sdb.load('Account', {
+        const account = (await global.app.sdb.load('Account', {
           username: query.username,
-        });
+        })) as IAccount;
         if (!account) {
           return next('Account not found');
         }
@@ -277,7 +289,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes = await global.app.sdb.findAll('Vote', {
+      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: {
           voterAddress: addr,
         },
@@ -316,7 +328,10 @@ export default class AccountsApi {
   private getPublicKey = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const isAddress = this.library.joi.object().keys({
-      address: this.library.joi.string().address(),
+      address: this.library.joi
+        .string()
+        .address()
+        .required(),
     });
     const report = this.library.joi.validate(query, isAddress);
     if (report.error) {
@@ -361,7 +376,7 @@ export default class AccountsApi {
   };
 
   // helper functions
-  private openAccount = async passphrase => {
+  private openAccount = async (passphrase: string) => {
     const hash = crypto
       .createHash('sha256')
       .update(passphrase, 'utf8')

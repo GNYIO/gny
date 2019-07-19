@@ -3,8 +3,6 @@ import axios from 'axios';
 
 describe('blocksApi', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -24,7 +22,7 @@ describe('blocksApi', () => {
     it(
       'should get the block with a specific height',
       async () => {
-        const height = 2;
+        const height = String(2);
         // wait 3 blocks;
         await lib.onNewBlock();
         await lib.onNewBlock();
@@ -33,7 +31,7 @@ describe('blocksApi', () => {
         const { data } = await axios.get(
           'http://localhost:4096/api/blocks/getBlock?height=' + height
         );
-        expect(data.block.height).toBe(2);
+        expect(data.block.height).toBe(String(2));
       },
       lib.oneMinute
     );
@@ -47,7 +45,7 @@ describe('blocksApi', () => {
         await lib.onNewBlock();
 
         const { data } = await axios.get('http://localhost:4096/api/blocks');
-        expect(data.count).toBe(3);
+        expect(data.count).toBe(String(3));
       },
       lib.oneMinute
     );
@@ -65,7 +63,7 @@ describe('blocksApi', () => {
         const { data } = await axios.get(
           'http://localhost:4096/api/blocks/getHeight'
         );
-        expect(data.height).toBe(4);
+        expect(data.height).toBe(String(4));
       },
       lib.oneMinute
     );
@@ -115,7 +113,7 @@ describe('blocksApi', () => {
       'should get the status',
       async () => {
         const expected = {
-          height: 1,
+          height: String(1),
           fee: 10000000,
           milestone: 0,
           reward: 0,

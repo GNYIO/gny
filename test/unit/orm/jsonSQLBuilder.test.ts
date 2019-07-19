@@ -5,6 +5,7 @@ import {
 } from '../../../packages/database-postgres/src/modelSchema';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
+import { IAccount } from '../../../src/interfaces';
 
 function getAccountMetaSchema() {
   const accountMetaSchema: MetaSchema = {
@@ -20,7 +21,7 @@ function getAccountMetaSchema() {
         ],
       },
       {
-        isUnique: false,
+        isUnique: false, // primary key
         columns: [
           {
             propertyName: 'address',
@@ -45,7 +46,7 @@ function getAccountMetaSchema() {
       },
       {
         name: 'gny',
-        default: 0,
+        default: String(0),
       },
       {
         name: 'publicKey',
@@ -63,11 +64,11 @@ function getAccountMetaSchema() {
       },
       {
         name: 'lockHeight',
-        default: 0,
+        default: String(0),
       },
       {
         name: 'lockAmount',
-        default: 0,
+        default: String(0),
       },
     ],
   };
@@ -77,10 +78,10 @@ function getAccountMetaSchema() {
 function createAccount(username: string) {
   const publicKey = createHexString(32);
   const address = generateAddress(publicKey);
-  const account = {
+  const account: IAccount = {
     address,
     username,
-    gny: 0,
+    gny: String(0),
     publicKey,
     secondPublicKey: null,
     isDelegate: 0,
@@ -122,7 +123,7 @@ describe('orm jsonSQLBuilder', () => {
 
     const result = sut.buildInsert(accountModelSchema, data);
 
-    const expected = `insert into "account" ("address", "username", "gny", "publicKey", "secondPublicKey", "isDelegate", "isLocked", "lockHeight", "lockAmount") values (\'${address}\', \'liangpeili\', 0, \'${publicKey}\', null, 0, 0, null, null);`;
+    const expected = `insert into "account" ("address", "username", "gny", "publicKey", "secondPublicKey", "isDelegate", "isLocked", "lockHeight", "lockAmount") values (\'${address}\', \'liangpeili\', \'0\', \'${publicKey}\', null, 0, 0, null, null);`;
 
     expect(result).toHaveProperty('type');
     expect(result).toHaveProperty('query', expected);
@@ -163,7 +164,7 @@ describe('orm jsonSQLBuilder', () => {
 
     const expected = `update "account" set "address" = \'${
       data.address
-    }\', "username" = \'liangpeili\', "gny" = 0, "publicKey" = \'${
+    }\', "username" = \'liangpeili\', "gny" = '0', "publicKey" = \'${
       data.publicKey
     }\', "secondPublicKey" = null, "isDelegate" = 0, "isLocked" = 0, "lockHeight" = null, "lockAmount" = null where "address" = \'${
       primaryKey.address

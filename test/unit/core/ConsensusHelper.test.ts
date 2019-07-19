@@ -1,4 +1,4 @@
-import { IBlock, ManyVotes, Transaction } from '../../../src/interfaces';
+import { IBlock, ManyVotes, ITransaction } from '../../../src/interfaces';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
@@ -6,16 +6,20 @@ import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import slots from '../../../src/utils/slots';
 import { ConsensusBase } from '../../../src/base/consensus';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
-function createRandomBlock(height: number = 6, prevBlockId = randomHex(32)) {
+function createRandomBlock(
+  height: string = String(6),
+  prevBlockId = randomHex(32)
+) {
   const keyPair = randomKeyPair();
   const timestamp = slots.getSlotTime(slots.getSlotNumber());
 
   const lastBlock = {
     id: prevBlockId,
-    height: height - 1,
+    height: new BigNumber(height).minus(1).toFixed(),
   } as IBlock;
-  const unconfirmedTrs: Transaction[] = [];
+  const unconfirmedTrs: ITransaction[] = [];
   const block = BlocksHelper.generateBlockShort(
     keyPair,
     timestamp,
@@ -45,7 +49,7 @@ describe('ConsensusHelper', () => {
       const state = StateHelper.getInitialState();
       expect(state.pendingBlock).toBeUndefined();
       const votes: ManyVotes = {
-        height: 1,
+        height: String(1),
         id: randomHex(32),
         signatures: [],
       };
@@ -61,7 +65,7 @@ describe('ConsensusHelper', () => {
     it('addPendingVotes() - calling function with votes that have not same block "height" as the pendingBlock are not getting added', done => {
       // preparation block 1
       const block1 = {
-        height: 1,
+        height: String(1),
         id: 'id1',
       } as IBlock;
       let state = StateHelper.getInitialState();
@@ -71,7 +75,7 @@ describe('ConsensusHelper', () => {
 
       // create votes for "almost" the same block (with other height)
       const block2 = {
-        height: 2,
+        height: String(2),
         id: 'id1',
       } as IBlock;
       const votes = ConsensusBase.createVotes(keypairs, block2);
@@ -94,7 +98,7 @@ describe('ConsensusHelper', () => {
     it('addPendingVotes() - calling function with votes that have not the same block "id" as the pendingBlock are not getting added', done => {
       // preparation block 1
       const block1 = {
-        height: 1,
+        height: String(1),
         id: 'id1',
       } as IBlock;
       let state = StateHelper.getInitialState();
@@ -104,7 +108,7 @@ describe('ConsensusHelper', () => {
 
       // create votes for "almost" the same block (with other id)
       const block2 = {
-        height: 1,
+        height: String(1),
         id: 'id2',
       } as IBlock;
       const votes = ConsensusBase.createVotes(keypairs, block2);
@@ -126,7 +130,7 @@ describe('ConsensusHelper', () => {
 
     it('addingPendingVotes() - adding twice the same vote from a delegate (publicKey) has no effect on pendingVotes signatures', done => {
       // preparation
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
       let state = StateHelper.getInitialState();
       state = ConsensusHelper.setPendingBlock(state, pendingBlock);
 
@@ -150,7 +154,7 @@ describe('ConsensusHelper', () => {
     it('addPendingVotes() - adds pendingVotes if no pendingVotes are available yet', done => {
       // prepration, important: first set the pendingBlock
       let state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
       state = ConsensusHelper.setPendingBlock(state, pendingBlock);
       const keypairs = [randomKeyPair()];
 
@@ -165,7 +169,7 @@ describe('ConsensusHelper', () => {
       const result = ConsensusHelper.addPendingVotes(state, pendingVotes);
 
       expect(result.pendingVotes).not.toBeUndefined();
-      expect(result.pendingVotes.height).toEqual(1);
+      expect(result.pendingVotes.height).toEqual(String(1));
       expect(result.pendingVotes.id).toEqual(pendingBlock.id);
       expect(result.pendingVotes.signatures).toEqual(pendingVotes.signatures);
       expect(result.pendingVotes.signatures).toHaveLength(1);
@@ -176,7 +180,7 @@ describe('ConsensusHelper', () => {
     it('addPendingVotes() - calling addPendingVotes() more then once works', done => {
       // prepration, important: first set the pendingBlock
       let state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
       state = ConsensusHelper.setPendingBlock(state, pendingBlock);
 
       // first act
@@ -205,7 +209,7 @@ describe('ConsensusHelper', () => {
   describe('setPendingBlock', () => {
     it('setPendingBlock() - sets pendingBlock and returns other state object reference', done => {
       const state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(3);
+      const pendingBlock = createRandomBlock(String(3));
 
       const result = ConsensusHelper.setPendingBlock(state, pendingBlock);
 
@@ -231,7 +235,7 @@ describe('ConsensusHelper', () => {
     it('hasPendingBlock() - returns true if state has pendingBlock and currentTimestamp are in the same slot', done => {
       // preparation
       let state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
 
       // make test not brittle, block.timestamp and currentTimestamp should be the same
       const nowInEpochTime = slots.getEpochTime(undefined);
@@ -250,7 +254,7 @@ describe('ConsensusHelper', () => {
 
     it('hasPendingBlock() - returns false if timestamp of pendingBlock was 10 seconds before current timestamp', done => {
       let state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
 
       // make test not brittle, block.timestamp and currentTimestamp should originate from same timestamp
       // pendingBlock.timestamp is 10 seconds before "nowInEpochTime" variable
@@ -292,7 +296,7 @@ describe('ConsensusHelper', () => {
 
     it('getPendingBlock() - returns pendingblock if there is one', done => {
       let state = StateHelper.getInitialState();
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
       state = ConsensusHelper.setPendingBlock(state, pendingBlock);
 
       const result = ConsensusHelper.getPendingBlock(state);
@@ -308,7 +312,7 @@ describe('ConsensusHelper', () => {
       let state = StateHelper.getInitialState();
 
       // set pendingBlock
-      const pendingBlock = createRandomBlock(1);
+      const pendingBlock = createRandomBlock(String(1));
       state = ConsensusHelper.setPendingBlock(state, pendingBlock);
 
       // add pendingVotes

@@ -2,7 +2,7 @@ import { BlockBase } from '../../../src/base/block';
 import { KeyPair, IBlock, Transaction } from '../../../src/interfaces';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import BigNumber from 'bignumber.js';
 
 function createTransation() {
   const data: Transaction = {
@@ -37,14 +37,14 @@ function createKeypair() {
   return ed.generateKeyPair(hash);
 }
 
-function createBlock(height: number, keypair: KeyPair) {
+function createBlock(height: string, keypair: KeyPair) {
   const block: IBlock = {
     height: height,
     version: 0,
-    timestamp: height + 2003502305230,
+    timestamp: 2003502305230,
     count: 0,
-    fees: 0,
-    reward: 0,
+    fees: String(0),
+    reward: String(0),
     signature: null,
     id: null,
     transactions: [],
@@ -62,7 +62,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       done();
     });
 
@@ -87,7 +87,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
       done();
     });
 
@@ -104,7 +104,7 @@ describe('Transaction', () => {
 
     beforeEach(done => {
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
 
       block.signature = BlockBase.sign(block, keypair);
       block.id = BlockBase.getId(block);
@@ -136,7 +136,7 @@ describe('Transaction', () => {
     beforeEach(done => {
       trs = createTransation();
       keypair = createKeypair();
-      block = createBlock(1, keypair);
+      block = createBlock(String(1), keypair);
 
       block.transactions = [trs];
       block.signature = BlockBase.sign(block, keypair);

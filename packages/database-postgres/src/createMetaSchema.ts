@@ -41,7 +41,7 @@ export function transform(entity: any) {
   });
 
   const columns: NormalColumn[] = ormMetaData.columns.map(column => {
-    if (column.default) {
+    if (column.default === undefined) {
       return {
         name: column.propertyName,
       };

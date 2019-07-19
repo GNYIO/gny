@@ -29,14 +29,14 @@ export class Asset {
     nullable: false,
   })
   @Index()
-  public timestamp: number;
+  public timestamp: string;
 
   @Column({
     type: 'bigint',
     nullable: false,
   })
   @Index()
-  public maximum: number;
+  public maximum: string;
 
   @Column({
     type: Number,
@@ -48,7 +48,7 @@ export class Asset {
     type: 'bigint',
     nullable: false,
   })
-  public quantity: number;
+  public quantity: string;
 
   @Column({
     type: 'text',
@@ -64,8 +64,8 @@ export class Asset {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

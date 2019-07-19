@@ -1,7 +1,7 @@
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import {
   IState,
-  Transaction,
+  ITransaction,
   IConfig,
   IBlock,
   KeyPair,
@@ -16,6 +16,7 @@ import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import slots from '../../../src/utils/slots';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -39,14 +40,17 @@ function loadGenesisBlock() {
   return genesisBlock;
 }
 
-function createRandomBlock(height: number = 6, prevBlockId = randomHex(32)) {
+function createRandomBlock(
+  height: string = String(6),
+  prevBlockId = randomHex(32)
+) {
   const keyPair = randomKeyPair();
   const timestamp = slots.getSlotNumber(slots.getSlotNumber());
   const lastBlock = {
     id: prevBlockId,
-    height: height - 1,
+    height: new BigNumber(height).minus(1).toFixed(),
   } as IBlock;
-  const unconfirmedTrs: Transaction[] = [];
+  const unconfirmedTrs: ITransaction[] = [];
   const block = BlocksHelper.generateBlockShort(
     keyPair,
     timestamp,
@@ -57,7 +61,7 @@ function createRandomBlock(height: number = 6, prevBlockId = randomHex(32)) {
 }
 
 function createRandomBlockPropose(
-  height: number,
+  height: string,
   generatorPublicKey = randomHex(32),
   id = randomHex(32)
 ) {
@@ -98,15 +102,15 @@ function randomAddress() {
 
 function createRandomTransaction() {
   const publicKey = randomHex(32);
-  const transaction: Transaction = {
+  const transaction: ITransaction = {
     id: randomHex(32),
     args: [],
-    height: 3,
+    height: String(3),
     senderPublicKey: publicKey,
     senderId: generateAddress(publicKey),
     timestamp: 12424,
     type: 0,
-    fee: 0.1 * 1e8,
+    fee: String(0.1 * 1e8),
   };
   return transaction;
 }
@@ -124,7 +128,7 @@ describe('BlocksHelper', () => {
         {
           id: 'third',
         },
-      ] as Transaction[];
+      ] as ITransaction[];
 
       const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(false);
@@ -143,7 +147,7 @@ describe('BlocksHelper', () => {
         {
           id: 'second',
         },
-      ] as Transaction[];
+      ] as ITransaction[];
 
       const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(true);
@@ -197,7 +201,7 @@ describe('BlocksHelper', () => {
 
     it.skip('ManageProposeCreation() - create propose', done => {
       const keypair = null;
-      const block: IBlock = {};
+      const block = {} as IBlock;
       const config: Partial<IConfig> = {
         publicIp: '0.0.0.0',
         peerPort: 4097,
@@ -209,6 +213,7 @@ describe('BlocksHelper', () => {
       expect(result.generatorPublicKey).toEqual(block.delegate);
       expect(result.hash).toEqual(null);
       expect(result.height).toEqual(block.height);
+      expect(typeof result.height).toEqual('string');
       expect(result.id).toEqual(block.id);
       expect(result.signature).toEqual(null);
       expect(result.timestamp).toEqual(block.timestamp);
@@ -248,7 +253,7 @@ describe('BlocksHelper', () => {
       const timestamp = 1343434;
       const lastBlock = {
         id: randomHex(32),
-        height: 2,
+        height: String(2),
       } as IBlock;
       const unconfirmedTransactions = [];
 
@@ -263,12 +268,22 @@ describe('BlocksHelper', () => {
       expect(result.prevBlockId).toEqual(lastBlock.id);
       expect(result.count).toEqual(unconfirmedTransactions.length);
       expect(result.delegate).toEqual(keypair.publicKey.toString('hex'));
-      expect(result.fees).toEqual(0);
-      expect(result.reward).toEqual(0);
+
+      expect(typeof result.fees).toEqual('string');
+      expect(result.fees).toEqual(String(0));
+
+      expect(typeof result.reward).toEqual('string');
+      expect(result.reward).toEqual(String(0));
+
       expect(result.timestamp).toEqual(timestamp);
       expect(result.transactions).toEqual(unconfirmedTransactions);
       expect(result.version).toEqual(0);
-      expect(result.height).toEqual(lastBlock.height + 1);
+
+      expect(typeof result.height).toEqual('string');
+      expect(result.height).toEqual(
+        new BigNumber(lastBlock.height).plus(1).toFixed()
+      );
+
       expect(typeof result.id).toEqual('string');
       expect(typeof result.payloadHash).toEqual('string');
       expect(typeof result.signature).toEqual('string');
@@ -279,7 +294,7 @@ describe('BlocksHelper', () => {
     it(
       'areTransactionsExceedingPayloadLength() - returns true if bytes of all transaction exceeding threshold',
       done => {
-        const transactions = [];
+        const transactions: ITransaction[] = [];
 
         for (let i = 0; i < 180000; ++i) {
           const x = createRandomTransaction();
@@ -297,7 +312,7 @@ describe('BlocksHelper', () => {
     );
 
     it('areTransactionsExceedingPayloadLength() - returns false if bytes of all transaction are not exceeding threshold', done => {
-      const transactions = [];
+      const transactions: ITransaction[] = [];
 
       for (let i = 0; i < 999; ++i) {
         const x = createRandomTransaction();
@@ -317,14 +332,14 @@ describe('BlocksHelper', () => {
       const trs2 = createRandomTransaction();
       const trs3 = createRandomTransaction();
 
-      expect(trs1.fee).toEqual(0.1 * 1e8);
-      expect(trs2.fee).toEqual(0.1 * 1e8);
-      expect(trs3.fee).toEqual(0.1 * 1e8);
+      expect(trs1.fee).toEqual(String(0.1 * 1e8));
+      expect(trs2.fee).toEqual(String(0.1 * 1e8));
+      expect(trs3.fee).toEqual(String(0.1 * 1e8));
 
       const transactions = [trs1, trs2, trs3];
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
-      expect(fees).toEqual(0.3 * 1e8);
+      expect(fees).toEqual(String(0.3 * 1e8));
 
       done();
     });
@@ -336,13 +351,13 @@ describe('BlocksHelper', () => {
       const trs3 = createRandomTransaction();
 
       expect(trs1.fee).toBeUndefined();
-      expect(trs2.fee).toEqual(0.1 * 1e8);
-      expect(trs3.fee).toEqual(0.1 * 1e8);
+      expect(trs2.fee).toEqual(String(0.1 * 1e8));
+      expect(trs3.fee).toEqual(String(0.1 * 1e8));
 
       const transactions = [trs1, trs2, trs3];
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
-      expect(fees).toEqual(0.2 * 1e8);
+      expect(fees).toEqual(String(0.2 * 1e8));
 
       done();
     });
@@ -364,7 +379,7 @@ describe('BlocksHelper', () => {
     });
 
     it('payloadHashOfAllTransactions() - works for empty transactions array', done => {
-      const transactions = [];
+      const transactions: ITransaction[] = [];
 
       const hash = BlocksHelper.payloadHashOfAllTransactions(transactions);
       expect(Buffer.isBuffer(hash)).toEqual(true);
@@ -380,7 +395,7 @@ describe('BlocksHelper', () => {
       // preparation
       const id = randomHex(32);
       const generatorPublicKey = randomHex(32);
-      const height = 11;
+      const height = String(11);
 
       // prepare state
       const state = StateHelper.getInitialState();
@@ -391,7 +406,7 @@ describe('BlocksHelper', () => {
       } as BlockPropose;
 
       // prepare propose
-      const propose = createRandomBlockPropose(11, generatorPublicKey);
+      const propose = createRandomBlockPropose(String(11), generatorPublicKey);
 
       // double check
       expect(state.lastPropose.id).not.toEqual(propose.id);
@@ -409,7 +424,7 @@ describe('BlocksHelper', () => {
     it('DoesNewBlockProposeMatchOldOne() - returns false if lastPropose does not exists', done => {
       // preparation
       const initialState = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(2);
+      const propose = createRandomBlockPropose(String(2));
 
       // act
       const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
@@ -424,9 +439,9 @@ describe('BlocksHelper', () => {
     it('DoesNewBlockProposeMatchOldOne() - returns false if height does not match', done => {
       // preparation
       const state = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(2);
+      const propose = createRandomBlockPropose(String(2));
       state.lastPropose = propose;
-      state.lastPropose.height = 3; // different
+      state.lastPropose.height = String(3); // different
 
       // act
       const result = BlocksHelper.DoesNewBlockProposeMatchOldOne(
@@ -441,7 +456,7 @@ describe('BlocksHelper', () => {
     it('DoesNewBlockProposeMatchOldOne() - returns false if generatorPublicKey does not match', done => {
       // preparation
       const state = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(2);
+      const propose = createRandomBlockPropose(String(2));
       state.lastPropose = propose;
       state.lastPropose.generatorPublicKey = randomHex(32); // different
 
@@ -457,7 +472,7 @@ describe('BlocksHelper', () => {
 
     it('AlreadyReceivedPropose() - returns false when ProposeCache is empty', done => {
       const state = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(10);
+      const propose = createRandomBlockPropose(String(10));
 
       const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
 
@@ -467,7 +482,7 @@ describe('BlocksHelper', () => {
 
     it('AlreadyReceivedPropose() - returns true when Propose hash was already received', done => {
       // preparation
-      const propose = createRandomBlockPropose(10);
+      const propose = createRandomBlockPropose(String(10));
 
       let state = StateHelper.getInitialState();
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
@@ -481,7 +496,7 @@ describe('BlocksHelper', () => {
 
     it('MarkProposeAsReceived() - returns new object reference', done => {
       const initialState = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(10);
+      const propose = createRandomBlockPropose(String(10));
 
       const updatedState = BlocksHelper.MarkProposeAsReceived(
         initialState,
@@ -494,7 +509,7 @@ describe('BlocksHelper', () => {
 
     it('MarkProposeAsReceived() - marks propose as received', done => {
       const initialState = StateHelper.getInitialState();
-      const propose = createRandomBlockPropose(10);
+      const propose = createRandomBlockPropose(String(10));
 
       const updatedState = BlocksHelper.MarkProposeAsReceived(
         initialState,
@@ -550,8 +565,8 @@ describe('BlocksHelper', () => {
       const state = StateHelper.getInitialState();
       state.lastBlock = loadGenesisBlock();
 
-      const block = createRandomBlock(2); // block should normally be height 1
-      expect(block.height).toEqual(2);
+      const block = createRandomBlock(String(2)); // block should normally be height 1
+      expect(block.height).toEqual(String(2));
 
       // act
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
@@ -567,8 +582,8 @@ describe('BlocksHelper', () => {
 
       const wrongPrevBlockId = randomHex(32);
 
-      const block = createRandomBlock(1, wrongPrevBlockId); // correct height, but wrong prevBlockId
-      expect(block.height).toEqual(1);
+      const block = createRandomBlock(String(1), wrongPrevBlockId); // correct height, but wrong prevBlockId
+      expect(block.height).toEqual(String(1));
 
       // act
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
@@ -582,8 +597,8 @@ describe('BlocksHelper', () => {
       const genesisBlock = loadGenesisBlock();
       state.lastBlock = genesisBlock;
 
-      const block = createRandomBlock(1, genesisBlock.id); // correct height, correct prevBlockId
-      expect(block.height).toEqual(1);
+      const block = createRandomBlock(String(1), genesisBlock.id); // correct height, correct prevBlockId
+      expect(block.height).toEqual(String(1));
 
       // act
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
@@ -620,7 +635,7 @@ describe('BlocksHelper', () => {
 
     it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', done => {
       const newBlockMessage: NewBlockMessage = {
-        height: 1,
+        height: String(1),
         id: randomHex(32),
         prevBlockId: randomHex(32),
       };
@@ -636,7 +651,7 @@ describe('BlocksHelper', () => {
     });
 
     it('IsNewBlockMessageAndBlockTheSame() - returns true if height, id and prevBlockId are the same', done => {
-      const newBlock: IBlock = createRandomBlock(14);
+      const newBlock: IBlock = createRandomBlock(String(14));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
         id: newBlock.id,
@@ -653,9 +668,9 @@ describe('BlocksHelper', () => {
     });
 
     it('IsNewBlockMessageAndBlockTheSame() - returns false if height is not the same', done => {
-      const newBlock: IBlock = createRandomBlock(13);
+      const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
-        height: 12, // different
+        height: String(12), // different
         id: newBlock.id,
         prevBlockId: newBlock.prevBlockId,
       };
@@ -670,7 +685,7 @@ describe('BlocksHelper', () => {
     });
 
     it('IsNewBlockMessageAndBlockTheSame() - returns false if id is not the same', done => {
-      const newBlock: IBlock = createRandomBlock(13);
+      const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
         id: randomHex(32), // different
@@ -687,7 +702,7 @@ describe('BlocksHelper', () => {
     });
 
     it('IsNewBlockMessageAndBlockTheSame() - returns false if prevBlockId is not the same', done => {
-      const newBlock: IBlock = createRandomBlock(13);
+      const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
         id: newBlock.id,
@@ -716,7 +731,9 @@ describe('BlocksHelper', () => {
 
       const result = BlocksHelper.setPreGenesisBlock(initialState);
 
-      expect(result.lastBlock).toEqual({ height: -1 });
+      expect(result.lastBlock).toEqual({
+        height: String(-1),
+      });
       done();
     });
 
@@ -745,7 +762,7 @@ describe('BlocksHelper', () => {
       const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
-      const block = createRandomBlock(1, blockId);
+      const block = createRandomBlock(String(1), blockId);
 
       const result = BlocksHelper.SetLastBlock(initialState, block);
 
@@ -791,7 +808,7 @@ describe('BlocksHelper', () => {
       const propose: BlockPropose = {
         address: randomAddress(),
         generatorPublicKey: randomHex(32),
-        height: 3,
+        height: String(3),
         timestamp: Date.now() - 20000,
         hash: randomHex(64),
         id: randomHex(32),
@@ -813,7 +830,7 @@ describe('BlocksHelper', () => {
     it('IsBlockchainReady() - blockchain is not ready if lastSlot is 130 seconds ago', async done => {
       // preparation
       let state = StateHelper.getInitialState();
-      const block = createRandomBlock(1);
+      const block = createRandomBlock(String(1));
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
 
@@ -833,7 +850,7 @@ describe('BlocksHelper', () => {
     it('IsBlockchainReady() - blockchain is ready if lastSlot is 100 seconds ago', async done => {
       // preparation
       let state = StateHelper.getInitialState();
-      const block = createRandomBlock(1);
+      const block = createRandomBlock(String(1));
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
 
@@ -853,7 +870,7 @@ describe('BlocksHelper', () => {
     it('IsBlockchainReady() - blockchain is ready if lastSlot is 10 seconds ago', async done => {
       // preparation
       let state = StateHelper.getInitialState();
-      const block = createRandomBlock(1);
+      const block = createRandomBlock(String(1));
       block.timestamp = slots.getEpochTime(undefined); // important
       state = BlocksHelper.SetLastBlock(state, block);
 
@@ -871,8 +888,8 @@ describe('BlocksHelper', () => {
     });
 
     it('verifyBlockSlot() - currentBlock and lastBlock having same timestamp makes check fail', done => {
-      const lastBlock = createRandomBlock(1);
-      const currentBlock = createRandomBlock(2);
+      const lastBlock = createRandomBlock(String(1));
+      const currentBlock = createRandomBlock(String(2));
 
       // important: lastBlock and currentBlock have the same SlotNumber
       const blockTimestamp = slots.getSlotTime(slots.getSlotNumber());
@@ -894,8 +911,8 @@ describe('BlocksHelper', () => {
     });
 
     it('verifyBlockSlot() - lastBock timestamp greater then current block makes check fail', done => {
-      const lastBlock = createRandomBlock(1);
-      const currentBlock = createRandomBlock(2);
+      const lastBlock = createRandomBlock(String(1));
+      const currentBlock = createRandomBlock(String(2));
 
       // important: lastBlock has a greater slot number (which should not happen)
       const currentSlotNumber = slots.getSlotNumber();
@@ -918,8 +935,8 @@ describe('BlocksHelper', () => {
     });
 
     it('verifyBlockSlot() - currentBlock timestamp is too high for next slot makes check fail', done => {
-      const lastBlock = createRandomBlock(1);
-      const currentBlock = createRandomBlock(2);
+      const lastBlock = createRandomBlock(String(1));
+      const currentBlock = createRandomBlock(String(2));
 
       // important: currentBlock timestamp is too high for next slot
       const currentSlotNumber = slots.getSlotNumber();
@@ -942,8 +959,8 @@ describe('BlocksHelper', () => {
     });
 
     it('verifyBlockSlot() - currentBlock is in time and a slot higher then lastBlock makes check pass', done => {
-      const lastBlock = createRandomBlock(1);
-      const currentBlock = createRandomBlock(2);
+      const lastBlock = createRandomBlock(String(1));
+      const currentBlock = createRandomBlock(String(2));
 
       // important: current block is in time and a slot higher then lastBlock
       const currentSlotNumber = slots.getSlotNumber();

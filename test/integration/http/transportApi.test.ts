@@ -1,8 +1,9 @@
 import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
-import { CommonBlockParams } from '../../../src/interfaces';
+import { CommonBlockParams, ManyVotes } from '../../../src/interfaces';
 import * as crypto from 'crypto';
+import BigNumber from 'bignumber.js';
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
@@ -19,8 +20,6 @@ const genesisSecret =
 
 describe('transportApi', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -40,7 +39,7 @@ describe('transportApi', () => {
     it(
       'should get new block',
       async done => {
-        const height = 2;
+        const height = String(2);
         // wait 3 blocks;
         await lib.onNewBlock();
         await lib.onNewBlock();
@@ -79,8 +78,8 @@ describe('transportApi', () => {
 
         const NO_BLOCK_IDS = [];
         const query: CommonBlockParams = {
-          min: 0,
-          max: 2,
+          min: String(0),
+          max: String(2),
           ids: NO_BLOCK_IDS,
         };
 
@@ -120,8 +119,8 @@ describe('transportApi', () => {
 
         // this would search for 11 blocks in DB
         const query: CommonBlockParams = {
-          min: 1,
-          max: 11,
+          min: String(1),
+          max: String(11),
           ids: [randomHex(32)],
         };
 
@@ -149,8 +148,8 @@ describe('transportApi', () => {
 
         // get common block
         const query: CommonBlockParams = {
-          min: 0,
-          max: 3,
+          min: String(0),
+          max: String(3),
           ids: [randomHex(32)],
         };
 
@@ -177,8 +176,8 @@ describe('transportApi', () => {
         await lib.onNewBlock();
 
         const query: CommonBlockParams = {
-          min: 4,
-          max: 3,
+          min: String(4),
+          max: String(3),
           ids: [randomHex(32)],
         };
 
@@ -214,7 +213,7 @@ describe('transportApi', () => {
 
         // get common block
         const query: CommonBlockParams = {
-          min: height - 4,
+          min: new BigNumber(height).minus(4).toFixed(),
           max: height,
           ids: [blockData.data.block.id as string],
         };
@@ -352,8 +351,8 @@ describe('transportApi', () => {
         );
         await lib.onNewBlock();
 
-        const query = {
-          height: 0,
+        const query: ManyVotes = {
+          height: String(0),
           id:
             'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
           signatures: [
@@ -371,8 +370,6 @@ describe('transportApi', () => {
           query,
           config
         );
-        console.log(data);
-        // expect(data).toHaveProperty('transactionId');
 
         done();
       },

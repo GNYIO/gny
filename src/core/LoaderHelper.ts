@@ -1,19 +1,22 @@
 import { IBlock, IState, PeerNode } from '../interfaces';
+import { BigNumber } from 'bignumber.js';
 
 export class LoaderHelper {
   public static GetBlockDifference(lastBlock: IBlock, commonBlock: IBlock) {
-    const toRemove = Number(lastBlock.height) - Number(commonBlock.height);
+    const toRemove = new BigNumber(lastBlock.height)
+      .minus(commonBlock.height)
+      .toFixed();
     return toRemove;
   }
-  public static IsLongFork(blockDifference: number) {
-    return blockDifference >= 5;
+  public static IsLongFork(blockDifference: string) {
+    return new BigNumber(blockDifference).isGreaterThanOrEqualTo(5);
   }
   public static TakeNewesterLastBlock(state: IState, lastBlock: IBlock) {
     // it is possible that some time is passed since
     // this function was called and since then some blocks
     // were processed, that means that `height` variable is
     // possible not up to date. Therefore the Math.max() call
-    if (state.lastBlock.height > lastBlock.height) {
+    if (new BigNumber(state.lastBlock.height).isGreaterThan(lastBlock.height)) {
       return state.lastBlock;
     }
     return lastBlock;
