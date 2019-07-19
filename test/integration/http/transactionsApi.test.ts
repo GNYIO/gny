@@ -13,8 +13,6 @@ const genesisSecret =
 
 describe('transactionsApi', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

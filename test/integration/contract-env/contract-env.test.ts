@@ -40,8 +40,6 @@ async function getAllDelegateData() {
 
 describe('contract environment', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

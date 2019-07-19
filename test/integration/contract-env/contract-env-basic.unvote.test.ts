@@ -39,8 +39,6 @@ async function prepareUnvote() {
 
 describe('contract-env - basic.unvote', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

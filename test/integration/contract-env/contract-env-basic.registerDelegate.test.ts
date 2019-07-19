@@ -26,8 +26,6 @@ async function prepareRegisterDelegateContract() {
 
 describe('contract-env - basic.registerDelegate', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

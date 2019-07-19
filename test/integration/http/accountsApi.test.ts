@@ -52,8 +52,6 @@ async function registerAssetAsync(
 
 describe('accountsApi', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

@@ -68,8 +68,6 @@ const genesisSecret =
 
 describe('basic', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
