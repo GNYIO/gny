@@ -57,6 +57,9 @@ export class Protobuf {
     if (obj.secondSignature === '') {
       delete obj.secondSignature;
     }
+    if (obj.height === '') {
+      delete obj.height;
+    }
     return obj;
   }
 

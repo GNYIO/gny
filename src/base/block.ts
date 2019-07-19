@@ -109,9 +109,9 @@ export class BlockBase {
     const schema = joi.object().keys({
       id: joi.string(),
       height: joi
-        .number()
-        .integer()
-        .min(0),
+        .string()
+        .positiveOrZeroBigInt()
+        .required(),
       signature: joi
         .string()
         .signature()

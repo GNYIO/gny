@@ -32,9 +32,8 @@ export class ConsensusBase {
   public static normalizeVotes(votes: any): ManyVotes {
     const schema = joi.object().keys({
       height: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       id: joi.string().required(),
       signatures: joi

@@ -61,7 +61,10 @@ export default class BlocksApi {
       .object()
       .keys({
         id: this.library.joi.string().min(1),
-        height: this.library.joi.number().min(0),
+        height: [
+          this.library.joi.number().min(0),
+          this.library.joi.string().positiveOrZeroBigInt(),
+        ],
       })
       .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);

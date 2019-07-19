@@ -52,9 +52,8 @@ export class TransactionBase {
 
     const signedTransactionSchema = joi.object().keys({
       fee: joi
-        .number()
-        .integer()
-        .min(0)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       type: joi
         .number()
@@ -101,8 +100,8 @@ export class TransactionBase {
         .hex()
         .required(),
       height: joi
-        .number()
-        .integer()
+        .string()
+        .positiveOrZeroBigInt()
         .optional(),
     });
     const report = joi.validate(transaction, signedTransactionSchema);
