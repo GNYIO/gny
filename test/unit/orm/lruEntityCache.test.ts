@@ -526,7 +526,7 @@ describe('orm - LRUEntityCache', () => {
     );
     expect(
       sut.getUnique('Delegate', 'publicKey', publicKeyUnique).votes
-    ).toEqual(100);
+    ).toEqual(String(100));
 
     done();
   });
