@@ -40,7 +40,7 @@ describe('contract-env - uia.registerIssuer', () => {
         const transData = {
           transaction: registerIssuer,
         };
-        expect(registerIssuer.fee).toEqual(100 * 1e8);
+        expect(registerIssuer.fee).toEqual(String(100 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -58,7 +58,7 @@ describe('contract-env - uia.registerIssuer', () => {
     it(
       'uia.registerIssuer too small fee returns error',
       async () => {
-        const SMALLER_FEE = 99 * 1e8;
+        const SMALLER_FEE = String(99 * 1e8);
         const registerIssuer = gnyJS.transaction.createTransactionEx({
           type: 100,
           args: ['ABC', 'some desc'],

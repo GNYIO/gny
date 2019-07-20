@@ -65,7 +65,7 @@ describe('contract-env - basic.unvote', () => {
         const transData = {
           transaction: unvote,
         };
-        expect(unvote.fee).toEqual(0.1 * 1e8);
+        expect(unvote.fee).toEqual(String(0.1 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -86,7 +86,7 @@ describe('contract-env - basic.unvote', () => {
         await prepareUnvote();
 
         // act
-        const SMALLER_FEE = 0.01 * 1e8;
+        const SMALLER_FEE = String(0.01 * 1e8);
         const unvote = gnyJS.transaction.createTransactionEx({
           type: 5,
           args: ['gny_d2'],
