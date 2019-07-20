@@ -1,13 +1,12 @@
 import { BlockBase } from '../../../src/base/block';
-import { KeyPair, IBlock, Transaction } from '../../../src/interfaces';
+import { KeyPair, IBlock, ITransaction } from '../../../src/interfaces';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
-import BigNumber from 'bignumber.js';
 
 function createTransation() {
-  const data: Transaction = {
+  const data: ITransaction = {
     type: 10,
-    fee: 10000000000,
+    fee: String(10000000000),
     timestamp: 12165155,
     senderId: 'G2WocDNFv5ZPwxAia3sjREq7qWM2C',
     senderPublicKey:
@@ -20,7 +19,7 @@ function createTransation() {
     secondSignature:
       '9197c401ae2c72532e0d16340ec920639798714962e03c50d6742ed91944b5a8246e0f83d761435f2619a3413e3dd0f5fa8070c00d2f44ff99d5ac9600fe4b02',
     id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-    height: 0,
+    height: String(0),
   };
   return data;
 }
@@ -76,7 +75,7 @@ describe('Transaction', () => {
   describe('calculateFee', () => {
     it('should return the fee', done => {
       const fee = BlockBase.calculateFee();
-      expect(fee).toEqual(10000000);
+      expect(fee).toEqual(String(10000000));
       done();
     });
   });
@@ -131,7 +130,7 @@ describe('Transaction', () => {
   describe('objectNormalize', () => {
     let block: IBlock;
     let keypair: KeyPair;
-    let trs: Transaction;
+    let trs: ITransaction;
 
     beforeEach(done => {
       trs = createTransation();
@@ -150,12 +149,12 @@ describe('Transaction', () => {
     });
 
     it('should throw error if there are errors during validation', () => {
-      block.height = -1;
+      block.height = String(-1);
       try {
         BlockBase.normalizeBlock(block);
       } catch (e) {
         expect(e.message).toBe(
-          'child "height" fails because ["height" must be larger than or equal to 0]'
+          'child "height" fails because ["height" is not a positive or zero big integer amount]'
         );
       }
     });

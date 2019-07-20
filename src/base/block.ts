@@ -181,6 +181,6 @@ export class BlockBase {
   }
 
   public static calculateFee() {
-    return 10000000;
+    return String(10000000);
   }
 }
