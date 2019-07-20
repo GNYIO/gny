@@ -124,6 +124,13 @@ workflows:
     jobs:
       - node@8.13-unit
   all_integration_every_third_night_on_develop_branch:
+    triggers:
+      - schedule:
+         cron: "59 23 3,6,9,12,15,18,21,24,27,30 * *"
+         filters:
+           branches:
+             only:
+               - develop
     jobs:
       - node@8.13-integration
   benchmarking_every_third_night_on_develop_branch:
