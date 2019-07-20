@@ -62,7 +62,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "test/**/*.ts",
     "src/utils/validator/*.js",
     "packages/gny-js"
   ],
@@ -73,5 +72,6 @@
     "packages/*[.ts|.js]",
     "app.ts",
     "index.ts",
+    "test/**/*.ts"
   ],
 }

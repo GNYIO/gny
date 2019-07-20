@@ -36,7 +36,7 @@ describe('contract-env - basic.unlock', () => {
         const transData = {
           transaction: unlock,
         };
-        expect(unlock.fee).toEqual(0 * 1e8);
+        expect(unlock.fee).toEqual(String(0 * 1e8));
 
         // we can't wait x heights for the account to unlock
         const contractPromise = axios.post(

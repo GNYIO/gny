@@ -58,7 +58,7 @@ describe('StateHelper', () => {
       // act
       const newState = {
         lastBlock: {
-          height: -1,
+          height: String(-1),
         },
       } as IState;
       StateHelper.setState(newState);
@@ -67,7 +67,7 @@ describe('StateHelper', () => {
       const updatedState = StateHelper.getState();
       expect(updatedState).toEqual({
         lastBlock: {
-          height: -1,
+          height: String(-1),
         },
       });
       done();
@@ -111,7 +111,7 @@ describe('StateHelper', () => {
 
     it('getState() - returns same values but deepCopy (also for nested objects)', done => {
       const lastBlock = {
-        height: 10,
+        height: String(10),
       } as IBlock;
       const state = {
         privIsCollectingVotes: false,

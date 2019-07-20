@@ -63,7 +63,7 @@ describe('contract-env - uia.registerAsset', () => {
         const transData = {
           transaction: registerAsset,
         };
-        expect(registerAsset.fee).toEqual(500 * 1e8);
+        expect(registerAsset.fee).toEqual(String(500 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -86,7 +86,7 @@ describe('contract-env - uia.registerAsset', () => {
         await prepareRegisterAsset();
 
         // act
-        const SMALLER_FEE = 499 * 1e8;
+        const SMALLER_FEE = String(499 * 1e8);
         const registerAsset = gnyJS.transaction.createTransactionEx({
           type: 101,
           args: ['BBB', 'some desc', String(10 * 1e8), String(8)],

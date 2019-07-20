@@ -59,7 +59,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
         'second'
       );
 
-      expect(basicSetSecondPassphrase.fee).toEqual(5 * 1e8);
+      expect(basicSetSecondPassphrase.fee).toEqual(String(5 * 1e8));
 
       const transData = {
         transaction: basicSetSecondPassphrase,
@@ -79,7 +79,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
 
     it('basic.setSecondPassphrase too small fee returns error', async () => {
       const secondSignature = newSignature('secret');
-      const SMALLER_FEE = 4 * 1e8;
+      const SMALLER_FEE = String(4 * 1e8);
       const trans = gnyJS.transaction.createTransactionEx({
         type: 2,
         fee: SMALLER_FEE,

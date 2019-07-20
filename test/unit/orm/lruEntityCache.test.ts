@@ -8,7 +8,6 @@ import {
 } from '../../../packages/database-postgres/src/modelSchema';
 import { LogManager } from '../../../packages/database-postgres/src/logger';
 import { ILogger, IDelegate, IAccount } from '../../../src/interfaces';
-import { Account } from '../../../packages/database-postgres/entity/Account';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
 
@@ -249,7 +248,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('simple put({ address: "G2S8FueDjrk3jN7pkeui7VmrA8eMU" })', done => {
     const delegate = createDelegate('liangpeili');
-    const key = {
+    const key: Partial<IDelegate> = {
       address: delegate.address,
     };
 
@@ -285,7 +284,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('direct key ("key") can not access simple key ({ key: "key" })', done => {
     const delegate = createDelegate('xpgeng');
-    const simplekey = {
+    const simplekey: Partial<IDelegate> = {
       address: delegate.address,
     };
 
@@ -299,7 +298,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('simple get()', done => {
     const data = createDelegate('a1300');
-    const key = {
+    const key: Partial<IDelegate> = {
       address: data.address,
     };
 
@@ -311,7 +310,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('simple exist()', done => {
     const data = createDelegate('xpgeng');
-    const key = {
+    const key: Partial<IDelegate> = {
       address: data.address,
     };
 
@@ -323,7 +322,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('after clear() should exists return false', done => {
     const data = createDelegate('a1300');
-    const key = {
+    const key: Partial<IDelegate> = {
       address: data.address,
     };
 
@@ -337,24 +336,24 @@ describe('orm - LRUEntityCache', () => {
 
   it('WARNING put() updating the data updates also the cached reference', done => {
     const data = createDelegate('liangpeili');
-    data.producedBlocks = 5;
+    data.producedBlocks = String(5);
     const key = {
       address: data.address,
     };
     sut.put('Delegate', key, data);
 
-    data.producedBlocks = 10; // update reference
+    data.producedBlocks = String(10); // update reference
 
-    expect(sut.get('Delegate', key).producedBlocks).toEqual(10);
+    expect(sut.get('Delegate', key).producedBlocks).toEqual(String(10));
 
     done();
   });
 
   it('put(Delegate) -> updateCached() -> get(key) -> should return updated Delegate obj', done => {
     const data = createDelegate('liangpeili');
-    data.producedBlocks = 0;
+    data.producedBlocks = String(0);
 
-    const key = {
+    const key: Partial<IDelegate> = {
       address: data.address,
     };
     sut.put('Delegate', key, data);
@@ -362,24 +361,24 @@ describe('orm - LRUEntityCache', () => {
     const changes: PropertyValue[] = [
       {
         name: 'producedBlocks',
-        value: 10,
+        value: String(10),
       },
     ];
 
     sut.refreshCached('Delegate', key, changes);
-    expect(sut.get('Delegate', key).producedBlocks).toEqual(10); // check if cache was updated
+    expect(sut.get('Delegate', key).producedBlocks).toEqual(String(10)); // check if cache was updated
 
     done();
   });
 
   it('clear() should delete all ModelCaches', done => {
     const delegateData = createDelegate('a1300');
-    const delegateKey = {
+    const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
     };
 
     const accountData = createAccount('asdf');
-    const accountKey = {
+    const accountKey: Partial<IAccount> = {
       address: accountData.address,
     };
 
@@ -398,12 +397,12 @@ describe('orm - LRUEntityCache', () => {
 
   it('clear("Delegate") should only delete Delegate-ModelCache', done => {
     const delegateData = createDelegate('a1300');
-    const delegateKey = {
+    const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
     };
 
     const accountData = createAccount('asdf');
-    const accountKey = {
+    const accountKey: Partial<IAccount> = {
       address: accountData.address,
     };
 
@@ -423,7 +422,7 @@ describe('orm - LRUEntityCache', () => {
 
   it('simple getUnique()', done => {
     const delegateData = createDelegate('a1300');
-    const delegateKey = {
+    const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
     };
 
@@ -441,22 +440,22 @@ describe('orm - LRUEntityCache', () => {
 
   it('getUnique() should return the data for all unique indices', done => {
     const delegateData = createDelegate('a1300');
-    const delegateKey = {
+    const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
     };
 
     sut.put('Delegate', delegateKey, delegateData);
 
-    const addressUnique = {
+    const addressUnique: Partial<IDelegate> = {
       address: delegateData.address,
     };
-    const tidUnique = {
+    const tidUnique: Partial<IDelegate> = {
       tid: delegateData.tid,
     };
-    const usernameUnique = {
+    const usernameUnique: Partial<IDelegate> = {
       username: delegateData.username,
     };
-    const publicKeyUnique = {
+    const publicKeyUnique: Partial<IDelegate> = {
       publicKey: delegateData.publicKey,
     };
 
@@ -476,22 +475,22 @@ describe('orm - LRUEntityCache', () => {
 
   it('refreshCached() - are all uniquedColumn caches also updated?', done => {
     const delegateData = createDelegate('liangpeili');
-    const delegateKey = {
+    const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
     };
 
     sut.put('Delegate', delegateKey, delegateData);
 
-    const addressUnique = {
+    const addressUnique: Partial<IDelegate> = {
       address: delegateData.address,
     };
-    const tidUnique = {
+    const tidUnique: Partial<IDelegate> = {
       tid: delegateData.tid,
     };
-    const usernameUnique = {
+    const usernameUnique: Partial<IDelegate> = {
       username: delegateData.username,
     };
-    const publicKeyUnique = {
+    const publicKeyUnique: Partial<IDelegate> = {
       publicKey: delegateData.publicKey,
     };
 
@@ -509,7 +508,7 @@ describe('orm - LRUEntityCache', () => {
     const updates: PropertyValue[] = [
       {
         name: 'votes',
-        value: 100,
+        value: String(100),
       },
     ];
 
@@ -517,15 +516,17 @@ describe('orm - LRUEntityCache', () => {
     sut.refreshCached('Delegate', delegateKey, updates);
 
     expect(sut.getUnique('Delegate', 'address', addressUnique).votes).toEqual(
-      100
+      String(100)
     );
-    expect(sut.getUnique('Delegate', 'tid', tidUnique).votes).toEqual(100);
+    expect(sut.getUnique('Delegate', 'tid', tidUnique).votes).toEqual(
+      String(100)
+    );
     expect(sut.getUnique('Delegate', 'username', usernameUnique).votes).toEqual(
-      100
+      String(100)
     );
     expect(
       sut.getUnique('Delegate', 'publicKey', publicKeyUnique).votes
-    ).toEqual(100);
+    ).toEqual(String(100));
 
     done();
   });
@@ -550,10 +551,10 @@ describe('orm - LRUEntityCache', () => {
     const oneData = createDelegate('xpgeng');
     const secondData = createDelegate('a1300');
 
-    const oneKey = {
+    const oneKey: Partial<IDelegate> = {
       address: oneData.address,
     };
-    const secondKey = {
+    const secondKey: Partial<IDelegate> = {
       address: secondData.address,
     };
 
@@ -564,6 +565,7 @@ describe('orm - LRUEntityCache', () => {
     expect(result).toEqual([secondData, oneData]);
     done();
   });
+
   it('prop models', done => {
     const delegateMeta = getDelegateMetaSchema();
     const delegateSchema = new ModelSchema(delegateMeta);

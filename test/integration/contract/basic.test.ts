@@ -1132,7 +1132,7 @@ describe('basic', () => {
         );
         expect(afterVote.data.delegates).toHaveLength(1);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it.skip('should return the error: Maximum number of votes exceeded', async () => {});

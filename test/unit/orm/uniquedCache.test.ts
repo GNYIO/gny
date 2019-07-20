@@ -1,8 +1,9 @@
-
-import { ModelIndex } from '../../../packages/database-postgres/src/defaultEntityUniqueIndex';
 import { UniquedCache } from '../../../packages/database-postgres/src/uniquedCache';
 import { LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
-import { ModelSchema, MetaSchema } from '../../../packages/database-postgres/src/modelSchema';
+import {
+  ModelSchema,
+  MetaSchema,
+} from '../../../packages/database-postgres/src/modelSchema';
 import { CustomCache } from '../../../packages/database-postgres/src/customCache';
 
 describe('orm UniquedCache', () => {
@@ -11,26 +12,38 @@ describe('orm UniquedCache', () => {
     const metaSchema: MetaSchema = {
       memory: false,
       name: 'Account',
-      indices: [{
-        isUnique: false,
-        columns: [{
-         propertyName: 'address',
-        }],
-      }, {
-        isUnique: true,
-        columns: [{
-          propertyName: 'username'
-        }]
-      }],
-      columns: [{
-          name: 'address'
+      indices: [
+        {
+          isUnique: false,
+          columns: [
+            {
+              propertyName: 'address',
+            },
+          ],
         },
         {
-          name: 'username'
-      }],
+          isUnique: true,
+          columns: [
+            {
+              propertyName: 'username',
+            },
+          ],
+        },
+      ],
+      columns: [
+        {
+          name: 'address',
+        },
+        {
+          name: 'username',
+        },
+      ],
     };
     const modelSchema = new ModelSchema(metaSchema);
-    const cache = new CustomCache(modelSchema, LRUEntityCache.DEFULT_MAX_CACHED_COUNT);
+    const cache = new CustomCache(
+      modelSchema,
+      LRUEntityCache.DEFULT_MAX_CACHED_COUNT
+    );
 
     const modelIndex = modelSchema.allUniqueIndexes;
     sut = new UniquedCache(cache, modelIndex);
@@ -40,13 +53,13 @@ describe('orm UniquedCache', () => {
     sut = undefined;
   });
 
-  it('properties are correctly set', (done) => {
+  it('properties are correctly set', done => {
     expect(sut.cache).toBeTruthy();
     expect(sut.indexes).toBeTruthy();
     expect(sut.indexes.size).toBe(1);
     done();
   });
-  it('empty -> set(key, item) -> get(key) returns item', (done) => {
+  it('empty -> set(key, item) -> get(key) returns item', done => {
     const key = JSON.stringify({ address: 'G2yS6YgA77kNy92tc1qQax3JgE6rq' });
     const value = {
       address: 'G2yS6YgA77kNy92tc1qQax3JgE6rq',
@@ -56,19 +69,19 @@ describe('orm UniquedCache', () => {
       isLocked: 0,
       lockHeight: 0,
       lockAmount: 0,
-      version: 1
+      version: 1,
     };
     sut.set(key, value);
 
     expect(sut.get(key)).toBe(value);
     done();
   });
-  it('empty -> set(item) -> returns undefined', (done) => {
+  it('empty -> set(item) -> returns undefined', done => {
     const key = JSON.stringify({ address: 'G4LH3SBrTWcPiQbV2FPjibWVtJKn9' });
     expect(sut.get(key)).toBeUndefined();
     done();
   });
-  it('getUniqued()', (done) => {
+  it('getUniqued()', done => {
     const key = JSON.stringify({ address: 'G2Av9Fzma9svmj8hD1X76Ar5FHY1z' });
 
     sut.set(key, {
@@ -88,7 +101,7 @@ describe('orm UniquedCache', () => {
 
     done();
   });
-  it('update cached item', (done) => {
+  it('update cached item', done => {
     const key = JSON.stringify({ address: 'G4X3t9GWrPU65U3nZzqR6z5LQdfP1' });
     const value = {
       address: 'G4X3t9GWrPU65U3nZzqR6z5LQdfP1',
@@ -109,7 +122,7 @@ describe('orm UniquedCache', () => {
 
     done();
   });
-  it('clear() all items', (done) => {
+  it('clear() all items', done => {
     const key1 = JSON.stringify({ address: 'G3oCLYRv6Z9AzD35w8RvbpNeWqpvL' });
     const key2 = JSON.stringify({ address: 'G2yY6XpLzt1Zx69QJX1t6mhJeGZyH' });
     const value1 = {
@@ -133,33 +146,39 @@ describe('orm UniquedCache', () => {
 
     done();
   });
-  it('max cached items', (done) => {
+  it('max cached items', done => {
     const customMetaSchema: MetaSchema = {
       memory: false,
       name: 'Account',
-      indices: [{
-        isUnique: false,
-        columns: [{
-         propertyName: 'address',
-        }],
-      }, {
-        isUnique: true,
-        columns: [{
-          propertyName: 'username'
-        }]
-      }],
-      columns: [
+      indices: [
         {
-          name: 'address'
+          isUnique: false,
+          columns: [
+            {
+              propertyName: 'address',
+            },
+          ],
         },
         {
-          name: 'username'
+          isUnique: true,
+          columns: [
+            {
+              propertyName: 'username',
+            },
+          ],
+        },
+      ],
+      columns: [
+        {
+          name: 'address',
+        },
+        {
+          name: 'username',
         },
       ],
     };
     const modelSchema = new ModelSchema(customMetaSchema);
 
-    const MAX_ONE = 1;
     const customCache = new CustomCache(modelSchema, 1);
     const customModelIndex = modelSchema.uniqueIndexes;
 

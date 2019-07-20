@@ -33,7 +33,7 @@ const stringExtensions: Joi.Extension = {
     signature: 'is not a valid GNY signature',
     hex: 'is not a hex string{{q}}',
     ipv4PlusPort: 'is not a ipv4:port',
-    positiveOrZeroBigInt: 'is not an positive or zero big integer amount',
+    positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
   },
   rules: [
     {

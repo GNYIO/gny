@@ -114,7 +114,7 @@ describe('blocksApi', () => {
       async () => {
         const expected = {
           height: String(1),
-          fee: 10000000,
+          fee: String(10000000),
           milestone: 0,
           reward: 0,
           supply: '40000000000000000',

@@ -52,7 +52,7 @@ describe('contract-env - basic.registerDelegate', () => {
         const transData = {
           transaction: registerDelegate,
         };
-        expect(registerDelegate.fee).toEqual(100 * 1e8);
+        expect(registerDelegate.fee).toEqual(String(100 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -73,7 +73,7 @@ describe('contract-env - basic.registerDelegate', () => {
         await prepareRegisterDelegateContract();
 
         // act
-        const SMALLER_FEE = 0.01 * 1e8;
+        const SMALLER_FEE = String(0.01 * 1e8);
         const registerDelegate = gnyJS.transaction.createTransactionEx({
           type: 10,
           args: [],

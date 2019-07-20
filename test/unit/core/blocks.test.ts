@@ -16,7 +16,6 @@ import slots from '../../../src/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
@@ -24,13 +23,6 @@ function loadGenesisBlock() {
   });
   const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
   return genesisBlock;
-}
-
-function loadRawOrmSqljsConfig() {
-  const ormConfigRaw = fs.readFileSync('ormconfig.sqljs.json', {
-    encoding: 'utf8',
-  });
-  return ormConfigRaw;
 }
 
 function randomHex(length: number) {
@@ -385,11 +377,6 @@ describe('core/blocks', () => {
 
       // prepare lastBlock
       const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
-      Blocks.setLastBlock({
-        id: previousBlockId,
-        timestamp: lastBlockTimestamp,
-      } as any);
-
       // act
       const options = {};
       const func = Blocks.verifyBlock(block, options);

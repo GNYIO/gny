@@ -4,7 +4,7 @@ import {
 } from '../../../src/base/transaction';
 import basic from '../../../src/contract/basic';
 import {
-  Transaction,
+  ITransaction,
   Context,
   IBlock,
   IAccount,
@@ -22,9 +22,9 @@ function randomHex(length: number) {
 }
 
 function createTransation() {
-  const data: Transaction = {
+  const data: ITransaction = {
     type: 10,
-    fee: 10000000000,
+    fee: String(10000000000),
     timestamp: 12165155,
     senderId: 'G2WocDNFv5ZPwxAia3sjREq7qWM2C',
     senderPublicKey:
@@ -37,7 +37,7 @@ function createTransation() {
     secondSignature:
       '9197c401ae2c72532e0d16340ec920639798714962e03c50d6742ed91944b5a8246e0f83d761435f2619a3413e3dd0f5fa8070c00d2f44ff99d5ac9600fe4b02',
     id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-    height: 0,
+    height: String(0),
   };
   return data;
 }
@@ -64,7 +64,7 @@ describe('Transaction', () => {
   });
 
   describe('create', () => {
-    let trs: Transaction;
+    let trs: ITransaction;
     beforeEach(done => {
       const secret = 'ABCDEFG';
       const secondSecret = 'HIJKLMN';
@@ -81,7 +81,7 @@ describe('Transaction', () => {
       );
       const data: CreateTransactionType = {
         type: 10,
-        fee: 10000000000,
+        fee: String(10000000000),
         message: '',
         args: [40000000000000000, 'G4GDW6G78sgQdSdVAQUXdm5xPS13t'],
         keypair: keypair,
@@ -101,14 +101,14 @@ describe('Transaction', () => {
 
   describe('getId', () => {
     let id: string;
-    let trs: Transaction;
+    let trs: ITransaction;
     beforeEach(done => {
       trs = createTransation();
       id = TransactionBase.getId(trs);
       done();
     });
 
-    it('shoudl return a transaction id', () => {
+    it('should return a transaction id', () => {
       expect(id).toHaveLength(64);
       expect(id).toEqual(trs.id);
     });
@@ -173,8 +173,7 @@ describe('Transaction', () => {
       const secondKeyPair = ed.generateKeyPair(hash2);
 
       const trs = TransactionBase.create({
-        // args: [],
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
         args: [],
         keypair: keypair,
         secondKeypair: secondKeyPair,
@@ -210,8 +209,7 @@ describe('Transaction', () => {
       const secondKeyPair = ed.generateKeyPair(hash2);
 
       const trs = TransactionBase.create({
-        // args: [],
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
         args: [],
         keypair: keypair,
         secondKeypair: secondKeyPair,
@@ -248,7 +246,7 @@ describe('Transaction', () => {
         keypair: keypair,
         args: [],
         type: 10,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
       });
 
       const bytes = TransactionBase.getBytes(trs, true, true);
@@ -266,7 +264,7 @@ describe('Transaction', () => {
 
   describe('verify', () => {
     let context: Pick<Context, 'trs' | 'sender'>;
-    let trs: Transaction;
+    let trs: ITransaction;
     let sender;
 
     beforeEach(done => {
@@ -303,7 +301,7 @@ describe('Transaction', () => {
 
   describe('apply', () => {
     let context: Context;
-    let trs: Transaction;
+    let trs: ITransaction;
     let sender;
     let block: Pick<IBlock, 'height'>;
 
@@ -313,7 +311,7 @@ describe('Transaction', () => {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         gny: 400000000000000000,
       };
-      block = { height: 1 };
+      block = { height: String(1) };
       context = { trs, sender, block };
       done();
     });
@@ -328,14 +326,14 @@ describe('Transaction', () => {
   });
 
   describe('objectNormalize', () => {
-    let trs: Transaction;
+    let trs: ITransaction;
 
     beforeEach(done => {
       trs = createTransation();
       done();
     });
 
-    it('should return the normalized trsanction', () => {
+    it('should return the normalized transaction', () => {
       const normalizedTrs = TransactionBase.normalizeTransaction(trs);
       expect(normalizedTrs).toEqual(trs);
     });
