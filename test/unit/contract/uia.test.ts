@@ -4,7 +4,7 @@ import {
   ILogger,
   IAccount,
   IBlock,
-  Transaction,
+  ITransaction,
 } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
@@ -71,7 +71,7 @@ describe('uia', () => {
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      } as Transaction;
+      } as ITransaction;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.exists.mockReturnValue(null);
@@ -163,7 +163,7 @@ describe('uia', () => {
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      } as Transaction;
+      } as ITransaction;
 
       global.app.sdb.findOne.mockReturnValue(true);
       global.app.sdb.lock.mockReturnValue(null);
@@ -396,12 +396,12 @@ describe('uia', () => {
         gny: String(100000000),
       } as IAccount;
       (uia as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
       (uia as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      } as Transaction;
+      } as ITransaction;
 
       global.app.balances.get.mockReturnValue(balance);
       global.app.balances.transfer.mockReturnValue(null);

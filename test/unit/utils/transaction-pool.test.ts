@@ -1,5 +1,5 @@
 import { TransactionPool } from '../../../src/utils/transaction-pool';
-import { Transaction } from '../../../src/interfaces';
+import { ITransaction } from '../../../src/interfaces';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 
@@ -11,15 +11,15 @@ function createTransaction(id: string) {
   const receiver = generateAddress(createRandomBytes(32));
   const senderPublicKey = createRandomBytes(32);
   const senderId = generateAddress(senderPublicKey);
-  const transaction: Transaction = {
+  const transaction: ITransaction = {
     id,
     args: [12412524, receiver],
     type: 0,
     senderId,
     senderPublicKey,
     signatures: createRandomBytes(64),
-    fee: 0,
-    height: 1,
+    fee: String(0),
+    height: String(1),
     message: undefined,
     timestamp: 0,
   };

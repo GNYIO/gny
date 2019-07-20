@@ -341,10 +341,10 @@ describe('orm - BasicEntityTracker', () => {
     );
 
     // first accept random block height
-    customSut.acceptChanges(0);
+    customSut.acceptChanges(String(0));
 
     // then try to load blocks up to block 5
-    const LOAD_UP_TO_HEIGHT = 5;
+    const LOAD_UP_TO_HEIGHT = String(5);
     customSut.initVersion(LOAD_UP_TO_HEIGHT);
     expect(mockOnLoadHistory).toBeCalledTimes(0);
     done();

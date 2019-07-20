@@ -1,10 +1,5 @@
 import Delegates from '../../../src/core/delegates';
-import {
-  KeyPairsIndexer,
-  IBlock,
-  Delegate,
-  IDelegate,
-} from '../../../src/interfaces';
+import { KeyPairsIndexer, IBlock, IDelegate } from '../../../src/interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -470,7 +465,7 @@ describe('core/delegates', () => {
           publicKey:
             '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9', // for: carpet pudding... secret
         },
-      ] as Delegate[];
+      ] as IDelegate[];
 
       const result = Delegates.loadMyDelegates(secret, del);
 

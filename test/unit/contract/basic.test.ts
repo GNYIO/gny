@@ -4,7 +4,7 @@ import {
   ILogger,
   IAccount,
   IBlock,
-  Transaction,
+  ITransaction,
 } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
@@ -74,12 +74,12 @@ describe('basic', () => {
         gny: String(100000000),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
       (basic as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      } as Transaction;
+      } as ITransaction;
       global.app.sdb.increase.mockReturnValue(recipientAccount);
       global.app.sdb.load.mockReturnValue(recipientAccount);
 
@@ -258,7 +258,7 @@ describe('basic', () => {
         lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
@@ -306,7 +306,7 @@ describe('basic', () => {
         lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
 
       const locked = await basic.lock(height, amount);
@@ -325,7 +325,7 @@ describe('basic', () => {
         lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
 
       const locked = await basic.lock(height, amount);
@@ -344,7 +344,7 @@ describe('basic', () => {
         lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
 
       const locked = await basic.lock(height, amount);
@@ -363,7 +363,7 @@ describe('basic', () => {
         lockAmount: String(0),
       } as IAccount;
       (basic as any).block = {
-        height: 1,
+        height: String(1),
       } as IBlock;
 
       const locked = await basic.lock(height, amount);
@@ -391,8 +391,8 @@ describe('basic', () => {
         isDelegate: 0,
       } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -437,7 +437,7 @@ describe('basic', () => {
         isDelegate: 0,
       } as IAccount;
       (basic as any).block = {
-        height: 2,
+        height: String(2),
       } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
@@ -468,12 +468,12 @@ describe('basic', () => {
         username: 'xpgeng',
       } as IAccount;
       (basic as any).block = {
-        height: 2,
+        height: String(2),
       } as IBlock;
       (basic as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      } as Transaction;
+      } as ITransaction;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.create.mockReturnValue(null);
@@ -515,7 +515,7 @@ describe('basic', () => {
         username: null,
       } as IAccount;
       (basic as any).block = {
-        height: 2,
+        height: String(2),
       } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
@@ -536,7 +536,7 @@ describe('basic', () => {
         username: 'xpgeng',
       } as IAccount;
       (basic as any).block = {
-        height: 2,
+        height: String(2),
       } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);

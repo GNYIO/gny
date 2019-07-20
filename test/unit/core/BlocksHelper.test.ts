@@ -1,6 +1,5 @@
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import {
-  IState,
   ITransaction,
   IConfig,
   IBlock,
@@ -17,10 +16,6 @@ import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import slots from '../../../src/utils/slots';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 const dummyLogger = {
   log: x => x,
@@ -75,10 +70,6 @@ function createRandomBlockPropose(
     timestamp: 124242243693,
   };
   return propose;
-}
-
-function resetGlobalState() {
-  global.state = {} as IState;
 }
 
 function randomKeyPair() {
@@ -750,7 +741,7 @@ describe('BlocksHelper', () => {
       const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
-      const block = createRandomBlock(1, blockId);
+      const block = createRandomBlock(String(1), blockId);
 
       const result = BlocksHelper.SetLastBlock(initialState, block);
 
