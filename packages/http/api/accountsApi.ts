@@ -9,7 +9,6 @@ import {
   IAccount,
   IBalance,
   IAsset,
-  IVote,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
@@ -18,7 +17,9 @@ import {
 } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
+import { Balance } from '../../database-postgres/entity/Balance';
+import { Asset } from '../../database-postgres/entity/Asset';
+import { Vote } from '../../database-postgres/entity/Vote';
 
 interface BalanceCondition {
   address: string;
@@ -195,7 +196,7 @@ export default class AccountsApi {
     const count = await global.app.sdb.count('Balance', condition);
     let balances: IBalance[] = [];
     if (count > 0) {
-      balances = await global.app.sdb.findAll('Balance', {
+      balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
         limit,
         offset,
@@ -208,7 +209,7 @@ export default class AccountsApi {
       const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
       if (uiaNameList && uiaNameList.length) {
-        const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+        const assets = await global.app.sdb.findAll<Asset>(Asset, {
           condition: {
             name: {
               $in: uiaNameList,
@@ -239,19 +240,22 @@ export default class AccountsApi {
     res: Response,
     next: Next
   ) => {
+    // TODO: add joi validation
+
     const currency = req.params.currency;
     const condition = {
-      address: req.params.address,
-      currency,
+      address: req.params.address as string,
+      currency: currency as string,
     };
-    const balance: IBalance = await global.app.sdb.findOne(
-      'Balance',
-      condition
-    );
+    const balance = await global.app.sdb.findOne<Balance>(Balance, {
+      condition,
+    });
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = (await global.app.sdb.findOne('Asset', {
-        name: balance.currency,
+      balance.asset = (await global.app.sdb.findOne<Asset>(Asset, {
+        condition: {
+          name: balance.currency,
+        },
       })) as IAsset;
     }
 
@@ -289,7 +293,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
+      const votes = await global.app.sdb.findAll<Vote>(Vote, {
         condition: {
           voterAddress: addr,
         },

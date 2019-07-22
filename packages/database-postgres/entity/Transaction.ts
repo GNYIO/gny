@@ -1,9 +1,10 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
+import { Versioned } from '../searchTypes';
 
 @Config({ memory: false })
 @Entity()
-export class Transaction {
+export class Transaction implements Versioned {
   @PrimaryColumn({
     type: 'varchar',
     length: 64,

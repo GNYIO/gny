@@ -16,6 +16,7 @@ import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
 import { BigNumber } from 'bignumber.js';
+import { Versioned, FindOneOptions, FindAllOptions } from '../searchTypes';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -520,8 +521,17 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().getAll(schema);
   }
 
-  public async findOne(model: string, condition: ObjectLiteral) {
-    const result = await this.findAll(model, condition);
+  /**
+   * Access direct database without looking into the cache.
+   * WARNING: when the condition returns more then one result an Exception is thrown
+   * @param model
+   * @param condition
+   */
+  public async findOne<T extends Versioned>(
+    model: new () => T,
+    condition: FindOneOptions<T>
+  ): Promise<T> {
+    const result = await this.findAll<T>(model, condition);
     const schema = this.getSchema(model, true);
     if (result.length > 1) {
       throw new Error(
@@ -537,14 +547,19 @@ export class SmartDB extends EventEmitter {
 
   /**
    * Directly accesses DB, does not search in cache
-   * @param {string} model - e.g. "Account" or "Balnace"
-   * @param condition
+   * WARNING: always use the "params.condition" object to specify a
+   * filter condition, otherwise the
+   * @param {string} model - e.g. "Account" or "Balance"
+   * @param params
    */
-  public async findAll(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async findAll<T extends Versioned>(
+    model: new () => T,
+    condition: FindAllOptions<T>
+  ): Promise<T[]> {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
 
     const schema = this.getSchema(model, true);
-    return await this.getSession().queryByJson(schema, condition);
+    return await this.blockSession.queryByJson(schema, condition);
   }
 
   public async exists(model: string, key: ObjectLiteral) {

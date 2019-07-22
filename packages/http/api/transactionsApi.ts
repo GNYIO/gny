@@ -12,6 +12,7 @@ import {
 import { TransactionBase } from '../../../src/base/transaction';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
+import { Transaction } from '../../database-postgres/entity/Transaction';
 
 export default class TransactionsApi {
   private library: IScope;
@@ -127,11 +128,14 @@ export default class TransactionsApi {
         condition.height = block.height;
       }
       const count = await global.app.sdb.count('Transaction', condition);
-      let transactions = await global.app.sdb.findAll('Transaction', {
-        condition,
-        limit: query.limit || 100,
-        offset: query.offset || 0,
-      });
+      let transactions = await global.app.sdb.findAll<Transaction>(
+        Transaction,
+        {
+          condition,
+          limit: (query.limit as number) || 100,
+          offset: (query.offset as number) || 0,
+        }
+      );
       if (!transactions) transactions = [];
       return res.json({ transactions, count });
     } catch (e) {

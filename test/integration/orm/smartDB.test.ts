@@ -19,9 +19,12 @@ import { generateAddress } from '../../../src/utils/address';
 import { cloneDeep } from 'lodash';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { BigNumber } from 'bignumber.js';
-
-const timeout = ms => new Promise(res => setTimeout(res, ms));
+import { Account } from '../../../packages/database-postgres/entity/Account';
+import { Balance } from '../../../packages/database-postgres/entity/Balance';
+import { Asset } from '../../../packages/database-postgres/entity/Asset';
+import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
+import { Variable } from '../../../packages/database-postgres/entity/Variable';
+import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 
 const logger: ILogger = {
   log: x => x,
@@ -1382,18 +1385,50 @@ describe.skip('integration - SmartDB', () => {
     done();
   });
 
+  it('findAll() - works with generics', async done => {
+    await saveGenesisBlock(sut);
+
+    const account1 = createAccount('G3igL8sTPQzNquy87bYAR37NoYRNn');
+    const created1 = await sut.create('Account', account1);
+
+    const account2 = createAccount('G3y6swmiyCguASMfm46yyUrKWv17w');
+    const created2 = await sut.create('Account', account2);
+
+    const account3 = createAccount('G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr');
+    const created3 = await sut.create('Account', account3);
+
+    const result = await sut.findAll<Account>(Account, {
+      condition: {
+        address: {
+          $in: [
+            'G3igL8sTPQzNquy87bYAR37NoYRNn',
+            'G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr',
+          ],
+        },
+      },
+      sort: {
+        address: -1,
+      },
+    });
+
+    const expected = [created1, created3];
+    expect(result).toEqual(expected);
+
+    done();
+  });
+
   it('findAll() - access directly DB, no cache read', async done => {
     await saveGenesisBlock(sut);
 
     // populate cache with one entity
-    const account: Partial<IAccount> = {
+    const account: Partial<Account> = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       username: 'xpgeng',
       gny: String(100000),
     };
     await sut.create('Account', account);
 
-    const result: IAccount[] = await sut.findAll('Account', {
+    const result = await sut.findAll<Account>(Account, {
       condition: {
         address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       },
@@ -1418,6 +1453,12 @@ describe.skip('integration - SmartDB', () => {
       balance: String(400000),
       flag: 1,
     } as IBalance);
+    await sut.create('Balance', {
+      address: 'G2S8FueDjrk3jN7pkeui7VmrA8eMU',
+      currency: 'TEST.TEST',
+      balance: String(20000),
+      flag: 1,
+    });
 
     // save changes to block and persist to DB
     const block = createBlock(String(1));
@@ -1425,13 +1466,13 @@ describe.skip('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // findAll balance lines for one address
-    const result: IBalance[] = await sut.findAll('Balance', {
+    const result: IBalance[] = await sut.findAll<Balance>(Balance, {
       condition: {
         address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
       },
     });
 
-    const expected: IBalance[] = [
+    const expected: Balance[] = [
       {
         address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
         currency: 'ABC.ABC',
@@ -1471,7 +1512,7 @@ describe.skip('integration - SmartDB', () => {
 
     // load only one
     const names = ['ABC.ABC'];
-    const result: IAsset[] = await sut.findAll('Asset', {
+    const result = await sut.findAll<Asset>(Asset, {
       condition: {
         name: {
           $in: names,
@@ -1479,6 +1520,7 @@ describe.skip('integration - SmartDB', () => {
       },
     });
 
+    expect(result).toHaveLength(1);
     expect(result).toEqual([createdABC]);
     done();
   });
@@ -1498,11 +1540,14 @@ describe.skip('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // load both normal
-    const both: IAsset[] = await sut.findAll('Asset', {});
+    const both: IAsset[] = await sut.findAll<Asset>(Asset, {
+      condition: {},
+    });
     expect(both.length).toEqual(2);
 
     // load only one with limit
-    const limit: IAsset[] = await sut.findAll('Asset', {
+    const limit: IAsset[] = await sut.findAll<Asset>(Asset, {
+      condition: {},
       limit: 1,
     });
     expect(limit.length).toEqual(1);
@@ -1523,11 +1568,13 @@ describe.skip('integration - SmartDB', () => {
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const loadFirst: IAsset[] = await sut.findAll('Asset', {
+    const loadFirst = await sut.findAll<Asset>(Asset, {
+      condition: {},
       limit: 1,
       offset: 0,
     });
-    const loadSecond: IAsset[] = await sut.findAll('Asset', {
+    const loadSecond = await sut.findAll<Asset>(Asset, {
+      condition: {},
       limit: 1,
       offset: 1,
     });
@@ -1551,7 +1598,8 @@ describe.skip('integration - SmartDB', () => {
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const result: IAsset[] = await sut.findAll('Asset', {
+    const result = await sut.findAll<Asset>(Asset, {
+      condition: {},
       sort: {
         name: 1,
       },
@@ -1576,7 +1624,8 @@ describe.skip('integration - SmartDB', () => {
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const result: IAsset[] = await sut.findAll('Asset', {
+    const result = await sut.findAll<Asset>(Asset, {
+      condition: {},
       sort: {
         name: -1,
       },
@@ -1599,7 +1648,7 @@ describe.skip('integration - SmartDB', () => {
 
     // save another transaction in block 2
     const trs2 = createTransaction(String(2));
-    const createdTrs2: ITransaction = await sut.create('Transaction', trs2);
+    const createdTrs2 = await sut.create('Transaction', trs2);
     const block2 = createBlock(String(2));
     sut.beginBlock(block2);
     await sut.commitBlock();
@@ -1607,7 +1656,7 @@ describe.skip('integration - SmartDB', () => {
     // load data directly from DB
     const minHeight = String(0);
     const maxHeight = String(1);
-    const result: ITransaction[] = await sut.findAll('Transaction', {
+    const result = await sut.findAll<Transaction>(Transaction, {
       condition: {
         height: { $gte: minHeight, $lte: maxHeight },
       },
@@ -1627,15 +1676,21 @@ describe.skip('integration - SmartDB', () => {
   it('findOne() - load entity from DB by primary key', async done => {
     await saveGenesisBlock(sut);
 
-    const account = createAccount('G26gsyu1VkF1z4JJ6UGa5VTa4wdWj');
-    await sut.create('Account', account);
+    const account1 = createAccount('G3SSkWs6UFuoVHU3N4rLvXoobbQCt');
+    await sut.create('Account', account1);
+
+    const account2 = createAccount('G26gsyu1VkF1z4JJ6UGa5VTa4wdWj');
+    await sut.create('Account', account2);
+
+    const account3 = createAccount('G3DDP47cyZiLi6nrm7kzbdvAqK5Cz');
+    await sut.create('Account', account3);
 
     // persist changes to dB
     const block = createBlock(String(1));
     sut.beginBlock(block);
     await sut.commitBlock();
 
-    const expected: IAccount = {
+    const expected: Account = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
       gny: String(0),
       isDelegate: 0,
@@ -1651,7 +1706,9 @@ describe.skip('integration - SmartDB', () => {
     const key: Partial<IAccount> = {
       address: 'G26gsyu1VkF1z4JJ6UGa5VTa4wdWj',
     };
-    const result: IAccount = await sut.findOne('Account', key);
+    const result: IAccount = await sut.findOne<Account>(Account, {
+      condition: key,
+    });
     expect(result).toEqual(expected);
     done();
   });
@@ -1684,7 +1741,9 @@ describe.skip('integration - SmartDB', () => {
     const key: Partial<IAccount> = {
       username: 'xpgeng',
     };
-    const result: IAccount = await sut.findOne('Account', key);
+    const result: IAccount = await sut.findOne<Account>(Account, {
+      condition: key,
+    });
     expect(result).toEqual(expected);
     done();
   });
@@ -1692,13 +1751,30 @@ describe.skip('integration - SmartDB', () => {
   it('findOne() - load entity from DB by composite key', async done => {
     await saveGenesisBlock(sut);
 
-    const balance: IBalance = {
+    // prepare data
+    const balance1: IBalance = {
+      address: 'G2QvwiGhjbG5xPixfzstB9qxBqep6',
+      currency: 'FFF.FFF',
+      balance: String(1000),
+      flag: 1,
+    };
+    const createdBalance1: IBalance = await sut.create('Balance', balance1);
+
+    const balance2: IBalance = {
       address: 'GRgor74w6tEZJ2hSVQkS5yCNKjmg',
       currency: 'ABC.ABC',
       balance: String(200000),
       flag: 1,
     };
-    const createdBalance: IBalance = await sut.create('Balance', balance);
+    const createdBalance2: IBalance = await sut.create('Balance', balance2);
+
+    const balance3: IBalance = {
+      address: 'G4LNZorUUGjt3rimMv5Cr2zod9PoS',
+      currency: 'GGG.GGG',
+      balance: String(300000),
+      flag: 1,
+    };
+    const createdBalance3: IBalance = await sut.create('Balance', balance3);
 
     // persist changes to DB
     const block = createBlock(String(1));
@@ -1709,8 +1785,10 @@ describe.skip('integration - SmartDB', () => {
       address: 'GRgor74w6tEZJ2hSVQkS5yCNKjmg',
       currency: 'ABC.ABC',
     };
-    const result: IBalance = await sut.findOne('Balance', compositeKey);
-    expect(result).toEqual(createdBalance);
+    const result: IBalance = await sut.findOne<Balance>(Balance, {
+      condition: compositeKey,
+    });
+    expect(result).toEqual(createdBalance2);
 
     done();
   });
@@ -1718,15 +1796,23 @@ describe.skip('integration - SmartDB', () => {
   it('findOne() should not look into the cache', async done => {
     await saveGenesisBlock(sut);
 
-    const account = createAccount('G2QP6FBxZj19bzdBKKWxW8xoUo2vx');
-    await sut.create('Account', account);
+    const account1 = createAccount('G4LNZorUUGjt3rimMv5Cr2zod9PoS');
+    await sut.create('Account', account1);
+
+    const account2 = createAccount('G2QP6FBxZj19bzdBKKWxW8xoUo2vx');
+    await sut.create('Account', account2);
+
+    const account3 = createAccount('G3igL8sTPQzNquy87bYAR37NoYRNn');
+    await sut.create('Account', account3);
 
     // do not persist changes (changes are only in cache)
 
     const key: Partial<IAccount> = {
       address: 'G2QP6FBxZj19bzdBKKWxW8xoUo2vx',
     };
-    const result = await sut.findOne('Account', key);
+    const result = await sut.findOne<Account>(Account, {
+      condition: key,
+    });
     expect(result).toBeUndefined();
 
     done();
@@ -1759,10 +1845,9 @@ describe.skip('integration - SmartDB', () => {
     const notFullKey: Partial<IBalance> = {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
     };
-    const findOnePromise: Promise<IBalance> = sut.findOne(
-      'Balance',
-      notFullKey
-    );
+    const findOnePromise = sut.findOne<Balance>(Balance, {
+      condition: notFullKey,
+    });
     return expect(findOnePromise).rejects.toEqual(
       new Error(
         'many entities found ( model = \'Balance\' , params = \'{"address":"G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN"}\' )'
@@ -1859,11 +1944,15 @@ describe.skip('integration - SmartDB', () => {
     expect(balanceCached.balance).toEqual(String(0));
 
     // check persistet Account
-    const accountDbVersion: IAccount = await sut.findOne('Account', accountKey);
+    const accountDbVersion: IAccount = await sut.findOne<Account>(Account, {
+      condition: accountKey,
+    });
     expect(accountDbVersion.isDelegate).toEqual(0);
 
     // check persistet Balance
-    const balanceDbVersion: IBalance = await sut.findOne('Balance', balanceKey);
+    const balanceDbVersion: IBalance = await sut.findOne<Balance>(Balance, {
+      condition: balanceKey,
+    });
     expect(balanceDbVersion.balance).toEqual(String(0));
 
     done();
@@ -1897,7 +1986,9 @@ describe.skip('integration - SmartDB', () => {
       secondPublicKey: null,
       username: null,
     };
-    const fromDb: IAccount = await sut.findOne('Account', key);
+    const fromDb: IAccount = await sut.findOne<Account>(Account, {
+      condition: key,
+    });
     expect(fromDb).toEqual(expectedFromDb);
 
     // act
@@ -1906,7 +1997,9 @@ describe.skip('integration - SmartDB', () => {
     // check after rollbackBlock()
     const cachedAfter: IAccount = await sut.get('Account', key);
     expect(cachedAfter).toBeUndefined();
-    const fromDbAfter: IAccount = await sut.findOne('Account', key);
+    const fromDbAfter: IAccount = await sut.findOne<Account>(Account, {
+      condition: key,
+    });
     expect(fromDbAfter).toBeUndefined();
 
     done();
@@ -1940,7 +2033,9 @@ describe.skip('integration - SmartDB', () => {
     // check before rollbackBlock()
     const cachedBefore: IDelegate = await sut.get('Delegate', key);
     expect(cachedBefore).toEqual(createdDelegate);
-    const inDbBefore: IDelegate = await sut.findOne('Delegate', key);
+    const inDbBefore: IDelegate = await sut.findOne<Delegate>(Delegate, {
+      condition: key,
+    });
     expect(inDbBefore).toEqual(createdDelegate);
 
     // act
@@ -1949,7 +2044,9 @@ describe.skip('integration - SmartDB', () => {
     // check after rollbackBlock()
     const cachedAfter: IDelegate = await sut.get('Delegate', key);
     expect(cachedAfter).toBeUndefined();
-    const inDbAfter: IDelegate = await sut.findOne('Delegate', key);
+    const inDbAfter: IDelegate = await sut.findOne<Delegate>(Delegate, {
+      condition: key,
+    });
     expect(inDbAfter).toBeUndefined();
 
     done();
@@ -1998,7 +2095,9 @@ describe.skip('integration - SmartDB', () => {
     // check before rollbackBlock()
     const cachedBefore: IDelegate = await sut.get('Delegate', key);
     expect(cachedBefore.producedBlocks).toEqual(String(1));
-    const inDbBefore: IDelegate = await sut.findOne('Delegate', key);
+    const inDbBefore: IDelegate = await sut.findOne<Delegate>(Delegate, {
+      condition: key,
+    });
     expect(inDbBefore.producedBlocks).toEqual(String(1));
 
     // act
@@ -2007,7 +2106,9 @@ describe.skip('integration - SmartDB', () => {
     // check after rollbackBlock()
     const cachedAfter: IDelegate = await sut.get('Delegate', key);
     expect(cachedAfter.producedBlocks).toEqual(String(0));
-    const inDbAfter: IDelegate = await sut.findOne('Delegate', key);
+    const inDbAfter: IDelegate = await sut.findOne<Delegate>(Delegate, {
+      condition: key,
+    });
     expect(inDbAfter.producedBlocks).toEqual(String(0));
 
     done();
@@ -2210,7 +2311,11 @@ describe.skip('integration - SmartDB', () => {
     it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
       await saveGenesisBlock(sut);
 
-      const variable = await sut.createOrLoad('Variable', {
+      await sut.createOrLoad('Variable', {
+        key: 'some',
+        value: 'thing',
+      });
+      await sut.createOrLoad('Variable', {
         key: 'key',
         value: 'value',
       });
@@ -2220,8 +2325,10 @@ describe.skip('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // pre check
-      const preCheckResult: IVariable[] = await sut.findAll('Variable', {
-        key: 'key',
+      const preCheckResult = await sut.findAll<Variable>(Variable, {
+        condition: {
+          key: 'key',
+        },
       });
       expect(preCheckResult).toHaveLength(1);
       expect(preCheckResult[0]).toEqual({
@@ -2239,8 +2346,10 @@ describe.skip('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // check
-      const result: IVariable[] = await sut.findAll('Variable', {
-        key: 'key',
+      const result = await sut.findAll<Variable>(Variable, {
+        condition: {
+          key: 'key',
+        },
       });
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({

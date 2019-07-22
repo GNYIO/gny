@@ -388,7 +388,7 @@ export interface IVariable {
   _version_?: number;
 }
 
-export interface IVote {
+export interface Vote {
   voterAddress: string;
   delegate: string;
   _version_?: number;

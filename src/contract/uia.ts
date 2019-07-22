@@ -1,4 +1,7 @@
 import { ITransfer, IAsset, IIssuer } from '../interfaces';
+import { Issuer } from '../../packages/database-postgres/entity/Issuer';
+import { Asset } from '../../packages/database-postgres/entity/Asset';
+import { Account } from '../../packages/database-postgres/entity/Account';
 
 export default {
   async registerIssuer(name, desc) {
@@ -35,7 +38,7 @@ export default {
     if (precision > 16 || precision < 0) return 'Invalid asset precision';
     global.app.validate('amount', maximum);
 
-    const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
+    const issuer: IIssuer = await global.app.sdb.findOne<Issuer>(Issuer, {
       condition: { issuerId: this.sender.address },
     });
     if (!issuer) return 'Account is not an issuer';
@@ -69,7 +72,9 @@ export default {
     // if it is not in use(can not find in cache), it can be updated.
     await global.app.sdb.lock(`uia.issue@${name}`);
 
-    const asset: IAsset = await global.app.sdb.findOne('Asset', { name });
+    const asset: IAsset = await global.app.sdb.findOne<Asset>(Asset, {
+      condition: { name },
+    });
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
@@ -104,7 +109,7 @@ export default {
       recipientAddress = recipient;
     } else {
       recipientName = recipient;
-      const recipientAccount = await global.app.sdb.findOne('Account', {
+      const recipientAccount = await global.app.sdb.findOne<Account>(Account, {
         condition: { username: recipient },
       });
       if (!recipientAccount) return 'Recipient name not exist';

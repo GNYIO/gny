@@ -1,8 +1,9 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate, IVote } from '../interfaces';
+import { IAccount, ITransfer, IDelegate } from '../interfaces';
+import { Vote } from '../../packages/database-postgres/entity/Vote';
 
 async function deleteCreatedVotes(account: IAccount) {
-  const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
+  const voteList = await global.app.sdb.findAll<Vote>(Vote, {
     condition: { voterAddress: account.address },
   });
   if (
@@ -18,7 +19,7 @@ async function deleteCreatedVotes(account: IAccount) {
         { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
-      const vote: IVote = {
+      const vote: Vote = {
         voterAddress: voteItem.voterAddress,
         delegate: voteItem.delegate,
       };
@@ -201,7 +202,7 @@ export default {
         address: sender.address,
       });
 
-      const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
+      const voteList = await global.app.sdb.findAll<Vote>(Vote, {
         condition: { voterAddress: senderId },
       });
       if (voteList && voteList.length > 0) {
@@ -287,7 +288,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
+    const currentVotes = await global.app.sdb.findAll<Vote>(Vote, {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -317,7 +318,7 @@ export default {
         { votes: String(votes) },
         { username }
       );
-      const v: IVote = {
+      const v: Vote = {
         voterAddress: senderId,
         delegate: username,
       };
@@ -339,7 +340,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
+    const currentVotes = await global.app.sdb.findAll<Vote>(Vote, {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -367,7 +368,7 @@ export default {
         { username }
       );
 
-      const v: IVote = {
+      const v: Vote = {
         voterAddress: senderId,
         delegate: username,
       };
