@@ -2,6 +2,7 @@ import { ITransaction, Context, IState, IAccount } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
+import { Account } from '../../packages/database-postgres/entity/Account';
 
 export default class Transactions {
   public static processUnconfirmedTransactions = (
@@ -116,7 +117,7 @@ export default class Transactions {
     if (!sender) {
       if (new BigNumber(height).isGreaterThan(0))
         throw new Error('Sender account not found');
-      sender = await global.app.sdb.create('Account', {
+      sender = await global.app.sdb.create<Account>(Account, {
         address: senderId,
         username: null,
         gny: String(0),

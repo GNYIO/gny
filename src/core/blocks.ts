@@ -35,6 +35,7 @@ import Delegates from './delegates';
 import Loader from './loader';
 import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
+import { Transaction } from '../../packages/database-postgres/entity/Transaction';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -327,7 +328,7 @@ export default class Blocks {
       // trs.block = block;
       trs.signatures = JSON.stringify(trs.signatures);
       trs.args = JSON.stringify(trs.args);
-      await global.app.sdb.create('Transaction', trs);
+      await global.app.sdb.create<Transaction>(Transaction, trs);
     }
     global.app.logger.trace('Blocks#save transactions');
   };

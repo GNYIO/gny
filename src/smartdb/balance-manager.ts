@@ -1,5 +1,6 @@
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 import { IBalance } from '../interfaces';
+import { Balance } from '../../packages/database-postgres/entity/Balance';
 
 function getCurrencyFlag(currency: string) {
   if (currency === 'GNY') {
@@ -43,7 +44,7 @@ export default class BalanceManager {
         balance: String(amount),
         flag: getCurrencyFlag(currency),
       };
-      item = await this.sdb.create('Balance', newBalance);
+      item = await this.sdb.create<Balance>(Balance, newBalance);
     }
   }
 

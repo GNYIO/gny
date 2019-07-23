@@ -1,6 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import { IAccount, ITransfer, IDelegate } from '../interfaces';
 import { Vote } from '../../packages/database-postgres/entity/Vote';
+import { Account } from '../../packages/database-postgres/entity/Account';
+import { Delegate } from '../../packages/database-postgres/entity/Delegate';
+import { Transfer } from '../../packages/database-postgres/entity/Transfer';
 
 async function deleteCreatedVotes(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {
@@ -69,7 +72,7 @@ export default {
           { address: recipientAccount.address }
         );
       } else {
-        recipientAccount = await global.app.sdb.create('Account', {
+        recipientAccount = await global.app.sdb.create<Account>(Account, {
           address: recipient,
           gny: String(amount),
           username: null,
@@ -102,7 +105,7 @@ export default {
       amount: String(amount),
       timestamp: this.trs.timestamp,
     };
-    await global.app.sdb.create('Transfer', transfer);
+    await global.app.sdb.create<Transfer>(Transfer, transfer);
     return null;
   },
 
@@ -264,7 +267,7 @@ export default {
       fees: String(0),
       rewards: String(0),
     };
-    await global.app.sdb.create('Delegate', delegate);
+    await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
     await global.app.sdb.update(
       'Account',
@@ -322,7 +325,7 @@ export default {
         voterAddress: senderId,
         delegate: username,
       };
-      await global.app.sdb.create('Vote', v);
+      await global.app.sdb.create<Vote>(Vote, v);
     }
     return null;
   },

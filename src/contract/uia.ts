@@ -2,6 +2,7 @@ import { ITransfer, IAsset, IIssuer } from '../interfaces';
 import { Issuer } from '../../packages/database-postgres/entity/Issuer';
 import { Asset } from '../../packages/database-postgres/entity/Asset';
 import { Account } from '../../packages/database-postgres/entity/Account';
+import { Transfer } from '../../packages/database-postgres/entity/Transfer';
 
 export default {
   async registerIssuer(name, desc) {
@@ -25,7 +26,7 @@ export default {
       name,
       desc: descJson,
     };
-    await global.app.sdb.create('Issuer', issuer);
+    await global.app.sdb.create<Issuer>(Issuer, issuer);
     return null;
   },
 
@@ -59,7 +60,7 @@ export default {
       quantity: String(0),
       issuerId: this.sender.address,
     };
-    await global.app.sdb.create('Asset', asset);
+    await global.app.sdb.create<Asset>(Asset, asset);
     return null;
   },
 
@@ -132,7 +133,7 @@ export default {
       amount: String(amount),
       timestamp: this.trs.timestamp,
     };
-    await global.app.sdb.create('Transfer', transfer);
+    await global.app.sdb.create<Transfer>(Transfer, transfer);
     return null;
   },
 };

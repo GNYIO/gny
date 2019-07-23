@@ -17,6 +17,7 @@ import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
 import { BigNumber } from 'bignumber.js';
 import { Versioned, FindOneOptions, FindAllOptions } from '../searchTypes';
+import { RequireAtLeastOne } from 'type-fest';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -394,7 +395,10 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public async create(model: string, entity: ObjectLiteral) {
+  public async create<T>(
+    model: new () => T,
+    entity: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO, no need for async
     CodeContract.argument('model', () => CodeContract.notNull(model));
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
