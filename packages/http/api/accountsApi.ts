@@ -240,7 +240,21 @@ export default class AccountsApi {
     res: Response,
     next: Next
   ) => {
-    // TODO: add joi validation
+    const schema = this.library.joi.object().keys({
+      address: this.library.joi
+        .string()
+        .address()
+        .required(),
+      currency: this.library.joi
+        .string()
+        .asset()
+        .required(),
+    });
+
+    const report = this.library.joi.validate(req.params, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
 
     const currency = req.params.currency;
     const condition = {
@@ -252,11 +266,11 @@ export default class AccountsApi {
     });
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = (await global.app.sdb.findOne<Asset>(Asset, {
+      balance.asset = await global.app.sdb.findOne<Asset>(Asset, {
         condition: {
           name: balance.currency,
         },
-      })) as IAsset;
+      });
     }
 
     return res.json({ balance });
