@@ -27,8 +27,6 @@ async function prepareVote() {
 
 describe('contract-env - basic.vote', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -54,7 +52,7 @@ describe('contract-env - basic.vote', () => {
         const transData = {
           transaction: vote,
         };
-        expect(vote.fee).toEqual(0.1 * 1e8);
+        expect(vote.fee).toEqual(String(0.1 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -74,7 +72,7 @@ describe('contract-env - basic.vote', () => {
       async () => {
         await prepareVote();
 
-        const SMALLER_FEE = 0.01 * 1e8;
+        const SMALLER_FEE = String(0.01 * 1e8);
         const vote = gnyJS.transaction.createTransactionEx({
           type: 4,
           args: ['gny_d2'],

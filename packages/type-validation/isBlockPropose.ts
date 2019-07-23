@@ -16,9 +16,8 @@ export function isBlockPropose(propose: any): propose is BlockPropose {
       .hex()
       .required(),
     height: joi
-      .number()
-      .integer()
-      .positive()
+      .string()
+      .positiveOrZeroBigInt()
       .required(),
     id: joi
       .string()

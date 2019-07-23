@@ -15,7 +15,7 @@ function createTransactionEx(params) {
   let transaction = {
     type: params.type,
     timestamp: slots.getTime(),
-    fee: params.fee,
+    fee: String(params.fee),
     message: params.message,
     args: params.args,
     senderPublicKey: keys.publicKey,

@@ -8,9 +8,8 @@ export function isNewBlockMessage(body: any): body is NewBlockMessage {
       .hex()
       .required(),
     height: joi
-      .number()
-      .integer()
-      .positive()
+      .string()
+      .positiveOrZeroBigInt()
       .required(),
     prevBlockId: joi
       .string()

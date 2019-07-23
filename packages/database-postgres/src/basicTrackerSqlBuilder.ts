@@ -35,7 +35,7 @@ export class BasicTrackerSqlBuilder {
     });
   }
 
-  public async buildRollbackChangeSqls(height: number) {
+  public async buildRollbackChangeSqls(height: string) {
     const result: SqlAndParameters[] = [];
     const changesUntil = await this.tracker.getChangesUntil(height);
     let one: EntityChanges = undefined;

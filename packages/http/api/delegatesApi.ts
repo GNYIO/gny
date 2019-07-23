@@ -1,11 +1,18 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
+import {
+  IScope,
+  Next,
+  DelegateViewModel,
+  IAccount,
+  IVote,
+} from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
+import { BigNumber } from 'bignumber.js';
 
 export default class DelegatesApi {
   private library: IScope;
@@ -76,7 +83,7 @@ export default class DelegatesApi {
     }
 
     try {
-      const votes = await global.app.sdb.findAll('Vote', {
+      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
         condition: {
           delegate: query.username,
         },
@@ -84,15 +91,17 @@ export default class DelegatesApi {
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = await global.app.sdb.findAll('Account', {
+      const accounts = (await global.app.sdb.findAll('Account', {
         condition: {
           address: {
             $in: addresses,
           },
         },
-      });
+      })) as IAccount[];
       const lastBlock = StateHelper.getState().lastBlock;
-      const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
+      const totalSupply = this.blockReward.calculateSupply(
+        lastBlock.height
+      ) as BigNumber;
       for (const a of accounts) {
         a.balance = a.gny;
         a.weightRatio = (a.weight * 100) / totalSupply;

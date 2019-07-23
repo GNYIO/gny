@@ -1,3 +1,5 @@
+import { ITransfer, IAsset, IIssuer } from '../interfaces';
+
 export default {
   async registerIssuer(name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
@@ -14,12 +16,13 @@ export default {
     exists = await global.app.sdb.exists('Issuer', { issuerId: senderId });
     if (exists) return 'Account is already an issuer';
 
-    await global.app.sdb.create('Issuer', {
+    const issuer: IIssuer = {
       tid: this.trs.id,
       issuerId: senderId,
       name,
       desc: descJson,
-    });
+    };
+    await global.app.sdb.create('Issuer', issuer);
     return null;
   },
 
@@ -32,7 +35,7 @@ export default {
     if (precision > 16 || precision < 0) return 'Invalid asset precision';
     global.app.validate('amount', maximum);
 
-    const issuer = await global.app.sdb.findOne('Issuer', {
+    const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
       condition: { issuerId: this.sender.address },
     });
     if (!issuer) return 'Account is not an issuer';
@@ -43,16 +46,17 @@ export default {
     const exists = await global.app.sdb.exists('Asset', { name: fullName });
     if (exists) return 'Asset already exists';
 
-    await global.app.sdb.create('Asset', {
+    const asset: IAsset = {
       tid: this.trs.id,
       name: fullName,
       timestamp: this.trs.timestamp,
       desc,
-      maximum,
+      maximum: String(maximum),
       precision,
-      quantity: '0',
+      quantity: String(0),
       issuerId: this.sender.address,
-    });
+    };
+    await global.app.sdb.create('Asset', asset);
     return null;
   },
 
@@ -65,7 +69,7 @@ export default {
     // if it is not in use(can not find in cache), it can be updated.
     await global.app.sdb.lock(`uia.issue@${name}`);
 
-    const asset = await global.app.sdb.findOne('Asset', { name });
+    const asset: IAsset = await global.app.sdb.findOne('Asset', { name });
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
@@ -75,7 +79,7 @@ export default {
     asset.quantity = quantity.toString(10);
     await global.app.sdb.update(
       'Asset',
-      { quantity: asset.quantity },
+      { quantity: String(asset.quantity) },
       { name }
     );
 
@@ -113,16 +117,17 @@ export default {
       senderId,
       recipientAddress
     );
-    await global.app.sdb.create('Transfer', {
+    const transfer: ITransfer = {
       tid: this.trs.id,
-      height: this.block.height,
+      height: String(this.block.height),
       senderId,
       recipientId: recipientAddress,
       recipientName,
       currency,
-      amount,
+      amount: String(amount),
       timestamp: this.trs.timestamp,
-    });
+    };
+    await global.app.sdb.create('Transfer', transfer);
     return null;
   },
 };

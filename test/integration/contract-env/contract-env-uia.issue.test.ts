@@ -49,8 +49,6 @@ async function beforeAssetIssue() {
 
 describe('contract-env - uia.registerAsset', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -82,7 +80,7 @@ describe('contract-env - uia.registerAsset', () => {
         const transData = {
           transaction: issue,
         };
-        expect(issue.fee).toEqual(0.1 * 1e8);
+        expect(issue.fee).toEqual(String(0.1 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',

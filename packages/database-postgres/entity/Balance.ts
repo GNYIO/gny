@@ -24,7 +24,7 @@ export class Balance {
     type: 'bigint',
     nullable: false,
   })
-  public balance: number;
+  public balance: string;
 
   @Column()
   @Index()
@@ -32,8 +32,8 @@ export class Balance {
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

@@ -13,8 +13,6 @@ const genesisSecret =
 
 describe('contract-env - basic.transfer', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();

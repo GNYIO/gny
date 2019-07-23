@@ -13,8 +13,6 @@ const config = {
 
 describe('contract-env - basic.lock', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -36,7 +34,7 @@ describe('contract-env - basic.lock', () => {
       const transData = {
         transaction: basicLock,
       };
-      expect(basicLock.fee).toEqual(0.1 * 1e8);
+      expect(basicLock.fee).toEqual(String(0.1 * 1e8));
 
       const { data } = await axios.post(
         'http://localhost:4096/peer/transactions',
@@ -50,7 +48,7 @@ describe('contract-env - basic.lock', () => {
     });
 
     it('basic.lock too small fee returns error', async () => {
-      const SMALLER_FEE = 0.01 * 1e8;
+      const SMALLER_FEE = String(0.01 * 1e8);
       const basicLock = gnyJS.transaction.createTransactionEx({
         type: 3,
         args: [String(173000), String(30 * 1e8)],

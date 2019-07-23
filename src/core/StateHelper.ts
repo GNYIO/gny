@@ -1,5 +1,5 @@
 import {
-  Transaction,
+  ITransaction,
   KeyPair,
   NewBlockMessage,
   KeyPairsIndexer,
@@ -112,7 +112,7 @@ export class StateHelper {
   public static ClearUnconfirmedTransactions() {
     global.transactionPool.clear();
   }
-  public static AddUnconfirmedTransactions(transaction: Transaction) {
+  public static AddUnconfirmedTransactions(transaction: ITransaction) {
     global.transactionPool.add(transaction);
   }
 

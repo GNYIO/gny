@@ -1,6 +1,5 @@
 import async = require('async');
 import { MAX_TXS_PER_BLOCK } from '../utils/constants';
-import slots from '../utils/slots';
 import addressHelper = require('../utils/address');
 import Blockreward from '../utils/block-reward';
 import {
@@ -12,10 +11,11 @@ import {
   Next,
   IBlock,
   ManyVotes,
-  Transaction,
+  ITransaction,
   CommonBlockParams,
   CommonBlockResult,
   IState,
+  IRound,
 } from '../interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
@@ -34,18 +34,22 @@ import Peer from './peer';
 import Delegates from './delegates';
 import Loader from './loader';
 import Transport from './transport';
+import { BigNumber } from 'bignumber.js';
 
 const blockreward = new Blockreward();
-export type GetBlocksByHeight = (height: number) => Promise<IBlock>;
+export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks {
   public static async getIdSequence2(
-    height: number,
-    getBlocksByHeightRange: (min: number, max: number) => Promise<Block[]>
+    height: string,
+    getBlocksByHeightRange: (min: string, max: string) => Promise<Block[]>
   ) {
     try {
       const maxHeight = height;
-      const minHeight = Math.max(0, maxHeight - 4);
+      const minHeight = BigNumber.maximum(
+        0,
+        new BigNumber(maxHeight).minus(4).toFixed()
+      ).toFixed();
       let blocks = await getBlocksByHeightRange(minHeight, maxHeight);
       blocks = blocks.reverse();
       const ids = blocks.map(b => b.id);
@@ -63,7 +67,7 @@ export default class Blocks {
   // todo look at core/loader
   public static getCommonBlock = async (
     peer: PeerNode,
-    lastBlockHeight: number
+    lastBlockHeight: string
   ): Promise<IBlock> => {
     let params: CommonBlockParams;
     try {
@@ -105,7 +109,7 @@ export default class Blocks {
 
     global.app.logger.debug(`verifyBlock, id: ${block.id}, h: ${block.height}`);
 
-    if (!block.prevBlockId && block.height !== 0) {
+    if (!block.prevBlockId && !new BigNumber(block.height).isEqualTo(0)) {
       throw new Error('Previous block should not be null');
     }
 
@@ -117,7 +121,7 @@ export default class Blocks {
       throw new Error('Incorrect previous block hash');
     }
 
-    if (block.height !== 0) {
+    if (!new BigNumber(block.height).isEqualTo(0)) {
       if (!BlocksHelper.verifyBlockSlot(state, Date.now(), block)) {
         throw new Error(`Can't verify block timestamp: ${block.id}`);
       }
@@ -138,12 +142,12 @@ export default class Blocks {
 
     const totalFee = BlocksHelper.getFeesOfAll(block.transactions);
 
-    if (Number(totalFee) !== Number(block.fees)) {
+    if (!new BigNumber(totalFee).isEqualTo(block.fees)) {
       throw new Error('Invalid total fees');
     }
 
     const expectedReward = blockreward.calculateReward(block.height);
-    if (expectedReward !== Number(block.reward)) {
+    if (!new BigNumber(expectedReward).isEqualTo(block.reward)) {
       throw new Error('Invalid block reward');
     }
 
@@ -225,7 +229,7 @@ export default class Blocks {
   ) {
     if (!options.local) {
       Blocks.verifyBlock(state, block, options, delegateList);
-      if (block.height !== 0) {
+      if (!new BigNumber(block.height).isEqualTo(0)) {
         Delegates.validateBlockSlot(block, delegateList);
       }
     }
@@ -244,7 +248,7 @@ export default class Blocks {
 
   public static async ProcessBlockDbIO(
     state: IState,
-    block: Block,
+    block: IBlock,
     options: ProcessBlockOptions
   ) {
     await global.app.sdb.beginBlock(block);
@@ -283,7 +287,7 @@ export default class Blocks {
 
   public static processBlock = async (
     state: IState,
-    block: IGenesisBlock | any,
+    block: IBlock | IGenesisBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) => {
@@ -329,20 +333,24 @@ export default class Blocks {
   };
 
   public static increaseRoundData = async (
-    modifier,
-    roundNumber
-  ): Promise<any> => {
-    await global.app.sdb.createOrLoad('Round', {
-      fee: 0,
-      reward: 0,
+    modifier: { fee: string; reward: string },
+    roundNumber: string
+  ): Promise<{ fee: string; reward: string }> => {
+    const round: IRound = {
+      fee: String(0),
+      reward: String(0),
+      round: roundNumber,
+    };
+    await global.app.sdb.createOrLoad('Round', round);
+    const result = await global.app.sdb.increase('Round', modifier, {
       round: roundNumber,
     });
-    await global.app.sdb.increase('Round', modifier, { round: roundNumber });
-    return await global.app.sdb.load('Round', { round: roundNumber });
+    return result as { fee: string; reward: string };
+    // removed .load() line
   };
 
   public static applyRound = async (block: IBlock) => {
-    if (block.height === 0) {
+    if (new BigNumber(block.height).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
       return;
     }
@@ -350,19 +358,24 @@ export default class Blocks {
     const address = addressHelper.generateAddress(block.delegate);
     await global.app.sdb.increase(
       'Delegate',
-      { producedBlocks: 1 },
+      { producedBlocks: String(1) },
       { address }
     );
 
     const transFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
+
+    // TODO: refactor, this will not go good!
     const { fee, reward } = await Blocks.increaseRoundData(
-      { fee: transFee, reward: block.reward },
-      roundNumber
+      {
+        fee: transFee,
+        reward: block.reward,
+      },
+      String(roundNumber)
     );
 
-    if (block.height % 101 !== 0) return;
+    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
 
     global.app.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
@@ -375,8 +388,8 @@ export default class Blocks {
     global.app.logger.debug('delegate length', delegates.length);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
-      block.height - 100,
-      block.height - 1
+      new BigNumber(block.height).minus(100).toFixed(),
+      new BigNumber(block.height).minus(1).toFixed()
     );
     const forgedDelegates: string[] = [
       ...forgedBlocks.map(b => b.delegate),
@@ -391,48 +404,65 @@ export default class Blocks {
       const adr = addressHelper.generateAddress(md);
       await global.app.sdb.increase(
         'Delegate',
-        { missedBlocks: 1 },
+        { missedBlocks: String(1) },
         { address: adr }
       );
     }
 
     async function updateDelegate(
       publicKey: string,
-      fee: number,
-      reward: number
+      fee: string,
+      reward: string
     ) {
       const delegateAdr = addressHelper.generateAddress(publicKey);
       await global.app.sdb.increase(
         'Delegate',
-        { fees: fee, rewards: reward },
-        { address: delegateAdr }
+        {
+          fees: String(fee),
+          rewards: String(reward),
+        },
+        {
+          address: delegateAdr,
+        }
       );
       // TODO should account be all cached?
       await global.app.sdb.increase(
         'Account',
-        { gny: fee + reward },
-        { address: delegateAdr }
+        {
+          gny: new BigNumber(fee).plus(reward).toFixed(),
+        },
+        {
+          address: delegateAdr,
+        }
       );
     }
 
     const ratio = 1;
 
-    const actualFees = Math.floor(fee * ratio);
-    const feeAverage = Math.floor(actualFees / delegates.length);
-    const feeRemainder = actualFees - feeAverage * delegates.length;
-    // let feeFounds = fees - actualFees
+    const actualFees = new BigNumber(fee).times(ratio).toFixed();
+    const feeAverage = new BigNumber(actualFees)
+      .dividedToIntegerBy(delegates.length)
+      .toFixed();
+    const feeRemainder = new BigNumber(feeAverage)
+      .times(delegates.length)
+      .minus(actualFees)
+      .toFixed();
 
-    const actualRewards = Math.floor(reward * ratio);
-    const rewardAverage = Math.floor(actualRewards / delegates.length);
-    const rewardRemainder = actualRewards - rewardAverage * delegates.length;
-    // let rewardFounds = rewards - actualRewards
+    const actualRewards = new BigNumber(reward).times(ratio).toFixed();
+    const rewardAverage = new BigNumber(actualRewards)
+      .dividedToIntegerBy(delegates.length)
+      .toFixed();
+    const rewardRemainder = new BigNumber(rewardAverage)
+      .times(delegates.length)
+      .minus(actualRewards)
+      .toFixed();
 
     for (const fd of forgedDelegates) {
       await updateDelegate(fd, feeAverage, rewardAverage);
     }
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
-    if (block.height % 101 === 0) {
+    if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
     }
   };
@@ -461,7 +491,7 @@ export default class Blocks {
         if (!body) {
           throw new Error('Invalid response for blocks request');
         }
-        const blocks = body.blocks;
+        const blocks = body.blocks as IBlock[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
           loaded = true;
         }
@@ -504,7 +534,7 @@ export default class Blocks {
   public static generateBlock = async (
     old: IState,
     activeDelegates: KeyPair[],
-    unconfirmedTransactions: Transaction[],
+    unconfirmedTransactions: ITransaction[],
     keypair: KeyPair,
     timestamp: number
   ) => {
@@ -603,7 +633,7 @@ export default class Blocks {
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
       if (fitInLineResult === BlockFitsInLine.Success) {
-        const pendingTrsMap = new Map<string, Transaction>();
+        const pendingTrsMap = new Map<string, ITransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
           for (const t of pendingTrs) {
@@ -672,8 +702,12 @@ export default class Blocks {
       if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
         return setImmediate(cb);
       }
-      if (propose.height !== state.lastBlock.height + 1) {
-        if (propose.height > state.lastBlock.height + 1) {
+      // TODO: check
+      const lastBlockPlus1 = new BigNumber(state.lastBlock.height)
+        .plus(1)
+        .toFixed();
+      if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
+        if (new BigNumber(propose.height).isGreaterThan(lastBlockPlus1)) {
           Loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
@@ -736,7 +770,7 @@ export default class Blocks {
     });
   };
 
-  public static onReceiveTransaction = (transaction: Transaction) => {
+  public static onReceiveTransaction = (transaction: ITransaction) => {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
@@ -811,32 +845,34 @@ export default class Blocks {
     });
   };
 
-  public static async RunGenesisOrLoadLastBlock(
+  public static RunGenesisOrLoadLastBlock = async (
     old: IState,
-    numberOfBlocksInDb: number | null,
+    numberOfBlocksInDb: string | null,
     genesisBlock: IGenesisBlock,
     processBlock: (
       state: IState,
-      block: any,
+      block: IBlock | IGenesisBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
     ) => Promise<IState>,
     getBlocksByHeight: GetBlocksByHeight
-  ) {
+  ) => {
     let state = StateHelper.copyState(old);
 
-    if (!numberOfBlocksInDb) {
+    if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
       state = await processBlock(state, genesisBlock, options, delegateList);
     } else {
-      const block = await getBlocksByHeight(numberOfBlocksInDb - 1);
+      const block = await getBlocksByHeight(
+        new BigNumber(numberOfBlocksInDb).minus(1).toFixed()
+      );
       state = BlocksHelper.SetLastBlock(state, block);
     }
     return state;
-  }
+  };
 
   // Events
   public static onBind = () => {
@@ -870,6 +906,7 @@ export default class Blocks {
       },
       err => {
         if (err) {
+          global.app.logger.error(err.message);
           process.exit(0);
         }
       }

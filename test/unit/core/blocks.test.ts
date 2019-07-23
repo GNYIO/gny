@@ -25,13 +25,6 @@ function loadGenesisBlock() {
   return genesisBlock;
 }
 
-function loadRawOrmSqljsConfig() {
-  const ormConfigRaw = fs.readFileSync('ormconfig.sqljs.json', {
-    encoding: 'utf8',
-  });
-  return ormConfigRaw;
-}
-
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
 }
@@ -50,7 +43,7 @@ function createRandomKeyPair(secret: string) {
 }
 
 function createBlock(
-  height: number,
+  height: string,
   keypair: KeyPair,
   previousBlock: IBlock,
   transactionsAmount = 0
@@ -63,7 +56,7 @@ function createBlock(
       const trans = TransactionBase.create({
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        fee: 0,
+        fee: String(0),
         type: 0,
         args: [generateAddress(randomHex(32)), 2 * 1e8],
         message: null,
@@ -83,14 +76,14 @@ function createBlock(
   const block: IBlock = {
     version: 0,
     delegate: keypair.publicKey.toString('hex'),
-    height: 2,
+    height: String(2),
     prevBlockId: previousBlock.id,
     timestamp: timestamp,
     transactions: transactions,
     count: transactions.length,
-    fees: 0,
+    fees: String(0),
     payloadHash: payloadHash.digest().toString('hex'),
-    reward: 0,
+    reward: String(0),
     signature: undefined,
     id: undefined,
   };
@@ -129,7 +122,7 @@ describe('core/blocks', () => {
       const genesisBlock = loadGenesisBlock();
 
       const getBlocksByHeightRangeFunc = async (
-        height: number
+        height: string
       ): Promise<IBlock> => {
         throw new Error('should not be called');
       };
@@ -143,7 +136,7 @@ describe('core/blocks', () => {
 
       const resultState = await Blocks.RunGenesisOrLoadLastBlock(
         state,
-        0,
+        String(0),
         genesisBlock,
         processBlockMock,
         getBlocksByHeightRangeFunc
@@ -171,14 +164,14 @@ describe('core/blocks', () => {
 
       // TODO
       const expected = {
-        height: 9,
+        height: String(9),
         id: 'nine',
       } as IBlock;
       const getBlocksByHeightMock = jest
         .fn()
         .mockImplementation(() => Promise.resolve(expected));
 
-      const BLOCK_IN_DB = 10;
+      const BLOCK_IN_DB = String(10);
       const resultState = await Blocks.RunGenesisOrLoadLastBlock(
         state,
         BLOCK_IN_DB,
@@ -189,7 +182,7 @@ describe('core/blocks', () => {
 
       expect(resultState).not.toBeUndefined();
       expect(resultState.lastBlock).not.toBeUndefined();
-      expect(resultState.lastBlock.height).toEqual(9);
+      expect(resultState.lastBlock.height).toEqual(String(9));
       expect(resultState.lastBlock.id).toEqual('nine');
       expect(resultState).not.toBe(state); // other object reference
 
@@ -199,30 +192,30 @@ describe('core/blocks', () => {
 
   describe('getIdSequence2', () => {
     it('getIdSequence2() - returns the 4 last blockIds in descending order (happy path)', async done => {
-      const currentLastBlockHeight = 59;
+      const currentLastBlockHeight = String(59);
 
       const blocksAscending = [
         {
-          height: 55,
+          height: String(55),
           id: 'fivefive',
         },
         {
-          height: 56,
+          height: String(56),
           id: 'fivesix',
         },
         {
-          height: 57,
+          height: String(57),
           id: 'fiveseven',
         },
         {
-          height: 58,
+          height: String(58),
           id: 'fiveeight',
         },
         {
-          height: 59,
+          height: String(59),
           id: 'fivenine',
         },
-      ];
+      ] as IBlock[];
       const getBlocksByHeightRange = jest
         .fn()
         .mockImplementation(() => Promise.resolve(blocksAscending));
@@ -233,8 +226,8 @@ describe('core/blocks', () => {
         getBlocksByHeightRange
       );
 
-      expect(result).toHaveProperty('min', 55);
-      expect(result).toHaveProperty('max', 59);
+      expect(result).toHaveProperty('min', String(55));
+      expect(result).toHaveProperty('max', String(59));
       expect(result).toHaveProperty('ids', [
         'fivenine',
         'fiveeight',
@@ -248,7 +241,7 @@ describe('core/blocks', () => {
 
     it('getIdSequence2() - throws Error with "getIdSequence2 failed" if something goes wrong', async () => {
       // preparation
-      const currentLastBlockHeight = 30;
+      const currentLastBlockHeight = String(30);
 
       const getBlocksByHeightRangeMock = jest
         .fn()
@@ -295,15 +288,15 @@ describe('core/blocks', () => {
       const initialState = StateHelper.getInitialState();
       // important: no "prevBlockId"
       const block: IBlock = {
-        height: 1,
+        height: String(1),
         id: randomHex(32),
         _version_: 1,
         count: 0,
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: 0,
-        reward: 0,
+        fees: String(0),
+        reward: String(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
       };
@@ -319,15 +312,15 @@ describe('core/blocks', () => {
     it('verifyBlock() - signature is not correct returns error', () => {
       const state = StateHelper.getInitialState();
       const block: BlockModel = {
-        height: 1,
+        height: String(1),
         id: randomHex(32),
         _version_: 1,
         count: 0,
         timestamp: 35151242,
         delegate: randomAddress(),
         version: 0,
-        fees: 0,
-        reward: 0,
+        fees: String(0),
+        reward: String(0),
         payloadHash: randomHex(32),
         signature: randomHex(64),
         prevBlockId: randomHex(32), // important
@@ -349,14 +342,14 @@ describe('core/blocks', () => {
       const options = {};
 
       // prepare setLastBlock
-      const previousBlock = createBlock(1, keypair, {
+      const previousBlock = createBlock(String(1), keypair, {
         prevBlockId: randomHex(32),
       } as IBlock);
       // set previousBlock also for state
       state = BlocksHelper.SetLastBlock(state, previousBlock);
 
       // create current block
-      const block = createBlock(2, keypair, previousBlock);
+      const block = createBlock(String(2), keypair, previousBlock);
 
       // act and assert
       return expect(() =>
@@ -371,7 +364,7 @@ describe('core/blocks', () => {
       const previousBlockId = randomHex(32);
       const keypair = createRandomKeyPair('some random secret');
       const block = createBlock(
-        2,
+        String(2),
         keypair,
         {
           id: previousBlockId,
@@ -384,11 +377,6 @@ describe('core/blocks', () => {
 
       // prepare lastBlock
       const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
-      Blocks.setLastBlock({
-        id: previousBlockId,
-        timestamp: lastBlockTimestamp,
-      } as any);
-
       // act
       const options = {};
       const func = Blocks.verifyBlock(block, options);

@@ -1,6 +1,6 @@
 message NewBlockMessage {
   required string id = 1;
-  required int64 height = 2;
+  required string height = 2;
   required string prevBlockId = 3;
 }
 
@@ -15,9 +15,9 @@ message Block {
   required bytes payloadHash = 8;
   required bytes generatorPublicKey = 9;
   optional bytes blockSignature = 10;
-  optional string previousBlock = 11;
+  optional string prevBlockId = 11;
   optional string id = 12;
-  optional int64 height = 13;
+  optional string height = 13;
   repeated Transaction transactions = 14;
 }
 
@@ -27,16 +27,16 @@ message Transaction {
   required string senderPublicKey = 3;
   required string signatures = 4;
   required string senderId = 5;
-  required int64 fee = 6;
+  required string fee = 6;
   required string id = 7;
   optional string args = 8;
   optional string secondSignature = 9;
-  optional int64 height = 10;
+  optional string height = 10;
   optional string message = 11;
 }
 
 message BlockPropose {
-  required int64 height = 1;
+  required string height = 1;
   required string id = 2;
   required int32 timestamp = 3;
   required string generatorPublicKey = 4;
@@ -46,7 +46,7 @@ message BlockPropose {
 }
 
 message BlockVotes {
-  required int64 height = 1;
+  required string height = 1;
   required string id = 2;
   repeated BlockVoteSignature signatures = 3;
 }

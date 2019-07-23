@@ -7,26 +7,26 @@ export class Round {
   @PrimaryColumn({
     type: 'bigint',
   })
-  public round: number;
+  public round: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
-    default: 0,
+    default: String(0),
   })
-  public fee: number;
+  public fee: string;
 
   @Column({
     type: 'bigint',
     nullable: true,
-    default: 0,
+    default: String(0),
   })
-  public reward: number;
+  public reward: string;
 
   @Column({
     default: 0,
-    type: 'bigint',
+    type: 'integer',
     nullable: false,
   })
-  public _version_: number;
+  public _version_?: number;
 }

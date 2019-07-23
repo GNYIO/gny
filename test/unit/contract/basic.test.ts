@@ -1,6 +1,11 @@
 import basic from '../../../src/contract/basic';
 import BigNumber from 'bignumber.js';
-import { ILogger } from '../../../src/interfaces';
+import {
+  ILogger,
+  IAccount,
+  IBlock,
+  ITransaction,
+} from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');
@@ -32,15 +37,29 @@ describe('basic', () => {
   });
 
   afterEach(done => {
+    delete (basic as any).sender;
+    delete (basic as any).block;
+    delete (basic as any).trs;
+
     done();
   });
 
   describe('transfer', () => {
-    let amount;
-    let recipient;
+    let amount: string;
+    let recipient: string;
     beforeEach(done => {
-      amount = 100000;
+      amount = String(100000);
       recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+      done();
+    });
+    afterEach(done => {
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
+      amount = undefined;
+      recipient = undefined;
+
       done();
     });
 
@@ -52,17 +71,18 @@ describe('basic', () => {
       };
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
-      };
+        gny: String(100000000),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
       (basic as any).trs = {
         id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
         timestamp: 12165155,
-      };
+      } as ITransaction;
       global.app.sdb.increase.mockReturnValue(recipientAccount);
       global.app.sdb.load.mockReturnValue(recipientAccount);
+
       const transfered = await basic.transfer(amount, recipient);
       expect(transfered).toBeNull();
       done();
@@ -70,16 +90,26 @@ describe('basic', () => {
   });
 
   describe('setUserName', () => {
-    let username;
-    let account;
+    let username: string;
+    let account: IAccount;
 
     beforeEach(done => {
       username = 'xpgeng';
       account = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         username: username,
-      };
+      } as IAccount;
+      done();
+    });
+    afterEach(done => {
+      username = undefined;
+      account = undefined;
+
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
       done();
     });
 
@@ -87,15 +117,16 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         username: null,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
       global.app.sdb.load.mockReturnValue(null);
 
       const set = await basic.setUserName(username);
+
       expect((basic as any).sender.username).toBe(username);
       expect(set).toBeNull();
       done();
@@ -105,9 +136,9 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         username: null,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -122,9 +153,9 @@ describe('basic', () => {
       // Assume the sender's usename is null
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         username: 'xpgeng',
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -137,19 +168,28 @@ describe('basic', () => {
   });
 
   describe('setSecondPassphrase', () => {
-    let publicKey;
+    let publicKey: string;
     beforeEach(done => {
       publicKey =
         '2e65eb2d727adb6b39557c27093562aa93a9f8bad33a2d261acf4fce380c59b9';
+      done();
+    });
+    afterEach(done => {
+      publicKey = undefined;
+
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
       done();
     });
 
     it('should set the second passphrase', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         secondPublicKey: null,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -162,9 +202,9 @@ describe('basic', () => {
     it('should return Invalid account type', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         secondPublicKey: null,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -178,9 +218,9 @@ describe('basic', () => {
     it('should return Password already set', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+        gny: String(100000000),
         secondPublicKey: publicKey,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -192,8 +232,19 @@ describe('basic', () => {
   });
 
   describe('lock', () => {
-    let height;
-    let amount;
+    let height: number;
+    let amount: number;
+
+    afterEach(done => {
+      height = undefined;
+      amount = undefined;
+
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
+      done();
+    });
 
     it('should lock the account by height and amout', async done => {
       height = 5760 * 30 + 2;
@@ -201,14 +252,14 @@ describe('basic', () => {
       const vote = { delegate: 'liangpeili' };
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -233,11 +284,11 @@ describe('basic', () => {
       amount = 101;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Insufficient balance');
@@ -249,14 +300,14 @@ describe('basic', () => {
       amount = 99;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Invalid lock height');
@@ -268,14 +319,14 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Invalid amount');
@@ -287,14 +338,14 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Invalid lock height');
@@ -306,14 +357,14 @@ describe('basic', () => {
       amount = 0;
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: 0,
-        lockAmount: 0,
-      };
+        lockHeight: String(0),
+        lockAmount: String(0),
+      } as IAccount;
       (basic as any).block = {
-        height: 1,
-      };
+        height: String(1),
+      } as IBlock;
 
       const locked = await basic.lock(height, amount);
       expect(locked).toBe('Invalid amount');
@@ -322,18 +373,26 @@ describe('basic', () => {
   });
 
   describe('unlock', () => {
+    afterEach(done => {
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
+      done();
+    });
+
     it('should unlock the account', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 1,
-        lockAmount: 99,
+        lockHeight: String(1),
+        lockAmount: String(99),
         isDelegate: 0,
-      };
+      } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
@@ -354,12 +413,12 @@ describe('basic', () => {
     it('should return Account is not locked', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 0,
-        lockHeight: 0,
-        lockAmount: 0,
+        lockHeight: String(0),
+        lockAmount: String(0),
         isDelegate: 0,
-      };
+      } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
 
@@ -371,15 +430,15 @@ describe('basic', () => {
     it('should return Account cannot unlock', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 3,
-        lockAmount: 0,
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 0,
-      };
+      } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
 
@@ -390,19 +449,31 @@ describe('basic', () => {
   });
 
   describe('registerDelegate', () => {
+    afterEach(done => {
+      delete (basic as any).sender;
+      delete (basic as any).block;
+      delete (basic as any).trs;
+
+      done();
+    });
+
     it('should return null', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 1,
-        lockAmount: 99,
+        lockHeight: String(1),
+        lockAmount: String(99),
         isDelegate: 0,
         username: 'xpgeng',
-      };
+      } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
+      (basic as any).trs = {
+        id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
+        timestamp: 12165155,
+      } as ITransaction;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.create.mockReturnValue(null);
@@ -436,16 +507,16 @@ describe('basic', () => {
     it('should return Account has not a name', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 3,
-        lockAmount: 0,
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 0,
         username: null,
-      };
+      } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
 
@@ -457,16 +528,16 @@ describe('basic', () => {
     it('should return Account is already Delegate', async done => {
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-        lockHeight: 3,
-        lockAmount: 0,
+        lockHeight: String(3),
+        lockAmount: String(0),
         isDelegate: 1,
         username: 'xpgeng',
-      };
+      } as IAccount;
       (basic as any).block = {
-        height: 2,
-      };
+        height: String(2),
+      } as IBlock;
 
       global.app.sdb.lock.mockReturnValue(null);
 
@@ -477,16 +548,16 @@ describe('basic', () => {
   });
 
   describe('vote', () => {
-    let delegates;
+    let delegates: string;
     let currentVotes;
 
     beforeEach(done => {
       delegates = 'xpgeng,liangpeili,a1300';
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-      };
+      } as IAccount;
       currentVotes = [
         {
           voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -503,6 +574,13 @@ describe('basic', () => {
       ];
       done();
     });
+    afterEach(done => {
+      delegates = undefined;
+      currentVotes = undefined;
+
+      done();
+    });
+
     it('should return null', async done => {
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.findAll.mockReturnValue(currentVotes);
@@ -598,16 +676,17 @@ describe('basic', () => {
   });
 
   describe('unvote', () => {
-    let delegates;
+    let delegates: string;
     let currentVotes;
 
     beforeEach(done => {
       delegates = 'xpgeng,liangpeili,a1300';
       (basic as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000100,
+        gny: String(100000100),
         isLocked: 1,
-      };
+      } as IAccount;
+
       currentVotes = [
         {
           voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -624,6 +703,13 @@ describe('basic', () => {
       ];
       done();
     });
+    afterEach(done => {
+      delegates = undefined;
+      currentVotes = undefined;
+
+      done();
+    });
+
     it('should return null', async done => {
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.findAll.mockReturnValue(currentVotes);

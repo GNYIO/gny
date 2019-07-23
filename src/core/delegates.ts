@@ -5,18 +5,20 @@ import BlockReward from '../utils/block-reward';
 import {
   KeyPairsIndexer,
   KeyPair,
-  Delegate,
+  IDelegate,
   DelegateViewModel,
   BlockPropose,
   ProcessBlockOptions,
   BlockSlotData,
   IBlock,
   IState,
+  IVariable,
 } from '../interfaces';
 import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
+import BigNumber from 'bignumber.js';
 
 const blockreward = new BlockReward();
 
@@ -28,7 +30,7 @@ export default class Delegates {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
-    const delegates: Delegate[] = await global.app.sdb.getAll('Delegate');
+    const delegates: IDelegate[] = await global.app.sdb.getAll('Delegate');
     const keyPairs = Delegates.loadMyDelegates(secrets, delegates);
     StateHelper.SetKeyPairs(keyPairs);
 
@@ -123,7 +125,7 @@ export default class Delegates {
     }
 
     const delList = await Delegates.generateDelegateList(
-      Number(preState.lastBlock.height) + 1
+      new BigNumber(preState.lastBlock.height).plus(1).toFixed()
     );
     const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
     const currentBlockData = Delegates.getBlockSlotData(
@@ -148,7 +150,9 @@ export default class Delegates {
           ConsensusHelper.hasPendingBlock(state, myTime) === false;
 
         if (isCurrentSlot && lastBlockWasBefore && noPendingBlock) {
-          const height = state.lastBlock.height + 1;
+          const height = new BigNumber(state.lastBlock.height)
+            .plus(1)
+            .toFixed();
 
           const unconfirmedTransactions = StateHelper.GetUnconfirmedTransactionList();
           const delegateList = await Delegates.generateDelegateList(height);
@@ -199,7 +203,7 @@ export default class Delegates {
 
   public static loadMyDelegates = (
     secrets: string[],
-    delegates: Delegate[]
+    delegates: IDelegate[]
   ) => {
     const keyPairs: KeyPairsIndexer = {};
 
@@ -211,7 +215,7 @@ export default class Delegates {
     }
 
     try {
-      const delegateMap = new Map<string, Delegate>();
+      const delegateMap = new Map<string, IDelegate>();
       for (const d of delegates) {
         delegateMap.set(d.publicKey, d);
       }
@@ -274,7 +278,7 @@ export default class Delegates {
   };
 
   public static generateDelegateList = async (
-    height: number
+    height: string
   ): Promise<string[]> => {
     try {
       const truncDelegateList = await Delegates.getBookkeeper();
@@ -320,7 +324,7 @@ export default class Delegates {
 
   public static getDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll('Delegate');
-    let delegates = allDelegates.map(d => Object.assign({}, d)) as Delegate[];
+    let delegates = allDelegates.map(d => Object.assign({}, d)) as IDelegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
       return undefined;
@@ -334,7 +338,10 @@ export default class Delegates {
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;
       current.rate = i + 1;
-      current.approval = (current.votes / totalSupply) * 100;
+      current.approval = new BigNumber(current.votes)
+        .dividedBy(totalSupply)
+        .times(100)
+        .toFixed();
 
       let percent =
         100 -
@@ -352,9 +359,14 @@ export default class Delegates {
     return delegates as DelegateViewModel[];
   };
 
-  public static compare = (left: Delegate, right: Delegate) => {
+  public static compare = (left: IDelegate, right: IDelegate) => {
+    if (typeof left.votes !== 'string' || typeof right.votes !== 'string') {
+      throw new Error('delegates votes must be strings');
+    }
     if (left.votes !== right.votes) {
-      return right.votes - left.votes;
+      return new BigNumber(right.votes).minus(left.votes).isGreaterThan(0)
+        ? 1
+        : -1;
     }
     return left.publicKey < right.publicKey ? 1 : -1;
   };
@@ -362,7 +374,7 @@ export default class Delegates {
   public static getTopDelegates = async () => {
     const allDelegates = (await global.app.sdb.getAll(
       'Delegate'
-    )) as Delegate[];
+    )) as IDelegate[];
     const sortedPublicKeys = allDelegates
       .sort(Delegates.compare)
       .map(d => d.publicKey)
@@ -371,7 +383,7 @@ export default class Delegates {
   };
 
   private static getBookkeeper = async () => {
-    const item = await global.app.sdb.get('Variable', {
+    const item: IVariable = await global.app.sdb.get('Variable', {
       key: Delegates.BOOK_KEEPER_NAME,
     });
     if (!item) {
@@ -384,10 +396,11 @@ export default class Delegates {
 
   public static updateBookkeeper = async () => {
     const value = JSON.stringify(await Delegates.getTopDelegates());
-    const { create } = await global.app.sdb.createOrLoad('Variable', {
+    const variable: IVariable = {
       key: Delegates.BOOK_KEEPER_NAME,
       value: value,
-    });
+    };
+    const { create } = await global.app.sdb.createOrLoad('Variable', variable);
     // It seems there is no need to update
     if (!create) {
       await global.app.sdb.update(

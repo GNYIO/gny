@@ -6,7 +6,7 @@ import {
   IScope,
   KeyPair,
   Next,
-  Transaction,
+  ITransaction,
   IBlock,
 } from '../../../src/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
@@ -77,7 +77,10 @@ export default class TransactionsApi {
         .number()
         .min(0)
         .max(1000),
-      height: this.library.joi.number().min(0),
+      height: [
+        this.library.joi.number().min(0),
+        this.library.joi.string().positiveOrZeroBigInt(),
+      ],
       message: this.library.joi
         .string()
         .max(256)
@@ -92,7 +95,7 @@ export default class TransactionsApi {
     }
 
     const condition = {} as Pick<
-      Transaction,
+      ITransaction,
       'senderId' | 'height' | 'senderPublicKey' | 'type' | 'id' | 'message'
     >;
     if (query.senderId) {
@@ -179,7 +182,7 @@ export default class TransactionsApi {
     }
 
     const transactions = StateHelper.GetUnconfirmedTransactionList();
-    const toSend: Transaction[] = [];
+    const toSend: ITransaction[] = [];
 
     if (query.senderPublicKey || query.address) {
       for (let i = 0; i < transactions.length; i++) {
@@ -213,8 +216,8 @@ export default class TransactionsApi {
         .secret()
         .optional(),
       fee: this.library.joi
-        .number()
-        .min(1)
+        .string()
+        .positiveOrZeroBigInt()
         .required(),
       type: this.library.joi
         .number()
@@ -271,7 +274,6 @@ export default class TransactionsApi {
             const trs = TransactionBase.create({
               fee: query.fee,
               type: query.type,
-              senderId: query.senderId || null,
               args: query.args || null,
               message: query.message || null,
               secondKeypair,

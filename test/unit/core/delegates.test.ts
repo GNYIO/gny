@@ -1,5 +1,5 @@
 import Delegates from '../../../src/core/delegates';
-import { KeyPairsIndexer, IBlock, Delegate } from '../../../src/interfaces';
+import { KeyPairsIndexer, IBlock, IDelegate } from '../../../src/interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -465,7 +465,7 @@ describe('core/delegates', () => {
           publicKey:
             '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9', // for: carpet pudding... secret
         },
-      ] as Delegate[];
+      ] as IDelegate[];
 
       const result = Delegates.loadMyDelegates(secret, del);
 
@@ -541,54 +541,110 @@ describe('core/delegates', () => {
 
   describe('compare', () => {
     it('compare() - sorts delegates after votes', done => {
-      const delegates = [
+      const delegates: Partial<IDelegate>[] = [
         {
           publicKey: 'second',
-          votes: 2,
+          votes: String(2),
         },
         {
           publicKey: 'one',
-          votes: 5,
+          votes: String(5),
         },
-      ] as Delegate[];
+      ];
 
       const result = delegates.sort(Delegates.compare);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         publicKey: 'one',
-        votes: 5,
+        votes: String(5),
       });
       expect(result[1]).toEqual({
         publicKey: 'second',
-        votes: 2,
+        votes: String(2),
+      });
+
+      done();
+    });
+
+    it('compare() - sorts delegates after votes (2)', done => {
+      const delegates: Partial<IDelegate>[] = [
+        {
+          publicKey: 'second',
+          votes: String(1),
+        },
+        {
+          publicKey: 'one',
+          votes: String(0),
+        },
+      ];
+
+      const result = delegates.sort(Delegates.compare);
+
+      expect(result).toHaveLength(2);
+
+      expect(result[0]).toEqual({
+        publicKey: 'second',
+        votes: String(1),
+      });
+      expect(result[1]).toEqual({
+        publicKey: 'one',
+        votes: String(0),
+      });
+
+      done();
+    });
+
+    it('compare() - sorts delegates after votes (3)', done => {
+      const delegates: Partial<IDelegate>[] = [
+        {
+          publicKey: 'second',
+          votes: String(0),
+        },
+        {
+          publicKey: 'one',
+          votes: String(1),
+        },
+      ];
+
+      const result = delegates.sort(Delegates.compare);
+
+      expect(result).toHaveLength(2);
+
+      expect(result[0]).toEqual({
+        publicKey: 'one',
+        votes: String(1),
+      });
+      expect(result[1]).toEqual({
+        publicKey: 'second',
+        votes: String(0),
       });
 
       done();
     });
 
     it('compare() - sorts delegates after votes and then after publicKey descending', done => {
-      const delegates = [
+      const delegates: Partial<IDelegate>[] = [
         {
           publicKey: 'aaa',
-          votes: 10,
+          votes: String(10),
         },
         {
           publicKey: 'bbb',
-          votes: 10,
+          votes: String(10),
         },
-      ] as Delegate[];
+      ];
 
       const result = delegates.sort(Delegates.compare);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         publicKey: 'bbb',
-        votes: 10,
+        votes: String(10),
       });
       expect(result[1]).toEqual({
         publicKey: 'aaa',
-        votes: 10,
+        votes: String(10),
       });
 
       done();

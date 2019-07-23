@@ -1,6 +1,14 @@
-import { TransactionBase } from '../../../src/base/transaction';
+import {
+  TransactionBase,
+  CreateTransactionType,
+} from '../../../src/base/transaction';
 import basic from '../../../src/contract/basic';
-import { Transaction, Context, IBlock } from '../../../src/interfaces';
+import {
+  ITransaction,
+  Context,
+  IBlock,
+  IAccount,
+} from '../../../src/interfaces';
 import { ILogger } from '../../../src/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
@@ -9,10 +17,14 @@ import * as ed from '../../../src/utils/ed';
 jest.mock('../../../packages/database-postgres/src/smartDB');
 jest.mock('../../../src/contract/basic');
 
+function randomHex(length: number) {
+  return crypto.randomBytes(length).toString('hex');
+}
+
 function createTransation() {
-  const data: Transaction = {
+  const data: ITransaction = {
     type: 10,
-    fee: 10000000000,
+    fee: String(10000000000),
     timestamp: 12165155,
     senderId: 'G2WocDNFv5ZPwxAia3sjREq7qWM2C',
     senderPublicKey:
@@ -25,7 +37,7 @@ function createTransation() {
     secondSignature:
       '9197c401ae2c72532e0d16340ec920639798714962e03c50d6742ed91944b5a8246e0f83d761435f2619a3413e3dd0f5fa8070c00d2f44ff99d5ac9600fe4b02',
     id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-    height: 0,
+    height: String(0),
   };
   return data;
 }
@@ -52,7 +64,7 @@ describe('Transaction', () => {
   });
 
   describe('create', () => {
-    let trs: Transaction;
+    let trs: ITransaction;
     beforeEach(done => {
       const secret = 'ABCDEFG';
       const secondSecret = 'HIJKLMN';
@@ -67,11 +79,9 @@ describe('Transaction', () => {
           .update(secondSecret, 'utf8')
           .digest()
       );
-      const data = {
+      const data: CreateTransactionType = {
         type: 10,
-        fee: 10000000000,
-        timestamp: 0,
-        senderId: 'G2EjKCgA4SBpApcHKzTXFEG4aN2fX',
+        fee: String(10000000000),
         message: '',
         args: [40000000000000000, 'G4GDW6G78sgQdSdVAQUXdm5xPS13t'],
         keypair: keypair,
@@ -91,14 +101,14 @@ describe('Transaction', () => {
 
   describe('getId', () => {
     let id: string;
-    let trs: Transaction;
+    let trs: ITransaction;
     beforeEach(done => {
       trs = createTransation();
       id = TransactionBase.getId(trs);
       done();
     });
 
-    it('shoudl return a transaction id', () => {
+    it('should return a transaction id', () => {
       expect(id).toHaveLength(64);
       expect(id).toEqual(trs.id);
     });
@@ -119,18 +129,11 @@ describe('Transaction', () => {
   });
 
   describe('verifyNormalSignature', () => {
-    let trs: Transaction;
-    let sender;
-    let bytes: Buffer;
+    it('verifyNormalSignature() - should return undefined when simple signature check was successful', () => {
+      const trs = createTransation();
+      const sender = {} as IAccount;
+      const bytes = TransactionBase.getBytes(trs, true, true);
 
-    beforeEach(done => {
-      trs = createTransation();
-      sender = {};
-      bytes = TransactionBase.getBytes(trs, true, true);
-      done();
-    });
-
-    it('should return undefined when valid normal signature is checked', () => {
       const verified = TransactionBase.verifyNormalSignature(
         trs,
         sender,
@@ -138,11 +141,130 @@ describe('Transaction', () => {
       );
       expect(verified).toBeUndefined();
     });
+
+    it('verifyNormalSignature() - returns error string when simple signature check failed', done => {
+      const trs = createTransation();
+      const sender = {} as IAccount;
+      let bytes = TransactionBase.getBytes(trs, true, true);
+
+      // preparation: tamper the bytes
+      bytes = Buffer.from('tampered buffer');
+
+      const result = TransactionBase.verifyNormalSignature(trs, sender, bytes);
+
+      expect(result).toEqual('Invalid signature');
+      done();
+    });
+
+    it('verifyNormalSignature() - should return undefined when second signature check was successful', done => {
+      const secret = 'some long secret';
+      const secondSecret = 'second secret';
+      const hash = crypto
+        .createHash('sha256')
+        .update(secret, 'utf8')
+        .digest();
+      const keypair = ed.generateKeyPair(hash);
+
+      const hash2 = crypto
+        .createHash('sha256')
+        .update(secondSecret, 'utf8')
+        .digest();
+
+      const secondKeyPair = ed.generateKeyPair(hash2);
+
+      const trs = TransactionBase.create({
+        fee: String(0.1 * 1e8),
+        args: [],
+        keypair: keypair,
+        secondKeypair: secondKeyPair,
+        type: 10,
+      });
+
+      const sender = {
+        secondPublicKey: secondKeyPair.publicKey.toString('hex'),
+      } as IAccount;
+
+      const bytes = TransactionBase.getBytes(trs, true, true);
+
+      const result = TransactionBase.verifyNormalSignature(trs, sender, bytes);
+
+      expect(result).toBeUndefined();
+      done();
+    });
+
+    it('verifyNormalSignature() - should return error string when second signature check failed', done => {
+      const secret = 'some long secret';
+      const secondSecret = 'second secret';
+      const hash = crypto
+        .createHash('sha256')
+        .update(secret, 'utf8')
+        .digest();
+      const keypair = ed.generateKeyPair(hash);
+
+      const hash2 = crypto
+        .createHash('sha256')
+        .update(secondSecret, 'utf8')
+        .digest();
+
+      const secondKeyPair = ed.generateKeyPair(hash2);
+
+      const trs = TransactionBase.create({
+        fee: String(0.1 * 1e8),
+        args: [],
+        keypair: keypair,
+        secondKeypair: secondKeyPair,
+        type: 10,
+      });
+
+      const sender = {
+        secondPublicKey: secondKeyPair.publicKey.toString('hex'),
+      } as IAccount;
+
+      // manipulate
+      trs.secondSignature = Buffer.from('wrong secondSignature').toString(
+        'hex'
+      );
+
+      const bytes = TransactionBase.getBytes(trs, true, true);
+
+      const result = TransactionBase.verifyNormalSignature(trs, sender, bytes);
+
+      expect(result).toEqual('Invalid second signature');
+      done();
+    });
+
+    it('verifyNormalSignature() - if sender has secondPublicKey but transaction has not secondSignature returns error string', done => {
+      const secret = 'some long secret';
+      const secondSecret = 'second secret';
+      const hash = crypto
+        .createHash('sha256')
+        .update(secret, 'utf8')
+        .digest();
+      const keypair = ed.generateKeyPair(hash);
+
+      const trs = TransactionBase.create({
+        keypair: keypair,
+        args: [],
+        type: 10,
+        fee: String(0.1 * 1e8),
+      });
+
+      const bytes = TransactionBase.getBytes(trs, true, true);
+      // wrong sender
+      const sender = {
+        secondPublicKey: randomHex(32),
+      } as IAccount;
+
+      const result = TransactionBase.verifyNormalSignature(trs, sender, bytes);
+
+      expect(result).toEqual('Second signature not provided');
+      done();
+    });
   });
 
   describe('verify', () => {
     let context: Pick<Context, 'trs' | 'sender'>;
-    let trs: Transaction;
+    let trs: ITransaction;
     let sender;
 
     beforeEach(done => {
@@ -179,7 +301,7 @@ describe('Transaction', () => {
 
   describe('apply', () => {
     let context: Context;
-    let trs: Transaction;
+    let trs: ITransaction;
     let sender;
     let block: Pick<IBlock, 'height'>;
 
@@ -189,7 +311,7 @@ describe('Transaction', () => {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         gny: 400000000000000000,
       };
-      block = { height: 1 };
+      block = { height: String(1) };
       context = { trs, sender, block };
       done();
     });
@@ -204,14 +326,14 @@ describe('Transaction', () => {
   });
 
   describe('objectNormalize', () => {
-    let trs: Transaction;
+    let trs: ITransaction;
 
     beforeEach(done => {
       trs = createTransation();
       done();
     });
 
-    it('should return the normalized trsanction', () => {
+    it('should return the normalized transaction', () => {
       const normalizedTrs = TransactionBase.normalizeTransaction(trs);
       expect(normalizedTrs).toEqual(trs);
     });

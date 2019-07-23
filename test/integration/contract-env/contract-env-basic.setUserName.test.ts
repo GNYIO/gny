@@ -13,8 +13,6 @@ const config = {
 
 describe('contract-env - basic.setUserName', () => {
   beforeAll(async done => {
-    lib.exitIfNotRoot();
-
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage();
     done();
@@ -41,7 +39,7 @@ describe('contract-env - basic.setUserName', () => {
         const transData = {
           transaction: setUserName,
         };
-        expect(setUserName.fee).toEqual(5 * 1e8);
+        expect(setUserName.fee).toEqual(String(5 * 1e8));
 
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
@@ -59,7 +57,7 @@ describe('contract-env - basic.setUserName', () => {
     it(
       'basic.setUserName too small fee returns error',
       async () => {
-        const SMALLER_FEE = 4 * 1e8;
+        const SMALLER_FEE = String(4 * 1e8);
         const setUserName = gnyJS.transaction.createTransactionEx({
           type: 1,
           args: [],

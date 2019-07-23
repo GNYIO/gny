@@ -1,5 +1,5 @@
 import {
-  Transaction,
+  ITransaction,
   KeyPair,
   IBlock,
   BlockPropose,
@@ -18,6 +18,7 @@ import { ConsensusBase } from '../base/consensus';
 import slots from '../utils/slots';
 import { copyObject } from '../base/helpers';
 import { StateHelper } from './StateHelper';
+import { BigNumber } from 'bignumber.js';
 
 const blockreward = new Blockreward();
 
@@ -29,7 +30,7 @@ export enum BlockMessageFitInLineResult {
 
 export class BlocksHelper {
   public static areTransactionsExceedingPayloadLength(
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) {
     let payloadLength = 0;
 
@@ -43,7 +44,7 @@ export class BlocksHelper {
     return false;
   }
 
-  public static payloadHashOfAllTransactions(transactions: Transaction[]) {
+  public static payloadHashOfAllTransactions(transactions: ITransaction[]) {
     const payloadHash = crypto.createHash('sha256');
 
     for (const one of transactions) {
@@ -53,10 +54,11 @@ export class BlocksHelper {
     return payloadHash.digest();
   }
 
-  public static getFeesOfAll(transactions: Transaction[]) {
+  public static getFeesOfAll(transactions: ITransaction[]) {
     return transactions.reduce(
-      (prev: number, oneTrs: Transaction) => prev + (oneTrs.fee || 0),
-      0
+      (prev: string, oneTrs: ITransaction) =>
+        new BigNumber(prev).plus(oneTrs.fee || 0).toFixed(),
+      String(0)
     );
   }
 
@@ -64,7 +66,7 @@ export class BlocksHelper {
     keypair: KeyPair,
     timestamp: number,
     lastBlock: IBlock,
-    unconfirmedTransactions: Transaction[]
+    unconfirmedTransactions: ITransaction[]
   ) {
     if (
       BlocksHelper.areTransactionsExceedingPayloadLength(
@@ -77,7 +79,7 @@ export class BlocksHelper {
     const payloadHash = BlocksHelper.payloadHashOfAllTransactions(
       unconfirmedTransactions
     );
-    const height = lastBlock.height + 1;
+    const height = new BigNumber(lastBlock.height).plus(1).toFixed();
     const prevBlockId = lastBlock.id;
     const fees = BlocksHelper.getFeesOfAll(unconfirmedTransactions);
     const count = unconfirmedTransactions.length;
@@ -91,9 +93,9 @@ export class BlocksHelper {
       timestamp,
       transactions: unconfirmedTransactions,
       count,
-      fees,
+      fees: String(fees),
       payloadHash: payloadHash.toString('hex'),
-      reward,
+      reward: String(reward),
       signature: null,
       id: null,
     };
@@ -104,8 +106,8 @@ export class BlocksHelper {
     return block;
   }
 
-  public static AreTransactionsDuplicated(transactions: Transaction[]) {
-    const appliedTransactions: ISimpleCache<Transaction> = {};
+  public static AreTransactionsDuplicated(transactions: ITransaction[]) {
+    const appliedTransactions: ISimpleCache<ITransaction> = {};
     for (const transaction of transactions) {
       if (appliedTransactions[transaction.id]) {
         return true;
@@ -115,7 +117,7 @@ export class BlocksHelper {
     return false;
   }
 
-  public static CanAllTransactionsBeSerialized(transactions: Transaction[]) {
+  public static CanAllTransactionsBeSerialized(transactions: ITransaction[]) {
     if (!transactions) throw new Error('transactions are null');
     for (const transaction of transactions) {
       try {
@@ -154,14 +156,14 @@ export class BlocksHelper {
   }
 
   public static async IsBlockAlreadyInDbIO(block: IBlock) {
-    if (block.height !== 0) {
+    if (!new BigNumber(block.height).isEqualTo(0)) {
       const exists = await global.app.sdb.exists('Block', { id: block.id });
       if (exists) throw new Error(`Block already exists: ${block.id}`);
     }
   }
 
   public static async AreAnyTransactionsAlreadyInDbIO(
-    transactions: Transaction[]
+    transactions: ITransaction[]
   ) {
     const idList = transactions.map(t => t.id);
 
@@ -221,7 +223,7 @@ export class BlocksHelper {
 
     const inCorrectOrder =
       block.prevBlockId === state.lastBlock.id &&
-      state.lastBlock.height + 1 === block.height;
+      new BigNumber(state.lastBlock.height).plus(1).isEqualTo(block.height);
     if (inCorrectOrder) {
       return true;
     } else {
@@ -253,11 +255,13 @@ export class BlocksHelper {
     const lastBlock = state.lastBlock;
 
     // TODO: compare to other "fitInLine" comparisons?! Aren't they equal?
+    const lastBlockPlus1 = new BigNumber(lastBlock.height).plus(1).toFixed();
     if (
-      Number(newBlock.height) !== Number(lastBlock.height) + 1 ||
+      !new BigNumber(newBlock.height).isEqualTo(lastBlockPlus1) ||
       newBlock.prevBlockId !== lastBlock.id
     ) {
-      if (Number(newBlock.height) > Number(lastBlock.height) + 5) {
+      const lastBlockPlus5 = new BigNumber(lastBlock.height).plus(5).toFixed();
+      if (new BigNumber(newBlock.height).isGreaterThan(lastBlockPlus5)) {
         return BlockMessageFitInLineResult.LongFork;
       } else {
         return BlockMessageFitInLineResult.SyncBlocks;
@@ -308,7 +312,9 @@ export class BlocksHelper {
   public static setPreGenesisBlock(old: IState) {
     const state = StateHelper.copyState(old);
 
-    state.lastBlock = { height: -1 } as IBlock;
+    state.lastBlock = {
+      height: String(-1),
+    } as IBlock;
 
     return state;
   }
