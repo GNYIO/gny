@@ -36,6 +36,7 @@ import Loader from './loader';
 import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
 import { Transaction } from '../../packages/database-postgres/entity/Transaction';
+import { Round } from '../../packages/database-postgres/entity/Round';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -342,7 +343,7 @@ export default class Blocks {
       reward: String(0),
       round: roundNumber,
     };
-    await global.app.sdb.createOrLoad('Round', round);
+    await global.app.sdb.createOrLoad<Round>(Round, round);
     const result = await global.app.sdb.increase('Round', modifier, {
       round: roundNumber,
     });

@@ -395,26 +395,28 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public async create<T>(
+  public async create<T extends Versioned>(
     model: new () => T,
     entity: RequireAtLeastOne<T>
   ): Promise<T> {
     // TODO, no need for async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
 
     const schema = this.getSchema(model, true);
     return this.getSession().create(schema, entity);
   }
 
-  public async createOrLoad(model: string, entity: ObjectLiteral) {
-    // TODO, no need for async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async createOrLoad<T extends Versioned>(
+    model: new () => T,
+    entity: RequireAtLeastOne<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
 
     const schema = this.getSchema(model, true);
     const result = await this.load(
-      model,
+      model.name,
       schema.getNormalizedPrimaryKey(entity)
     );
     return {

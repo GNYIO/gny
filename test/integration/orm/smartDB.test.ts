@@ -26,6 +26,7 @@ import { Transaction } from '../../../packages/database-postgres/entity/Transact
 import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import { Versioned } from '../../../packages/database-postgres/searchTypes';
+import { Round } from '../../../packages/database-postgres/entity/Round';
 
 const logger: ILogger = {
   log: x => x,
@@ -577,7 +578,7 @@ describe.skip('integration - SmartDB', () => {
       reward: String(0),
       round: String(1),
     };
-    const result = await sut.createOrLoad('Round', round);
+    const result = await sut.createOrLoad<Round>(Round, round);
 
     const expected = {
       create: true,
@@ -601,7 +602,7 @@ describe.skip('integration - SmartDB', () => {
       reward: String(0),
       round: String(1),
     };
-    const createResult = await sut.createOrLoad('Round', round);
+    const createResult = await sut.createOrLoad<Round>(Round, round);
 
     const expected = {
       create: false,
@@ -613,10 +614,10 @@ describe.skip('integration - SmartDB', () => {
       },
     };
 
-    const key: Partial<IRound> = {
+    const key = {
       round: String(1),
     };
-    const loadResult = await sut.createOrLoad('Round', key);
+    const loadResult = await sut.createOrLoad<Round>(Round, key);
     expect(loadResult).toEqual(expected);
 
     done();
@@ -630,7 +631,7 @@ describe.skip('integration - SmartDB', () => {
       reward: String(0),
       round: String(1),
     };
-    const createResult = await sut.createOrLoad('Round', round);
+    const createResult = await sut.createOrLoad<Round>(Round, round);
 
     // load only from cache
     const result = await sut.get('Round', {
@@ -655,7 +656,7 @@ describe.skip('integration - SmartDB', () => {
       balance: String(0),
       flag: 1,
     };
-    const createdResult = await sut.createOrLoad('Balance', balance);
+    const createdResult = await sut.createOrLoad<Balance>(Balance, balance);
 
     const expectedLoadResult = {
       create: true,
@@ -690,9 +691,9 @@ describe.skip('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     const account = createAccount('Gjfw7B8WyHq7bw22TwG6gPtdXD19');
-    const created = await sut.createOrLoad('Account', account);
+    const created = await sut.createOrLoad<Account>(Account, account);
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'Gjfw7B8WyHq7bw22TwG6gPtdXD19',
     };
 
@@ -709,7 +710,7 @@ describe.skip('integration - SmartDB', () => {
       } as IAccount,
     };
 
-    const result = await sut.createOrLoad('Account', key);
+    const result = await sut.createOrLoad<Account>(Account, key);
     expect(result).toEqual(expected);
     done();
   });
@@ -2179,7 +2180,7 @@ describe.skip('integration - SmartDB', () => {
       key: 'key',
       value: 'value',
     };
-    const vare = await sut.createOrLoad('Variable', variable);
+    const vare = await sut.createOrLoad<Variable>(Variable, variable);
 
     const exists = await sut.exists('Variable', { key: 'key' });
     expect(exists).toEqual(false);
@@ -2316,7 +2317,7 @@ describe.skip('integration - SmartDB', () => {
       key: 'key',
       value: 'value',
     };
-    const x = await sut.createOrLoad('Variable', variable);
+    const x = await sut.createOrLoad<Variable>(Variable, variable);
 
     const result: IVariable = await sut.get('Variable', { key: 'key' });
     expect(result).toEqual({
@@ -2331,11 +2332,11 @@ describe.skip('integration - SmartDB', () => {
     it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
       await saveGenesisBlock(sut);
 
-      await sut.createOrLoad('Variable', {
+      await sut.createOrLoad<Variable>(Variable, {
         key: 'some',
         value: 'thing',
       });
-      await sut.createOrLoad('Variable', {
+      await sut.createOrLoad<Variable>(Variable, {
         key: 'key',
         value: 'value',
       });

@@ -19,6 +19,7 @@ import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
+import { Variable } from '../../packages/database-postgres/entity/Variable';
 
 const blockreward = new BlockReward();
 
@@ -400,7 +401,10 @@ export default class Delegates {
       key: Delegates.BOOK_KEEPER_NAME,
       value: value,
     };
-    const { create } = await global.app.sdb.createOrLoad('Variable', variable);
+    const { create } = await global.app.sdb.createOrLoad<Variable>(
+      Variable,
+      variable
+    );
     // It seems there is no need to update
     if (!create) {
       await global.app.sdb.update(
