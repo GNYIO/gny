@@ -531,20 +531,20 @@ export class SmartDB extends EventEmitter {
    * Access direct database without looking into the cache.
    * WARNING: when the condition returns more then one result an Exception is thrown
    * @param model
-   * @param condition
+   * @param params
    */
   public async findOne<T extends Versioned>(
     model: new () => T,
-    condition: FindOneOptions<T>
+    params: FindOneOptions<T>
   ): Promise<T> {
-    const result = await this.findAll<T>(model, condition);
+    const result = await this.findAll<T>(model, params);
     const schema = this.getSchema(model, true);
     if (result.length > 1) {
       throw new Error(
         "many entities found ( model = '" +
           schema.modelName +
           "' , params = '" +
-          JSON.stringify(condition) +
+          JSON.stringify(params) +
           "' )"
       );
     }
@@ -560,12 +560,22 @@ export class SmartDB extends EventEmitter {
    */
   public async findAll<T extends Versioned>(
     model: new () => T,
-    condition: FindAllOptions<T>
+    params: FindAllOptions<T>
   ): Promise<T[]> {
     CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument(
+      'params',
+      params !== undefined && params !== null,
+      'params object was not provided'
+    );
+    CodeContract.argument(
+      'params.condition',
+      params.condition !== undefined && params.condition !== null,
+      'condition object was not provided'
+    );
 
     const schema = this.getSchema(model, true);
-    return await this.blockSession.queryByJson(schema, condition);
+    return await this.blockSession.queryByJson(schema, params);
   }
 
   public async exists(model: string, key: ObjectLiteral) {

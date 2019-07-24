@@ -25,7 +25,10 @@ import { Asset } from '../../../packages/database-postgres/entity/Asset';
 import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
 import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import { Versioned } from '../../../packages/database-postgres/searchTypes';
+import {
+  Versioned,
+  FindAllOptions,
+} from '../../../packages/database-postgres/searchTypes';
 import { Round } from '../../../packages/database-postgres/entity/Round';
 import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
 
@@ -117,7 +120,7 @@ async function saveGenesisBlock(smartDB: SmartDB) {
   await smartDB.commitBlock();
 }
 
-describe.skip('integration - SmartDB', () => {
+describe('integration - SmartDB', () => {
   let sut: SmartDB;
   let configRaw: string;
 
@@ -1392,6 +1395,33 @@ describe.skip('integration - SmartDB', () => {
     done();
   });
 
+  it('findAll() - throws if no params object is provided', async () => {
+    await saveGenesisBlock(sut);
+
+    // satisfy compiler
+    const wrongParams = undefined as FindAllOptions<Account>;
+
+    const resultPromise = sut.findAll<Account>(Account, wrongParams);
+    return expect(resultPromise).rejects.toThrowError(
+      'params object was not provided'
+    );
+  });
+
+  it('findAll() - throws if no condition object is provided', async () => {
+    await saveGenesisBlock(sut);
+
+    // satisfy compiler by first casting to "unknown"
+    const wrongCondition = ({
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+    } as unknown) as FindAllOptions<Account>;
+
+    const resultPromise = sut.findAll<Account>(Account, wrongCondition);
+
+    return expect(resultPromise).rejects.toThrowError(
+      'condition object was not provided'
+    );
+  });
+
   it('findAll() - works with generics', async done => {
     await saveGenesisBlock(sut);
 
@@ -1681,6 +1711,33 @@ describe.skip('integration - SmartDB', () => {
     expect(result).toEqual([expected]);
 
     done();
+  });
+
+  it('findOne() - throws if no params object is provided', async () => {
+    await saveGenesisBlock(sut);
+
+    // satisfy compiler
+    const wrongParams = undefined as FindAllOptions<Account>;
+
+    const resultPromise = sut.findOne<Account>(Account, wrongParams);
+    return expect(resultPromise).rejects.toThrowError(
+      'params object was not provided'
+    );
+  });
+
+  it('findOne() - throws if no condition object is provided', async () => {
+    await saveGenesisBlock(sut);
+
+    // satisfy compiler by first casting to "unknown"
+    const wrongCondition = ({
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+    } as unknown) as FindAllOptions<Account>;
+
+    const resultPromise = sut.findOne<Account>(Account, wrongCondition);
+
+    return expect(resultPromise).rejects.toThrowError(
+      'condition object was not provided'
+    );
   });
 
   it('findOne() - load entity from DB by primary key', async done => {
