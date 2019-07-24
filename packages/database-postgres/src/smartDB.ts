@@ -441,13 +441,13 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().increase(sessionId, key, increaseBy);
   }
 
-  public async update(
-    model: string,
-    modifier: ObjectLiteral,
-    key: ObjectLiteral
+  public async update<T extends Versioned>(
+    model: new () => T,
+    modifier: RequireAtLeastOne<T>,
+    key: RequireAtLeastOne<T>
   ) {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('modifier', () => CodeContract.notNull(modifier));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 

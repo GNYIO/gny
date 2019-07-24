@@ -121,8 +121,8 @@ export default {
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
     this.sender.username = username;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { username },
       { address: this.sender.address }
     );
@@ -141,8 +141,8 @@ export default {
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (this.sender.secondPublicKey) return 'Password already set';
     this.sender.secondPublicKey = publicKey;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { secondPublicKey: publicKey },
       { address: this.sender.address }
     );
@@ -201,7 +201,7 @@ export default {
       sender.lockAmount = new BigNumber(sender.lockAmount)
         .plus(amount)
         .toFixed();
-      await global.app.sdb.update('Account', sender, {
+      await global.app.sdb.update<Account>(Account, sender, {
         address: sender.address,
       });
 
@@ -239,7 +239,9 @@ export default {
     sender.lockHeight = 0;
     sender.gny += sender.lockAmount;
     sender.lockAmount = 0;
-    await global.app.sdb.update('Account', sender, { address: senderId });
+    await global.app.sdb.update<Account>(Account, sender, {
+      address: senderId,
+    });
 
     return null;
   },
@@ -269,8 +271,8 @@ export default {
     };
     await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { isDelegate: 1 },
       { address: senderId }
     );

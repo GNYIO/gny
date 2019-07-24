@@ -1912,8 +1912,8 @@ describe.skip('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // make other trivial change before the important change
-    await sut.update(
-      'Balance',
+    await sut.update<Balance>(
+      Balance,
       {
         balance: String(2000000),
       },
@@ -1924,8 +1924,8 @@ describe.skip('integration - SmartDB', () => {
     );
 
     // now run a change that will cause a SQL error when committing the next block
-    await sut.update(
-      'Account',
+    await sut.update<Account>(
+      Account,
       {
         isDelegate: null,
       },
@@ -2096,13 +2096,13 @@ describe.skip('integration - SmartDB', () => {
     sut.beginBlock(block1);
     await sut.commitBlock();
 
-    const key: Partial<IDelegate> = {
+    const key = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
     };
 
     // then modify entity
-    await sut.update(
-      'Delegate',
+    await sut.update<Delegate>(
+      Delegate,
       {
         producedBlocks: String(1),
       },
@@ -2151,8 +2151,8 @@ describe.skip('integration - SmartDB', () => {
       expect(checkBefore).toEqual(createdVariable);
 
       // update
-      await sut.update(
-        'Variable',
+      await sut.update<Variable>(
+        Variable,
         {
           value: 'TypeScript',
         },
@@ -2190,8 +2190,8 @@ describe.skip('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // change now in memory and then let block commit write changes to db
-      const changedVariable = await sut.update(
-        'Variable',
+      const changedVariable = await sut.update<Variable>(
+        Variable,
         {
           value: 'second',
         },
@@ -2275,8 +2275,8 @@ describe.skip('integration - SmartDB', () => {
       });
 
       // now update two properties at once
-      await sut.update(
-        'Account',
+      await sut.update<Account>(
+        Account,
         {
           gny: String(20),
           username: 'liang',
@@ -2312,8 +2312,8 @@ describe.skip('integration - SmartDB', () => {
       });
 
       // now update two properties at once
-      await sut.update(
-        'Account',
+      await sut.update<Account>(
+        Account,
         {
           gny: String(20),
           username: 'liang',
@@ -2373,8 +2373,8 @@ describe.skip('integration - SmartDB', () => {
       value: 'world1',
     });
 
-    sut.update(
-      'Variable',
+    sut.update<Variable>(
+      Variable,
       {
         value: 'world2',
       },
@@ -2405,8 +2405,8 @@ describe.skip('integration - SmartDB', () => {
     });
 
     // first update
-    await sut.update(
-      'Transfer',
+    await sut.update<Transfer>(
+      Transfer,
       {
         amount: String(25 * 1e8),
       },
@@ -2421,8 +2421,8 @@ describe.skip('integration - SmartDB', () => {
     expect(result1).toHaveProperty('amount', String(25 * 1e8));
 
     // second update
-    await sut.update(
-      'Transfer',
+    await sut.update<Transfer>(
+      Transfer,
       {
         amount: String(30 * 1e8),
       },
@@ -2667,7 +2667,11 @@ describe.skip('integration - SmartDB', () => {
       });
 
       // act
-      await sut.update('Variable', { value: 'newValue' }, { key: 'key' });
+      await sut.update<Variable>(
+        Variable,
+        { value: 'newValue' },
+        { key: 'key' }
+      );
 
       // persist changes
       const block2 = createBlock(String(2));

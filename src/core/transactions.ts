@@ -163,8 +163,8 @@ export default class Transactions {
       if (new BigNumber(sender.gny).isLessThan(trs.fee))
         throw new Error('Insufficient sender balance');
       sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
-      await global.app.sdb.update(
-        'Account',
+      await global.app.sdb.update<Account>(
+        Account,
         { gny: String(sender.gny) },
         { address: sender.address }
       );

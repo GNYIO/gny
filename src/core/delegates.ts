@@ -20,6 +20,7 @@ import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
 import { Variable } from '../../packages/database-postgres/entity/Variable';
+import { Delegate } from '../../packages/database-postgres/entity/Delegate';
 
 const blockreward = new BlockReward();
 
@@ -353,7 +354,7 @@ export default class Delegates {
       current.productivity = parseFloat(
         Math.floor(percent * 100) / 100
       ).toFixed(2);
-      await global.app.sdb.update('Delegate', current, {
+      await global.app.sdb.update<Delegate>(Delegate, current, {
         address: current.address,
       });
     }
@@ -407,8 +408,8 @@ export default class Delegates {
     );
     // It seems there is no need to update
     if (!create) {
-      await global.app.sdb.update(
-        'Variable',
+      await global.app.sdb.update<Variable>(
+        Variable,
         { value },
         { key: Delegates.BOOK_KEEPER_NAME }
       );

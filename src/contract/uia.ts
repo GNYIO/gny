@@ -83,8 +83,8 @@ export default {
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
-    await global.app.sdb.update(
-      'Asset',
+    await global.app.sdb.update<Asset>(
+      Asset,
       { quantity: String(asset.quantity) },
       { name }
     );

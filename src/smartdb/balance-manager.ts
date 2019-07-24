@@ -32,8 +32,8 @@ export default class BalanceManager {
       item.balance = new global.app.util.bignumber(item.balance)
         .plus(amount)
         .toString(10);
-      await global.app.sdb.update(
-        'Balance',
+      await global.app.sdb.update<Balance>(
+        Balance,
         { balance: String(item.balance) },
         key
       );
