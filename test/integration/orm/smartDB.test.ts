@@ -719,6 +719,43 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('get() - composite keys can be any order to find entity', async done => {
+    await saveGenesisBlock(sut);
+
+    const balance = await sut.create<Balance>(Balance, {
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+      balance: String(20 * 1e8),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+
+    const keyOrder1 = {
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+      currency: 'AAA.AAA',
+    };
+
+    const keyOrder2 = {
+      currency: 'AAA.AAA',
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+    };
+
+    const result1 = await sut.get('Balance', keyOrder1);
+    const result2 = await sut.get('Balance', keyOrder2);
+
+    const expected = {
+      address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
+      balance: String(20 * 1e8),
+      currency: 'AAA.AAA',
+      flag: 1,
+      _version_: 1,
+    };
+
+    expect(result1).toEqual(expected);
+    expect(result2).toEqual(expected);
+
+    done();
+  });
+
   it('get() - loads entity only from cache (if untracked returns undefined)', async done => {
     await saveGenesisBlock(sut);
 
