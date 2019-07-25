@@ -19,7 +19,7 @@ export default class BalanceManager {
   }
 
   async get(address: string, currency: string) {
-    const item: IBalance = await this.sdb.get('Balance', { address, currency });
+    const item = await this.sdb.get<Balance>(Balance, { address, currency });
     const balance = item ? item.balance : String(0);
     return new global.app.util.bignumber(balance);
   }
@@ -27,7 +27,7 @@ export default class BalanceManager {
   async increase(address: string, currency: string, amount) {
     if (new global.app.util.bignumber(amount).eq(0)) return;
     const key = { address, currency };
-    let item: IBalance = await this.sdb.get('Balance', key);
+    let item = await this.sdb.get<Balance>(Balance, key);
     if (item) {
       item.balance = new global.app.util.bignumber(item.balance)
         .plus(amount)

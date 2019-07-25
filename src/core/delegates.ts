@@ -383,7 +383,7 @@ export default class Delegates {
   };
 
   private static getBookkeeper = async () => {
-    const item: IVariable = await global.app.sdb.get('Variable', {
+    const item = await global.app.sdb.get<Variable>(Variable, {
       key: Delegates.BOOK_KEEPER_NAME,
     });
     if (!item) {

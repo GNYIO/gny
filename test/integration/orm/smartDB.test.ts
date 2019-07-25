@@ -638,7 +638,7 @@ describe('integration - SmartDB', () => {
     const createResult = await sut.createOrLoad<Round>(Round, round);
 
     // load only from cache
-    const result = await sut.get('Round', {
+    const result = await sut.get<Round>(Round, {
       round: String(1),
     });
     expect(result).toEqual({
@@ -681,11 +681,11 @@ describe('integration - SmartDB', () => {
       flag: 1,
       _version_: 1,
     };
-    const key: Partial<IBalance> = {
+    const key = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
       currency: 'ABC.ABC',
     };
-    const result = await sut.get('Balance', key);
+    const result = await sut.get<Balance>(Balance, key);
     expect(result).toEqual(expected);
 
     done();
@@ -751,8 +751,8 @@ describe('integration - SmartDB', () => {
       address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
     };
 
-    const result1 = await sut.get('Balance', keyOrder1);
-    const result2 = await sut.get('Balance', keyOrder2);
+    const result1 = await sut.get<Balance>(Balance, keyOrder1);
+    const result2 = await sut.get<Balance>(Balance, keyOrder2);
 
     const expected = {
       address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
@@ -771,10 +771,10 @@ describe('integration - SmartDB', () => {
   it('get() - loads entity only from cache (if untracked returns undefined)', async done => {
     await saveGenesisBlock(sut);
 
-    const key: Partial<IRound> = {
+    const key = {
       round: String(3),
     };
-    const result = await sut.get('Round', key);
+    const result = await sut.get<Round>(Round, key);
 
     expect(result).toBeUndefined();
     done();
@@ -789,10 +789,10 @@ describe('integration - SmartDB', () => {
     } as IDelegate;
     const createdValue = await sut.create<Delegate>(Delegate, data);
 
-    const key: Partial<IDelegate> = {
+    const key = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     };
-    const result = await sut.get('Delegate', key);
+    const result = await sut.get<Delegate>(Delegate, key);
     expect(result).toEqual({
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
       username: 'liangpeili',
@@ -811,10 +811,10 @@ describe('integration - SmartDB', () => {
     } as IAccount;
     const created = await sut.create<Account>(Account, account);
 
-    const uniqueKey: Partial<IAccount> = {
+    const uniqueKey = {
       username: 'a1300',
     };
-    const result = await sut.get('Account', uniqueKey);
+    const result = await sut.get<Account>(Account, uniqueKey);
     expect(result).toEqual(created);
     done();
   });
@@ -830,10 +830,10 @@ describe('integration - SmartDB', () => {
     } as IBalance;
     await sut.create<Balance>(Balance, balance);
 
-    const notWholeCompositeKey: Partial<IBalance> = {
+    const notWholeCompositeKey = {
       currency: 'ABC.ABC',
     };
-    const getPromise = sut.get('Balance', notWholeCompositeKey);
+    const getPromise = sut.get<Balance>(Balance, notWholeCompositeKey);
     return expect(getPromise).rejects.toEqual(
       new Error("Cannot read property 'key' of undefined")
     );
@@ -1112,7 +1112,7 @@ describe('integration - SmartDB', () => {
 
     sut.commitContract();
 
-    const shouldBeCached: IDelegate = await sut.get('Delegate', {
+    const shouldBeCached = await sut.get<Delegate>(Delegate, {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     });
     expect(shouldBeCached).toBeTruthy();
@@ -1150,7 +1150,7 @@ describe('integration - SmartDB', () => {
     sut.commitContract(); // end first contract
 
     // check if cached
-    const isCached = await sut.get('Delegate', {
+    const isCached = await sut.get<Delegate>(Delegate, {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     });
     expect(isCached).toBeTruthy();
@@ -1167,7 +1167,7 @@ describe('integration - SmartDB', () => {
       }
     );
 
-    const meantime: IDelegate = await sut.get('Delegate', {
+    const meantime = await sut.get<Delegate>(Delegate, {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     });
     expect(meantime.votes).toEqual(String(2000));
@@ -1175,7 +1175,7 @@ describe('integration - SmartDB', () => {
     sut.rollbackContract();
 
     // check after rollback
-    const result: IDelegate = await sut.get('Delegate', {
+    const result = await sut.get<Delegate>(Delegate, {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     });
     expect(result.votes).toEqual(String(0));
@@ -1211,7 +1211,7 @@ describe('integration - SmartDB', () => {
       }
     );
 
-    const result = await sut.get('Delegate', {
+    const result = await sut.get<Delegate>(Delegate, {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
     });
     expect(result.producedBlocks).toEqual(String(3));
@@ -1247,7 +1247,7 @@ describe('integration - SmartDB', () => {
       }
     );
 
-    const result = await sut.get('Delegate', {
+    const result = await sut.get<Delegate>(Delegate, {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
     });
     expect(result.producedBlocks).toEqual(String(2));
@@ -1284,11 +1284,11 @@ describe('integration - SmartDB', () => {
       }
     );
 
-    const result1: IBalance = await sut.get('Balance', {
+    const result1 = await sut.get<Balance>(Balance, {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
       currency: 'ABC.ABC',
     });
-    const result2: IBalance = await sut.get('Balance', {
+    const result2 = await sut.get<Balance>(Balance, {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
       currency: 'CCC.DDD',
     });
@@ -1320,7 +1320,7 @@ describe('integration - SmartDB', () => {
       }
     );
 
-    const result: IAccount = await sut.get('Account', {
+    const result = await sut.get<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(result.gny).toEqual(String(3000));
@@ -1338,7 +1338,7 @@ describe('integration - SmartDB', () => {
     await sut.create<Account>(Account, account);
 
     // check before
-    const before: IAccount = await sut.get('Account', {
+    const before = await sut.get<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(before).toBeTruthy();
@@ -1349,7 +1349,7 @@ describe('integration - SmartDB', () => {
     });
 
     // check after
-    const after: IAccount = await sut.get('Account', {
+    const after = await sut.get<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(after).toBeUndefined();
@@ -1373,7 +1373,7 @@ describe('integration - SmartDB', () => {
     });
 
     // check after
-    const after = await sut.get('Account', {
+    const after = await sut.get<Account>(Account, {
       username: 'a1300',
     });
     expect(after).toBeUndefined();
@@ -1392,18 +1392,18 @@ describe('integration - SmartDB', () => {
     const created: IBalance = await sut.create<Balance>(Balance, balance);
 
     // check before
-    const compositeKey: Partial<IBalance> = {
+    const compositeKey = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       currency: 'ABC.ABC',
     };
-    const before: IBalance = await sut.get('Balance', compositeKey);
+    const before = await sut.get<Balance>(Balance, compositeKey);
     expect(before).toEqual(created);
 
     // delete
     await sut.del('Balance', compositeKey);
 
     // check after
-    const after: IBalance = await sut.get('Balance', compositeKey);
+    const after = await sut.get<Balance>(Balance, compositeKey);
     expect(after).toBeUndefined();
 
     done();
@@ -2052,21 +2052,21 @@ describe('integration - SmartDB', () => {
 
     expect(errorOccured).toEqual(true);
 
-    const accountKey: Partial<IAccount> = {
+    const accountKey = {
       address: account.address,
     };
 
-    const balanceKey: Partial<IBalance> = {
+    const balanceKey = {
       address: balance.address,
       currency: balance.currency,
     };
 
     // check cached Account entity
-    const accountCached: IAccount = await sut.get('Account', accountKey);
+    const accountCached = await sut.get<Account>(Account, accountKey);
     expect(accountCached.isDelegate).toEqual(0);
 
     // check cached Balance entity
-    const balanceCached: IBalance = await sut.get('Balance', balanceKey);
+    const balanceCached = await sut.get<Balance>(Balance, balanceKey);
     expect(balanceCached.balance).toEqual(String(0));
 
     // check persistet Account
@@ -2099,12 +2099,12 @@ describe('integration - SmartDB', () => {
     sut.beginBlock(block1);
     await sut.commitBlock();
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
     };
 
     // check before rollbackBlock()
-    const cached: IAccount = await sut.get('Account', key);
+    const cached: IAccount = await sut.get<Account>(Account, key);
     expect(cached).toEqual(createdAccountResult);
     const expectedFromDb = {
       ...createdAccountResult,
@@ -2121,7 +2121,7 @@ describe('integration - SmartDB', () => {
     await sut.rollbackBlock(String(0));
 
     // check after rollbackBlock()
-    const cachedAfter: IAccount = await sut.get('Account', key);
+    const cachedAfter: IAccount = await sut.get<Account>(Account, key);
     expect(cachedAfter).toBeUndefined();
     const fromDbAfter: IAccount = await sut.findOne<Account>(Account, {
       condition: key,
@@ -2155,12 +2155,12 @@ describe('integration - SmartDB', () => {
     sut.beginBlock(block1);
     await sut.commitBlock();
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
     };
 
     // check before rollbackBlock()
-    const cachedBefore: IDelegate = await sut.get('Delegate', key);
+    const cachedBefore = await sut.get<Delegate>(Delegate, key);
     expect(cachedBefore).toEqual(createdDelegate);
     const inDbBefore: IDelegate = await sut.findOne<Delegate>(Delegate, {
       condition: key,
@@ -2171,7 +2171,7 @@ describe('integration - SmartDB', () => {
     await sut.rollbackBlock(String(0));
 
     // check after rollbackBlock()
-    const cachedAfter: IDelegate = await sut.get('Delegate', key);
+    const cachedAfter = await sut.get<Delegate>(Delegate, key);
     expect(cachedAfter).toBeUndefined();
     const inDbAfter: IDelegate = await sut.findOne<Delegate>(Delegate, {
       condition: key,
@@ -2222,9 +2222,9 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // check before rollbackBlock()
-    const cachedBefore: IDelegate = await sut.get('Delegate', key);
+    const cachedBefore = await sut.get<Delegate>(Delegate, key);
     expect(cachedBefore.producedBlocks).toEqual(String(1));
-    const inDbBefore: IDelegate = await sut.findOne<Delegate>(Delegate, {
+    const inDbBefore = await sut.findOne<Delegate>(Delegate, {
       condition: key,
     });
     expect(inDbBefore.producedBlocks).toEqual(String(1));
@@ -2233,9 +2233,9 @@ describe('integration - SmartDB', () => {
     await sut.rollbackBlock(String(1));
 
     // check after rollbackBlock()
-    const cachedAfter: IDelegate = await sut.get('Delegate', key);
+    const cachedAfter = await sut.get<Delegate>(Delegate, key);
     expect(cachedAfter.producedBlocks).toEqual(String(0));
-    const inDbAfter: IDelegate = await sut.findOne<Delegate>(Delegate, {
+    const inDbAfter = await sut.findOne<Delegate>(Delegate, {
       condition: key,
     });
     expect(inDbAfter.producedBlocks).toEqual(String(0));
@@ -2254,7 +2254,7 @@ describe('integration - SmartDB', () => {
       });
 
       // check before if its in memory
-      const checkBefore = await sut.get('Variable', { key: 'hello' });
+      const checkBefore = await sut.get<Variable>(Variable, { key: 'hello' });
       expect(checkBefore).toEqual(createdVariable);
 
       // update
@@ -2269,7 +2269,7 @@ describe('integration - SmartDB', () => {
       );
 
       // check after if its changed in memory
-      const checkAfter = await sut.get('Variable', { key: 'hello' });
+      const checkAfter = await sut.get<Variable>(Variable, { key: 'hello' });
       expect(checkAfter).toEqual({
         key: 'hello',
         value: 'TypeScript',
@@ -2308,7 +2308,7 @@ describe('integration - SmartDB', () => {
       );
 
       // now it should be changed in memory
-      const restulInMemory = await sut.get('Variable', {
+      const restulInMemory = await sut.get<Variable>(Variable, {
         key: 'hello',
       });
       expect(restulInMemory).toEqual({
@@ -2335,7 +2335,7 @@ describe('integration - SmartDB', () => {
       await sut.commitBlock();
 
       // now changes in memory should still be in _version_: 2
-      const resultInMemory2 = await sut.get('Variable', {
+      const resultInMemory2 = await sut.get<Variable>(Variable, {
         key: 'hello',
       });
       expect(resultInMemory2).toEqual({
@@ -2373,7 +2373,7 @@ describe('integration - SmartDB', () => {
       });
 
       // check before update
-      const checkBefore = await sut.get('Account', {
+      const checkBefore = await sut.get<Account>(Account, {
         address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
       });
       expect(checkBefore).toMatchObject({
@@ -2394,7 +2394,7 @@ describe('integration - SmartDB', () => {
       );
 
       // check after update
-      const checkAfter = await sut.get('Account', {
+      const checkAfter = await sut.get<Account>(Account, {
         address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
       });
       expect(checkAfter).toMatchObject({
@@ -2523,7 +2523,7 @@ describe('integration - SmartDB', () => {
     );
 
     // should now be _version_: 2
-    const result1 = await sut.get('Transfer', { tid });
+    const result1 = await sut.get<Transfer>(Transfer, { tid });
     expect(result1).toHaveProperty('_version_', 2);
     expect(result1).toHaveProperty('amount', String(25 * 1e8));
 
@@ -2539,7 +2539,7 @@ describe('integration - SmartDB', () => {
     );
 
     // should now be _version_: 3
-    const result2 = await sut.get('Transfer', { tid });
+    const result2 = await sut.get<Transfer>(Transfer, { tid });
     expect(result2).toHaveProperty('_version_', 3);
     expect(result2).toHaveProperty('amount', String(30 * 1e8));
 
@@ -2734,7 +2734,7 @@ describe('integration - SmartDB', () => {
     };
     const x = await sut.createOrLoad<Variable>(Variable, variable);
 
-    const result: IVariable = await sut.get('Variable', { key: 'key' });
+    const result = await sut.get<Variable>(Variable, { key: 'key' });
     expect(result).toEqual({
       _version_: 1,
       key: 'key',

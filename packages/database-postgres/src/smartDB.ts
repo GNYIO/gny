@@ -502,12 +502,20 @@ export class SmartDB extends EventEmitter {
    * @param key key of entity
    * @returns tracked entity from cache
    */
-  public async get(model: string, key: ObjectLiteral) {
+  public async get<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
+    CodeContract.argument(
+      'model',
+      schema.memCached,
+      'get only supports memory models'
+    );
     return this.getSession().getCachedEntity(schema, key);
   }
 
@@ -522,7 +530,7 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument(
       'model',
       schema.memCached,
-      'getAll only support for memory model'
+      'getAll only supports memory models'
     );
     return await this.getSession().getAll(schema);
   }
