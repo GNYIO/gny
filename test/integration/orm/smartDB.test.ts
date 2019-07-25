@@ -719,6 +719,18 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('get() - throws if Model has not memory:true activated', async done => {
+    await saveGenesisBlock(sut);
+
+    const getAllPromise = sut.get<Account>(Account, {
+      address: 'G28aWzLNE7AgJG3w285Zno9wLo88c',
+    });
+    expect(getAllPromise).rejects.toThrowError(
+      'get only supports memory models'
+    );
+    done();
+  });
+
   it('get() - composite keys can be any order to find entity', async done => {
     await saveGenesisBlock(sut);
 
@@ -919,13 +931,9 @@ describe('integration - SmartDB', () => {
   it('getAll() - throws if Model has not memory:true activated', async done => {
     await saveGenesisBlock(sut);
 
-    class NoMemoryModel implements Versioned {
-      address: string;
-      _version_?: number;
-    }
-    const getAllPromise = sut.getAll<NoMemoryModel>(NoMemoryModel);
+    const getAllPromise = sut.getAll<Account>(Account);
     expect(getAllPromise).rejects.toThrowError(
-      "unregistered model 'NoMemoryModel'"
+      'getAll only supports memory models'
     );
     done();
   });
