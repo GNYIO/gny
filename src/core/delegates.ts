@@ -32,7 +32,7 @@ export default class Delegates {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
-    const delegates: IDelegate[] = await global.app.sdb.getAll('Delegate');
+    const delegates = await global.app.sdb.getAll<Delegate>(Delegate);
     const keyPairs = Delegates.loadMyDelegates(secrets, delegates);
     StateHelper.SetKeyPairs(keyPairs);
 
@@ -325,7 +325,7 @@ export default class Delegates {
   };
 
   public static getDelegates = async () => {
-    const allDelegates = await global.app.sdb.getAll('Delegate');
+    const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
     let delegates = allDelegates.map(d => Object.assign({}, d)) as IDelegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
@@ -374,9 +374,7 @@ export default class Delegates {
   };
 
   public static getTopDelegates = async () => {
-    const allDelegates = (await global.app.sdb.getAll(
-      'Delegate'
-    )) as IDelegate[];
+    const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
     const sortedPublicKeys = allDelegates
       .sort(Delegates.compare)
       .map(d => d.publicKey)

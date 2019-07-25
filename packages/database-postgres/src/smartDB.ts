@@ -512,13 +512,13 @@ export class SmartDB extends EventEmitter {
   }
 
   /**
-   * WARNING: get all cached entities (only cached entities)
+   * WARNING: get all cached entities (only memory entities)
    * @param model model name
    * @param filter filter result
    */
-  public async getAll(model: string) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
-    const schema = this.getSchema(model, true);
+  public async getAll<T extends Versioned>(model: new () => T): Promise<T[]> {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    const schema = this.getSchema(model.name, true);
     CodeContract.argument(
       'model',
       schema.memCached,

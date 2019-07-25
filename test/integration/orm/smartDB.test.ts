@@ -919,9 +919,14 @@ describe('integration - SmartDB', () => {
   it('getAll() - throws if Model has not memory:true activated', async done => {
     await saveGenesisBlock(sut);
 
-    const MODEL_THAT_IS_NOT_SAVED_IN_MEMORY = 'Account';
-    const getAllPromise = sut.getAll(MODEL_THAT_IS_NOT_SAVED_IN_MEMORY);
-    expect(getAllPromise).rejects.toThrow();
+    class NoMemoryModel implements Versioned {
+      address: string;
+      _version_?: number;
+    }
+    const getAllPromise = sut.getAll<NoMemoryModel>(NoMemoryModel);
+    expect(getAllPromise).rejects.toThrowError(
+      "unregistered model 'NoMemoryModel'"
+    );
     done();
   });
 
@@ -946,7 +951,7 @@ describe('integration - SmartDB', () => {
     } as IDelegate;
     const result3 = await sut.create<Delegate>(Delegate, delegate3);
 
-    const result = await sut.getAll('Delegate');
+    const result = await sut.getAll<Delegate>(Delegate);
     const expected = [result3, result2, result1];
 
     expect(result).toEqual(expected);
@@ -962,7 +967,7 @@ describe('integration - SmartDB', () => {
     } as IDelegate;
     const createdResult = await sut.create<Delegate>(Delegate, delegate1);
 
-    const result = await sut.getAll('Delegate');
+    const result = await sut.getAll<Delegate>(Delegate);
 
     expect(result.length).toEqual(1);
     expect(result[0]).toEqual(createdResult); // structure is the same
