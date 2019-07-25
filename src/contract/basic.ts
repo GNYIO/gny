@@ -17,8 +17,8 @@ async function deleteCreatedVotes(account: IAccount) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
@@ -66,8 +66,8 @@ export default {
         address: recipient,
       });
       if (recipientAccount) {
-        await global.app.sdb.increase(
-          'Account',
+        await global.app.sdb.increase<Account>(
+          Account,
           { gny: String(amount) },
           { address: recipientAccount.address }
         );
@@ -83,14 +83,14 @@ export default {
         username: recipient,
       });
       if (!recipientAccount) return 'Recipient name not exist';
-      await global.app.sdb.increase(
-        'Account',
+      await global.app.sdb.increase<Account>(
+        Account,
         { gny: String(amount) },
         { address: recipientAccount.address }
       );
     }
-    await global.app.sdb.increase(
-      'Account',
+    await global.app.sdb.increase<Account>(
+      Account,
       { gny: String(-amount) },
       { address: sender.address }
     );
@@ -210,8 +210,8 @@ export default {
       });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
-          await global.app.sdb.increase(
-            'Delegate',
+          await global.app.sdb.increase<Delegate>(
+            Delegate,
             { votes: String(amount) },
             { username: voteItem.delegate }
           );
@@ -318,8 +318,8 @@ export default {
 
     for (const username of delegates) {
       const votes = sender.lockAmount;
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(votes) },
         { username }
       );
@@ -367,8 +367,8 @@ export default {
 
     for (const username of delegates) {
       const votes = new BigNumber(sender.lockAmount).times(-1).toFixed();
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(votes) },
         { username }
       );

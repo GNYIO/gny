@@ -425,16 +425,14 @@ export class SmartDB extends EventEmitter {
     };
   }
 
-  public async increase(
-    model: string,
-    increaseBy: ObjectLiteral,
-    key: ObjectLiteral
+  public async increase<T extends Versioned>(
+    model: new () => T,
+    increaseBy: RequireAtLeastOne<T>,
+    key: RequireAtLeastOne<T>
   ) {
     // TODO, remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
-    CodeContract.argument('increasements', () =>
-      CodeContract.notNull(increaseBy)
-    );
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument('increaseBy', () => CodeContract.notNull(increaseBy));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
     const sessionId = this.getSchema(model, true);

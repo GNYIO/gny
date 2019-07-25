@@ -1157,8 +1157,8 @@ describe('integration - SmartDB', () => {
 
     // second contract (change data from first contract)
     sut.beginContract();
-    await sut.increase(
-      'Delegate',
+    await sut.increase<Delegate>(
+      Delegate,
       {
         votes: String(+2000),
       },
@@ -1201,8 +1201,8 @@ describe('integration - SmartDB', () => {
 
     await sut.create<Delegate>(Delegate, data);
 
-    await sut.increase(
-      'Delegate',
+    await sut.increase<Delegate>(
+      Delegate,
       {
         producedBlocks: String(2),
       },
@@ -1236,8 +1236,8 @@ describe('integration - SmartDB', () => {
 
     await sut.create<Delegate>(Delegate, data);
 
-    await sut.increase(
-      'Delegate',
+    await sut.increase<Delegate>(
+      Delegate,
       {
         producedBlocks: String(2),
         missedBlocks: String(1),
@@ -1273,8 +1273,8 @@ describe('integration - SmartDB', () => {
     await sut.create<Balance>(Balance, balance2);
 
     // increase only balance1
-    await sut.increase(
-      'Balance',
+    await sut.increase<Balance>(
+      Balance,
       {
         balance: String(1),
       },
@@ -1310,8 +1310,8 @@ describe('integration - SmartDB', () => {
     } as IAccount;
     await sut.create<Account>(Account, data);
 
-    await sut.increase(
-      'Account',
+    await sut.increase<Account>(
+      Account,
       {
         gny: String(-1000),
       },
