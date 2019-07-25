@@ -1344,7 +1344,7 @@ describe('integration - SmartDB', () => {
     expect(before).toBeTruthy();
 
     // delete
-    await sut.del('Account', {
+    await sut.del<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
 
@@ -1368,7 +1368,7 @@ describe('integration - SmartDB', () => {
     await sut.create<Account>(Account, account);
 
     // delete
-    await sut.del('Account', {
+    await sut.del<Account>(Account, {
       username: 'a1300',
     });
 
@@ -1400,7 +1400,7 @@ describe('integration - SmartDB', () => {
     expect(before).toEqual(created);
 
     // delete
-    await sut.del('Balance', compositeKey);
+    await sut.del<Balance>(Balance, compositeKey);
 
     // check after
     const after = await sut.get<Balance>(Balance, compositeKey);
@@ -1428,10 +1428,10 @@ describe('integration - SmartDB', () => {
     const before = await sut.count('Account', {});
     expect(before).toEqual(1);
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'G4JQ4cTQ7tjkF7yopQfTnaSkeHEqn',
     };
-    await sut.del('Account', key);
+    await sut.del<Account>(Account, key);
 
     // then delete account and persist with next block
     const block2 = createBlock(String(2));

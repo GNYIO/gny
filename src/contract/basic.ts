@@ -26,7 +26,7 @@ async function deleteCreatedVotes(account: IAccount) {
         voterAddress: voteItem.voterAddress,
         delegate: voteItem.delegate,
       };
-      await global.app.sdb.del('Vote', vote);
+      await global.app.sdb.del<Vote>(Vote, vote);
     }
   }
 }
@@ -377,7 +377,7 @@ export default {
         voterAddress: senderId,
         delegate: username,
       };
-      await global.app.sdb.del('Vote', v);
+      await global.app.sdb.del<Vote>(Vote, v);
     }
     return null;
   },

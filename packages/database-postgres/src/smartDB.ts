@@ -464,9 +464,12 @@ export class SmartDB extends EventEmitter {
     await this.getSession().update(schema, key, modifier);
   }
 
-  public async del(model: string, key: ObjectLiteral) {
+  public async del<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ) {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
     const schema = this.getSchema(model, true);
