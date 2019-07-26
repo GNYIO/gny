@@ -1,9 +1,10 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
+import { Versioned } from '../searchTypes';
 
 @Config({ memory: false })
 @Entity()
-export class BlockHistory {
+export class BlockHistory implements Versioned {
   @PrimaryColumn({
     nullable: false,
     type: 'bigint',
@@ -15,4 +16,11 @@ export class BlockHistory {
     nullable: false,
   })
   public history: string;
+
+  @Column({
+    default: 0,
+    type: 'integer',
+    nullable: false,
+  })
+  public _version_?: number;
 }

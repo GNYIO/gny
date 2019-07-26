@@ -9,7 +9,6 @@ import {
   IAccount,
   IBalance,
   IAsset,
-  IVote,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,
@@ -18,7 +17,10 @@ import {
 } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
+import { Balance } from '../../database-postgres/entity/Balance';
+import { Asset } from '../../database-postgres/entity/Asset';
+import { Vote } from '../../database-postgres/entity/Vote';
+import { Account } from '../../database-postgres/entity/Account';
 
 interface BalanceCondition {
   address: string;
@@ -192,10 +194,10 @@ export default class AccountsApi {
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }
-    const count = await global.app.sdb.count('Balance', condition);
+    const count = await global.app.sdb.count<Balance>(Balance, condition);
     let balances: IBalance[] = [];
     if (count > 0) {
-      balances = await global.app.sdb.findAll('Balance', {
+      balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
         limit,
         offset,
@@ -208,7 +210,7 @@ export default class AccountsApi {
       const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
       if (uiaNameList && uiaNameList.length) {
-        const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+        const assets = await global.app.sdb.findAll<Asset>(Asset, {
           condition: {
             name: {
               $in: uiaNameList,
@@ -239,20 +241,37 @@ export default class AccountsApi {
     res: Response,
     next: Next
   ) => {
+    const schema = this.library.joi.object().keys({
+      address: this.library.joi
+        .string()
+        .address()
+        .required(),
+      currency: this.library.joi
+        .string()
+        .asset()
+        .required(),
+    });
+
+    const report = this.library.joi.validate(req.params, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
     const currency = req.params.currency;
     const condition = {
-      address: req.params.address,
-      currency,
+      address: req.params.address as string,
+      currency: currency as string,
     };
-    const balance: IBalance = await global.app.sdb.findOne(
-      'Balance',
-      condition
-    );
+    const balance = await global.app.sdb.findOne<Balance>(Balance, {
+      condition,
+    });
     if (!balance) return next('No balance');
     if (currency.indexOf('.') !== -1) {
-      balance.asset = (await global.app.sdb.findOne('Asset', {
-        name: balance.currency,
-      })) as IAsset;
+      balance.asset = await global.app.sdb.findOne<Asset>(Asset, {
+        condition: {
+          name: balance.currency,
+        },
+      });
     }
 
     return res.json({ balance });
@@ -279,9 +298,9 @@ export default class AccountsApi {
     try {
       let addr: string;
       if (query.username) {
-        const account = (await global.app.sdb.load('Account', {
+        const account = await global.app.sdb.load<Account>(Account, {
           username: query.username,
-        })) as IAccount;
+        });
         if (!account) {
           return next('Account not found');
         }
@@ -289,7 +308,7 @@ export default class AccountsApi {
       } else {
         addr = query.address;
       }
-      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
+      const votes = await global.app.sdb.findAll<Vote>(Vote, {
         condition: {
           voterAddress: addr,
         },
@@ -318,7 +337,7 @@ export default class AccountsApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const count = await global.app.sdb.count('Account', {});
+      const count = await global.app.sdb.count<Account>(Account, {});
       return res.json({ success: true, count });
     } catch (e) {
       return next('Server error');

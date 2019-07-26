@@ -25,6 +25,14 @@ async function registerIssuerAsync(name, desc, secret = genesisSecret) {
   await lib.onNewBlock();
 }
 
+/**
+ * Warning: does not wait for new block
+ * @param name
+ * @param desc
+ * @param amount
+ * @param precision
+ * @param secret
+ */
 async function registerAssetAsync(
   name,
   desc,
@@ -47,7 +55,6 @@ async function registerAssetAsync(
     assetTransData,
     config
   );
-  await lib.onNewBlock();
 }
 
 describe('accountsApi', () => {
@@ -133,19 +140,19 @@ describe('accountsApi', () => {
     it(
       'should get the balance by the address and currency',
       async () => {
-        await registerIssuerAsync('liang', 'liang');
-        await registerAssetAsync(
-          'BBB',
-          'some description',
-          String(10 * 1e8),
-          8
-        );
+        await registerIssuerAsync('AAA', 'liang');
+
+        // register 3 separate assets to test
+        // if the endpoint is returning the right one
+        await Promise.all([
+          registerAssetAsync('ONE', 'first description', String(10 * 1e8), 8),
+          registerAssetAsync('TWO', 'second description', String(11 * 1e8), 8),
+          registerAssetAsync('THR', 'third description', String(12 * 1e8), 8),
+        ]);
+        await lib.onNewBlock();
+
         // issue
-        const trs = gnyJS.uia.issue(
-          'liang.BBB',
-          String(10 * 1e8),
-          genesisSecret
-        );
+        const trs = gnyJS.uia.issue('AAA.TWO', String(11 * 1e8), genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -158,14 +165,26 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-        const currency = 'BBB';
+        const currency = 'AAA.TWO';
 
         const { data } = await axios.get(
           'http://localhost:4096/api/accounts/' + recipient + '/' + currency
         );
-        expect(data.balance.address).toBe(recipient);
+        expect(data.balance.address).toEqual(recipient);
+        expect(data.balance.balance).toEqual(String(11 * 1e8));
+        expect(data.balance.currency).toEqual('AAA.TWO');
+
+        expect(data.balance.asset).toEqual(
+          expect.objectContaining({
+            desc: 'second description',
+            issuerId: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+            maximum: String(11 * 1e8),
+            name: 'AAA.TWO',
+            quantity: String(11 * 1e8),
+          })
+        );
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
   });
 

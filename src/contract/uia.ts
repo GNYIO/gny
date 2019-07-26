@@ -1,4 +1,8 @@
 import { ITransfer, IAsset, IIssuer } from '../interfaces';
+import { Issuer } from '../../packages/database-postgres/entity/Issuer';
+import { Asset } from '../../packages/database-postgres/entity/Asset';
+import { Account } from '../../packages/database-postgres/entity/Account';
+import { Transfer } from '../../packages/database-postgres/entity/Transfer';
 
 export default {
   async registerIssuer(name, desc) {
@@ -10,10 +14,12 @@ export default {
 
     const senderId = this.sender.address;
     await global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
-    let exists = await global.app.sdb.exists('Issuer', { name });
+    let exists = await global.app.sdb.exists<Issuer>(Issuer, { name });
     if (exists) return 'Issuer name already exists';
 
-    exists = await global.app.sdb.exists('Issuer', { issuerId: senderId });
+    exists = await global.app.sdb.exists<Issuer>(Issuer, {
+      issuerId: senderId,
+    });
     if (exists) return 'Account is already an issuer';
 
     const issuer: IIssuer = {
@@ -22,7 +28,7 @@ export default {
       name,
       desc: descJson,
     };
-    await global.app.sdb.create('Issuer', issuer);
+    await global.app.sdb.create<Issuer>(Issuer, issuer);
     return null;
   },
 
@@ -35,7 +41,7 @@ export default {
     if (precision > 16 || precision < 0) return 'Invalid asset precision';
     global.app.validate('amount', maximum);
 
-    const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
+    const issuer: IIssuer = await global.app.sdb.findOne<Issuer>(Issuer, {
       condition: { issuerId: this.sender.address },
     });
     if (!issuer) return 'Account is not an issuer';
@@ -43,7 +49,9 @@ export default {
     const fullName = `${issuer.name}.${symbol}`;
     await global.app.sdb.lock(`uia.registerAsset@${fullName}`);
 
-    const exists = await global.app.sdb.exists('Asset', { name: fullName });
+    const exists = await global.app.sdb.exists<Asset>(Asset, {
+      name: fullName,
+    });
     if (exists) return 'Asset already exists';
 
     const asset: IAsset = {
@@ -56,7 +64,7 @@ export default {
       quantity: String(0),
       issuerId: this.sender.address,
     };
-    await global.app.sdb.create('Asset', asset);
+    await global.app.sdb.create<Asset>(Asset, asset);
     return null;
   },
 
@@ -69,7 +77,9 @@ export default {
     // if it is not in use(can not find in cache), it can be updated.
     await global.app.sdb.lock(`uia.issue@${name}`);
 
-    const asset: IAsset = await global.app.sdb.findOne('Asset', { name });
+    const asset: IAsset = await global.app.sdb.findOne<Asset>(Asset, {
+      condition: { name },
+    });
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
@@ -77,8 +87,8 @@ export default {
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
-    await global.app.sdb.update(
-      'Asset',
+    await global.app.sdb.update<Asset>(
+      Asset,
       { quantity: String(asset.quantity) },
       { name }
     );
@@ -104,7 +114,7 @@ export default {
       recipientAddress = recipient;
     } else {
       recipientName = recipient;
-      const recipientAccount = await global.app.sdb.findOne('Account', {
+      const recipientAccount = await global.app.sdb.findOne<Account>(Account, {
         condition: { username: recipient },
       });
       if (!recipientAccount) return 'Recipient name not exist';
@@ -127,7 +137,7 @@ export default {
       amount: String(amount),
       timestamp: this.trs.timestamp,
     };
-    await global.app.sdb.create('Transfer', transfer);
+    await global.app.sdb.create<Transfer>(Transfer, transfer);
     return null;
   },
 };

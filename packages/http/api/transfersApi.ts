@@ -3,6 +3,9 @@ import { Request, Response } from 'express';
 import { IScope, Next, ITransfer, IAsset } from '../../../src/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { Transfer } from '../../database-postgres/entity/Transfer';
+import { Transaction } from '../../database-postgres/entity/Transaction';
+import { Asset } from '../../database-postgres/entity/Asset';
 
 export default class TransfersApi {
   private library: IScope;
@@ -66,10 +69,10 @@ export default class TransfersApi {
     if (req.query.recipientId) {
       condition.recipientId = req.query.recipientId;
     }
-    const count = await global.app.sdb.count('Transfer', condition);
+    const count = await global.app.sdb.count<Transfer>(Transfer, condition);
     let transfers: ITransfer[] = [];
     if (count > 0) {
-      transfers = await global.app.sdb.findAll('Transfer', {
+      transfers = await global.app.sdb.findAll<Transfer>(Transfer, {
         condition,
         limit,
         offset,
@@ -111,10 +114,10 @@ export default class TransfersApi {
     }
     condition.currency = 'GNY';
 
-    const count = await global.app.sdb.count('Transfer', condition);
+    const count = await global.app.sdb.count<Transfer>(Transfer, condition);
     let transfers: ITransfer[] = [];
     if (count > 0) {
-      transfers = await global.app.sdb.findAll('Transfer', {
+      transfers = await global.app.sdb.findAll<Transfer>(Transfer, {
         condition,
         sort: { timestamp: -1 },
       });
@@ -155,7 +158,7 @@ export default class TransfersApi {
     const uiaNameList = assetNameList.filter(n => n.indexOf('.') !== -1);
 
     if (uiaNameList && uiaNameList.length) {
-      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+      const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition: {
           name: {
             $in: uiaNameList,
@@ -172,7 +175,7 @@ export default class TransfersApi {
   // helper function
   private getTransactionMap = async tids => {
     const trsMap = new Map();
-    const trs = await global.app.sdb.findAll('Transaction', {
+    const trs = await global.app.sdb.findAll<Transaction>(Transaction, {
       condition: {
         id: {
           $in: tids,

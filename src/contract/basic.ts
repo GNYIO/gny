@@ -1,8 +1,12 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate, IVote } from '../interfaces';
+import { IAccount, ITransfer, IDelegate } from '../interfaces';
+import { Vote } from '../../packages/database-postgres/entity/Vote';
+import { Account } from '../../packages/database-postgres/entity/Account';
+import { Delegate } from '../../packages/database-postgres/entity/Delegate';
+import { Transfer } from '../../packages/database-postgres/entity/Transfer';
 
 async function deleteCreatedVotes(account: IAccount) {
-  const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
+  const voteList = await global.app.sdb.findAll<Vote>(Vote, {
     condition: { voterAddress: account.address },
   });
   if (
@@ -13,16 +17,16 @@ async function deleteCreatedVotes(account: IAccount) {
     for (let i = 0; i < voteList.length; ++i) {
       const voteItem = voteList[i];
 
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(-account.lockAmount) },
         { username: voteItem.delegate }
       );
-      const vote: IVote = {
+      const vote: Vote = {
         voterAddress: voteItem.voterAddress,
         delegate: voteItem.delegate,
       };
-      await global.app.sdb.del('Vote', vote);
+      await global.app.sdb.del<Vote>(Vote, vote);
     }
   }
 }
@@ -58,35 +62,35 @@ export default {
     let recipientAccount: IAccount;
     // Validate recipient is valid address
     if (recipient && global.app.util.address.isAddress(recipient)) {
-      recipientAccount = await global.app.sdb.load('Account', {
+      recipientAccount = await global.app.sdb.load<Account>(Account, {
         address: recipient,
       });
       if (recipientAccount) {
-        await global.app.sdb.increase(
-          'Account',
+        await global.app.sdb.increase<Account>(
+          Account,
           { gny: String(amount) },
           { address: recipientAccount.address }
         );
       } else {
-        recipientAccount = await global.app.sdb.create('Account', {
+        recipientAccount = await global.app.sdb.create<Account>(Account, {
           address: recipient,
           gny: String(amount),
           username: null,
         });
       }
     } else {
-      recipientAccount = await global.app.sdb.load('Account', {
+      recipientAccount = await global.app.sdb.load<Account>(Account, {
         username: recipient,
       });
       if (!recipientAccount) return 'Recipient name not exist';
-      await global.app.sdb.increase(
-        'Account',
+      await global.app.sdb.increase<Account>(
+        Account,
         { gny: String(amount) },
         { address: recipientAccount.address }
       );
     }
-    await global.app.sdb.increase(
-      'Account',
+    await global.app.sdb.increase<Account>(
+      Account,
       { gny: String(-amount) },
       { address: sender.address }
     );
@@ -101,7 +105,7 @@ export default {
       amount: String(amount),
       timestamp: this.trs.timestamp,
     };
-    await global.app.sdb.create('Transfer', transfer);
+    await global.app.sdb.create<Transfer>(Transfer, transfer);
     return null;
   },
 
@@ -112,13 +116,15 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const exists = await global.app.sdb.load('Account', { username: username });
+    const exists = await global.app.sdb.load<Account>(Account, {
+      username: username,
+    });
 
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
     this.sender.username = username;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { username },
       { address: this.sender.address }
     );
@@ -137,8 +143,8 @@ export default {
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (this.sender.secondPublicKey) return 'Password already set';
     this.sender.secondPublicKey = publicKey;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { secondPublicKey: publicKey },
       { address: this.sender.address }
     );
@@ -197,17 +203,17 @@ export default {
       sender.lockAmount = new BigNumber(sender.lockAmount)
         .plus(amount)
         .toFixed();
-      await global.app.sdb.update('Account', sender, {
+      await global.app.sdb.update<Account>(Account, sender, {
         address: sender.address,
       });
 
-      const voteList: IVote[] = await global.app.sdb.findAll('Vote', {
+      const voteList = await global.app.sdb.findAll<Vote>(Vote, {
         condition: { voterAddress: senderId },
       });
       if (voteList && voteList.length > 0) {
         for (const voteItem of voteList) {
-          await global.app.sdb.increase(
-            'Delegate',
+          await global.app.sdb.increase<Delegate>(
+            Delegate,
             { votes: String(amount) },
             { username: voteItem.delegate }
           );
@@ -235,7 +241,9 @@ export default {
     sender.lockHeight = 0;
     sender.gny += sender.lockAmount;
     sender.lockAmount = 0;
-    await global.app.sdb.update('Account', sender, { address: senderId });
+    await global.app.sdb.update<Account>(Account, sender, {
+      address: senderId,
+    });
 
     return null;
   },
@@ -263,10 +271,10 @@ export default {
       fees: String(0),
       rewards: String(0),
     };
-    await global.app.sdb.create('Delegate', delegate);
+    await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
-    await global.app.sdb.update(
-      'Account',
+    await global.app.sdb.update<Account>(
+      Account,
       { isDelegate: 1 },
       { address: senderId }
     );
@@ -287,7 +295,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
+    const currentVotes = await global.app.sdb.findAll<Vote>(Vote, {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -306,22 +314,24 @@ export default {
     }
 
     for (const username of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { username });
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
       if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
     for (const username of delegates) {
       const votes = sender.lockAmount;
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(votes) },
         { username }
       );
-      const v: IVote = {
+      const v: Vote = {
         voterAddress: senderId,
         delegate: username,
       };
-      await global.app.sdb.create('Vote', v);
+      await global.app.sdb.create<Vote>(Vote, v);
     }
     return null;
   },
@@ -339,7 +349,7 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
-    const currentVotes: IVote[] = await global.app.sdb.findAll('Vote', {
+    const currentVotes = await global.app.sdb.findAll<Vote>(Vote, {
       condition: { voterAddress: senderId },
     });
     if (currentVotes) {
@@ -355,23 +365,25 @@ export default {
     }
 
     for (const username of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { username });
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
       if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
     for (const username of delegates) {
       const votes = new BigNumber(sender.lockAmount).times(-1).toFixed();
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { votes: String(votes) },
         { username }
       );
 
-      const v: IVote = {
+      const v: Vote = {
         voterAddress: senderId,
         delegate: username,
       };
-      await global.app.sdb.del('Vote', v);
+      await global.app.sdb.del<Vote>(Vote, v);
     }
     return null;
   },

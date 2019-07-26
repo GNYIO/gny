@@ -1,18 +1,15 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import {
-  IScope,
-  Next,
-  DelegateViewModel,
-  IAccount,
-  IVote,
-} from '../../../src/interfaces';
+import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { BigNumber } from 'bignumber.js';
+import { Vote } from '../../database-postgres/entity/Vote';
+import { Account } from '../../database-postgres/entity/Account';
+import { Delegate } from '../../database-postgres/entity/Delegate';
 
 export default class DelegatesApi {
   private library: IScope;
@@ -61,7 +58,7 @@ export default class DelegatesApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const delegates = await global.app.sdb.getAll('Delegate');
+      const delegates = await global.app.sdb.getAll<Delegate>(Delegate);
       return res.json({ count: delegates.length });
     } catch (e) {
       this.library.logger.error('Error in counting delegates', e);
@@ -83,7 +80,7 @@ export default class DelegatesApi {
     }
 
     try {
-      const votes: IVote[] = await global.app.sdb.findAll('Vote', {
+      const votes = await global.app.sdb.findAll<Vote>(Vote, {
         condition: {
           delegate: query.username,
         },
@@ -91,13 +88,13 @@ export default class DelegatesApi {
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = (await global.app.sdb.findAll('Account', {
+      const accounts = await global.app.sdb.findAll<Account>(Account, {
         condition: {
           address: {
             $in: addresses,
           },
         },
-      })) as IAccount[];
+      });
       const lastBlock = StateHelper.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(
         lastBlock.height

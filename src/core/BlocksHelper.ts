@@ -19,6 +19,8 @@ import slots from '../utils/slots';
 import { copyObject } from '../base/helpers';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
+import { Block } from '../../packages/database-postgres/entity/Block';
+import { Transaction } from '../../packages/database-postgres/entity/Transaction';
 
 const blockreward = new Blockreward();
 
@@ -157,7 +159,9 @@ export class BlocksHelper {
 
   public static async IsBlockAlreadyInDbIO(block: IBlock) {
     if (!new BigNumber(block.height).isEqualTo(0)) {
-      const exists = await global.app.sdb.exists('Block', { id: block.id });
+      const exists = await global.app.sdb.exists<Block>(Block, {
+        id: block.id,
+      });
       if (exists) throw new Error(`Block already exists: ${block.id}`);
     }
   }
@@ -169,7 +173,7 @@ export class BlocksHelper {
 
     if (
       idList.length !== 0 &&
-      (await global.app.sdb.exists('Transaction', { id: idList }))
+      (await global.app.sdb.exists<Transaction>(Transaction, { id: idList }))
     ) {
       throw new Error('Block contain already confirmed transaction');
     }

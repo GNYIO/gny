@@ -388,12 +388,6 @@ export interface IVariable {
   _version_?: number;
 }
 
-export interface IVote {
-  voterAddress: string;
-  delegate: string;
-  _version_?: number;
-}
-
 export interface NewBlockMessage {
   id: string;
   height: string;
