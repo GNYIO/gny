@@ -22,12 +22,14 @@ export type LessOrEqualCondition<T> = {
   }
 };
 
+export type Condition<T> =
+  | Partial<T>
+  | InCondition<T>
+  | GreaterOrEqualsCondition<T>
+  | LessOrEqualCondition<T>;
+
 export interface FindAllOptions<T> {
-  condition:
-    | Partial<T>
-    | InCondition<T>
-    | GreaterOrEqualsCondition<T>
-    | LessOrEqualCondition<T>;
+  condition: Condition<T>;
   limit?: number;
   offset?: number;
   sort?: NumericKey<T>;

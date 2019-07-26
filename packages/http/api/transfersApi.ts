@@ -69,7 +69,7 @@ export default class TransfersApi {
     if (req.query.recipientId) {
       condition.recipientId = req.query.recipientId;
     }
-    const count = await global.app.sdb.count('Transfer', condition);
+    const count = await global.app.sdb.count<Transfer>(Transfer, condition);
     let transfers: ITransfer[] = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll<Transfer>(Transfer, {
@@ -114,7 +114,7 @@ export default class TransfersApi {
     }
     condition.currency = 'GNY';
 
-    const count = await global.app.sdb.count('Transfer', condition);
+    const count = await global.app.sdb.count<Transfer>(Transfer, condition);
     let transfers: ITransfer[] = [];
     if (count > 0) {
       transfers = await global.app.sdb.findAll<Transfer>(Transfer, {

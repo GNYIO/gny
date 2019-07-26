@@ -28,6 +28,7 @@ import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import {
   Versioned,
   FindAllOptions,
+  Condition,
 } from '../../../packages/database-postgres/searchTypes';
 import { Round } from '../../../packages/database-postgres/entity/Round';
 import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
@@ -1045,13 +1046,24 @@ describe('integration - SmartDB', () => {
     done();
   });
 
+  it('count() - throws if no condition is passed in', async () => {
+    await saveGenesisBlock(sut);
+
+    const condition = undefined as Condition<Delegate>;
+    const resultPromise = sut.count<Delegate>(Delegate, condition);
+
+    return expect(resultPromise).rejects.toThrowError(
+      'condition object was not provided'
+    );
+  });
+
   it('count() - no account -> returns count 0', async done => {
     await saveGenesisBlock(sut);
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     };
-    const result = await sut.count('Account', key);
+    const result = await sut.count<Account>(Account, key);
     expect(result).toEqual(0);
     done();
   });
@@ -1059,27 +1071,69 @@ describe('integration - SmartDB', () => {
   it('count() - after save -> returns count 1', async done => {
     await saveGenesisBlock(sut);
 
-    const block = createBlock(String(1));
-    sut.beginBlock(block);
-
-    const delegate = {
+    const delegate1 = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
       username: 'liangpeili',
       producedBlocks: String(0),
       tid: '73e561d1b5e3f3035066c914933bc904e071b5b66fae2a537a1757acda5bd324',
       publicKey:
         '9768bbc2e290ae5a32bb9a57124de4f8a1b966d41683b6cdf803f8ada582210f',
-    } as IDelegate;
-    await sut.create<Delegate>(Delegate, delegate);
+    };
+    await sut.create<Delegate>(Delegate, delegate1);
+    const delegate2 = {
+      address: 'G2t7A6cwnAgpGpMnYKf4S4pSGiu2Z',
+      username: 'a1300',
+      producedBlocks: String(0),
+      tid: '83eb6ec4816447361e193ba40dd05bd5f3d195ada8601aa9360ce84b031117a1',
+      publicKey:
+        '25ec60819608f3efc6433e2d8defd369b50959f12e0a042d0aa013056f585722',
+    };
+    await sut.create<Delegate>(Delegate, delegate2);
 
     // need to save block in order to save changes to DB
+    const block = createBlock(String(1));
+    sut.beginBlock(block);
     await sut.commitBlock();
 
-    const key: Partial<IAccount> = {
+    const key = {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     };
-    const result = await sut.count('Delegate', {});
+    const result = await sut.count<Delegate>(Delegate, key);
     expect(result).toEqual(1);
+
+    const result2 = await sut.count<Delegate>(Delegate, {});
+    expect(result2).toEqual(2);
+
+    done();
+  });
+
+  it('count() - WHERE IN clause ($in)', async done => {
+    await saveGenesisBlock(sut);
+
+    const variable1 = await sut.create<Variable>(Variable, {
+      key: 'hello1',
+      value: 'world1',
+    });
+    const variable2 = await sut.create<Variable>(Variable, {
+      key: 'hello2',
+      value: 'world2',
+    });
+    const variable3 = await sut.create<Variable>(Variable, {
+      key: 'hello3',
+      value: 'world3',
+    });
+
+    // save to db
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    const result = await sut.count<Variable>(Variable, {
+      key: {
+        $in: ['hello2', 'hello3'],
+      },
+    });
+    expect(result).toEqual(2);
 
     done();
   });
@@ -1092,7 +1146,7 @@ describe('integration - SmartDB', () => {
     await saveGenesisBlock(sut);
 
     // check before
-    const before = await sut.count('Delegate', {});
+    const before = await sut.count<Delegate>(Delegate, {});
     expect(before).toEqual(0);
 
     sut.beginContract(); // start
@@ -1124,7 +1178,7 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // check after
-    const after = await sut.count('Delegate', {});
+    const after = await sut.count<Delegate>(Delegate, {});
     expect(after).toEqual(1);
 
     done();
@@ -1426,7 +1480,7 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // before: check how many accounts exist
-    const before = await sut.count('Account', {});
+    const before = await sut.count<Account>(Account, {});
     expect(before).toEqual(1);
 
     const key = {
@@ -1440,7 +1494,7 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // after: check how many accounts exist
-    const after = await sut.count('Account', {});
+    const after = await sut.count<Account>(Account, {});
     expect(after).toEqual(0);
 
     done();
@@ -1595,7 +1649,7 @@ describe('integration - SmartDB', () => {
     await sut.commitBlock();
 
     // check if 2 Assets exist
-    const count = await sut.count('Asset', {});
+    const count = await sut.count<Asset>(Asset, {});
     expect(count).toEqual(2);
 
     // load only one

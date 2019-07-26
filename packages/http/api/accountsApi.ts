@@ -194,7 +194,7 @@ export default class AccountsApi {
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);
     }
-    const count = await global.app.sdb.count('Balance', condition);
+    const count = await global.app.sdb.count<Balance>(Balance, condition);
     let balances: IBalance[] = [];
     if (count > 0) {
       balances = await global.app.sdb.findAll<Balance>(Balance, {
@@ -337,7 +337,7 @@ export default class AccountsApi {
 
   private count = async (req: Request, res: Response, next: Next) => {
     try {
-      const count = await global.app.sdb.count('Account', {});
+      const count = await global.app.sdb.count<Account>(Account, {});
       return res.json({ success: true, count });
     } catch (e) {
       return next('Server error');

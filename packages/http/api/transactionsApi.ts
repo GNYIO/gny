@@ -127,7 +127,10 @@ export default class TransactionsApi {
         }
         condition.height = block.height;
       }
-      const count = await global.app.sdb.count('Transaction', condition);
+      const count = await global.app.sdb.count<Transaction>(
+        Transaction,
+        condition
+      );
       let transactions = await global.app.sdb.findAll<Transaction>(
         Transaction,
         {

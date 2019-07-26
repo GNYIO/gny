@@ -95,7 +95,7 @@ export default class UiaApi {
       return next(report.error.message);
     }
     try {
-      const count = await global.app.sdb.count('Issuer', {});
+      const count = await global.app.sdb.count<Issuer>(Issuer, {});
       const issues = await global.app.sdb.findAll<Issuer>(Issuer, {
         condition: {},
         limit: query.limit || 100,
@@ -179,7 +179,7 @@ export default class UiaApi {
       }
 
       const condition = { issuerId: issuer.issuerId };
-      const count = await global.app.sdb.count('Asset', condition);
+      const count = await global.app.sdb.count<Asset>(Asset, condition);
       const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
         limit: query.limit || 100,
@@ -207,7 +207,7 @@ export default class UiaApi {
 
     try {
       const condition = {};
-      const count = await global.app.sdb.count('Asset', condition);
+      const count = await global.app.sdb.count<Asset>(Asset, condition);
       const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
         limit: query.limit || 100,
@@ -272,7 +272,7 @@ export default class UiaApi {
 
     try {
       const condition = { address: req.params.address };
-      const count = await global.app.sdb.count('Balance', condition);
+      const count = await global.app.sdb.count<Balance>(Balance, condition);
       const balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
         limit: query.limit,

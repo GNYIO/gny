@@ -21,6 +21,7 @@ import {
   FindOneOptions,
   FindAllOptions,
   ArrayCondition,
+  Condition,
 } from '../searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
 
@@ -597,10 +598,21 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().exists(schema, key);
   }
 
-  public async count(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  /**
+   * Directly hits database and couts entries
+   */
+  public async count<T extends Versioned>(
+    model: new () => T,
+    condition: Condition<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument(
+      'condition',
+      condition !== undefined && condition !== null,
+      'condition object was not provided'
+    );
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
     return await this.getSession().count(schema, condition);
   }
 
