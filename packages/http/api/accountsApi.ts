@@ -20,6 +20,7 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import { Balance } from '../../database-postgres/entity/Balance';
 import { Asset } from '../../database-postgres/entity/Asset';
 import { Vote } from '../../database-postgres/entity/Vote';
+import { Account } from '../../database-postgres/entity/Account';
 
 interface BalanceCondition {
   address: string;
@@ -297,9 +298,9 @@ export default class AccountsApi {
     try {
       let addr: string;
       if (query.username) {
-        const account = (await global.app.sdb.load('Account', {
+        const account = await global.app.sdb.load<Account>(Account, {
           username: query.username,
-        })) as IAccount;
+        });
         if (!account) {
           return next('Account not found');
         }

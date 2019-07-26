@@ -415,8 +415,8 @@ export class SmartDB extends EventEmitter {
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
 
     const schema = this.getSchema(model, true);
-    const result = await this.load(
-      model.name,
+    const result = await this.load<T>(
+      model,
       schema.getNormalizedPrimaryKey(entity)
     );
     return {
@@ -477,9 +477,13 @@ export class SmartDB extends EventEmitter {
   }
 
   /**
-   * load entity from cache and database
+   * load entity from cache. If the entity was not found in the cache
+   * then it goes to the database
    */
-  public async load(model: string, key: ObjectLiteral) {
+  public async load<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO remove async
     CodeContract.argument('model', () => CodeContract.notNull(model));
     CodeContract.argument('key', () => CodeContract.notNull(key));
@@ -487,15 +491,6 @@ export class SmartDB extends EventEmitter {
     const schema = this.getSchema(model, true);
     return await this.getSession().load(schema, key);
   }
-
-  // async loadMany(record, strategy) {
-  //   var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-  //   CodeContract.argument('model', function() {
-  //     return CodeContract.notNull(record);
-  //   });
-  //   const schema = this.getSchema(record, true);
-  //   return await this.getSession().getMany(schema, strategy, callback);
-  // }
 
   /**
    * WARNING: loads entity only from cache

@@ -111,7 +111,7 @@ export default class Transactions {
       throw new Error('Sender public key not provided');
     }
 
-    let sender: IAccount = await global.app.sdb.load('Account', {
+    let sender = await global.app.sdb.load<Account>(Account, {
       address: senderId,
     });
     if (!sender) {

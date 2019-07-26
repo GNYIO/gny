@@ -62,7 +62,7 @@ export default {
     let recipientAccount: IAccount;
     // Validate recipient is valid address
     if (recipient && global.app.util.address.isAddress(recipient)) {
-      recipientAccount = await global.app.sdb.load('Account', {
+      recipientAccount = await global.app.sdb.load<Account>(Account, {
         address: recipient,
       });
       if (recipientAccount) {
@@ -79,7 +79,7 @@ export default {
         });
       }
     } else {
-      recipientAccount = await global.app.sdb.load('Account', {
+      recipientAccount = await global.app.sdb.load<Account>(Account, {
         username: recipient,
       });
       if (!recipientAccount) return 'Recipient name not exist';
@@ -116,7 +116,9 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
-    const exists = await global.app.sdb.load('Account', { username: username });
+    const exists = await global.app.sdb.load<Account>(Account, {
+      username: username,
+    });
 
     if (exists) return 'Name already registered';
     if (this.sender.username) return 'Name already set';
