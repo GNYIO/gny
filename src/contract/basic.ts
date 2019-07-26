@@ -314,7 +314,9 @@ export default {
     }
 
     for (const username of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { username });
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
       if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
@@ -363,7 +365,9 @@ export default {
     }
 
     for (const username of delegates) {
-      const exists = await global.app.sdb.exists('Delegate', { username });
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
       if (!exists) return `Voted delegate not exists: ${username}`;
     }
 

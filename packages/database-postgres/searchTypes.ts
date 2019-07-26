@@ -34,3 +34,5 @@ export interface FindAllOptions<T> {
 }
 
 export type FindOneOptions<T> = FindAllOptions<T>;
+
+export type ArrayCondition<T> = { [P in keyof T]?: Array<T[P]> };

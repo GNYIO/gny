@@ -14,10 +14,12 @@ export default {
 
     const senderId = this.sender.address;
     await global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
-    let exists = await global.app.sdb.exists('Issuer', { name });
+    let exists = await global.app.sdb.exists<Issuer>(Issuer, { name });
     if (exists) return 'Issuer name already exists';
 
-    exists = await global.app.sdb.exists('Issuer', { issuerId: senderId });
+    exists = await global.app.sdb.exists<Issuer>(Issuer, {
+      issuerId: senderId,
+    });
     if (exists) return 'Account is already an issuer';
 
     const issuer: IIssuer = {
@@ -47,7 +49,9 @@ export default {
     const fullName = `${issuer.name}.${symbol}`;
     await global.app.sdb.lock(`uia.registerAsset@${fullName}`);
 
-    const exists = await global.app.sdb.exists('Asset', { name: fullName });
+    const exists = await global.app.sdb.exists<Asset>(Asset, {
+      name: fullName,
+    });
     if (exists) return 'Asset already exists';
 
     const asset: IAsset = {

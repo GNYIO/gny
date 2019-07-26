@@ -3,6 +3,7 @@ import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
 import { Account } from '../../packages/database-postgres/entity/Account';
+import { Transaction } from '../../packages/database-postgres/entity/Transaction';
 
 export default class Transactions {
   public static processUnconfirmedTransactions = (
@@ -76,7 +77,7 @@ export default class Transactions {
       if (StateHelper.TrsAlreadyInUnconfirmedPool(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
-      const exists = await global.app.sdb.exists('Transaction', {
+      const exists = await global.app.sdb.exists<Transaction>(Transaction, {
         id: transaction.id,
       });
       if (exists) {

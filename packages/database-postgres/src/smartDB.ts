@@ -16,7 +16,12 @@ import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
 import { BigNumber } from 'bignumber.js';
-import { Versioned, FindOneOptions, FindAllOptions } from '../searchTypes';
+import {
+  Versioned,
+  FindOneOptions,
+  FindAllOptions,
+  ArrayCondition,
+} from '../searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
 
 export type CommitBlockHook = (block: Block) => void;
@@ -582,10 +587,13 @@ export class SmartDB extends EventEmitter {
     return await this.blockSession.queryByJson(schema, params);
   }
 
-  public async exists(model: string, key: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async exists<T extends Versioned>(
+    model: new () => T,
+    key: Partial<T> | ArrayCondition<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
     return await this.getSession().exists(schema, key);
   }
 
