@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { loadConfig } from '../loadConfig';
-import { ILogger } from '../../../src/interfaces';
+import { ILogger, IBlock } from '../../../src/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract';
@@ -402,6 +402,12 @@ export class SmartDB extends EventEmitter {
     }
   }
 
+  /**
+   * First it creates an entity only in cache and on the next
+   * block-commit the corresponding entity is also created in the db
+   * @param model
+   * @param entity
+   */
   public async create<T extends Versioned>(
     model: new () => T,
     entity: RequireAtLeastOne<T>
@@ -432,11 +438,18 @@ export class SmartDB extends EventEmitter {
     };
   }
 
+  /**
+   * First it increases properties of the entity only in cache and on the next
+   * block-commit the corresponding entity properties are increased in the DB
+   * @param model
+   * @param increaseBy
+   * @param key
+   */
   public async increase<T extends Versioned>(
     model: new () => T,
     increaseBy: RequireAtLeastOne<T>,
     key: RequireAtLeastOne<T>
-  ) {
+  ): Promise<Partial<T>> {
     // TODO, remove async
     CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('increaseBy', () => CodeContract.notNull(increaseBy));
@@ -446,6 +459,13 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().increase(sessionId, key, increaseBy);
   }
 
+  /**
+   * First it updates the entity only in cache and on the next
+   * block-commit the corresponding entity is updated from the DB
+   * @param model
+   * @param modifier
+   * @param key
+   */
   public async update<T extends Versioned>(
     model: new () => T,
     modifier: RequireAtLeastOne<T>,
@@ -471,6 +491,12 @@ export class SmartDB extends EventEmitter {
     await this.getSession().update(schema, key, modifier);
   }
 
+  /**
+   * First it deletes the entity only from cache and on the next
+   * block-commit the corresponding entity is deleted from the DB
+   * @param model
+   * @param key
+   */
   public async del<T extends Versioned>(
     model: new () => T,
     key: RequireAtLeastOne<T>
@@ -484,8 +510,8 @@ export class SmartDB extends EventEmitter {
   }
 
   /**
-   * load entity from cache. If the entity was not found in the cache
-   * then it goes to the database
+   * 1. Tries to load entity from cache and returns entity if found in cache
+   * 2. If the entity was not found cache - then it hits the DB and returns entity
    */
   public async load<T extends Versioned>(
     model: new () => T,
@@ -500,7 +526,8 @@ export class SmartDB extends EventEmitter {
   }
 
   /**
-   * WARNING: loads entity only from cache
+   * Looks only in cache. Does not hit the database.
+   * WARNING: Does only work for memory-entities
    * @param model model name
    * @param key key of entity
    * @returns tracked entity from cache
@@ -674,6 +701,14 @@ export class SmartDB extends EventEmitter {
     return result[0];
   }
 
+  public async getBlockById(
+    id: string,
+    withTransactions?: false // false is here used as a type
+  ): Promise<Block>;
+  public async getBlockById(
+    id: string,
+    withTransactions: true // true is here used as a type
+  ): Promise<IBlock>;
   public async getBlockById(id: string, withTransactions = false) {
     CodeContract.argument('blockId', () =>
       CodeContract.notNullOrWhitespace(id)
@@ -698,11 +733,21 @@ export class SmartDB extends EventEmitter {
     return result[0];
   }
 
-  public getBlocksByHeightRange = async (
+  public async getBlocksByHeightRange(
+    min: string,
+    max: string,
+    withTransactions?: false // false is here used as a type
+  ): Promise<Block[]>;
+  public async getBlocksByHeightRange(
+    min: string,
+    max: string,
+    withTransactions: true // true is here used as a type
+  ): Promise<IBlock[]>;
+  public async getBlocksByHeightRange(
     min: string,
     max: string,
     withTransactions = false
-  ) => {
+  ) {
     CodeContract.argument(
       'minHeight, maxHeight',
       new BigNumber(min).isGreaterThanOrEqualTo(0) &&
@@ -720,26 +765,9 @@ export class SmartDB extends EventEmitter {
     } else {
       return blocks;
     }
-  };
-
-  private async getBlocksByIds(blockIds: string[], withTransactions = false) {
-    CodeContract.argument('blockIds', () => CodeContract.notNull(blockIds));
-
-    const result = [];
-    for (let i = 0; i < result.length; ++i) {
-      const id = blockIds[i];
-      const oneBlock = await this.getBlockById(id);
-      result.push(oneBlock);
-    }
-    if (withTransactions) {
-      const blocksWithTrans = await this.attachTransactions(result);
-      return blocksWithTrans;
-    } else {
-      result;
-    }
   }
 
-  private async attachTransactions(blocks: Block[]) {
+  private async attachTransactions(blocks: Block[]): Promise<Array<IBlock>> {
     // TODO: make only one database call
     for (let i = 0; i < blocks.length; ++i) {
       const trans = await this.blockSession.getTransactionsByBlockHeight(
@@ -763,10 +791,6 @@ export class SmartDB extends EventEmitter {
       Reflect.deleteProperty(key, 'transactions');
     }
     return key;
-  }
-
-  private get transactionSchema() {
-    return this.getSchema(SmartDB.TRANSACTION_MODEL_NAME, true);
   }
 
   public get lastBlockHeight() {
