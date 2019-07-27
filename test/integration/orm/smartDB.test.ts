@@ -41,6 +41,7 @@ import {
   createTransaction,
 } from './smartDB.test.helpers';
 import { randomBytes } from 'crypto';
+import { doesNotReject } from 'assert';
 
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
@@ -1303,6 +1304,100 @@ describe('integration - SmartDB', () => {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(result.gny).toEqual(String(3000));
+
+    done();
+  });
+
+  it('increase() - returns partial object with changed values', async done => {
+    await saveGenesisBlock(sut);
+
+    const data = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      gny: String(4000),
+    } as IAccount;
+    await sut.create<Account>(Account, data);
+
+    const result = await sut.increase<Account>(
+      Account,
+      {
+        gny: String(3000),
+      },
+      {
+        address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      }
+    );
+
+    expect(result).toEqual({
+      gny: String(7000),
+    });
+
+    done();
+  });
+
+  it('increase() - updates first cache and on block-commit writes changes to db', async done => {
+    await saveGenesisBlock(sut);
+
+    const createdBalance = await sut.create<Balance>(Balance, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      currency: 'AAA.EEE',
+      balance: String(20000),
+      flag: 1,
+    });
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    // increase by x
+    const updatedAccount = await sut.increase<Balance>(
+      Balance,
+      {
+        balance: String(10000),
+      },
+      {
+        address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+        currency: 'AAA.EEE',
+      }
+    );
+
+    // check before increase happend only in cache
+    const checkBeforeMemory = await sut.get<Balance>(Balance, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      currency: 'AAA.EEE',
+    });
+    expect(checkBeforeMemory).toHaveProperty('balance', String(30000));
+    expect(checkBeforeMemory).toHaveProperty('_version_', 2);
+
+    const checkBeforeDB = await sut.findOne<Balance>(Balance, {
+      condition: {
+        address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+        currency: 'AAA.EEE',
+      },
+    });
+    expect(checkBeforeDB).toHaveProperty('balance', String(20000));
+    expect(checkBeforeDB).toHaveProperty('_version_', 1);
+
+    // now write changes to db
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+    await sut.commitBlock();
+
+    // check after increase was written to db
+    const checkAfterMemory = await sut.get<Balance>(Balance, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      currency: 'AAA.EEE',
+    });
+    expect(checkAfterMemory).toHaveProperty('balance', String(30000));
+    expect(checkAfterMemory).toHaveProperty('_version_', 2);
+
+    const checkAfterDB = await sut.findOne<Balance>(Balance, {
+      condition: {
+        address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+        currency: 'AAA.EEE',
+      },
+    });
+    expect(checkAfterDB).toHaveProperty('balance', String(30000));
+    expect(checkAfterDB).toHaveProperty('_version_', 2);
 
     done();
   });
@@ -3112,6 +3207,10 @@ describe('integration - SmartDB', () => {
         _version_: 2,
       });
 
+      done();
+    });
+
+    it.skip('writing 5 blocks to disc, then stop the SmartDB, restart it and rollback to heigh 2', async done => {
       done();
     });
   });
