@@ -24,6 +24,7 @@ import {
   Condition,
 } from '../searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
+import { Transaction } from '../entity/Transaction';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -641,10 +642,16 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public getBlockByHeight = async (
+  public async getBlockByHeight(
     height: string,
-    withTransactions = false
-  ) => {
+    withTransactions?: false
+  ): Promise<Block>;
+  public async getBlockByHeight(
+    height: string,
+    withTransactions: true
+  ): Promise<Block & { transactions: Transaction[] }>;
+
+  public async getBlockByHeight(height: string, withTransactions = false) {
     CodeContract.argument(
       'height',
       new BigNumber(height).isGreaterThanOrEqualTo(0),
@@ -665,7 +672,7 @@ export class SmartDB extends EventEmitter {
     }
     const result = await this.attachTransactions([block]);
     return result[0];
-  };
+  }
 
   public async getBlockById(id: string, withTransactions = false) {
     CodeContract.argument('blockId', () =>
