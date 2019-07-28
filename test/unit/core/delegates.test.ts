@@ -541,7 +541,7 @@ describe('core/delegates', () => {
 
   describe('compare', () => {
     it('compare() - sorts delegates after votes', done => {
-      const delegates: Partial<IDelegate>[] = [
+      const delegates = [
         {
           publicKey: 'second',
           votes: String(2),
@@ -550,7 +550,7 @@ describe('core/delegates', () => {
           publicKey: 'one',
           votes: String(5),
         },
-      ];
+      ] as IDelegate[];
 
       const result = delegates.sort(Delegates.compare);
 
@@ -568,7 +568,7 @@ describe('core/delegates', () => {
     });
 
     it('compare() - sorts delegates after votes (2)', done => {
-      const delegates: Partial<IDelegate>[] = [
+      const delegates = [
         {
           publicKey: 'second',
           votes: String(1),
@@ -577,7 +577,7 @@ describe('core/delegates', () => {
           publicKey: 'one',
           votes: String(0),
         },
-      ];
+      ] as IDelegate[];
 
       const result = delegates.sort(Delegates.compare);
 
@@ -596,7 +596,7 @@ describe('core/delegates', () => {
     });
 
     it('compare() - sorts delegates after votes (3)', done => {
-      const delegates: Partial<IDelegate>[] = [
+      const delegates = [
         {
           publicKey: 'second',
           votes: String(0),
@@ -605,7 +605,7 @@ describe('core/delegates', () => {
           publicKey: 'one',
           votes: String(1),
         },
-      ];
+      ] as IDelegate[];
 
       const result = delegates.sort(Delegates.compare);
 
@@ -624,7 +624,7 @@ describe('core/delegates', () => {
     });
 
     it('compare() - sorts delegates after votes and then after publicKey descending', done => {
-      const delegates: Partial<IDelegate>[] = [
+      const delegates = [
         {
           publicKey: 'aaa',
           votes: String(10),
@@ -633,7 +633,7 @@ describe('core/delegates', () => {
           publicKey: 'bbb',
           votes: String(10),
         },
-      ];
+      ] as IDelegate[];
 
       const result = delegates.sort(Delegates.compare);
 
