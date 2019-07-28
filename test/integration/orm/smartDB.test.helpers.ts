@@ -11,6 +11,8 @@ import {
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
 import { generateAddress } from '../../../src/utils/address';
+import * as lib from '../lib';
+import * as fs from 'fs';
 
 export const CUSTOM_GENESIS: IGenesisBlock = {
   version: 0,
