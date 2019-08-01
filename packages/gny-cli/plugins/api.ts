@@ -352,7 +352,7 @@ function deposit(options) {
 }
 
 function dappTransaction(options) {
-  trs = gnyJS.dapp.createInnerTransaction(
+  const trs = gnyJS.dapp.createInnerTransaction(
     {
       fee: options.fee,
       type: Number(options.type),
@@ -407,8 +407,9 @@ function getFullBlockByHeight(height) {
 }
 
 function getTransactionBytes(options: any) {
+  let trs;
   try {
-    const trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+    trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
@@ -417,8 +418,9 @@ function getTransactionBytes(options: any) {
 }
 
 function getTransactionId(options) {
+  let trs;
   try {
-    const trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+    trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
@@ -427,8 +429,9 @@ function getTransactionId(options) {
 }
 
 function getBlockPayloadHash(options) {
+  let block;
   try {
-    const block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
@@ -441,8 +444,9 @@ function getBlockPayloadHash(options) {
 }
 
 function getBlockBytes(options) {
+  let block;
   try {
-    const block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
@@ -451,8 +455,9 @@ function getBlockBytes(options) {
 }
 
 function getBlockId(options) {
+  let block;
   try {
-    const block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;

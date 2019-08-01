@@ -3,8 +3,9 @@ import * as ByteBuffer from 'bytebuffer';
 
 const bytesTypes = {
   2: function(trs) {
+    let buf;
     try {
-      const buf = new Buffer(trs.asset.delegates.list.join(','), 'utf8');
+      buf = new Buffer(trs.asset.delegates.list.join(','), 'utf8');
     } catch (e) {
       throw Error(e.toString());
     }
@@ -14,8 +15,9 @@ const bytesTypes = {
 };
 
 export function getTransactionBytes(trs, skipSignature?) {
+  let bb;
   try {
-    const bb = new ByteBuffer(1, true);
+    bb = new ByteBuffer(1, true);
     bb.writeInt(trs.timestamp);
     bb.writeString(trs.fee);
 
