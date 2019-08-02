@@ -133,7 +133,6 @@ export async function getAccount(address: string) {
     };
     return ret;
   } catch (e) {
-    this.library.logger.error('Failed to get account', e);
     return 'Server Error';
   }
 }
