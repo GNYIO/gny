@@ -1,5 +1,10 @@
 import { EventEmitter } from 'events';
-import { IMessageEmitter, Modules, CoreApi } from '../interfaces';
+import {
+  IMessageEmitter,
+  Modules,
+  CoreApi,
+  MethodActions,
+} from '../interfaces';
 
 export class MessageBus extends EventEmitter implements IMessageEmitter {
   private modules: Modules;
@@ -10,7 +15,7 @@ export class MessageBus extends EventEmitter implements IMessageEmitter {
     this.coreApi = coreApi;
   }
 
-  message(topic: string, ...restArgs) {
+  message(topic: MethodActions, ...restArgs) {
     Object.keys(this.modules).forEach(moduleName => {
       const module = this.modules[moduleName];
       if (typeof module[topic] === 'function') {
