@@ -95,6 +95,11 @@ export default {
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
     global.app.validate('amount', String(amount));
     const senderId = this.sender.address;
+
+    if (senderId == recipient) {
+      return 'Invalid recipient';
+    }
+
     const balance = await global.app.balances.get(senderId, currency);
     if (balance.lt(amount)) return 'Insufficient balance';
 

@@ -52,8 +52,13 @@ export default {
     if (
       new BigNumber(this.block.height).isGreaterThan(0) &&
       new BigNumber(sender.gny).isLessThan(amount)
-    )
+    ) {
       return 'Insufficient balance';
+    }
+
+    if (senderId == recipient) {
+      return 'Invalid recipient';
+    }
 
     let recipientAccount: IAccount;
     // Validate recipient is valid address
