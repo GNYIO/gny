@@ -51,6 +51,20 @@ export default class TransfersApi {
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;
     const offset = Number(req.query.offset) || 0;
+
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(100),
+      offset: this.library.joi.number().min(0),
+    });
+
+    const report = this.library.joi.validate({ limit, offset }, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
     if (ownerId) {
       condition.$or = {
         senderId: ownerId,

@@ -158,6 +158,19 @@ export default class DelegatesApi {
       return next('Invalid params');
     }
 
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(101),
+      offset: this.library.joi.number().min(0),
+    });
+
+    const report = this.library.joi.validate({ limit, offset }, schema);
+    if (report.error) {
+      return next(report.error.message);
+    }
+
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) return next('No delegates found');
     return res.json({

@@ -188,6 +188,23 @@ export default class AccountsApi {
     // get assets balances
     const offset = req.query.offset ? Number(req.query.offset) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 20;
+
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(100),
+      offset: this.library.joi.number().min(0),
+    });
+
+    const offsetLimitReport = this.library.joi.validate(
+      { limit, offset },
+      schema
+    );
+    if (offsetLimitReport.error) {
+      return next(offsetLimitReport.error.message);
+    }
+
     const condition: BalanceCondition = { address: req.params.address };
     if (req.query.flag) {
       condition.flag = Number(req.query.flag);

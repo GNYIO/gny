@@ -190,6 +190,7 @@ export default class TransportApi {
         .number()
         .integer()
         .min(0)
+        .max(200)
         .optional(),
       lastBlockId: joi
         .string()
