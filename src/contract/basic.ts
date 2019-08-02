@@ -238,9 +238,9 @@ export default {
     }
 
     sender.isLocked = 0;
-    sender.lockHeight = 0;
+    sender.lockHeight = String(0);
     sender.gny += sender.lockAmount;
-    sender.lockAmount = 0;
+    sender.lockAmount = String(0);
     await global.app.sdb.update<Account>(Account, sender, {
       address: senderId,
     });
