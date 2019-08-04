@@ -41,11 +41,59 @@ describe('blocksApi', () => {
     it(
       'should get blocks',
       async () => {
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+        const offset = 1;
+        const limit = 3;
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/blocks/?offset=' +
+            offset +
+            '&limit=' +
+            limit
+        );
+        expect(data.blocks.length).toBe(3);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: "offset" must be larger than or equal to 0',
+      async () => {
         // wait 1 block;
         await lib.onNewBlock();
 
-        const { data } = await axios.get('http://localhost:4096/api/blocks');
-        expect(data.count).toBe(String(3));
+        const offset = -1;
+
+        const promise = axios.get(
+          'http://localhost:4096/api/blocks/?offset=' + offset
+        );
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return: "limit" must be less than or equal to 100',
+      async () => {
+        // wait 1 block;
+        await lib.onNewBlock();
+        const limit = 101;
+
+        const promise = axios.get(
+          'http://localhost:4096/api/blocks/?limit=' + limit
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "limit" fails because ["limit" must be less than or equal to 100]',
+        });
       },
       lib.oneMinute
     );
