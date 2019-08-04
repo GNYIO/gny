@@ -18,7 +18,6 @@ import {
 } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
 
 interface BalanceCondition {
   address: string;
