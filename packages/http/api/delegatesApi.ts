@@ -100,7 +100,7 @@ export default class DelegatesApi {
       })) as IAccount[];
       const lastBlock = StateHelper.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(
-        lastBlock.height
+        Number(lastBlock.height)
       ) as BigNumber;
       for (const a of accounts) {
         a.balance = a.gny;
