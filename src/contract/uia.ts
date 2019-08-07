@@ -96,7 +96,7 @@ export default {
     global.app.validate('amount', String(amount));
     const senderId = this.sender.address;
 
-    if (senderId == recipient) {
+    if (senderId === recipient || this.sender.username === recipient) {
       return 'Invalid recipient';
     }
 

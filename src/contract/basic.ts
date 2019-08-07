@@ -56,7 +56,7 @@ export default {
       return 'Insufficient balance';
     }
 
-    if (senderId == recipient) {
+    if (senderId === recipient || sender.username === recipient) {
       return 'Invalid recipient';
     }
 
