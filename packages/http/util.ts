@@ -28,7 +28,7 @@ export async function getBlocks(
   maxHeight: string,
   withTransaction: boolean
 ) {
-  const blocks: IBlock[] = await global.app.sdb.getBlocksByHeightRange(
+  const blocks = await global.app.sdb.getBlocksByHeightRange(
     minHeight,
     maxHeight
   );
