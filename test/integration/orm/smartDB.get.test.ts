@@ -5,8 +5,8 @@ import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import { Round } from '../../../packages/database-postgres/entity/Round';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
+import { Asset } from '../../../packages/database-postgres/entity/Asset';
 
 describe('smartDB.get()', () => {
   let sut: SmartDB;
@@ -100,13 +100,26 @@ describe('smartDB.get()', () => {
     done();
   });
 
+  it('get() - getting by entity from cache by composite key (if entity is untracked it returns undefined)', async done => {
+    await saveGenesisBlock(sut);
+
+    const key = {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      currency: 'RRR.EEE',
+    };
+    const result = await sut.get<Balance>(Balance, key);
+
+    expect(result).toBeUndefined();
+    done();
+  });
+
   it('get() - loads entity only from cache (if untracked returns undefined)', async done => {
     await saveGenesisBlock(sut);
 
     const key = {
-      round: String(3),
+      name: 'AAA.AAA',
     };
-    const result = await sut.get<Round>(Round, key);
+    const result = await sut.get<Asset>(Asset, key);
 
     expect(result).toBeUndefined();
     done();
@@ -136,17 +149,16 @@ describe('smartDB.get()', () => {
   it('get() - loads entity from cache (by unique key)', async done => {
     await saveGenesisBlock(sut);
 
-    const account = {
+    const delegate = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       username: 'a1300',
-      gny: String(0),
     } as IAccount;
-    const created = await sut.create<Account>(Account, account);
+    const created = await sut.create<Delegate>(Delegate, delegate);
 
     const uniqueKey = {
       username: 'a1300',
     };
-    const result = await sut.get<Account>(Account, uniqueKey);
+    const result = await sut.get<Delegate>(Delegate, uniqueKey);
     expect(result).toEqual(created);
     done();
   });
