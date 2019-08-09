@@ -179,7 +179,7 @@ function createDelegate(username: string) {
   return delegate;
 }
 
-function createAccount(username: string) {
+function createAccount(username: string = null) {
   const publicKey = createHexString(32);
   const address = generateAddress(publicKey);
   const account: IAccount = {
@@ -473,7 +473,7 @@ describe('orm - LRUEntityCache', () => {
     done();
   });
 
-  it('refreshCached() - are all uniquedColumn caches also updated?', done => {
+  it('refreshCached() - all uniquedColumn caches updated', done => {
     const delegateData = createDelegate('liangpeili');
     const delegateKey: Partial<IDelegate> = {
       address: delegateData.address,
@@ -481,9 +481,6 @@ describe('orm - LRUEntityCache', () => {
 
     sut.put('Delegate', delegateKey, delegateData);
 
-    const addressUnique: Partial<IDelegate> = {
-      address: delegateData.address,
-    };
     const tidUnique: Partial<IDelegate> = {
       tid: delegateData.tid,
     };
@@ -494,9 +491,6 @@ describe('orm - LRUEntityCache', () => {
       publicKey: delegateData.publicKey,
     };
 
-    expect(sut.getUnique('Delegate', 'address', addressUnique)).toEqual(
-      delegateData
-    );
     expect(sut.getUnique('Delegate', 'tid', tidUnique)).toEqual(delegateData);
     expect(sut.getUnique('Delegate', 'username', usernameUnique)).toEqual(
       delegateData
@@ -515,9 +509,6 @@ describe('orm - LRUEntityCache', () => {
     // update
     sut.refreshCached('Delegate', delegateKey, updates);
 
-    expect(sut.getUnique('Delegate', 'address', addressUnique).votes).toEqual(
-      String(100)
-    );
     expect(sut.getUnique('Delegate', 'tid', tidUnique).votes).toEqual(
       String(100)
     );
@@ -528,6 +519,100 @@ describe('orm - LRUEntityCache', () => {
       sut.getUnique('Delegate', 'publicKey', publicKeyUnique).votes
     ).toEqual(String(100));
 
+    done();
+  });
+
+  it('refreshCached() - returns false when entity is not found', done => {
+    const result = sut.refreshCached(
+      'Delegate',
+      {
+        address: 'Hello',
+      },
+      [
+        {
+          name: 'gny',
+          value: String(3000),
+        },
+      ]
+    );
+    expect(result).toEqual(false);
+
+    done();
+  });
+
+  it('refreshCached() - returns false when no unique column was updated', done => {
+    const delegate = createDelegate('a1300');
+    const delegateKey = {
+      address: delegate.address,
+    };
+
+    sut.put('Delegate', delegateKey, delegate);
+
+    const changes: PropertyValue[] = [
+      {
+        name: 'missedBlocks',
+        value: String(1),
+      },
+    ];
+    const result = sut.refreshCached('Delegate', delegateKey, changes);
+    expect(result).toEqual(false);
+
+    // check if model was correctly updated
+    const expected: IDelegate = {
+      ...delegate,
+      missedBlocks: String(1),
+    };
+    expect(sut.get('Delegate', delegateKey)).toEqual(expected);
+
+    const uniqueTidKey = {
+      tid: delegate.tid,
+    };
+    expect(sut.getUnique('Delegate', 'tid', uniqueTidKey)).toEqual(expected);
+
+    const uniqueUsernameKey = {
+      username: delegate.username,
+    };
+    expect(sut.getUnique('Delegate', 'username', uniqueUsernameKey)).toEqual(
+      expected
+    );
+
+    const uniquePublickeyKey = {
+      publicKey: delegate.publicKey,
+    };
+    expect(sut.getUnique('Delegate', 'publicKey', uniquePublickeyKey)).toEqual(
+      expected
+    );
+
+    done();
+  });
+
+  it('refreshCached() - returns true when unique column was correctly updated', done => {
+    const account = createAccount();
+    const accountKey = {
+      address: account.address,
+    };
+
+    sut.put('Account', accountKey, account);
+
+    const changes: PropertyValue[] = [
+      {
+        name: 'username',
+        value: 'liang',
+      },
+    ];
+    const result = sut.refreshCached('Account', accountKey, changes);
+
+    // check if model was correctly updated
+    const expected: IAccount = {
+      ...account,
+      username: 'liang',
+    };
+    expect(sut.get('Account', accountKey)).toEqual(expected);
+    expect(sut.getUnique('Account', 'username', { username: 'liang' })).toEqual(
+      expected
+    );
+
+    expect(result).toEqual(true);
     done();
   });
 
@@ -544,6 +629,23 @@ describe('orm - LRUEntityCache', () => {
     expect(() =>
       sut.getUnique('Delegate', 'missedBlocks', { missedBlocks: String(2) })
     ).toThrow();
+    done();
+  });
+
+  it.skip('getUnique() returns other object reference', done => {
+    const delegate = createDelegate('a1300');
+    const delegateKey = {
+      address: delegate.address,
+    };
+    sut.put('Delegate', delegateKey, delegate);
+
+    const tidUniqueKey = {
+      tid: delegate.tid,
+    };
+    const result = sut.getUnique('Delegate', 'tid', tidUniqueKey);
+
+    expect(result).toEqual(delegate); // structure is the same
+    expect(result).not.toBe(delegate); // object reference is not the same
     done();
   });
 

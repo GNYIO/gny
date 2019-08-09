@@ -5,6 +5,7 @@ import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
+import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 
 describe('smartDB.del', () => {
   let sut: SmartDB;
@@ -49,7 +50,36 @@ describe('smartDB.del', () => {
     })();
   }, lib.oneMinute);
 
-  it('del() - deletes entity from cache', async done => {
+  it('del() - deletes entity from cache (memory model)', async done => {
+    await saveGenesisBlock(sut);
+
+    const delegate = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      gny: String(0),
+    };
+    await sut.create<Delegate>(Delegate, delegate);
+
+    // check before
+    const before = await sut.get<Delegate>(Delegate, {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(before).toBeTruthy();
+
+    // delete
+    await sut.del<Delegate>(Delegate, {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+
+    // check after
+    const after = await sut.get<Delegate>(Delegate, {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(after).toBeUndefined();
+
+    done();
+  });
+
+  it('del() - deletes entity from cache (normal model)', async done => {
     await saveGenesisBlock(sut);
 
     const account = {
@@ -59,10 +89,16 @@ describe('smartDB.del', () => {
     await sut.create<Account>(Account, account);
 
     // check before
-    const before = await sut.get<Account>(Account, {
+    const before = await sut.load<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(before).toBeTruthy();
+    const beforeInDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      },
+    });
+    expect(beforeInDb).toBeUndefined();
 
     // delete
     await sut.del<Account>(Account, {
@@ -70,15 +106,51 @@ describe('smartDB.del', () => {
     });
 
     // check after
-    const after = await sut.get<Account>(Account, {
+    const after = await sut.load<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+    });
+    expect(after).toBeUndefined();
+    const afterInDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      },
+    });
+    expect(afterInDb).toBeUndefined();
+
+    done();
+  });
+
+  it('del() - delet unique key (memory model)', async done => {
+    await saveGenesisBlock(sut);
+
+    const delegate = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      gny: String(0),
+      tid: 'someLongId',
+    };
+    await sut.create<Delegate>(Delegate, delegate);
+
+    // check before
+    const before = await sut.get<Delegate>(Delegate, {
+      tid: 'someLongId',
+    });
+    expect(before).toBeTruthy();
+
+    // delete
+    await sut.del<Delegate>(Delegate, {
+      tid: 'someLongId',
+    });
+
+    // check after
+    const after = await sut.get<Delegate>(Delegate, {
+      tid: 'someLongId',
     });
     expect(after).toBeUndefined();
 
     done();
   });
 
-  it('del() - delete by unique key', async done => {
+  it('del() - delete by unique key (normal model)', async done => {
     await saveGenesisBlock(sut);
 
     const account = {
@@ -88,13 +160,19 @@ describe('smartDB.del', () => {
     };
     await sut.create<Account>(Account, account);
 
+    // check before
+    const before = await sut.load<Account>(Account, {
+      username: 'a1300',
+    });
+    expect(before).toBeTruthy();
+
     // delete
     await sut.del<Account>(Account, {
       username: 'a1300',
     });
 
     // check after
-    const after = await sut.get<Account>(Account, {
+    const after = await sut.load<Account>(Account, {
       username: 'a1300',
     });
     expect(after).toBeUndefined();

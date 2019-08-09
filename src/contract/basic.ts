@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate } from '../interfaces';
+import { IAccount, ITransfer, IDelegate, Context } from '../interfaces';
 import { Vote } from '../../packages/database-postgres/entity/Vote';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Delegate } from '../../packages/database-postgres/entity/Delegate';
@@ -43,7 +43,7 @@ function isUniq(arr) {
 }
 
 export default {
-  async transfer(amount, recipient) {
+  async transfer(this: Context, amount, recipient) {
     if (arguments.length !== 2) return 'Invalid arguments length';
     if (!recipient) return 'Invalid recipient';
     // Verify amount should be positive integer
@@ -109,7 +109,7 @@ export default {
     return null;
   },
 
-  async setUserName(username) {
+  async setUserName(this: Context, username) {
     if (arguments.length !== 1) return 'Invalid arguments length';
     global.app.validate('name', username);
 
@@ -132,7 +132,7 @@ export default {
     return null;
   },
 
-  async setSecondPassphrase(publicKey) {
+  async setSecondPassphrase(this: Context, publicKey) {
     if (arguments.length !== 1) return 'Invalid arguments length';
     global.app.validate('publickey', publicKey);
 
@@ -151,7 +151,7 @@ export default {
     return null;
   },
 
-  async lock(height, amount) {
+  async lock(this: Context, height, amount) {
     if (arguments.length !== 2) return 'Invalid arguments length';
     if (!Number.isInteger(height) || height <= 0)
       return 'Height should be positive integer';
@@ -223,7 +223,7 @@ export default {
     return null;
   },
 
-  async unlock() {
+  async unlock(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
     const sender = this.sender;
     if (!sender) return 'Account not found';
@@ -238,9 +238,9 @@ export default {
     }
 
     sender.isLocked = 0;
-    sender.lockHeight = 0;
+    sender.lockHeight = String(0);
     sender.gny += sender.lockAmount;
-    sender.lockAmount = 0;
+    sender.lockAmount = String(0);
     await global.app.sdb.update<Account>(Account, sender, {
       address: senderId,
     });
@@ -248,9 +248,9 @@ export default {
     return null;
   },
 
-  async registerDelegate() {
+  async registerDelegate(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
-    const sender = this.sender as IAccount;
+    const sender = this.sender;
     if (!sender) return 'Account not found';
 
     const senderId = this.sender.address;
@@ -282,7 +282,7 @@ export default {
     return null;
   },
 
-  async vote(delegates) {
+  async vote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
@@ -336,7 +336,7 @@ export default {
     return null;
   },
 
-  async unvote(delegates) {
+  async unvote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);

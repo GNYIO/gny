@@ -7,11 +7,8 @@ export default function parseNums(obj, options) {
     if (obj.hasOwnProperty(key)) {
       value = obj[key];
 
-      if (
-        typeof value === 'string' &&
-        !isNaN(options.parser.call(null, value, 10, key))
-      ) {
-        result[key] = options.parser.call(null, value, 10, key);
+      if (typeof value === 'string' && !isNaN(options.parser(value, 10, key))) {
+        result[key] = options.parser(value, 10, key);
       } else if (value.constructor === Object) {
         result[key] = parseNums(value, options);
       } else {

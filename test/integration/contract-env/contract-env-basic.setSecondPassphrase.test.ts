@@ -1,7 +1,6 @@
 import * as lib from '../lib';
 import * as gnyJS from '../../../packages/gny-js';
 import axios from 'axios';
-import { doesNotReject } from 'assert';
 
 const config = {
   headers: {
