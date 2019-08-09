@@ -333,7 +333,7 @@ describe('integration - SmartDB', () => {
     };
 
     // check cached Account entity
-    const accountCached = await sut.get<Account>(Account, accountKey);
+    const accountCached = await sut.load<Account>(Account, accountKey);
     expect(accountCached.isDelegate).toEqual(0);
 
     // check cached Balance entity

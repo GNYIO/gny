@@ -203,51 +203,47 @@ describe('smartDB.update()', () => {
     15 * 1000
   );
 
-  it(
-    'update() - update 2 or more properties at once (in memory)',
-    async done => {
-      await saveGenesisBlock(sut);
+  it('update() - update 2 or more properties at once (in memory)', async done => {
+    await saveGenesisBlock(sut);
 
-      const createdAccount = await sut.create<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-        gny: String(0),
-        username: null,
-      });
+    const createdAccount = await sut.create<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+      gny: String(0),
+      username: null,
+    });
 
-      // check before update
-      const checkBefore = await sut.get<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-      });
-      expect(checkBefore).toMatchObject({
-        gny: String(0),
-        username: null,
-      });
+    // check before update
+    const checkBefore = await sut.load<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+    });
+    expect(checkBefore).toMatchObject({
+      gny: String(0),
+      username: null,
+    });
 
-      // now update two properties at once
-      await sut.update<Account>(
-        Account,
-        {
-          gny: String(20),
-          username: 'liang',
-        },
-        {
-          address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-        }
-      );
-
-      // check after update
-      const checkAfter = await sut.get<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-      });
-      expect(checkAfter).toMatchObject({
+    // now update two properties at once
+    await sut.update<Account>(
+      Account,
+      {
         gny: String(20),
         username: 'liang',
-      });
+      },
+      {
+        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+      }
+    );
 
-      done();
-    },
-    15 * 1000
-  );
+    // check after update
+    const checkAfter = await sut.load<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+    });
+    expect(checkAfter).toMatchObject({
+      gny: String(20),
+      username: 'liang',
+    });
+
+    done();
+  }, 5000);
 
   it(
     'update() - update 2 or more properties at once (in db)',
@@ -365,7 +361,7 @@ describe('smartDB.update()', () => {
     );
 
     // should now be _version_: 2
-    const result1 = await sut.get<Transfer>(Transfer, { tid });
+    const result1 = await sut.load<Transfer>(Transfer, { tid });
     expect(result1).toHaveProperty('_version_', 2);
     expect(result1).toHaveProperty('amount', String(25 * 1e8));
 
@@ -381,7 +377,7 @@ describe('smartDB.update()', () => {
     );
 
     // should now be _version_: 3
-    const result2 = await sut.get<Transfer>(Transfer, { tid });
+    const result2 = await sut.load<Transfer>(Transfer, { tid });
     expect(result2).toHaveProperty('_version_', 3);
     expect(result2).toHaveProperty('amount', String(30 * 1e8));
 

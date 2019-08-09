@@ -98,6 +98,11 @@ describe('smartDB.findAll()', () => {
     const account3 = createAccount('G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr');
     const created3 = await sut.create<Account>(Account, account3);
 
+    // persist changes
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
     const result = await sut.findAll<Account>(Account, {
       condition: {
         address: {
@@ -112,7 +117,21 @@ describe('smartDB.findAll()', () => {
       },
     });
 
-    const expected = [created1, created3];
+    const expected1 = {
+      ...created1,
+      publicKey: null,
+      secondPublicKey: null,
+      username: null,
+    };
+
+    const expected3 = {
+      ...created3,
+      publicKey: null,
+      secondPublicKey: null,
+      username: null,
+    };
+
+    const expected = [expected1, expected3];
     expect(result).toEqual(expected);
 
     done();
