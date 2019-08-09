@@ -119,8 +119,13 @@ describe('smartDB.createOrLoad()', () => {
     const createResult = await sut.createOrLoad<Round>(Round, round);
 
     // load only from cache
-    const result = await sut.get<Round>(Round, {
+    const result = await sut.load<Round>(Round, {
       round: String(1),
+    });
+    const resultFromDb = await sut.findOne<Round>(Round, {
+      condition: {
+        round: String(1),
+      },
     });
     expect(result).toEqual({
       fee: String(0),
@@ -128,6 +133,7 @@ describe('smartDB.createOrLoad()', () => {
       round: String(1),
       _version_: 1,
     });
+    expect(resultFromDb).toBeUndefined();
 
     done();
   });

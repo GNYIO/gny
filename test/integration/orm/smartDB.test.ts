@@ -341,13 +341,13 @@ describe('integration - SmartDB', () => {
     expect(balanceCached.balance).toEqual(String(0));
 
     // check persistet Account
-    const accountDbVersion: IAccount = await sut.findOne<Account>(Account, {
+    const accountDbVersion = await sut.findOne<Account>(Account, {
       condition: accountKey,
     });
     expect(accountDbVersion.isDelegate).toEqual(0);
 
     // check persistet Balance
-    const balanceDbVersion: IBalance = await sut.findOne<Balance>(Balance, {
+    const balanceDbVersion = await sut.findOne<Balance>(Balance, {
       condition: balanceKey,
     });
     expect(balanceDbVersion.balance).toEqual(String(0));

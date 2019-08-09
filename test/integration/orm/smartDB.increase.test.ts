@@ -187,10 +187,16 @@ describe('smartDB.increase', () => {
       }
     );
 
-    const result = await sut.get<Account>(Account, {
+    const result = await sut.load<Account>(Account, {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
+    const resultFromDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      },
+    });
     expect(result.gny).toEqual(String(3000));
+    expect(resultFromDb).toBeUndefined();
 
     done();
   });

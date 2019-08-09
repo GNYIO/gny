@@ -268,7 +268,7 @@ describe('smartDB.findOne', () => {
     });
     return expect(findOnePromise).rejects.toEqual(
       new Error(
-        'many entities found ( model = \'Balance\' , params = \'{"address":"G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN"}\' )'
+        'many entities found ( model = \'Balance\' , params = \'{"condition":{"address":"G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN"}}\' )'
       )
     );
   });

@@ -171,7 +171,7 @@ describe('SmartDB.rollbackBlock()', () => {
     };
 
     // check before rollbackBlock()
-    const cached: IAccount = await sut.get<Account>(Account, key);
+    const cached = await sut.load<Account>(Account, key);
     expect(cached).toEqual(createdAccountResult);
     const expectedFromDb = {
       ...createdAccountResult,
@@ -179,7 +179,7 @@ describe('SmartDB.rollbackBlock()', () => {
       secondPublicKey: null,
       username: null,
     };
-    const fromDb: IAccount = await sut.findOne<Account>(Account, {
+    const fromDb = await sut.findOne<Account>(Account, {
       condition: key,
     });
     expect(fromDb).toEqual(expectedFromDb);
@@ -188,9 +188,9 @@ describe('SmartDB.rollbackBlock()', () => {
     await sut.rollbackBlock(String(0));
 
     // check after rollbackBlock()
-    const cachedAfter: IAccount = await sut.get<Account>(Account, key);
+    const cachedAfter = await sut.load<Account>(Account, key);
     expect(cachedAfter).toBeUndefined();
-    const fromDbAfter: IAccount = await sut.findOne<Account>(Account, {
+    const fromDbAfter = await sut.findOne<Account>(Account, {
       condition: key,
     });
     expect(fromDbAfter).toBeUndefined();
