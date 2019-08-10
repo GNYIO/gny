@@ -1,12 +1,7 @@
 import { Bundle } from './bundle';
 import * as PeerId from 'peer-id';
 import { extractIpAndPort } from './util';
-import {
-  P2PMessage,
-  ILogger,
-  P2PSubscribeHandler,
-  PeerNode,
-} from '../../src/interfaces';
+import { P2PMessage, ILogger, P2PSubscribeHandler } from '../../src/interfaces';
 
 export class Peer2Peer {
   private bundle: Bundle;
@@ -24,7 +19,7 @@ export class Peer2Peer {
 
   constructor(
     logger: ILogger,
-    peerInfo: PeerInfo,
+    peerInfo,
     bootstrapNode: string,
     bootStrapInterval: number = 5000
   ) {
@@ -46,17 +41,23 @@ export class Peer2Peer {
   }
 
   public startAsync = async () => {
+    this.bundle.on('start', this.started);
     this.bundle.on('stop', this.stopped);
     this.bundle.on('error', this.errorOccurred);
+    this.bundle.on('peer:discovery', this.peerDiscovery);
     this.bundle.on('peer:connect', this.peerConnect);
     this.bundle.on('peer:disconnect', this.peerDisconnect);
-    this.bundle.on('peer:discovery', this.peerDiscovery);
-    await this.bundle.startAsync();
+    await this.bundle.start();
+    console.log(`isStarted: ${this.bundle.isStarted()}`);
     this.printOwnPeerInfo();
   };
 
+  public started = () => {
+    console.log('p2p node started)');
+  };
+
   public stopAsync = async () => {
-    await this.bundle.stopAsync();
+    await this.bundle.stop();
   };
 
   private printOwnPeerInfo = () => {
@@ -122,52 +123,32 @@ export class Peer2Peer {
     this.bundle.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
   }
 
-  broadcastProposeAsync(data: Buffer): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.bundle.isStarted()) {
-        resolve();
-      }
-      this.bundle.pubsub.publish('propose', data, err => {
-        if (err) reject(err.message);
-        else resolve();
-      });
-    });
+  public async broadcastProposeAsync(data: Buffer) {
+    if (!this.bundle.isStarted()) {
+      return;
+    }
+    await this.bundle.pubsub.publish('propose', data);
   }
 
-  public broadcastTransactionAsync(data: Buffer): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.bundle.isStarted()) {
-        resolve();
-      }
-      this.bundle.pubsub.publish('transaction', data, err => {
-        if (err) reject(err.message);
-        else resolve();
-      });
-    });
+  public async broadcastTransactionAsync(data: Buffer) {
+    if (!this.bundle.isStarted()) {
+      return;
+    }
+    await this.bundle.pubsub.publish('transaction', data);
   }
 
-  public broadcastNewBlockHeaderAsync(data: Buffer): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.bundle.isStarted()) {
-        resolve();
-      }
-      this.bundle.pubsub.publish('newBlockHeader', data, err => {
-        if (err) reject(err.message);
-        else resolve();
-      });
-    });
+  public async broadcastNewBlockHeaderAsync(data: Buffer) {
+    if (!this.bundle.isStarted()) {
+      return;
+    }
+    await this.bundle.pubsub.publish('newBlockHeader', data);
   }
 
-  broadcastAsync(topic: string, data: Buffer): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.bundle.isStarted()) {
-        resolve();
-      }
-      this.bundle.pubsub.publish(topic, data, err => {
-        if (err) reject(err.message);
-        else resolve();
-      });
-    });
+  public async broadcastAsync(topic: string, data: Buffer): Promise<void> {
+    if (!this.bundle.isStarted()) {
+      return;
+    }
+    await this.bundle.pubsub.publish(topic, data);
   }
 
   private peerConnect = peer => {
@@ -184,19 +165,6 @@ export class Peer2Peer {
     // do not spam log output: the bootstrap mechanism tries every x seconds to connect to the bootstrap node(s)
     if (!this.bundle.peerBook.has(peer)) {
       this.logger.info(`[P2P] discovered peer: ${peer.id.toB58String()}`);
-    }
-    if (!this.bundle.isStarted()) {
-      this.logger.warn(
-        `[P2P] own node not started, can not dial to peer: ${peer.id.toB58String()}`
-      );
-      return;
-    }
-    try {
-      // this action establishes a __Connection__ to the newly discovered peer
-      // this also adds the peer to the peerBook so the pubsub mechanism can publish to this peer
-      await this.bundle.dialAsync(peer);
-    } catch (err) {
-      this.logger.info(`[P2P] could not dial to ${peer.id.toB58String()}`);
     }
   };
 
