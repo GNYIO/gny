@@ -77,6 +77,9 @@ export class SmartDB extends EventEmitter {
     this.cachedBlocks = new BlockCache(this.options.cachedBlockCount);
 
     this._lastBlockHeight = undefined;
+
+    // bind function to class
+    this.getBlockByHeight = this.getBlockByHeight.bind(this);
   }
 
   async init() {
