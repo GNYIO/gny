@@ -2,13 +2,15 @@
 
 import * as program from 'commander';
 
-import api from './plugins/api';
-import chain from './plugins/chain';
-import contract from './plugins/contract';
-import crypto from './plugins/crypto';
-import misc from './plugins/misc';
+import account from './api/account';
+import basic from './api/basic';
+import block from './api/block';
+import delegate from './api/delegate';
+import peer from './api/peer';
+import transaction from './api/transaction';
+import vote from './api/vote';
 
-const plugins = [api, chain, contract, crypto, misc];
+const api = [account, basic, block, delegate, peer, transaction, vote];
 
 const packageJson = require('./package.json');
 
@@ -29,7 +31,7 @@ function main() {
     )
     .option('-M, --main', 'Specify the mainnet, default: false');
 
-  plugins.forEach(function(el) {
+  api.forEach(function(el) {
     el(program);
   });
 
