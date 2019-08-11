@@ -1,7 +1,6 @@
 // import * as nacl_factory from 'js-nacl';
 import * as crypto from 'crypto-browserify';
 import * as Mnemonic from 'bitcore-mnemonic';
-// import * as gnyJS from '../../../packages/gny-js';
 import * as gnyJS from '@gny/gny-js';
 import * as nacl from 'tweetnacl';
 

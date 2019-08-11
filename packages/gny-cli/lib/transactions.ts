@@ -1,12 +1,11 @@
-const util = require('util');
-const ByteBuffer = require('bytebuffer');
-const crypto = require('./crypto.js');
-const bignum = require('browserify-bignum');
+// const ByteBuffer = require('bytebuffer');
+import * as ByteBuffer from 'bytebuffer';
 
 const bytesTypes = {
   2: function(trs) {
+    let buf = new Buffer([]);
     try {
-      const buf = new Buffer(trs.asset.delegate.username, 'utf8');
+      buf = new Buffer(trs.asset.delegate.username, 'utf8');
     } catch (e) {
       throw Error(e.toString());
     }
@@ -15,8 +14,9 @@ const bytesTypes = {
   },
 
   3: function(trs) {
+    let buf = new Buffer([]);
     try {
-      const buf = trs.asset.vote.votes
+      buf = trs.asset.vote.votes
         ? new Buffer(trs.asset.vote.votes.join(''), 'utf8')
         : null;
     } catch (e) {
@@ -27,8 +27,8 @@ const bytesTypes = {
   },
 
   5: function(trs) {
+    let buf = new Buffer([]);
     try {
-      let buf = new Buffer([]);
       const nameBuf = new Buffer(trs.asset.dapp.name, 'utf8');
       buf = Buffer.concat([buf, nameBuf]);
 
