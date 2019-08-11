@@ -1,4 +1,4 @@
-FROM node:8.13
+FROM node:10.16.2
 WORKDIR /usr/src/app
 
 # first install all dependencies (this step gets cached)
