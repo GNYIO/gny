@@ -19,6 +19,8 @@ import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
+import { Variable } from '../../packages/database-postgres/entity/Variable';
+import { Delegate } from '../../packages/database-postgres/entity/Delegate';
 
 const blockreward = new BlockReward();
 
@@ -30,7 +32,7 @@ export default class Delegates {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
-    const delegates: IDelegate[] = await global.app.sdb.getAll('Delegate');
+    const delegates = await global.app.sdb.getAll<Delegate>(Delegate);
     const keyPairs = Delegates.loadMyDelegates(secrets, delegates);
     StateHelper.SetKeyPairs(keyPairs);
 
@@ -323,7 +325,7 @@ export default class Delegates {
   };
 
   public static getDelegates = async () => {
-    const allDelegates = await global.app.sdb.getAll('Delegate');
+    const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
     let delegates = allDelegates.map(d => Object.assign({}, d)) as IDelegate[];
     if (!delegates || !delegates.length) {
       global.app.logger.info('no delgates');
@@ -352,7 +354,7 @@ export default class Delegates {
       current.productivity = parseFloat(
         Math.floor(percent * 100) / 100
       ).toFixed(2);
-      await global.app.sdb.update('Delegate', current, {
+      await global.app.sdb.update<Delegate>(Delegate, current, {
         address: current.address,
       });
     }
@@ -372,9 +374,7 @@ export default class Delegates {
   };
 
   public static getTopDelegates = async () => {
-    const allDelegates = (await global.app.sdb.getAll(
-      'Delegate'
-    )) as IDelegate[];
+    const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
     const sortedPublicKeys = allDelegates
       .sort(Delegates.compare)
       .map(d => d.publicKey)
@@ -383,7 +383,7 @@ export default class Delegates {
   };
 
   private static getBookkeeper = async () => {
-    const item: IVariable = await global.app.sdb.get('Variable', {
+    const item = await global.app.sdb.get<Variable>(Variable, {
       key: Delegates.BOOK_KEEPER_NAME,
     });
     if (!item) {
@@ -400,11 +400,14 @@ export default class Delegates {
       key: Delegates.BOOK_KEEPER_NAME,
       value: value,
     };
-    const { create } = await global.app.sdb.createOrLoad('Variable', variable);
+    const { create } = await global.app.sdb.createOrLoad<Variable>(
+      Variable,
+      variable
+    );
     // It seems there is no need to update
     if (!create) {
-      await global.app.sdb.update(
-        'Variable',
+      await global.app.sdb.update<Variable>(
+        Variable,
         { value },
         { key: Delegates.BOOK_KEEPER_NAME }
       );

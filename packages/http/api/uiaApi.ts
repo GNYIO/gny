@@ -10,6 +10,8 @@ import {
 } from '../../../src/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '../../database-postgres/entity/Issuer';
+import { Asset } from '../../database-postgres/entity/Asset';
+import { Balance } from '../../database-postgres/entity/Balance';
 
 export default class UiaApi {
   private library: IScope;
@@ -63,8 +65,10 @@ export default class UiaApi {
       return next(report.error.message);
     }
     try {
-      const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
-        issuerId: query.address,
+      const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
+        condition: {
+          issuerId: query.address as string,
+        },
       });
 
       return res.json({
@@ -91,8 +95,9 @@ export default class UiaApi {
       return next(report.error.message);
     }
     try {
-      const count = await global.app.sdb.count('Issuer', {});
-      const issues: IIssuer[] = await global.app.sdb.findAll('Issuer', {
+      const count = await global.app.sdb.count<Issuer>(Issuer, {});
+      const issues = await global.app.sdb.findAll<Issuer>(Issuer, {
+        condition: {},
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
@@ -118,7 +123,7 @@ export default class UiaApi {
     const name: string = query.name;
     try {
       if (addressHelper.isAddress(name)) {
-        const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
+        const issuer: IIssuer = await global.app.sdb.findOne<Issuer>(Issuer, {
           condition: { issuerId: name },
         });
         if (!issuer) {
@@ -126,8 +131,10 @@ export default class UiaApi {
         }
         return res.json({ issuer });
       } else {
-        const issuer: Issuer = await global.app.sdb.findOne('Issuer', {
-          name: req.params.name,
+        const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
+          condition: {
+            name: req.params.name,
+          },
         });
         if (!issuer) return next('Issuer not found');
         return res.json({ issuer: issuer });
@@ -164,7 +171,7 @@ export default class UiaApi {
 
     try {
       const issuerName = req.params.name;
-      const issuer: IIssuer = await global.app.sdb.findOne('Issuer', {
+      const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
         condition: { name: issuerName },
       });
       if (!issuer) {
@@ -172,8 +179,8 @@ export default class UiaApi {
       }
 
       const condition = { issuerId: issuer.issuerId };
-      const count = await global.app.sdb.count('Asset', condition);
-      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+      const count = await global.app.sdb.count<Asset>(Asset, condition);
+      const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -200,8 +207,8 @@ export default class UiaApi {
 
     try {
       const condition = {};
-      const count = await global.app.sdb.count('Asset', condition);
-      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+      const count = await global.app.sdb.count<Asset>(Asset, condition);
+      const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
@@ -226,7 +233,7 @@ export default class UiaApi {
     }
 
     try {
-      const assets: IAsset[] = await global.app.sdb.findAll('Asset', {
+      const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition: {
           name: query.name,
         },
@@ -265,8 +272,8 @@ export default class UiaApi {
 
     try {
       const condition = { address: req.params.address };
-      const count = await global.app.sdb.count('Balance', condition);
-      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
+      const count = await global.app.sdb.count<Balance>(Balance, condition);
+      const balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
         limit: query.limit,
         offset: query.offset,
@@ -295,10 +302,10 @@ export default class UiaApi {
 
     try {
       const condition = {
-        address: req.params.address,
-        currency: req.params.currency,
+        address: req.params.address as string,
+        currency: req.params.currency as string,
       };
-      const balances: IBalance[] = await global.app.sdb.findAll('Balance', {
+      const balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
       });
       if (!balances || balances.length === 0)

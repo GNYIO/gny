@@ -1,12 +1,31 @@
 import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
+import * as crypto from 'crypto';
 
 const config = {
   headers: {
     magic: '594fe0f3',
   },
 };
+
+async function getInfoToTransactionId(transactionId: string) {
+  try {
+    const { data } = await axios.get(
+      'http://localhost:4096/api/transactions?id=' + transactionId
+    );
+    return data;
+  } catch (err) {
+    throw new Error(
+      'could not get information to transactionId: ' + transactionId
+    );
+  }
+}
+
+function createRandomAddress() {
+  const randomString = crypto.randomBytes(64).toString('hex');
+  return createAddress(randomString);
+}
 
 function createAddress(secret) {
   const keys = gnyJS.crypto.getKeys(secret);
@@ -1369,6 +1388,83 @@ describe('basic', () => {
           'http://localhost:4096/api/accounts/getVotes?username=' + username
         );
         expect(afterUnvote.data.delegates).toHaveLength(0);
+      },
+      lib.oneMinute * 2
+    );
+  });
+
+  describe('testing basic contract locking functionality', () => {
+    it(
+      'successfully invoke two different basic.transfer transactions in one block',
+      async done => {
+        const recipient1 = createRandomAddress();
+        const basicTransfer1 = gnyJS.basic.transfer(
+          recipient1,
+          String(10 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData1 = {
+          transaction: basicTransfer1,
+        };
+
+        const recipient2 = createRandomAddress();
+        const basicTransfer2 = gnyJS.basic.transfer(
+          recipient2,
+          String(20 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData2 = {
+          transaction: basicTransfer2,
+        };
+
+        // wait on newBlock
+        await lib.onNewBlock();
+
+        // send first
+        const basicTransferPromise1 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData1,
+          config
+        );
+        // send second
+        const basicTransferPromise2 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData2,
+          config
+        );
+
+        const [result1, result2] = await Promise.all([
+          basicTransferPromise1,
+          basicTransferPromise2,
+        ]);
+
+        expect(result1).toHaveProperty('data.transactionId');
+        expect(result2).toHaveProperty('data.transactionId');
+
+        // imporant, wait until transactions are written to db
+        await lib.onNewBlock();
+
+        const info1 = await getInfoToTransactionId(result1.data.transactionId);
+        const info2 = await getInfoToTransactionId(result2.data.transactionId);
+
+        expect(info1.transactions).toHaveLength(1);
+        expect(info2.transactions).toHaveLength(1);
+        expect(info1.transactions[0]).toHaveProperty(
+          'id',
+          result1.data.transactionId
+        );
+        expect(info2.transactions[0]).toHaveProperty(
+          'id',
+          result2.data.transactionId
+        );
+        // need to have same height
+        expect(info1.transactions[0].height).toEqual(
+          info2.transactions[0].height
+        );
+
+        done();
       },
       lib.oneMinute * 2
     );

@@ -48,11 +48,6 @@ export class LRUEntityCache {
     this.modelCaches.set(na, new UniquedCache(data, uniqueIndexes));
   }
 
-  private unRegisterModel(model: string) {
-    // can be deleted? clear('Account') is the same
-    this.modelCaches.delete(model);
-  }
-
   private getModelCache(model: string) {
     const schema = this.modelSchemas.get(model);
     if (undefined === schema) {
@@ -143,7 +138,6 @@ export class LRUEntityCache {
    * @param {Object[]} data - Example: [{ name:"gny", value:-40000000000000000 }]
    */
   refreshCached(model: string, value: Object, data: PropertyValue[]) {
-    let componentRef;
     const element = this.get(model, value);
     if (undefined === element) {
       return false;
@@ -151,10 +145,10 @@ export class LRUEntityCache {
     const columns = data.map(column => column.name);
 
     // TODO: refactor
-    return (componentRef = this.modelSchemas.get(
-      model
-    )).hasUniqueProperty.apply(componentRef, toArray(columns))
-      ? (this.log.trace(
+    const componentRef = this.modelSchemas.get(model);
+    if (componentRef.hasUniqueProperty(...columns)) {
+      return (
+        this.log.trace(
           'refresh cached with uniqued index, key = ' +
             JSON.stringify(value) +
             ' modifier = ' +
@@ -165,8 +159,11 @@ export class LRUEntityCache {
           return (element[attr.name] = attr.value);
         }),
         this.put(model, value, element),
-        true)
-      : (this.log.trace(
+        true
+      );
+    } else {
+      return (
+        this.log.trace(
           'refresh cached entity, key = ' +
             JSON.stringify(value) +
             ' modifier = ' +
@@ -175,7 +172,9 @@ export class LRUEntityCache {
         data.forEach(function(attr) {
           return (element[attr.name] = attr.value);
         }),
-        false);
+        false
+      );
+    }
   }
 
   /**

@@ -72,7 +72,21 @@ export interface IScope {
   coreApi: CoreApi;
 }
 
+export type MethodActions =
+  | 'onBind'
+  | 'onUnconfirmedTransaction'
+  | 'onReceiveVotes'
+  | 'onNewBlock'
+  | 'onProcessBlock'
+  | 'onBlockchainReady'
+  | 'onPeerReady'
+  | 'onNewPropose'
+  | 'onReceiveBlock'
+  | 'onReceivePropose'
+  | 'onReceiveTransaction';
+
 export interface Modules {
+  [key: string]: transactions | loader | peer | transport | delegates | blocks;
   transactions: transactions;
   loader: loader;
   peer: peer;
@@ -95,7 +109,7 @@ export interface CoreApi {
 }
 
 export interface IMessageEmitter {
-  message: (topic: string, ...restArgs: any[]) => void;
+  message: (topic: MethodActions, ...restArgs: any[]) => void;
 }
 
 export interface INetwork {
@@ -386,12 +400,6 @@ export interface IIssuer {
 export interface IVariable {
   key: string;
   value: string;
-  _version_?: number;
-}
-
-export interface IVote {
-  voterAddress: string;
-  delegate: string;
   _version_?: number;
 }
 

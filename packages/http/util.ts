@@ -1,9 +1,11 @@
-import { IBlock, IAccount, AccountViewModel } from '../../src/interfaces';
+import { IBlock, AccountViewModel } from '../../src/interfaces';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
+import { Transaction } from '../database-postgres/entity/Transaction';
+import { Account } from '../database-postgres/entity/Account';
 
 export default zscheme => (req, res, next) => {
   req.sanitize = function sanitize(value, scheme, callback) {
@@ -26,7 +28,7 @@ export async function getBlocks(
   maxHeight: string,
   withTransaction: boolean
 ) {
-  const blocks: IBlock[] = await global.app.sdb.getBlocksByHeightRange(
+  const blocks = await global.app.sdb.getBlocksByHeightRange(
     minHeight,
     maxHeight
   );
@@ -37,11 +39,17 @@ export async function getBlocks(
 
   maxHeight = blocks[blocks.length - 1].height;
   if (withTransaction) {
-    const transactions = await global.app.sdb.findAll('Transaction', {
-      condition: {
-        height: { $gte: minHeight, $lte: maxHeight },
-      },
-    });
+    const transactions = await global.app.sdb.findAll<Transaction>(
+      Transaction,
+      {
+        condition: {
+          height: {
+            $gte: minHeight,
+            $lte: maxHeight,
+          },
+        },
+      }
+    );
     const firstHeight = blocks[0].height;
     for (const t of transactions) {
       const index = new BigNumber(t.height).minus(firstHeight).toFixed();
@@ -66,9 +74,9 @@ export function generateAddressByPublicKey(publicKey: string) {
 // account helper
 export async function getAccountByName(name: string) {
   try {
-    const account = (await global.app.sdb.findOne('Account', {
+    const account = await global.app.sdb.findOne<Account>(Account, {
       condition: { username: name },
-    })) as IAccount;
+    });
     return account;
   } catch (err) {
     return 'Server Error';
@@ -87,9 +95,9 @@ export async function getAccount(address: string) {
   }
 
   try {
-    const account = (await global.app.sdb.findOne('Account', {
+    const account = await global.app.sdb.findOne<Account>(Account, {
       condition: { address },
-    })) as IAccount;
+    });
 
     // TODO change balance -> gny in AccountViewModel
     let accountData: AccountViewModel = undefined;
@@ -125,7 +133,6 @@ export async function getAccount(address: string) {
     };
     return ret;
   } catch (e) {
-    this.library.logger.error('Failed to get account', e);
     return 'Server Error';
   }
 }

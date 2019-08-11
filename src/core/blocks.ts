@@ -35,6 +35,10 @@ import Delegates from './delegates';
 import Loader from './loader';
 import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
+import { Transaction } from '../../packages/database-postgres/entity/Transaction';
+import { Round } from '../../packages/database-postgres/entity/Round';
+import { Delegate } from '../../packages/database-postgres/entity/Delegate';
+import { Account } from '../../packages/database-postgres/entity/Account';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -327,7 +331,7 @@ export default class Blocks {
       // trs.block = block;
       trs.signatures = JSON.stringify(trs.signatures);
       trs.args = JSON.stringify(trs.args);
-      await global.app.sdb.create('Transaction', trs);
+      await global.app.sdb.create<Transaction>(Transaction, trs);
     }
     global.app.logger.trace('Blocks#save transactions');
   };
@@ -341,8 +345,8 @@ export default class Blocks {
       reward: String(0),
       round: roundNumber,
     };
-    await global.app.sdb.createOrLoad('Round', round);
-    const result = await global.app.sdb.increase('Round', modifier, {
+    await global.app.sdb.createOrLoad<Round>(Round, round);
+    const result = await global.app.sdb.increase<Round>(Round, modifier, {
       round: roundNumber,
     });
     return result as { fee: string; reward: string };
@@ -356,8 +360,8 @@ export default class Blocks {
     }
 
     const address = addressHelper.generateAddress(block.delegate);
-    await global.app.sdb.increase(
-      'Delegate',
+    await global.app.sdb.increase<Delegate>(
+      Delegate,
       { producedBlocks: String(1) },
       { address }
     );
@@ -402,8 +406,8 @@ export default class Blocks {
     for (let i = 0; i < missedDelegates.length; ++i) {
       const md = missedDelegates[i];
       const adr = addressHelper.generateAddress(md);
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         { missedBlocks: String(1) },
         { address: adr }
       );
@@ -415,8 +419,8 @@ export default class Blocks {
       reward: string
     ) {
       const delegateAdr = addressHelper.generateAddress(publicKey);
-      await global.app.sdb.increase(
-        'Delegate',
+      await global.app.sdb.increase<Delegate>(
+        Delegate,
         {
           fees: String(fee),
           rewards: String(reward),
@@ -426,8 +430,8 @@ export default class Blocks {
         }
       );
       // TODO should account be all cached?
-      await global.app.sdb.increase(
-        'Account',
+      await global.app.sdb.increase<Account>(
+        Account,
         {
           gny: new BigNumber(fee).plus(reward).toFixed(),
         },

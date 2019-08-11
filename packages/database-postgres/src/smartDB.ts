@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { loadConfig } from '../loadConfig';
-import { ILogger } from '../../../src/interfaces';
+import { ILogger, IBlock } from '../../../src/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract';
@@ -16,6 +16,15 @@ import { Block } from '../entity/Block';
 import { BlockHistory } from '../entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
 import { BigNumber } from 'bignumber.js';
+import {
+  Versioned,
+  FindOneOptions,
+  FindAllOptions,
+  ArrayCondition,
+  Condition,
+} from '../searchTypes';
+import { RequireAtLeastOne } from 'type-fest';
+import { Transaction } from '../entity/Transaction';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -393,22 +402,33 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public async create(model: string, entity: ObjectLiteral) {
+  /**
+   * First it creates an entity only in cache and on the next
+   * block-commit the corresponding entity is also created in the db
+   * @param model
+   * @param entity
+   */
+  public async create<T extends Versioned>(
+    model: new () => T,
+    entity: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO, no need for async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
 
     const schema = this.getSchema(model, true);
     return this.getSession().create(schema, entity);
   }
 
-  public async createOrLoad(model: string, entity: ObjectLiteral) {
-    // TODO, no need for async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async createOrLoad<T extends Versioned>(
+    model: new () => T,
+    entity: RequireAtLeastOne<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('entity', () => CodeContract.notNull(entity));
 
     const schema = this.getSchema(model, true);
-    const result = await this.load(
+    const result = await this.load<T>(
       model,
       schema.getNormalizedPrimaryKey(entity)
     );
@@ -418,29 +438,41 @@ export class SmartDB extends EventEmitter {
     };
   }
 
-  public async increase(
-    model: string,
-    increaseBy: ObjectLiteral,
-    key: ObjectLiteral
-  ) {
+  /**
+   * First it increases properties of the entity only in cache and on the next
+   * block-commit the corresponding entity properties are increased in the DB
+   * @param model
+   * @param increaseBy
+   * @param key
+   */
+  public async increase<T extends Versioned>(
+    model: new () => T,
+    increaseBy: RequireAtLeastOne<T>,
+    key: RequireAtLeastOne<T>
+  ): Promise<Partial<T>> {
     // TODO, remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
-    CodeContract.argument('increasements', () =>
-      CodeContract.notNull(increaseBy)
-    );
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument('increaseBy', () => CodeContract.notNull(increaseBy));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
     const sessionId = this.getSchema(model, true);
     return await this.getSession().increase(sessionId, key, increaseBy);
   }
 
-  public async update(
-    model: string,
-    modifier: ObjectLiteral,
-    key: ObjectLiteral
+  /**
+   * First it updates the entity only in cache and on the next
+   * block-commit the corresponding entity is updated from the DB
+   * @param model
+   * @param modifier
+   * @param key
+   */
+  public async update<T extends Versioned>(
+    model: new () => T,
+    modifier: RequireAtLeastOne<T>,
+    key: RequireAtLeastOne<T>
   ) {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('modifier', () => CodeContract.notNull(modifier));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
@@ -459,9 +491,18 @@ export class SmartDB extends EventEmitter {
     await this.getSession().update(schema, key, modifier);
   }
 
-  public async del(model: string, key: ObjectLiteral) {
+  /**
+   * First it deletes the entity only from cache and on the next
+   * block-commit the corresponding entity is deleted from the DB
+   * @param model
+   * @param key
+   */
+  public async del<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ) {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
     const schema = this.getSchema(model, true);
@@ -469,9 +510,13 @@ export class SmartDB extends EventEmitter {
   }
 
   /**
-   * load entity from cache and database
+   * 1. Tries to load entity from cache and returns entity if found in cache
+   * 2. If the entity was not found cache - then it hits the DB and returns entity
    */
-  public async load(model: string, key: ObjectLiteral) {
+  public async load<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO remove async
     CodeContract.argument('model', () => CodeContract.notNull(model));
     CodeContract.argument('key', () => CodeContract.notNull(key));
@@ -480,55 +525,64 @@ export class SmartDB extends EventEmitter {
     return await this.getSession().load(schema, key);
   }
 
-  // async loadMany(record, strategy) {
-  //   var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-  //   CodeContract.argument('model', function() {
-  //     return CodeContract.notNull(record);
-  //   });
-  //   const schema = this.getSchema(record, true);
-  //   return await this.getSession().getMany(schema, strategy, callback);
-  // }
-
   /**
-   * WARNING: loads entity only from cache
+   * Looks only in cache. Does not hit the database.
+   * WARNING: Does only work for memory-entities
    * @param model model name
    * @param key key of entity
    * @returns tracked entity from cache
    */
-  public async get(model: string, key: ObjectLiteral) {
+  public async get<T extends Versioned>(
+    model: new () => T,
+    key: RequireAtLeastOne<T>
+  ): Promise<T> {
     // TODO remove async
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
     CodeContract.argument('key', () => CodeContract.notNull(key));
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
+    CodeContract.argument(
+      'model',
+      schema.memCached,
+      'get only supports memory models'
+    );
     return this.getSession().getCachedEntity(schema, key);
   }
 
   /**
-   * WARNING: get all cached entities (only cached entities)
+   * WARNING: get all cached entities (only memory entities)
    * @param model model name
    * @param filter filter result
    */
-  public async getAll(model: string) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
-    const schema = this.getSchema(model, true);
+  public async getAll<T extends Versioned>(model: new () => T): Promise<T[]> {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    const schema = this.getSchema(model.name, true);
     CodeContract.argument(
       'model',
       schema.memCached,
-      'getAll only support for memory model'
+      'getAll only supports memory models'
     );
     return await this.getSession().getAll(schema);
   }
 
-  public async findOne(model: string, condition: ObjectLiteral) {
-    const result = await this.findAll(model, condition);
+  /**
+   * Access direct database without looking into the cache.
+   * WARNING: when the condition returns more then one result an Exception is thrown
+   * @param model
+   * @param params
+   */
+  public async findOne<T extends Versioned>(
+    model: new () => T,
+    params: FindOneOptions<T>
+  ): Promise<T> {
+    const result = await this.findAll<T>(model, params);
     const schema = this.getSchema(model, true);
     if (result.length > 1) {
       throw new Error(
         "many entities found ( model = '" +
           schema.modelName +
           "' , params = '" +
-          JSON.stringify(condition) +
+          JSON.stringify(params) +
           "' )"
       );
     }
@@ -537,27 +591,56 @@ export class SmartDB extends EventEmitter {
 
   /**
    * Directly accesses DB, does not search in cache
-   * @param {string} model - e.g. "Account" or "Balnace"
-   * @param condition
+   * WARNING: always use the "params.condition" object to specify a
+   * filter condition, otherwise the
+   * @param {string} model - e.g. "Account" or "Balance"
+   * @param params
    */
-  public async findAll(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async findAll<T extends Versioned>(
+    model: new () => T,
+    params: FindAllOptions<T>
+  ): Promise<T[]> {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument(
+      'params',
+      params !== undefined && params !== null,
+      'params object was not provided'
+    );
+    CodeContract.argument(
+      'params.condition',
+      params.condition !== undefined && params.condition !== null,
+      'condition object was not provided'
+    );
 
     const schema = this.getSchema(model, true);
-    return await this.getSession().queryByJson(schema, condition);
+    return await this.blockSession.queryByJson(schema, params);
   }
 
-  public async exists(model: string, key: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  public async exists<T extends Versioned>(
+    model: new () => T,
+    key: Partial<T> | ArrayCondition<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
     return await this.getSession().exists(schema, key);
   }
 
-  public async count(model: string, condition: ObjectLiteral) {
-    CodeContract.argument('model', () => CodeContract.notNull(model));
+  /**
+   * Directly hits database and couts entries
+   */
+  public async count<T extends Versioned>(
+    model: new () => T,
+    condition: Condition<T>
+  ) {
+    CodeContract.argument('model', () => CodeContract.notNull(model.name));
+    CodeContract.argument(
+      'condition',
+      condition !== undefined && condition !== null,
+      'condition object was not provided'
+    );
 
-    const schema = this.getSchema(model, true);
+    const schema = this.getSchema(model.name, true);
     return await this.getSession().count(schema, condition);
   }
 
@@ -586,10 +669,16 @@ export class SmartDB extends EventEmitter {
     }
   }
 
-  public getBlockByHeight = async (
+  public async getBlockByHeight(
     height: string,
-    withTransactions = false
-  ) => {
+    withTransactions?: false
+  ): Promise<Block>;
+  public async getBlockByHeight(
+    height: string,
+    withTransactions: true
+  ): Promise<Block & { transactions: Transaction[] }>;
+
+  public async getBlockByHeight(height: string, withTransactions = false) {
     CodeContract.argument(
       'height',
       new BigNumber(height).isGreaterThanOrEqualTo(0),
@@ -610,8 +699,16 @@ export class SmartDB extends EventEmitter {
     }
     const result = await this.attachTransactions([block]);
     return result[0];
-  };
+  }
 
+  public async getBlockById(
+    id: string,
+    withTransactions?: false // false is here used as a type
+  ): Promise<Block>;
+  public async getBlockById(
+    id: string,
+    withTransactions: true // true is here used as a type
+  ): Promise<IBlock>;
   public async getBlockById(id: string, withTransactions = false) {
     CodeContract.argument('blockId', () =>
       CodeContract.notNullOrWhitespace(id)
@@ -636,11 +733,21 @@ export class SmartDB extends EventEmitter {
     return result[0];
   }
 
-  public getBlocksByHeightRange = async (
+  public async getBlocksByHeightRange(
+    min: string,
+    max: string,
+    withTransactions?: false // false is here used as a type
+  ): Promise<Block[]>;
+  public async getBlocksByHeightRange(
+    min: string,
+    max: string,
+    withTransactions: true // true is here used as a type
+  ): Promise<IBlock[]>;
+  public async getBlocksByHeightRange(
     min: string,
     max: string,
     withTransactions = false
-  ) => {
+  ) {
     CodeContract.argument(
       'minHeight, maxHeight',
       new BigNumber(min).isGreaterThanOrEqualTo(0) &&
@@ -658,26 +765,9 @@ export class SmartDB extends EventEmitter {
     } else {
       return blocks;
     }
-  };
-
-  private async getBlocksByIds(blockIds: string[], withTransactions = false) {
-    CodeContract.argument('blockIds', () => CodeContract.notNull(blockIds));
-
-    const result = [];
-    for (let i = 0; i < result.length; ++i) {
-      const id = blockIds[i];
-      const oneBlock = await this.getBlockById(id);
-      result.push(oneBlock);
-    }
-    if (withTransactions) {
-      const blocksWithTrans = await this.attachTransactions(result);
-      return blocksWithTrans;
-    } else {
-      result;
-    }
   }
 
-  private async attachTransactions(blocks: Block[]) {
+  private async attachTransactions(blocks: Block[]): Promise<Array<IBlock>> {
     // TODO: make only one database call
     for (let i = 0; i < blocks.length; ++i) {
       const trans = await this.blockSession.getTransactionsByBlockHeight(
@@ -701,10 +791,6 @@ export class SmartDB extends EventEmitter {
       Reflect.deleteProperty(key, 'transactions');
     }
     return key;
-  }
-
-  private get transactionSchema() {
-    return this.getSchema(SmartDB.TRANSACTION_MODEL_NAME, true);
   }
 
   public get lastBlockHeight() {

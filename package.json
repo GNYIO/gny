@@ -115,9 +115,9 @@
     "static-module": "=2.0.0",
     "tracer": "=0.9.8",
     "ts-node": "=7.0.1",
-    "type-fest": "^0.3.0",
+    "type-fest": "^0.6.0",
     "typeorm": "^0.2.16",
-    "typescript": "^3.3.3",
+    "typescript": "^3.5.3",
     "z-schema": "https://github.com/AschPlatform/z-schema/tarball/v3.15.2+asch.1"
   },
   "devDependencies": {

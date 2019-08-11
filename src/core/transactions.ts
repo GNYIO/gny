@@ -2,6 +2,8 @@ import { ITransaction, Context, IState, IAccount } from '../interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
+import { Account } from '../../packages/database-postgres/entity/Account';
+import { Transaction } from '../../packages/database-postgres/entity/Transaction';
 
 export default class Transactions {
   public static processUnconfirmedTransactions = (
@@ -75,7 +77,7 @@ export default class Transactions {
       if (StateHelper.TrsAlreadyInUnconfirmedPool(transaction.id)) {
         throw new Error('Transaction already in the pool');
       }
-      const exists = await global.app.sdb.exists('Transaction', {
+      const exists = await global.app.sdb.exists<Transaction>(Transaction, {
         id: transaction.id,
       });
       if (exists) {
@@ -110,13 +112,13 @@ export default class Transactions {
       throw new Error('Sender public key not provided');
     }
 
-    let sender: IAccount = await global.app.sdb.load('Account', {
+    let sender = await global.app.sdb.load<Account>(Account, {
       address: senderId,
     });
     if (!sender) {
       if (new BigNumber(height).isGreaterThan(0))
         throw new Error('Sender account not found');
-      sender = await global.app.sdb.create('Account', {
+      sender = await global.app.sdb.create<Account>(Account, {
         address: senderId,
         username: null,
         gny: String(0),
@@ -162,8 +164,8 @@ export default class Transactions {
       if (new BigNumber(sender.gny).isLessThan(trs.fee))
         throw new Error('Insufficient sender balance');
       sender.gny = new BigNumber(sender.gny).minus(trs.fee).toFixed();
-      await global.app.sdb.update(
-        'Account',
+      await global.app.sdb.update<Account>(
+        Account,
         { gny: String(sender.gny) },
         { address: sender.address }
       );
