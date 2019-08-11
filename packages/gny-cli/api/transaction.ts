@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as crypto from 'crypto';
 
 import * as gnyJS from '@gny/gny-js';
 import Api from '../helpers/api';
