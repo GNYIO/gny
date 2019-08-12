@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 
 import * as gnyJS from '@gny/gny-js';
-import Api from '../helpers/api';
-import * as blockHelper from '../helpers/block';
+import Api from '../lib/api';
+import * as blockHelper from '../lib/block';
 import * as cryptoLib from '../lib/crypto';
 
 let globalOptions;

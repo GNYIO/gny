@@ -1,5 +1,5 @@
 import * as gnyJS from '@gny/gny-js';
-import Api from '../helpers/api';
+import Api from '../lib/api';
 
 let globalOptions;
 
