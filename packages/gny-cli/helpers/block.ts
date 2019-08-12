@@ -2,9 +2,9 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 
 import * as cryptoLib from '../lib/crypto';
-import * as transactionsLib from '../lib/transactions';
 import * as accounts from './account';
 import * as ByteBuffer from 'bytebuffer';
+import { TransactionBase } from '../../../src/base/transaction';
 
 const sender = accounts.account(cryptoLib.generateSecret());
 
@@ -45,16 +45,15 @@ export function getBytes(block, skipSignature?) {
 }
 
 export function signTransaction(trs, keypair) {
-  let bytes = transactionsLib.getTransactionBytes(trs);
+  let bytes = TransactionBase.getBytes(trs);
   trs.signatures.push(cryptoLib.sign(sender.keypair, bytes));
-  bytes = transactionsLib.getTransactionBytes(trs);
+  bytes = TransactionBase.getBytes(trs);
   trs.id = cryptoLib.getId(bytes);
   return trs;
 }
 
 export function neww(
   genesisAccount: any,
-  dapp: any,
   accountsFile: any,
   intialAmount: any
 ): any {
@@ -151,7 +150,7 @@ export function neww(
   };
 
   transactions.forEach(function(tx) {
-    const bytes = transactionsLib.getTransactionBytes(tx);
+    const bytes = TransactionBase.getBytes(tx);
     payloadLength += bytes.length;
     payloadHash.update(bytes);
   });
@@ -182,73 +181,7 @@ export function neww(
   };
 }
 
-export function from(genesisBlock, genesisAccount, dapp) {
-  for (const i in genesisBlock.transactions) {
-    const tx = genesisBlock.transactions[i];
-
-    if (tx.type == 5) {
-      if (tx.asset.dapp.name == dapp.name) {
-        throw new Error(
-          "DApp with name '" + dapp.name + "' already exists in genesis block"
-        );
-      }
-
-      if (tx.asset.dapp.git == dapp.git) {
-        throw new Error(
-          "DApp with git '" + dapp.git + "' already exists in genesis block"
-        );
-      }
-
-      if (tx.asset.dapp.link == dapp.link) {
-        throw new Error(
-          "DApp with link '" + dapp.link + "' already exists in genesis block"
-        );
-      }
-    }
-  }
-
-  const dappTransaction = {
-    type: 5,
-    amount: 0,
-    fee: 0,
-    timestamp: 0,
-    senderId: genesisAccount.address,
-    senderPublicKey: genesisAccount.keypair.publicKey,
-    asset: {
-      dapp: dapp,
-    },
-  };
-
-  let bytes = transactionsLib.getTransactionBytes(dappTransaction);
-  dappTransaction['signature'] = cryptoLib.sign(genesisAccount.keypair, bytes);
-  bytes = transactionsLib.getTransactionBytes(dappTransaction);
-  dappTransaction['id'] = cryptoLib.getId(bytes);
-
-  genesisBlock.payloadLength += bytes.length;
-  const payloadHash = crypto
-    .createHash('sha256')
-    .update(new Buffer(genesisBlock.payloadHash, 'hex'));
-  payloadHash.update(bytes);
-  genesisBlock.payloadHash = payloadHash.digest().toString('hex');
-
-  genesisBlock.transactions.push(dappTransaction);
-  genesisBlock.numberOfTransactions += 1;
-  genesisBlock.generatorPublicKey = sender.keypair.publicKey;
-
-  bytes = getBytes(genesisBlock);
-  genesisBlock.blockSignature = cryptoLib.sign(sender.keypair, bytes);
-  bytes = getBytes(genesisBlock);
-  genesisBlock.id = cryptoLib.getId(bytes);
-
-  return {
-    block: genesisBlock,
-    dapp: dappTransaction,
-  };
-}
-
 export default {
   getBytes: getBytes,
   new: neww,
-
-  from: from,
 };
