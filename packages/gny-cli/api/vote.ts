@@ -11,9 +11,6 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
 function vote(secret, publicKeys, op, secondSecret) {
   const votes = publicKeys.split(',').map(function(el) {
     return op + el;

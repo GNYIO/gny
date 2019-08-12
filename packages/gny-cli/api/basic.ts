@@ -11,10 +11,6 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
 function setSecondSecret(options) {
   const trs = gnyJS.basic.setSecondSecret(options.secret, options.secondSecret);
   getApi().broadcastTransaction(trs, function(err, result) {
