@@ -51,7 +51,6 @@ export class Bundle extends libp2p {
       },
     };
     const finalConfig = defaultsDeep(_options, defaults);
-    console.log(`used configuration: ${JSON.stringify(finalConfig, null, 2)}`);
     super(finalConfig);
   }
 

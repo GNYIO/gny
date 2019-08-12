@@ -1,22 +1,33 @@
 import { Peer2Peer } from '../../../packages/p2p/index';
 import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
-import { ILogger, P2PMessage } from '../../../src/interfaces';
+import { ILogger, P2PMessage, PeerNode } from '../../../src/interfaces';
 import * as PeerInfo from 'peer-info';
+import { sleep } from '../../integration/lib';
 
-const delay = (x: number): Promise<void> => new Promise((resolve) => setInterval(resolve, x));
-const getMultiAddr = (peerInfo: PeerInfo): string => peerInfo.multiaddrs.toArray()[0].toString();
+const delay = (x: number): Promise<void> =>
+  new Promise(resolve => setInterval(resolve, x));
+const getMultiAddr = (peerInfo: PeerInfo): string =>
+  peerInfo.multiaddrs.toArray()[0].toString();
+const range = (start, end) => {
+  const length = end - start + 1;
+  const result = Array.from(Array(length), (x, index) => start + index);
+  return result;
+};
+const logger: ILogger = {
+  log: x => x,
+  trace: x => x,
+  debug: x => x,
+  info: x => x,
+  warn: x => x,
+  error: x => x,
+  fatal: x => x,
+};
 
-async function createNewPeer2PeerNode (port: number = 0, bootstrapNode?: string, bootstrapInterval?: number) {
-  const logger: ILogger = {
-    log: (x) => x,
-    trace: (x) => x,
-    debug: (x) => x,
-    info: (x) => x,
-    warn: (x) => x,
-    error: (x) => x,
-    fatal: (x) => x,
-  };
-
+async function createNewPeer2PeerNode(
+  port: number = 0,
+  bootstrapNode: string[] = [],
+  bootstrapInterval?: number
+) {
   const peerInfo = await createPeerInfo();
   peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${port}`);
 
@@ -24,43 +35,74 @@ async function createNewPeer2PeerNode (port: number = 0, bootstrapNode?: string,
     logger,
     peerInfo,
     bootstrapNode,
-    bootstrapInterval,
+    bootstrapInterval
   );
   return node;
 }
 
 describe('p2p', () => {
-
   describe('creation', () => {
-    it('after starting node with startAsync() it should be started', async (done) => {
-      expect.assertions(1);
+    it('constructor() - passing not an array as bootstrapNode into Peer2Peer constructor throws error', async done => {
+      const peerInfo = await createPeerInfo();
+      peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${19000}`);
+
+      const WRONG_PEERSTRAPNODE = {} as string[];
+      expect(
+        () => new Peer2Peer(logger, peerInfo, WRONG_PEERSTRAPNODE)
+      ).toThrowError('bootstrapNode must be array');
+
+      done();
+    }, 5000);
+
+    it('constructor() - passing an undefined in bootstrapNode into Peer2Peer constructor throws error', async done => {
+      const peerInfo = await createPeerInfo();
+      peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${19000}`);
+
+      const PEERSTRAPNODE_WITH_UNDEFINED = [undefined] as string[];
+      expect(
+        () => new Peer2Peer(logger, peerInfo, PEERSTRAPNODE_WITH_UNDEFINED)
+      ).toThrowError('no undefined in string[]');
+
+      done();
+    });
+
+    it('constructor() - passing an null in bootstrapNode into Peer2Peer constructor throws error', async done => {
+      const peerInfo = await createPeerInfo();
+      peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${19000}`);
+
+      const PEERSTRAPNODE_WITH_UNDEFINED = [null] as string[];
+      expect(
+        () => new Peer2Peer(logger, peerInfo, PEERSTRAPNODE_WITH_UNDEFINED)
+      ).toThrowError('no null in string[]');
+
+      done();
+    });
+
+    it('startAsync() - after starting node with startAsync() it should be started', async done => {
+      expect.assertions(2);
+
       const node1 = await createNewPeer2PeerNode();
+      expect(node1.isStarted()).toEqual(false);
+
       await node1.startAsync();
-      expect(node1.isStarted()).toBeTruthy();
+      expect(node1.isStarted()).toEqual(true);
+
+      // cleanup
       await node1.stopAsync();
       done();
     });
 
-    it('not started node should return false from isStarted()', async (done) => {
+    it('isStarted() - not started node should return false from isStarted()', async done => {
       expect.assertions(1);
+
       const node1 = await createNewPeer2PeerNode();
-      expect(node1.isStarted()).toBeFalsy();
+      expect(node1.isStarted()).toEqual(false);
       done();
     });
-
-
-
-    // it.skip('starting two p2p-nodes on the same port results in a EADDRINUSE in use error', async (done) => {
-    //   const node1 = await createNewPeer2PeerNode(6000);
-    //   const node2 = await createNewPeer2PeerNode(6000);
-
-    //   await node1.startAsync();
-    //   await node2.startAsync();
-    // }, 2000);
   });
 
   describe('stoppage', () => {
-    it('stopped node should have no peers in peerBook', async (done) => {
+    it('stopped node should have no peers in peerBook', async done => {
       expect.assertions(2);
       const BOOTSTRAP_INTERVAL = 500; // ms
 
@@ -68,7 +110,11 @@ describe('p2p', () => {
       await node1.startAsync();
 
       const bootstrap_address_for_node2 = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewPeer2PeerNode(5011, bootstrap_address_for_node2, BOOTSTRAP_INTERVAL);
+      const node2 = await createNewPeer2PeerNode(
+        5011,
+        [bootstrap_address_for_node2],
+        BOOTSTRAP_INTERVAL
+      );
       await node2.startAsync();
 
       await delay(1000);
@@ -82,7 +128,7 @@ describe('p2p', () => {
       done();
     }, 5000);
 
-    it('after stopping node with stopAsync() it should be stopped', async (done) => {
+    it('after stopping node with stopAsync() it should be stopped', async done => {
       expect.assertions(1);
       const node1 = await createNewPeer2PeerNode();
       await node1.startAsync();
@@ -93,7 +139,7 @@ describe('p2p', () => {
   });
 
   describe('bootstrap', () => {
-    it('node2 should dial to node1 on bootstrap', async (done) => {
+    it('node2 should dial to node1 on bootstrap', async done => {
       expect.assertions(2);
 
       const node1 = await createNewPeer2PeerNode(5010);
@@ -101,17 +147,21 @@ describe('p2p', () => {
 
       const BOOTSTRAP_INTERVAL = 2000; // ms
       const bootstrap_address_for_node2 = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewPeer2PeerNode(5011, bootstrap_address_for_node2, BOOTSTRAP_INTERVAL);
+      const node2 = await createNewPeer2PeerNode(
+        5011,
+        [bootstrap_address_for_node2],
+        BOOTSTRAP_INTERVAL
+      );
       await node2.startAsync();
 
       // wait for periodically bootstrap method to run at least one time
       await delay(5000);
 
       const node1_knows_about_node2 = node1.peerBook.has(node2.peerInfo);
-      expect(node1_knows_about_node2).toBeTruthy();
+      expect(node1_knows_about_node2).toEqual(true);
 
       const node2_knows_about_node1 = node2.peerBook.has(node1.peerInfo);
-      expect(node2_knows_about_node1).toBeTruthy();
+      expect(node2_knows_about_node1).toEqual(true);
 
       // cleanup
       await node1.stopAsync();
@@ -119,8 +169,8 @@ describe('p2p', () => {
       done();
     }, 20000);
 
-    it('reconnect to stopped node with bootstrap mechanism', async (done) => {
-      expect.assertions(3);
+    it.skip('reconnect to stopped node with bootstrap mechanism', async done => {
+      expect.assertions(4);
 
       const node1 = await createNewPeer2PeerNode(6001);
       await node1.startAsync();
@@ -128,17 +178,26 @@ describe('p2p', () => {
       const BOOTSTRAP_INTERVAL = 2000; // ms
 
       const node1_addr = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewPeer2PeerNode(6002, node1_addr, BOOTSTRAP_INTERVAL);
+      const node2 = await createNewPeer2PeerNode(
+        6002,
+        [node1_addr],
+        BOOTSTRAP_INTERVAL
+      );
       await node2.startAsync();
 
       // give the node2 time to connect to node1
       await delay(3000);
-      expect(node2.peerBook.getAllArray().length).toEqual(1);
+
+      // expect(peers.length).toEqual(1);
+      // expect(peers[0].isConnected().toString()).toEqual(true);
+      // expect(node2.peerBook.getAllArray().length).toEqual(1);
 
       // stop node1
       await node1.stopAsync();
-      await delay(1000);
-      expect(node2.peerBook.getAllArray().length).toEqual(0);
+      await delay(4000);
+
+      // watch:
+      expect(node2.peerBook.getAllArray()[0].isConnected()).toEqual(false);
 
       // restart node1
       await delay(1000);
@@ -154,34 +213,44 @@ describe('p2p', () => {
       done();
     }, 20000);
 
-    it.skip('started node has no peers in peerBook', async (done) => {
-      done();
-    });
-    it.skip('stop node that had 1 peer in peerBook has no peers on restart in peerBook', async (done) => {
-      done();
-    });
-    it.skip('multiaddr-string passed as bootstrap node connect nodes', async (done) => {});
+    it('started node has no peers in peerBook', async done => {
+      const node1 = await createNewPeer2PeerNode(40000);
+      await node1.startAsync();
 
-    it.skip('connect periodically to "bootstrap" node', async (done) => {
+      expect(node1.peerBook.getAllArray().length).toEqual(0);
+
+      await node1.stopAsync();
       done();
     });
   });
 
   describe('broadcast', () => {
-    it('node 1,2,3: node 1 -> 2; and 2 -> 3 are connected. If I broadcast a message from node 1; node 3 should get the message', async (done) => {
+    it('node 1,2,3: node 1 -> 2; and 2 -> 3 are connected. If I broadcast a message from node 3; node 1 should get the message', async done => {
       expect.assertions(3);
 
       const BOOTSTRAP_INTERVAL = 2000;
 
-      const node1 = await createNewPeer2PeerNode(5000, undefined, BOOTSTRAP_INTERVAL);
+      const node1 = await createNewPeer2PeerNode(
+        5000,
+        undefined,
+        BOOTSTRAP_INTERVAL
+      );
       await node1.startAsync();
 
       const bootstrap_for_node2 = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewPeer2PeerNode(5001, bootstrap_for_node2, BOOTSTRAP_INTERVAL);
+      const node2 = await createNewPeer2PeerNode(
+        5001,
+        [bootstrap_for_node2],
+        BOOTSTRAP_INTERVAL
+      );
       await node2.startAsync();
 
       const bootstrap_for_node3 = getMultiAddr(node2.peerInfo);
-      const node3 = await createNewPeer2PeerNode(5002, bootstrap_for_node3, BOOTSTRAP_INTERVAL);
+      const node3 = await createNewPeer2PeerNode(
+        5002,
+        [bootstrap_for_node3],
+        BOOTSTRAP_INTERVAL
+      );
       await node3.startAsync();
 
       // node1 & node2 subscribe to events
@@ -211,7 +280,7 @@ describe('p2p', () => {
       done();
     }, 20000);
 
-    it('a broadcast should not notify own node if broadcasted from own server', async (done) => {
+    it('a broadcast should not notify own node if broadcasted from own server', async done => {
       expect.assertions(0);
 
       const node1 = await createNewPeer2PeerNode();
@@ -231,28 +300,188 @@ describe('p2p', () => {
       done();
     }, 2000);
 
-    it.skip('node that broadcasted message should be in the peerInfo', async (done) => {
-      done();
-    });
+    it(
+      'all 20 nodes that only know rendezvous node, should get broadcasted message',
+      async done => {
+        expect.assertions(20);
+
+        const rendezvousNode = await createNewPeer2PeerNode(10000);
+        await rendezvousNode.startAsync();
+        const rendezvousNodeAddress = getMultiAddr(rendezvousNode.peerInfo);
+        rendezvousNode.subscribe('test', (message: P2PMessage) => {
+          // this will be called 1 times
+          expect(message.data.toString()).toEqual('hello world');
+        });
+
+        // create 20 nodes
+        const nodes = await Promise.all(
+          range(10001, 10020).map(async x => {
+            const singleNodePromise = createNewPeer2PeerNode(
+              x,
+              [rendezvousNodeAddress],
+              100
+            );
+            return singleNodePromise;
+          })
+        );
+
+        // start 20 nodes
+        await Promise.all(
+          nodes.map(async x => {
+            return x.startAsync();
+          })
+        );
+
+        // subscribe 20 nodes to 'test' messages
+        nodes.map(x => {
+          x.subscribe('test', (message: P2PMessage) => {
+            // this will be called 19 times (self-messages are not emitted)
+            expect(message.data.toString()).toEqual('hello world');
+          });
+        });
+
+        await sleep(4000);
+        await nodes[10].broadcastAsync('test', Buffer.from('hello world'));
+        await sleep(200);
+
+        // stop all nodes
+        await rendezvousNode.stopAsync();
+        await Promise.all(
+          nodes.map(async x => {
+            return x.stopAsync();
+          })
+        );
+
+        done();
+      },
+      20 * 1000
+    );
+
+    it(
+      'node that broadcasted message should be in the peerInfo prop',
+      async done => {
+        expect.assertions(1);
+
+        const node1 = await createNewPeer2PeerNode(16001);
+        await node1.startAsync();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewPeer2PeerNode(16002, [node1Address], 100);
+        await node2.startAsync();
+        const node2Address = getMultiAddr(node2.peerInfo);
+
+        const node3 = await createNewPeer2PeerNode(16003, [node2Address], 100);
+        await node3.startAsync();
+
+        await sleep(4000);
+
+        // nodes need to subscribe in order to forward message
+        node1.subscribe('hello', (message: P2PMessage) => {});
+        node2.subscribe('hello', (message: P2PMessage) => {});
+        node3.subscribe('hello', (message: P2PMessage) => {
+          const expected: PeerNode = {
+            host: '127.0.0.1',
+            port: 16001,
+          };
+          expect(message.peerInfo).toEqual(expected);
+        });
+
+        await sleep(2000);
+
+        // message will be propagated from 1 -> 2; 2 -> 3
+        await node1.broadcastAsync('hello', Buffer.from('I am a Buffer'));
+
+        await sleep(1000);
+
+        // shutdown nodes
+        await node1.stopAsync();
+        await node2.stopAsync();
+        await node3.stopAsync();
+
+        done();
+      },
+      30 * 1000
+    );
+
+    it(
+      'peer that broadcasted should get automatically added to peerBook',
+      async done => {
+        expect.assertions(3);
+
+        const node1 = await createNewPeer2PeerNode(18000);
+        await node1.startAsync();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewPeer2PeerNode(18001, [node1Address], 100);
+        await node2.startAsync();
+
+        const node3 = await createNewPeer2PeerNode(18002, [node1Address], 100);
+        await node3.startAsync();
+
+        await sleep(2000);
+
+        // all nodes subscribe to message 'test'
+        node1.subscribe('test', (message: P2PMessage) => {});
+        node2.subscribe('test', (message: P2PMessage) => {});
+        node3.subscribe('test', (message: P2PMessage) => {});
+
+        await sleep(2000);
+
+        await node2.broadcastAsync('test', Buffer.from('msg from space'));
+
+        await sleep(2000);
+
+        // now node3 should have node2 in its peerBook
+        const result = node3.peerBook.has(node2.peerInfo);
+        expect(result).toEqual(true);
+
+        // node3 should also have node1 in its peerBook
+        const result2 = node3.peerBook.has(node1.peerInfo);
+        expect(result2).toEqual(true);
+
+        // node3 has exactly 2 peers
+        expect(node3.peerBook.getAllArray().length).toEqual(2);
+
+        // cleanup
+        await node1.stopAsync();
+        await node2.stopAsync();
+        await node3.stopAsync();
+
+        done();
+      },
+      20 * 1000
+    );
   });
 
   describe('dht', () => {
     // waiting for new js-libp2p-kad-dht release
-    it.skip('discover peer via periodically DHT random walk', async (done) => {
+    it.skip('discover peer via periodically DHT random walk', async done => {
       expect.assertions(3);
 
       const BOOTSTRAP_INTERVAL = 1000;
       // const RANDOM_WALK_INTERVAL = 1000;
 
-      const node1 = await createNewPeer2PeerNode(undefined, undefined, undefined/*, RANDOM_WALK_INTERVAL*/);
+      const node1 = await createNewPeer2PeerNode(
+        undefined,
+        undefined,
+        undefined /*, RANDOM_WALK_INTERVAL*/
+      );
       await node1.startAsync();
 
       const bootstrap_for_node2 = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewPeer2PeerNode(undefined, bootstrap_for_node2, BOOTSTRAP_INTERVAL/*, RANDOM_WALK_INTERVAL*/);
+      const node2 = await createNewPeer2PeerNode(
+        undefined,
+        [bootstrap_for_node2],
+        BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
+      );
       await node2.startAsync();
 
       const bootstrap_for_node3 = getMultiAddr(node2.peerInfo);
-      const node3 = await createNewPeer2PeerNode(undefined, bootstrap_for_node3, BOOTSTRAP_INTERVAL/*, RANDOM_WALK_INTERVAL*/);
+      const node3 = await createNewPeer2PeerNode(
+        undefined,
+        [bootstrap_for_node3],
+        BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
+      );
       await node3.startAsync();
 
       // wait for all nodes to connect to each other via DHT randomWalk
@@ -268,5 +497,70 @@ describe('p2p', () => {
       await node3.stopAsync();
       done();
     }, 15000);
+  });
+
+  describe('getRandomNode', () => {
+    it(
+      'getRandomNode() - returns undefined when they are no peers in peerBook',
+      async done => {
+        const node1 = await createNewPeer2PeerNode(15000);
+        await node1.startAsync();
+        const result = await node1.getRandomNode();
+
+        expect(result).toEqual(undefined);
+
+        // cleanup
+        await node1.stopAsync();
+        done();
+      },
+      10 * 1000
+    );
+
+    it(
+      'getRandomNode() - returns one peer when one peer is present',
+      async done => {
+        expect.assertions(2);
+
+        const node1 = await createNewPeer2PeerNode(14000);
+        await node1.startAsync();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewPeer2PeerNode(14001, [node1Address], 300);
+        await node2.startAsync();
+        await sleep(1000);
+
+        expect(node1.peerBook.getAllArray().length).toEqual(1);
+
+        // act
+        const result = node2.getRandomNode();
+        expect(result).toEqual({
+          host: '127.0.0.1',
+          port: 14000,
+        });
+
+        // cleanup
+        await node1.stopAsync();
+        await node2.stopAsync();
+
+        done();
+      },
+      10 * 1000
+    );
+
+    it.skip('getRandomPeer() - returns first or second node even out on 100.000,- calls', async done => {
+      expect.assertions(2);
+
+      const node1 = await createNewPeer2PeerNode(13000);
+      await node1.startAsync();
+      const node2 = await createNewPeer2PeerNode(13001);
+      await node1.startAsync();
+
+      const node3 = await createNewPeer2PeerNode(13002);
+      await node1.startAsync();
+
+      // await node3.
+
+      done();
+    });
   });
 });

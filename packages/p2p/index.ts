@@ -20,17 +20,23 @@ export class Peer2Peer {
   constructor(
     logger: ILogger,
     peerInfo,
-    bootstrapNode: string,
+    bootstrapNode: string[] = [],
     bootStrapInterval: number = 5000
   ) {
     this.logger = logger;
+
+    if (!Array.isArray(bootstrapNode))
+      throw new Error('bootstrapNode must be array');
+    if (bootstrapNode.includes(undefined))
+      throw new Error('no undefined in string[]');
+    if (bootstrapNode.includes(null)) throw new Error('no null in string[]');
 
     const configuration = {
       peerInfo,
       config: {
         peerDiscovery: {
           bootstrap: {
-            list: bootstrapNode ? [bootstrapNode] : [],
+            list: bootstrapNode,
             interval: bootStrapInterval,
           },
         },
@@ -40,7 +46,7 @@ export class Peer2Peer {
     this.bundle = new Bundle(configuration);
   }
 
-  public startAsync = async () => {
+  public async startAsync() {
     this.bundle.on('start', this.started);
     this.bundle.on('stop', this.stopped);
     this.bundle.on('error', this.errorOccurred);
@@ -48,12 +54,11 @@ export class Peer2Peer {
     this.bundle.on('peer:connect', this.peerConnect);
     this.bundle.on('peer:disconnect', this.peerDisconnect);
     await this.bundle.start();
-    console.log(`isStarted: ${this.bundle.isStarted()}`);
     this.printOwnPeerInfo();
-  };
+  }
 
   public started = () => {
-    console.log('p2p node started)');
+    this.logger.info('p2p node started');
   };
 
   public stopAsync = async () => {
