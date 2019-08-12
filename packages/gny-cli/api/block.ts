@@ -103,6 +103,16 @@ export default function account(program) {
   globalOptions = program;
 
   program
+    .command('getheight')
+    .description('get latest block height')
+    .action(getHeight);
+
+  program
+    .command('getblockstatus')
+    .description('get block status')
+    .action(getBlockStatus);
+
+  program
     .command('getblocks')
     .description('get blocks')
     .option('-o, --offset <n>', '')
