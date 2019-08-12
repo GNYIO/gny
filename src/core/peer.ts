@@ -98,9 +98,10 @@ export default class Peer {
     );
 
     // TODO persist peerBook of node
-    Peer.p2p = new Peer2Peer(global.app.logger, peerInfo, [
-      global.library.config.peers.bootstrap,
-    ]);
+    const bootstrapNode = global.library.config.peers.bootstrap
+      ? [global.library.config.peers.bootstrap]
+      : [];
+    Peer.p2p = new Peer2Peer(global.app.logger, peerInfo, bootstrapNode);
     Peer.p2p
       .startAsync()
       .then(() => {
