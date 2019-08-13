@@ -38,8 +38,8 @@
   "license": "MIT",
   "engineStrict": true,
   "engines": {
-      "node": "=10.16.2"
-   },
+    "node": "=10.16.2"
+  },
   "bugs": {
     "url": "https://github.com/GNYIO/gny-experiment/issues"
   },
@@ -105,8 +105,6 @@
     "method-override": "=2.3.10",
     "nedb": "=1.8.0",
     "p-whilst": "^2.1.0",
-    "peer-id": "^0.12.2",
-    "peer-info": "^0.15.1",
     "pg": "^7.8.0",
     "protobufjs": "^6.8.8",
     "protocol-buffers": "=3.2.1",
