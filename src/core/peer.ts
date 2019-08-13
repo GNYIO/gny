@@ -5,13 +5,13 @@ import {
   createPeerInfoArgs,
   createFromJSON,
 } from '../../packages/p2p/createPeerInfo';
-import { Peer2Peer } from '../../packages/p2p/index';
+import { Bundle } from '../../packages/p2p/bundle';
 import { PeerNode } from '../interfaces';
 
 export default class Peer {
   private static nodesDb: Database = undefined; // TODO: refactor
 
-  public static p2p: Peer2Peer;
+  public static p2p: Bundle;
 
   public static findSeenNodesInDb = (callback: any) => {
     throw new Error('not implemented');
@@ -101,9 +101,18 @@ export default class Peer {
     const bootstrapNode = global.library.config.peers.bootstrap
       ? [global.library.config.peers.bootstrap]
       : [];
-    Peer.p2p = new Peer2Peer(global.app.logger, peerInfo, bootstrapNode);
+    const config = {
+      peerInfo,
+      config: {
+        peerDiscovery: {
+          list: bootstrapNode,
+        },
+      },
+    };
+
+    Peer.p2p = new Bundle(config, global.app.logger);
     Peer.p2p
-      .startAsync()
+      .start()
       .then(() => {
         global.library.bus.message('onPeerReady');
       })
