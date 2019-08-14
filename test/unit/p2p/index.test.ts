@@ -598,20 +598,52 @@ describe('p2p', () => {
       10 * 1000
     );
 
-    it.skip('getRandomPeer() - returns first or second node even out on 100.000,- calls', async done => {
-      expect.assertions(2);
+    it.only(
+      'getRandomPeer() - returns first or second node even out on 100.000,- calls',
+      async done => {
+        expect.assertions(5);
 
-      const node1 = await createNewBundle(13000);
-      await node1.start();
-      const node2 = await createNewBundle(13001);
-      await node1.start();
+        const node1 = await createNewBundle(13000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
 
-      const node3 = await createNewBundle(13002);
-      await node1.start();
+        const node2 = await createNewBundle(13001);
+        await node2.start();
+        const node2Address = getMultiAddr(node2.peerInfo);
 
-      // await node3.
+        const node3 = await createNewBundle(
+          13002,
+          [node1Address, node2Address],
+          500
+        );
+        await node3.start();
 
-      done();
-    });
+        await sleep(2000);
+
+        expect(node3.peerBook.getAllArray().length).toEqual(2);
+
+        let count1 = 0;
+        let count2 = 0;
+        for (let i = 0; i < 100000; ++i) {
+          const randomNode = node3.getRandomNode();
+          if (randomNode.port === 13000) ++count1;
+          if (randomNode.port === 13001) ++count2;
+        }
+
+        // node1 and node2 should have each 50.000 (+/-) 100 occurrences
+        expect(count1).toBeGreaterThan(49000);
+        expect(count1).toBeLessThan(51000);
+        expect(count2).toBeGreaterThan(49000);
+        expect(count2).toBeLessThan(51000);
+
+        // cleanup
+        await node1.stop();
+        await node2.stop();
+        await node3.stop();
+
+        done();
+      },
+      30 * 1000
+    );
   });
 });
