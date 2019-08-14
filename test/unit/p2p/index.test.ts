@@ -393,7 +393,7 @@ describe('p2p', () => {
 
         await sleep(4000);
         await nodes[10].broadcastAsync('test', Buffer.from('hello world'));
-        await sleep(200);
+        await sleep(1000);
 
         // stop all nodes
         await rendezvousNode.stop();
@@ -506,48 +506,48 @@ describe('p2p', () => {
 
   describe('dht', () => {
     // waiting for new js-libp2p-kad-dht release
-    it.skip('discover peer via periodically DHT random walk', async done => {
-      expect.assertions(3);
+    it(
+      'discover peer via periodically DHT random walk',
+      async done => {
+        expect.assertions(3);
 
-      const BOOTSTRAP_INTERVAL = 1000;
-      // const RANDOM_WALK_INTERVAL = 1000;
+        const BOOTSTRAP_INTERVAL = 1000;
+        // const RANDOM_WALK_INTERVAL = 1000;
 
-      const node1 = await createNewBundle(
-        undefined,
-        undefined,
-        undefined /*, RANDOM_WALK_INTERVAL*/
-      );
-      await node1.start();
+        const node1 = await createNewBundle(38000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
 
-      const bootstrap_for_node2 = getMultiAddr(node1.peerInfo);
-      const node2 = await createNewBundle(
-        undefined,
-        [bootstrap_for_node2],
-        BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
-      );
-      await node2.start();
+        const node2 = await createNewBundle(
+          38001,
+          [node1Address],
+          BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
+        );
+        await node2.start();
+        const node2Address = getMultiAddr(node2.peerInfo);
 
-      const bootstrap_for_node3 = getMultiAddr(node2.peerInfo);
-      const node3 = await createNewBundle(
-        undefined,
-        [bootstrap_for_node3],
-        BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
-      );
-      await node3.start();
+        const node3 = await createNewBundle(
+          38002,
+          [node2Address],
+          BOOTSTRAP_INTERVAL /*, RANDOM_WALK_INTERVAL*/
+        );
+        await node3.start();
 
-      // wait for all nodes to connect to each other via DHT randomWalk
-      await delay(10000);
+        // wait for all nodes to connect to each other via DHT randomWalk
+        await delay(15000);
 
-      // check if all nodes are connected
-      expect(node1.peerBook.getAllArray().length).toEqual(2);
-      expect(node2.peerBook.getAllArray().length).toEqual(2);
-      expect(node3.peerBook.getAllArray().length).toEqual(2);
+        // check if all nodes are connected
+        expect(node1.peerBook.getAllArray().length).toEqual(2);
+        expect(node2.peerBook.getAllArray().length).toEqual(2);
+        expect(node3.peerBook.getAllArray().length).toEqual(2);
 
-      await node1.stop();
-      await node2.stop();
-      await node3.stop();
-      done();
-    }, 15000);
+        await node1.stop();
+        await node2.stop();
+        await node3.stop();
+        done();
+      },
+      30 * 1000
+    );
   });
 
   describe('getRandomNode', () => {
@@ -598,7 +598,7 @@ describe('p2p', () => {
       10 * 1000
     );
 
-    it.only(
+    it(
       'getRandomPeer() - returns first or second node even out on 100.000,- calls',
       async done => {
         expect.assertions(5);
