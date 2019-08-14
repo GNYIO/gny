@@ -31,7 +31,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     logger.info(`started node: ${getB58String(bundle.peerInfo)}`);
   };
   const stopCallback = function() {
-    logger.info(`stopped node: ${getB58String(this.peerInfo)}`);
+    logger.info(`stopped node: ${getB58String(bundle.peerInfo)}`);
   };
   const errorCallback = function(err: Error) {
     logger.error(

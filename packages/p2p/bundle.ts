@@ -1,5 +1,4 @@
 import * as libp2p from 'libp2p';
-import * as DHT from 'libp2p-kad-dht';
 import { extractIpAndPort } from './util';
 import { ILogger, P2PMessage, P2PSubscribeHandler } from '../../src/interfaces';
 const Mplex = require('libp2p-mplex');
@@ -7,11 +6,13 @@ const SECIO = require('libp2p-secio');
 const Bootstrap = require('libp2p-bootstrap');
 const GossipSub = require('libp2p-gossipsub');
 const TCP = require('libp2p-tcp');
+const DHT = require('libp2p-kad-dht');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 import * as PeerId from 'peer-id';
+import { Options as LibP2POptions } from 'libp2p';
 
 export class Bundle extends libp2p {
-  private logger: ILogger;
+  public logger: ILogger;
 
   constructor(_options, logger: ILogger) {
     // input validation
@@ -22,7 +23,7 @@ export class Bundle extends libp2p {
     if (_options.config.peerDiscovery.bootstrap.list.includes(null))
       throw new Error('no null in string[]');
 
-    const defaults = {
+    const defaults: Partial<LibP2POptions> = {
       connectionManager: {
         // this plays into the option autoDial: true
         // link: https://github.com/libp2p/js-libp2p/blob/master/PEER_DISCOVERY.md
@@ -104,11 +105,11 @@ export class Bundle extends libp2p {
       const index = Math.floor(Math.random() * allPeers.length);
       const peerInfo = allPeers[index];
       const extracted = extractIpAndPort(peerInfo);
-      // this.logger.info(
-      //   `[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(
-      //     extracted
-      //   )}`
-      // );
+      this.logger.info(
+        `[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(
+          extracted
+        )}`
+      );
       return extracted;
     }
     return undefined;

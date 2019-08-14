@@ -4,6 +4,7 @@ import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle } from '../../../packages/p2p/bundle';
 import { attachEventHandlers } from '../../../packages/p2p/util';
+import { Options as LibP2POptions } from 'libp2p';
 
 const delay = (x: number): Promise<void> =>
   new Promise(resolve => setInterval(resolve, x));
@@ -80,7 +81,7 @@ describe('p2p', () => {
       peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${19000}`);
 
       const BOOTSTRAPNODE_WITH_UNDEFINED = [undefined] as string[];
-      const config = {
+      const config: Partial<LibP2POptions> = {
         peerInfo,
         config: {
           peerDiscovery: {
