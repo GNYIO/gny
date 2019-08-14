@@ -55,15 +55,22 @@ export default class TransfersApi {
     const limit = Number(req.query.limit) || 10;
     const offset = Number(req.query.offset) || 0;
 
+    req.query.limit = limit;
+    req.query.offset = offset;
+
     const schema = this.library.joi.object().keys({
       limit: this.library.joi
         .number()
         .min(0)
         .max(100),
       offset: this.library.joi.number().min(0),
+      ownerId: this.library.joi.string().address(),
+      currency: this.library.joi.string().asset(),
+      senderId: this.library.joi.string().address(),
+      recipientId: this.library.joi.string().address(),
     });
 
-    const report = this.library.joi.validate({ limit, offset }, schema);
+    const report = this.library.joi.validate(req.query, schema);
     if (report.error) {
       return next(report.error.message);
     }
