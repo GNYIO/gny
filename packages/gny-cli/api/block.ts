@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 
-import * as gnyJS from '@gny/gny-js';
 import Api from '../lib/api';
 import * as blockHelper from '../lib/block';
 import * as cryptoLib from '../lib/crypto';
+import { TransactionBase } from '../../../src/base/transaction';
 
 let globalOptions;
 
@@ -71,7 +71,7 @@ function getBlockPayloadHash(options) {
   }
   const payloadHash = crypto.createHash('sha256');
   for (let i = 0; i < block.transactions.length; ++i) {
-    payloadHash.update(gnyJS.crypto.getBytes(block.transactions[i]));
+    payloadHash.update(TransactionBase.getBytes(block.transactions[i]));
   }
   console.log(payloadHash.digest().toString('hex'));
 }

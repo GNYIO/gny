@@ -1,6 +1,7 @@
 import * as fs from 'fs';
-
-import * as gnyJS from '@gny/gny-js';
+import * as crypto from 'crypto';
+import * as ed from '../../../src/utils/ed';
+import { TransactionBase } from '../../../src/base/transaction';
 import Api from '../lib/api';
 
 let globalOptions;
@@ -54,22 +55,23 @@ function getTransaction(id) {
 }
 
 function sendMoney(options) {
-  // var params = {
-  //   secret: options.secret,
-  //   secondSecret: options.secondSecret,
-  //   recipientId: options.to,
-  //   amount: Number(options.amount)
-  // };
-  // getApi().put('/api/transactions/', params, function (err, result) {
-  //   console.log(err || result);
-  // });
-  const trs = gnyJS.transaction.createTransactionEx({
-    type: 1,
-    fee: Number(options.fee) || 10000000,
-    message: options.message,
-    secret: options.secret,
-    secondSecret: options.secondSecret,
-    args: [options.amount, options.to],
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(options.secondSecret, 'utf8')
+      .digest()
+  );
+  const trs = TransactionBase.create({
+    type: 6,
+    fee: '0',
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
   });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
@@ -77,46 +79,74 @@ function sendMoney(options) {
 }
 
 function sendAsset(options) {
-  const trs = gnyJS.uia.createTransfer(
-    options.currency,
-    options.amount,
-    options.to,
-    options.message,
-    options.secret,
-    options.secondSecret
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(options.secondSecret, 'utf8')
+      .digest()
   );
+  const trs = TransactionBase.create({
+    type: 103,
+    fee: String(10000000),
+    message: options.message,
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [options.currency, options.amount, options.to],
+  });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
 }
 
 function registerDelegate(options) {
-  // var params = {
-  //   secret: options.secret,
-  //   username: options.username,
-  //   secondSecret: options.secondSecret,
-  // };
-  // getApi().put('/api/delegates/', params, function (err, result) {
-  //   console.log(err || result);
-  // });
-  const trs = gnyJS.delegate.createDelegate(
-    options.username,
-    options.secret,
-    options.secondSecret
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(options.secondSecret, 'utf8')
+      .digest()
   );
+  const trs = TransactionBase.create({
+    type: 10,
+    fee: String(100 * 1e8),
+    message: options.message,
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
+  });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
 }
 
 function transaction(options) {
-  const trs = gnyJS.transaction.createTransactionEx({
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(options.secondSecret, 'utf8')
+      .digest()
+  );
+  const trs = TransactionBase.create({
     type: Number(options.type),
-    fee: Number(options.fee) || 10000000,
+    fee: String(options.fee) || String(10000000),
     message: options.message,
-    secret: options.secret,
-    secondSecret: options.secondSecret,
     args: JSON.parse(options.args),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
   });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
@@ -131,7 +161,7 @@ function getTransactionBytes(options: any) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(gnyJS.crypto.getBytes(trs, true, true).toString('hex'));
+  console.log(TransactionBase.getBytes(trs, true, true).toString('hex'));
 }
 
 function getTransactionId(options) {
@@ -142,12 +172,12 @@ function getTransactionId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(gnyJS.crypto.getId(trs));
+  console.log(TransactionBase.getId(trs));
 }
 
 function verifyBytes(options) {
   console.log(
-    gnyJS.crypto.verifyBytes(
+    TransactionBase.verifyBytes(
       options.bytes,
       options.signature,
       options.publicKey

@@ -1,6 +1,6 @@
 import * as inquirer from 'inquirer';
 
-import Api from '../helpers/api';
+import Api from '../lib/api';
 import * as cryptoLib from '../lib/crypto';
 import * as accountHelper from '../lib/account';
 

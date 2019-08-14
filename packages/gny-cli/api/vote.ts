@@ -1,5 +1,7 @@
-import * as gnyJS from '@gny/gny-js';
+import * as crypto from 'crypto';
 import Api from '../lib/api';
+import * as ed from '../../../src/utils/ed';
+import { TransactionBase } from '../../../src/base/transaction';
 
 let globalOptions;
 
@@ -11,11 +13,29 @@ function getApi() {
   });
 }
 
-function vote(secret, publicKeys, op, secondSecret) {
-  const votes = publicKeys.split(',').map(function(el) {
-    return op + el;
+function vote(secret, publicKeys, secondSecret) {
+  const keyList = publicKeys.split(',').map(function(el) {
+    return el;
   });
-  const trs = gnyJS.vote.createVote(votes, secret, secondSecret);
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(secondSecret, 'utf8')
+      .digest()
+  );
+  const trs = TransactionBase.create({
+    type: 4,
+    fee: String(10000000),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: keyList,
+  });
+
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
@@ -31,14 +51,14 @@ function listdiffvotes(options) {
       offset: options.offset || 0,
     };
     getApi().get('/api/accounts/delegates', params, function(err, result) {
-      const names_a = [];
+      const names_a: String[] = [];
       for (let i = 0; i < result.delegates.length; ++i) {
         names_a[i] = result.delegates[i].username;
       }
       const a = new Set(names_a);
       const params = { publicKey: publicKey };
       getApi().get('/api/delegates/voters', params, function(err, result) {
-        const names_b = [];
+        const names_b: String[] = [];
         for (let i = 0; i < result.accounts.length; ++i) {
           names_b[i] = result.accounts[i].username;
         }
@@ -58,12 +78,32 @@ function listdiffvotes(options) {
   });
 }
 
-function upvote(options) {
-  vote(options.secret, options.publicKeys, '+', options.secondSecret);
-}
+function unvote(secret, publicKeys, secondSecret) {
+  const keyList = publicKeys.split(',').map(function(el) {
+    return el;
+  });
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
+    crypto
+      .createHash('sha256')
+      .update(secondSecret, 'utf8')
+      .digest()
+  );
+  const trs = TransactionBase.create({
+    type: 5,
+    fee: String(10000000),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: keyList,
+  });
 
-function downvote(options) {
-  vote(options.secret, options.publicKeys, '-', options.secondSecret);
+  getApi().broadcastTransaction(trs, function(err, result) {
+    console.log(err || result.transactionId);
+  });
 }
 
 export default function account(program) {
@@ -76,18 +116,18 @@ export default function account(program) {
     .action(listdiffvotes);
 
   program
-    .command('upvote')
+    .command('vote')
     .description('vote for delegates')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-p, --publicKeys <public key list>', '')
-    .action(upvote);
+    .action(vote);
 
   program
-    .command('downvote')
+    .command('unvote')
     .description('cancel vote for delegates')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-p, --publicKeys <public key list>', '')
-    .action(downvote);
+    .action(unvote);
 }
