@@ -12,21 +12,21 @@ const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
 describe('transactionsApi', () => {
-  // beforeAll(async done => {
-  //   await lib.deleteOldDockerImages();
-  //   await lib.buildDockerImage();
-  //   done();
-  // }, lib.tenMinutes);
+  beforeAll(async done => {
+    await lib.deleteOldDockerImages();
+    await lib.buildDockerImage();
+    done();
+  }, lib.tenMinutes);
 
-  // beforeEach(async done => {
-  //   await lib.spawnContainer();
-  //   done();
-  // }, lib.oneMinute);
+  beforeEach(async done => {
+    await lib.spawnContainer();
+    done();
+  }, lib.oneMinute);
 
-  // afterEach(async done => {
-  //   await lib.stopAndKillContainer();
-  //   done();
-  // }, lib.oneMinute);
+  afterEach(async done => {
+    await lib.stopAndKillContainer();
+    done();
+  }, lib.oneMinute);
 
   describe('/', () => {
     it(

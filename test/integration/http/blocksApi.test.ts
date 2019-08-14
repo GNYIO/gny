@@ -39,7 +39,7 @@ describe('blocksApi', () => {
 
   describe('/', () => {
     it(
-      'should get blocks',
+      'should get blocks with offset and limit query parameters',
       async () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
