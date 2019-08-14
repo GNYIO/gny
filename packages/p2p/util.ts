@@ -60,9 +60,6 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         bundle.peerInfo
       )} got disconnected from ${getB58String(peer)}`
     );
-
-    // TODO: check!
-    // bundle.peerBook.remove(peer);
   };
 
   bundle.on('start', startCallback);

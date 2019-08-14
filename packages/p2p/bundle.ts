@@ -14,10 +14,18 @@ export class Bundle extends libp2p {
   private logger: ILogger;
 
   constructor(_options, logger: ILogger) {
+    // input validation
+    if (!Array.isArray(_options.config.peerDiscovery.bootstrap.list))
+      throw new Error('bootstrapNode must be array');
+    if (_options.config.peerDiscovery.bootstrap.list.includes(undefined))
+      throw new Error('no undefined in string[]');
+    if (_options.config.peerDiscovery.bootstrap.list.includes(null))
+      throw new Error('no null in string[]');
+
     const defaults = {
       connectionManager: {
         // this plays into the option autoDial: true
-        // link:
+        // link: https://github.com/libp2p/js-libp2p/blob/master/PEER_DISCOVERY.md
         maxPeers: 100 * 1000,
         minPeers: 10 * 1000,
       },
@@ -56,16 +64,7 @@ export class Bundle extends libp2p {
       },
     };
     const finalConfig = defaultsDeep(_options, defaults);
-    console.log(`config: ${JSON.stringify(finalConfig, null, 2)}`);
-
-    // input validation
-    if (!Array.isArray(finalConfig.config.peerDiscovery.bootstrap.list))
-      throw new Error('bootstrapNode must be array');
-    if (finalConfig.config.peerDiscovery.bootstrap.list.includes(undefined))
-      throw new Error('no undefined in string[]');
-    if (finalConfig.config.peerDiscovery.bootstrap.list.includes(null))
-      throw new Error('no null in string[]');
-
+    logger.info(`config: ${JSON.stringify(finalConfig, null, 2)}`);
     super(finalConfig);
 
     this.logger = logger;

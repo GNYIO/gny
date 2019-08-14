@@ -7,6 +7,7 @@ import {
 } from '../../packages/p2p/createPeerInfo';
 import { Bundle } from '../../packages/p2p/bundle';
 import { PeerNode } from '../interfaces';
+import { attachEventHandlers } from '../../packages/p2p/util';
 
 export default class Peer {
   private static nodesDb: Database = undefined; // TODO: refactor
@@ -111,6 +112,8 @@ export default class Peer {
     };
 
     Peer.p2p = new Bundle(config, global.app.logger);
+    attachEventHandlers(Peer.p2p, global.app.logger);
+
     Peer.p2p
       .start()
       .then(() => {
