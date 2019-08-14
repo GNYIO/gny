@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig",
   "compilerOptions": {
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "outDir": "./bin",
     "moduleResolution": "node"
   },
