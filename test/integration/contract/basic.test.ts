@@ -226,7 +226,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return error: invalid recipient, if recipient username is euqla to sender username',
+      'should return error: invalid recipient, if recipient username is equal to sender username',
       async () => {
         const amount = 5 * 1e8;
         const username = 'a1300';

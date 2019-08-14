@@ -1201,7 +1201,7 @@ describe('uia', () => {
     );
 
     it(
-      'should return the error: Invalid recipient, if recipient address is euqla to sender address',
+      'should return the error: Invalid recipient, if recipient address is equal to sender address',
       async () => {
         // prepare
         await beforeUiaTransfer();
