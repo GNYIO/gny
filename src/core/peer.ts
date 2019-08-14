@@ -106,7 +106,9 @@ export default class Peer {
       peerInfo,
       config: {
         peerDiscovery: {
-          list: bootstrapNode,
+          bootstrap: {
+            list: bootstrapNode,
+          },
         },
       },
     };
