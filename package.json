@@ -67,7 +67,6 @@
     "@types/pg": "^7.4.14",
     "@types/shelljs": "=0.8.1",
     "@types/socket.io": "=1.4.40",
-    "@types/z-schema": "=3.16.32",
     "async": "=1.5.2",
     "axios": "^0.19.0",
     "babel-eslint": "^9.0.0",
@@ -122,8 +121,7 @@
     "ts-node": "=7.0.1",
     "type-fest": "^0.6.0",
     "typeorm": "^0.2.16",
-    "typescript": "^3.5.3",
-    "z-schema": "https://github.com/AschPlatform/z-schema/tarball/v3.15.2+asch.1"
+    "typescript": "^3.5.3"
   },
   "devDependencies": {
     "@types/dockerode": "^2.5.13",
