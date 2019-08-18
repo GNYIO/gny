@@ -276,7 +276,9 @@ export class DbSession {
 
   private getCached(schema: ModelSchema, keyvalue: ObjectLiteral) {
     const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue);
-    // TODO throw Error if primaryKeyMetadat is undefined
+    if (primaryKeyMetadata === undefined) {
+      throw new Error('no primary key of entity found');
+    }
     const this_area = this.entityTracker.getTrackingEntity(
       schema,
       primaryKeyMetadata.key
