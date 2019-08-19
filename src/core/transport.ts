@@ -23,9 +23,12 @@ import { BlocksHelper } from './BlocksHelper';
 export default class Transport {
   // subscribe to peer events
   public static onPeerReady = () => {
-    Peer.p2p.subscribe('newBlockHeader', Transport.receivePeer_NewBlockHeader);
-    Peer.p2p.subscribe('propose', Transport.receivePeer_Propose);
-    Peer.p2p.subscribe('transaction', Transport.receivePeer_Transaction);
+    Peer.p2p.subscribeCustom(
+      'newBlockHeader',
+      Transport.receivePeer_NewBlockHeader
+    );
+    Peer.p2p.subscribeCustom('propose', Transport.receivePeer_Propose);
+    Peer.p2p.subscribeCustom('transaction', Transport.receivePeer_Transaction);
   };
 
   // broadcast to peers Transaction

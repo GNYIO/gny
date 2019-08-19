@@ -10,7 +10,7 @@
       "name": "DEBUG_1",
       "program": "${workspaceFolder}/dist/app.js",
       "cwd": "${workspaceFolder}/dist",
-      "args": ["--log", "trace", "--ormConfig", "ormconfig.json"],
+      "args": ["--ormConfig", "ormconfig.json"],
       "env": {
         "DEBUG": "debug"
       },
@@ -45,7 +45,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "8.13.0",
+      "runtimeVersion": "10.16.2",
       "request": "launch",
       "name": "Unit Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
@@ -68,7 +68,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "8.13.0",
+      "runtimeVersion": "10.16.2",
       "request": "launch",
       "name": "Integration Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",

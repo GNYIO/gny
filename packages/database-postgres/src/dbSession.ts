@@ -1,7 +1,7 @@
 import { LogManager, LoggerWrapper } from './logger';
 import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache';
-import * as _jsonSqlBuilder from './jsonSQLBuilder';
+import { JsonSqlBuilder } from './jsonSQLBuilder';
 import * as CodeContract from './codeContract';
 import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import {
@@ -27,7 +27,7 @@ export class DbSession {
   private confirmedLocks: Set<string>;
   private schemas: Map<string, ModelSchema>;
   private sessionCache: LRUEntityCache;
-  private sqlBuilder: _jsonSqlBuilder.JsonSqlBuilder;
+  private sqlBuilder: JsonSqlBuilder;
   private entityTracker: BasicEntityTracker;
   private trackerSqlBuilder: BasicTrackerSqlBuilder;
 
@@ -44,7 +44,7 @@ export class DbSession {
     this.confirmedLocks = new Set<string>();
     this.schemas = schemas;
     this.sessionCache = new LRUEntityCache(this.schemas);
-    this.sqlBuilder = new _jsonSqlBuilder.JsonSqlBuilder();
+    this.sqlBuilder = new JsonSqlBuilder();
     const howManyVersionsToHold =
       maxHistoryVersionsHold || DbSession.DEFAULT_HISTORY_VERSION_HOLD;
 
@@ -276,7 +276,9 @@ export class DbSession {
 
   private getCached(schema: ModelSchema, keyvalue: ObjectLiteral) {
     const primaryKeyMetadata = this.normalizeEntityKey(schema, keyvalue);
-    // TODO throw Error if primaryKeyMetadat is undefined
+    if (primaryKeyMetadata === undefined) {
+      throw new Error('no primary key of entity found');
+    }
     const this_area = this.entityTracker.getTrackingEntity(
       schema,
       primaryKeyMetadata.key
@@ -293,11 +295,6 @@ export class DbSession {
             primaryKeyMetadata.key
           ))
     );
-  }
-
-  private getTrackingOrCachedEntity(url, id) {
-    const cached = this.getCached(url, id);
-    return undefined === cached ? undefined : CodeContract.deepCopy(cached);
   }
 
   public getCachedEntity(schema: ModelSchema, key: ObjectLiteral) {
