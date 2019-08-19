@@ -3,7 +3,7 @@ import { ModelSchema } from './modelSchema';
 
 export class CustomCache {
   private modelSchema: ModelSchema;
-  private lruCache: LRU.Cache<string, Object>;
+  private lruCache: LRU<string, Object>;
   private postEvit: (key: string, obj: Object) => void; // callback
 
   /**
