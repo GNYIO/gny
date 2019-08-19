@@ -98,7 +98,7 @@ describe('p2p', () => {
       done();
     });
 
-    it('constructor() - passing an null in bootstrapNode into Peer2Peer constructor throws error', async done => {
+    it('constructor() - passing a null in bootstrapNode into Peer2Peer constructor throws error', async done => {
       const peerInfo = await createPeerInfo();
       peerInfo.multiaddrs.add(`/ip4/0.0.0.0/tcp/${19000}`);
 
@@ -553,7 +553,7 @@ describe('p2p', () => {
 
   describe('getRandomNode', () => {
     it(
-      'getRandomNode() - returns undefined when they are no peers in peerBook',
+      'getRandomNode() - returns undefined when there are no peers in peerBook',
       async done => {
         const node1 = await createNewBundle(15000);
         await node1.start();
