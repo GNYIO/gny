@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Connection, ObjectLiteral } from 'typeorm';
+import { Connection } from 'typeorm';
 import { loadConfig } from '../loadConfig';
 import { ILogger, IBlock } from '../../../src/interfaces';
 import { EventEmitter } from 'events';
@@ -8,7 +8,6 @@ import * as CodeContract from './codeContract';
 import { DbSession } from './dbSession';
 import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
-import * as performance from './performance';
 import * as _ from 'lodash';
 import { ModelSchema } from './modelSchema';
 import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
@@ -46,7 +45,6 @@ export interface SmartDBOptions {
 }
 
 export class SmartDB extends EventEmitter {
-  public static readonly TRANSACTION_MODEL_NAME = 'Transaction';
   private options: SmartDBOptions;
   private originalLogger: ILogger;
   private commitBlockHooks: Hooks[];
@@ -329,14 +327,12 @@ export class SmartDB extends EventEmitter {
     this.preCommitBlock(this.currentBlock);
     const value = Object.assign({}, this.currentBlock);
     Reflect.deleteProperty(value, 'transactions');
-    performance.Utils.Performace.time('Append block');
     // await this.blockDB.appendBlock(value, this.blockSession.getChanges());
     await this.appendBlock(value, this.blockSession.getChanges());
 
     this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
       .plus(1)
       .toFixed();
-    performance.Utils.Performace.endTime();
     try {
       await this.blockSession.saveChanges(this.currentBlock.height);
       this.cachedBlocks.push(this.currentBlock);
