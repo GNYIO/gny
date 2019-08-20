@@ -1,10 +1,8 @@
 import * as fs from 'fs';
-import * as crypto from 'crypto';
 
 import Api from '../lib/api';
 import * as blockHelper from '../lib/block';
 import * as cryptoLib from '../lib/crypto';
-import { TransactionBase } from '../../../src/base/transaction';
 
 let globalOptions;
 
