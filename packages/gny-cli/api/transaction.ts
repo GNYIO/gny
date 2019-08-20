@@ -30,16 +30,14 @@ function getUnconfirmedTransactions(options) {
 
 function getTransactions(options) {
   const params = {
-    blockId: options.blockId,
     limit: options.limit,
-    orderBy: options.sort,
     offset: options.offset,
-    type: options.type,
-    senderPublicKey: options.senderPublicKey,
+    id: options.id,
     senderId: options.senderId,
-    recipientId: options.recipientId,
-    amount: options.amount,
-    fee: options.fee,
+    senderPublicKey: options.senderPublicKey,
+    blockId: options.blockId,
+    type: options.type,
+    height: options.height,
     message: options.message,
   };
   getApi().get('/api/transactions/', params, function(err, result) {
@@ -47,7 +45,7 @@ function getTransactions(options) {
   });
 }
 
-function getTransaction(id) {
+function getUnconfirmedTransaction(id) {
   const params = { id: id };
   getApi().get('/api/transactions/get', params, function(err, result) {
     console.log(err || pretty(result.transaction));
@@ -67,11 +65,12 @@ function sendMoney(options) {
       .digest()
   );
   const trs = TransactionBase.create({
-    type: 6,
-    fee: '0',
+    type: 0,
+    fee: String(10000000),
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [],
+    args: [options.amount, options.recipient],
+    message: options.message,
   });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
@@ -96,7 +95,7 @@ function sendAsset(options) {
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [options.currency, options.amount, options.to],
+    args: [options.currency, options.amount, options.recipient],
   });
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
@@ -202,19 +201,17 @@ export default function account(program) {
     .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
     .option('-t, --type <n>', 'transaction type')
-    .option('-s, --sort <field:mode>', '')
-    .option('-a, --amount <n>', '')
-    .option('-f, --fee <n>', '')
+    .option('-h, --height <n>', '')
     .option('-m, --message <message>', '')
     .option('--senderPublicKey <key>', '')
     .option('--senderId <id>', '')
-    .option('--recipientId <id>', '')
+    .option('-i, --id <id>', '')
     .action(getTransactions);
 
   program
     .command('gettransaction [id]')
-    .description('get transactions')
-    .action(getTransaction);
+    .description('get unconfirmed transaction by id')
+    .action(getUnconfirmedTransaction);
 
   program
     .command('sendmoney')
@@ -222,8 +219,7 @@ export default function account(program) {
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-a, --amount <n>', '')
-    .option('-f, --fee <n>', '')
-    .option('-t, --to <address>', '')
+    .option('-r, --recipient <address>', '')
     .option('-m, --message <message>', '')
     .action(sendMoney);
 
@@ -234,7 +230,7 @@ export default function account(program) {
     .option('-s, --secondSecret <secret>', '')
     .option('-c, --currency <currency>', '')
     .option('-a, --amount <amount>', '')
-    .option('-t, --to <address>', '')
+    .option('-r, --recipient <address>', '')
     .option('-m, --message <message>', '')
     .action(sendAsset);
 
