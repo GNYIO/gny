@@ -14,18 +14,8 @@ function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
-function getPeers(options) {
-  const params = {
-    limit: options.limit,
-    orderBy: options.sort,
-    offset: options.offset,
-    state: options.state,
-    os: options.os,
-    port: options.port,
-    version: options.version,
-  };
-  // var liskOptions = {host:'login.lisk.io', port:80};
-  getApi().get('/api/peers/', params, function(err, result) {
+function getPeers() {
+  getApi().get('/api/peers/', function(err, result) {
     console.log(err || pretty(result.peers));
   });
 }
@@ -36,12 +26,5 @@ export default function account(program) {
   program
     .command('getpeers')
     .description('get peers')
-    .option('-o, --offset <n>', '')
-    .option('-l, --limit <n>', '')
-    .option('-t, --state <n>', ' 0 ~ 3')
-    .option('-s, --sort <field:mode>', '')
-    .option('-v, --version <version>', '')
-    .option('-p, --port <n>', '')
-    .option('--os <os>', '')
     .action(getPeers);
 }
