@@ -195,7 +195,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return error: invalid recipient, if recipient address is euqla to sender address',
+      'should return error: invalid recipient, if recipient address is equal to sender address',
       async () => {
         const amount = 5 * 1e8;
         const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';

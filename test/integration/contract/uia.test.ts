@@ -1235,7 +1235,7 @@ describe('uia', () => {
     );
 
     it(
-      'should return the error: Invalid recipient, if recipient username is euqla to sender username',
+      'should return the error: Invalid recipient, if recipient username is equal to sender username',
       async () => {
         // prepare
         await beforeUiaTransfer();
