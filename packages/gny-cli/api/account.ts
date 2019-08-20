@@ -1,8 +1,8 @@
-import * as inquirer from 'inquirer';
+// import * as inquirer from 'inquirer';
 
 import Api from '../lib/api';
-import * as cryptoLib from '../lib/crypto';
-import * as accountHelper from '../lib/account';
+// import * as cryptoLib from '../lib/crypto';
+// import * as accountHelper from '../lib/account';
 
 let globalOptions;
 
@@ -41,52 +41,62 @@ function getAccount(address) {
   });
 }
 
-function getVotedDelegates(address, options) {
+function getVotedDelegates(options) {
   const params = {
-    address: address,
-    limit: options.limit,
-    offset: options.offset,
+    address: options.address,
+    username: options.username,
   };
   getApi().get('/api/accounts/getVotes', params, function(err, result) {
     console.log(err || result);
   });
 }
 
-async function genPubkey() {
-  const result: any = await inquirer.prompt([
-    {
-      type: 'password',
-      name: 'secret',
-      message: 'Enter secret of your testnet account',
-    },
-  ]);
-  const account = accountHelper.account(result.secret.trim());
-  console.log('Public key: ' + account.keypair.publicKey);
-  console.log('Address: ' + account.address);
+function countAccounts() {
+  getApi().get('/api/accounts/count', function(err, result) {
+    console.log(err || result.count);
+  });
 }
 
-async function genAccount() {
-  const result: any = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'amount',
-      message: 'Enter number of accounts to generate',
-    },
-  ]);
-  const n = parseInt(result.amount);
-  const accounts = [];
-
-  for (let i = 0; i < n; i++) {
-    const a = accountHelper.account(cryptoLib.generateSecret());
-    accounts.push({
-      address: a.address,
-      secret: a.secret,
-      publicKey: a.keypair.publicKey,
-    });
-  }
-  console.log(accounts);
-  console.log('Done');
+async function getPublicKey(address) {
+  const params = {
+    address: address,
+  };
+  getApi().get('/api/accounts/getPublicKey', params, function(err, result) {
+    console.log(err || result);
+  });
 }
+
+async function genPublicKey(secret) {
+  const data = {
+    secret: secret,
+  };
+  getApi().post('/api/accounts/generatePublicKey', data, function(err, result) {
+    console.log(err || result);
+  });
+}
+
+// async function genAccount() {
+//   const result: any = await inquirer.prompt([
+//     {
+//       type: 'input',
+//       name: 'amount',
+//       message: 'Enter number of accounts to generate',
+//     },
+//   ]);
+//   const n = parseInt(result.amount);
+//   const accounts = [];
+
+//   for (let i = 0; i < n; i++) {
+//     const a = accountHelper.account(cryptoLib.generateSecret());
+//     accounts.push({
+//       address: a.address,
+//       secret: a.secret,
+//       publicKey: a.keypair.publicKey,
+//     });
+//   }
+//   console.log(accounts);
+//   console.log('Done');
+// }
 
 export default function account(program) {
   globalOptions = program;
@@ -107,30 +117,24 @@ export default function account(program) {
     .action(getAccount);
 
   program
-    .command('getvoteddelegates [address]')
+    .command('countaccounts')
+    .description('get the number of accounts')
+    .action(countAccounts);
+
+  program
+    .command('getvoteddelegates')
     .description('get delegates voted by address')
-    .option('-o, --offset <n>', '')
-    .option('-l, --limit <n>', '')
+    .option('-u, --username [username]', '')
+    .option('-a, --address [address]', '')
     .action(getVotedDelegates);
 
   program
-    .command('crypto')
-    .description('crypto operations')
-    .option('-p, --pubkey', 'generate public key from secret')
-    .option('-g, --generate', 'generate random accounts')
-    .action(function(options) {
-      (async function() {
-        try {
-          if (options.pubkey) {
-            genPubkey();
-          } else if (options.generate) {
-            genAccount();
-          } else {
-            console.log("'node crypto -h' to get help");
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      })();
-    });
+    .command('getpublickey [address]')
+    .description('get public key by address')
+    .action(getPublicKey);
+
+  program
+    .command('genpublickey [secret]')
+    .description('generate public key by secret')
+    .action(genPublicKey);
 }
