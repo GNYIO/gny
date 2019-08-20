@@ -14,7 +14,6 @@ function getApi() {
 }
 
 function setSecondSecret(options) {
-  // const trs = TransactionBase.create(options.secret, options.secondSecret);
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -27,7 +26,7 @@ function setSecondSecret(options) {
       .digest()
   );
   const secondSignature = {
-    publicKey: keys.publicKey,
+    publicKey: keys.publicKey.toString('hex'),
   };
 
   const trs = TransactionBase.create({
@@ -36,30 +35,35 @@ function setSecondSecret(options) {
     args: [secondSignature.publicKey],
     keypair: keypair,
   });
+
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
 }
 
 function lock(options) {
+  let secondKeypair;
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
-    type: 1,
-    fee: String(options.fee) || String(10000000),
+    type: 3,
+    fee: String(10000000),
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [options.amount, options.to],
+    args: [options.height, options.amout],
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
@@ -83,5 +87,6 @@ export default function basic(program) {
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-h, --height <height>', 'lock height')
+    .option('-m, --amount <amount>', 'lock amount')
     .action(lock);
 }
