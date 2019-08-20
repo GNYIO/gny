@@ -1,8 +1,8 @@
-// import * as inquirer from 'inquirer';
+import * as inquirer from 'inquirer';
 
 import Api from '../lib/api';
-// import * as cryptoLib from '../lib/crypto';
-// import * as accountHelper from '../lib/account';
+import * as cryptoLib from '../lib/crypto';
+import * as accountHelper from '../lib/account';
 
 let globalOptions;
 
@@ -74,28 +74,28 @@ async function genPublicKey(secret) {
   });
 }
 
-// async function genAccount() {
-//   const result: any = await inquirer.prompt([
-//     {
-//       type: 'input',
-//       name: 'amount',
-//       message: 'Enter number of accounts to generate',
-//     },
-//   ]);
-//   const n = parseInt(result.amount);
-//   const accounts = [];
+async function genAccount() {
+  const result: any = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'amount',
+      message: 'Enter number of accounts to generate',
+    },
+  ]);
+  const n = parseInt(result.amount);
+  const accounts = [];
 
-//   for (let i = 0; i < n; i++) {
-//     const a = accountHelper.account(cryptoLib.generateSecret());
-//     accounts.push({
-//       address: a.address,
-//       secret: a.secret,
-//       publicKey: a.keypair.publicKey,
-//     });
-//   }
-//   console.log(accounts);
-//   console.log('Done');
-// }
+  for (let i = 0; i < n; i++) {
+    const a = accountHelper.account(cryptoLib.generateSecret());
+    accounts.push({
+      address: a.address,
+      secret: a.secret,
+      publicKey: a.keypair.publicKey,
+    });
+  }
+  console.log(accounts);
+  console.log('Done');
+}
 
 export default function account(program) {
   globalOptions = program;
@@ -136,4 +136,9 @@ export default function account(program) {
     .command('genpublickey [secret]')
     .description('generate public key by secret')
     .action(genPublicKey);
+
+  program
+    .command('genaccount')
+    .description('generate accounts')
+    .action(genAccount);
 }
