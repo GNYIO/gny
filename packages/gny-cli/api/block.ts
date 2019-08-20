@@ -97,7 +97,6 @@ export default function account(program) {
     .description('get blocks')
     .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
-    .option('-r, --order <order>', '')
     .option(
       '-s, --sort <field:mode>',
       'height:asc, totalAmount:asc, totalFee:asc'
@@ -119,12 +118,6 @@ export default function account(program) {
     .description('get block bytes')
     .option('-f, --file <file>', 'block file')
     .action(getBlockBytes);
-
-  program
-    .command('getblockpayloadhash')
-    .description('get block bytes')
-    .option('-f, --file <file>', 'block file')
-    .action(getBlockPayloadHash);
 
   program
     .command('getblockid')

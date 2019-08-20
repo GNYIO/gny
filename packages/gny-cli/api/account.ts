@@ -10,7 +10,6 @@ function getApi() {
   return new Api({
     host: globalOptions.host,
     port: globalOptions.port,
-    mainnet: !!globalOptions.main,
   });
 }
 
