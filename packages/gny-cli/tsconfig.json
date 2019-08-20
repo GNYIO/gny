@@ -6,10 +6,8 @@
     "moduleResolution": "node"
   },
   "include": [
-    "helpers/*[.ts|.js]",
     "lib/*[.ts|.js]",
-    "plugins/*[.ts|.js]",
-    "template/**/*.ts",
+    "api/*[.ts|.js]",
     "index.ts",
     "test/**/*.ts"
   ],
