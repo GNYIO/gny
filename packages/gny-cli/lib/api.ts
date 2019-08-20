@@ -1,5 +1,4 @@
 import * as request from 'request';
-import axios from 'axios';
 
 export function resultHandler(cb) {
   return function(err, resp, body) {
@@ -26,12 +25,10 @@ export function resultHandler(cb) {
 interface Options {
   host: string;
   port: string;
-  mainnet?: any;
 }
 
 export default class Api {
   options: Options;
-  mainnet: any;
   host: any;
   port: any;
   baseUrl: string;
@@ -39,11 +36,10 @@ export default class Api {
 
   constructor(options: Options) {
     this.options = options;
-    this.mainnet = this.options.mainnet;
     this.host = this.options.host || '127.0.0.1';
-    this.port = this.options.port || (this.mainnet ? 8192 : 4096);
+    this.port = this.options.port || 4096;
     this.baseUrl = 'http://' + this.host + ':' + this.port;
-    this.magic = this.mainnet ? '5f5b3cf5' : '594fe0f3';
+    this.magic = '594fe0f3';
   }
 
   get = async function(path, params, cb?) {
@@ -92,7 +88,6 @@ export default class Api {
       {
         method: 'POST',
         url: this.baseUrl + '/peer/transactions',
-        // TODO magic should be read from a config file or options
         headers: {
           magic: this.magic,
           version: '',

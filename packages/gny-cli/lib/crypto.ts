@@ -1,15 +1,8 @@
 // import * as nacl_factory from 'js-nacl';
 import * as crypto from 'crypto-browserify';
 import * as Mnemonic from 'bitcore-mnemonic';
-import * as gnyJS from '@gny/gny-js';
 import * as nacl from 'tweetnacl';
-
-// var nacl_factory = require('js-nacl');
-
-// let nacl;
-// nacl_factory.instantiate(function (nacl_instance) {
-// 	nacl = nacl_instance;
-// });
+import * as bs58 from 'bs58';
 
 export let randomString = function(max) {
   let text = '';
@@ -69,7 +62,16 @@ export function isValidSecret(secret) {
 }
 
 export function getAddress(publicKey) {
-  return gnyJS.crypto.getAddress(publicKey);
+  const PREFIX = 'G';
+  const hash1 = crypto
+    .createHash('sha256')
+    .update(Buffer.from(publicKey, 'hex'))
+    .digest();
+  const hash2 = crypto
+    .createHash('ripemd160')
+    .update(hash1)
+    .digest();
+  return PREFIX + bs58.encode(hash2);
 }
 
 export default {
