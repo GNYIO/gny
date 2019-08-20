@@ -12,7 +12,6 @@ function getApi() {
   return new Api({
     host: globalOptions.host,
     port: globalOptions.port,
-    mainnet: !!globalOptions.main,
   });
 }
 
@@ -37,10 +36,6 @@ function getBlocks(options) {
     limit: options.limit,
     orderBy: options.sort,
     offset: options.offset,
-    totalAmount: options.totalAmount,
-    totalFee: options.totalFee,
-    reward: options.reward,
-    generatorPublicKey: options.generatorPublicKey,
   };
   getApi().get('/api/blocks/', params, function(err, result) {
     console.log(err || pretty(result));
@@ -49,31 +44,16 @@ function getBlocks(options) {
 
 function getBlockById(id) {
   const params = { id: id };
-  getApi().get('/api/blocks/get', params, function(err, result) {
+  getApi().get('/api/blocks/getBlock', params, function(err, result) {
     console.log(err || pretty(result.block));
   });
 }
 
 function getBlockByHeight(height) {
   const params = { height: height };
-  getApi().get('/api/blocks/get', params, function(err, result) {
+  getApi().get('/api/blocks/getBlock', params, function(err, result) {
     console.log(err || pretty(result.block));
   });
-}
-
-function getBlockPayloadHash(options) {
-  let block;
-  try {
-    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
-  } catch (e) {
-    console.log('Invalid transaction format');
-    return;
-  }
-  const payloadHash = crypto.createHash('sha256');
-  for (let i = 0; i < block.transactions.length; ++i) {
-    payloadHash.update(TransactionBase.getBytes(block.transactions[i]));
-  }
-  console.log(payloadHash.digest().toString('hex'));
 }
 
 function getBlockBytes(options) {
@@ -117,10 +97,7 @@ export default function account(program) {
     .description('get blocks')
     .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
-    .option('-r, --reward <n>', '')
-    .option('-f, --totalFee <n>', '')
-    .option('-a, --totalAmount <n>', '')
-    .option('-g, --generatorPublicKey <publicKey>', '')
+    .option('-r, --order <order>', '')
     .option(
       '-s, --sort <field:mode>',
       'height:asc, totalAmount:asc, totalFee:asc'
