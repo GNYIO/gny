@@ -91,5 +91,5 @@ export default function account(program) {
   program
     .command('getdelegatebyaddress [address]')
     .description('get delegate by address')
-    .action(getDelegateByUsername);
+    .action(getDelegateByAddress);
 }
