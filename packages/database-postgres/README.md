@@ -1,13 +1,11 @@
 
-# Database Layer with inbuilt Cache
+# SDB (Database Layer with inbuilt Cache)
 
 ## Overview
 This package is a database abstraction. In the following we will call this package `sdb`. Sdb helds _most_ of its data in memory and so saves round trips to the database. `Sdb` is intended to be used with smart contracts because it is able to `rollback` changes made by smart contract call. But more on this later.
 
 ## Life Cycle
-// describe the data
-// Event sourcing
-Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model (`a -> a'`) is represented as a delta. That makes it possible to `rollback` to a previous point in time.
+Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model  is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
 
 ### Block life cycle
 
@@ -26,7 +24,14 @@ An example block:
   "fees": "510000000",
   "reward": "0",
   "signature": "c69c57fdb40a1b378c8c8456e52657ae8041a65d895e438782d71c6b7a7115d03d48cf1628a11cdfd302b22771009d902628c8882d97f9865d3bf36a1ecec306",
-  "id": "6a478f6e34442a090c868d6285d4ee07f8e13dad682eff3ebd38d3021e36b706",
+  "id": "6a478f6e34442a090c868d6285d4ee07f8e13dad682eff3ebd38d3021e36b706"
+  // transactions property is further below
+}
+```
+
+This are the transactions of the `Block` above:
+```json
+{
   "transactions": [
     {
       "type":0,
@@ -55,11 +60,14 @@ An example block:
 }
 ```
 
-The `Block` above would call the following smart contracts:
+The `Transactions` above would call the following smart contracts:
 - `basic.transfer` (type: 0)
 - `basic.setUserName` (type: 1)
 
-Which would then produce the following `deltas`:
+The whole `Block` would then produce the following `deltas`:
+
+<details><summary>CLICK ME</summary>
+
 ```json
 [
   {
@@ -376,15 +384,91 @@ Which would then produce the following `deltas`:
   }
 ]
 ```
+</details>
 
 From the `deltas` SQL Statements are generated:
 
 
+
+### Version Column
+Every Entity has a `_version_` column which specifies how often it was updated.
+
+An `Account` Entity (version 1):
+| address | gny | username | version |
+| :--: | :--: | :--: | :--: |
+| G45U8A2vdp5CHZ3ABAZwojxdBp44p | 39999998990000000 | null | 1 |
+
+An `Account` Entity (version 2) where the `username` was set:
+| address | gny | username | version |
+| :--: | :--: | :--: | :--: |
+| G45U8A2vdp5CHZ3ABAZwojxdBp44p | 39999998990000000 | liangpeili | 2 |
+
+
+## Database Access
+
+All create/update/delete statements are executed only in memory at the start of a new Block period (10 seconds). Every 10 seconds all collected create/update/delete statements are batched to the database. So the database gets synchronized with the in-memory data every 10 seconds.
+
 ## Model
 
-Modles are divided into `memory` Models and `normal` Models. Memory models are solely kept in memory. On the other hand, `normal` models...
+Models are divided into `memory` Models and `normal` Models. Memory models are solely kept in memory. On the other hand, `normal` models... ???
 
-## Life Cycle
+### Memory Models
+Memory models are once loaded on the start of the application in memory and are then never read again as long as the Blockchain is up.
+
+
+## Smart Contract Usage
+When working with smart contracts we want to rollback changes when something goes wrong. Therefore we have the `beginContract()`, `commitContract()` and `rollbackContract()`.
+
+```js
+try {
+  global.app.sdb.beginContract();
+  await Transactions.apply(context); // calls contract
+  global.app.sdb.commitContract();
+} catch (e) {
+  global.app.sdb.rollbackContract(); // rollback on error
+  throw e;
+}
+```
 
 ## API
 
+> IMPORTANT!
+> **All** API methods that **change** (create, update, delete) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be used in HTTP endpoints.
+
+
+### create<T>(T, Object): Promise<T>
+
+returns: `Promise<T>` (an Entity with all default values set)
+
+```ts
+// create an Account
+await sdb.create<Account>(Account, {
+  address: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+  gny: String(0),
+  username: null,
+});
+```
+
+### createOrLoad<T>(T, Object)
+
+returns: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)
+
+```ts
+const result = await sdb.createOrLoad<Round>(Round, {
+
+});
+typeof result.create
+typeof result.entity
+```
+
+### del<T>(T, ObjectWithPrimaryKey(s))
+
+returns: undefined
+```ts
+await sdb.del<Vote>(Vote, {
+  voterAddress: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+  delegate: 'a1300',
+})
+```
+
+### 
