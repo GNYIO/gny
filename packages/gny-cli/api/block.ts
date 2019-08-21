@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 
 import Api from '../lib/api';
-import * as blockHelper from '../lib/block';
 import * as cryptoLib from '../lib/crypto';
+import { BlockBase } from '../../../src/base/block';
 
 let globalOptions;
 
@@ -62,7 +62,7 @@ function getBlockBytes(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(blockHelper.getBytes(block, true).toString('hex'));
+  console.log(BlockBase.getBytes(block, true).toString('hex'));
 }
 
 function getBlockId(options) {
@@ -73,7 +73,7 @@ function getBlockId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  const bytes = blockHelper.getBytes(block);
+  const bytes = BlockBase.getBytes(block);
   console.log(cryptoLib.getId(bytes));
 }
 
