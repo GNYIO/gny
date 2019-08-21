@@ -2,21 +2,21 @@ import * as lib from './lib';
 import axios from 'axios';
 
 describe('delegatesApi', () => {
-  // beforeAll(async done => {
-  //   await lib.deleteOldDockerImages();
-  //   await lib.buildDockerImage();
-  //   done();
-  // }, lib.tenMinutes);
+  beforeAll(async done => {
+    await lib.deleteOldDockerImages();
+    await lib.buildDockerImage();
+    done();
+  }, lib.tenMinutes);
 
-  // beforeEach(async done => {
-  //   await lib.spawnContainer();
-  //   done();
-  // }, lib.oneMinute);
+  beforeEach(async done => {
+    await lib.spawnContainer();
+    done();
+  }, lib.oneMinute);
 
-  // afterEach(async done => {
-  //   await lib.stopAndKillContainer();
-  //   done();
-  // }, lib.oneMinute);
+  afterEach(async done => {
+    await lib.stopAndKillContainer();
+    done();
+  }, lib.oneMinute);
 
   describe('/', () => {
     it(
