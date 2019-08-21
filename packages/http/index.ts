@@ -7,11 +7,9 @@ import * as compression from 'compression';
 import * as cors from 'cors';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';
-import * as ZSchema from 'z-schema';
 import * as ip from 'ip';
 import slots from '../../src/utils/slots';
 import queryParser from '../../src/utils/express-query-int';
-import ZSchemaExpress from './util';
 import { IConfig, Modules, ILogger } from '../../src/interfaces';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
@@ -100,7 +98,6 @@ export default async function intNetwork(
       })
     );
 
-    expressApp.use(ZSchemaExpress(scheme()));
     expressApp.use((req, res, next) => {
       const parts = req.url.split('/');
       const host =
@@ -181,53 +178,4 @@ function isNumberOrNumberString(value) {
     Number.isNaN(parseInt(value, 10)) ||
     String(parseInt(value, 10)) !== String(value)
   );
-}
-
-function scheme() {
-  ZSchema.registerFormat('hex', str => {
-    let b;
-    try {
-      b = Buffer.from(str, 'hex');
-    } catch (e) {
-      return false;
-    }
-
-    return b && b.length > 0;
-  });
-
-  ZSchema.registerFormat('publicKey', str => {
-    if (str.length === 0) {
-      return true;
-    }
-
-    try {
-      const publicKey = Buffer.from(str, 'hex');
-
-      return publicKey.length === 32;
-    } catch (e) {
-      return false;
-    }
-  });
-
-  ZSchema.registerFormat('splitarray', str => {
-    try {
-      const a = str.split(',');
-      return a.length > 0 && a.length <= 1000;
-    } catch (e) {
-      return false;
-    }
-  });
-
-  ZSchema.registerFormat('signature', str => {
-    try {
-      const signature = Buffer.from(str, 'hex');
-      return signature.length === 64;
-    } catch (e) {
-      return false;
-    }
-  });
-
-  ZSchema.registerFormat('checkInt', value => !isNumberOrNumberString(value));
-
-  return new ZSchema({});
 }

@@ -1,46 +1,12 @@
-import {
-  SmartDB,
-  SmartDBOptions,
-} from '../../../packages/database-postgres/src/smartDB';
-import {
-  IBlock,
-  IAccount,
-  IDelegate,
-  IAsset,
-  ITransaction,
-  IVariable,
-  IRound,
-  IBalance,
-} from '../../../src/interfaces';
-import { generateAddress } from '../../../src/utils/address';
-import { cloneDeep } from 'lodash';
+import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Asset } from '../../../packages/database-postgres/entity/Asset';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
 import { Variable } from '../../../packages/database-postgres/entity/Variable';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import {
-  Versioned,
-  FindAllOptions,
-  Condition,
-} from '../../../packages/database-postgres/searchTypes';
-import { Round } from '../../../packages/database-postgres/entity/Round';
 import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
-import { Block } from '../../../packages/database-postgres/entity/Block';
-import {
-  createRandomBytes,
-  saveGenesisBlock,
-  createBlock,
-  logger,
-  CUSTOM_GENESIS,
-  createAccount,
-  createAsset,
-  createTransaction,
-} from './smartDB.test.helpers';
+import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { randomBytes } from 'crypto';
+import { Balance } from '../../../packages/database-postgres/entity/Balance';
 
 describe('smartDB.update()', () => {
   let sut: SmartDB;
@@ -203,51 +169,47 @@ describe('smartDB.update()', () => {
     15 * 1000
   );
 
-  it(
-    'update() - update 2 or more properties at once (in memory)',
-    async done => {
-      await saveGenesisBlock(sut);
+  it('update() - update 2 or more properties at once (in memory)', async done => {
+    await saveGenesisBlock(sut);
 
-      const createdAccount = await sut.create<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-        gny: String(0),
-        username: null,
-      });
+    const createdAccount = await sut.create<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+      gny: String(0),
+      username: null,
+    });
 
-      // check before update
-      const checkBefore = await sut.get<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-      });
-      expect(checkBefore).toMatchObject({
-        gny: String(0),
-        username: null,
-      });
+    // check before update
+    const checkBefore = await sut.load<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+    });
+    expect(checkBefore).toMatchObject({
+      gny: String(0),
+      username: null,
+    });
 
-      // now update two properties at once
-      await sut.update<Account>(
-        Account,
-        {
-          gny: String(20),
-          username: 'liang',
-        },
-        {
-          address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-        }
-      );
-
-      // check after update
-      const checkAfter = await sut.get<Account>(Account, {
-        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
-      });
-      expect(checkAfter).toMatchObject({
+    // now update two properties at once
+    await sut.update<Account>(
+      Account,
+      {
         gny: String(20),
         username: 'liang',
-      });
+      },
+      {
+        address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+      }
+    );
 
-      done();
-    },
-    15 * 1000
-  );
+    // check after update
+    const checkAfter = await sut.load<Account>(Account, {
+      address: 'G3HJjCkEV8u6fsK7juspdz5UDstrx',
+    });
+    expect(checkAfter).toMatchObject({
+      gny: String(20),
+      username: 'liang',
+    });
+
+    done();
+  }, 5000);
 
   it(
     'update() - update 2 or more properties at once (in db)',
@@ -297,9 +259,11 @@ describe('smartDB.update()', () => {
   it.skip('update() - is it possible to update your key? (what if key already exists - in cache or in db????)', async done => {
     done();
   });
+
   it.skip('update() - is it possible to update your composite key? (what if composite key already exists - in cache or in db???)', async done => {
     done();
   });
+
   it.skip('update() - is it possible to update one of the unique keys? (what if unique key is in cache or in db???)', async done => {
     done();
   });
@@ -308,21 +272,104 @@ describe('smartDB.update()', () => {
     done();
   });
 
-  it.skip('update() - throws if to updated entity is not in cache', async done => {
-    done();
+  it('update() - throws if entity can be neither found in cache nor in db', async () => {
+    await saveGenesisBlock(sut);
+
+    const updatePromise = sut.update<Variable>(
+      Variable,
+      {
+        value: 'hello',
+      },
+      {
+        key: 'thisKeyDoesNotExist',
+      }
+    );
+
+    return expect(updatePromise).rejects.toThrowError(
+      'Entity not found ( model = \'Variable\', key = \'{"key":"thisKeyDoesNotExist"}\' )'
+    );
   });
+
+  it(
+    'update() - entity gets loaded for update when it is not in cache but only in db (entity gets loaded for tracking)',
+    async () => {
+      // first create an entity and save it into the block
+      // close the existing connection
+      // then create a new SmartDB connection
+      // and update the entity in the db
+      // save the changes to the db
+      // and check that the changes are in the db
+
+      await saveGenesisBlock(sut);
+
+      await sut.create<Account>(Account, {
+        address: 'G4YTseNGcFQaLkDKbpjihQ3xsBCjm',
+        gny: String(20000),
+        username: null,
+      });
+
+      const block1 = createBlock(String(1));
+      sut.beginBlock(block1);
+      await sut.commitBlock();
+
+      // reconnect
+      await sut.close();
+      await lib.sleep(10 * 1000);
+      sut = new SmartDB(logger, {
+        cachedBlockCount: 10,
+        maxBlockHistoryHold: 10,
+        configRaw: configRaw,
+      });
+      await sut.init();
+      await lib.sleep(10 * 1000);
+
+      await sut.update<Account>(
+        Account,
+        {
+          username: 'liangpeili',
+        },
+        {
+          address: 'G4YTseNGcFQaLkDKbpjihQ3xsBCjm',
+        }
+      );
+
+      const block2 = createBlock(String(2));
+      sut.beginBlock(block2);
+      await sut.commitBlock();
+
+      const result = await sut.findOne<Account>(Account, {
+        condition: {
+          address: 'G4YTseNGcFQaLkDKbpjihQ3xsBCjm',
+        },
+      });
+      const expected: Account = {
+        address: 'G4YTseNGcFQaLkDKbpjihQ3xsBCjm',
+        gny: String(20000),
+        username: 'liangpeili',
+        isDelegate: 0,
+        isLocked: 0,
+        lockAmount: String(0),
+        lockHeight: String(0),
+        publicKey: null,
+        secondPublicKey: null,
+        _version_: 2,
+      };
+      expect(result).toEqual(expected);
+    },
+    25 * 1000
+  );
 
   it.skip('update() - when option checkModifier is enabled - throw if to updated property is not on the model', async done => {
     // use custom SmartDB to this test,
 
     await saveGenesisBlock(sut);
 
-    const created = sut.create<Variable>(Variable, {
+    const created = await sut.create<Variable>(Variable, {
       key: 'hello',
       value: 'world1',
     });
 
-    sut.update<Variable>(
+    await sut.update<Variable>(
       Variable,
       {
         value: 'world2',
@@ -332,10 +379,6 @@ describe('smartDB.update()', () => {
       }
     );
 
-    done();
-  });
-
-  it.skip('update() - should return the changed property', async done => {
     done();
   });
 
@@ -365,7 +408,7 @@ describe('smartDB.update()', () => {
     );
 
     // should now be _version_: 2
-    const result1 = await sut.get<Transfer>(Transfer, { tid });
+    const result1 = await sut.load<Transfer>(Transfer, { tid });
     expect(result1).toHaveProperty('_version_', 2);
     expect(result1).toHaveProperty('amount', String(25 * 1e8));
 
@@ -381,7 +424,7 @@ describe('smartDB.update()', () => {
     );
 
     // should now be _version_: 3
-    const result2 = await sut.get<Transfer>(Transfer, { tid });
+    const result2 = await sut.load<Transfer>(Transfer, { tid });
     expect(result2).toHaveProperty('_version_', 3);
     expect(result2).toHaveProperty('amount', String(30 * 1e8));
 
@@ -396,6 +439,139 @@ describe('smartDB.update()', () => {
     });
     expect(result3).toHaveProperty('_version_', 3);
     expect(result3).toHaveProperty('amount', String(30 * 1e8));
+
+    done();
+  });
+
+  it('update() - throws if property is not primary | composite | unique key ', async () => {
+    await saveGenesisBlock(sut);
+
+    const updatePromise = sut.update<Account>(
+      Account,
+      {
+        gny: String(1000000),
+      },
+      {
+        gny: String(0),
+      }
+    );
+
+    return expect(updatePromise).rejects.toThrowError(
+      'no primary key of entity found'
+    );
+  });
+
+  it('update() - can update entity by unique key', async done => {
+    await saveGenesisBlock(sut);
+
+    const createdAccount = await sut.create<Account>(Account, {
+      address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU',
+      gny: String(2400000),
+      username: 'xpgeng',
+    });
+
+    await sut.update<Account>(
+      Account,
+      {
+        gny: String(3000000000),
+      },
+      {
+        username: 'xpgeng',
+      }
+    );
+
+    const block = createBlock(String(1));
+    sut.beginBlock(block);
+    await sut.commitBlock();
+
+    const resultFromCache = await sut.load<Account>(Account, {
+      address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU',
+    });
+    const resultFromDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU',
+      },
+    });
+
+    const expectedInCache: Pick<
+      Account,
+      | 'address'
+      | 'gny'
+      | 'username'
+      | 'isDelegate'
+      | 'isLocked'
+      | 'lockAmount'
+      | 'lockHeight'
+      | '_version_'
+    > = {
+      address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU',
+      gny: String(3000000000),
+      username: 'xpgeng',
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: String(0),
+      lockHeight: String(0),
+      _version_: 2,
+    } as Account;
+
+    const expectedFromDb: Account = {
+      ...expectedInCache,
+      publicKey: null,
+      secondPublicKey: null,
+    };
+
+    expect(resultFromCache).toEqual(expectedInCache);
+    expect(resultFromDb).toEqual(expectedFromDb);
+
+    done();
+  });
+
+  it('update() - can update entity by composite key', async done => {
+    await saveGenesisBlock(sut);
+
+    const createdBalance = await sut.create<Balance>(Balance, {
+      address: 'GhzUkDCedPD89mzawGujeacu9AkN',
+      currency: 'REW.REW',
+      balance: String(20000000),
+      flag: 1,
+    });
+
+    await sut.update<Balance>(
+      Balance,
+      {
+        balance: String(9000000000),
+      },
+      {
+        address: 'GhzUkDCedPD89mzawGujeacu9AkN',
+        currency: 'REW.REW',
+      }
+    );
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    const expected: Balance = {
+      address: 'GhzUkDCedPD89mzawGujeacu9AkN',
+      currency: 'REW.REW',
+      balance: String(9000000000),
+      flag: 1,
+      _version_: 2,
+    };
+
+    const resultFromCache = await sut.get<Balance>(Balance, {
+      address: 'GhzUkDCedPD89mzawGujeacu9AkN',
+      currency: 'REW.REW',
+    });
+    const resultFromDb = await sut.findOne<Balance>(Balance, {
+      condition: {
+        address: 'GhzUkDCedPD89mzawGujeacu9AkN',
+        currency: 'REW.REW',
+      },
+    });
+
+    expect(resultFromCache).toEqual(expected);
+    expect(resultFromDb).toEqual(expected);
 
     done();
   });

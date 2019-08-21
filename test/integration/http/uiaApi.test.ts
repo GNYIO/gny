@@ -85,7 +85,7 @@ describe('uiaApi', () => {
   describe('/issuers', () => {
     it(
       'should get issuers',
-      async () => {
+      async done => {
         const limit = 5;
         const offset = 0;
 
@@ -109,6 +109,8 @@ describe('uiaApi', () => {
             offset
         );
         expect(data.count).toBe(1);
+
+        done();
       },
       lib.oneMinute
     );
