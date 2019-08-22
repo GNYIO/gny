@@ -1,6 +1,14 @@
 import BlockReward from '../../../src/utils/block-reward';
 import { BigNumber } from 'bignumber.js';
 
+function range(start: number, end: number) {
+  const result: number[] = [];
+  for (let i = start; i <= end; ++i) {
+    result.push(i);
+  }
+  return result;
+}
+
 describe('BlockReward', () => {
   let blockReward: BlockReward;
 
@@ -10,6 +18,73 @@ describe('BlockReward', () => {
   });
 
   describe('calculateMilestone', () => {
+    it('milestone 0 has 3002160 heights', () => {
+      const count = range(0, 3002159).length;
+      expect(count).toEqual(3002160);
+
+      const milestoneForHeight_0 = blockReward.calculateMilestone(0);
+      expect(milestoneForHeight_0).toEqual(0);
+
+      const milestoneForHeight_3002159 = blockReward.calculateMilestone(
+        3002159
+      );
+      return expect(milestoneForHeight_3002159).toEqual(0);
+    });
+
+    it('milestone 1 has 3000000 heights', () => {
+      const count = range(3002160, 6002159).length;
+      expect(count).toEqual(3000000);
+
+      const milestoneForHeight_3002160 = blockReward.calculateMilestone(
+        3002160
+      );
+      expect(milestoneForHeight_3002160).toEqual(1);
+
+      const milestoneForHeight_6002159 = blockReward.calculateMilestone(
+        6002159
+      );
+      return expect(milestoneForHeight_6002159).toEqual(1);
+    });
+
+    it('milestone 2 has 3000000 heights', () => {
+      const count = range(6002160, 9002159).length;
+      expect(count).toEqual(3000000);
+
+      const milestoneForHeight_6002160 = blockReward.calculateMilestone(
+        6002160
+      );
+      expect(milestoneForHeight_6002160).toEqual(2);
+
+      const milestoneForHeight_9002159 = blockReward.calculateMilestone(
+        9002159
+      );
+      return expect(milestoneForHeight_9002159).toEqual(2);
+    });
+
+    it('the sum for all heights >= 0 && <= 3002159 is (0 * 3002159)', () => {
+      let sum = 0;
+      range(0, 3002159).map(one => {
+        sum += blockReward.calculateMilestone(one);
+      });
+      return expect(sum).toEqual(0);
+    });
+
+    it('the sum of all heights >= 3002160 && <= 6002159 is (1 x 3000000)', () => {
+      let sum = 0;
+      range(3002160, 6002159).map(one => {
+        sum += blockReward.calculateMilestone(one);
+      });
+      return expect(sum).toEqual(3000000);
+    });
+
+    it('the sum of all heights >= 6002160 && <= 9002159 is (2 x 3000000)', () => {
+      let sum = 0;
+      range(6002160, 9002159).map(one => {
+        sum += blockReward.calculateMilestone(one);
+      });
+      return expect(sum).toEqual(2 * 3000000);
+    });
+
     it('when height == 0 should return 0', () => {
       return expect(blockReward.calculateMilestone(0)).toBe(0);
     });
