@@ -261,37 +261,37 @@ describe('BlockReward', () => {
       return expect(blockReward.calculateReward(9002161)).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 2) should return 50000000', () => {
+    it('when height == (milestoneThree * 2) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(2))
       ).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 10) should return 100000000', () => {
+    it('when height == (milestoneThree * 10) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(10))
       ).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 100) should return 100000000', () => {
+    it('when height == (milestoneThree * 100) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(100))
       ).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 1000) should return 100000000', () => {
+    it('when height == (milestoneThree * 1000) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(1000))
       ).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 10000) should return 100000000', () => {
+    it('when height == (milestoneThree * 10000) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(10000))
       ).toBe(50000000);
     });
 
-    it('when height == (milestoneFour * 100000) should return 100000000', () => {
+    it('when height == (milestoneThree * 100000) should return 50000000', () => {
       return expect(
         blockReward.calculateReward(new BigNumber(9002160).multipliedBy(100000))
       ).toBe(50000000);
