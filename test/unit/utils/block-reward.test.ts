@@ -311,7 +311,135 @@ describe('BlockReward', () => {
       );
     });
 
-    it('when height 100 000 == supply should be 40019568200000000', () => {
+    it('when height == (offset - 1) supply should be "40000000000000000"', () => {
+      return expect(blockReward.calculateSupply(2159)).toEqual(
+        new BigNumber('40000000000000000')
+      );
+    });
+
+    it('when height == (offset) supply should be "40000000200000000"', () => {
+      return expect(blockReward.calculateSupply(2160)).toEqual(
+        new BigNumber('40000000000000000').plus('200000000')
+      );
+    });
+
+    it('when height == (offset + 1) supply should be "40000000400000000"', () => {
+      return expect(blockReward.calculateSupply(2161)).toEqual(
+        new BigNumber('40000000000000000').plus('400000000')
+      );
+    });
+
+    it('when height == (offset + 2) supply should be "40000000600000000"', () => {
+      return expect(blockReward.calculateSupply(2162)).toEqual(
+        new BigNumber('40000000000000000').plus('600000000')
+      );
+    });
+
+    it('when height == (distance) supply should be "40599568200000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3000000).length).times(
+        200000000
+      );
+
+      const expected = initialSupply.plus(milestoneZero);
+      return expect(blockReward.calculateSupply(3000000)).toEqual(expected);
+    });
+
+    it('when height == (milestoneOne - 1) supply should be "40600000000000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+
+      const expected = initialSupply.plus(milestoneZero);
+      return expect(blockReward.calculateSupply(3002159)).toEqual(expected);
+    });
+
+    it('when height == (milestoneOne) supply should be "40600000150000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+      const milestoneOne = new BigNumber(range(3002160, 3002160).length).times(
+        150000000
+      );
+
+      const expected = initialSupply.plus(milestoneZero).plus(milestoneOne);
+      return expect(blockReward.calculateSupply(3002160)).toEqual(expected);
+    });
+
+    it('when height == (milestoneOne + 1) supply should be "40600000300000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+      const milestoneOne = new BigNumber(range(3002160, 3002161).length).times(
+        150000000
+      );
+
+      const expected = initialSupply.plus(milestoneZero).plus(milestoneOne);
+      return expect(blockReward.calculateSupply(3002161)).toEqual(expected);
+    });
+
+    it('when height == (milestoneTwo - 1) supply should be "41050000000000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+      const milestoneOne = new BigNumber(range(3002160, 6002159).length).times(
+        150000000
+      );
+
+      const expected = initialSupply.plus(milestoneZero).plus(milestoneOne);
+      return expect(blockReward.calculateSupply(6002159)).toEqual(expected);
+    });
+
+    it('when height == (milestoneTwo) supply should be "41050000100000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+      const milestoneOne = new BigNumber(range(3002160, 6002159).length).times(
+        150000000
+      );
+      const milestoneTwo = new BigNumber(range(6002160, 6002160).length).times(
+        100000000
+      );
+
+      const expected = initialSupply
+        .plus(milestoneZero)
+        .plus(milestoneOne)
+        .plus(milestoneTwo);
+      return expect(blockReward.calculateSupply(6002160)).toEqual(expected);
+    });
+
+    it('when height == (milestoneTwo + 1) supply should be "41050000200000000"', () => {
+      const initialSupply = new BigNumber('40000000000000000');
+
+      const milestoneZero = new BigNumber(range(2160, 3002159).length).times(
+        200000000
+      );
+      const milestoneOne = new BigNumber(range(3002160, 6002159).length).times(
+        150000000
+      );
+      const milestoneTwo = new BigNumber(range(6002160, 6002161).length).times(
+        100000000
+      );
+
+      const expected = initialSupply
+        .plus(milestoneZero)
+        .plus(milestoneOne)
+        .plus(milestoneTwo);
+      return expect(blockReward.calculateSupply(6002161)).toEqual(expected);
+    });
+
+    it('when height 100 000 == supply should be "40019568200000000"', () => {
       return expect(blockReward.calculateSupply(100000)).toEqual(
         new BigNumber('40019568200000000')
       );
