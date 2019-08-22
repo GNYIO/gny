@@ -222,7 +222,7 @@ describe('BlockReward', () => {
     });
 
     it('when height == (offset + 2) should return 200000000', () => {
-      return expect(blockReward.calculateReward(2161)).toBe(200000000);
+      return expect(blockReward.calculateReward(2162)).toBe(200000000);
     });
 
     it('when height == (milestoneOne - 1) should return 200000000', () => {
