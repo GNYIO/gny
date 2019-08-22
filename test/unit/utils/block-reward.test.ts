@@ -82,25 +82,25 @@ describe('BlockReward', () => {
       return expect(blockReward.calculateMilestone(9002161)).toBe(3);
     });
 
-    it('when height == (milestoneThree * 2) should return 4', () => {
+    it('when height == (milestoneThree * 2) should return 3', () => {
       return expect(
         blockReward.calculateMilestone(new BigNumber(9002160).multipliedBy(2))
       ).toBe(3);
     });
 
-    it('when height == (milestoneThree * 10) should return 4', () => {
+    it('when height == (milestoneThree * 10) should return 3', () => {
       return expect(
         blockReward.calculateMilestone(new BigNumber(9002160).multipliedBy(10))
       ).toBe(3);
     });
 
-    it('when height == (milestoneThree * 100) should return 4', () => {
+    it('when height == (milestoneThree * 100) should return 3', () => {
       return expect(
         blockReward.calculateMilestone(new BigNumber(9002160).multipliedBy(100))
       ).toBe(3);
     });
 
-    it('when height == (milestoneThree * 1000) should return 4', () => {
+    it('when height == (milestoneThree * 1000) should return 3', () => {
       return expect(
         blockReward.calculateMilestone(
           new BigNumber(9002160).multipliedBy(1000)
