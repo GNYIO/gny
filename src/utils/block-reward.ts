@@ -1,10 +1,10 @@
-const BigNumber = require('bignumber.js');
-
+import { BigNumber } from 'bignumber.js';
 import { REWARDS, INITIAL_AMOUNT } from './constants';
+import * as _ from 'lodash';
 
 export default class BlockReward {
-  public distance;
-  public rewardOffset;
+  public distance: number;
+  public rewardOffset: number;
 
   constructor() {
     this.distance = Math.floor(REWARDS.DISTANCE);
@@ -22,7 +22,7 @@ export default class BlockReward {
   calculateMilestone(height: number) {
     height = this.parseHeight(height);
     const location = Math.trunc((height - this.rewardOffset) / this.distance);
-    const lastMilestone = REWARDS.MILESTONES[REWARDS.MILESTONES.length - 1];
+    const lastMilestone = _.last(REWARDS.MILESTONES);
 
     if (location > REWARDS.MILESTONES.length - 1) {
       return REWARDS.MILESTONES.lastIndexOf(lastMilestone);
