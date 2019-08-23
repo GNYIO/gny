@@ -1,4 +1,3 @@
-// import * as nacl_factory from 'js-nacl';
 import * as crypto from 'crypto-browserify';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as nacl from 'tweetnacl';
