@@ -213,6 +213,18 @@ describe('BlockReward', () => {
   });
 
   describe('calculateReward', () => {
+    it('throws when passed in NaN', () => {
+      return expect(() => blockReward.calculateReward(NaN)).toThrowError(
+        'Invalid block height'
+      );
+    });
+
+    it('throws when passed in Infinity', () => {
+      return expect(() => blockReward.calculateReward(Infinity)).toThrowError(
+        'Invalid block height'
+      );
+    });
+
     it('when height == 0 should return 0', () => {
       return expect(blockReward.calculateReward(0)).toBe(0);
     });

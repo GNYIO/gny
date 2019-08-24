@@ -45,10 +45,10 @@ export default class BlockReward {
     return location.absoluteValue().toNumber();
   }
 
-  calculateReward(height: number) {
-    height = this.parseHeight(height);
+  calculateReward(height: number | string | BigNumber) {
+    height = this.checkType(height);
 
-    if (height < this.rewardOffset) {
+    if (height.isLessThan(this.rewardOffset)) {
       return 0;
     }
     return REWARDS.MILESTONES[this.calculateMilestone(height)];
