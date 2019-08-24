@@ -11,14 +11,6 @@ export default class BlockReward {
     this.rewardOffset = Math.floor(REWARDS.OFFSET);
   }
 
-  private parseHeight(height: number) {
-    if (isNaN(height)) {
-      throw new Error('Invalid block height');
-    } else {
-      return Math.abs(height);
-    }
-  }
-
   private checkType(height: string | number | BigNumber) {
     const value = new BigNumber(height);
     if (value.isNaN() || !value.isFinite()) {
