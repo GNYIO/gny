@@ -107,7 +107,10 @@ export default class AccountsApi {
     const report = this.library.joi.validate(body, publicKeyOrSecret);
 
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     if (body.secret) {
@@ -146,7 +149,10 @@ export default class AccountsApi {
       .xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     if (query.username) {
@@ -180,7 +186,10 @@ export default class AccountsApi {
     });
     const report = this.library.joi.validate(query, hasAddress);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const accountOverview = await getAccount(query.address);
@@ -261,7 +270,10 @@ export default class AccountsApi {
 
     const report = this.library.joi.validate(req.params, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const currency = req.params.currency;
@@ -299,7 +311,10 @@ export default class AccountsApi {
       .xor('address', 'username');
     const report = this.library.joi.validate(query, addressOrAccountName);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -361,7 +376,10 @@ export default class AccountsApi {
     });
     const report = this.library.joi.validate(query, isAddress);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const accountInfoOrError = await getAccount(query.address);
@@ -384,7 +402,10 @@ export default class AccountsApi {
     });
     const report = this.library.joi.validate(body, hasSecret);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
