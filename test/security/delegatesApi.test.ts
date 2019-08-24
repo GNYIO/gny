@@ -35,6 +35,7 @@ describe('delegatesApi', () => {
           success: false,
           error: 'Invalid params',
         });
+        expect(delegatePromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -56,6 +57,7 @@ describe('delegatesApi', () => {
           success: false,
           error: 'Invalid params',
         });
+        expect(delegatePromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );

@@ -1,16 +1,6 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
-import * as Docker from 'dockerode';
-import { randomBytes } from 'crypto';
-import { generateAddress } from '../../src/utils/address';
-import * as isRoot from 'is-root';
 import { BigNumber } from 'bignumber.js';
-
-export const GENESIS = {
-  address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-  secret:
-    'grow pencil ten junk bomb right describe trade rich valid tuna service',
-};
 
 export async function apiGetAsync(endpoint: string) {
   const result = await axios.get(`http://localhost:4096/api${endpoint}`);
@@ -52,19 +42,6 @@ async function waitForLoaded() {
   }
 }
 
-export async function waitUntilBlock(height: string) {
-  let currentHeight = await getHeight();
-  if (new BigNumber(height).isLessThanOrEqualTo(currentHeight)) {
-    throw new Error(`the height "${height} was already reached`);
-  }
-
-  while (new BigNumber(currentHeight).isLessThanOrEqualTo(height)) {
-    currentHeight = await getHeight();
-    console.log(`currentHeight: ${currentHeight}`);
-    await sleep(2000);
-  }
-}
-
 export async function deleteOldDockerImages() {
   await dockerCompose.rm({
     cwd: process.cwd(),
@@ -90,14 +67,6 @@ export async function spawnContainer() {
   await waitForLoaded();
 }
 
-export async function printActiveContainers() {
-  const result = await dockerCompose.ps({
-    cwd: process.cwd(),
-    log: true,
-  });
-  await sleep(1000);
-}
-
 export async function stopAndKillContainer() {
   await dockerCompose.down({
     cwd: process.cwd(),
@@ -105,34 +74,5 @@ export async function stopAndKillContainer() {
   });
 }
 
-export async function spawnPostgres() {
-  await dockerCompose.upAll({
-    cwd: process.cwd(),
-    log: true,
-    config: 'docker-compose.postgres.yml',
-  });
-  await sleep(10 * 1000);
-}
-
-export async function stopAndKillPostgres() {
-  await dockerCompose.down({
-    cwd: process.cwd(),
-    log: true,
-    config: 'docker-compose.postgres.yml',
-  });
-  await sleep(10 * 1000);
-}
-
-export function createRandomAddress() {
-  const rand = randomBytes(10).toString('hex');
-  return generateAddress(rand);
-}
-export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
-
-export function exitIfNotRoot() {
-  if (!isRoot()) {
-    process.exit(1);
-  }
-}

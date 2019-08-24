@@ -1,8 +1,6 @@
 import * as gnyJS from '../../packages/gny-js';
 import * as lib from './lib';
 import axios from 'axios';
-import { generateAddress } from '../../src/utils/address';
-import { randomBytes } from 'crypto';
 
 const config = {
   headers: {
@@ -12,58 +10,6 @@ const config = {
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-function randomAddress() {
-  return generateAddress(randomBytes(32).toString('hex'));
-}
-
-async function beforeUiaTransfer() {
-  // prepare registerIssuer
-  const registerIssuer = gnyJS.uia.registerIssuer(
-    'ABC',
-    'some desc',
-    genesisSecret
-  );
-  const registerIssuerTransData = {
-    transaction: registerIssuer,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    registerIssuerTransData,
-    config
-  );
-  await lib.onNewBlock();
-
-  // prepare registerAsset
-  const registerAsset = gnyJS.uia.registerAsset(
-    'BBB',
-    'some desc',
-    String(10 * 1e8),
-    8,
-    genesisSecret
-  );
-  const registerAssetTransData = {
-    transaction: registerAsset,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    registerAssetTransData,
-    config
-  );
-  await lib.onNewBlock();
-
-  // prepare issue
-  const issue = gnyJS.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
-  const issueTransData = {
-    transaction: issue,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    issueTransData,
-    config
-  );
-  await lib.onNewBlock();
-}
 
 describe('uiaApi', () => {
   beforeAll(async done => {

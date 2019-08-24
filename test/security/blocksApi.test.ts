@@ -40,6 +40,7 @@ describe('blocksApi', () => {
           error:
             'child "height" fails because ["height" must be a number, "height" must be a string]',
         });
+        expect(blockPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -54,14 +55,15 @@ describe('blocksApi', () => {
 
         const offset = -1;
 
-        const promise = axios.get(
+        const blockPromise = axios.get(
           'http://localhost:4096/api/blocks/?offset=' + offset
         );
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(blockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error:
             'child "offset" fails because ["offset" must be larger than or equal to 0]',
         });
+        expect(blockPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -73,15 +75,16 @@ describe('blocksApi', () => {
         await lib.onNewBlock();
         const limit = 101;
 
-        const promise = axios.get(
+        const blockPromise = axios.get(
           'http://localhost:4096/api/blocks/?limit=' + limit
         );
 
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(blockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error:
             'child "limit" fails because ["limit" must be less than or equal to 100]',
         });
+        expect(blockPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -105,6 +108,7 @@ describe('blocksApi', () => {
           success: false,
           error: 'child "offset" fails because ["offset" must be a number]',
         });
+        expect(blockPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -128,6 +132,7 @@ describe('blocksApi', () => {
           success: false,
           error: 'child "limit" fails because ["limit" must be a number]',
         });
+        expect(blockPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );

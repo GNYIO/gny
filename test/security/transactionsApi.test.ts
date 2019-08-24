@@ -69,6 +69,7 @@ describe('transactionsApi', () => {
           success: false,
           error: 'child "offset" fails because ["offset" must be a number]',
         });
+        expect(transPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
@@ -112,6 +113,7 @@ describe('transactionsApi', () => {
           success: false,
           error: 'child "limit" fails because ["limit" must be a number]',
         });
+        expect(transPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );

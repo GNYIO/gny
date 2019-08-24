@@ -52,6 +52,7 @@ describe('transportApi', () => {
           success: false,
           error: 'Invalid params',
         });
+        expect(transpPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
