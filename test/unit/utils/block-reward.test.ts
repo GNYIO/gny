@@ -18,6 +18,18 @@ describe('BlockReward', () => {
   });
 
   describe('calculateMilestone', () => {
+    it('throws when passed in NaN', () => {
+      return expect(() => blockReward.calculateMilestone(NaN)).toThrowError(
+        'Invalid block height'
+      );
+    });
+
+    it('throws when passed in Infinity', () => {
+      return expect(() =>
+        blockReward.calculateMilestone(Infinity)
+      ).toThrowError('Invalid block height');
+    });
+
     it('milestone 0 has 3002160 heights', () => {
       const count = range(0, 3002159).length;
       expect(count).toEqual(3002160);

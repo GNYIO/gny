@@ -19,15 +19,30 @@ export default class BlockReward {
     }
   }
 
-  calculateMilestone(height: number) {
-    height = this.parseHeight(height);
-    const location = Math.trunc((height - this.rewardOffset) / this.distance);
+  private checkType(height: string | number | BigNumber) {
+    const value = new BigNumber(height);
+    if (value.isNaN() || !value.isFinite()) {
+      throw new Error('Invalid block height');
+    } else {
+      return value.absoluteValue();
+    }
+  }
+
+  calculateMilestone(height: number | string | BigNumber) {
+    height = this.checkType(height);
+
+    const location = new BigNumber(height)
+      .minus(this.rewardOffset)
+      .dividedToIntegerBy(this.distance);
+
     const lastMilestone = _.last(REWARDS.MILESTONES);
 
-    if (location > REWARDS.MILESTONES.length - 1) {
+    if (
+      location.isGreaterThan(new BigNumber(REWARDS.MILESTONES.length).minus(1))
+    ) {
       return REWARDS.MILESTONES.lastIndexOf(lastMilestone);
     }
-    return Math.abs(location);
+    return location.absoluteValue().toNumber();
   }
 
   calculateReward(height: number) {
