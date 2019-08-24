@@ -76,7 +76,10 @@ export default class DelegatesApi {
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -119,7 +122,10 @@ export default class DelegatesApi {
     });
     const report = this.library.joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const delegates = await Delegates.getDelegates();
@@ -152,7 +158,10 @@ export default class DelegatesApi {
     const offset = Number(query.offset || 0);
     const limit = Number(query.limit || 10);
     if (Number.isNaN(limit) || Number.isNaN(offset)) {
-      return next('Invalid params');
+      return res.status(422).send({
+        success: false,
+        error: 'Invalid params',
+      });
     }
 
     const schema = this.library.joi.object().keys({
@@ -165,7 +174,10 @@ export default class DelegatesApi {
 
     const report = this.library.joi.validate({ limit, offset }, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
@@ -187,7 +199,10 @@ export default class DelegatesApi {
     });
     const report = this.library.joi.validate(body, secretAndPublicKey);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const ip = req.connection.remoteAddress;
@@ -244,7 +259,10 @@ export default class DelegatesApi {
     });
     const report = this.library.joi.validate(body, secretAndPublicKey);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const ip = req.connection.remoteAddress;
@@ -301,7 +319,10 @@ export default class DelegatesApi {
     });
     const report = this.library.joi.validate(query, needPublicKey);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const isEnabled = !!StateHelper.isPublicKeyInKeyPairs(query.publicKey);

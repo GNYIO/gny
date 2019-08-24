@@ -6,9 +6,7 @@ import {
   IScope,
   Next,
   DelegateViewModel,
-  IAccount,
   IBalance,
-  IAsset,
 } from '../../../src/interfaces';
 import {
   generateAddressByPublicKey,

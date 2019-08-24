@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, ITransfer, IAsset } from '../../../src/interfaces';
+import { IScope, Next, ITransfer } from '../../../src/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '../../database-postgres/entity/Transfer';
@@ -72,7 +72,10 @@ export default class TransfersApi {
 
     const report = this.library.joi.validate(req.query, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     if (ownerId) {

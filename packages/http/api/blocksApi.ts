@@ -69,7 +69,10 @@ export default class BlocksApi {
       .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -105,7 +108,10 @@ export default class BlocksApi {
 
     const report = this.library.joi.validate({ limit, offset }, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     let minHeight: string;
