@@ -54,35 +54,35 @@ export default class BlockReward {
     return REWARDS.MILESTONES[this.calculateMilestone(height)];
   }
 
-  calculateSupply(height: number) {
-    height = this.parseHeight(height);
+  calculateSupply(init: number | string | BigNumber) {
+    let height = this.checkType(init);
     let supply = new BigNumber(INITIAL_AMOUNT);
 
-    if (height < this.rewardOffset) {
+    if (height.isLessThan(this.rewardOffset)) {
       return supply;
     }
 
     const milestone = this.calculateMilestone(height);
-    const rewards = [];
+    const rewards: Array<[BigNumber, number]> = [];
 
-    let amount: number = 0;
+    let amount = new BigNumber(0);
     let multiplier: number = 0;
-    height = height - this.rewardOffset + 1;
+    height = height.minus(this.rewardOffset).plus(1);
 
     for (let i = 0; i < REWARDS.MILESTONES.length; i++) {
       if (milestone >= i) {
         multiplier = REWARDS.MILESTONES[i];
 
-        if (height < this.distance) {
+        if (height.isLessThan(this.distance)) {
           // Measure this.distance thus far
-          amount = height % this.distance;
+          amount = height.modulo(this.distance);
         } else {
-          amount = this.distance; // Assign completed milestone
-          height -= this.distance; // Deduct from total height
+          amount = new BigNumber(this.distance); // Assign completed milestone
+          height = height.minus(this.distance); // Deduct from total height
 
           // After last milestone
-          if (height > 0 && i === REWARDS.MILESTONES.length - 1) {
-            amount += height;
+          if (height.isGreaterThan(0) && i === REWARDS.MILESTONES.length - 1) {
+            amount = height.plus(amount);
           }
         }
 

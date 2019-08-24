@@ -323,6 +323,14 @@ describe('BlockReward', () => {
   });
 
   describe('calculateSupply', () => {
+    it('throws when passed in NaN', () => {
+      return expect(() => blockReward.calculateSupply(NaN)).toThrowError();
+    });
+
+    it('throws when passed in Infinity', () => {
+      return expect(() => blockReward.calculateSupply(Infinity)).toThrowError();
+    });
+
     it('returns BigNumber instance', () => {
       return expect(
         BigNumber.isBigNumber(blockReward.calculateSupply(0))
