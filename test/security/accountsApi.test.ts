@@ -44,29 +44,29 @@ describe('accountsApi', () => {
       lib.oneMinute
     );
 
-    // it(
-    //   'should return: "limit" must be a number',
-    //   async () => {
-    //     const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-    //     const limit1 = 10;
-    //     const limit2 = 11;
+    it(
+      'should return: "limit" must be a number',
+      async () => {
+        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const limit1 = 10;
+        const limit2 = 11;
 
-    //     const accountPromise = axios.get(
-    //       'http://localhost:4096/api/accounts/getBalance/?address=' +
-    //         address +
-    //         '&limit=' +
-    //         limit1 +
-    //         '&limit=' +
-    //         limit2
-    //     );
+        const accountPromise = axios.get(
+          'http://localhost:4096/api/accounts/getBalance/?address=' +
+            address +
+            '&limit=' +
+            limit1 +
+            '&limit=' +
+            limit2
+        );
 
-    //     expect(accountPromise).rejects.toHaveProperty('response.data', {
-    //       success: false,
-    //       error: 'child "limit" fails because ["limit" must be a number]',
-    //     });
-    //     expect(accountPromise).rejects.toHaveProperty('response.status', 422);
-    //   },
-    //   lib.oneMinute
-    // );
+        expect(accountPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "limit" fails because ["limit" must be a number]',
+        });
+        expect(accountPromise).rejects.toHaveProperty('response.status', 422);
+      },
+      lib.oneMinute
+    );
   });
 });
