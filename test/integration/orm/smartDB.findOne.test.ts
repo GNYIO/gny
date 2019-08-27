@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { FindAllOptions } from '../../../packages/database-postgres/searchTypes';
+import { FindOneOptions } from '../../../packages/database-postgres/searchTypes';
 import {
   saveGenesisBlock,
   createBlock,
@@ -59,7 +59,7 @@ describe('smartDB.findOne', () => {
     await saveGenesisBlock(sut);
 
     // satisfy compiler
-    const wrongParams = undefined as FindAllOptions<Account>;
+    const wrongParams = undefined as FindOneOptions<Account>;
 
     const resultPromise = sut.findOne<Account>(Account, wrongParams);
     return expect(resultPromise).rejects.toThrowError(
@@ -73,7 +73,7 @@ describe('smartDB.findOne', () => {
     // satisfy compiler by first casting to "unknown"
     const wrongCondition = ({
       address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
-    } as unknown) as FindAllOptions<Account>;
+    } as unknown) as FindOneOptions<Account>;
 
     const resultPromise = sut.findOne<Account>(Account, wrongCondition);
 
