@@ -4,6 +4,12 @@
 ## Overview
 This package is a database abstraction. In the following we will call this package `sdb`. Sdb helds _most_ of its data in memory and so saves round trips to the database. `Sdb` is intended to be used with smart contracts because it is able to `rollback` changes made by smart contract calls. But more on this later.
 
+
+# Configuration
+
+TODO
+
+
 ## Life Cycle
 Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
 
@@ -453,25 +459,57 @@ const created = await sdb.create<Account>(Account, {
 
 console.log(JSON.stringify(created));
 {
-  created: 
+  "address": "G45U8A2vdp5CHZ3ABAZwojxdBp44p",
+  "gny": "0",
+  "username": null,
+  "isDelegate": 0,
+  "isLocked": 0,
+  "lockHeight": "0",
+  "lockAmount": "0",
+  "_version_": 1
 }
 ```
 
 ### createOrLoad<T>(T, Object)
 
 __Returns__: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)
+__Description__: As the name suggest the this method is composed of `create` and `load`. If the entity can not be loaded from cache or db then it is created.
 
 ```ts
-const result = await sdb.createOrLoad<Round>(Round, {
-
+// create
+const { create, entity } = await sdb.createOrLoad<Round>(Round, {
+  round: String(1),
+  fee: String(0),
+  reward: String(0),
 });
-typeof result.create
-typeof result.entity
+console.log(create); // true
+console.log(JSON.stringify(entity));
+{
+  "round": "1",
+  "reward": "0",
+  "fee": "0"
+}
+
+// load
+const { create, entity } = await sdb.createOrLoad<Round>(Round, {
+  round: String(2),
+});
+console.log(create); // false
+console.log(JSON.stringify(entity));
+{
+  "round": "3001",
+  "reward": "200000000",
+  "fee": "0"
+}
+
+// not found
 ```
 
 ### del<T>(T, ObjectWithPrimaryKey(s))
 
 __Returns__: undefined
+__Description__: 
+
 ```ts
 await sdb.del<Vote>(Vote, {
   voterAddress: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
