@@ -193,6 +193,83 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'should return error: invalid recipient, if recipient address is equal to sender address',
+      async () => {
+        const amount = 5 * 1e8;
+        const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const message = '';
+
+        // Transaction
+        const trs = gnyJS.basic.transfer(
+          recipient,
+          amount,
+          message,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const transferPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(transferPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid recipient',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: invalid recipient, if recipient username is equal to sender username',
+      async () => {
+        const amount = 5 * 1e8;
+        const username = 'a1300';
+        const recipient = 'a1300';
+        const message = '';
+
+        // set usename
+        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+
+        await lib.onNewBlock();
+
+        // Transaction
+        const trs = gnyJS.basic.transfer(
+          recipient,
+          amount,
+          message,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const transferPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        expect(transferPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid recipient',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('setUserName', () => {

@@ -1,5 +1,5 @@
-import * as gnyJS from '../../../packages/gny-js';
-import * as lib from '../lib';
+import * as gnyJS from '../../packages/gny-js';
+import * as lib from './lib';
 import axios from 'axios';
 
 const config = {
@@ -30,48 +30,14 @@ describe('transactionsApi', () => {
 
   describe('/', () => {
     it(
-      'should get transations',
-      async done => {
-        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-        const amount = 5 * 1e8;
-        const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
-        const message = '';
-
-        // Transaction
-        const trs = gnyJS.basic.transfer(
-          recipient,
-          amount,
-          message,
-          genesisSecret
-        );
-        const transData = {
-          transaction: trs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/transactions?senderId=' + senderId
-        );
-        expect(data).toHaveProperty('transactions');
-        done();
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'return error: "offset" must be larger than or equal to 0',
+      'return error: "offset" must be a number',
       async () => {
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
-        const offset = -1;
+        const offset1 = 1;
+        const offset2 = 2;
 
         // Transaction
         const trs = gnyJS.basic.transfer(
@@ -91,30 +57,32 @@ describe('transactionsApi', () => {
         );
         await lib.onNewBlock();
 
-        const promise = axios.get(
+        const transPromise = axios.get(
           'http://localhost:4096/api/transactions?senderId=' +
             senderId +
             '&offset=' +
-            offset
+            offset1 +
+            '&offset=' +
+            offset2
         );
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(transPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error:
-            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+          error: 'child "offset" fails because ["offset" must be a number]',
         });
+        expect(transPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );
 
     it(
-      'should return: "limit" must be less than or equal to 100',
+      'should return: "limit" must be a number',
       async () => {
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
-        const limit = 101;
-
+        const limit1 = 10;
+        const limit2 = 11;
         // Transaction
         const trs = gnyJS.basic.transfer(
           recipient,
@@ -133,17 +101,19 @@ describe('transactionsApi', () => {
         );
         await lib.onNewBlock();
 
-        const promise = axios.get(
+        const transPromise = axios.get(
           'http://localhost:4096/api/transactions?senderId=' +
             senderId +
             '&limit=' +
-            limit
+            limit1 +
+            '&limit=' +
+            limit2
         );
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(transPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error:
-            'child "limit" fails because ["limit" must be less than or equal to 100]',
+          error: 'child "limit" fails because ["limit" must be a number]',
         });
+        expect(transPromise).rejects.toHaveProperty('response.status', 422);
       },
       lib.oneMinute
     );

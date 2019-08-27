@@ -904,7 +904,7 @@ export default class Blocks {
 
           return cb();
         } catch (err) {
-          global.app.logger.error('Failed to prepare local blockchain', e);
+          global.app.logger.error('Failed to prepare local blockchain', err);
           return cb('Failed to prepare local blockchain');
         }
       },
