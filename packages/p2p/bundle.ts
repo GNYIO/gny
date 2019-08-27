@@ -48,7 +48,7 @@ export class Bundle extends libp2p {
           },
         },
         relay: {
-          enabled: true,
+          enabled: false,
         },
         dht: {
           kBucketSize: 20,
