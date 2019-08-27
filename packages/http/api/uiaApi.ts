@@ -1,13 +1,7 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import {
-  IScope,
-  Next,
-  IBalance,
-  IAsset,
-  IIssuer,
-} from '../../../src/interfaces';
+import { IScope, Next, IIssuer } from '../../../src/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '../../database-postgres/entity/Issuer';
 import { Asset } from '../../database-postgres/entity/Asset';
@@ -62,7 +56,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, addressValidation);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
     try {
       const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
@@ -92,7 +89,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
     try {
       const count = await global.app.sdb.count<Issuer>(Issuer, {});
@@ -117,7 +117,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const name: string = query.name;
@@ -153,7 +156,10 @@ export default class UiaApi {
     });
     const nameReport = this.library.joi.validate(req.params, nameSchema);
     if (nameReport.error) {
-      return next(nameReport.error.message);
+      return res.status(422).send({
+        success: false,
+        error: nameReport.error.message,
+      });
     }
 
     const { query } = req;
@@ -166,7 +172,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -202,7 +211,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -229,7 +241,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, nameSchema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -254,7 +269,10 @@ export default class UiaApi {
     });
     const addressReport = this.library.joi.validate(req.params, addressSchema);
     if (addressReport.error) {
-      return next(addressReport.error.message);
+      return res.status(422).send({
+        success: false,
+        error: addressReport.error.message,
+      });
     }
 
     const { query } = req;
@@ -267,7 +285,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(query, limitOffset);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -297,7 +318,10 @@ export default class UiaApi {
     });
     const report = this.library.joi.validate(req.params, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {

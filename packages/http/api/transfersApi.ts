@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, ITransfer, IAsset } from '../../../src/interfaces';
+import { IScope, Next, ITransfer } from '../../../src/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '../../database-postgres/entity/Transfer';
@@ -54,6 +54,30 @@ export default class TransfersApi {
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;
     const offset = Number(req.query.offset) || 0;
+
+    req.query.limit = limit;
+    req.query.offset = offset;
+
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(100),
+      offset: this.library.joi.number().min(0),
+      ownerId: this.library.joi.string().address(),
+      currency: this.library.joi.string().asset(),
+      senderId: this.library.joi.string().address(),
+      recipientId: this.library.joi.string().address(),
+    });
+
+    const report = this.library.joi.validate(req.query, schema);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
     if (ownerId) {
       condition.$or = {
         senderId: ownerId,

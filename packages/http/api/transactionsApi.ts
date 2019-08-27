@@ -92,7 +92,10 @@ export default class TransactionsApi {
 
     const report = this.library.joi.validate(query, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const condition = {} as Pick<
@@ -161,7 +164,10 @@ export default class TransactionsApi {
     });
     const report = this.library.joi.validate(query, typeSchema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const unconfirmedTransaction = StateHelper.GetUnconfirmedTransaction(
@@ -185,7 +191,10 @@ export default class TransactionsApi {
     });
     const report = this.library.joi.validate(query, publicKeyAddress);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     const transactions = StateHelper.GetUnconfirmedTransactionList();

@@ -51,6 +51,40 @@ describe('delegatesApi', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'should return error: "offset" must be larger than or equal to 0',
+      async () => {
+        const offset = -1;
+        const promise = axios.get(
+          'http://localhost:4096/api/delegates/' + '?offset=' + offset
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return: "limit" must be less than or equal to 101',
+      async () => {
+        const limit = 102;
+        const promise = axios.get(
+          'http://localhost:4096/api/delegates/' + '?limit=' + limit
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "limit" fails because ["limit" must be less than or equal to 101]',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('/get', () => {

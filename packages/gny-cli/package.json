@@ -1,0 +1,48 @@
+{
+  "name": "gny-cli",
+  "version": "1.0.0",
+  "description": "gny command cline tool",
+  "main": "index",
+  "files": [
+    "index.ts",
+    "api/**",
+    "lib/**"
+  ],
+  "scripts": {
+    "start": "node ./bin/packages/gny-cli/index.js",
+    "build": "tsc; cp package.json ./bin/packages/gny-cli/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "gny-cli": "./bin/packages/gny-cli/index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^12.6.8",
+    "assert": "^2.0.0",
+    "async": "^3.1.0",
+    "axios": "^0.19.0",
+    "bitcore-mnemonic": "^8.5.1",
+    "bs58": "^4.0.1",
+    "bytebuffer": "^5.0.1",
+    "commander": "^2.20.0",
+    "crypto-browserify": "^3.12.0",
+    "fast-sha256": "^1.1.0",
+    "inquirer": "^6.5.0",
+    "request": "^2.88.0",
+    "shelljs": "^0.8.3",
+    "ts-node": "^8.3.0",
+    "tweetnacl": "^1.0.1",
+    "valid_url": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/async": "^3.0.1",
+    "@types/bytebuffer": "^5.0.40",
+    "@types/inquirer": "^6.0.3",
+    "@types/js-nacl": "^1.2.0",
+    "@types/request": "^2.48.2",
+    "@types/shelljs": "^0.8.5",
+    "typescript": "^3.5.3"
+  }
+}

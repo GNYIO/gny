@@ -1,8 +1,6 @@
-import * as gnyJS from '../../../packages/gny-js';
-import * as lib from '../lib';
+import * as gnyJS from '../../packages/gny-js';
+import * as lib from './lib';
 import axios from 'axios';
-import { generateAddress } from '../../../src/utils/address';
-import { randomBytes } from 'crypto';
 
 const config = {
   headers: {
@@ -12,58 +10,6 @@ const config = {
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-function randomAddress() {
-  return generateAddress(randomBytes(32).toString('hex'));
-}
-
-async function beforeUiaTransfer() {
-  // prepare registerIssuer
-  const registerIssuer = gnyJS.uia.registerIssuer(
-    'ABC',
-    'some desc',
-    genesisSecret
-  );
-  const registerIssuerTransData = {
-    transaction: registerIssuer,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    registerIssuerTransData,
-    config
-  );
-  await lib.onNewBlock();
-
-  // prepare registerAsset
-  const registerAsset = gnyJS.uia.registerAsset(
-    'BBB',
-    'some desc',
-    String(10 * 1e8),
-    8,
-    genesisSecret
-  );
-  const registerAssetTransData = {
-    transaction: registerAsset,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    registerAssetTransData,
-    config
-  );
-  await lib.onNewBlock();
-
-  // prepare issue
-  const issue = gnyJS.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
-  const issueTransData = {
-    transaction: issue,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    issueTransData,
-    config
-  );
-  await lib.onNewBlock();
-}
 
 describe('uiaApi', () => {
   beforeAll(async done => {
@@ -84,9 +30,46 @@ describe('uiaApi', () => {
 
   describe('/issuers', () => {
     it(
-      'should get issuers',
-      async done => {
+      'should return error: "offset" must be a number',
+      async () => {
         const limit = 5;
+        const offset1 = 0;
+        const offset2 = 1;
+
+        // register issuer
+        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
+        const transData = {
+          transaction: trs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const issuerPromise = axios.get(
+          'http://localhost:4096/api/uia/issuers?limit=' +
+            limit +
+            '&offset=' +
+            offset1 +
+            '&offset=' +
+            offset2
+        );
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "offset" fails because ["offset" must be a number]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: "limit" must be a number',
+      async () => {
+        const limit1 = 5;
+        const limit2 = 6;
         const offset = 0;
 
         // register issuer
@@ -102,71 +85,18 @@ describe('uiaApi', () => {
         );
         await lib.onNewBlock();
 
-        const { data } = await axios.get(
+        const issuerPromise = axios.get(
           'http://localhost:4096/api/uia/issuers?limit=' +
-            limit +
+            limit1 +
+            '&limit=' +
+            limit2 +
             '&offset=' +
             offset
         );
-        expect(data.count).toBe(1);
-
-        done();
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/isIssuer/:address', () => {
-    it(
-      'should get issuers',
-      async () => {
-        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-
-        // register issuer
-        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
-        const transData = {
-          transaction: trs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/issuers/' + address
-        );
-        expect(data.issuer).toHaveProperty('issuerId');
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/issuers/:name', () => {
-    it(
-      'should get issuers',
-      async () => {
-        const name = 'liang';
-
-        // register issuer
-        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
-        const transData = {
-          transaction: trs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/issuers/' + name
-        );
-        expect(data).toHaveProperty('issuer');
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "limit" fails because ["limit" must be a number]',
+        });
       },
       lib.oneMinute
     );
@@ -174,10 +104,72 @@ describe('uiaApi', () => {
 
   describe('/issuers/:name/assets', () => {
     it(
-      'should get issuers',
+      'should return error: "offset" must be a number',
       async () => {
         const name = 'liang';
         const limit = 5;
+        const offset1 = 0;
+        const offset2 = 1;
+
+        // register issuer
+        const issuerTrs = gnyJS.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
+        const issuerTransData = {
+          transaction: issuerTrs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          issuerTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register assets
+        const assetTrs = gnyJS.uia.registerAsset(
+          'BBB',
+          'some description',
+          String(10 * 1e8),
+          8,
+          genesisSecret
+        );
+        const assetTransData = {
+          transaction: assetTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          assetTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const issuerPromise = axios.get(
+          'http://localhost:4096/api/uia/issuers/' +
+            name +
+            '/assets?limit=' +
+            limit +
+            '&offset=' +
+            offset1 +
+            '&offset=' +
+            offset2
+        );
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "offset" fails because ["offset" must be a number]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: "limit" must be a number',
+      async () => {
+        const name = 'liang';
+        const limit1 = 5;
+        const limit2 = 6;
         const offset = 0;
 
         // register issuer
@@ -215,15 +207,20 @@ describe('uiaApi', () => {
         );
         await lib.onNewBlock();
 
-        const { data } = await axios.get(
+        const issuerPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' +
             name +
             '/assets?limit=' +
-            limit +
+            limit1 +
+            '&limit=' +
+            limit2 +
             '&offset=' +
             offset
         );
-        expect(data.count).toBe(1);
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "limit" fails because ["limit" must be a number]',
+        });
       },
       lib.oneMinute
     );
@@ -231,9 +228,68 @@ describe('uiaApi', () => {
 
   describe('/assets', () => {
     it(
-      'should get issuers',
+      'should return error: "offset" must be a number',
       async () => {
         const limit = 5;
+        const offset1 = 0;
+        const offset2 = 1;
+
+        // register issuer
+        const issuerTrs = gnyJS.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
+        const issuerTransData = {
+          transaction: issuerTrs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          issuerTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register assets
+        const assetTrs = gnyJS.uia.registerAsset(
+          'BBB',
+          'some description',
+          String(10 * 1e8),
+          8,
+          genesisSecret
+        );
+        const assetTransData = {
+          transaction: assetTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          assetTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const assetsPromise = axios.get(
+          'http://localhost:4096/api/uia/assets?&limit=' +
+            limit +
+            '&offset=' +
+            offset1 +
+            '&offset=' +
+            offset2
+        );
+        expect(assetsPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "offset" fails because ["offset" must be a number]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: "limit" must be a number',
+      async () => {
+        const limit1 = 5;
+        const limit2 = 6;
         const offset = 0;
 
         // register issuer
@@ -271,60 +327,18 @@ describe('uiaApi', () => {
         );
         await lib.onNewBlock();
 
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/assets'
+        const assetsPromise = axios.get(
+          'http://localhost:4096/api/uia/assets?&limit=' +
+            limit1 +
+            '&limit=' +
+            limit2 +
+            '&offset=' +
+            offset
         );
-        expect(data.count).toBe(1);
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/assets/:name', () => {
-    it(
-      'should get issuers',
-      async () => {
-        const name = 'liang.BBB';
-
-        // register issuer
-        const issuerTrs = gnyJS.uia.registerIssuer(
-          'liang',
-          'liang',
-          genesisSecret
-        );
-        const issuerTransData = {
-          transaction: issuerTrs,
-        };
-
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          issuerTransData,
-          config
-        );
-        await lib.onNewBlock();
-
-        // register assets
-        const assetTrs = gnyJS.uia.registerAsset(
-          'BBB',
-          'some description',
-          String(10 * 1e8),
-          8,
-          genesisSecret
-        );
-        const assetTransData = {
-          transaction: assetTrs,
-        };
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          assetTransData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/assets/' + name
-        );
-        expect(data).toHaveProperty('asset');
+        expect(assetsPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'child "limit" fails because ["limit" must be a number]',
+        });
       },
       lib.oneMinute
     );
@@ -332,111 +346,47 @@ describe('uiaApi', () => {
 
   describe('/balances/:address', () => {
     it(
-      'should get issuers',
-      async () => {
-        const recipient = randomAddress();
-        // prepare
-        await beforeUiaTransfer();
-
-        // act
-        const transfer = gnyJS.uia.transfer(
-          'ABC.BBB',
-          String(10 * 1e8),
-          recipient,
-          undefined,
-          genesisSecret
-        );
-        const transData = {
-          transaction: transfer,
-        };
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/balances/' + recipient
-        );
-        expect(data.balances[0].balance).toBe('1000000000');
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'should return error: "offset" must be larger than or equal to 0',
+      'should return error: "offset" must be a number',
       async () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-        const offset = -1;
+        const offset1 = 1;
+        const offset2 = 2;
 
-        const promise = axios.get(
+        const balancePromise = axios.get(
           'http://localhost:4096/api/uia/balances/' +
             address +
             '/?offset=' +
-            offset
+            offset1 +
+            '&offset=' +
+            offset2
         );
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(balancePromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error:
-            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+          error: 'child "offset" fails because ["offset" must be a number]',
         });
       },
       lib.oneMinute
     );
 
     it(
-      'should return: "limit" must be less than or equal to 100',
+      'should return: "limit" must be a number',
       async () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-        const limit = 101;
+        const limit1 = 10;
+        const limit2 = 11;
 
-        const promise = axios.get(
+        const balancePromise = axios.get(
           'http://localhost:4096/api/uia/balances/' +
             address +
             '/?limit=' +
-            limit
+            limit1 +
+            '&limit=' +
+            limit2
         );
-        expect(promise).rejects.toHaveProperty('response.data', {
+        expect(balancePromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error:
-            'child "limit" fails because ["limit" must be less than or equal to 100]',
+          error: 'child "limit" fails because ["limit" must be a number]',
         });
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/balances/:address/:currency', () => {
-    it(
-      'should get issuers',
-      async () => {
-        const recipient = randomAddress();
-        // prepare
-        await beforeUiaTransfer();
-
-        // act
-        const transfer = gnyJS.uia.transfer(
-          'ABC.BBB',
-          String(10 * 1e8),
-          recipient,
-          undefined,
-          genesisSecret
-        );
-        const transData = {
-          transaction: transfer,
-        };
-        await axios.post(
-          'http://localhost:4096/peer/transactions',
-          transData,
-          config
-        );
-        await lib.onNewBlock();
-
-        const { data } = await axios.get(
-          'http://localhost:4096/api/uia/balances/' + recipient + '/ABC.BBB'
-        );
-        expect(data.balance.balance).toBe('1000000000');
       },
       lib.oneMinute
     );
