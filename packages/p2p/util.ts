@@ -43,9 +43,11 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     }
   };
   const peerDiscoveryCallback = function(peer) {
-    logger.info(
-      `node ${getB58String(bundle.peerInfo)} discovered ${getB58String(peer)}`
-    );
+    if (!bundle.peerBook.has(peer)) {
+      logger.info(
+        `node ${getB58String(bundle.peerInfo)} discovered ${getB58String(peer)}`
+      );
+    }
   };
   const peerConnectedCallback = function(peer) {
     logger.info(

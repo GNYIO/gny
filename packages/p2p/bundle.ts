@@ -61,6 +61,7 @@ export class Bundle extends libp2p {
         },
         pubsub: {
           enabled: true,
+          emitSelf: false,
         },
       },
     };
@@ -117,11 +118,6 @@ export class Bundle extends libp2p {
 
   subscribeCustom(topic: string, handler: P2PSubscribeHandler) {
     const filterBroadcastsEventHandler = (message: P2PMessage) => {
-      // this filters messages out which are published from the own node
-      if (message.from === this.peerInfo.id.toB58String()) {
-        return;
-      }
-
       const id = PeerId.createFromB58String(message.from);
       this.peerRouting.findPeer(id, {}, (err, result) => {
         // find peer in routing table that broadcasted message
