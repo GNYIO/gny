@@ -113,7 +113,7 @@ describe('smartDB.get()', () => {
     done();
   });
 
-  it('get() - loads entity only from cache (if untracked returns undefined)', async done => {
+  it('get() - returns undefined when not found in cache', async done => {
     await saveGenesisBlock(sut);
 
     const key = {

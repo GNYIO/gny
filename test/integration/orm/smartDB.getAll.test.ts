@@ -5,6 +5,7 @@ import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
+import { Balance } from '../../../packages/database-postgres/entity/Balance';
 
 describe('smartDB.getAll()', () => {
   let sut: SmartDB;
@@ -101,6 +102,15 @@ describe('smartDB.getAll()', () => {
     expect(result.length).toEqual(1);
     expect(result[0]).toEqual(createdResult); // structure is the same
     expect(result[0]).not.toBe(createdResult); // reference is not the same
+    done();
+  });
+
+  it('getAll() - returns empty array if no entities are found in cache', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.getAll<Balance>(Balance);
+    expect(result).toEqual([]);
+
     done();
   });
 });

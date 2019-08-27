@@ -285,4 +285,15 @@ describe('smartDB.load()', () => {
     },
     lib.oneMinute
   );
+
+  it('load() - returns undefined when entity is not found in cache and not found in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.load<Account>(Account, {
+      address: 'G3wzRRCWnPX4MCUjTkWBxjbqVSXLL',
+    });
+    expect(result).toBeUndefined();
+
+    done();
+  });
 });

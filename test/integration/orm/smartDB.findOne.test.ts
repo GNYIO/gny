@@ -272,4 +272,17 @@ describe('smartDB.findOne', () => {
       )
     );
   });
+
+  it('findOne() - returns undefined when no entity is found', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G2AA8KFjYGSWN6MWH3wNspA43oSSD',
+      },
+    });
+    expect(result).toBeUndefined();
+
+    done();
+  });
 });

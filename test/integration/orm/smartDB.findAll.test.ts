@@ -395,4 +395,17 @@ describe('smartDB.findAll()', () => {
 
     done();
   });
+
+  it('findAll() - returns empty array when no results where found', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.findAll<Account>(Account, {
+      condition: {
+        address: 'G2GqxTcotAe9QvNsekzm7ucNtppXV',
+      },
+    });
+    expect(result).toEqual([]);
+
+    done();
+  });
 });
