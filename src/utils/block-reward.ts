@@ -13,7 +13,7 @@ export default class BlockReward {
 
   private checkType(height: string | number | BigNumber) {
     const value = new BigNumber(height);
-    if (value.isNaN() || !value.isFinite()) {
+    if (value.isNaN() || !value.isFinite() || !value.isInteger()) {
       throw new Error('Invalid block height');
     } else {
       return value.absoluteValue();

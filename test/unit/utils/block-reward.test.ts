@@ -30,6 +30,12 @@ describe('BlockReward', () => {
       ).toThrowError('Invalid block height');
     });
 
+    it('throws when passed in decimal', () => {
+      return expect(() => blockReward.calculateMilestone(2.2)).toThrowError(
+        'Invalid block height'
+      );
+    });
+
     it('milestone 0 has 3002160 heights', () => {
       const count = range(0, 3002159).length;
       expect(count).toEqual(3002160);
@@ -225,6 +231,12 @@ describe('BlockReward', () => {
       );
     });
 
+    it('throws when passed in decimal', () => {
+      return expect(() => blockReward.calculateReward(2.2)).toThrowError(
+        'Invalid block height'
+      );
+    });
+
     it('when height == 0 should return 0', () => {
       return expect(blockReward.calculateReward(0)).toBe(0);
     });
@@ -329,6 +341,12 @@ describe('BlockReward', () => {
 
     it('throws when passed in Infinity', () => {
       return expect(() => blockReward.calculateSupply(Infinity)).toThrowError();
+    });
+
+    it('throws when passed in decimal', () => {
+      return expect(() => blockReward.calculateSupply(2.2)).toThrowError(
+        'Invalid block height'
+      );
     });
 
     it('returns BigNumber instance', () => {
