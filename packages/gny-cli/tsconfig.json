@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "outDir": "./bin",
+    "moduleResolution": "node"
+  },
+  "include": [
+    "lib/*[.ts|.js]",
+    "api/*[.ts|.js]",
+    "index.ts",
+    "test/**/*.ts"
+  ],
+}

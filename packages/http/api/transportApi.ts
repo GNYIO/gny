@@ -88,7 +88,10 @@ export default class TransportApi {
   public newBlock = (req: Request, res: Response, next: Next) => {
     const { body } = req;
     if (!body.id) {
-      return next('Invalid params');
+      return res.status(422).send({
+        success: false,
+        error: 'Invalid params',
+      });
     }
     // validate id
     const schema = this.library.joi.object().keys({
@@ -99,7 +102,10 @@ export default class TransportApi {
     });
     const report = this.library.joi.validate(body, schema);
     if (report.error) {
-      return next('validation failed');
+      return res.status(422).send({
+        success: false,
+        error: 'validation failed',
+      });
     }
 
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
@@ -139,7 +145,10 @@ export default class TransportApi {
     });
     const report = joi.validate(body, schema);
     if (report.error) {
-      return next('validation failed: ' + report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: 'validation failed: ' + report.error.message,
+      });
     }
 
     // prevent DDOS attack
@@ -190,6 +199,7 @@ export default class TransportApi {
         .number()
         .integer()
         .min(0)
+        .max(200)
         .optional(),
       lastBlockId: joi
         .string()
@@ -198,13 +208,19 @@ export default class TransportApi {
     });
     const report = joi.validate(body, schema);
     if (report.error) {
-      return next('Invalid params');
+      return res.status(422).send({
+        success: false,
+        error: 'Invalid params',
+      });
     }
 
     const blocksLimit: number = body.limit || 200;
     const lastBlockId: string = body.lastBlockId;
     if (!lastBlockId) {
-      return next('Invalid params');
+      return res.status(422).send({
+        success: false,
+        error: 'Invalid params',
+      });
     }
 
     try {
@@ -303,7 +319,10 @@ export default class TransportApi {
     });
     const report = this.library.joi.validate(votes, schema);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);

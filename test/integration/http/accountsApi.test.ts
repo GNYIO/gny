@@ -134,6 +134,50 @@ describe('accountsApi', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'should return error: "offset" must be larger than or equal to 0 ',
+      async () => {
+        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const offset = -1;
+
+        const promise = axios.get(
+          'http://localhost:4096/api/accounts/getBalance/?address=' +
+            address +
+            '&offset=' +
+            offset
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return: "limit" must be less than or equal to 100',
+      async () => {
+        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const limit = 101;
+
+        const promise = axios.get(
+          'http://localhost:4096/api/accounts/getBalance/?address=' +
+            address +
+            '&limit=' +
+            limit
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "limit" fails because ["limit" must be less than or equal to 100]',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('/:address/:currency', () => {

@@ -1199,5 +1199,88 @@ describe('uia', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'should return the error: Invalid recipient, if recipient address is equal to sender address',
+      async () => {
+        // prepare
+        await beforeUiaTransfer();
+
+        // act
+        const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+
+        const transfer = gnyJS.uia.transfer(
+          'ABC.BBB',
+          String(10 * 1e8),
+          recipient,
+          undefined,
+          genesisSecret
+        );
+        const transData = {
+          transaction: transfer,
+        };
+
+        const transferPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(transferPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid recipient',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return the error: Invalid recipient, if recipient username is equal to sender username',
+      async () => {
+        // prepare
+        await beforeUiaTransfer();
+
+        // act
+        const username = 'a1300';
+        const recipient = 'a1300';
+
+        // set usename
+        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+
+        await lib.onNewBlock();
+
+        const transfer = gnyJS.uia.transfer(
+          'ABC.BBB',
+          String(10 * 1e8),
+          recipient,
+          undefined,
+          genesisSecret
+        );
+        const transData = {
+          transaction: transfer,
+        };
+
+        const transferPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(transferPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid recipient',
+        });
+      },
+      lib.oneMinute
+    );
   });
 });

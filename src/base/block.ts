@@ -35,7 +35,7 @@ export class BlockBase {
   /***
    * @returns Block bytes
    */
-  private static getBytes(block: IBlock, skipSignature?: any): Buffer {
+  public static getBytes(block: IBlock, skipSignature?: any): Buffer {
     const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
     const bb = new ByteBuffer(size, true);
