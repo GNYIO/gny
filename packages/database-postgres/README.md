@@ -2,14 +2,14 @@
 # SDB (Database Layer with inbuilt Cache)
 
 ## Overview
-This package is a database abstraction. In the following we will call this package `sdb`. Sdb helds _most_ of its data in memory and so saves round trips to the database. `Sdb` is intended to be used with smart contracts because it is able to `rollback` changes made by smart contract call. But more on this later.
+This package is a database abstraction. In the following we will call this package `sdb`. Sdb helds _most_ of its data in memory and so saves round trips to the database. `Sdb` is intended to be used with smart contracts because it is able to `rollback` changes made by smart contract calls. But more on this later.
 
 ## Life Cycle
-Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model  is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
+Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
 
 ### Block life cycle
 
-Changes to the underlying data model are grouped by `Blocks`. Every `Block` has its transactions that call smart contracts and these smart contracts produced the `deltas`.
+Changes to the underlying data model are grouped by `Blocks`. Every `Block` has its transactions that call smart contracts and these smart contract calls produce the `deltas`.
 
 An example block:
 ```json
@@ -64,7 +64,7 @@ The `Transactions` above would call the following smart contracts:
 - `basic.transfer` (type: 0)
 - `basic.setUserName` (type: 1)
 
-The whole `Block` would then produce the following `deltas`:
+The whole `Block` would then produce the following `deltas` (from which SQL statements can be generated):
 
 <details><summary>CLICK ME</summary>
 
@@ -386,7 +386,6 @@ The whole `Block` would then produce the following `deltas`:
 ```
 </details>
 
-From the `deltas` SQL Statements are generated:
 
 
 
@@ -406,14 +405,17 @@ An `Account` Entity (version 2) where the `username` was set:
 
 ## Database Access
 
-All create/update/delete statements are executed only in memory at the start of a new Block period (10 seconds). Every 10 seconds all collected create/update/delete statements are batched to the database. So the database gets synchronized with the in-memory data every 10 seconds.
+All create/update/delete statements are executed first executed only in memory. Every 10 seconds all collected create/update/delete statements are batched to the database. This is done by a Block `commit`. In summary: The database gets synchronized with the in-memory data every 10 seconds.
 
 ## Model
 
-Models are divided into `memory` Models and `normal` Models. Memory models are solely kept in memory. On the other hand, `normal` models... ???
+Models are divided into `memory` models and `normal` models. 
 
 ### Memory Models
-Memory models are once loaded on the start of the application in memory and are then never read again as long as the Blockchain is up.
+Memory models are solely kept in memory and written to to disc on every Block `commit`. They are once loaded on the start of the application to memory and are then never read again as long as the Blockchain is up.
+
+### Normal Models
+On the other hand, `normal` models do only keep a limited number of records in memory. So it is not guaranteed that an entity of a `normal` model is in cache. Normal models are not loaded into memory on startup.
 
 
 ## Smart Contract Usage
@@ -433,25 +435,31 @@ try {
 ## API
 
 > IMPORTANT!
-> **All** API methods that **change** (create, update, delete) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be used in HTTP endpoints.
+> **All** API methods that **change** (create, update, delete) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be mainly used in HTTP endpoints.
 
 
 ### create<T>(T, Object): Promise<T>
 
-returns: `Promise<T>` (an Entity with all default values set)
+__Returns__: `Promise<T>` (an Entity with all default values set)
+__Description__: This operation creates an entity where default values are set. At least the keys (primary keys, composite keys, unique keys) need to be set.
 
 ```ts
 // create an Account
-await sdb.create<Account>(Account, {
+const created = await sdb.create<Account>(Account, {
   address: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
   gny: String(0),
   username: null,
 });
+
+console.log(JSON.stringify(created));
+{
+  created: 
+}
 ```
 
 ### createOrLoad<T>(T, Object)
 
-returns: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)
+__Returns__: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)
 
 ```ts
 const result = await sdb.createOrLoad<Round>(Round, {
@@ -463,7 +471,7 @@ typeof result.entity
 
 ### del<T>(T, ObjectWithPrimaryKey(s))
 
-returns: undefined
+__Returns__: undefined
 ```ts
 await sdb.del<Vote>(Vote, {
   voterAddress: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
