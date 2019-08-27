@@ -58,9 +58,92 @@ describe('transfersApi', () => {
         const { data } = await axios.get(
           'http://localhost:4096/api/transfers?ownerId=' + senderId
         );
-        expect(data.count).toBe(2);
         expect(data).toHaveProperty('transfers');
         done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return error: "offset" must be larger than or equal to 0',
+      async () => {
+        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const amount = 5 * 1e8;
+        const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
+        const message = '';
+        const offset = -1;
+
+        // Transaction
+        const trs = gnyJS.basic.transfer(
+          recipient,
+          amount,
+          message,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const promise = axios.get(
+          'http://localhost:4096/api/transfers?ownerId=' +
+            senderId +
+            '&offset=' +
+            offset
+        );
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "offset" fails because ["offset" must be larger than or equal to 0]',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should return: "limit" must be less than or equal to 100',
+      async () => {
+        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const amount = 5 * 1e8;
+        const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
+        const message = '';
+        const limit = 101;
+
+        // Transaction
+        const trs = gnyJS.basic.transfer(
+          recipient,
+          amount,
+          message,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const promise = axios.get(
+          'http://localhost:4096/api/transfers?ownerId=' +
+            senderId +
+            '&limit=' +
+            limit
+        );
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error:
+            'child "limit" fails because ["limit" must be less than or equal to 100]',
+        });
       },
       lib.oneMinute
     );

@@ -69,7 +69,10 @@ export default class BlocksApi {
       .xor('id', 'height');
     const report = this.library.joi.validate(query, idOrHeight);
     if (report.error) {
-      return next(report.error.message);
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
     }
 
     try {
@@ -94,6 +97,22 @@ export default class BlocksApi {
     const { query } = req;
     const offset: number = query.offset ? Number(query.offset) : 0;
     const limit: number = query.limit ? Number(query.limit) : 20;
+
+    const schema = this.library.joi.object().keys({
+      limit: this.library.joi
+        .number()
+        .min(0)
+        .max(100),
+      offset: this.library.joi.number().min(0),
+    });
+
+    const report = this.library.joi.validate({ limit, offset }, schema);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
 
     let minHeight: string;
     let maxHeight: string;
