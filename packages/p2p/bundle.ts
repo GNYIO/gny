@@ -161,7 +161,7 @@ export class Bundle extends libp2p {
     copy.forEach(one => {
       const onePeerWithSimplePort: SimplePeerInfo = {
         id: one.id,
-        multiaddrs: one.multiaddrs,
+        multiaddrs: one.multiaddrs.toArray(),
         simple: extractIpAndPort(one),
       };
       result.push(onePeerWithSimplePort);

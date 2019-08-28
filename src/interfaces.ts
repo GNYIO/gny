@@ -262,7 +262,9 @@ export interface PeerNode {
   port: number;
 }
 
-export interface SimplePeerInfo extends Pick<PeerInfo, 'multiaddrs' | 'id'> {
+export interface SimplePeerInfo {
+  multiaddrs: Multiaddr.Multiaddr[];
+  id: PeerId;
   simple: PeerNode;
 }
 
