@@ -262,6 +262,10 @@ export interface PeerNode {
   port: number;
 }
 
+export interface SimplePeerInfo extends Pick<PeerInfo, 'multiaddrs' | 'id'> {
+  simple: PeerNode;
+}
+
 export interface ProcessBlockOptions {
   local?: true;
   broadcast?: true;

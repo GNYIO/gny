@@ -1,6 +1,12 @@
 import * as libp2p from 'libp2p';
 import { extractIpAndPort } from './util';
-import { ILogger, P2PMessage, P2PSubscribeHandler } from '../../src/interfaces';
+import {
+  ILogger,
+  P2PMessage,
+  P2PSubscribeHandler,
+  PeerNode,
+  SimplePeerInfo,
+} from '../../src/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
 const Bootstrap = require('libp2p-bootstrap');
@@ -10,6 +16,7 @@ const DHT = require('libp2p-kad-dht');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 import * as PeerId from 'peer-id';
 import { Options as LibP2POptions } from 'libp2p';
+import { cloneDeep } from 'lodash';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
@@ -146,5 +153,20 @@ export class Bundle extends libp2p {
     };
 
     this.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
+  }
+
+  getPeers() {
+    const result: SimplePeerInfo[] = [];
+    const copy = cloneDeep(this.peerBook.getAllArray());
+    copy.forEach(one => {
+      const onePeerWithSimplePort: SimplePeerInfo = {
+        id: one.id,
+        multiaddrs: one.multiaddrs,
+        simple: extractIpAndPort(one),
+      };
+      result.push(onePeerWithSimplePort);
+    });
+
+    return result;
   }
 }
