@@ -155,9 +155,11 @@ export class Bundle extends libp2p {
     this.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
   }
 
-  getPeers() {
+  getAllConnectedPeers() {
     const result: SimplePeerInfo[] = [];
-    const copy = cloneDeep(this.peerBook.getAllArray());
+    const copy = cloneDeep(
+      this.peerBook.getAllArray().filter(x => x.isConnected())
+    );
     copy.forEach(one => {
       const onePeerWithSimplePort: SimplePeerInfo = {
         id: {

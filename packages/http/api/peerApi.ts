@@ -40,7 +40,7 @@ export default class PeerApi {
   };
 
   private getPeers = (req: Request, res: Response, next: Next) => {
-    const peers = Peer.p2p.getPeers();
+    const peers = Peer.p2p.getAllConnectedPeers();
     return res.json({
       peers,
       count: peers.length,

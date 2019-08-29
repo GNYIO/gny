@@ -653,14 +653,14 @@ describe('p2p', () => {
     );
   });
 
-  describe('getPeers', () => {
+  describe('getAllConnectedPeers', () => {
     it(
-      'getPeers() - when no peers are present returns empty array',
+      'getAllConnectedPeers() - when no peers are present returns empty array',
       async done => {
         const node1 = await createNewBundle(19000);
         await node1.start();
 
-        const result = await node1.getPeers();
+        const result = await node1.getAllConnectedPeers();
         expect(result).toEqual([]);
 
         // cleanup
@@ -671,7 +671,7 @@ describe('p2p', () => {
     );
 
     it(
-      'getPeers() - returns array of peers with properties: multiaddrs, id, simple',
+      'getAllConnectedPeers() - returns array of peers with properties: multiaddrs, id, simple',
       async done => {
         const node1 = await createNewBundle(30000);
         await node1.start();
@@ -684,7 +684,7 @@ describe('p2p', () => {
         await sleep(2000);
 
         // act on peer1
-        const result1 = node1.getPeers();
+        const result1 = node1.getAllConnectedPeers();
         expect(result1).toHaveLength(1);
         expect(Object.keys(result1[0])).toEqual(['id', 'multiaddrs', 'simple']);
 
@@ -704,7 +704,7 @@ describe('p2p', () => {
         expect(result1[0]).toEqual(expectedInPeerStoreFromPeer1);
 
         // act on peer2
-        const result2 = node2.getPeers();
+        const result2 = node2.getAllConnectedPeers();
         expect(result2).toHaveLength(1);
         expect(Object.keys(result2[0])).toEqual(['id', 'multiaddrs', 'simple']);
 
