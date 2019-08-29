@@ -605,6 +605,44 @@ describe('p2p', () => {
     );
 
     it(
+      'getConnectedRandomNode() - returns undefined after only peer disconnected',
+      async done => {
+        const node1 = await createNewBundle(13000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(13001, [node1Address], 500);
+        await node2.start();
+
+        await sleep(2000);
+
+        // test before
+        expect(node1.getConnectedRandomNode()).toEqual({
+          port: 13001,
+          host: '127.0.0.1',
+        });
+        expect(node2.getConnectedRandomNode()).toEqual({
+          port: 13000,
+          host: '127.0.0.1',
+        });
+
+        // stop node1
+        await node1.stop();
+        await sleep(2000);
+
+        // test after
+        expect(node1.getConnectedRandomNode()).toBeUndefined();
+        expect(node2.getConnectedRandomNode()).toBeUndefined();
+
+        // cleanup
+        await node2.stop();
+
+        done();
+      },
+      10 * 1000
+    );
+
+    it(
       'getConnectedRandomNode() - returns first or second node even out on 1.000,- calls',
       async done => {
         expect.assertions(5);
