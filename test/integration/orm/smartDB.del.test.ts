@@ -120,7 +120,7 @@ describe('smartDB.del', () => {
     done();
   });
 
-  it('del() - delet unique key (memory model)', async done => {
+  it('del() - delete by unique key (memory model)', async done => {
     await saveGenesisBlock(sut);
 
     const delegate = {
