@@ -505,10 +505,10 @@ console.log(JSON.stringify(entity));
 // not found
 ```
 
-### del<T>(T, ObjectWithPrimaryKey(s))
+### del<T>(T, ObjectWithPrimaryKey(s)): Promise<void>
 
-__Returns__: undefined
-__Description__: 
+__Returns__: `Promise<undefined>`
+__Description__: This operation deletes an Entity by its primary key, composite keys or unique key.
 
 ```ts
 await sdb.del<Vote>(Vote, {
@@ -517,4 +517,57 @@ await sdb.del<Vote>(Vote, {
 })
 ```
 
-### 
+### update<T>(T, ObjectWithUpdatedProps, ObjectWithPrimaryKey(s)): Promise<void>
+
+__Returns__: `Promise<undefined>`
+__Description__: Checks if the property which should be updated is in memory, if not it loads it in memory. In the example below the Account `G4C9q...` gets the new `gny` balance of `'20000000000'`. This operation increments the `_version_` property of each Entity by one.
+
+```ts
+await sdb.update<Account>(
+  Account,
+  { gny: String(20000000000) },
+  { address: 'G4C9qLAE4TiuNhjg2RXZYVsMtPdK4' }
+);
+```
+
+### lock(uniqueLock): void
+
+__Returns__: undefined
+__Description__: Should be only used within smart contract calls. This operation makes a duplicate call to a smart contract within a block impossible. It throws if the same unique identifier is called twice.
+
+```ts
+
+function smartContract() {
+  const account: string = this.senderId.address;
+  global.sdb.lock(`basic.myContract@${account}`);
+
+  // ... code omitted
+}
+
+smartContract(); // works
+smartContract(); // throws within same block
+```
+
+### increase<T>(T, ObjectWithPropertiesToIncrease, ObjectWithPrimaryKey(s)): Promise<Partial<T>>
+
+__Returns__: `Promise<Partial<T>>`
+__Description__: Increases the provided properties by a specific Number. This is supported for `Numbers` and `Strings` Numbers (e.g. `'100000000'`). This operation returns only the updated properties of the Entity.
+
+```ts
+const account: Account = {
+  address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU',
+  gny: String(200000000000),
+};
+
+const result = await global.app.sdb.increase<Account>(
+  Account,
+  { gny: String(200000000000) },
+  { address: 'G2Ujin7eS9M857JxpnLVUpr6h6RmU' }
+);
+
+console.log(JSON.stringify(result));
+{
+  "gny": "400000000000"
+}
+```
+
