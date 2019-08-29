@@ -556,13 +556,13 @@ describe('p2p', () => {
     );
   });
 
-  describe('getRandomNode', () => {
+  describe('getConnectedRandomNode', () => {
     it(
-      'getRandomNode() - returns undefined when there are no peers in peerBook',
+      'getConnectedRandomNode() - returns undefined when there are no peers in peerBook',
       async done => {
         const node1 = await createNewBundle(15000);
         await node1.start();
-        const result = await node1.getRandomNode();
+        const result = await node1.getConnectedRandomNode();
 
         expect(result).toEqual(undefined);
 
@@ -574,7 +574,7 @@ describe('p2p', () => {
     );
 
     it(
-      'getRandomNode() - returns one peer when one peer is present',
+      'getConnectedRandomNode() - returns one peer when one peer is present',
       async done => {
         expect.assertions(2);
 
@@ -589,7 +589,7 @@ describe('p2p', () => {
         expect(node1.peerBook.getAllArray().length).toEqual(1);
 
         // act
-        const result = node2.getRandomNode();
+        const result = node2.getConnectedRandomNode();
         expect(result).toEqual({
           host: '127.0.0.1',
           port: 14000,
@@ -605,7 +605,7 @@ describe('p2p', () => {
     );
 
     it(
-      'getRandomPeer() - returns first or second node even out on 100.000,- calls',
+      'getConnectedRandomNode() - returns first or second node even out on 1.000,- calls',
       async done => {
         expect.assertions(5);
 
@@ -630,17 +630,17 @@ describe('p2p', () => {
 
         let count1 = 0;
         let count2 = 0;
-        for (let i = 0; i < 100000; ++i) {
-          const randomNode = node3.getRandomNode();
+        for (let i = 0; i < 1000; ++i) {
+          const randomNode = node3.getConnectedRandomNode();
           if (randomNode.port === 13000) ++count1;
           if (randomNode.port === 13001) ++count2;
         }
 
-        // node1 and node2 should have each 50.000 (+/-) 100 occurrences
-        expect(count1).toBeGreaterThan(49000);
-        expect(count1).toBeLessThan(51000);
-        expect(count2).toBeGreaterThan(49000);
-        expect(count2).toBeLessThan(51000);
+        // node1 and node2 should have each 500 (+/-) 20 occurrences
+        expect(count1).toBeGreaterThan(480);
+        expect(count1).toBeLessThan(520);
+        expect(count2).toBeGreaterThan(480);
+        expect(count2).toBeLessThan(520);
 
         // cleanup
         await node1.stop();

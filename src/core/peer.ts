@@ -54,7 +54,7 @@ export default class Peer {
   };
 
   public static randomRequestAsync = async (method: string, params: any) => {
-    const randomNode = Peer.p2p.getRandomNode();
+    const randomNode = Peer.p2p.getConnectedRandomNode();
     if (!randomNode) throw new Error('no contact');
     global.library.logger.debug('select random contract', randomNode);
     try {

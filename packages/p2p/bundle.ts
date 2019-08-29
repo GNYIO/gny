@@ -107,18 +107,17 @@ export class Bundle extends libp2p {
     await this.pubsub.publish(topic, data);
   }
 
-  public getRandomNode() {
-    const allPeers = this.peerBook.getAllArray();
-    if (allPeers.length > 0) {
-      const index = Math.floor(Math.random() * allPeers.length);
-      const peerInfo = allPeers[index];
-      const extracted = extractIpAndPort(peerInfo);
+  public getConnectedRandomNode() {
+    const allConnectedPeers = this.getAllConnectedPeers();
+    if (allConnectedPeers.length > 0) {
+      const index = Math.floor(Math.random() * allConnectedPeers.length);
+      const result = allConnectedPeers[index];
       this.logger.info(
-        `[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(
-          extracted
+        `[P2P] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
+          result.simple
         )}`
       );
-      return extracted;
+      return result.simple;
     }
     return undefined;
   }
