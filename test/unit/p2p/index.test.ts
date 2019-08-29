@@ -1,5 +1,10 @@
 import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
-import { ILogger, P2PMessage, PeerNode } from '../../../src/interfaces';
+import {
+  ILogger,
+  P2PMessage,
+  PeerNode,
+  SimplePeerInfo,
+} from '../../../src/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle } from '../../../packages/p2p/bundle';
@@ -645,6 +650,85 @@ describe('p2p', () => {
         done();
       },
       30 * 1000
+    );
+  });
+
+  describe('getPeers', () => {
+    it(
+      'getPeers() - when no peers are present returns empty array',
+      async done => {
+        const node1 = await createNewBundle(19000);
+        await node1.start();
+
+        const result = await node1.getPeers();
+        expect(result).toEqual([]);
+
+        // cleanup
+        await node1.stop();
+        done();
+      },
+      5 * 1000
+    );
+
+    it(
+      'getPeers() - returns array of peers with properties: multiaddrs, id, simple',
+      async done => {
+        const node1 = await createNewBundle(30000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(30001, [node1Address], 500);
+        await node2.start();
+
+        // wait that both nodes connect to each other
+        await sleep(2000);
+
+        // act on peer1
+        const result1 = node1.getPeers();
+        expect(result1).toHaveLength(1);
+        expect(Object.keys(result1[0])).toEqual(['id', 'multiaddrs', 'simple']);
+
+        const expectedInPeerStoreFromPeer1: SimplePeerInfo = {
+          id: {
+            id: node2.peerInfo.id.toJSON().id,
+            pubKey: node2.peerInfo.id.toJSON().pubKey,
+          },
+          multiaddrs: node2.peerInfo.multiaddrs
+            .toArray()
+            .map(x => x.toString()),
+          simple: {
+            port: 30001,
+            host: '127.0.0.1',
+          },
+        };
+        expect(result1[0]).toEqual(expectedInPeerStoreFromPeer1);
+
+        // act on peer2
+        const result2 = node2.getPeers();
+        expect(result2).toHaveLength(1);
+        expect(Object.keys(result2[0])).toEqual(['id', 'multiaddrs', 'simple']);
+
+        const expectedInPeerStoreFromPeer2: SimplePeerInfo = {
+          id: {
+            id: node1.peerInfo.id.toJSON().id,
+            pubKey: node1.peerInfo.id.toJSON().pubKey,
+          },
+          multiaddrs: node1.peerInfo.multiaddrs
+            .toArray()
+            .map(x => x.toString()),
+          simple: {
+            port: 30000,
+            host: '127.0.0.1',
+          },
+        };
+        expect(result2[0]).toEqual(expectedInPeerStoreFromPeer2);
+
+        // cleanup
+        await node1.stop();
+        await node2.stop();
+        done();
+      },
+      15 * 1000
     );
   });
 });

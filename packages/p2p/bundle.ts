@@ -160,8 +160,11 @@ export class Bundle extends libp2p {
     const copy = cloneDeep(this.peerBook.getAllArray());
     copy.forEach(one => {
       const onePeerWithSimplePort: SimplePeerInfo = {
-        id: one.id,
-        multiaddrs: one.multiaddrs.toArray(),
+        id: {
+          id: one.id.toJSON().id,
+          pubKey: one.id.toJSON().pubKey,
+        },
+        multiaddrs: one.multiaddrs.toArray().map(x => x.toString()),
         simple: extractIpAndPort(one),
       };
       result.push(onePeerWithSimplePort);

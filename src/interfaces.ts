@@ -262,9 +262,13 @@ export interface PeerNode {
   port: number;
 }
 
+export interface SimplePeerId {
+  id: string;
+  pubKey: string;
+}
 export interface SimplePeerInfo {
-  multiaddrs: Multiaddr.Multiaddr[];
-  id: PeerId;
+  multiaddrs: string[];
+  id: SimplePeerId;
   simple: PeerNode;
 }
 
