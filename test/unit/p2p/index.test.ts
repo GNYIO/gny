@@ -730,5 +730,36 @@ describe('p2p', () => {
       },
       15 * 1000
     );
+
+    it(
+      'getAllConnectedPeers() - return only connected peers',
+      async done => {
+        const node1 = await createNewBundle(40000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(40001, [node1Address], 500);
+        await node2.start();
+
+        // wait that both peers connect to each other
+        await sleep(2000);
+
+        // check before
+        expect(node1.getAllConnectedPeers()).toHaveLength(1);
+        expect(node2.getAllConnectedPeers()).toHaveLength(1);
+
+        // stop peer1
+        await node1.stop();
+        await sleep(2000);
+
+        expect(node1.getAllConnectedPeers()).toHaveLength(0);
+        expect(node2.getAllConnectedPeers()).toHaveLength(0);
+
+        // cleanup
+        await node2.stop();
+        done();
+      },
+      15 * 1000
+    );
   });
 });
