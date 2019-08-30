@@ -444,6 +444,15 @@ try {
 > **All** API methods that **change** (create, update, delete) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be mainly used in HTTP endpoints.
 
 
+### Startup and Configuration
+In order to use the `sdb` package one has to first call the `init()` method.
+#### init(): Promise<void>
+
+__Returns__: `void`
+__Description__: This operation is mandatory and initializes the `sdb` package. Initialization includes connecting to the Database, loading the last block, setting the latest block height, loads all entities of the memory models, loading the `BlockHistory` of the latest block.
+
+
+
 ### create<T>(T, Object): Promise<T>
 
 __Returns__: `Promise<T>` (an Entity with all default values set)
@@ -468,6 +477,64 @@ console.log(JSON.stringify(created));
   "lockAmount": "0",
   "_version_": 1
 }
+```
+
+### get<T>(T, Object): Promise<T | void>
+
+> Warning: This works only for `memory models`.
+
+__Returns__: When found in cache then it returns the entity otherwise it returns `undefined`.
+__Description__: This operation solely looks into the cache. It works with PrimaryKeys, UniqueKeys and Composite Keys. If not the whole composite key is provided it throws.
+
+```ts
+const resultPrimaryKey = await global.sdb.get<Delegate>(Delegate, {
+  address: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+});
+
+const resultUniqueKey = await global.sdb.get<Delegate>(Delegate, {
+  tid: '1828313037dabeb911604a2b740821e2037f28e32cfc0794ad7cdb96ef2361e1'
+});
+
+const compositeKeyResult = await global.sdb.get<Balance>(Balance, {
+  address: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+  currency: 'ABC.ABC',
+});
+```
+
+### getAll<T>(T): Promise<T[]>
+
+> Warning: This works only for `memory models`.
+
+__Returns__: When found in cache then it returns the entities otherwise it returns an empty array.
+__Description__: This operation solely looks into the cache. It returns all entities of a given memory model.
+
+```ts
+const allDelegates: Delegate[] = await global.sdb.getAll<Delegate>(Delegate);
+```
+
+
+
+### load<T>(T, Object): Promise<T | void>
+
+__Returns__: When found it returns the searched object. When not found then it returns `undefined`.
+__Description__: This operation tries to load the entity from cache and returns entity if found in cache. If the entity was not found cache - then it hits the DB and returns the entity from the db. When the entity is not in the db - then it returns`undefined`. This operation supports PrimaryKeys, CompositeKeys and UniqueKeys.
+
+```ts
+// load by primary key
+const resultPrimaryKey = await global.sdb.load<Account>(Account, {
+  account: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+});
+
+// load by unique key
+const resultUniqueKey = await global.sdb.load<Account>(Account, {
+  username: 'xpgeng',
+});
+
+// load composite key
+const compositeKey = await global.sdb.load<Vote>(Vote, {
+  voterAddress: 'G45U8A2vdp5CHZ3ABAZwojxdBp44p',
+  delegate: 'liangpeili',
+});
 ```
 
 ### createOrLoad<T>(T, Object)
@@ -571,3 +638,108 @@ console.log(JSON.stringify(result));
 }
 ```
 
+### findOne<T>(T, FindOneOptions): Promise<T>
+
+> Warning 1: This operation directly accesses the database without looking into the cache.
+> Warning 2: When the database query returns more than one result an Exception is thrown.
+
+__Returns__: `Promise<T>`
+__Description__: This operation queries directly the database.
+
+```ts
+// findOneOptions:
+interface FindOneOptions<T> {
+  condition: Partial<T>;
+}
+
+const result = await global.app.findOne<Asset>(Asset, {
+  condition: {
+    name: 'ACC.ACC',
+  },
+});
+```
+
+### findAll<T>(T, FindAllOptions)
+
+> Warning: This operation directly accesses the database without looking into the cache.
+
+__Returns__: `Promise<T>`
+__Description__: This operation accesses directly the database. It supports `pagination` and `$in` (WHERE IN) operations (see example):
+
+```ts
+// search by single property (e.g get all blocks forged by a delegate)
+const resultSingle = await global.app.sdb.findAll<Block>(Block, {
+  condition: {
+    delegate: '47affc7358eef12bd40b92de868769cc1a7dc2a765835989bd9554615cb00e31',
+  },
+});
+
+// search by WHERE IN
+const resultWhereIn = await global.app.sdb.findAll<Delegate>(Delegate, {
+  condition: {
+    username: {
+      $in: ['gny_d29', 'gny_d99'],
+    }
+  },
+});
+
+// sort result (all Delegates order by producedBlocks descending)
+const resultSort = await global.app.sdb.findAll<Delegate>(Delegate, {
+  condition: {},
+  sort: {
+    producedBlocks: -1, // -1 descending, 1 ascending
+  }
+};
+
+// limit and offset (all Delegates in descending order, take only 10)
+const resultLimtOffset = await global.app.sdb.findAll<Delegate>(Delegate, {
+  condition: {},
+  sort: {
+    producedBlocks: -1,
+  },
+  limit: 10,
+  offfset: 0,
+})
+
+// search for a range of values
+const result = await global.app.sdb.findAll<Transaction>(Transaction, {
+  condition: {
+    height: {
+      $gte: minHeight,
+      $lte: maxHeight,
+    },
+  },
+});
+```
+
+### Block related Methods
+
+#### beginBlock(Block): void
+
+__Returns:__ `void`
+__Description:__ This operation prepares the the Block to commit.
+
+#### commitBlock(): Promise<string>
+__Returns__: LastBlockHeight
+__Description:__ This operation writes all changes made (smart contract calls, updated round info, updated delegate info) to the database.
+
+#### rollbackBlock(height?): Promise<void>
+
+__Returns:__ `void`
+__Description__ This operation serves two purposes. First, when called without a height parameter then it rollbacks the current Block in case something went wrong (see the example). Second, it can be used to rollback to a previous Block in case of a Fork in the network.
+
+```ts
+// when something goes wrong by applying the block, it makes sure that all operations are reverted to the previous state
+try {
+  global.app.sdb.beginBlock(block);
+  await global.app.sdb.commitBlock();
+} catch (e) {
+  await global.app.sdb.rollbackBlock();
+  throw e;
+}
+
+
+// in case of a fork we can rollback to a previous block
+const lastBlock: string = global.app.sdb.lastBlockHeight; // e.g. 1034
+global.app.sdb.rollbackBlock(String(1030)); // rollback to 1030
+```
