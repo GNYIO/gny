@@ -826,6 +826,66 @@ const blockWithTransactions = await global.app.sdb.getBlocksByHeightRange(
 );
 ```
 
+### Simple Properties
+
+#### lastBlockHeight: string
+
+__Returns__: `string`
+__Description__: This property returns the lastBlockHeight, which is a string.
+
+```ts
+const block1 = createBlock(String(1));
+global.app.sdb.beginBlock(block1);
+await global.app.sdb.commitBlock();
+
+const lastHeight: string = global.app.sdb.lastBlockHeight;
+console.log(lastHeight); // "1"
+```
+
+#### blocksCount: string
+
+__Returns__: `string`
+__Description__: This property returns the blockCount, which is a string.
+
+```ts
+const block5 = createBlock(String(5));
+global.app.sdb.beginBlock(block5);
+await global.app.sdb.commitBlock();
+
+const blocksCount: string = global.app.sdb.blocksCount;
+console.log(blocksCount); // "6"
+```
+
+#### lastBlock: Block
+
+__Returns__: `Block`
+__Description__: This property returns the lastBlock.
+
+```ts
+const third = createBlock(String(3));
+global.app.sdb.beginBlock(third);
+await global.app.sdb.commitBlock();
+
+const lastBlock = global.app.sdb.lastBlock;
+console.log(JSON.stringify(lastBlock));
+{
+  "version": 0,
+  "delegate": "a71ec9e6eebbd70068a6c3a3c74addd5e51172a6ce96ac40c92203995a205e10",
+  "height": "3",
+  "prevBlockId": "3e7db3d69080e8d360e3c4277602edd49d0509077914347d50cf3313c5296d7e",
+  "timestamp": 24767180,
+  "transactions": [],
+  "count": 0,
+  "fees": "0",
+  "payloadHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "reward": "0",
+  "signature": "526bb84000f2429a2823888e96a9eda59fd9a8a86f00dd8a8bdaebafba801e52d41e55bb7a524e7c1631fb5bbeabd367211c4760706621994e9c8afccc1d7c05",
+  "id": "5fa64f2b54fc68da15bfb9b598adb276340b5495971da777ececc90e0034c673"
+}
+```
+
+
+
 ### Block related Methods
 
 #### beginBlock(Block): void
