@@ -6,6 +6,7 @@ import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import { Condition } from '../../../packages/database-postgres/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
+import { Balance } from '../../../packages/database-postgres/entity/Balance';
 
 describe('smartDB.count', () => {
   let sut: SmartDB;
@@ -138,6 +139,15 @@ describe('smartDB.count', () => {
       },
     });
     expect(result).toEqual(2);
+
+    done();
+  });
+
+  it('count() - count all entities in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.count<Balance>(Balance, {});
+    expect(result).toEqual(1);
 
     done();
   });
