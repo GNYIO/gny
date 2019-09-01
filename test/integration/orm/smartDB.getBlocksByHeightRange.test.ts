@@ -238,4 +238,13 @@ describe('smartDB.getBlocksByHeightRange()', () => {
 
     return expect(resultPromise).rejects.toThrow();
   }, 5000);
+
+  it('getBlocksByHeightRange() - returns empty array if no blocks were found in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.getBlocksByHeightRange(String(100), String(200));
+    expect(result).toEqual([]);
+
+    done();
+  });
 });
