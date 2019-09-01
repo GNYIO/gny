@@ -768,15 +768,63 @@ const resultRange = await global.app.sdb.count<Transaction>(Transaction, {
 });
 
 // count all Transactions for Block 1, 33, 74
-counst resultWhereIn = await global.app.sdb.count<Transaction>(Transaction, {
+count resultWhereIn = await global.app.sdb.count<Transaction>(Transaction, {
   height: {
     $in: [String(1), String(33), String(74)],
   },
 });
 ```
 
+### Query Blocks
+
+#### getBlockByHeight(height, withTransactions = false): Promise<Block | void>
+
+__Returns__: `Promise<Block | void>`
+__Description__: If the Block was found in Cache or in the DB the Block gets returned. Otherwise `undefined` is returned. If wanted, the Block can be returned with transactions.
+
+```ts
+const block = await global.app.sdb.getBlockByHeight(String(4215));
+
+const blockWithTransactions = await global.app.sdb.getBlockByHeight(String(242), true);
+```
 
 
+#### getBlockById(id, withTransactions = false): Promise<Block | void>
+
+__Returns__: `Promise<Block | void>`
+__Description__: If the Block was found in Cache or in the DB the Block gets returned. Otherwise `undefined` is returned. If wanted, the Block can be returned with transactions.
+
+```ts
+const block = await global.app.sdb.getBlockById(
+  '2086c3e1b04186bd6a3da2335dca1c93806db00060532a17be3d2506935df918'
+);
+
+const blockWithTransactions = await global.app.sdb.getBlockById(
+  'fa410914aa466ee1a0e4057075dff60f6c0e596e8bff7fe9ad3a64abac4b5b92',
+  true
+);
+```
+
+#### getBlocksByHeightRange(min, max, withTransactions = false): Promise<Block[]>
+
+> Warning: Directly hits the database.
+
+__Returns__: `Promise<Block[]>`
+__Description__: This operation directly accesses the database. If wanted, the Block can be returned with transactions. Throws if max height is bigger than min height.
+
+
+```ts
+const block = await global.app.sdb.getBlocksByHeightRange(
+  String(50),
+  String(100)
+);
+
+const blockWithTransactions = await global.app.sdb.getBlocksByHeightRange(
+  String(100),
+  String(200),
+  true
+);
+```
 
 ### Block related Methods
 
