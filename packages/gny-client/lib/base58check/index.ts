@@ -1,6 +1,8 @@
 import * as crypto from 'crypto';
+import Base from './base-x';
 
-const base58 = require('./bs58.js');
+const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const base58 = new Base(ALPHABET);
 
 // SHA256(SHA256(buffer))
 function sha256x2(buffer: any) {
