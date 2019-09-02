@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["es6", "dom"],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": false,
+    "types": ["node"],
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": [
+    "node_modules/**"
+  ],
+  "include": [
+    "lib/*.ts",
+    "index.ts",
+  ],
+}
