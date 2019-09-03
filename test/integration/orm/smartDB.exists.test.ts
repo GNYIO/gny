@@ -1,46 +1,13 @@
-import {
-  SmartDB,
-  SmartDBOptions,
-} from '../../../packages/database-postgres/src/smartDB';
-import {
-  IBlock,
-  IAccount,
-  IDelegate,
-  IAsset,
-  ITransaction,
-  IVariable,
-  IRound,
-  IBalance,
-} from '../../../src/interfaces';
-import { generateAddress } from '../../../src/utils/address';
-import { cloneDeep } from 'lodash';
+import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { ITransaction, IVariable } from '../../../src/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Asset } from '../../../packages/database-postgres/entity/Asset';
 import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
 import { Variable } from '../../../packages/database-postgres/entity/Variable';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import {
-  Versioned,
-  FindAllOptions,
-  Condition,
-} from '../../../packages/database-postgres/src/searchTypes';
-import { Round } from '../../../packages/database-postgres/entity/Round';
-import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
 import { Block } from '../../../packages/database-postgres/entity/Block';
-import {
-  createRandomBytes,
-  saveGenesisBlock,
-  createBlock,
-  logger,
-  CUSTOM_GENESIS,
-  createAccount,
-  createAsset,
-  createTransaction,
-} from './smartDB.test.helpers';
-import { randomBytes } from 'crypto';
+import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 
 describe('smartDB.exists()', () => {
   let sut: SmartDB;
