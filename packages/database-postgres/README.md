@@ -7,7 +7,25 @@ This package is a database abstraction. In the following we will call this packa
 
 # Configuration
 
-TODO
+The constructor has the following signature:
+
+```ts
+constructor(logger: ILogger, options?: SmartDBOptions)
+```
+
+So you need to at least provide an logger. The default values for `SmartDBOptions` are:
+
+```ts
+interface SmartDBOptions {
+  // keep x last blocks in cache, default 10
+  cachedBlockCount?: number;
+  // checks if properties are correct in update(), default undefined
+  checkModifier?: boolean;
+  // stringified (JSON.stringify()) config
+  configRaw: string;
+}
+```
+
 
 
 ## Life Cycle
