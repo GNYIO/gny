@@ -3,10 +3,10 @@ import * as transaction from './transaction';
 
 function transfer(
   recipientId: string,
-  amount: number,
+  amount: string,
   message: string,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 0,
@@ -18,7 +18,7 @@ function transfer(
   });
 }
 
-function setUserName(username: string, secret: string, secondSecret: string) {
+function setUserName(username: string, secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 1,
     fee: 5 * 1e8,
@@ -50,7 +50,7 @@ function lock(
   height: number,
   amount: number,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 3,
@@ -61,7 +61,7 @@ function lock(
   });
 }
 
-function unlock(secret: string, secondSecret: string) {
+function unlock(secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 6,
     fee: 0,
@@ -71,7 +71,7 @@ function unlock(secret: string, secondSecret: string) {
   });
 }
 
-function vote(keyList: string[], secret: string, secondSecret: string) {
+function vote(keyList: string[], secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 4,
     fee: 0.1 * 1e8,
@@ -81,7 +81,7 @@ function vote(keyList: string[], secret: string, secondSecret: string) {
   });
 }
 
-function unvote(keyList: string[], secret: string, secondSecret: string) {
+function unvote(keyList: string[], secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 5,
     fee: 0.1 * 1e8,
@@ -91,7 +91,7 @@ function unvote(keyList: string[], secret: string, secondSecret: string) {
   });
 }
 
-function registerDelegate(secret: string, secondSecret: string) {
+function registerDelegate(secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 10,
     fee: 100 * 1e8,

@@ -1,14 +1,14 @@
 import crypto_lib = require('crypto-browserify');
 import should = require('should');
-import gny_client = require('../index.js');
+import gnyClient = require('../index.js');
 
 describe('Gny JS', () => {
   it('should be ok', () => {
-    gny_client.should.be.ok;
+    gnyClient.should.be.ok;
   });
 
   it('should be object', () => {
-    gny_client.should.be.type('object');
+    gnyClient.should.be.type('object');
   });
 
   it('should have properties', () => {
@@ -26,13 +26,13 @@ describe('Gny JS', () => {
     ];
 
     properties.forEach(function(property) {
-      gny_client.should.have.property(property);
+      gnyClient.should.have.property(property);
     });
   });
 
   describe('crypto sha256 and address', () => {
     it('should be equal to the expected address', () => {
-      gny_client.crypto
+      gnyClient.crypto
         .getAddress(
           '7a91b9bfc0ea185bf3ade9d264da273f7fe19bf71008210b1d7239c82dd3ad20'
         )
@@ -41,7 +41,7 @@ describe('Gny JS', () => {
         '7a91b9bfc0ea185bf3ade9d264da273f7fe19bf71008210b1d7239c82dd3ad20',
         'hex'
       );
-      gny_client.crypto
+      gnyClient.crypto
         .getAddress(publicKeyBuffer)
         .should.be.equal('AFbYJhiJb3DXzHy5ZP24mKw21M2dCBJCXP');
     });

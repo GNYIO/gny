@@ -3,7 +3,7 @@ export function registerIssuer(
   name: string,
   desc: string,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 100,
@@ -17,10 +17,10 @@ export function registerIssuer(
 export function registerAsset(
   name: string,
   desc: string,
-  maximum: number,
+  maximum: string,
   precision: number,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 101,
@@ -33,9 +33,9 @@ export function registerAsset(
 
 export function issue(
   currency: string,
-  amount: number,
+  amount: string,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 102,
@@ -48,11 +48,11 @@ export function issue(
 
 export function transfer(
   currency: string,
-  amount: number,
+  amount: string,
   recipientId: string,
   message: string,
   secret: string,
-  secondSecret: string
+  secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 103,

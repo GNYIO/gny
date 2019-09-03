@@ -1,7 +1,7 @@
-const crypto = require('./crypto.js');
-const constants = require('../constants.js');
-const slots = require('../time/slots.js');
-const options = require('../options');
+import crypto = require('./crypto');
+import constants = require('../constants');
+import slots = require('../time/slots');
+import options = require('../options');
 
 export function calculateFee(amount: number) {
   const min = constants.fees.send;

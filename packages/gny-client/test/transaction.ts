@@ -4,7 +4,7 @@ let should = require('should');
 let gnyJS = require('../index.js');
 
 describe('transaction.js', () => {
-  const transaction = gnyJS.transaction;
+  const transaction = gnyClient.transaction;
 
   it('should be object', () => {
     transaction.should.be.type('object');
@@ -101,13 +101,13 @@ describe('transaction.js', () => {
       });
 
       it('should be signed correctly', () => {
-        const result = gnyJS.crypto.verify(trs);
+        const result = gnyClient.crypto.verify(trs);
         result.should.be.ok;
       });
 
       it('should not be signed correctly now', () => {
         trs.amount = 10000;
-        const result = gnyJS.crypto.verify(trs);
+        const result = gnyClient.crypto.verify(trs);
         result.should.be.not.ok;
       });
     });
@@ -117,7 +117,7 @@ describe('transaction.js', () => {
     const createTransaction = transaction.createTransaction;
     let trs;
     const secondSecret = 'second secret';
-    const keys = gnyJS.crypto.getKeys(secondSecret);
+    const keys = gnyClient.crypto.getKeys(secondSecret);
 
     beforeEach(() => {
       trs = createTransaction(
@@ -205,24 +205,30 @@ describe('transaction.js', () => {
       });
 
       it('should be signed correctly', () => {
-        const result = gnyJS.crypto.verify(trs);
+        const result = gnyClient.crypto.verify(trs);
         result.should.be.ok;
       });
 
       it('should be second signed correctly', () => {
-        const result = gnyJS.crypto.verifySecondSignature(trs, keys.publicKey);
+        const result = gnyClient.crypto.verifySecondSignature(
+          trs,
+          keys.publicKey
+        );
         result.should.be.ok;
       });
 
       it('should not be signed correctly now', () => {
         trs.amount = 10000;
-        const result = gnyJS.crypto.verify(trs);
+        const result = gnyClient.crypto.verify(trs);
         result.should.be.not.ok;
       });
 
       it('should not be second signed correctly now', () => {
         trs.amount = 10000;
-        const result = gnyJS.crypto.verifySecondSignature(trs, keys.publicKey);
+        const result = gnyClient.crypto.verifySecondSignature(
+          trs,
+          keys.publicKey
+        );
         result.should.be.not.ok;
       });
     });

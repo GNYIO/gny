@@ -1,8 +1,8 @@
 import should = require('should');
-import gny_client = require('../index.js');
+import gnyClient = require('../index.js');
 
 describe('crypto.js', () => {
-  const crypto = gny_client.crypto;
+  const crypto = gnyClient.crypto;
 
   let bytes;
   let getBytes;

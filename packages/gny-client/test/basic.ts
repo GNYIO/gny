@@ -1,8 +1,8 @@
-import * as gny_client from '../index';
+import * as gnyClient from '../index';
 import should = require('should');
 
 describe('basic', () => {
-  const basic = gny_client.basic;
+  const basic = gnyClient.basic;
 
   it('should be ok', () => {
     basic.should.be.ok;
@@ -17,7 +17,7 @@ describe('basic', () => {
     let trs;
 
     beforeEach(() => {
-      setName = gny_client.basic.setUserName;
+      setName = gnyClient.basic.setUserName;
       trs = basic.setUserName('sqfasd', 'secret', null);
     });
 
