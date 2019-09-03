@@ -6,7 +6,7 @@ import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
 import { Asset } from '../../../packages/database-postgres/entity/Asset';
 import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
-import { FindAllOptions } from '../../../packages/database-postgres/searchTypes';
+import { FindAllOptions } from '../../../packages/database-postgres/src/searchTypes';
 import {
   saveGenesisBlock,
   createBlock,

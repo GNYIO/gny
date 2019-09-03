@@ -26,7 +26,7 @@ import {
   Versioned,
   FindAllOptions,
   Condition,
-} from '../../../packages/database-postgres/searchTypes';
+} from '../../../packages/database-postgres/src/searchTypes';
 import { Round } from '../../../packages/database-postgres/entity/Round';
 import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
 import { Block } from '../../../packages/database-postgres/entity/Block';

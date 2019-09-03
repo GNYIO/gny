@@ -22,7 +22,7 @@ import {
   FindAllOptions,
   ArrayCondition,
   Condition,
-} from '../searchTypes';
+} from './searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
 import { Transaction } from '../entity/Transaction';
 
