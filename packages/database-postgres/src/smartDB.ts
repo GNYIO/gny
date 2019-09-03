@@ -39,7 +39,6 @@ export type RHooks = {
 
 export interface SmartDBOptions {
   cachedBlockCount?: number;
-  maxBlockHistoryHold?: number;
   checkModifier?: boolean;
   configRaw: string;
 }
@@ -65,7 +64,6 @@ export class SmartDB extends EventEmitter {
 
     this.options = options || {
       cachedBlockCount: 10,
-      maxBlockHistoryHold: 10,
       configRaw: options.configRaw,
     };
     this.commitBlockHooks = [];

@@ -52,7 +52,6 @@ describe('integration - SmartDB', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
