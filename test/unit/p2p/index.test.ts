@@ -1,5 +1,10 @@
 import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
-import { ILogger, P2PMessage, PeerNode } from '../../../src/interfaces';
+import {
+  ILogger,
+  P2PMessage,
+  PeerNode,
+  SimplePeerInfo,
+} from '../../../src/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle } from '../../../packages/p2p/bundle';
@@ -551,13 +556,13 @@ describe('p2p', () => {
     );
   });
 
-  describe('getRandomNode', () => {
+  describe('getConnectedRandomNode', () => {
     it(
-      'getRandomNode() - returns undefined when there are no peers in peerBook',
+      'getConnectedRandomNode() - returns undefined when there are no peers in peerBook',
       async done => {
         const node1 = await createNewBundle(15000);
         await node1.start();
-        const result = await node1.getRandomNode();
+        const result = await node1.getConnectedRandomNode();
 
         expect(result).toEqual(undefined);
 
@@ -569,7 +574,7 @@ describe('p2p', () => {
     );
 
     it(
-      'getRandomNode() - returns one peer when one peer is present',
+      'getConnectedRandomNode() - returns one peer when one peer is present',
       async done => {
         expect.assertions(2);
 
@@ -584,7 +589,7 @@ describe('p2p', () => {
         expect(node1.peerBook.getAllArray().length).toEqual(1);
 
         // act
-        const result = node2.getRandomNode();
+        const result = node2.getConnectedRandomNode();
         expect(result).toEqual({
           host: '127.0.0.1',
           port: 14000,
@@ -600,7 +605,45 @@ describe('p2p', () => {
     );
 
     it(
-      'getRandomPeer() - returns first or second node even out on 100.000,- calls',
+      'getConnectedRandomNode() - returns undefined after only peer disconnected',
+      async done => {
+        const node1 = await createNewBundle(13000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(13001, [node1Address], 500);
+        await node2.start();
+
+        await sleep(2000);
+
+        // test before
+        expect(node1.getConnectedRandomNode()).toEqual({
+          port: 13001,
+          host: '127.0.0.1',
+        });
+        expect(node2.getConnectedRandomNode()).toEqual({
+          port: 13000,
+          host: '127.0.0.1',
+        });
+
+        // stop node1
+        await node1.stop();
+        await sleep(2000);
+
+        // test after
+        expect(node1.getConnectedRandomNode()).toBeUndefined();
+        expect(node2.getConnectedRandomNode()).toBeUndefined();
+
+        // cleanup
+        await node2.stop();
+
+        done();
+      },
+      10 * 1000
+    );
+
+    it(
+      'getConnectedRandomNode() - returns first or second node even out on 1.000,- calls',
       async done => {
         expect.assertions(5);
 
@@ -625,17 +668,17 @@ describe('p2p', () => {
 
         let count1 = 0;
         let count2 = 0;
-        for (let i = 0; i < 100000; ++i) {
-          const randomNode = node3.getRandomNode();
+        for (let i = 0; i < 1000; ++i) {
+          const randomNode = node3.getConnectedRandomNode();
           if (randomNode.port === 13000) ++count1;
           if (randomNode.port === 13001) ++count2;
         }
 
-        // node1 and node2 should have each 50.000 (+/-) 100 occurrences
-        expect(count1).toBeGreaterThan(49000);
-        expect(count1).toBeLessThan(51000);
-        expect(count2).toBeGreaterThan(49000);
-        expect(count2).toBeLessThan(51000);
+        // node1 and node2 should have each 500 (+/-) 20 occurrences
+        expect(count1).toBeGreaterThan(480);
+        expect(count1).toBeLessThan(520);
+        expect(count2).toBeGreaterThan(480);
+        expect(count2).toBeLessThan(520);
 
         // cleanup
         await node1.stop();
@@ -645,6 +688,116 @@ describe('p2p', () => {
         done();
       },
       30 * 1000
+    );
+  });
+
+  describe('getAllConnectedPeers', () => {
+    it(
+      'getAllConnectedPeers() - when no peers are present returns empty array',
+      async done => {
+        const node1 = await createNewBundle(19000);
+        await node1.start();
+
+        const result = await node1.getAllConnectedPeers();
+        expect(result).toEqual([]);
+
+        // cleanup
+        await node1.stop();
+        done();
+      },
+      5 * 1000
+    );
+
+    it(
+      'getAllConnectedPeers() - returns array of peers with properties: multiaddrs, id, simple',
+      async done => {
+        const node1 = await createNewBundle(30000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(30001, [node1Address], 500);
+        await node2.start();
+
+        // wait that both nodes connect to each other
+        await sleep(2000);
+
+        // act on peer1
+        const result1 = node1.getAllConnectedPeers();
+        expect(result1).toHaveLength(1);
+        expect(Object.keys(result1[0])).toEqual(['id', 'multiaddrs', 'simple']);
+
+        const expectedInPeerStoreFromPeer1: SimplePeerInfo = {
+          id: {
+            id: node2.peerInfo.id.toJSON().id,
+            pubKey: node2.peerInfo.id.toJSON().pubKey,
+          },
+          multiaddrs: node2.peerInfo.multiaddrs
+            .toArray()
+            .map(x => x.toString()),
+          simple: {
+            port: 30001,
+            host: '127.0.0.1',
+          },
+        };
+        expect(result1[0]).toEqual(expectedInPeerStoreFromPeer1);
+
+        // act on peer2
+        const result2 = node2.getAllConnectedPeers();
+        expect(result2).toHaveLength(1);
+        expect(Object.keys(result2[0])).toEqual(['id', 'multiaddrs', 'simple']);
+
+        const expectedInPeerStoreFromPeer2: SimplePeerInfo = {
+          id: {
+            id: node1.peerInfo.id.toJSON().id,
+            pubKey: node1.peerInfo.id.toJSON().pubKey,
+          },
+          multiaddrs: node1.peerInfo.multiaddrs
+            .toArray()
+            .map(x => x.toString()),
+          simple: {
+            port: 30000,
+            host: '127.0.0.1',
+          },
+        };
+        expect(result2[0]).toEqual(expectedInPeerStoreFromPeer2);
+
+        // cleanup
+        await node1.stop();
+        await node2.stop();
+        done();
+      },
+      15 * 1000
+    );
+
+    it(
+      'getAllConnectedPeers() - return only connected peers',
+      async done => {
+        const node1 = await createNewBundle(40000);
+        await node1.start();
+        const node1Address = getMultiAddr(node1.peerInfo);
+
+        const node2 = await createNewBundle(40001, [node1Address], 500);
+        await node2.start();
+
+        // wait that both peers connect to each other
+        await sleep(2000);
+
+        // check before
+        expect(node1.getAllConnectedPeers()).toHaveLength(1);
+        expect(node2.getAllConnectedPeers()).toHaveLength(1);
+
+        // stop peer1
+        await node1.stop();
+        await sleep(2000);
+
+        expect(node1.getAllConnectedPeers()).toHaveLength(0);
+        expect(node2.getAllConnectedPeers()).toHaveLength(0);
+
+        // cleanup
+        await node2.stop();
+        done();
+      },
+      15 * 1000
     );
   });
 });

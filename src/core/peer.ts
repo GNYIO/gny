@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import axios from 'axios';
-import * as Database from 'nedb';
 import {
   createPeerInfoArgs,
   createFromJSON,
@@ -10,17 +9,7 @@ import { PeerNode } from '../interfaces';
 import { attachEventHandlers } from '../../packages/p2p/util';
 
 export default class Peer {
-  private static nodesDb: Database = undefined; // TODO: refactor
-
   public static p2p: Bundle;
-
-  public static findSeenNodesInDb = (callback: any) => {
-    throw new Error('not implemented');
-    Peer.nodesDb
-      .find({ seen: { $exists: true } })
-      .sort({ seen: -1 })
-      .exec(callback);
-  };
 
   public static getVersion = () => ({
     version: global.library.config.version,
@@ -65,7 +54,7 @@ export default class Peer {
   };
 
   public static randomRequestAsync = async (method: string, params: any) => {
-    const randomNode = Peer.p2p.getRandomNode();
+    const randomNode = Peer.p2p.getConnectedRandomNode();
     if (!randomNode) throw new Error('no contact');
     global.library.logger.debug('select random contract', randomNode);
     try {
