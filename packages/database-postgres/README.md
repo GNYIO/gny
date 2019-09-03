@@ -13,7 +13,7 @@ The constructor has the following signature:
 constructor(logger: ILogger, options?: SmartDBOptions)
 ```
 
-So you need to at least provide an logger. The default values for `SmartDBOptions` are:
+So you need to at least provide an logger. The `SmartDBOptions` interface has the following structure:
 
 ```ts
 interface SmartDBOptions {
@@ -29,7 +29,7 @@ interface SmartDBOptions {
 
 
 ## Life Cycle
-Like a blockchain, `sdb` uses a form of Event Sourcing where every change in a data model is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
+Like a blockchain, `sdb` uses a form of [Event Sourcing](https://de.wikipedia.org/wiki/Event_Sourcing) where every change in a data model is represented as a delta (`a -> a'`). That makes it possible to `rollback` to a previous point in time.
 
 ### Block life cycle
 
@@ -429,7 +429,7 @@ An `Account` Entity (version 2) where the `username` was set:
 
 ## Database Access
 
-All create/update/delete statements are executed first executed only in memory. Every 10 seconds all collected create/update/delete statements are batched to the database. This is done by a Block `commit`. In summary: The database gets synchronized with the in-memory data every 10 seconds.
+All `create`/`update`/`delete` statements are first executed only in memory. Every 10 seconds all collected `create`/`update`/`delete` statements are batched to the database. This is done by a Block `commit`. In summary: The database gets __synchronized__ with the in-memory data every 10 seconds.
 
 ## Model
 
@@ -458,22 +458,22 @@ try {
 
 ## API
 
-> IMPORTANT!
-> **All** API methods that **change** (create, update, delete) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be mainly used in HTTP endpoints.
+> IMPORTANT!  
+> **All** API methods that **change** (`create`, `update`, `delete`) Entites should only be used within contracts. On the other hand the API methods that **read directly** from the Database are meant to be mainly used in HTTP endpoints.
 
 
 ### Startup and Configuration
 In order to use the `sdb` package one has to first call the `init()` method.
 #### init(): Promise<void>
 
-__Returns__: `void`
+__Returns__: `void`  
 __Description__: This operation is mandatory and initializes the `sdb` package. Initialization includes connecting to the Database, loading the last block, setting the latest block height, loads all entities of the memory models, loading the `BlockHistory` of the latest block.
 
 
 
-### create<T>(T, Object): Promise<T>
+### create\<T\>(T, Object): Promise\<T\>
 
-__Returns__: `Promise<T>` (an Entity with all default values set)
+__Returns__: `Promise<T>` (an Entity with all default values set)  
 __Description__: This operation creates an entity where default values are set. At least the keys (primary keys, composite keys, unique keys) need to be set.
 
 ```ts
@@ -497,11 +497,11 @@ console.log(JSON.stringify(created));
 }
 ```
 
-### get<T>(T, Object): Promise<T | void>
+### get\<T\>(T, Object): Promise<T | void>
 
 > Warning: This works only for `memory models`.
 
-__Returns__: When found in cache then it returns the entity otherwise it returns `undefined`.
+__Returns__: When found in cache then it returns the entity otherwise it returns `undefined`.  
 __Description__: This operation solely looks into the cache. It works with PrimaryKeys, UniqueKeys and Composite Keys. If not the whole composite key is provided it throws.
 
 ```ts
@@ -519,11 +519,11 @@ const compositeKeyResult = await global.sdb.get<Balance>(Balance, {
 });
 ```
 
-### getAll<T>(T): Promise<T[]>
+### getAll\<T\>(T): Promise<T[]>
 
 > Warning: This works only for `memory models`.
 
-__Returns__: When found in cache then it returns the entities otherwise it returns an empty array.
+__Returns__: When found in cache then it returns the entities otherwise it returns an empty array.  
 __Description__: This operation solely looks into the cache. It returns all entities of a given memory model.
 
 ```ts
@@ -532,10 +532,10 @@ const allDelegates: Delegate[] = await global.sdb.getAll<Delegate>(Delegate);
 
 
 
-### load<T>(T, Object): Promise<T | void>
+### load\<T\>(T, Object): Promise<T | void>
 
-__Returns__: When found it returns the searched object. When not found then it returns `undefined`.
-__Description__: This operation tries to load the entity from cache and returns entity if found in cache. If the entity was not found cache - then it hits the DB and returns the entity from the db. When the entity is not in the db - then it returns`undefined`. This operation supports PrimaryKeys, CompositeKeys and UniqueKeys.
+__Returns__: When found it returns the searched object. When not found then it returns `undefined`.  
+__Description__: This operation tries to load the entity from cache and returns entity if found in cache. If the entity was not found cache - then it hits the DB and returns the entity from the db. When the entity is not in the db - then it returns `undefined`. This operation supports PrimaryKeys, CompositeKeys and UniqueKeys.
 
 ```ts
 // load by primary key
@@ -555,10 +555,10 @@ const compositeKey = await global.sdb.load<Vote>(Vote, {
 });
 ```
 
-### createOrLoad<T>(T, Object)
+### createOrLoad\<T\>(T, Object)
 
-__Returns__: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)
-__Description__: As the name suggest the this method is composed of `create` and `load`. If the entity can not be loaded from cache or db then it is created.
+__Returns__: `Promise<{ create: boolean; entity: T }>` (if property `create` is true then a new Object was created; if property `create` is false then the entity was loaded by its primary key. Either way the property `entity` is always set)  
+__Description__: As the name suggest this method is composed of `create` and `load`. If the entity can not be loaded from cache or db then it is created.
 
 ```ts
 // create
@@ -586,13 +586,11 @@ console.log(JSON.stringify(entity));
   "reward": "200000000",
   "fee": "0"
 }
-
-// not found
 ```
 
-### del<T>(T, ObjectWithPrimaryKey(s)): Promise<void>
+### del\<T\>(T, ObjectWithPrimaryKey(s)): Promise<void>
 
-__Returns__: `Promise<undefined>`
+__Returns__: `Promise<undefined>`  
 __Description__: This operation deletes an Entity by its primary key, composite keys or unique key.
 
 ```ts
@@ -602,9 +600,9 @@ await sdb.del<Vote>(Vote, {
 })
 ```
 
-### update<T>(T, ObjectWithUpdatedProps, ObjectWithPrimaryKey(s)): Promise<void>
+### update\<T\>(T, ObjectWithUpdatedProps, ObjectWithPrimaryKey(s)): Promise<void>
 
-__Returns__: `Promise<undefined>`
+__Returns__: `Promise<undefined>`  
 __Description__: Checks if the property which should be updated is in memory, if not it loads it in memory. In the example below the Account `G4C9q...` gets the new `gny` balance of `'20000000000'`. This operation increments the `_version_` property of each Entity by one.
 
 ```ts
@@ -617,11 +615,10 @@ await sdb.update<Account>(
 
 ### lock(uniqueLock): void
 
-__Returns__: undefined
+__Returns__: undefined  
 __Description__: Should be only used within smart contract calls. This operation makes a duplicate call to a smart contract within a block impossible. It throws if the same unique identifier is called twice.
 
 ```ts
-
 function smartContract() {
   const account: string = this.senderId.address;
   global.sdb.lock(`basic.myContract@${account}`);
@@ -633,9 +630,9 @@ smartContract(); // works
 smartContract(); // throws within same block
 ```
 
-### increase<T>(T, ObjectWithPropertiesToIncrease, ObjectWithPrimaryKey(s)): Promise<Partial<T>>
+### increase\<T\>(T, ObjectWithPropertiesToIncrease, ObjectWithPrimaryKey(s)): Promise<Partial\<T\>>
 
-__Returns__: `Promise<Partial<T>>`
+__Returns__: `Promise<Partial<T>>`  
 __Description__: Increases the provided properties by a specific Number. This is supported for `Numbers` and `Strings` Numbers (e.g. `'100000000'`). This operation returns only the updated properties of the Entity.
 
 ```ts
@@ -656,12 +653,12 @@ console.log(JSON.stringify(result));
 }
 ```
 
-### findOne<T>(T, FindOneOptions): Promise<T>
+### findOne\<T\>(T, FindOneOptions): Promise\<T | void\>
 
-> Warning 1: This operation directly accesses the database without looking into the cache.
+> Warning 1: This operation directly accesses the database without looking into the cache.  
 > Warning 2: When the database query returns more than one result an Exception is thrown.
 
-__Returns__: `Promise<T>`
+__Returns__: `Promise<T | void>`  
 __Description__: This operation queries directly the database.
 
 ```ts
@@ -677,12 +674,12 @@ const result = await global.app.findOne<Asset>(Asset, {
 });
 ```
 
-### findAll<T>(T, FindAllOptions)
+### findAll\<T\>(T, FindAllOptions): Promise\<T[]\>
 
 > Warning: This operation directly accesses the database without looking into the cache.
 
-__Returns__: `Promise<T>`
-__Description__: This operation accesses directly the database. It supports `pagination` and `$in` (WHERE IN) operations (see example):
+__Returns__: `Promise<T[]>`  
+__Description__: This operation accesses directly the database. It supports `pagination` (limit, offset) and `$in` (WHERE IN) operations (see example):
 
 ```ts
 // search by single property (e.g get all blocks forged by a delegate)
@@ -730,12 +727,12 @@ const result = await global.app.sdb.findAll<Transaction>(Transaction, {
 });
 ```
 
-### exists<T>(T, Object | ArrayObject):  Promise<boolean>
+### exists\<T\>(T, Object | ArrayObject):  Promise\<boolean\>
 
-> Warning 1: This operation directly accesses the database
+> Warning 1: This operation directly accesses the database  
 > Warning 2: This does not work for composite keys, only for UniqueKeys and PrimaryKeys 
 
-__Returns__: `Promise<boolean>`
+__Returns__: `Promise<boolean>`  
 __Description__: With this operation you can check if a given item exists already in the database. You can also check if any of the provided items (in an `Array`) are in the database present.
 
 ```ts
@@ -753,19 +750,19 @@ const existsAnyOfArray = await global.app.sdb.exists<Transaction>(Transaction, {
   ],
 });
 
-// this will throw an Exception
+// this will throw an Exception (because it uses more than 1 property)
 await global.app.sdb.exists<Vote>(Vote, {
   voterAddress: 'G4C9qLAE4TiuNhjg2RXZYVsMtPdK4',
   delegate: 'gny_d93',
 });
 ```
 
-### count<T>(T, Object): Promise<number>
+### count\<T\>(T, Object): Promise\<number\>
 
 Warning: This operation directly accesses the database.
 
-__Returns__: `Number`
-__Description__: This operation counts how many items are in the database. This operation supports 
+__Returns__: `Number`  
+__Description__: This operation counts how many items are in the database. This operation supports the `$in` (WHERE IN) operator and the range of values (`$gte`, `$lte`) operators.
 
 ```ts
 
@@ -795,9 +792,9 @@ count resultWhereIn = await global.app.sdb.count<Transaction>(Transaction, {
 
 ### Query Blocks
 
-#### getBlockByHeight(height, withTransactions = false): Promise<Block | void>
+#### getBlockByHeight(height, withTransactions = false): Promise\<Block | void\>
 
-__Returns__: `Promise<Block | void>`
+__Returns__: `Promise<Block | void>`  
 __Description__: If the Block was found in Cache or in the DB the Block gets returned. Otherwise `undefined` is returned. If wanted, the Block can be returned with transactions.
 
 ```ts
@@ -807,9 +804,9 @@ const blockWithTransactions = await global.app.sdb.getBlockByHeight(String(242),
 ```
 
 
-#### getBlockById(id, withTransactions = false): Promise<Block | void>
+#### getBlockById(id, withTransactions = false): Promise\<Block | void\>
 
-__Returns__: `Promise<Block | void>`
+__Returns__: `Promise<Block | void>`  
 __Description__: If the Block was found in Cache or in the DB the Block gets returned. Otherwise `undefined` is returned. If wanted, the Block can be returned with transactions.
 
 ```ts
@@ -823,11 +820,11 @@ const blockWithTransactions = await global.app.sdb.getBlockById(
 );
 ```
 
-#### getBlocksByHeightRange(min, max, withTransactions = false): Promise<Block[]>
+#### getBlocksByHeightRange(min, max, withTransactions = false): Promise\<Block[]\>
 
 > Warning: Directly hits the database.
 
-__Returns__: `Promise<Block[]>`
+__Returns__: `Promise<Block[]>`  
 __Description__: This operation directly accesses the database. If wanted, the Block can be returned with transactions. Throws if max height is bigger than min height.
 
 
@@ -848,7 +845,7 @@ const blockWithTransactions = await global.app.sdb.getBlocksByHeightRange(
 
 #### lastBlockHeight: string
 
-__Returns__: `string`
+__Returns__: `string`  
 __Description__: This property returns the lastBlockHeight, which is a string.
 
 ```ts
@@ -862,7 +859,7 @@ console.log(lastHeight); // "1"
 
 #### blocksCount: string
 
-__Returns__: `string`
+__Returns__: `string`  
 __Description__: This property returns the blockCount, which is a string.
 
 ```ts
@@ -876,7 +873,7 @@ console.log(blocksCount); // "6"
 
 #### lastBlock: Block
 
-__Returns__: `Block`
+__Returns__: `Block`  
 __Description__: This property returns the lastBlock.
 
 ```ts
@@ -908,16 +905,17 @@ console.log(JSON.stringify(lastBlock));
 
 #### beginBlock(Block): void
 
-__Returns:__ `void`
+__Returns:__ `void`  
 __Description:__ This operation prepares the the Block to commit.
 
-#### commitBlock(): Promise<string>
-__Returns__: LastBlockHeight
+#### commitBlock(): Promise\<string\>
+
+__Returns__: LastBlockHeight  
 __Description:__ This operation writes all changes made (smart contract calls, updated round info, updated delegate info) to the database.
 
-#### rollbackBlock(height?): Promise<void>
+#### rollbackBlock(height?): Promise\<void\>
 
-__Returns:__ `void`
+__Returns:__ `void`  
 __Description__ This operation serves two purposes. First, when called without a height parameter then it rollbacks the current Block in case something went wrong (see the example). Second, it can be used to rollback to a previous Block in case of a Fork in the network.
 
 ```ts
