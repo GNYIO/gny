@@ -151,4 +151,47 @@ describe('smartDB.count', () => {
 
     done();
   });
+
+  it('count() - $gte and $lte', async done => {
+    await saveGenesisBlock(sut);
+
+    await sut.create<Balance>(Balance, {
+      address: 'GWP4yELJeDszNZeVKxDhXwici22C',
+      balance: String(1),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'Gh9YghqP1yADqoPtNFoG2vZJGf4i',
+      balance: String(2),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'G2id1mqqMjJfGASp3tSsL9Ua7rxT7',
+      balance: String(3),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'G238kA37G5qfXCKed8mpRMudjwzcn',
+      balance: String(4),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    const result = await sut.count<Balance>(Balance, {
+      balance: {
+        $gte: String(2),
+        $lte: String(3),
+      },
+    });
+    expect(result).toEqual(2);
+
+    done();
+  });
 });
