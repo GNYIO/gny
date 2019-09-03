@@ -173,7 +173,11 @@ export class DbSession {
 
   public async count(schema: ModelSchema, condition: ObjectLiteral) {
     const range = await this.queryByJson(schema, {
-      fields: 'count(*) as count',
+      fields: [
+        {
+          expression: 'count(*)',
+        },
+      ],
       condition: condition,
     });
     return isArray(range) ? parseInt(range[0].count) : 0;

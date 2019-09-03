@@ -147,7 +147,7 @@ describe('smartDB.count', () => {
     await saveGenesisBlock(sut);
 
     const result = await sut.count<Balance>(Balance, {});
-    expect(result).toEqual(1);
+    expect(result).toEqual(0);
 
     done();
   });
