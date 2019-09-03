@@ -99,9 +99,7 @@ export default class DelegatesApi {
         },
       });
       const lastBlock = StateHelper.getState().lastBlock;
-      const totalSupply = this.blockReward.calculateSupply(
-        lastBlock.height
-      ) as BigNumber;
+      const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
       for (const a of accounts) {
         a.balance = a.gny;
         a.weightRatio = (a.weight * 100) / totalSupply;

@@ -201,8 +201,9 @@ export default class Loader {
           transactions.length
         } unconfirmed transaction from peer ${peerStr}`
       );
-      return global.library.sequence.add((done: any) => {
-        Transactions.processUnconfirmedTransactions(trs, done);
+      return global.library.sequence.add(done => {
+        const state = StateHelper.getState();
+        Transactions.processUnconfirmedTransactions(state, trs, done);
       }, cb);
     })();
   };

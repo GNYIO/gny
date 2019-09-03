@@ -91,7 +91,7 @@
     "is-root": "^2.0.0",
     "joi": "^14.0.6",
     "json-sql": "^0.4.11",
-    "libp2p": "^0.26.0",
+    "libp2p": "^0.26.1",
     "libp2p-bootstrap": "^0.9.7",
     "libp2p-gossipsub": "0.0.4",
     "libp2p-kad-dht": "^0.15.3",
