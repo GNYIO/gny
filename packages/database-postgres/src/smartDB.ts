@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { Connection, ObjectLiteral } from 'typeorm';
-import { loadConfig } from '../loadConfig';
+import { Connection } from 'typeorm';
+import { loadConfig } from './config/loadConfig';
 import { ILogger, IBlock } from '../../../src/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
