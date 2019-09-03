@@ -1,4 +1,4 @@
-import { ITransaction } from '../interfaces';
+import { ITransaction } from '../../packages/interfaces';
 
 export class TransactionPool {
   private index: Map<string, number>;

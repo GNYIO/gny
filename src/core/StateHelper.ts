@@ -5,7 +5,7 @@ import {
   KeyPairsIndexer,
   BlockAndVotes,
   IState,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import { TransactionPool } from '../utils/transaction-pool';
 import { LimitCache } from '../utils/limit-cache';
 import * as LRU from 'lru-cache';

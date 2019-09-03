@@ -1,5 +1,5 @@
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
-import { IBalance } from '../interfaces';
+import { IBalance } from '../../packages/interfaces';
 import { Balance } from '../../packages/database-postgres/entity/Balance';
 
 function getCurrencyFlag(currency: string) {

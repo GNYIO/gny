@@ -16,7 +16,7 @@ import {
   CommonBlockResult,
   IState,
   IRound,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';

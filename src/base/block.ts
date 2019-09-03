@@ -1,4 +1,4 @@
-import { IBlock, KeyPair } from '../../src/interfaces';
+import { IBlock, KeyPair } from '../../packages/interfaces';
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../../src/utils/ed';

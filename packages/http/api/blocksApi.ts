@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
-import { IScope, Next, IBlock } from '../../../src/interfaces';
+import { IScope, Next, IBlock } from '../../../packages/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
 import { getBlocks as getBlocksFromApi } from '../util';

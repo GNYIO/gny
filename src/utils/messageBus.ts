@@ -4,7 +4,7 @@ import {
   Modules,
   CoreApi,
   MethodActions,
-} from '../interfaces';
+} from '../../packages/interfaces';
 
 export class MessageBus extends EventEmitter implements IMessageEmitter {
   private modules: Modules;

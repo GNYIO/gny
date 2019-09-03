@@ -1,4 +1,4 @@
-import { ITransfer, IAsset, IIssuer, Context } from '../interfaces';
+import { ITransfer, IAsset, IIssuer, Context } from '../../packages/interfaces';
 import { Issuer } from '../../packages/database-postgres/entity/Issuer';
 import { Asset } from '../../packages/database-postgres/entity/Asset';
 import { Account } from '../../packages/database-postgres/entity/Account';

@@ -10,7 +10,7 @@ import * as methodOverride from 'method-override';
 import * as ip from 'ip';
 import slots from '../../src/utils/slots';
 import queryParser from '../../src/utils/express-query-int';
-import { IConfig, Modules, ILogger } from '../../src/interfaces';
+import { IConfig, Modules, ILogger } from '../../packages/interfaces';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 

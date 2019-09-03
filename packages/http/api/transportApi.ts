@@ -8,7 +8,7 @@ import {
   ITransaction,
   IBlock,
   CommonBlockResult,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';

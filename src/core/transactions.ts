@@ -1,4 +1,9 @@
-import { ITransaction, Context, IState, IAccount } from '../interfaces';
+import {
+  ITransaction,
+  Context,
+  IState,
+  IAccount,
+} from '../../packages/interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';

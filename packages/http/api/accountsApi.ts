@@ -7,7 +7,7 @@ import {
   Next,
   DelegateViewModel,
   IBalance,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import {
   generateAddressByPublicKey,
   getAccountByName,

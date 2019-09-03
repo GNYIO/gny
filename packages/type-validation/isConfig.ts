@@ -1,4 +1,4 @@
-import { IConfig, ILogger } from '../../src/interfaces';
+import { IConfig, ILogger } from '../../packages/interfaces';
 import joi from '../../src/utils/extendedJoi';
 
 export function isConfig(config: IConfig, logger: ILogger): config is IConfig {

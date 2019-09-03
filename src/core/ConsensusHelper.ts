@@ -1,4 +1,4 @@
-import { ManyVotes, IBlock, IState } from '../interfaces';
+import { ManyVotes, IBlock, IState } from '../../packages/interfaces';
 import { ConsensusBase } from '../base/consensus';
 import slots from '../../src/utils/slots';
 import { copyObject } from '../base/helpers';

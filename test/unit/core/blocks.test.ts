@@ -5,7 +5,7 @@ import {
   IGenesisBlock,
   IState,
   ProcessBlockOptions,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { BlockBase } from '../../../src/base/block';
 import { TransactionBase } from '../../../src/base/transaction';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';

@@ -7,7 +7,7 @@ import { createLogger, LogLevel } from './packages/logger/logger';
 
 import Application from './index';
 import * as packageJson from './package.json';
-import { IConfig, IGenesisBlock } from './src/interfaces';
+import { IConfig, IGenesisBlock } from './packages/interfaces';
 
 const version = packageJson.version;
 

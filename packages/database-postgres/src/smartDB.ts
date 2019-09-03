@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection } from 'typeorm';
 import { loadConfig } from './config/loadConfig';
-import { ILogger, IBlock } from '../../../src/interfaces';
+import { ILogger, IBlock } from '../../../packages/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract';

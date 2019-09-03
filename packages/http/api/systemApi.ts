@@ -1,7 +1,7 @@
 import slots from '../../../src/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
-import { IScope, Next } from '../../../src/interfaces';
+import { IScope, Next } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class SystemApi {

@@ -1,4 +1,4 @@
-import { IBlock, IState, PeerNode } from '../interfaces';
+import { IBlock, IState, PeerNode } from '../../packages/interfaces';
 import { BigNumber } from 'bignumber.js';
 
 export class LoaderHelper {

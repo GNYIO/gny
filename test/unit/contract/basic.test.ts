@@ -5,7 +5,7 @@ import {
   IAccount,
   IBlock,
   ITransaction,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');

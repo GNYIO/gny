@@ -2,7 +2,7 @@ import {
   ModelSchema,
   MetaSchema,
 } from '../../../packages/database-postgres/src/modelSchema';
-import { IAccount, IBalance } from '../../../src/interfaces';
+import { IAccount, IBalance } from '../../../packages/interfaces';
 import { ModelIndex } from '../../../packages/database-postgres/src/defaultEntityUniqueIndex';
 
 describe('orm - ModelSchema', () => {

@@ -1,7 +1,11 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as protocolBuffers from 'protocol-buffers';
-import { NewBlockMessage, BlockPropose, ITransaction } from '../interfaces';
+import {
+  NewBlockMessage,
+  BlockPropose,
+  ITransaction,
+} from '../../packages/interfaces';
 
 export class Protobuf {
   public schema;

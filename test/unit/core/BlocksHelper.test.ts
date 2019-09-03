@@ -7,7 +7,7 @@ import {
   BlockPropose,
   IGenesisBlock,
   NewBlockMessage,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 import * as ed from '../../../src/utils/ed';

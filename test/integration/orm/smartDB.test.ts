@@ -11,7 +11,7 @@ import {
   IVariable,
   IRound,
   IBalance,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { generateAddress } from '../../../src/utils/address';
 import { cloneDeep } from 'lodash';
 import * as fs from 'fs';

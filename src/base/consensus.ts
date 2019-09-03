@@ -11,7 +11,7 @@ import {
   Signature,
   BlockPropose,
   BlockHeightId,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import { DELEGATES } from '../utils/constants';
 
 export class ConsensusBase {

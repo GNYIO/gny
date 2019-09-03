@@ -1,4 +1,4 @@
-import { IBlock, ManyVotes, ITransaction } from '../../../src/interfaces';
+import { IBlock, ManyVotes, ITransaction } from '../../../packages/interfaces';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';

@@ -7,7 +7,7 @@ import {
   ITransaction,
   ILogger,
   IGenesisBlock,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
 import { generateAddress } from '../../../src/utils/address';

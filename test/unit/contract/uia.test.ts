@@ -5,7 +5,7 @@ import {
   IAccount,
   IBlock,
   ITransaction,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
 import address from '../../../src/utils/address';

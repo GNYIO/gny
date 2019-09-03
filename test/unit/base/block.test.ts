@@ -1,5 +1,5 @@
 import { BlockBase } from '../../../src/base/block';
-import { KeyPair, IBlock, ITransaction } from '../../../src/interfaces';
+import { KeyPair, IBlock, ITransaction } from '../../../packages/interfaces';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 

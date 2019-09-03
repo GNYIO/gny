@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../utils/ed';
-import { KeyPair, IAccount } from '../interfaces';
+import { KeyPair, IAccount } from '../../packages/interfaces';
 import { copyObject } from './helpers';
-import { ITransaction, Context } from '../../src/interfaces';
+import { ITransaction, Context } from '../../packages/interfaces';
 import slots from '../../src/utils/slots';
 import feeCalculators from '../../src/utils/calculate-fee';
 import * as addressHelper from '../../src/utils/address';

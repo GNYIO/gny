@@ -1,5 +1,5 @@
 import { TransactionPool } from '../../../src/utils/transaction-pool';
-import { ITransaction } from '../../../src/interfaces';
+import { ITransaction } from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
 

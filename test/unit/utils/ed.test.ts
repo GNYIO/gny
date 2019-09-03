@@ -1,6 +1,6 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
-import { KeyPair } from '../../../src/interfaces';
+import { KeyPair } from '../../../packages/interfaces';
 
 describe('ed', () => {
   describe('generateKeyPair', () => {

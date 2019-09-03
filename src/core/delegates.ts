@@ -13,7 +13,7 @@ import {
   IBlock,
   IState,
   IVariable,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';

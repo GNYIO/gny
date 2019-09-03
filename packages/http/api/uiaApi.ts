@@ -1,7 +1,7 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IIssuer } from '../../../src/interfaces';
+import { IScope, Next, IIssuer } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '../../database-postgres/entity/Issuer';
 import { Asset } from '../../database-postgres/entity/Asset';

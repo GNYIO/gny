@@ -1,6 +1,11 @@
 import slots from '../utils/slots';
 import { TIMEOUT } from '../utils/constants';
-import { IGenesisBlock, PeerNode, IBlock, ITransaction } from '../interfaces';
+import {
+  IGenesisBlock,
+  PeerNode,
+  IBlock,
+  ITransaction,
+} from '../../packages/interfaces';
 import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';

@@ -8,7 +8,7 @@ import {
   IConfig,
   NewBlockMessage,
   ILogger,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import { TransactionBase } from '../base/transaction';
 import { MAX_PAYLOAD_LENGTH } from '../utils/constants';
 import * as crypto from 'crypto';

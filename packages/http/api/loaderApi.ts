@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../src/interfaces';
+import { IScope, Next } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class LoaderApi {

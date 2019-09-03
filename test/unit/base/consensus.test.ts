@@ -5,7 +5,7 @@ import {
   ManyVotes,
   Signature,
   BlockPropose,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { BlockBase } from '../../../src/base/block';
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';

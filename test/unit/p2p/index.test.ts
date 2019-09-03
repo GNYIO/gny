@@ -1,5 +1,5 @@
 import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
-import { ILogger, P2PMessage, PeerNode } from '../../../src/interfaces';
+import { ILogger, P2PMessage, PeerNode } from '../../../packages/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle } from '../../../packages/p2p/bundle';

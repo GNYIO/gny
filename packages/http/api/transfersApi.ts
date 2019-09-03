@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, ITransfer } from '../../../src/interfaces';
+import { IScope, Next, ITransfer } from '../../../packages/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '../../database-postgres/entity/Transfer';

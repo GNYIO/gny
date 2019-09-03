@@ -1,4 +1,4 @@
-import { AccountViewModel } from '../../src/interfaces';
+import { AccountViewModel } from '../../packages/interfaces';
 import * as addressHelper from '../../src/utils/address';
 import joi from '../../src/utils/extendedJoi';
 import Peer from '../../src/core/peer';

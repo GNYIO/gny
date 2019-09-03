@@ -1,4 +1,4 @@
-import { NewBlockMessage } from '../../src/interfaces';
+import { NewBlockMessage } from '../../packages/interfaces';
 import joi from '../../src/utils/extendedJoi';
 
 export function isNewBlockMessage(body: any): body is NewBlockMessage {

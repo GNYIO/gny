@@ -1,5 +1,5 @@
 import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger } from '../../src/interfaces';
+import { PeerNode, ILogger } from '../../packages/interfaces';
 import { Bundle } from './bundle';
 
 export function extractIpAndPort(peerInfo): PeerNode {

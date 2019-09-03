@@ -1,4 +1,4 @@
-import { ILogger } from '../../../src/interfaces';
+import { ILogger } from '../../../packages/interfaces';
 
 export class LoggerWrapper {
   private name: string;
@@ -46,4 +46,3 @@ export class LogManager {
     LogManager.defaultLogger = logger;
   }
 }
-

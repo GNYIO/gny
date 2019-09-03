@@ -1,4 +1,4 @@
-import { BlockPropose } from '../../src/interfaces';
+import { BlockPropose } from '../../packages/interfaces';
 import joi from '../../src/utils/extendedJoi';
 
 export function isBlockPropose(propose: any): propose is BlockPropose {

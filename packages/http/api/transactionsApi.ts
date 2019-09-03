@@ -8,7 +8,7 @@ import {
   Next,
   ITransaction,
   IBlock,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';

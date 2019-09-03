@@ -8,8 +8,8 @@ import {
   Context,
   IBlock,
   IAccount,
-} from '../../../src/interfaces';
-import { ILogger } from '../../../src/interfaces';
+} from '../../../packages/interfaces';
+import { ILogger } from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
 import * as ed from '../../../src/utils/ed';

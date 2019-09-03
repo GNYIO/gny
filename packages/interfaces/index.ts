@@ -1,14 +1,14 @@
-import transactions from './core/transactions';
-import loader from './core/loader';
-import peer from './core/peer';
-import transport from './core/transport';
-import delegates from './core/delegates';
-import blocks from './core/blocks';
+import transactions from '../../src/core/transactions';
+import loader from '../../src/core/loader';
+import peer from '../../src/core/peer';
+import transport from '../../src/core/transport';
+import delegates from '../../src/core/delegates';
+import blocks from '../../src/core/blocks';
 
-import { Protobuf } from './utils/protobuf';
+import { Protobuf } from '../../src/utils/protobuf';
 import * as tracer from 'tracer';
 
-import Sequence from './utils/sequence';
+import Sequence from '../../src/utils/sequence';
 import { EventEmitter } from 'events';
 
 // IServer import
@@ -17,26 +17,26 @@ import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
 // IApp
-import { SmartDB } from '../packages/database-postgres/src/smartDB';
-import BalanceManager from './smartdb/balance-manager';
+import { SmartDB } from '../../packages/database-postgres/src/smartDB';
+import BalanceManager from '../../src/smartdb/balance-manager';
 
-import { ExtendedJoi } from './utils/extendedJoi';
+import { ExtendedJoi } from '../../src/utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
-import address from './utils/address';
+import address from '../../src/utils/address';
 
-import BlocksApi from '../packages/http/api/blocksApi';
-import AccountsApi from '../packages/http/api/accountsApi';
-import DelegatesApi from '../packages/http/api/delegatesApi';
-import PeerApi from '../packages/http/api/peerApi';
-import SystemApi from '../packages/http/api/systemApi';
-import TransactionsApi from '../packages/http/api/transactionsApi';
-import TransportApi from '../packages/http/api/transportApi';
-import UiaApi from '../packages/http/api/uiaApi';
-import LoaderApi from '../packages/http/api/loaderApi';
-import TransfersApi from '../packages/http/api/transfersApi';
-import { MessageBus } from './utils/messageBus';
-import { TransactionPool } from './utils/transaction-pool';
-import { LimitCache } from './utils/limit-cache';
+import BlocksApi from '../../packages/http/api/blocksApi';
+import AccountsApi from '../../packages/http/api/accountsApi';
+import DelegatesApi from '../../packages/http/api/delegatesApi';
+import PeerApi from '../../packages/http/api/peerApi';
+import SystemApi from '../../packages/http/api/systemApi';
+import TransactionsApi from '../../packages/http/api/transactionsApi';
+import TransportApi from '../../packages/http/api/transportApi';
+import UiaApi from '../../packages/http/api/uiaApi';
+import LoaderApi from '../../packages/http/api/loaderApi';
+import TransfersApi from '../../packages/http/api/transfersApi';
+import { MessageBus } from '../../src/utils/messageBus';
+import { TransactionPool } from '../../src/utils/transaction-pool';
+import { LimitCache } from '../../src/utils/limit-cache';
 import * as LRU from 'lru-cache';
 
 export interface IState {

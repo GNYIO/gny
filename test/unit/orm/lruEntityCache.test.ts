@@ -7,7 +7,7 @@ import {
   MetaSchema,
 } from '../../../packages/database-postgres/src/modelSchema';
 import { LogManager } from '../../../packages/database-postgres/src/logger';
-import { ILogger, IDelegate, IAccount } from '../../../src/interfaces';
+import { ILogger, IDelegate, IAccount } from '../../../packages/interfaces';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
 

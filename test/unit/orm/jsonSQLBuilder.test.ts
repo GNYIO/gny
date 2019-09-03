@@ -5,7 +5,7 @@ import {
 } from '../../../packages/database-postgres/src/modelSchema';
 import { generateAddress } from '../../../src/utils/address';
 import { randomBytes } from 'crypto';
-import { IAccount } from '../../../src/interfaces';
+import { IAccount } from '../../../packages/interfaces';
 
 function getAccountMetaSchema() {
   const accountMetaSchema: MetaSchema = {

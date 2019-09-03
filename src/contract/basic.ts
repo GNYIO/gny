@@ -1,5 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate, Context } from '../interfaces';
+import {
+  IAccount,
+  ITransfer,
+  IDelegate,
+  Context,
+} from '../../packages/interfaces';
 import { Vote } from '../../packages/database-postgres/entity/Vote';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Delegate } from '../../packages/database-postgres/entity/Delegate';

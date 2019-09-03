@@ -6,7 +6,7 @@ import {
   createFromJSON,
 } from '../../packages/p2p/createPeerInfo';
 import { Bundle } from '../../packages/p2p/bundle';
-import { PeerNode } from '../interfaces';
+import { PeerNode } from '../../packages/interfaces';
 import { attachEventHandlers } from '../../packages/p2p/util';
 
 export default class Peer {

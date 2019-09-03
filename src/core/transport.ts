@@ -8,7 +8,7 @@ import {
   ITransaction,
   IBlock,
   BlockAndVotes,
-} from '../interfaces';
+} from '../../packages/interfaces';
 import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
 import { TransactionBase } from '../base/transaction';

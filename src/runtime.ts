@@ -5,7 +5,7 @@ import loadContracts from './loadContracts';
 
 import address from './utils/address';
 import { BigNumber } from 'bignumber.js';
-import { IOptions, IValidatorConstraints } from './interfaces';
+import { IOptions, IValidatorConstraints } from '../packages/interfaces';
 import { StateHelper } from './core/StateHelper';
 
 export default async function runtime(options: IOptions) {

@@ -1,4 +1,4 @@
-import { PeerNode } from '../../src/interfaces';
+import { PeerNode } from '../../packages/interfaces';
 import joi from '../../src/utils/extendedJoi';
 
 export function isPeerNode(peer: any): peer is PeerNode {

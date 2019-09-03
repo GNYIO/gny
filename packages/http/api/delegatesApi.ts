@@ -1,7 +1,7 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel } from '../../../src/interfaces';
+import { IScope, Next, DelegateViewModel } from '../../../packages/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
