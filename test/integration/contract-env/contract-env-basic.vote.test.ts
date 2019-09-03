@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -13,7 +13,7 @@ const config = {
 
 async function prepareVote() {
   // prepare lock
-  const lock = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+  const lock = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
   const lockTransData = {
     transaction: lock,
   };
@@ -48,7 +48,7 @@ describe('contract-env - basic.vote', () => {
       async done => {
         await prepareVote();
 
-        const vote = gnyJS.basic.vote(['gny_d2'], genesisSecret);
+        const vote = gnyClient.basic.vote(['gny_d2'], genesisSecret);
         const transData = {
           transaction: vote,
         };
@@ -73,7 +73,7 @@ describe('contract-env - basic.vote', () => {
         await prepareVote();
 
         const SMALLER_FEE = String(0.01 * 1e8);
-        const vote = gnyJS.transaction.createTransactionEx({
+        const vote = gnyClient.transaction.createTransactionEx({
           type: 4,
           args: ['gny_d2'],
           secret: genesisSecret,
@@ -103,7 +103,7 @@ describe('contract-env - basic.vote', () => {
       async () => {
         await prepareVote();
 
-        const vote = gnyJS.transaction.createTransactionEx({
+        const vote = gnyClient.transaction.createTransactionEx({
           type: 4,
           args: ['gny_d2', 'unnecessary argument'],
           secret: genesisSecret,

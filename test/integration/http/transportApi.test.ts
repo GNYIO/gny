@@ -1,4 +1,4 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
 import { CommonBlockParams, ManyVotes } from '../../../src/interfaces';
@@ -269,15 +269,14 @@ describe('transportApi', () => {
     it(
       '/transactions() - should execute one transaction transactions',
       async done => {
-        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -304,7 +303,7 @@ describe('transportApi', () => {
       async done => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -316,7 +315,7 @@ describe('transportApi', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -328,7 +327,7 @@ describe('transportApi', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -340,7 +339,7 @@ describe('transportApi', () => {
         await lib.onNewBlock();
 
         // vote
-        const trsVote = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trsVote = gnyClient.basic.vote(['xpgeng'], genesisSecret);
         const transVoteData = {
           transaction: trsVote,
         };
@@ -365,11 +364,7 @@ describe('transportApi', () => {
           ],
         };
 
-        const { data } = await axios.post(
-          'http://localhost:4096/peer/votes',
-          query,
-          config
-        );
+        await axios.post('http://localhost:4096/peer/votes', query, config);
 
         done();
       },

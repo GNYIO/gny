@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import axios from 'axios';
 
 const config = {
@@ -30,7 +30,7 @@ describe('contract-env - basic.transfer', () => {
 
   it('basic.transfer correct fee is 0.1 GNY', async done => {
     const recipient = lib.createRandomAddress();
-    const basicTransfer = gnyJS.transaction.createTransactionEx({
+    const basicTransfer = gnyClient.transaction.createTransactionEx({
       type: 0,
       fee: 0.1 * 1e8,
       args: ['1', recipient],
@@ -55,7 +55,7 @@ describe('contract-env - basic.transfer', () => {
 
   it('basic.transfer too small fee returns error', async () => {
     const recipient = lib.createRandomAddress();
-    const basicTransfer = gnyJS.transaction.createTransactionEx({
+    const basicTransfer = gnyClient.transaction.createTransactionEx({
       type: 0,
       fee: 0.01 * 1e8,
       args: ['1', recipient],
@@ -85,7 +85,7 @@ describe('contract-env - basic.transfer', () => {
     'basic.transfer adding extra arguments to args array throws error',
     async () => {
       const recipient = lib.createRandomAddress();
-      const basicTransfer = gnyJS.transaction.createTransactionEx({
+      const basicTransfer = gnyClient.transaction.createTransactionEx({
         type: 0,
         fee: 0.1 * 1e8,
         args: ['1', recipient, 'someOtherArgument'],
@@ -112,7 +112,7 @@ describe('contract-env - basic.transfer', () => {
   it(
     'basic.transfer calling contract with too few arguments throws error',
     async () => {
-      const basicTransfer = gnyJS.transaction.createTransactionEx({
+      const basicTransfer = gnyClient.transaction.createTransactionEx({
         type: 0,
         fee: 0.1 * 1e8,
         args: ['1'],

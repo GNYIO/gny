@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import * as gnyJS from '../../packages/gny-js';
+import * as gnyClient from '../../packages/gny-client';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import * as lib from '../integration/lib';
@@ -37,7 +37,12 @@ function createTransactions(count) {
 
   for (let i = 0; i < count; ++i) {
     const recipient = createRandomAccount();
-    const trs = gnyJS.basic.transfer(recipient, amount, message, genesisSecret);
+    const trs = gnyClient.basic.transfer(
+      recipient,
+      String(amount),
+      message,
+      genesisSecret
+    );
     transactions.push(trs);
   }
   return transactions;

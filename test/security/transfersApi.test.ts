@@ -1,4 +1,4 @@
-import * as gnyJS from '../../packages/gny-js';
+import * as gnyClient from '../../packages/gny-client';
 import * as lib from './lib';
 import axios from 'axios';
 
@@ -41,9 +41,9 @@ describe('transfersApi', () => {
         const offset2 = 2;
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -85,9 +85,9 @@ describe('transfersApi', () => {
         const offset = 1;
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
