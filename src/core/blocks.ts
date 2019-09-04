@@ -16,6 +16,7 @@ import {
   CommonBlockResult,
   IState,
   IRound,
+  ICoreModule,
 } from '../../packages/interfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
@@ -43,7 +44,7 @@ import { Account } from '../../packages/database-postgres/entity/Account';
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
-export default class Blocks {
+export default class Blocks implements ICoreModule {
   public static async getIdSequence2(
     height: string,
     getBlocksByHeightRange: (min: string, max: string) => Promise<Block[]>

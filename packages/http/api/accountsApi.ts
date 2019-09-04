@@ -7,6 +7,7 @@ import {
   Next,
   DelegateViewModel,
   IBalance,
+  IHttpApi,
 } from '../../../packages/interfaces';
 import {
   generateAddressByPublicKey,
@@ -25,7 +26,7 @@ interface BalanceCondition {
   flag?: number;
 }
 
-export default class AccountsApi {
+export default class AccountsApi implements IHttpApi {
   private library: IScope;
 
   constructor(library: IScope) {
@@ -34,7 +35,7 @@ export default class AccountsApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {

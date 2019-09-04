@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
 import BlockReward from '../../../src/utils/block-reward';
-import { IScope, Next, IBlock } from '../../../packages/interfaces';
+import { IScope, Next, IBlock, IHttpApi } from '../../../packages/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
 
-export default class BlocksApi {
+export default class BlocksApi implements IHttpApi {
   private library: IScope;
   private blockReward = new BlockReward();
 
@@ -17,7 +17,7 @@ export default class BlocksApi {
     this.attachApi();
   }
 
-  private attachApi() {
+  public attachApi() {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {

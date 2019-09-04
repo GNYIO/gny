@@ -5,9 +5,10 @@ import {
   NewBlockMessage,
   BlockPropose,
   ITransaction,
+  IProtobuf,
 } from '../../packages/interfaces';
 
-export class Protobuf {
+export class Protobuf implements IProtobuf {
   public schema;
 
   constructor(schema) {

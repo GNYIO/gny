@@ -8,13 +8,14 @@ import {
   Next,
   ITransaction,
   IBlock,
+  IHttpApi,
 } from '../../../packages/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { Transaction } from '../../database-postgres/entity/Transaction';
 
-export default class TransactionsApi {
+export default class TransactionsApi implements IHttpApi {
   private library: IScope;
   constructor(scope: IScope) {
     this.library = scope;
@@ -22,7 +23,7 @@ export default class TransactionsApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {

@@ -13,6 +13,7 @@ import {
   IBlock,
   IState,
   IVariable,
+  ICoreModule,
 } from '../../packages/interfaces';
 import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
@@ -24,7 +25,7 @@ import { Delegate } from '../../packages/database-postgres/entity/Delegate';
 
 const blockreward = new BlockReward();
 
-export default class Delegates {
+export default class Delegates implements ICoreModule {
   private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
 
   // Events

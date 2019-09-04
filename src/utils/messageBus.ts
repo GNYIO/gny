@@ -9,7 +9,7 @@ import {
 export class MessageBus extends EventEmitter implements IMessageEmitter {
   private modules: Modules;
   private coreApi: CoreApi;
-  constructor(modules: Modules, coreApi: any) {
+  constructor(modules: Modules, coreApi: CoreApi) {
     super();
     this.modules = modules;
     this.coreApi = coreApi;

@@ -1,10 +1,10 @@
 import slots from '../../../src/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
-import { IScope, Next } from '../../../packages/interfaces';
+import { IScope, Next, IHttpApi } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
-export default class SystemApi {
+export default class SystemApi implements IHttpApi {
   private library: IScope;
   constructor(library: IScope) {
     this.library = library;
@@ -12,7 +12,7 @@ export default class SystemApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {

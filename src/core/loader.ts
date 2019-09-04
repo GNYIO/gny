@@ -5,6 +5,7 @@ import {
   PeerNode,
   IBlock,
   ITransaction,
+  ICoreModule,
 } from '../../packages/interfaces';
 import { TransactionBase } from '../base/transaction';
 import { BlocksHelper } from './BlocksHelper';
@@ -17,7 +18,7 @@ import joi from '../utils/extendedJoi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 
-export default class Loader {
+export default class Loader implements ICoreModule {
   public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
     let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(

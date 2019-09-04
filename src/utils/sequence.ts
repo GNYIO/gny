@@ -1,5 +1,6 @@
-import async = require('async');
+import { queue } from 'async';
 import { TIMEOUT } from './constants';
+import { ISequence } from '../../packages/interfaces';
 
 function tick(task, cb) {
   let isCallbacked = false;
@@ -29,16 +30,16 @@ function tick(task, cb) {
   }
 }
 
-export default class Sequence {
+export default class Sequence implements ISequence {
   private counter: number;
   private readonly name: string;
-  private queue: async.queue;
+  private queue: AsyncQueue<any>;
 
   constructor(config) {
     this.counter = 1;
     this.name = config.name;
 
-    this.queue = async.queue(tick, 1);
+    this.queue = queue(tick, 1);
   }
 
   add(worker, args?, cb?) {

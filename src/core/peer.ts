@@ -6,10 +6,10 @@ import {
   createFromJSON,
 } from '../../packages/p2p/createPeerInfo';
 import { Bundle } from '../../packages/p2p/bundle';
-import { PeerNode } from '../../packages/interfaces';
+import { PeerNode, ICoreModule } from '../../packages/interfaces';
 import { attachEventHandlers } from '../../packages/p2p/util';
 
-export default class Peer {
+export default class Peer implements ICoreModule {
   private static nodesDb: Database = undefined; // TODO: refactor
 
   public static p2p: Bundle;

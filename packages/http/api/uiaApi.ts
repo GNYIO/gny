@@ -1,13 +1,13 @@
 import addressHelper from '../../../src/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IIssuer } from '../../../packages/interfaces';
+import { IScope, Next, IIssuer, IHttpApi } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '../../database-postgres/entity/Issuer';
 import { Asset } from '../../database-postgres/entity/Asset';
 import { Balance } from '../../database-postgres/entity/Balance';
 
-export default class UiaApi {
+export default class UiaApi implements IHttpApi {
   private library: IScope;
   constructor(scope: IScope) {
     this.library = scope;
@@ -15,7 +15,7 @@ export default class UiaApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {

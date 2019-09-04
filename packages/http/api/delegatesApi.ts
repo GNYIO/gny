@@ -1,17 +1,21 @@
 import * as ed from '../../../src/utils/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel } from '../../../packages/interfaces';
+import {
+  IScope,
+  Next,
+  DelegateViewModel,
+  IHttpApi,
+} from '../../../packages/interfaces';
 import BlockReward from '../../../src/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
-import { BigNumber } from 'bignumber.js';
 import { Vote } from '../../database-postgres/entity/Vote';
 import { Account } from '../../database-postgres/entity/Account';
 import { Delegate } from '../../database-postgres/entity/Delegate';
 
-export default class DelegatesApi {
+export default class DelegatesApi implements IHttpApi {
   private library: IScope;
   private blockReward = new BlockReward();
   constructor(library: IScope) {
@@ -20,7 +24,7 @@ export default class DelegatesApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = Router();
 
     router.use((req: Request, res: Response, next) => {

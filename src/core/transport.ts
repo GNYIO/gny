@@ -8,6 +8,7 @@ import {
   ITransaction,
   IBlock,
   BlockAndVotes,
+  ICoreModule,
 } from '../../packages/interfaces';
 import { BlockBase } from '../base/block';
 import { ConsensusBase } from '../base/consensus';
@@ -20,7 +21,7 @@ import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
 
-export default class Transport {
+export default class Transport implements ICoreModule {
   // subscribe to peer events
   public static onPeerReady = () => {
     Peer.p2p.subscribeCustom(

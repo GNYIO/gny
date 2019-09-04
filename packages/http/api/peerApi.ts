@@ -1,10 +1,10 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../packages/interfaces';
+import { IScope, Next, IHttpApi } from '../../../packages/interfaces';
 import Peer from '../../../src/core/peer';
 import { StateHelper } from '../../../src/core/StateHelper';
 
-export default class PeerApi {
+export default class PeerApi implements IHttpApi {
   private library: IScope;
   constructor(library: IScope) {
     this.library = library;
@@ -12,7 +12,7 @@ export default class PeerApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {

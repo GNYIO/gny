@@ -1,14 +1,4 @@
-import transactions from '../../src/core/transactions';
-import loader from '../../src/core/loader';
-import peer from '../../src/core/peer';
-import transport from '../../src/core/transport';
-import delegates from '../../src/core/delegates';
-import blocks from '../../src/core/blocks';
-
-import { Protobuf } from '../../src/utils/protobuf';
 import * as tracer from 'tracer';
-
-import Sequence from '../../src/utils/sequence';
 import { EventEmitter } from 'events';
 
 // IServer import
@@ -24,16 +14,6 @@ import { ExtendedJoi } from '../../src/utils/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from '../../src/utils/address';
 
-import BlocksApi from '../../packages/http/api/blocksApi';
-import AccountsApi from '../../packages/http/api/accountsApi';
-import DelegatesApi from '../../packages/http/api/delegatesApi';
-import PeerApi from '../../packages/http/api/peerApi';
-import SystemApi from '../../packages/http/api/systemApi';
-import TransactionsApi from '../../packages/http/api/transactionsApi';
-import TransportApi from '../../packages/http/api/transportApi';
-import UiaApi from '../../packages/http/api/uiaApi';
-import LoaderApi from '../../packages/http/api/loaderApi';
-import TransfersApi from '../../packages/http/api/transfersApi';
 import { MessageBus } from '../../src/utils/messageBus';
 import { TransactionPool } from '../../src/utils/transaction-pool';
 import { LimitCache } from '../../src/utils/limit-cache';
@@ -58,14 +38,30 @@ declare interface IBase {
   genesisBlock: IGenesisBlock;
 }
 
+export interface IProtobuf {
+  encodeBlockPropose(propose: BlockPropose): Buffer;
+  decodeBlockPropose(data: Buffer): BlockPropose;
+  encodeBlockVotes(obj: any): Buffer;
+  decodeBlockVotes(data: Buffer);
+  encodeTransaction(trs: ITransaction): Buffer;
+  decodeTransaction(data: Buffer);
+  encodeNewBlockMessage(msg): Buffer;
+  decodeNewBlockMessage(data: Buffer): NewBlockMessage;
+}
+
+export interface ISequence {
+  add(worker, args?, cb?): void;
+  count(): number;
+}
+
 export interface IScope {
-  protobuf: Protobuf;
+  protobuf: IProtobuf;
   config: IConfig;
   logger: ILogger;
   genesisBlock: IGenesisBlock;
   joi: ExtendedJoi;
   network: INetwork;
-  sequence: Sequence;
+  sequence: ISequence;
   base: IBase;
   bus: MessageBus;
   modules: Modules;
@@ -85,27 +81,33 @@ export type MethodActions =
   | 'onReceivePropose'
   | 'onReceiveTransaction';
 
+export interface ICoreModule {}
+
 export interface Modules {
-  [key: string]: transactions | loader | peer | transport | delegates | blocks;
-  transactions: transactions;
-  loader: loader;
-  peer: peer;
-  transport: transport;
-  delegates: delegates;
-  blocks: blocks;
+  [key: string]: ICoreModule;
+  transactions: ICoreModule;
+  loader: ICoreModule;
+  peer: ICoreModule;
+  transport: ICoreModule;
+  delegates: ICoreModule;
+  blocks: ICoreModule;
+}
+
+export interface IHttpApi {
+  attachApi(): void;
 }
 
 export interface CoreApi {
-  blocksApi: BlocksApi;
-  accountsApi: AccountsApi;
-  delgatesApi: DelegatesApi;
-  peerApi: PeerApi;
-  systemApi: SystemApi;
-  transactionsApi: TransactionsApi;
-  transportApi: TransportApi;
-  uiaApi: UiaApi;
-  transfersApi: TransfersApi;
-  loaderApi: LoaderApi;
+  blocksApi: IHttpApi;
+  accountsApi: IHttpApi;
+  delgatesApi: IHttpApi;
+  peerApi: IHttpApi;
+  systemApi: IHttpApi;
+  transactionsApi: IHttpApi;
+  transportApi: IHttpApi;
+  uiaApi: IHttpApi;
+  transfersApi: IHttpApi;
+  loaderApi: IHttpApi;
 }
 
 export interface IMessageEmitter {

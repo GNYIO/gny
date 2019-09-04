@@ -3,6 +3,7 @@ import {
   Context,
   IState,
   IAccount,
+  ICoreModule,
 } from '../../packages/interfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
@@ -10,7 +11,7 @@ import { BigNumber } from 'bignumber.js';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Transaction } from '../../packages/database-postgres/entity/Transaction';
 
-export default class Transactions {
+export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactions = (
     state: IState,
     transactions: ITransaction[],

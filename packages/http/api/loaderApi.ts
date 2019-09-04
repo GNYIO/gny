@@ -1,9 +1,9 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next } from '../../../packages/interfaces';
+import { IScope, Next, IHttpApi } from '../../../packages/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
-export default class LoaderApi {
+export default class LoaderApi implements IHttpApi {
   private library: IScope;
 
   constructor(library: IScope) {
@@ -12,7 +12,7 @@ export default class LoaderApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {

@@ -1,13 +1,18 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, ITransfer } from '../../../packages/interfaces';
+import {
+  IScope,
+  Next,
+  ITransfer,
+  IHttpApi,
+} from '../../../packages/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '../../database-postgres/entity/Transfer';
 import { Transaction } from '../../database-postgres/entity/Transaction';
 import { Asset } from '../../database-postgres/entity/Asset';
 
-export default class TransfersApi {
+export default class TransfersApi implements IHttpApi {
   private library: IScope;
   constructor(library: IScope) {
     this.library = library;
@@ -15,7 +20,7 @@ export default class TransfersApi {
     this.attachApi();
   }
 
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     router.use((req: Request, res: Response, next) => {

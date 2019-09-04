@@ -8,6 +8,7 @@ import {
   ITransaction,
   IBlock,
   CommonBlockResult,
+  IHttpApi,
 } from '../../../packages/interfaces';
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
@@ -17,7 +18,7 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';
 
-export default class TransportApi {
+export default class TransportApi implements IHttpApi {
   private library: IScope;
   private headers: any;
   constructor(scope: IScope) {
@@ -32,7 +33,7 @@ export default class TransportApi {
   }
 
   // Events
-  private attachApi = () => {
+  public attachApi = () => {
     const router = express.Router();
 
     // Middleware
