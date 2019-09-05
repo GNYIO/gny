@@ -1,7 +1,7 @@
 import async = require('async');
 import { MAX_TXS_PER_BLOCK } from '../utils/constants';
-import addressHelper = require('../utils/address');
-import Blockreward from '../utils/block-reward';
+import addressHelper = require('../../packages/utils/address');
+import Blockreward from '../../packages/utils/block-reward';
 import {
   KeyPair,
   IGenesisBlock,

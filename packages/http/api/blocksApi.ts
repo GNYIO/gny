@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import BlockReward from '../../../src/utils/block-reward';
+import BlockReward from '../../../packages/utils/block-reward';
 import { IScope, Next, IBlock, IHttpApi } from '../../../packages/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '../../../src/base/block';

@@ -7,7 +7,7 @@ import {
   DelegateViewModel,
   IHttpApi,
 } from '../../../packages/interfaces';
-import BlockReward from '../../../src/utils/block-reward';
+import BlockReward from '../../../packages/utils/block-reward';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
