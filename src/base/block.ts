@@ -1,7 +1,7 @@
 import { IBlock, KeyPair } from '../../packages/interfaces';
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
-import * as ed from '../../src/utils/ed';
+import * as ed from '../../packages/ed';
 import joi from '../../src/utils/extendedJoi';
 import { copyObject } from './helpers';
 import { TransactionBase } from './transaction';

@@ -12,7 +12,7 @@ import {
 import { ILogger } from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as crypto from 'crypto';
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');
 jest.mock('../../../src/contract/basic');

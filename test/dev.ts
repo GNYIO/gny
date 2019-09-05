@@ -1,9 +1,12 @@
-import * as ed from '../src/utils/ed';
+import * as ed from '../packages/ed';
 import * as addressUtil from '../src/utils/address';
 import * as crypto from 'crypto';
 
 const randomString = 'ABCDEFGH';
-const hash = crypto.createHash('sha256').update(randomString, 'utf8').digest();
+const hash = crypto
+  .createHash('sha256')
+  .update(randomString, 'utf8')
+  .digest();
 const keys = ed.generateKeyPair(hash);
 const publicKey = keys.publicKey.toString('hex');
 console.log(publicKey);

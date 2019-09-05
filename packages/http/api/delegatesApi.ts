@@ -1,4 +1,4 @@
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import {

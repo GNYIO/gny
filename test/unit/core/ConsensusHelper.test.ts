@@ -1,6 +1,6 @@
 import { IBlock, ManyVotes, ITransaction } from '../../../packages/interfaces';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import slots from '../../../src/utils/slots';

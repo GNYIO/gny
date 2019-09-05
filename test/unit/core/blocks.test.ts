@@ -11,7 +11,7 @@ import { TransactionBase } from '../../../src/base/transaction';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 import slots from '../../../src/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';

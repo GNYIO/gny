@@ -10,7 +10,7 @@ import {
 } from '../../../packages/interfaces';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../src/utils/address';
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import slots from '../../../src/utils/slots';
