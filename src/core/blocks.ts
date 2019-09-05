@@ -1,5 +1,5 @@
 import async = require('async');
-import { MAX_TXS_PER_BLOCK } from '../utils/constants';
+import { MAX_TXS_PER_BLOCK } from '../../packages/utils/constants';
 import addressHelper = require('../../packages/utils/address');
 import Blockreward from '../../packages/utils/block-reward';
 import {

@@ -1,5 +1,5 @@
 import slots from '../../packages/utils/slots';
-import { TIMEOUT } from '../utils/constants';
+import { TIMEOUT } from '../../packages/utils/constants';
 import {
   IGenesisBlock,
   PeerNode,

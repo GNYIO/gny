@@ -1,4 +1,4 @@
-import { EPOCH_TIME, INTERVAL, DELEGATES } from '../../src/utils/constants';
+import { EPOCH_TIME, INTERVAL, DELEGATES } from './constants';
 
 class Slots {
   public delegates = DELEGATES;

@@ -12,7 +12,7 @@ import {
   BlockPropose,
   BlockHeightId,
 } from '../../packages/interfaces';
-import { DELEGATES } from '../utils/constants';
+import { DELEGATES } from '../../packages/utils/constants';
 
 export class ConsensusBase {
   private static calculateVoteHash(height: string, id: string) {

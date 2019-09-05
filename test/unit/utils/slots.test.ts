@@ -1,5 +1,5 @@
 import slots from '../../../packages/utils/slots';
-import { INTERVAL } from '../../../src/utils/constants';
+import { INTERVAL } from '../../../packages/utils/constants';
 
 const lolex = require('lolex');
 

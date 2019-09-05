@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { REWARDS, INITIAL_AMOUNT } from '../../src/utils/constants';
+import { REWARDS, INITIAL_AMOUNT } from './constants';
 import * as _ from 'lodash';
 
 export default class BlockReward {
