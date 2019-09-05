@@ -4,7 +4,7 @@ import * as os from 'os';
 import * as ip from 'ip';
 import * as _ from 'lodash';
 import Sequence from './utils/sequence';
-import { getSchema } from './utils/protobuf';
+import { getSchema } from '../packages/utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from '../packages/extendedJoi';
