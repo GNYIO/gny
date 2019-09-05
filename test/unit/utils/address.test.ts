@@ -1,10 +1,11 @@
-import * as addressUtil from '../../../src/utils/address';
+import * as addressUtil from '../../../packages/utils/address';
 
 describe('address', () => {
   describe('generateAddress', () => {
     let address;
     beforeEach(done => {
-      const publicKey = '8c9f363ef4e7fcad161f1cfaceff15b557956593f8dcd989139822f7e2abe6f4';
+      const publicKey =
+        '8c9f363ef4e7fcad161f1cfaceff15b557956593f8dcd989139822f7e2abe6f4';
       address = addressUtil.generateAddress(publicKey);
       done();
     });

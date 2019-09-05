@@ -3,7 +3,7 @@ import {
   ModelSchema,
   MetaSchema,
 } from '../../../packages/database-postgres/src/modelSchema';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import { randomBytes } from 'crypto';
 import { IAccount } from '../../../packages/interfaces';
 

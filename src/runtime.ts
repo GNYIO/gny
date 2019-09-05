@@ -3,7 +3,7 @@ import { SmartDB } from '../packages/database-postgres/src/smartDB';
 import BalanceManager from './smartdb/balance-manager';
 import loadContracts from './loadContracts';
 
-import address from './utils/address';
+import address from '../packages/utils/address';
 import { BigNumber } from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from '../packages/interfaces';
 import { StateHelper } from './core/StateHelper';

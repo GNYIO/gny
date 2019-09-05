@@ -12,7 +12,7 @@ import {
   IRound,
   IBalance,
 } from '../../../packages/interfaces';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import { cloneDeep } from 'lodash';
 import * as fs from 'fs';
 import * as lib from '../lib';

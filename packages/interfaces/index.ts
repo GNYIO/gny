@@ -12,7 +12,7 @@ import BalanceManager from '../../src/smartdb/balance-manager';
 
 import { ExtendedJoi } from '../../packages/extendedJoi';
 import { BigNumber } from 'bignumber.js';
-import address from '../../src/utils/address';
+import address from '../../packages/utils/address';
 
 import { MessageBus } from '../../src/utils/messageBus';
 import { TransactionPool } from '../../src/utils/transaction-pool';

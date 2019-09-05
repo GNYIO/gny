@@ -1,5 +1,5 @@
 import * as ed from '../packages/ed';
-import * as addressUtil from '../src/utils/address';
+import * as addressUtil from '../packages/utils/address';
 import * as crypto from 'crypto';
 
 const randomString = 'ABCDEFGH';

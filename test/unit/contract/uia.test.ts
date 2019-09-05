@@ -8,7 +8,7 @@ import {
 } from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
-import address from '../../../src/utils/address';
+import address from '../../../packages/utils/address';
 
 jest.mock('../../../src/smartdb/balance-manager');
 jest.mock('../../../packages/database-postgres/src/smartDB');

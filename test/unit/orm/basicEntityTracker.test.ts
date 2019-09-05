@@ -9,7 +9,7 @@ import {
 } from '../../../packages/database-postgres/src/modelSchema';
 import { LogManager } from '../../../packages/database-postgres/src/logger';
 import { ILogger, IAccount } from '../../../packages/interfaces';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import { randomBytes } from 'crypto';
 
 function createEntityChanges(account: string, username: string) {

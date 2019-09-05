@@ -10,7 +10,7 @@ import {
 } from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import * as lib from '../lib';
 import * as fs from 'fs';
 

@@ -9,7 +9,7 @@ import {
   NewBlockMessage,
 } from '../../../packages/interfaces';
 import * as crypto from 'crypto';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import * as ed from '../../../packages/ed';
 import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';

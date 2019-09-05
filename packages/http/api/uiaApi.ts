@@ -1,4 +1,4 @@
-import addressHelper from '../../../src/utils/address';
+import addressHelper from '../../../packages/utils/address';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next, IIssuer, IHttpApi } from '../../../packages/interfaces';
