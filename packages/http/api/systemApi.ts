@@ -1,4 +1,4 @@
-import slots from '../../../src/utils/slots';
+import slots from '../../../packages/utils/slots';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next, IHttpApi } from '../../../packages/interfaces';

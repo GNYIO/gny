@@ -13,7 +13,7 @@ import { generateAddress } from '../../../packages/utils/address';
 import * as ed from '../../../packages/ed';
 import * as fs from 'fs';
 import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
-import slots from '../../../src/utils/slots';
+import slots from '../../../packages/utils/slots';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
 

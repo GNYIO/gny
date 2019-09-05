@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as ed from '../../packages/ed';
-import slots from '../utils/slots';
+import slots from '../../packages/utils/slots';
 import BlockReward from '../../packages/utils/block-reward';
 import {
   KeyPairsIndexer,

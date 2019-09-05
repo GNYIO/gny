@@ -1,4 +1,4 @@
-import slots from '../utils/slots';
+import slots from '../../packages/utils/slots';
 import { TIMEOUT } from '../utils/constants';
 import {
   IGenesisBlock,

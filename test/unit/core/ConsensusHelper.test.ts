@@ -3,7 +3,7 @@ import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
 import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
-import slots from '../../../src/utils/slots';
+import slots from '../../../packages/utils/slots';
 import { ConsensusBase } from '../../../src/base/consensus';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';

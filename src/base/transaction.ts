@@ -4,7 +4,7 @@ import * as ed from '../../packages/ed';
 import { KeyPair, IAccount } from '../../packages/interfaces';
 import { copyObject } from './helpers';
 import { ITransaction, Context } from '../../packages/interfaces';
-import slots from '../../src/utils/slots';
+import slots from '../../packages/utils/slots';
 import feeCalculators from '../../packages/utils/calculate-fee';
 import * as addressHelper from '../../packages/utils/address';
 import joi from '../../packages/extendedJoi';
