@@ -1,5 +1,5 @@
 import * as express from 'express';
-import osInfo from '../../../src/utils/osInfo';
+import osInfo from '../../utils/osInfo';
 import { Request, Response } from 'express';
 import {
   IScope,
