@@ -1,5 +1,5 @@
 import { IConfig, ILogger } from '../../packages/interfaces';
-import joi from '../../src/utils/extendedJoi';
+import joi from '../../packages/extendedJoi';
 
 export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
   const schema = joi.object().keys({

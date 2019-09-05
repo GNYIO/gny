@@ -1,4 +1,4 @@
-import extendedJoi from '../../../src/utils/extendedJoi';
+import extendedJoi from '../../../packages/extendedJoi';
 
 describe('extendedJoi', () => {
   let joi;

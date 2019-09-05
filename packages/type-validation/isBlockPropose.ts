@@ -1,5 +1,5 @@
 import { BlockPropose } from '../../packages/interfaces';
-import joi from '../../src/utils/extendedJoi';
+import joi from '../../packages/extendedJoi';
 
 export function isBlockPropose(propose: any): propose is BlockPropose {
   const schema = joi.object().keys({

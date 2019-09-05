@@ -7,8 +7,8 @@ import Sequence from './utils/sequence';
 import { getSchema } from './utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
-import extendedJoi from './utils/extendedJoi';
-import { IScope, IConfig, IOptions } from './interfaces';
+import extendedJoi from '../packages/extendedJoi';
+import { IScope, IConfig, IOptions } from '../packages/interfaces';
 import { isConfig } from '../packages/type-validation';
 import { MessageBus } from './utils/messageBus';
 

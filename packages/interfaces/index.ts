@@ -10,7 +10,7 @@ import * as SocketIO from 'socket.io';
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../src/smartdb/balance-manager';
 
-import { ExtendedJoi } from '../../src/utils/extendedJoi';
+import { ExtendedJoi } from '../../packages/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from '../../src/utils/address';
 

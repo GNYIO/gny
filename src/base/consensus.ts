@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../../packages/ed';
 import * as assert from 'assert';
-import joi from '../../src/utils/extendedJoi';
+import joi from '../../packages/extendedJoi';
 import * as ip from 'ip';
 import {
   IBlock,

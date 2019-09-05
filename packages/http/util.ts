@@ -1,6 +1,6 @@
 import { AccountViewModel } from '../../packages/interfaces';
 import * as addressHelper from '../../src/utils/address';
-import joi from '../../src/utils/extendedJoi';
+import joi from '../../packages/extendedJoi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';

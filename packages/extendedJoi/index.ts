@@ -1,5 +1,5 @@
 import * as bip39 from 'bip39';
-import { isAddress } from './address';
+import { isAddress } from '../../src/utils/address';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 

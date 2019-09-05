@@ -14,7 +14,7 @@ import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
-import joi from '../utils/extendedJoi';
+import joi from '../../packages/extendedJoi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 

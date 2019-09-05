@@ -13,7 +13,7 @@ import {
 import { TransactionBase } from '../../../src/base/transaction';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
-import joi from '../../../src/utils/extendedJoi';
+import joi from '../../../packages/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';
