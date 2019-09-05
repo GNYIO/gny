@@ -1,6 +1,11 @@
 import { api as sodium } from 'sodium';
 import { KeyPair } from '../../packages/interfaces';
 
+export interface KeyPair {
+  publicKey: Buffer;
+  privateKey: Buffer;
+}
+
 export function generateKeyPair(hash: Buffer): KeyPair {
   const keypair = sodium.crypto_sign_seed_keypair(hash);
   return <KeyPair>{
