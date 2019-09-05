@@ -39,7 +39,6 @@ describe('smartDB.findAll()', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -392,6 +391,19 @@ describe('smartDB.findAll()', () => {
     };
 
     expect(result).toEqual([expected]);
+
+    done();
+  });
+
+  it('findAll() - returns empty array when no results where found', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.findAll<Account>(Account, {
+      condition: {
+        address: 'G2GqxTcotAe9QvNsekzm7ucNtppXV',
+      },
+    });
+    expect(result).toEqual([]);
 
     done();
   });

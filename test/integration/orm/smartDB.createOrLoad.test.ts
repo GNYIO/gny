@@ -40,7 +40,6 @@ describe('smartDB.createOrLoad()', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -76,6 +75,27 @@ describe('smartDB.createOrLoad()', () => {
         fee: String(0),
         reward: String(0),
         round: String(1),
+        _version_: 1,
+      },
+    };
+    expect(result).toEqual(expected);
+
+    done();
+  }, 5000);
+
+  it('createOrLoad() - sets default properties', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.createOrLoad<Round>(Round, {
+      round: String(5),
+    });
+
+    const expected = {
+      create: true,
+      entity: {
+        round: String(5),
+        reward: String(0),
+        fee: String(0),
         _version_: 1,
       },
     };

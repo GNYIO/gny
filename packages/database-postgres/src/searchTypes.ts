@@ -35,6 +35,10 @@ export interface FindAllOptions<T> {
   sort?: NumericKey<T>;
 }
 
-export type FindOneOptions<T> = FindAllOptions<T>;
+export type OneCondition<T> = Partial<T>;
+
+export interface FindOneOptions<T> {
+  condition: OneCondition<T>;
+}
 
 export type ArrayCondition<T> = { [P in keyof T]?: Array<T[P]> };

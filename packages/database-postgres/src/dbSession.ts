@@ -8,7 +8,6 @@ import {
   BasicEntityTracker,
   LoadChangesHistoryAction,
 } from './basicEntityTracker';
-import * as performance from './performance';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
@@ -174,7 +173,11 @@ export class DbSession {
 
   public async count(schema: ModelSchema, condition: ObjectLiteral) {
     const range = await this.queryByJson(schema, {
-      fields: 'count(*) as count',
+      fields: [
+        {
+          expression: 'count(*)',
+        },
+      ],
       condition: condition,
     });
     return isArray(range) ? parseInt(range[0].count) : 0;
@@ -343,11 +346,8 @@ export class DbSession {
     this.log.trace('BEGIN saveChanges ( serial = ' + realHeight + ' )');
 
     this.commitEntityTransaction();
-    performance.Utils.Performace.time('Build sqls');
     const value = this.trackerSqlBuilder.buildChangeSqls();
-    performance.Utils.Performace.restartTime(
-      'Execute sqls (' + value.length + ')'
-    );
+
     const queryRunner = await this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -360,9 +360,7 @@ export class DbSession {
 
       await queryRunner.commitTransaction();
 
-      performance.Utils.Performace.restartTime('Accept changes');
       this.entityTracker.acceptChanges(realHeight);
-      performance.Utils.Performace.endTime();
       this.clearLocks();
       this.sessionSerial = realHeight;
       this.log.trace('SUCCESS saveChanges ( serial = ' + realHeight + ' )');

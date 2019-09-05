@@ -8,7 +8,6 @@ import * as CodeContract from './codeContract';
 import { DbSession } from './dbSession';
 import { LogManager, LoggerWrapper } from './logger';
 import { BlockCache } from './blockCache';
-import * as performance from './performance';
 import * as _ from 'lodash';
 import { ModelSchema } from './modelSchema';
 import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
@@ -40,13 +39,11 @@ export type RHooks = {
 
 export interface SmartDBOptions {
   cachedBlockCount?: number;
-  maxBlockHistoryHold?: number;
   checkModifier?: boolean;
   configRaw: string;
 }
 
 export class SmartDB extends EventEmitter {
-  public static readonly TRANSACTION_MODEL_NAME = 'Transaction';
   private options: SmartDBOptions;
   private originalLogger: ILogger;
   private commitBlockHooks: Hooks[];
@@ -67,7 +64,6 @@ export class SmartDB extends EventEmitter {
 
     this.options = options || {
       cachedBlockCount: 10,
-      maxBlockHistoryHold: 10,
       configRaw: options.configRaw,
     };
     this.commitBlockHooks = [];
@@ -329,14 +325,12 @@ export class SmartDB extends EventEmitter {
     this.preCommitBlock(this.currentBlock);
     const value = Object.assign({}, this.currentBlock);
     Reflect.deleteProperty(value, 'transactions');
-    performance.Utils.Performace.time('Append block');
     // await this.blockDB.appendBlock(value, this.blockSession.getChanges());
     await this.appendBlock(value, this.blockSession.getChanges());
 
     this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
       .plus(1)
       .toFixed();
-    performance.Utils.Performace.endTime();
     try {
       await this.blockSession.saveChanges(this.currentBlock.height);
       this.cachedBlocks.push(this.currentBlock);

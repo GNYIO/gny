@@ -6,6 +6,7 @@ import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import { Condition } from '../../../packages/database-postgres/src/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
+import { Balance } from '../../../packages/database-postgres/entity/Balance';
 
 describe('smartDB.count', () => {
   let sut: SmartDB;
@@ -30,7 +31,6 @@ describe('smartDB.count', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -135,6 +135,58 @@ describe('smartDB.count', () => {
     const result = await sut.count<Variable>(Variable, {
       key: {
         $in: ['hello2', 'hello3'],
+      },
+    });
+    expect(result).toEqual(2);
+
+    done();
+  });
+
+  it('count() - count all entities in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.count<Balance>(Balance, {});
+    expect(result).toEqual(0);
+
+    done();
+  });
+
+  it('count() - $gte and $lte', async done => {
+    await saveGenesisBlock(sut);
+
+    await sut.create<Balance>(Balance, {
+      address: 'GWP4yELJeDszNZeVKxDhXwici22C',
+      balance: String(1),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'Gh9YghqP1yADqoPtNFoG2vZJGf4i',
+      balance: String(2),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'G2id1mqqMjJfGASp3tSsL9Ua7rxT7',
+      balance: String(3),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+    await sut.create<Balance>(Balance, {
+      address: 'G238kA37G5qfXCKed8mpRMudjwzcn',
+      balance: String(4),
+      currency: 'AAA.AAA',
+      flag: 1,
+    });
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    const result = await sut.count<Balance>(Balance, {
+      balance: {
+        $gte: String(2),
+        $lte: String(3),
       },
     });
     expect(result).toEqual(2);

@@ -52,7 +52,6 @@ describe('integration - SmartDB', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -116,6 +115,19 @@ describe('integration - SmartDB', () => {
   );
 
   it(
+    'getBlockByHeight() - returns undefined when not found in cache and in db',
+    async done => {
+      await saveGenesisBlock(sut);
+
+      const result = await sut.getBlockByHeight(String(300));
+      expect(result).toBeUndefined();
+
+      done();
+    },
+    lib.thirtySeconds
+  );
+
+  it(
     'getBlockById()',
     async done => {
       await saveGenesisBlock(sut);
@@ -149,6 +161,17 @@ describe('integration - SmartDB', () => {
 
     expect(result).toEqual(expected);
     expect(result.transactions.length).toEqual(0);
+
+    done();
+  });
+
+  it('getBlockById() - returns undefined when Block was not found in cache in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.getBlockById(
+      'bbd6220626bba4be88617864e0fe8fb32b0c618c42306397bec6ceac7797a246'
+    );
+    expect(result).toBeUndefined();
 
     done();
   });
