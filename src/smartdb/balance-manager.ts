@@ -1,7 +1,7 @@
 import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 import { IBalance } from '../../packages/interfaces';
 import { Balance } from '../../packages/database-postgres/entity/Balance';
-
+import BigNumber from 'bignumber.js';
 function getCurrencyFlag(currency: string) {
   if (currency === 'GNY') {
     return 1;
@@ -21,17 +21,15 @@ export default class BalanceManager {
   async get(address: string, currency: string) {
     const item = await this.sdb.get<Balance>(Balance, { address, currency });
     const balance = item ? item.balance : String(0);
-    return new global.app.util.bignumber(balance);
+    return new BigNumber(balance);
   }
 
   async increase(address: string, currency: string, amount) {
-    if (new global.app.util.bignumber(amount).eq(0)) return;
+    if (new BigNumber(amount).eq(0)) return;
     const key = { address, currency };
     let item = await this.sdb.get<Balance>(Balance, key);
     if (item) {
-      item.balance = new global.app.util.bignumber(item.balance)
-        .plus(amount)
-        .toString(10);
+      item.balance = new BigNumber(item.balance).plus(amount).toString(10);
       await global.app.sdb.update<Balance>(
         Balance,
         { balance: String(item.balance) },

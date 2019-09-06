@@ -10,6 +10,7 @@ import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Transaction } from '../../packages/database-postgres/entity/Transaction';
+import { isAddress } from '../../packages/utils/address';
 
 export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactions = (
@@ -111,10 +112,7 @@ export default class Transactions implements ICoreModule {
     if (!senderId) {
       throw new Error('Missing sender address');
     }
-    if (
-      global.app.util.address.isAddress(senderId) &&
-      !transaction.senderPublicKey
-    ) {
+    if (isAddress(senderId) && !transaction.senderPublicKey) {
       throw new Error('Sender public key not provided');
     }
 

@@ -11,8 +11,6 @@ import { SmartDB } from '../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../src/smartdb/balance-manager';
 
 import { ExtendedJoi } from '../../packages/extendedJoi';
-import { BigNumber } from 'bignumber.js';
-import address from '../../packages/utils/address';
 
 import * as LRU from 'lru-cache';
 
@@ -136,11 +134,6 @@ export interface INetwork {
   sslio?: SocketIO.Server;
 }
 
-interface IUtil {
-  address: typeof address;
-  bignumber: typeof BigNumber;
-}
-
 export interface IValidatorConstraints {
   length?: number;
   isEmail?: boolean;
@@ -168,7 +161,6 @@ interface IApp {
   sdb: SmartDB;
   balances: BalanceManager;
   events: EventEmitter;
-  util: IUtil;
   validators: IValidators;
   validate: ValidateFuncs;
   getContractName: (type: string) => any;

@@ -3,6 +3,8 @@ import { Issuer } from '../../packages/database-postgres/entity/Issuer';
 import { Asset } from '../../packages/database-postgres/entity/Asset';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Transfer } from '../../packages/database-postgres/entity/Transfer';
+import BigNumber from 'bignumber.js';
+import { isAddress } from '../../packages/utils/address';
 
 export default {
   async registerIssuer(this: Context, name, desc) {
@@ -83,7 +85,7 @@ export default {
     if (!asset) return 'Asset not exists';
 
     if (asset.issuerId !== this.sender.address) return 'Permission denied';
-    const quantity = new global.app.util.bignumber(asset.quantity).plus(amount);
+    const quantity = new BigNumber(asset.quantity).plus(amount);
     if (quantity.gt(asset.maximum)) return 'Exceed issue limit';
 
     asset.quantity = quantity.toString(10);
@@ -115,7 +117,7 @@ export default {
 
     let recipientAddress;
     let recipientName = '';
-    if (recipient && global.app.util.address.isAddress(recipient)) {
+    if (recipient && isAddress(recipient)) {
       recipientAddress = recipient;
     } else {
       recipientName = recipient;

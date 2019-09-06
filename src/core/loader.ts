@@ -117,7 +117,7 @@ export default class Loader implements ICoreModule {
       );
       throw new Error('Failed to parse blockchain height');
     }
-    if (new global.app.util.bignumber(lastBlock.height).lt(ret.height)) {
+    if (new BigNumber(lastBlock.height).lt(ret.height)) {
       StateHelper.SetBlocksToSync(ret.height);
 
       if (lastBlock.id !== genesisBlock.id) {

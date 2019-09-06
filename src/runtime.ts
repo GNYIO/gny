@@ -32,7 +32,7 @@ export default async function runtime(options: IOptions) {
 
       let bnAmount;
       try {
-        bnAmount = new global.app.util.bignumber(amount);
+        bnAmount = new BigNumber(amount);
       } catch (e) {
         return 'Failed to convert';
       }
@@ -68,11 +68,6 @@ export default async function runtime(options: IOptions) {
   });
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);
-
-  global.app.util = {
-    address: address,
-    bignumber: BigNumber,
-  };
 
   await loadContracts();
 

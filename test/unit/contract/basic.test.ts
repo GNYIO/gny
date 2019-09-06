@@ -201,14 +201,13 @@ describe('basic', () => {
 
     it('should return Invalid account type', async done => {
       (basic as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        address: 'SOME-WRONG-ADDRESS',
         gny: String(100000000),
         secondPublicKey: null,
       } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
-      global.app.util.address.isAddress.mockReturnValue(false);
 
       const set = await basic.setSecondPassphrase(publicKey);
       expect(set).toBe('Invalid account type');

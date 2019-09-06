@@ -9,6 +9,7 @@ import { Vote } from '../../packages/database-postgres/entity/Vote';
 import { Account } from '../../packages/database-postgres/entity/Account';
 import { Delegate } from '../../packages/database-postgres/entity/Delegate';
 import { Transfer } from '../../packages/database-postgres/entity/Transfer';
+import { isAddress } from '../../packages/utils/address';
 
 async function deleteCreatedVotes(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {
@@ -71,7 +72,7 @@ export default {
 
     let recipientAccount: IAccount;
     // Validate recipient is valid address
-    if (recipient && global.app.util.address.isAddress(recipient)) {
+    if (recipient && isAddress(recipient)) {
       recipientAccount = await global.app.sdb.load<Account>(Account, {
         address: recipient,
       });
@@ -146,7 +147,7 @@ export default {
     if (arguments.length !== 1) return 'Invalid arguments length';
     global.app.validate('publickey', publicKey);
 
-    if (!global.app.util.address.isAddress(this.sender.address)) {
+    if (!isAddress(this.sender.address)) {
       return 'Invalid account type';
     }
     const senderId = this.sender.address;
