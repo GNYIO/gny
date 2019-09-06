@@ -1,12 +1,12 @@
 import { EventEmitter } from 'events';
 import {
-  IMessageEmitter,
   Modules,
   CoreApi,
   MethodActions,
+  IMessageBus,
 } from '../../packages/interfaces';
 
-export class MessageBus extends EventEmitter implements IMessageEmitter {
+export class MessageBus extends EventEmitter implements IMessageBus {
   private modules: Modules;
   private coreApi: CoreApi;
   constructor(modules: Modules, coreApi: CoreApi) {

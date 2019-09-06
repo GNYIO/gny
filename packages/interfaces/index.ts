@@ -14,7 +14,6 @@ import { ExtendedJoi } from '../../packages/extendedJoi';
 import { BigNumber } from 'bignumber.js';
 import address from '../../packages/utils/address';
 
-import { MessageBus } from '../../src/utils/messageBus';
 import * as LRU from 'lru-cache';
 
 export interface IState {
@@ -32,7 +31,7 @@ export interface IState {
 }
 
 declare interface IBase {
-  bus: MessageBus;
+  bus: IMessageBus;
   genesisBlock: IGenesisBlock;
 }
 
@@ -67,7 +66,7 @@ export interface IScope {
   network: INetwork;
   sequence: ISequence;
   base: IBase;
-  bus: MessageBus;
+  bus: IMessageBus;
   modules: Modules;
   coreApi: CoreApi;
 }
@@ -123,9 +122,10 @@ export interface ITransactionPool {
   get(id: string): ITransaction;
 }
 
-export interface IMessageEmitter {
+interface IMessageEmitter {
   message: (topic: MethodActions, ...restArgs: any[]) => void;
 }
+export type IMessageBus = IMessageEmitter & EventEmitter;
 
 export interface INetwork {
   express: typeof express;
