@@ -7,7 +7,7 @@ import {
   IState,
 } from '../../packages/interfaces';
 import { TransactionPool } from '../utils/transaction-pool';
-import { LimitCache } from '../utils/limit-cache';
+import { LimitCache } from '../../packages/utils/limit-cache';
 import * as LRU from 'lru-cache';
 import { copyObject } from '../base/helpers';
 
