@@ -1,6 +1,8 @@
+import { ILimitCache } from '../../packages/interfaces';
+
 const DEFAULT_LIMIT = 10000;
 
-export class LimitCache<KEY, VAL> {
+export class LimitCache<KEY, VAL> implements ILimitCache<KEY, VAL> {
   private cache = new Map<KEY, VAL>();
   private index = new Array<KEY>();
   private limit: number;

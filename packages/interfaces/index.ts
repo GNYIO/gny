@@ -16,7 +16,6 @@ import address from '../../packages/utils/address';
 
 import { MessageBus } from '../../src/utils/messageBus';
 import { TransactionPool } from '../../src/utils/transaction-pool';
-import { LimitCache } from '../../src/utils/limit-cache';
 import * as LRU from 'lru-cache';
 
 export interface IState {
@@ -52,6 +51,12 @@ export interface IProtobuf {
 export interface ISequence {
   add(worker, args?, cb?): void;
   count(): number;
+}
+
+export interface ILimitCache<KEY, VAL> {
+  set(key: KEY, value: VAL): void;
+  has(key: KEY): boolean;
+  getLimit(): number;
 }
 
 export interface IScope {
@@ -466,7 +471,7 @@ declare global {
       privSyncing: boolean;
       blocksToSync: number;
       transactionPool: TransactionPool;
-      failedTrsCache: LimitCache<string, boolean>;
+      failedTrsCache: ILimitCache<string, boolean>;
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
       latestBlocksCache: LRU.Cache<string, BlockAndVotes>;
