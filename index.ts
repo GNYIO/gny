@@ -3,7 +3,7 @@ import initRuntime from './src/runtime';
 import initAlt from './src/init';
 import { IScope, IConfig, ILogger, IGenesisBlock } from './packages/interfaces';
 import { StateHelper } from './src/core/StateHelper';
-import { verifyGenesisBlock } from './src/utils/verifyGenesisBlock';
+import { verifyGenesisBlock } from './src/verifyGenesisBlock';
 
 interface LocalOptions {
   appConfig: IConfig;
