@@ -1,6 +1,6 @@
-import { ITransaction } from '../../packages/interfaces';
+import { ITransaction, ITransactionPool } from '../../packages/interfaces';
 
-export class TransactionPool {
+export class TransactionPool implements ITransactionPool {
   private index: Map<string, number>;
   private unConfirmed: ITransaction[];
   constructor() {

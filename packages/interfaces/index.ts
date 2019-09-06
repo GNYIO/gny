@@ -15,7 +15,6 @@ import { BigNumber } from 'bignumber.js';
 import address from '../../packages/utils/address';
 
 import { MessageBus } from '../../src/utils/messageBus';
-import { TransactionPool } from '../../src/utils/transaction-pool';
 import * as LRU from 'lru-cache';
 
 export interface IState {
@@ -113,6 +112,15 @@ export interface CoreApi {
   uiaApi: IHttpApi;
   transfersApi: IHttpApi;
   loaderApi: IHttpApi;
+}
+
+export interface ITransactionPool {
+  add(trs: ITransaction): void;
+  remove(id: string): void;
+  has(id: string): boolean;
+  getUnconfirmed(): ITransaction[];
+  clear(): void;
+  get(id: string): ITransaction;
 }
 
 export interface IMessageEmitter {
@@ -470,7 +478,7 @@ declare global {
       isForgingEnabled: boolean;
       privSyncing: boolean;
       blocksToSync: number;
-      transactionPool: TransactionPool;
+      transactionPool: ITransactionPool;
       failedTrsCache: ILimitCache<string, boolean>;
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
