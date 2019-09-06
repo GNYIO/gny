@@ -1,4 +1,4 @@
-import { MessageBus } from '../../../src/utils/messageBus';
+import { MessageBus } from '../../../packages/utils/messageBus';
 import { Modules, CoreApi } from '../../../packages/interfaces';
 
 describe('messageBus', () => {

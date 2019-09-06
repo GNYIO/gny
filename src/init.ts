@@ -10,7 +10,7 @@ import loadCoreApi from './loadCoreApi';
 import extendedJoi from '../packages/extendedJoi';
 import { IScope, IConfig, IOptions } from '../packages/interfaces';
 import { isConfig } from '../packages/type-validation';
-import { MessageBus } from './utils/messageBus';
+import { MessageBus } from '../packages/utils/messageBus';
 
 import initNetwork from '../packages/http/index';
 
