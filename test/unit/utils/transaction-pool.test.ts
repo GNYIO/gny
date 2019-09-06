@@ -1,4 +1,4 @@
-import { TransactionPool } from '../../../src/utils/transaction-pool';
+import { TransactionPool } from '../../../packages/transaction-pool';
 import { ITransaction } from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../../packages/utils/address';

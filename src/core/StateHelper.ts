@@ -6,7 +6,7 @@ import {
   BlockAndVotes,
   IState,
 } from '../../packages/interfaces';
-import { TransactionPool } from '../utils/transaction-pool';
+import { TransactionPool } from '../../packages/transaction-pool';
 import { LimitCache } from '../../packages/utils/limit-cache';
 import * as LRU from 'lru-cache';
 import { copyObject } from '../base/helpers';
