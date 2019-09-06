@@ -1,5 +1,5 @@
 import { queue } from 'async';
-import { TIMEOUT } from '../../packages/utils/constants';
+import { TIMEOUT } from './constants';
 import { ISequence } from '../../packages/interfaces';
 
 function tick(task, cb) {
