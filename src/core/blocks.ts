@@ -22,7 +22,7 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '../../packages/base/blockBase';
 import { TransactionBase } from '../../packages/base/transactionBase';
 import { ConsensusBase } from '../../packages/base/consensusBase';
-import { RoundBase } from '../base/round';
+import { RoundBase } from '../../packages/base/roundBase';
 import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,

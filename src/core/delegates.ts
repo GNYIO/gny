@@ -15,7 +15,7 @@ import {
   ICoreModule,
 } from '../../packages/interfaces';
 import { IState } from '../globalInterfaces';
-import { RoundBase } from '../base/round';
+import { RoundBase } from '../../packages/base/roundBase';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
