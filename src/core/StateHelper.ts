@@ -9,7 +9,7 @@ import { IState } from '../globalInterfaces';
 import { TransactionPool } from '../../packages/transaction-pool';
 import { LimitCache } from '../../packages/utils/limit-cache';
 import * as LRU from 'lru-cache';
-import { copyObject } from '../base/helpers';
+import { copyObject } from '../../packages/base/helpers';
 
 export class StateHelper {
   // state management

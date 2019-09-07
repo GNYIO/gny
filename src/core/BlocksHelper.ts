@@ -15,7 +15,7 @@ import Blockreward from '../../packages/utils/block-reward';
 import { BlockBase } from '../../packages/base/blockBase';
 import { ConsensusBase } from '../../packages/base/consensusBase';
 import slots from '../../packages/utils/slots';
-import { copyObject } from '../base/helpers';
+import { copyObject } from '../../packages/base/helpers';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
 import { Block } from '../../packages/database-postgres/entity/Block';

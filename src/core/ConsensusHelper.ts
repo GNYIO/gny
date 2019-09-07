@@ -2,7 +2,7 @@ import { ManyVotes, IBlock } from '../../packages/interfaces';
 import { IState } from '../globalInterfaces';
 import { ConsensusBase } from '../../packages/base/consensusBase';
 import slots from '../../packages/utils/slots';
-import { copyObject } from '../base/helpers';
+import { copyObject } from '../../packages/base/helpers';
 import { StateHelper } from './StateHelper';
 
 export class ConsensusHelper {
