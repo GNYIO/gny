@@ -5,7 +5,7 @@ import {
   ICoreModule,
 } from '../../packages/interfaces';
 import { IState } from '../globalInterfaces';
-import { TransactionBase } from '../base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
 import { Account } from '../../packages/database-postgres/entity/Account';

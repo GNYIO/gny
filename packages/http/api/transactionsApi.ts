@@ -10,7 +10,7 @@ import {
   IBlock,
   IHttpApi,
 } from '../../../packages/interfaces';
-import { TransactionBase } from '../../../src/base/transaction';
+import { TransactionBase } from '../../../packages/base/transactionBase';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { Transaction } from '../../database-postgres/entity/Transaction';

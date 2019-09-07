@@ -7,7 +7,7 @@ import {
   ITransaction,
   ICoreModule,
 } from '../../packages/interfaces';
-import { TransactionBase } from '../base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '../../packages/type-validation';
 import { StateHelper } from './StateHelper';

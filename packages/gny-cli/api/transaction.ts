@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ed from '../../../packages/ed';
-import { TransactionBase } from '../../../src/base/transaction';
+import { TransactionBase } from '../../../packages/base/transactionBase';
 import Api from '../lib/api';
 
 let globalOptions;

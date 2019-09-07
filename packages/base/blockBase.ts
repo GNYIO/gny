@@ -4,7 +4,7 @@ import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../../packages/ed';
 import joi from '../../packages/extendedJoi';
 import { copyObject } from '../../src/base/helpers';
-import { TransactionBase } from '../../src/base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 
 export class BlockBase {
   /***

@@ -1,7 +1,7 @@
 import {
   TransactionBase,
   CreateTransactionType,
-} from '../../../src/base/transaction';
+} from '../../../packages/base/transactionBase';
 import basic from '../../../src/contract/basic';
 import {
   ITransaction,

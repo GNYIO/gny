@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../../packages/ed';
 import { KeyPair, IAccount } from '../../packages/interfaces';
-import { copyObject } from './helpers';
+import { copyObject } from '../../src/base/helpers';
 import { ITransaction, Context } from '../../packages/interfaces';
 import slots from '../../packages/utils/slots';
 import feeCalculators from '../../packages/utils/calculate-fee';

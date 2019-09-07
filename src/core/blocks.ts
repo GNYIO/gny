@@ -20,7 +20,7 @@ import {
 import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../../packages/base/blockBase';
-import { TransactionBase } from '../base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';
 import {

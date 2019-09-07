@@ -10,7 +10,7 @@ import {
   CommonBlockResult,
   IHttpApi,
 } from '../../../packages/interfaces';
-import { TransactionBase } from '../../../src/base/transaction';
+import { TransactionBase } from '../../../packages/base/transactionBase';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
 import joi from '../../../packages/extendedJoi';

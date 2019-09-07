@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
-import { TransactionBase } from './base/transaction';
+import { TransactionBase } from '../packages/base/transactionBase';
 import { BlockBase } from '../packages/base/blockBase';
 import { IGenesisBlock } from '../packages/interfaces';
 

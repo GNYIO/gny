@@ -8,7 +8,7 @@ import {
   ILogger,
 } from '../../packages/interfaces';
 import { IState, ISimpleCache } from '../globalInterfaces';
-import { TransactionBase } from '../base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 import { MAX_PAYLOAD_LENGTH } from '../../packages/utils/constants';
 import * as crypto from 'crypto';
 import Blockreward from '../../packages/utils/block-reward';

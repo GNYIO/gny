@@ -12,7 +12,7 @@ import {
 } from '../../packages/interfaces';
 import { BlockBase } from '../../packages/base/blockBase';
 import { ConsensusBase } from '../base/consensus';
-import { TransactionBase } from '../base/transaction';
+import { TransactionBase } from '../../packages/base/transactionBase';
 import {
   isBlockPropose,
   isNewBlockMessage,
