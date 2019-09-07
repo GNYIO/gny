@@ -3,9 +3,8 @@ import { SmartDB } from '../packages/database-postgres/src/smartDB';
 import BalanceManager from './smartdb/balance-manager';
 import loadContracts from './loadContracts';
 
-import address from '../packages/utils/address';
 import { BigNumber } from 'bignumber.js';
-import { IOptions, IValidatorConstraints } from '../packages/interfaces';
+import { IOptions, IValidatorConstraints } from './globalInterfaces';
 import { StateHelper } from './core/StateHelper';
 
 export default async function runtime(options: IOptions) {

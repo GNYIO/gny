@@ -1,10 +1,10 @@
 import {
   ITransaction,
   Context,
-  IState,
   IAccount,
   ICoreModule,
 } from '../../packages/interfaces';
+import { IState } from '../globalInterfaces';
 import { TransactionBase } from '../base/transaction';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';

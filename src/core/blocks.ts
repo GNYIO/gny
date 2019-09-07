@@ -14,10 +14,10 @@ import {
   ITransaction,
   CommonBlockParams,
   CommonBlockResult,
-  IState,
   IRound,
   ICoreModule,
 } from '../../packages/interfaces';
+import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '../base/block';
 import { TransactionBase } from '../base/transaction';

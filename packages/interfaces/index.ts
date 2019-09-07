@@ -6,27 +6,7 @@ import * as express from 'express';
 import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
-// IApp
-import { SmartDB } from '../../packages/database-postgres/src/smartDB';
-import BalanceManager from '../../src/smartdb/balance-manager';
-
 import { ExtendedJoi } from '../../packages/extendedJoi';
-
-import * as LRU from 'lru-cache';
-
-export interface IState {
-  votesKeySet: ISimpleCache<boolean>;
-  pendingBlock: IBlock;
-  pendingVotes: ManyVotes;
-
-  lastBlock: IBlock;
-  blockCache: ISimpleCache<boolean>;
-
-  proposeCache: ISimpleCache<boolean>;
-  lastPropose: BlockPropose;
-  privIsCollectingVotes: boolean;
-  lastVoteTime: number;
-}
 
 declare interface IBase {
   bus: IMessageBus;
@@ -134,43 +114,6 @@ export interface INetwork {
   sslio?: SocketIO.Server;
 }
 
-export interface IValidatorConstraints {
-  length?: number;
-  isEmail?: boolean;
-  url?: boolean;
-  number?: boolean;
-}
-
-interface IValidators {
-  amount: (amount: string) => string;
-  name: (amount: string) => string;
-  publickey: (value: string) => string;
-}
-
-interface IContractTypeMapping {
-  [type: string]: string;
-}
-
-type ValidateFuncs = (
-  type: string,
-  value: any,
-  constraints?: IValidatorConstraints
-) => void | never;
-
-interface IApp {
-  sdb: SmartDB;
-  balances: BalanceManager;
-  events: EventEmitter;
-  validators: IValidators;
-  validate: ValidateFuncs;
-  getContractName: (type: string) => any;
-  contractTypeMapping: IContractTypeMapping;
-  contract: {
-    [name: string]: any;
-  };
-  logger: ILogger;
-}
-
 export type ILogger = tracer.Tracer.Logger;
 
 export interface IGenesisBlock {
@@ -256,10 +199,6 @@ export interface ManyVotes {
 export interface Signature {
   publicKey: string;
   signature: string;
-}
-
-export interface ISimpleCache<VALUE_TYPE> {
-  [id: string]: VALUE_TYPE;
 }
 
 export type Next = (err?: string) => any;
@@ -456,39 +395,4 @@ export interface Context {
   trs: ITransaction;
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
-}
-
-declare global {
-  namespace NodeJS {
-    interface Global {
-      library: Partial<IScope>;
-      modules: Modules;
-      app: Partial<IApp>;
-      Config: Partial<IConfig>;
-      state: IState;
-      keyPairs: KeyPairsIndexer;
-      isForgingEnabled: boolean;
-      privSyncing: boolean;
-      blocksToSync: number;
-      transactionPool: ITransactionPool;
-      failedTrsCache: ILimitCache<string, boolean>;
-      areAllModulesLoaded: boolean;
-      blockchainReady: boolean;
-      latestBlocksCache: LRU.Cache<string, BlockAndVotes>;
-      blockHeaderMidCache: LRU.Cache<string, NewBlockMessage>;
-    }
-    interface Process {
-      once(event: 'cleanup', listener: () => void): this;
-      emit(event: 'cleanup'): this;
-    }
-  }
-}
-
-export interface IOptions {
-  appConfig: IConfig;
-  genesisBlock: IGenesisBlock;
-  logger: ILogger;
-  pidFile: string;
-  modules?: any;
-  library?: Partial<IScope>;
 }

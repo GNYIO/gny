@@ -11,10 +11,10 @@ import {
   ProcessBlockOptions,
   BlockSlotData,
   IBlock,
-  IState,
   IVariable,
   ICoreModule,
 } from '../../packages/interfaces';
+import { IState } from '../globalInterfaces';
 import { RoundBase } from '../base/round';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';

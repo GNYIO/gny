@@ -4,8 +4,8 @@ import {
   NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
-  IState,
 } from '../../packages/interfaces';
+import { IState } from '../globalInterfaces';
 import { TransactionPool } from '../../packages/transaction-pool';
 import { LimitCache } from '../../packages/utils/limit-cache';
 import * as LRU from 'lru-cache';

@@ -3,12 +3,11 @@ import {
   KeyPair,
   IBlock,
   BlockPropose,
-  IState,
-  ISimpleCache,
   IConfig,
   NewBlockMessage,
   ILogger,
 } from '../../packages/interfaces';
+import { IState, ISimpleCache } from '../globalInterfaces';
 import { TransactionBase } from '../base/transaction';
 import { MAX_PAYLOAD_LENGTH } from '../../packages/utils/constants';
 import * as crypto from 'crypto';

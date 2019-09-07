@@ -8,7 +8,8 @@ import { getSchema } from '../packages/utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import extendedJoi from '../packages/extendedJoi';
-import { IScope, IConfig, IOptions } from '../packages/interfaces';
+import { IScope, IConfig } from '../packages/interfaces';
+import { IOptions } from './globalInterfaces';
 import { isConfig } from '../packages/type-validation';
 import { MessageBus } from '../packages/utils/messageBus';
 
