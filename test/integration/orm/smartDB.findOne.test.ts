@@ -4,7 +4,6 @@ import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { FindAllOptions } from '../../../packages/database-postgres/src/searchTypes';
 import {
   saveGenesisBlock,
   createBlock,

@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
-import * as Docker from 'dockerode';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '../../packages/utils/address';
 import * as isRoot from 'is-root';

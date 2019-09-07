@@ -9,7 +9,6 @@ import {
 import { BlockBase } from '../../../src/base/block';
 import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
-import { BigNumber } from 'bignumber.js';
 
 function createRandomSignature() {
   const signature: Signature = {

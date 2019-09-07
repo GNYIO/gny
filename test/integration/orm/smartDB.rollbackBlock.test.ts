@@ -14,7 +14,7 @@ import {
   createAccount,
 } from './smartDB.test.helpers';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import { IDelegate, IAccount } from '../../../packages/interfaces';
+import { IDelegate } from '../../../packages/interfaces';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 
 describe('SmartDB.rollbackBlock()', () => {
