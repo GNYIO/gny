@@ -1,5 +1,4 @@
 import basic from '../../../src/contract/basic';
-import BigNumber from 'bignumber.js';
 import {
   ILogger,
   IAccount,
@@ -24,13 +23,6 @@ describe('basic', () => {
 
     global.app = {
       validate: jest.fn((type, value) => null),
-      util: {
-        address: {
-          isAddress: jest.fn(addr => true),
-          generateAddress: jest.fn(),
-        },
-        bignumber: BigNumber,
-      },
       sdb: new SmartDB(logger),
     };
     done();

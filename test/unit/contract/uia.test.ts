@@ -8,7 +8,6 @@ import {
 } from '../../../packages/interfaces';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import BalanceManager from '../../../src/smartdb/balance-manager';
-import address from '../../../packages/utils/address';
 
 jest.mock('../../../src/smartdb/balance-manager');
 jest.mock('../../../packages/database-postgres/src/smartDB');
@@ -28,10 +27,6 @@ describe('uia', () => {
 
     global.app = {
       validate: jest.fn((type, value) => null),
-      util: {
-        address: address,
-        bignumber: BigNumber,
-      },
       sdb: sdb,
       balances: new BalanceManager(sdb),
     };
@@ -390,7 +385,7 @@ describe('uia', () => {
     });
 
     it('should transfer some amount of currency to a recipient', async done => {
-      const balance = new global.app.util.bignumber(100000000);
+      const balance = new BigNumber(100000000);
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
         gny: String(100000000),
