@@ -6,7 +6,7 @@ import {
   Signature,
   BlockPropose,
 } from '../../../packages/interfaces';
-import { BlockBase } from '../../../src/base/block';
+import { BlockBase } from '../../../packages/base/blockBase';
 import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
 

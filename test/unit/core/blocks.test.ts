@@ -6,7 +6,7 @@ import {
   ProcessBlockOptions,
 } from '../../../packages/interfaces';
 import { IState } from '../../../src/globalInterfaces';
-import { BlockBase } from '../../../src/base/block';
+import { BlockBase } from '../../../packages/base/blockBase';
 import { TransactionBase } from '../../../src/base/transaction';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
 import * as crypto from 'crypto';

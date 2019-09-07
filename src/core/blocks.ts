@@ -19,7 +19,7 @@ import {
 } from '../../packages/interfaces';
 import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
-import { BlockBase } from '../base/block';
+import { BlockBase } from '../../packages/base/blockBase';
 import { TransactionBase } from '../base/transaction';
 import { ConsensusBase } from '../base/consensus';
 import { RoundBase } from '../base/round';

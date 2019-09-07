@@ -3,8 +3,8 @@ import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '../../packages/ed';
 import joi from '../../packages/extendedJoi';
-import { copyObject } from './helpers';
-import { TransactionBase } from './transaction';
+import { copyObject } from '../../src/base/helpers';
+import { TransactionBase } from '../../src/base/transaction';
 
 export class BlockBase {
   /***

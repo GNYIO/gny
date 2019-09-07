@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
 import { TransactionBase } from './base/transaction';
-import { BlockBase } from './base/block';
+import { BlockBase } from '../packages/base/blockBase';
 import { IGenesisBlock } from '../packages/interfaces';
 
 export function verifyGenesisBlock(block: IGenesisBlock) {
