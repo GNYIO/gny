@@ -11,7 +11,7 @@ import {
   ICoreModule,
 } from '../../packages/interfaces';
 import { BlockBase } from '../../packages/base/blockBase';
-import { ConsensusBase } from '../base/consensus';
+import { ConsensusBase } from '../../packages/base/consensusBase';
 import { TransactionBase } from '../../packages/base/transactionBase';
 import {
   isBlockPropose,

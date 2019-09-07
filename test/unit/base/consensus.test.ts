@@ -1,4 +1,4 @@
-import { ConsensusBase } from '../../../src/base/consensus';
+import { ConsensusBase } from '../../../packages/base/consensusBase';
 import {
   KeyPair,
   IBlock,

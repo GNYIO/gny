@@ -4,7 +4,7 @@ import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import slots from '../../../packages/utils/slots';
-import { ConsensusBase } from '../../../src/base/consensus';
+import { ConsensusBase } from '../../../packages/base/consensusBase';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
 
