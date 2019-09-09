@@ -1,10 +1,10 @@
 import { queue } from 'async';
 import { TIMEOUT } from './constants';
-import { ISequence } from '@gny/interfaces';
+// import { ISequence } from '@gny/interfaces';
 
-function tick(task, cb) {
+function tick(task: any, cb: any) {
   let isCallbacked = false;
-  const done = (err, res) => {
+  const done = (err, res?) => {
     if (isCallbacked) {
       return;
     }
@@ -30,19 +30,19 @@ function tick(task, cb) {
   }
 }
 
-export class Sequence implements ISequence {
+export class Sequence /*implements ISequence*/ {
   private counter: number;
   private readonly name: string;
   private queue: AsyncQueue<any>;
 
-  constructor(config) {
+  constructor(config: any) {
     this.counter = 1;
     this.name = config.name;
 
     this.queue = queue(tick, 1);
   }
 
-  add(worker, args?, cb?) {
+  add(worker: any, args?: any, cb?: any) {
     let done;
     if (!cb && args && typeof args === 'function') {
       done = args;
@@ -50,7 +50,13 @@ export class Sequence implements ISequence {
       done = cb;
     }
     if (worker && typeof worker === 'function') {
-      const task = { worker, done };
+      interface ITask {
+        worker: any;
+        done: any;
+        args?: any[];
+        counter?: number;
+      }
+      const task: ITask = { worker, done };
       if (Array.isArray(args)) {
         task.args = args;
       }

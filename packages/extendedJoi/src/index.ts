@@ -248,6 +248,4 @@ const stringExtensions: Joi.Extension = {
   ],
 };
 
-const newJoi: ExtendedJoi = Joi.extend(stringExtensions);
-
-export const joi = newJoi;
+export const joi: ExtendedJoi = Joi.extend(stringExtensions);

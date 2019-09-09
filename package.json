@@ -5,8 +5,9 @@
   "description": "Decentralized machine learning on the blockchain",
   "main": "dist/app.js",
   "scripts": {
-    "start": "cd dist/ && node app.js",
+    "bootstrap": "lerna bootstrap --ci",
     "tsc": "lerna run tsc",
+    "start": "cd dist/ && node app.js",
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",

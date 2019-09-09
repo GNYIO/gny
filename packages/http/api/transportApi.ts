@@ -1,6 +1,6 @@
 import * as express from 'express';
-import { osInfo } from '../../utils/osInfo';
 import { Request, Response } from 'express';
+import * as os from 'os';
 import {
   IScope,
   Next,
@@ -17,6 +17,21 @@ import { joi } from '../../../packages/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';
+
+const osInfo = {
+  getOS() {
+    return os.platform() + os.release();
+  },
+  getVersion() {
+    return global.Config.version;
+  },
+  getPort() {
+    return global.Config.port;
+  },
+  getMagic() {
+    return global.Config.magic;
+  },
+};
 
 export default class TransportApi implements IHttpApi {
   private library: IScope;

@@ -1,6 +1,13 @@
 {
+  "version": "0.0.0",
   "packages": [
-    "packages/*"
+    "packages/base",
+    "packages/ed",
+    "packages/extendedJoi",
+    "packages/interfaces",
+    "packages/transaction-pool",
+    "packages/type-validation",
+    "packages/utils"
   ],
-  "version": "0.0.0"
+  "npmClient": "npm"
 }

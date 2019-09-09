@@ -1,8 +1,10 @@
 {
   "name": "@gny/transaction-pool",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
   },
   "keywords": [],
   "author": "",
