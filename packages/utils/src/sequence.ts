@@ -1,6 +1,6 @@
 import { queue } from 'async';
 import { TIMEOUT } from './constants';
-import { ISequence } from '../../packages/interfaces';
+import { ISequence } from '@gny/interfaces';
 
 function tick(task, cb) {
   let isCallbacked = false;
@@ -30,7 +30,7 @@ function tick(task, cb) {
   }
 }
 
-export default class Sequence implements ISequence {
+export class Sequence implements ISequence {
   private counter: number;
   private readonly name: string;
   private queue: AsyncQueue<any>;

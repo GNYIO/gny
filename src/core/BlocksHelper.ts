@@ -11,7 +11,7 @@ import { IState, ISimpleCache } from '../globalInterfaces';
 import { TransactionBase } from '../../packages/base/transactionBase';
 import { MAX_PAYLOAD_LENGTH } from '../../packages/utils/constants';
 import * as crypto from 'crypto';
-import Blockreward from '../../packages/utils/block-reward';
+import { Blockreward } from '../../packages/utils/block-reward';
 import { BlockBase } from '../../packages/base/blockBase';
 import { ConsensusBase } from '../../packages/base/consensusBase';
 import slots from '../../packages/utils/slots';

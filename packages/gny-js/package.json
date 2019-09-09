@@ -1,5 +1,6 @@
 {
   "name": "@gny/gny-js",
+  "private": true,
   "version": "1.4.2",
   "description": "GNY javascript library",
   "main": "index",

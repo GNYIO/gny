@@ -1,0 +1,21 @@
+{
+  "name": "@gny/interfaces",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@types/express": "^4.16.0",
+    "express": "^4.16.4",
+    "tracer": "^0.9.8"
+  }
+}

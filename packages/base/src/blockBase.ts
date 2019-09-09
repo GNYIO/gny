@@ -1,10 +1,10 @@
-import { IBlock, KeyPair } from '../../packages/interfaces';
+import { IBlock, KeyPair } from '@gny/interfaces';
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
-import * as ed from '../../packages/ed';
-import joi from '../../packages/extendedJoi';
+import * as ed from '@gny/ed';
+import { joi } from '@gny/extendedJoi';
 import { copyObject } from './helpers';
-import { TransactionBase } from '../../packages/base/transactionBase';
+import { TransactionBase } from './transactionBase';
 
 export class BlockBase {
   /***

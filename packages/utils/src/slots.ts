@@ -49,4 +49,4 @@ class Slots {
   }
 }
 
-export default new Slots();
+export const slots = new Slots();

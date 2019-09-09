@@ -1,5 +1,5 @@
 import * as express from 'express';
-import osInfo from '../../utils/osInfo';
+import { osInfo } from '../../utils/osInfo';
 import { Request, Response } from 'express';
 import {
   IScope,
@@ -13,7 +13,7 @@ import {
 import { TransactionBase } from '../../../packages/base/transactionBase';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
-import joi from '../../../packages/extendedJoi';
+import { joi } from '../../../packages/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';

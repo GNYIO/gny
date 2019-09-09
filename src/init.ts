@@ -3,11 +3,11 @@ import * as path from 'path';
 import * as os from 'os';
 import * as ip from 'ip';
 import * as _ from 'lodash';
-import Sequence from '../packages/utils/sequence';
+import { Sequence } from '../packages/utils/sequence';
 import { getSchema } from '../packages/utils/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
-import extendedJoi from '../packages/extendedJoi';
+import { joi } from '../packages/extendedJoi';
 import { IScope, IConfig } from '../packages/interfaces';
 import { IOptions } from './globalInterfaces';
 import { isConfig } from '../packages/type-validation';
@@ -60,7 +60,7 @@ async function init_alt(options: IOptions) {
   scope.logger = options.logger;
   scope.genesisBlock = genesisBlock;
 
-  scope.joi = extendedJoi;
+  scope.joi = joi;
 
   scope.sequence = sequence(options);
 

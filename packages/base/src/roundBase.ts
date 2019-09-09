@@ -1,4 +1,4 @@
-import slots from '../../packages/utils/slots';
+import { slots } from '@gny/utils';
 import BigNumber from 'bignumber.js';
 
 export class RoundBase {

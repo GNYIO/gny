@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
-import * as ed from '../../packages/ed';
+import * as ed from '@gny/ed';
 import * as assert from 'assert';
-import joi from '../../packages/extendedJoi';
+import { joi } from '@gny/extendedJoi';
 import * as ip from 'ip';
 import {
   IBlock,
@@ -11,8 +11,8 @@ import {
   Signature,
   BlockPropose,
   BlockHeightId,
-} from '../../packages/interfaces';
-import { DELEGATES } from '../../packages/utils/constants';
+} from '@gny/interfaces';
+import { DELEGATES } from '@gny/utils';
 
 export class ConsensusBase {
   private static calculateVoteHash(height: string, id: string) {

@@ -6,7 +6,7 @@ import {
   BlockPropose,
   ITransaction,
   IProtobuf,
-} from '../../packages/interfaces';
+} from '@gny/interfaces';
 
 export class Protobuf implements IProtobuf {
   public schema;

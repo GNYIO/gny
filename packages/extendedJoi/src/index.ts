@@ -1,5 +1,5 @@
 import * as bip39 from 'bip39';
-import { isAddress } from '../utils/address';
+import { isAddress } from '@gny/utils';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 
@@ -250,4 +250,4 @@ const stringExtensions: Joi.Extension = {
 
 const newJoi: ExtendedJoi = Joi.extend(stringExtensions);
 
-export default newJoi;
+export const joi = newJoi;

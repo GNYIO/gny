@@ -1,10 +1,5 @@
 import { EventEmitter } from 'events';
-import {
-  Modules,
-  CoreApi,
-  MethodActions,
-  IMessageBus,
-} from '../../packages/interfaces';
+import { Modules, CoreApi, MethodActions, IMessageBus } from '@gny/interfaces';
 
 export class MessageBus extends EventEmitter implements IMessageBus {
   private modules: Modules;

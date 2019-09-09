@@ -1,13 +1,13 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
-import * as ed from '../../packages/ed';
-import { KeyPair, IAccount } from '../../packages/interfaces';
+import * as ed from '@gny/ed';
+import { KeyPair, IAccount } from '@gny/interfaces';
 import { copyObject } from './helpers';
-import { ITransaction, Context } from '../../packages/interfaces';
-import slots from '../../packages/utils/slots';
-import feeCalculators from '../../packages/utils/calculate-fee';
-import * as addressHelper from '../../packages/utils/address';
-import joi from '../../packages/extendedJoi';
+import { ITransaction, Context } from '@gny/interfaces';
+import { slots } from '@gny/utils';
+import { feeCalculators } from '@gny/utils';
+import * as addressHelper from '@gny/utils';
+import { joi } from '@gny/extendedJoi';
 import BigNumber from 'bignumber.js';
 
 export interface CreateTransactionType {

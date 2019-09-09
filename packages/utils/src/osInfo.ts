@@ -1,6 +1,6 @@
 import * as os from 'os';
 
-export default {
+export const osInfo = {
   getOS() {
     return os.platform() + os.release();
   },

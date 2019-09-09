@@ -1,4 +1,4 @@
-import slots from '../../packages/utils/slots';
+import { slots } from '../../packages/utils/slots';
 import { TIMEOUT } from '../../packages/utils/constants';
 import {
   IGenesisBlock,
@@ -14,7 +14,7 @@ import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
-import joi from '../../packages/extendedJoi';
+import { joi } from '../../packages/extendedJoi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 

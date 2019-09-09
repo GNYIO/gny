@@ -1,11 +1,12 @@
 {
   "name": "gny",
+  "private": true,
   "version": "1.0.0",
   "description": "Decentralized machine learning on the blockchain",
   "main": "dist/app.js",
   "scripts": {
     "start": "cd dist/ && node app.js",
-    "tsc": "tsc; ts-node copyStaticAssets",
+    "tsc": "lerna run tsc",
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",
@@ -46,6 +47,7 @@
   },
   "homepage": "https://github.com/GNYIO/gny-experiment#readme",
   "dependencies": {
+    "@gny/base": "1.0.0",
     "@nodeutils/defaults-deep": "^1.1.0",
     "@polkadot/ts": "git+https://github.com/a1300/ts.git",
     "@types/async": "^1.4.29",
@@ -72,8 +74,8 @@
     "axios": "^0.19.0",
     "babel-eslint": "^9.0.0",
     "benchmark": "^2.1.4",
-    "bignumber.js": "^8.0.1",
-    "bip39": "^2.5.0",
+    "bignumber.js": "^8.1.1",
+    "bip39": "^2.6.0",
     "body-parser": "=1.18.3",
     "bs58": "^3.0.0",
     "bytebuffer": "=5.0.1",

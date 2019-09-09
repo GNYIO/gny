@@ -1,0 +1,21 @@
+{
+  "name": "@gny/ed",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "sodium": "^3.0.2"
+  }
+}

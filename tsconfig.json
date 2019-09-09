@@ -59,21 +59,20 @@
     "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
     "strictFunctionTypes": true,
-    "strictBindCallApply": true,
+    "strictBindCallApply": true
   },
   "exclude": [
     "node_modules",
     "dist",
     "src/utils/validator/*.js",
-    "packages/gny-js"
+    "packages/**/*[.ts|.js]",
+    "packages/*[.ts|.js]"
   ],
   "include": [
     "src/**/*[.ts|.js]",
     "src/*[.ts|.js]",
-    "packages/**/*[.ts|.js]",
-    "packages/*[.ts|.js]",
     "app.ts",
     "index.ts",
     "test/**/*.ts"
-  ],
+  ]
 }

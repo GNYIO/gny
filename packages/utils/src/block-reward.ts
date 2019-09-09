@@ -2,7 +2,7 @@ import { BigNumber } from 'bignumber.js';
 import { REWARDS, INITIAL_AMOUNT } from './constants';
 import * as _ from 'lodash';
 
-export default class BlockReward {
+export class BlockReward {
   public distance: number;
   public rewardOffset: number;
 

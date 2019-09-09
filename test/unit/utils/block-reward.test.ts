@@ -1,4 +1,4 @@
-import BlockReward from '../../../packages/utils/block-reward';
+import { BlockReward } from '../../../packages/utils/block-reward';
 import { BigNumber } from 'bignumber.js';
 
 function range(start: number, end: number) {

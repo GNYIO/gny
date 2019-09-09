@@ -1,5 +1,5 @@
 import { api as sodium } from 'sodium';
-import { KeyPair } from '../../packages/interfaces';
+import { KeyPair } from '@gny/interfaces';
 
 export interface KeyPair {
   publicKey: Buffer;

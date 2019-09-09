@@ -6,8 +6,6 @@ import * as express from 'express';
 import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
-import { ExtendedJoi } from '../../packages/extendedJoi';
-
 declare interface IBase {
   bus: IMessageBus;
   genesisBlock: IGenesisBlock;
@@ -25,7 +23,7 @@ export interface IProtobuf {
 }
 
 export interface ISequence {
-  add(worker, args?, cb?): void;
+  add(worker: any, args?: any, cb?: any): void;
   count(): number;
 }
 
@@ -40,7 +38,6 @@ export interface IScope {
   config: IConfig;
   logger: ILogger;
   genesisBlock: IGenesisBlock;
-  joi: ExtendedJoi;
   network: INetwork;
   sequence: ISequence;
   base: IBase;

@@ -12,7 +12,7 @@ import { Block as BlockModel } from '../../../packages/database-postgres/entity/
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../packages/utils/address';
 import * as ed from '../../../packages/ed';
-import slots from '../../../packages/utils/slots';
+import { slots } from '../../../packages/utils/slots';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../src/core/StateHelper';
