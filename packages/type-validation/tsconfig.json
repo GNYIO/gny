@@ -8,6 +8,7 @@
       "es2017"
     ],
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "strict": false, // TODO: change
     "outDir": "./dist"
