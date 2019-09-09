@@ -10,8 +10,8 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index",
-  "types": "dist/index",
+  "main": "dist/src/smartDB",
+  "types": "dist/src/smartDB",
   "dependencies": {
     "@gny/interfaces": "1.0.0",
     "@types/lodash": "^4.14.138",
