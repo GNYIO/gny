@@ -1,6 +1,6 @@
 import { createConnection } from 'typeorm';
 import { OrmLogger } from './ormLogger';
-import { ILogger } from '../../../../packages/interfaces';
+import { ILogger } from '@gny/interfaces';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { SqljsConnectionOptions } from 'typeorm/driver/sqljs/SqljsConnectionOptions';
 

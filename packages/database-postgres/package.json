@@ -1,0 +1,26 @@
+{
+  "name": "@gny/database-postgres",
+  "version": "1.0.0",
+  "devDependencies": {},
+  "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "@types/lodash": "^4.14.138",
+    "@types/lru-cache": "^5.1.0",
+    "bignumber.js": "^8.1.1",
+    "json-sql": "^0.4.11",
+    "lodash": "^4.17.15",
+    "lru-cache": "^5.1.1",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.18"
+  }
+}

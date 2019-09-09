@@ -1,4 +1,4 @@
-import { ILogger } from '../../../packages/interfaces';
+import { ILogger } from '@gny/interfaces';
 
 export class LoggerWrapper {
   private name: string;
