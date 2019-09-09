@@ -310,12 +310,6 @@ export class DbSession {
     this.confirmedLocks.clear();
   }
 
-  private confirmLocks() {
-    this.unconfirmedLocks.forEach(e => {
-      return this.confirmedLocks.add(e);
-    });
-  }
-
   public lockInThisSession(lockname: string, option = false) {
     if (
       !(
@@ -354,6 +348,7 @@ export class DbSession {
     try {
       for (let i = 0; i < value.length; ++i) {
         const one = value[i];
+        // @ts-ignore
         const params = Array.from(one.parameters || []);
         await queryRunner.query(one.query, params);
       }
@@ -385,7 +380,6 @@ export class DbSession {
     const rollbackSql = await this.trackerSqlBuilder.buildRollbackChangeSqls(
       new BigNumber(height).plus(1).toFixed()
     );
-    // const transaction = await this.connection.beginTrans();
 
     const queryRunner = await this.connection.createQueryRunner();
     await queryRunner.connect();
@@ -483,10 +477,6 @@ export class DbSession {
     this.entityTracker.trackDelete(schema, tracked);
   }
 
-  private async beginTransaction() {
-    return await this.connection.beginTrans();
-  }
-
   public beginEntityTransaction() {
     this.entityTracker.beginConfirm();
   }
@@ -567,10 +557,6 @@ export class DbSession {
       .where('t.height = :height', { height })
       .getMany();
     return trans;
-  }
-
-  private get isOpen() {
-    return this.connection && this.connection.isConnected;
   }
 
   private static setToString(locks: Set<string>) {

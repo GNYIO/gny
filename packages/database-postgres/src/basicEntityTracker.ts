@@ -92,6 +92,7 @@ export class BasicEntityTracker {
     return JSON.stringify(b);
   }
 
+  // @ts-ignore
   private splitModelAndKey(modelAndKey: string) {
     const params = JSON.parse(modelAndKey);
     return {
@@ -100,11 +101,13 @@ export class BasicEntityTracker {
     };
   }
 
+  // @ts-ignore
   private isTracking(schema: ModelSchema, key) {
     const uniqueSchemaKeyString = this.makeModelAndKey(schema, key);
     return this.allTrackingEntities.has(uniqueSchemaKeyString);
   }
 
+  // @ts-ignore
   private buildTrackingEntity(
     model: ModelSchema,
     data: ObjectLiteral,
@@ -125,6 +128,7 @@ export class BasicEntityTracker {
     }
   }
 
+  // @ts-ignore
   private getTracking(schema: ModelSchema, primaryKey: ObjectLiteral) {
     const info = this.getTrackingEntity(schema, primaryKey);
     if (undefined === info) {

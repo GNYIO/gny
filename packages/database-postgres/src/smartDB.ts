@@ -339,6 +339,7 @@ export class SmartDB extends EventEmitter {
       this.log.info('SUCCESS commitBlock height = ' + this.lastBlockHeight);
       return this.lastBlockHeight;
     } catch (err) {
+      // @ts-ignore
       this.log.error(
         'FAILD commitBlock ( height = ' + this.currentBlock.height + ' )',
         err
@@ -427,6 +428,7 @@ export class SmartDB extends EventEmitter {
     const schema = this.getSchema(model, true);
     const result = await this.load<T>(
       model,
+      // @ts-ignore
       schema.getNormalizedPrimaryKey(entity)
     );
     return {
@@ -770,6 +772,7 @@ export class SmartDB extends EventEmitter {
       const trans = await this.blockSession.getTransactionsByBlockHeight(
         blocks[i].height
       );
+      // @ts-ignore
       blocks[i].transactions = trans || [];
     }
     return blocks;

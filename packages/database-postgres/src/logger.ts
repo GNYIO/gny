@@ -9,26 +9,28 @@ export class LoggerWrapper {
     }
     this.name = name;
     this.logger = logger;
+
+    this.log = this.log.bind(this);
   }
-  log(message) {
+  log(...message: any[]) {
     this.logger.log(`[${this.name}] ${message}`);
   }
-  trace(message) {
+  trace(...message: any[]) {
     this.logger.trace(`[${this.name}] ${message}`);
   }
-  debug(message) {
+  debug(...message: any[]) {
     this.logger.debug(`[${this.name}] ${message}`);
   }
-  info(message) {
+  info(...message: any[]) {
     this.logger.info(`[${this.name}] ${message}`);
   }
-  warn(message) {
+  warn(...message: any[]) {
     this.logger.warn(`[${this.name}] ${message}`);
   }
-  error(message) {
+  error(...message: any[]) {
     this.logger.error(`[${this.name}] ${message}`);
   }
-  fatal(message) {
+  fatal(...message: any[]) {
     this.logger.fatal(`[${this.name}] ${message}`);
   }
 }
