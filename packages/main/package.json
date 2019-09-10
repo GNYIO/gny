@@ -19,6 +19,7 @@
     "@gny/utils": "1.0.0",
     "@gny/ed": "1.0.0",
     "@gny/interfaces": "1.0.0",
+    "@gny/logger": "1.0.0",
     "@types/ip": "0.0.32",
     "bignumber.js": "^8.1.1",
     "commander": "^2.19.0",

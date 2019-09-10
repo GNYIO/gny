@@ -1,6 +1,6 @@
 import * as tracer from 'tracer';
 import * as fs from 'fs';
-import { ILogger } from '../../packages/interfaces';
+import { ILogger } from '@gny/interfaces';
 
 export enum LogLevel {
   log = 0,

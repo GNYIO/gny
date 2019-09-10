@@ -10,7 +10,8 @@
     "packages/transaction-pool",
     "packages/type-validation",
     "packages/utils",
-    "packages/p2p"
+    "packages/p2p",
+    "packages/logger"
   ],
   "npmClient": "npm"
 }

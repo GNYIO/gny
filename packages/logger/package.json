@@ -1,0 +1,20 @@
+{
+  "name": "@gny/logger",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "tracer": "^0.9.8"
+  }
+}

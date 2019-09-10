@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as ip from 'ip';
 import daemon = require('daemon');
-import { createLogger, LogLevel } from './packages/logger/logger';
+import { createLogger, LogLevel } from '@gny/logger';
 
 import Application from './index';
 import * as packageJson from '../package.json';
