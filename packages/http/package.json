@@ -1,0 +1,23 @@
+{
+  "name": "@gny/http",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/ed": "1.0.0",
+    "@types/express": "^4.16.0",
+    "bip39": "^2.6.0",
+    "express": "^4.16.4"
+  }
+}

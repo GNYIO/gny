@@ -1,16 +1,11 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import {
-  IScope,
-  Next,
-  ITransfer,
-  IHttpApi,
-} from '../../../packages/interfaces';
+import { IScope, Next, ITransfer, IHttpApi } from '@gny/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { Transfer } from '../../database-postgres/entity/Transfer';
-import { Transaction } from '../../database-postgres/entity/Transaction';
-import { Asset } from '../../database-postgres/entity/Asset';
+import { Transfer } from '@gny/database-postgres';
+import { Transaction } from '@gny/database-postgres';
+import { Asset } from '@gny/database-postgres';
 
 export default class TransfersApi implements IHttpApi {
   private library: IScope;

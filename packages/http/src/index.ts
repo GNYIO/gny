@@ -8,9 +8,9 @@ import * as cors from 'cors';
 import * as bodyParser from 'body-parser';
 import * as methodOverride from 'method-override';
 import * as ip from 'ip';
-import { slots } from '../../packages/utils/slots';
+import { slots } from '@gny/utils';
 import queryParser from './express-query-int';
-import { IConfig, Modules, ILogger } from '../../packages/interfaces';
+import { IConfig, Modules, ILogger } from '@gny/interfaces';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 

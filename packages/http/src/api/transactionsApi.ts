@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import * as ed from '../../../packages/ed';
+import * as ed from '@gny/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
@@ -9,11 +9,11 @@ import {
   ITransaction,
   IBlock,
   IHttpApi,
-} from '../../../packages/interfaces';
-import { TransactionBase } from '../../../packages/base/transactionBase';
+} from '@gny/interfaces';
+import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
-import { Transaction } from '../../database-postgres/entity/Transaction';
+import { Transaction } from '@gny/database-postgres';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;

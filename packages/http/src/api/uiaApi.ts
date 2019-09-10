@@ -1,11 +1,11 @@
-import * as addressHelper from '../../../packages/utils/address';
+import { isAddress } from '@gny/utils';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IIssuer, IHttpApi } from '../../../packages/interfaces';
+import { IScope, Next, IIssuer, IHttpApi } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { Issuer } from '../../database-postgres/entity/Issuer';
-import { Asset } from '../../database-postgres/entity/Asset';
-import { Balance } from '../../database-postgres/entity/Balance';
+import { Issuer } from '@gny/database-postgres';
+import { Asset } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
 
 export default class UiaApi implements IHttpApi {
   private library: IScope;
@@ -125,7 +125,7 @@ export default class UiaApi implements IHttpApi {
 
     const name: string = query.name;
     try {
-      if (addressHelper.isAddress(name)) {
+      if (isAddress(name)) {
         const issuer: IIssuer = await global.app.sdb.findOne<Issuer>(Issuer, {
           condition: { issuerId: name },
         });

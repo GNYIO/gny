@@ -1,4 +1,4 @@
-import * as ed from '../../../packages/ed';
+import * as ed from '@gny/ed';
 import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
@@ -8,7 +8,7 @@ import {
   DelegateViewModel,
   IBalance,
   IHttpApi,
-} from '../../../packages/interfaces';
+} from '@gny/interfaces';
 import {
   generateAddressByPublicKey,
   getAccountByName,

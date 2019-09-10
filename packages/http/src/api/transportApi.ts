@@ -9,11 +9,11 @@ import {
   IBlock,
   CommonBlockResult,
   IHttpApi,
-} from '../../../packages/interfaces';
-import { TransactionBase } from '../../../packages/base/transactionBase';
+} from '@gny/interfaces';
+import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
-import { joi } from '../../../packages/extendedJoi';
+import { joi } from '@gny/extendedJoi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';

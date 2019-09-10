@@ -1,19 +1,14 @@
-import * as ed from '../../../packages/ed';
+import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import {
-  IScope,
-  Next,
-  DelegateViewModel,
-  IHttpApi,
-} from '../../../packages/interfaces';
-import { BlockReward } from '../../../packages/utils/block-reward';
+import { IScope, Next, DelegateViewModel, IHttpApi } from '@gny/interfaces';
+import { BlockReward } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
-import { Vote } from '../../database-postgres/entity/Vote';
-import { Account } from '../../database-postgres/entity/Account';
-import { Delegate } from '../../database-postgres/entity/Delegate';
+import { Vote } from '@gny/database-postgres';
+import { Account } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;

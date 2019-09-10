@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { BlockReward } from '../../../packages/utils/block-reward';
-import { IScope, Next, IBlock, IHttpApi } from '../../../packages/interfaces';
+import { BlockReward } from '@gny/utils';
+import { IScope, Next, IBlock, IHttpApi } from '@gny/interfaces';
 import { Request, Response, Router } from 'express';
-import { BlockBase } from '../../../packages/base/blockBase';
+import { BlockBase } from '@gny/base';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
