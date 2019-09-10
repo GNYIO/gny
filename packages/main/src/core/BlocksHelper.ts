@@ -6,20 +6,20 @@ import {
   IConfig,
   NewBlockMessage,
   ILogger,
-} from '../../packages/interfaces';
+} from '@gny/interfaces';
 import { IState, ISimpleCache } from '../globalInterfaces';
-import { TransactionBase } from '../../packages/base/transactionBase';
-import { MAX_PAYLOAD_LENGTH } from '../../packages/utils/constants';
+import { TransactionBase } from '@gny/base';
+import { MAX_PAYLOAD_LENGTH } from '@gny/utils';
 import * as crypto from 'crypto';
-import { Blockreward } from '../../packages/utils/block-reward';
-import { BlockBase } from '../../packages/base/blockBase';
-import { ConsensusBase } from '../../packages/base/consensusBase';
-import slots from '../../packages/utils/slots';
-import { copyObject } from '../../packages/base/helpers';
+import { Blockreward } from '@gny/utils';
+import { BlockBase } from '@gny/base';
+import { ConsensusBase } from '@gny/base';
+import { slots } from '@gny/utils';
+import { copyObject } from '@gny/base';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
-import { Block } from '../../packages/database-postgres/entity/Block';
-import { Transaction } from '../../packages/database-postgres/entity/Transaction';
+import { Block } from '@gny/database-postgres';
+import { Transaction } from '@gny/database-postgres';
 
 const blockreward = new Blockreward();
 

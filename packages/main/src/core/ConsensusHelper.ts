@@ -1,8 +1,8 @@
-import { ManyVotes, IBlock } from '../../packages/interfaces';
+import { ManyVotes, IBlock } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
-import { ConsensusBase } from '../../packages/base/consensusBase';
-import { slots } from '../../packages/utils/slots';
-import { copyObject } from '../../packages/base/helpers';
+import { ConsensusBase } from '@gny/base';
+import { slots } from '@gny/utils';
+import { copyObject } from '@gny/base';
 import { StateHelper } from './StateHelper';
 
 export class ConsensusHelper {

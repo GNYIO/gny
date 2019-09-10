@@ -3,17 +3,17 @@ import * as path from 'path';
 import * as os from 'os';
 import * as ip from 'ip';
 import * as _ from 'lodash';
-import { Sequence } from '../packages/utils/sequence';
-import { getSchema } from '../packages/utils/protobuf';
+import { Sequence } from '@gny/utils';
+import { getSchema } from '@gny/utils';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
-import { joi } from '../packages/extendedJoi';
-import { IScope, IConfig } from '../packages/interfaces';
+import { joi } from '@gny/extendedJoi';
+import { IScope, IConfig } from '@gny/interfaces';
 import { IOptions } from './globalInterfaces';
-import { isConfig } from '../packages/type-validation';
-import { MessageBus } from '../packages/utils/messageBus';
+import { isConfig } from '@gny/type-validation';
+import { MessageBus } from '@gny/utils';
 
-import initNetwork from '../packages/http/index';
+import initNetwork from '../../../packages/http/index';
 
 function getPublicIp() {
   let publicIp;

@@ -9,14 +9,11 @@ import {
   IBlock,
   BlockAndVotes,
   ICoreModule,
-} from '../../packages/interfaces';
-import { BlockBase } from '../../packages/base/blockBase';
-import { ConsensusBase } from '../../packages/base/consensusBase';
-import { TransactionBase } from '../../packages/base/transactionBase';
-import {
-  isBlockPropose,
-  isNewBlockMessage,
-} from '../../packages/type-validation';
+} from '@gny/interfaces';
+import { BlockBase } from '@gny/base';
+import { ConsensusBase } from '@gny/base';
+import { TransactionBase } from '@gny/base';
+import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';

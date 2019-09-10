@@ -1,4 +1,4 @@
-import { IBlock, PeerNode } from '../../packages/interfaces';
+import { IBlock, PeerNode } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import { BigNumber } from 'bignumber.js';
 

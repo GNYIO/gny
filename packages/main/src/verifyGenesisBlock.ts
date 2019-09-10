@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import * as crypto from 'crypto';
-import { TransactionBase } from '../packages/base/transactionBase';
-import { BlockBase } from '../packages/base/blockBase';
-import { IGenesisBlock } from '../packages/interfaces';
+import { TransactionBase } from '@gny/base';
+import { BlockBase } from '@gny/base';
+import { IGenesisBlock } from '@gny/interfaces';
 
 export function verifyGenesisBlock(block: IGenesisBlock) {
   try {

@@ -12,8 +12,8 @@ import {
   BlockPropose,
   Modules,
   KeyPairsIndexer,
-} from '../packages/interfaces';
-import { SmartDB } from '../packages/database-postgres/src/smartDB';
+} from '@gny/interfaces';
+import { SmartDB } from '@gny/database-postgres';
 import { EventEmitter } from 'events';
 import BalanceManager from './smartdb/balance-manager';
 import * as LRU from 'lru-cache';

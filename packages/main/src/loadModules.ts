@@ -5,7 +5,7 @@ import Transport from './core/transport';
 import Delegates from './core/delegates';
 import Blocks from './core/blocks';
 
-import { Modules } from './interfaces';
+import { Modules } from '@gny/interfaces';
 
 export default function loadModules() {
   const modules: Modules = {

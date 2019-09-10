@@ -1,20 +1,20 @@
-import { slots } from '../../packages/utils/slots';
-import { TIMEOUT } from '../../packages/utils/constants';
+import { slots } from '@gny/utils';
+import { TIMEOUT } from '@gny/utils';
 import {
   IGenesisBlock,
   PeerNode,
   IBlock,
   ITransaction,
   ICoreModule,
-} from '../../packages/interfaces';
-import { TransactionBase } from '../../packages/base/transactionBase';
+} from '@gny/interfaces';
+import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from './BlocksHelper';
-import { isPeerNode } from '../../packages/type-validation';
+import { isPeerNode } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
-import { joi } from '../../packages/extendedJoi';
+import { joi } from '@gny/extendedJoi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 

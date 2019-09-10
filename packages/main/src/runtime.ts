@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { SmartDB } from '../packages/database-postgres/src/smartDB';
+import { SmartDB } from '@gny/database-postgres';
 import BalanceManager from './smartdb/balance-manager';
 import loadContracts from './loadContracts';
 

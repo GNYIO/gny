@@ -1,6 +1,6 @@
-import { SmartDB } from '../../packages/database-postgres/src/smartDB';
-import { IBalance } from '../../packages/interfaces';
-import { Balance } from '../../packages/database-postgres/entity/Balance';
+import { SmartDB } from '@gny/database-postgres';
+import { IBalance } from '@gny/interfaces';
+import { Balance } from '@gny/database-postgres';
 import BigNumber from 'bignumber.js';
 function getCurrencyFlag(currency: string) {
   if (currency === 'GNY') {

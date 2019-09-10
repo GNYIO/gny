@@ -4,10 +4,10 @@ import * as Database from 'nedb';
 import {
   createPeerInfoArgs,
   createFromJSON,
-} from '../../packages/p2p/createPeerInfo';
-import { Bundle } from '../../packages/p2p/bundle';
-import { PeerNode, ICoreModule } from '../../packages/interfaces';
-import { attachEventHandlers } from '../../packages/p2p/util';
+} from '../../../../packages/p2p/createPeerInfo';
+import { Bundle } from '../../../../packages/p2p/bundle';
+import { PeerNode, ICoreModule } from '@gny/interfaces';
+import { attachEventHandlers } from '../../../../packages/p2p/util';
 
 export default class Peer implements ICoreModule {
   private static nodesDb: Database = undefined; // TODO: refactor

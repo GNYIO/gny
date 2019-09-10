@@ -4,12 +4,12 @@ import {
   NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
-} from '../../packages/interfaces';
+} from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
-import { TransactionPool } from '../../packages/transaction-pool';
-import { LimitCache } from '../../packages/utils/limit-cache';
+import { TransactionPool } from '@gny/transaction-pool';
+import { LimitCache } from '@gny/utils';
 import * as LRU from 'lru-cache';
-import { copyObject } from '../../packages/base/helpers';
+import { copyObject } from '@gny/base';
 
 export class StateHelper {
   // state management

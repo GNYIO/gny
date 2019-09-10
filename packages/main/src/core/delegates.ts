@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
-import * as ed from '../../packages/ed';
-import { slots } from '../../packages/utils/slots';
-import { BlockReward } from '../../packages/utils/block-reward';
+import * as ed from '@gny/ed';
+import { slots } from '@gny/utils';
+import { BlockReward } from '@gny/utils';
 import {
   KeyPairsIndexer,
   KeyPair,
@@ -13,15 +13,15 @@ import {
   IBlock,
   IVariable,
   ICoreModule,
-} from '../../packages/interfaces';
+} from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
-import { RoundBase } from '../../packages/base/roundBase';
+import { RoundBase } from '@gny/base';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
-import { Variable } from '../../packages/database-postgres/entity/Variable';
-import { Delegate } from '../../packages/database-postgres/entity/Delegate';
+import { Variable } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
 
 const blockreward = new BlockReward();
 

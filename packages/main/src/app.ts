@@ -6,8 +6,8 @@ import daemon = require('daemon');
 import { createLogger, LogLevel } from './packages/logger/logger';
 
 import Application from './index';
-import * as packageJson from './package.json';
-import { IConfig, IGenesisBlock } from './packages/interfaces';
+import * as packageJson from '../package.json';
+import { IConfig, IGenesisBlock } from '@gny/interfaces';
 
 const version = packageJson.version;
 

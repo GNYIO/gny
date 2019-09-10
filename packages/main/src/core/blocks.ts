@@ -1,7 +1,7 @@
 import async = require('async');
-import { MAX_TXS_PER_BLOCK } from '../../packages/utils/constants';
-import addressHelper = require('../../packages/utils/address');
-import { Blockreward } from '../../packages/utils/block-reward';
+import { MAX_TXS_PER_BLOCK } from '@gny/utils';
+import { generateAddress } from '@gny/utils';
+import { Blockreward } from '@gny/utils';
 import {
   KeyPair,
   IGenesisBlock,
@@ -16,18 +16,18 @@ import {
   CommonBlockResult,
   IRound,
   ICoreModule,
-} from '../../packages/interfaces';
+} from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
-import { BlockBase } from '../../packages/base/blockBase';
-import { TransactionBase } from '../../packages/base/transactionBase';
-import { ConsensusBase } from '../../packages/base/consensusBase';
-import { RoundBase } from '../../packages/base/roundBase';
+import { BlockBase } from '@gny/base';
+import { TransactionBase } from '@gny/base';
+import { ConsensusBase } from '@gny/base';
+import { RoundBase } from '@gny/base';
 import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
 } from './BlocksHelper';
-import { Block } from '../../packages/database-postgres/entity/Block';
+import { Block } from '@gny/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
@@ -36,10 +36,10 @@ import Delegates from './delegates';
 import Loader from './loader';
 import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
-import { Transaction } from '../../packages/database-postgres/entity/Transaction';
-import { Round } from '../../packages/database-postgres/entity/Round';
-import { Delegate } from '../../packages/database-postgres/entity/Delegate';
-import { Account } from '../../packages/database-postgres/entity/Account';
+import { Transaction } from '@gny/database-postgres';
+import { Round } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
+import { Account } from '@gny/database-postgres';
 
 const blockreward = new Blockreward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -360,7 +360,7 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
-    const address = addressHelper.generateAddress(block.delegate);
+    const address = generateAddress(block.delegate);
     await global.app.sdb.increase<Delegate>(
       Delegate,
       { producedBlocks: String(1) },
@@ -406,7 +406,7 @@ export default class Blocks implements ICoreModule {
     );
     for (let i = 0; i < missedDelegates.length; ++i) {
       const md = missedDelegates[i];
-      const adr = addressHelper.generateAddress(md);
+      const adr = generateAddress(md);
       await global.app.sdb.increase<Delegate>(
         Delegate,
         { missedBlocks: String(1) },
@@ -419,7 +419,7 @@ export default class Blocks implements ICoreModule {
       fee: string,
       reward: string
     ) {
-      const delegateAdr = addressHelper.generateAddress(publicKey);
+      const delegateAdr = generateAddress(publicKey);
       await global.app.sdb.increase<Delegate>(
         Delegate,
         {

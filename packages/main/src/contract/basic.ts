@@ -1,15 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import {
-  IAccount,
-  ITransfer,
-  IDelegate,
-  Context,
-} from '../../packages/interfaces';
-import { Vote } from '../../packages/database-postgres/entity/Vote';
-import { Account } from '../../packages/database-postgres/entity/Account';
-import { Delegate } from '../../packages/database-postgres/entity/Delegate';
-import { Transfer } from '../../packages/database-postgres/entity/Transfer';
-import { isAddress } from '../../packages/utils/address';
+import { IAccount, ITransfer, IDelegate, Context } from '@gny/interfaces';
+import { Vote } from '@gny/database-postgres';
+import { Account } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
+import { Transfer } from '@gny/database-postgres';
+import { isAddress } from '@gny/utils';
 
 async function deleteCreatedVotes(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {

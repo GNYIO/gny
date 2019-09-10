@@ -1,16 +1,11 @@
-import {
-  ITransaction,
-  Context,
-  IAccount,
-  ICoreModule,
-} from '../../packages/interfaces';
+import { ITransaction, Context, IAccount, ICoreModule } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
-import { TransactionBase } from '../../packages/base/transactionBase';
+import { TransactionBase } from '@gny/base';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
-import { Account } from '../../packages/database-postgres/entity/Account';
-import { Transaction } from '../../packages/database-postgres/entity/Transaction';
-import { isAddress } from '../../packages/utils/address';
+import { Account } from '@gny/database-postgres';
+import { Transaction } from '@gny/database-postgres';
+import { isAddress } from '@gny/utils';
 
 export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactions = (
