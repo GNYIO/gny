@@ -30,7 +30,6 @@ describe('smartDB.del', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -120,7 +119,7 @@ describe('smartDB.del', () => {
     done();
   });
 
-  it('del() - delet unique key (memory model)', async done => {
+  it('del() - delete by unique key (memory model)', async done => {
     await saveGenesisBlock(sut);
 
     const delegate = {

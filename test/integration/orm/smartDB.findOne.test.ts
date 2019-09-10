@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { FindAllOptions } from '../../../packages/database-postgres/searchTypes';
+import { FindOneOptions } from '../../../packages/database-postgres/searchTypes';
 import {
   saveGenesisBlock,
   createBlock,
@@ -35,7 +35,6 @@ describe('smartDB.findOne', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -59,7 +58,7 @@ describe('smartDB.findOne', () => {
     await saveGenesisBlock(sut);
 
     // satisfy compiler
-    const wrongParams = undefined as FindAllOptions<Account>;
+    const wrongParams = undefined as FindOneOptions<Account>;
 
     const resultPromise = sut.findOne<Account>(Account, wrongParams);
     return expect(resultPromise).rejects.toThrowError(
@@ -73,7 +72,7 @@ describe('smartDB.findOne', () => {
     // satisfy compiler by first casting to "unknown"
     const wrongCondition = ({
       address: 'G49TFUujviHc8FxBc14pj7X7CJTLH',
-    } as unknown) as FindAllOptions<Account>;
+    } as unknown) as FindOneOptions<Account>;
 
     const resultPromise = sut.findOne<Account>(Account, wrongCondition);
 
@@ -271,5 +270,18 @@ describe('smartDB.findOne', () => {
         'many entities found ( model = \'Balance\' , params = \'{"condition":{"address":"G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN"}}\' )'
       )
     );
+  });
+
+  it('findOne() - returns undefined when no entity is found', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G2AA8KFjYGSWN6MWH3wNspA43oSSD',
+      },
+    });
+    expect(result).toBeUndefined();
+
+    done();
   });
 });

@@ -26,7 +26,6 @@ describe('smartDB.getBlocksByHeightRange()', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -238,4 +237,13 @@ describe('smartDB.getBlocksByHeightRange()', () => {
 
     return expect(resultPromise).rejects.toThrow();
   }, 5000);
+
+  it('getBlocksByHeightRange() - returns empty array if no blocks were found in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.getBlocksByHeightRange(String(100), String(200));
+    expect(result).toEqual([]);
+
+    done();
+  });
 });

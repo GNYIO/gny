@@ -65,7 +65,6 @@ export default async function runtime(options: IOptions) {
   global.app.sdb = new SmartDB(options.logger, {
     configRaw: options.appConfig.ormConfigRaw,
     cachedBlockCount: 10,
-    maxBlockHistoryHold: 10,
   });
   await global.app.sdb.init();
   global.app.balances = new BalanceManager(global.app.sdb);

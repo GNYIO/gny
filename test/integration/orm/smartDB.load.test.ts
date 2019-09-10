@@ -28,7 +28,6 @@ describe('smartDB.load()', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -159,7 +158,6 @@ describe('smartDB.load()', () => {
       await lib.sleep(10 * 1000);
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -258,7 +256,6 @@ describe('smartDB.load()', () => {
       await lib.sleep(10 * 1000);
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -285,4 +282,15 @@ describe('smartDB.load()', () => {
     },
     lib.oneMinute
   );
+
+  it('load() - returns undefined when entity is not found in cache and not found in db', async done => {
+    await saveGenesisBlock(sut);
+
+    const result = await sut.load<Account>(Account, {
+      address: 'G3wzRRCWnPX4MCUjTkWBxjbqVSXLL',
+    });
+    expect(result).toBeUndefined();
+
+    done();
+  });
 });

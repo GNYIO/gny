@@ -5,7 +5,6 @@ import { ModelIndex } from './defaultEntityUniqueIndex';
 import { UniquedCache } from './uniquedCache';
 import * as CodeContract from './codeContract';
 import { isString } from 'util';
-import { toArray } from './helpers/index';
 
 export interface PropertyValue {
   name: string;
@@ -183,10 +182,10 @@ export class LRUEntityCache {
   public getAll(model: string) {
     // TODO: checkout
     const result = [];
-    const keys = this.getModelCache(model);
-    if (undefined !== keys) {
-      keys.forEach(function(err) {
-        result.push(err);
+    const cache = this.getModelCache(model);
+    if (undefined !== cache) {
+      cache.forEach(function(one) {
+        result.push(one);
       });
       return result;
     }
@@ -218,9 +217,9 @@ export class LRUEntityCache {
     const key = this.getCacheKey(id);
     this.log.trace('evit cache, model = ' + model + ', key = ' + key);
 
-    const elements = this.getModelCache(model);
-    if (elements) {
-      elements.evit(key);
+    const cache = this.getModelCache(model);
+    if (cache) {
+      cache.evit(key);
     }
   }
 

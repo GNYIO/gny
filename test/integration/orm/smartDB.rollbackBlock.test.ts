@@ -40,7 +40,6 @@ describe('SmartDB.rollbackBlock()', () => {
       await lib.spawnPostgres();
       sut = new SmartDB(logger, {
         cachedBlockCount: 10,
-        maxBlockHistoryHold: 10,
         configRaw: configRaw,
       });
       await sut.init();
@@ -120,7 +119,6 @@ describe('SmartDB.rollbackBlock()', () => {
 
   it.skip('rollbackBlock() - to previous block (but not cached)', async done => {
     const options: SmartDBOptions = {
-      maxBlockHistoryHold: 1,
       cachedBlockCount: 10, // to prevent errors
     };
     const customSut = new SmartDB(logger, options);
