@@ -1,10 +1,6 @@
 import * as libp2p from 'libp2p';
 import { extractIpAndPort } from './util';
-import {
-  ILogger,
-  P2PMessage,
-  P2PSubscribeHandler,
-} from '../../packages/interfaces';
+import { ILogger, P2PMessage, P2PSubscribeHandler } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
 const Bootstrap = require('libp2p-bootstrap');

@@ -48,7 +48,6 @@
   },
   "homepage": "https://github.com/GNYIO/gny-experiment#readme",
   "dependencies": {
-    "@gny/base": "1.0.0",
     "@nodeutils/defaults-deep": "^1.1.0",
     "@polkadot/ts": "git+https://github.com/a1300/ts.git",
     "@types/async": "^1.4.29",
@@ -67,7 +66,6 @@
     "@types/lru-cache": "^5.1.0",
     "@types/method-override": "=0.0.31",
     "@types/nedb": "=1.8.6",
-    "@types/node": "^10.9.4",
     "@types/pg": "^7.4.14",
     "@types/shelljs": "=0.8.1",
     "@types/socket.io": "=1.4.40",

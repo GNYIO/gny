@@ -9,7 +9,8 @@
     "packages/interfaces",
     "packages/transaction-pool",
     "packages/type-validation",
-    "packages/utils"
+    "packages/utils",
+    "packages/p2p"
   ],
   "npmClient": "npm"
 }
