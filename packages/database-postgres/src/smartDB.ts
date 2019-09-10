@@ -25,6 +25,19 @@ import {
 import { RequireAtLeastOne } from 'type-fest';
 import { Transaction } from '../entity/Transaction';
 
+export * from '../entity/Account';
+export * from '../entity/Asset';
+export * from '../entity/Balance';
+export * from '../entity/Block';
+export * from '../entity/BlockHistory';
+export * from '../entity/Delegate';
+export * from '../entity/Issuer';
+export * from '../entity/Round';
+export * from '../entity/Transaction';
+export * from '../entity/Transfer';
+export * from '../entity/Variable';
+export * from '../entity/Vote';
+
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
   name: string;
