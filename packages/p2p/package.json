@@ -11,8 +11,8 @@
   "files": [
     "dist"
   ],
-  "main": "dist/src/bundle",
-  "types": "dist/src/bundle",
+  "main": "dist/index",
+  "types": "dist/index",
   "dependencies": {
     "@gny/interfaces": "1.0.0",
     "@nodeutils/defaults-deep": "^1.1.0",
