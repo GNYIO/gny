@@ -35,4 +35,20 @@ export class Basic {
       throw new Error(error);
     }
   }
+
+  public async put(url: string, params?: any) {
+    try {
+      const { data, headers, status } = await axios.put(
+        this.connection.baseUrl + url,
+        params
+      );
+      return {
+        data,
+        headers,
+        status,
+      };
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 }
