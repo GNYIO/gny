@@ -110,13 +110,13 @@ export default class TransportApi implements IHttpApi {
       });
     }
     // validate id
-    const schema = this.library.joi.object().keys({
-      id: this.library.joi
+    const schema = joi.object().keys({
+      id: joi
         .string()
         .hex()
         .required(),
     });
-    const report = this.library.joi.validate(body, schema);
+    const report = joi.validate(body, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -313,27 +313,27 @@ export default class TransportApi implements IHttpApi {
   // POST
   private votes = (req: Request, res: Response, next: Next) => {
     const votes = req.body.votes;
-    const schema = this.library.joi.object().keys({
-      height: this.library.joi
+    const schema = joi.object().keys({
+      height: joi
         .string()
         .positiveOrZeroBigInt()
         .required(),
-      id: this.library.joi
+      id: joi
         .string()
         .length(64)
         .required(),
-      signatures: this.library.joi
+      signatures: joi
         .array()
         .items({
-          publicKey: this.library.joi
+          publicKey: joi
             .string()
             .publicKey()
             .required(),
-          signature: this.library.joi.string().required(),
+          signature: joi.string().required(),
         })
         .required(),
     });
-    const report = this.library.joi.validate(votes, schema);
+    const report = joi.validate(votes, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,

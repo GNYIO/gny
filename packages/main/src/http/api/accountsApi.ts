@@ -20,6 +20,7 @@ import { Balance } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
+import { joi } from '@gny/extendedJoi';
 
 interface BalanceCondition {
   address: string;
@@ -96,14 +97,14 @@ export default class AccountsApi implements IHttpApi {
 
   private open = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    const publicKeyOrSecret = this.library.joi
+    const publicKeyOrSecret = joi
       .object()
       .keys({
-        publicKey: this.library.joi.string().publicKey(),
-        secret: this.library.joi.string().secret(),
+        publicKey: joi.string().publicKey(),
+        secret: joi.string().secret(),
       })
       .xor('publicKey', 'secret');
-    const report = this.library.joi.validate(body, publicKeyOrSecret);
+    const report = joi.validate(body, publicKeyOrSecret);
 
     if (report.error) {
       return res.status(422).send({
@@ -139,14 +140,14 @@ export default class AccountsApi implements IHttpApi {
     next: Next
   ) => {
     const { query } = req;
-    const addressOrAccountName = this.library.joi
+    const addressOrAccountName = joi
       .object()
       .keys({
-        address: this.library.joi.string().address(),
-        username: this.library.joi.string().username(),
+        address: joi.string().address(),
+        username: joi.string().username(),
       })
       .xor('address', 'username');
-    const report = this.library.joi.validate(query, addressOrAccountName);
+    const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -172,18 +173,18 @@ export default class AccountsApi implements IHttpApi {
   private getBalance = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
-    const hasAddress = this.library.joi.object().keys({
-      address: this.library.joi
+    const hasAddress = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
-      limit: this.library.joi
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
-    const report = this.library.joi.validate(query, hasAddress);
+    const report = joi.validate(query, hasAddress);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -256,18 +257,18 @@ export default class AccountsApi implements IHttpApi {
     res: Response,
     next: Next
   ) => {
-    const schema = this.library.joi.object().keys({
-      address: this.library.joi
+    const schema = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
-      currency: this.library.joi
+      currency: joi
         .string()
         .asset()
         .required(),
     });
 
-    const report = this.library.joi.validate(req.params, schema);
+    const report = joi.validate(req.params, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -301,14 +302,14 @@ export default class AccountsApi implements IHttpApi {
     next: Next
   ) => {
     const { query } = req;
-    const addressOrAccountName = this.library.joi
+    const addressOrAccountName = joi
       .object()
       .keys({
-        address: this.library.joi.string().address(),
-        username: this.library.joi.string().username(),
+        address: joi.string().address(),
+        username: joi.string().username(),
       })
       .xor('address', 'username');
-    const report = this.library.joi.validate(query, addressOrAccountName);
+    const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -367,13 +368,13 @@ export default class AccountsApi implements IHttpApi {
 
   private getPublicKey = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const isAddress = this.library.joi.object().keys({
-      address: this.library.joi
+    const isAddress = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
     });
-    const report = this.library.joi.validate(query, isAddress);
+    const report = joi.validate(query, isAddress);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -393,13 +394,13 @@ export default class AccountsApi implements IHttpApi {
 
   private generatePublicKey = (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    const hasSecret = this.library.joi.object().keys({
-      secret: this.library.joi
+    const hasSecret = joi.object().keys({
+      secret: joi
         .string()
         .secret()
         .required(),
     });
-    const report = this.library.joi.validate(body, hasSecret);
+    const report = joi.validate(body, hasSecret);
     if (report.error) {
       return res.status(422).send({
         success: false,

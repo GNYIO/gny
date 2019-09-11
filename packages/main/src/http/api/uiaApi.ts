@@ -6,6 +6,7 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
 import { Balance } from '@gny/database-postgres';
+import { joi } from '@gny/extendedJoi';
 
 export default class UiaApi implements IHttpApi {
   private library: IScope;
@@ -48,13 +49,13 @@ export default class UiaApi implements IHttpApi {
 
   private isIssuer = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const addressValidation = this.library.joi.object().keys({
-      address: this.library.joi
+    const addressValidation = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
     });
-    const report = this.library.joi.validate(query, addressValidation);
+    const report = joi.validate(query, addressValidation);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -80,14 +81,14 @@ export default class UiaApi implements IHttpApi {
 
   private getIssuers = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const limitOffset = this.library.joi.object().keys({
-      limit: this.library.joi
+    const limitOffset = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
-    const report = this.library.joi.validate(query, limitOffset);
+    const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -109,13 +110,10 @@ export default class UiaApi implements IHttpApi {
 
   private getIssuer = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const nameMustBeNameOrAddress = this.library.joi.object().keys({
-      name: [
-        this.library.joi.string().issuer(),
-        this.library.joi.string().address(),
-      ],
+    const nameMustBeNameOrAddress = joi.object().keys({
+      name: [joi.string().issuer(), joi.string().address()],
     });
-    const report = this.library.joi.validate(query, nameMustBeNameOrAddress);
+    const report = joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -148,13 +146,13 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getIssuerAssets = async (req: Request, res: Response, next: Next) => {
-    const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi
+    const nameSchema = joi.object().keys({
+      name: joi
         .string()
         .issuer()
         .required(),
     });
-    const nameReport = this.library.joi.validate(req.params, nameSchema);
+    const nameReport = joi.validate(req.params, nameSchema);
     if (nameReport.error) {
       return res.status(422).send({
         success: false,
@@ -163,14 +161,14 @@ export default class UiaApi implements IHttpApi {
     }
 
     const { query } = req;
-    const limitOffset = this.library.joi.object().keys({
-      limit: this.library.joi
+    const limitOffset = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
-    const report = this.library.joi.validate(query, limitOffset);
+    const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -202,14 +200,14 @@ export default class UiaApi implements IHttpApi {
 
   private getAssets = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const limitOffset = this.library.joi.object().keys({
-      limit: this.library.joi
+    const limitOffset = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
-    const report = this.library.joi.validate(query, limitOffset);
+    const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -233,13 +231,13 @@ export default class UiaApi implements IHttpApi {
 
   private getAsset = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const nameSchema = this.library.joi.object().keys({
-      name: this.library.joi
+    const nameSchema = joi.object().keys({
+      name: joi
         .string()
         .asset()
         .required(),
     });
-    const report = this.library.joi.validate(query, nameSchema);
+    const report = joi.validate(query, nameSchema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -261,13 +259,13 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getBalances = async (req: Request, res: Response, next: Next) => {
-    const addressSchema = this.library.joi.object().keys({
-      address: this.library.joi
+    const addressSchema = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
     });
-    const addressReport = this.library.joi.validate(req.params, addressSchema);
+    const addressReport = joi.validate(req.params, addressSchema);
     if (addressReport.error) {
       return res.status(422).send({
         success: false,
@@ -276,14 +274,14 @@ export default class UiaApi implements IHttpApi {
     }
 
     const { query } = req;
-    const limitOffset = this.library.joi.object().keys({
-      limit: this.library.joi
+    const limitOffset = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
-    const report = this.library.joi.validate(query, limitOffset);
+    const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -306,17 +304,17 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
-    const schema = this.library.joi.object().keys({
-      address: this.library.joi
+    const schema = joi.object().keys({
+      address: joi
         .string()
         .address()
         .required(),
-      currency: this.library.joi
+      currency: joi
         .string()
         .asset()
         .required(),
     });
-    const report = this.library.joi.validate(req.params, schema);
+    const report = joi.validate(req.params, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,

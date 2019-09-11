@@ -6,6 +6,7 @@ import { BlockBase } from '@gny/base';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
+import { joi } from '@gny/extendedJoi';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;
@@ -57,17 +58,14 @@ export default class BlocksApi implements IHttpApi {
   private getBlock = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
-    const idOrHeight = this.library.joi
+    const idOrHeight = joi
       .object()
       .keys({
-        id: this.library.joi.string().min(1),
-        height: [
-          this.library.joi.number().min(0),
-          this.library.joi.string().positiveOrZeroBigInt(),
-        ],
+        id: joi.string().min(1),
+        height: [joi.number().min(0), joi.string().positiveOrZeroBigInt()],
       })
       .xor('id', 'height');
-    const report = this.library.joi.validate(query, idOrHeight);
+    const report = joi.validate(query, idOrHeight);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -98,15 +96,15 @@ export default class BlocksApi implements IHttpApi {
     const offset: number = query.offset ? Number(query.offset) : 0;
     const limit: number = query.limit ? Number(query.limit) : 20;
 
-    const schema = this.library.joi.object().keys({
-      limit: this.library.joi
+    const schema = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
 
-    const report = this.library.joi.validate({ limit, offset }, schema);
+    const report = joi.validate({ limit, offset }, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,

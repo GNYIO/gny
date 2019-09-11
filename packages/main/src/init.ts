@@ -7,7 +7,6 @@ import { Sequence } from '@gny/utils';
 import { getSchema } from '@gny/utils';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
-import { joi } from '@gny/extendedJoi';
 import { IScope, IConfig } from '@gny/interfaces';
 import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gny/type-validation';
@@ -59,8 +58,6 @@ async function init_alt(options: IOptions) {
   scope.config = appConfig;
   scope.logger = options.logger;
   scope.genesisBlock = genesisBlock;
-
-  scope.joi = joi;
 
   scope.sequence = sequence(options);
 

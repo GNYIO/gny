@@ -9,6 +9,7 @@ import Delegates from '../../../src/core/delegates';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
+import { joi } from '@gny/extendedJoi';
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;
@@ -67,13 +68,13 @@ export default class DelegatesApi implements IHttpApi {
 
   private getVoters = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const nameSchema = this.library.joi.object().keys({
-      username: this.library.joi
+    const nameSchema = joi.object().keys({
+      username: joi
         .string()
         .username()
         .required(),
     });
-    const report = this.library.joi.validate(query, nameSchema);
+    const report = joi.validate(query, nameSchema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -112,12 +113,12 @@ export default class DelegatesApi implements IHttpApi {
 
   private getDelegate = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const publicKeyOrNameOrAddress = this.library.joi.object().keys({
-      publicKey: this.library.joi.string().publicKey(),
-      username: this.library.joi.string().username(),
-      address: this.library.joi.string().address(),
+    const publicKeyOrNameOrAddress = joi.object().keys({
+      publicKey: joi.string().publicKey(),
+      username: joi.string().username(),
+      address: joi.string().address(),
     });
-    const report = this.library.joi.validate(query, publicKeyOrNameOrAddress);
+    const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -161,15 +162,15 @@ export default class DelegatesApi implements IHttpApi {
       });
     }
 
-    const schema = this.library.joi.object().keys({
-      limit: this.library.joi
+    const schema = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(101),
-      offset: this.library.joi.number().min(0),
+      offset: joi.number().min(0),
     });
 
-    const report = this.library.joi.validate({ limit, offset }, schema);
+    const report = joi.validate({ limit, offset }, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -187,14 +188,14 @@ export default class DelegatesApi implements IHttpApi {
 
   private forgingEnable = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    const secretAndPublicKey = this.library.joi.object().keys({
-      secret: this.library.joi
+    const secretAndPublicKey = joi.object().keys({
+      secret: joi
         .string()
         .secret()
         .required(),
-      publicKey: this.library.joi.string().publicKey(),
+      publicKey: joi.string().publicKey(),
     });
-    const report = this.library.joi.validate(body, secretAndPublicKey);
+    const report = joi.validate(body, secretAndPublicKey);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -247,14 +248,14 @@ export default class DelegatesApi implements IHttpApi {
 
   private forgingDisable = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    const secretAndPublicKey = this.library.joi.object().keys({
-      secret: this.library.joi
+    const secretAndPublicKey = joi.object().keys({
+      secret: joi
         .string()
         .secret()
         .required(),
-      publicKey: this.library.joi.string().publicKey(),
+      publicKey: joi.string().publicKey(),
     });
-    const report = this.library.joi.validate(body, secretAndPublicKey);
+    const report = joi.validate(body, secretAndPublicKey);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -308,13 +309,13 @@ export default class DelegatesApi implements IHttpApi {
 
   private forgingStatus = (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const needPublicKey = this.library.joi.object().keys({
-      publicKey: this.library.joi
+    const needPublicKey = joi.object().keys({
+      publicKey: joi
         .string()
         .publicKey()
         .required(),
     });
-    const report = this.library.joi.validate(query, needPublicKey);
+    const report = joi.validate(query, needPublicKey);
     if (report.error) {
       return res.status(422).send({
         success: false,

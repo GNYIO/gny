@@ -6,6 +6,7 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
+import { joi } from '@gny/extendedJoi';
 
 export default class TransfersApi implements IHttpApi {
   private library: IScope;
@@ -58,19 +59,19 @@ export default class TransfersApi implements IHttpApi {
     req.query.limit = limit;
     req.query.offset = offset;
 
-    const schema = this.library.joi.object().keys({
-      limit: this.library.joi
+    const schema = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
-      ownerId: this.library.joi.string().address(),
-      currency: this.library.joi.string().asset(),
-      senderId: this.library.joi.string().address(),
-      recipientId: this.library.joi.string().address(),
+      offset: joi.number().min(0),
+      ownerId: joi.string().address(),
+      currency: joi.string().asset(),
+      senderId: joi.string().address(),
+      recipientId: joi.string().address(),
     });
 
-    const report = this.library.joi.validate(req.query, schema);
+    const report = joi.validate(req.query, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,

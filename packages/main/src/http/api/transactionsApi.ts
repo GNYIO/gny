@@ -14,6 +14,7 @@ import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { Transaction } from '@gny/database-postgres';
+import { joi } from '@gny/extendedJoi';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;
@@ -55,35 +56,32 @@ export default class TransactionsApi implements IHttpApi {
 
   private getTransactions = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const schema = this.library.joi.object().keys({
-      limit: this.library.joi
+    const schema = joi.object().keys({
+      limit: joi
         .number()
         .min(0)
         .max(100),
-      offset: this.library.joi.number().min(0),
-      id: this.library.joi
+      offset: joi.number().min(0),
+      id: joi
         .string()
         .min(1)
         .max(100),
-      senderId: this.library.joi.string().address(),
-      senderPublicKey: this.library.joi.string().publicKey(),
-      blockId: this.library.joi
+      senderId: joi.string().address(),
+      senderPublicKey: joi.string().publicKey(),
+      blockId: joi
         .string()
         .min(1)
         .max(100)
         .when('height', {
-          is: this.library.joi.exist(),
-          then: this.library.joi.forbidden(),
+          is: joi.exist(),
+          then: joi.forbidden(),
         }),
-      type: this.library.joi
+      type: joi
         .number()
         .min(0)
         .max(1000),
-      height: [
-        this.library.joi.number().min(0),
-        this.library.joi.string().positiveOrZeroBigInt(),
-      ],
-      message: this.library.joi
+      height: [joi.number().min(0), joi.string().positiveOrZeroBigInt()],
+      message: joi
         .string()
         .max(256)
         .alphanum()
@@ -91,7 +89,7 @@ export default class TransactionsApi implements IHttpApi {
         .optional(),
     });
 
-    const report = this.library.joi.validate(query, schema);
+    const report = joi.validate(query, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -157,13 +155,13 @@ export default class TransactionsApi implements IHttpApi {
     next: Next
   ) => {
     const { query } = req;
-    const typeSchema = this.library.joi.object().keys({
-      id: this.library.joi
+    const typeSchema = joi.object().keys({
+      id: joi
         .string()
         .hex()
         .required(),
     });
-    const report = this.library.joi.validate(query, typeSchema);
+    const report = joi.validate(query, typeSchema);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -186,11 +184,11 @@ export default class TransactionsApi implements IHttpApi {
     next: Next
   ) => {
     const { query } = req;
-    const publicKeyAddress = this.library.joi.object().keys({
-      senderPublicKey: this.library.joi.string().publicKey(),
-      address: this.library.joi.string().address(),
+    const publicKeyAddress = joi.object().keys({
+      senderPublicKey: joi.string().publicKey(),
+      address: joi.string().address(),
     });
-    const report = this.library.joi.validate(query, publicKeyAddress);
+    const report = joi.validate(query, publicKeyAddress);
     if (report.error) {
       return res.status(422).send({
         success: false,
@@ -223,36 +221,36 @@ export default class TransactionsApi implements IHttpApi {
     next: Next
   ) => {
     const query = req.body;
-    const unsigendTransactionSchema = this.library.joi.object().keys({
-      secret: this.library.joi
+    const unsigendTransactionSchema = joi.object().keys({
+      secret: joi
         .string()
         .secret()
         .required(),
-      secondSecret: this.library.joi
+      secondSecret: joi
         .string()
         .secret()
         .optional(),
-      fee: this.library.joi
+      fee: joi
         .string()
         .positiveOrZeroBigInt()
         .required(),
-      type: this.library.joi
+      type: joi
         .number()
         .min(0)
         .required(),
-      args: this.library.joi.array().optional(),
-      message: this.library.joi
+      args: joi.array().optional(),
+      message: joi
         .string()
         .max(256)
         .alphanum()
         .allow('')
         .optional(),
-      senderId: this.library.joi
+      senderId: joi
         .string()
         .address()
         .optional(),
     });
-    const report = this.library.joi.validate(query, unsigendTransactionSchema);
+    const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
       this.library.logger.warn(
         'Failed to validate query params',
