@@ -16,10 +16,10 @@ import {
 } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { Balance } from '../../database-postgres/entity/Balance';
-import { Asset } from '../../database-postgres/entity/Asset';
-import { Vote } from '../../database-postgres/entity/Vote';
-import { Account } from '../../database-postgres/entity/Account';
+import { Balance } from '@gny/database-postgres';
+import { Asset } from '@gny/database-postgres';
+import { Vote } from '@gny/database-postgres';
+import { Account } from '@gny/database-postgres';
 
 interface BalanceCondition {
   address: string;

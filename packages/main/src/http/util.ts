@@ -1,11 +1,11 @@
-import { AccountViewModel } from '../../packages/interfaces';
-import * as addressHelper from '../../packages/utils/address';
-import { joi } from '../../packages/extendedJoi';
+import { AccountViewModel } from '@gny/interfaces';
+import { generateAddress } from '@gny/utils';
+import { joi } from '@gny/extendedJoi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
-import { Transaction } from '../database-postgres/entity/Transaction';
-import { Account } from '../database-postgres/entity/Account';
+import { Transaction } from '@gny/database-postgres';
+import { Account } from '@gny/database-postgres';
 
 export async function getBlocks(
   minHeight: string,
@@ -52,7 +52,7 @@ export async function getBlocks(
 
 // account helper
 export function generateAddressByPublicKey(publicKey: string) {
-  return addressHelper.generateAddress(publicKey);
+  return generateAddress(publicKey);
 }
 
 // account helper
