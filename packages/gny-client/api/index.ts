@@ -7,6 +7,7 @@ import { Peer } from './peer';
 import { System } from './system';
 import { Transfer } from './transfer';
 import { Transport } from './transport';
+import { Uia } from './uia';
 
 export const Api = {
   Account,
@@ -18,4 +19,5 @@ export const Api = {
   System,
   Transfer,
   Transport,
+  Uia,
 };
