@@ -6,6 +6,7 @@ import { Loader } from './loader';
 import { Peer } from './peer';
 import { System } from './system';
 import { Transfer } from './transfer';
+import { Transport } from './transport';
 
 export const Api = {
   Account,
@@ -16,4 +17,5 @@ export const Api = {
   Peer,
   System,
   Transfer,
+  Transport,
 };
