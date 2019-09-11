@@ -11,7 +11,7 @@ import { IState, ISimpleCache } from '../globalInterfaces';
 import { TransactionBase } from '@gny/base';
 import { MAX_PAYLOAD_LENGTH } from '@gny/utils';
 import * as crypto from 'crypto';
-import { Blockreward } from '@gny/utils';
+import { BlockReward } from '@gny/utils';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
 import { slots } from '@gny/utils';
@@ -21,7 +21,7 @@ import { BigNumber } from 'bignumber.js';
 import { Block } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
 
-const blockreward = new Blockreward();
+const blockReward = new BlockReward();
 
 export enum BlockMessageFitInLineResult {
   Success = 0,
@@ -84,7 +84,7 @@ export class BlocksHelper {
     const prevBlockId = lastBlock.id;
     const fees = BlocksHelper.getFeesOfAll(unconfirmedTransactions);
     const count = unconfirmedTransactions.length;
-    const reward = blockreward.calculateReward(height);
+    const reward = blockReward.calculateReward(height);
 
     const block: IBlock = {
       version: 0,

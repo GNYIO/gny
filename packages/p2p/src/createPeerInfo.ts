@@ -1,5 +1,5 @@
-const PeerInfo = require('peer-info');
-const PeerId = require('peer-id');
+import * as PeerInfo from 'peer-info';
+import * as PeerId from 'peer-id';
 import { promisify } from 'util';
 
 function _createPeerInfo(cb: PeerInfo.CreateCb) {

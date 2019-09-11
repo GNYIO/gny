@@ -23,7 +23,7 @@ import BigNumber from 'bignumber.js';
 import { Variable } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 
-const blockreward = new BlockReward();
+const blockReward = new BlockReward();
 
 export default class Delegates implements ICoreModule {
   private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
@@ -336,7 +336,7 @@ export default class Delegates implements ICoreModule {
     delegates = delegates.sort(Delegates.compare);
 
     const lastBlock = StateHelper.getState().lastBlock;
-    const totalSupply = blockreward.calculateSupply(lastBlock.height);
+    const totalSupply = blockReward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {
       const current = delegates[i] as DelegateViewModel;

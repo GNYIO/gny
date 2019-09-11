@@ -13,7 +13,7 @@ import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gny/type-validation';
 import { MessageBus } from '@gny/utils';
 
-import initNetwork from '../../../packages/http/index';
+import initNetwork from './http/index';
 
 function getPublicIp() {
   let publicIp;

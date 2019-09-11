@@ -21,7 +21,7 @@ const CIPHERS = `
   DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
   !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
-export default async function intNetwork(
+export default async function initNetwork(
   appConfig: IConfig,
   modules: Modules,
   logger: ILogger

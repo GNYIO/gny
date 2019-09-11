@@ -1,7 +1,7 @@
 import async = require('async');
 import { MAX_TXS_PER_BLOCK } from '@gny/utils';
 import { generateAddress } from '@gny/utils';
-import { Blockreward } from '@gny/utils';
+import { BlockReward } from '@gny/utils';
 import {
   KeyPair,
   IGenesisBlock,
@@ -41,7 +41,7 @@ import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 
-const blockreward = new Blockreward();
+const blockReward = new BlockReward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks implements ICoreModule {
@@ -151,7 +151,7 @@ export default class Blocks implements ICoreModule {
       throw new Error('Invalid total fees');
     }
 
-    const expectedReward = blockreward.calculateReward(block.height);
+    const expectedReward = blockReward.calculateReward(block.height);
     if (!new BigNumber(expectedReward).isEqualTo(block.reward)) {
       throw new Error('Invalid block reward');
     }

@@ -1,6 +1,7 @@
 import * as Multiaddr from 'multiaddr';
 import { PeerNode, ILogger } from '@gny/interfaces';
 import { Bundle } from './bundle';
+import * as PeerInfo from 'peer-info';
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
