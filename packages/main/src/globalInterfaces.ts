@@ -101,8 +101,8 @@ declare global {
       failedTrsCache: ILimitCache<string, boolean>;
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
-      latestBlocksCache: LRU.Cache<string, BlockAndVotes>;
-      blockHeaderMidCache: LRU.Cache<string, NewBlockMessage>;
+      latestBlocksCache: LRU<string, BlockAndVotes>;
+      blockHeaderMidCache: LRU<string, NewBlockMessage>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;
