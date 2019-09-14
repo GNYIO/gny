@@ -64,7 +64,6 @@ describe('basic', () => {
     });
 
     it('should have property setSecondSecret', () => {
-      // basic.should.have.property('setSecondSecret');
       expect(basic).toHaveProperty('setSecondPassphrase');
     });
 
@@ -79,31 +78,26 @@ describe('basic', () => {
       });
 
       it('should have type as number and equal 3', () => {
-        // trs.type.should.be.type('number').and.equal(3);
         expect(trs.type).toBeNumber();
         expect(trs.type).toEqual(2);
       });
 
       it('should have property fee and equals 5 XAS', function() {
-        // trs.fee.should.be.type('number').and.equal(5 * 1e8);
         expect(trs.fee).toBeString();
         expect(trs.fee).toEqual(String(5 * 1e8));
       });
 
       it('should have senderPublicKey property', () => {
-        // trs.should.have.property('senderPublicKey').and.be.type('string');
         expect(trs).toHaveProperty('senderPublicKey');
         expect(trs.senderPublicKey).toBeString();
       });
 
       it('should have timestamp property', () => {
-        // trs.should.have.property('timestamp').and.be.type('number');
         expect(trs).toHaveProperty('timestamp');
         expect(trs.timestamp).toBeNumber();
       });
 
       it('should have senderId property', () => {
-        // trs.should.have.property('senderId').and.be.type('string');
         expect(trs).toHaveProperty('senderId');
         expect(trs.senderId).toBeString();
       });
