@@ -13,8 +13,8 @@ export function beginEpochTime() {
   return d;
 }
 
-const interval = 10;
-const delegates = 101;
+export const interval = 10;
+export const delegates = 101;
 
 export function getTime(time?: any) {
   return getEpochTime(time);
