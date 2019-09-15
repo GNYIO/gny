@@ -14,7 +14,7 @@ export class Transport extends Basic {
       min,
       ids,
     };
-    return await this.post('/peer/transfers', params);
+    return await this.post('/peer/commonBlock', params);
   }
 
   public async getBlocks(lastBlockId: string, limit?: number) {
