@@ -17,21 +17,21 @@ export class Delegate extends Basic {
     const params = {
       publicKey: publicKey,
     };
-    return await this.get('/api/get', params);
+    return await this.get('/api/delegates/get', params);
   }
 
   public async getDelegateByUnsername(username: string) {
     const params = {
       username: username,
     };
-    return await this.get('/api/get', params);
+    return await this.get('/api/delegates/get', params);
   }
 
   public async getDelegateByAddress(address: string) {
     const params = {
       address: address,
     };
-    return await this.get('/api/get', params);
+    return await this.get('/api/delegates/get', params);
   }
 
   public async getDelegates(offset?: string, limit?: string) {
@@ -58,9 +58,9 @@ export class Delegate extends Basic {
     return await this.get('/api/delegates/forging/disable', params);
   }
 
-  public async forgingStatus(pulicKey: string) {
+  public async forgingStatus(publicKey: string) {
     const params = {
-      pulicKey: pulicKey,
+      publicKey: publicKey,
     };
     return await this.get('/api/delegates/forging/status', params);
   }
