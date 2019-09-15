@@ -50,7 +50,7 @@ async function registerAssetAsync(
   );
 }
 
-describe('accountsApi', () => {
+describe('account', () => {
   const connection = new Connection();
   const accountApi = connection.api('Account');
 
@@ -73,7 +73,7 @@ describe('accountsApi', () => {
 
   describe('/generateAccount', () => {
     it(
-      'should get the address and keys of the secet',
+      'should generate an account',
       async done => {
         const response = await accountApi.generateAccount();
         expect(response.status).toEqual(200);
@@ -85,7 +85,7 @@ describe('accountsApi', () => {
 
   describe('/openAccount', () => {
     it(
-      'should get the address and keys of the secet',
+      'should open an account with public key',
       async done => {
         const secret =
           'swap try awkward damp noble kit undo whisper field wrestle marble chimney';
@@ -99,7 +99,7 @@ describe('accountsApi', () => {
 
   describe('/getBalance', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get balance by the address',
       async done => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const response = await accountApi.getBalance(address);
@@ -112,7 +112,7 @@ describe('accountsApi', () => {
 
   describe('/getAddressCurrencyBalance', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the balance by the address and currency',
       async () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const currecny = 'AAA.ONE';
@@ -140,13 +140,6 @@ describe('accountsApi', () => {
         );
         await lib.onNewBlock();
 
-        // try{
-        //   const response = await accountApi.getAddressCurrencyBalance(address, currecny);
-        //   console.log(response);
-        // } catch(error) {
-        //   console.log(error);
-        // }
-
         const response = await accountApi.getAddressCurrencyBalance(
           address,
           currecny
@@ -159,7 +152,7 @@ describe('accountsApi', () => {
 
   describe('/getAccountByAddress', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the account by address',
       async () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const response = await accountApi.getAccountByAddress(address);
@@ -171,7 +164,7 @@ describe('accountsApi', () => {
 
   describe('/getAccountByUsername', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the account by username',
       async () => {
         // set username
         const username = 'xpgeng';
@@ -195,7 +188,7 @@ describe('accountsApi', () => {
 
   describe('/getVotedDelegates', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the voted delegates',
       async () => {
         // set username
         const username = 'xpgeng';
@@ -259,7 +252,7 @@ describe('accountsApi', () => {
 
   describe('/countAccounts', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the number of accounts',
       async () => {
         const response = await accountApi.countAccounts();
         expect(response.status).toEqual(200);
@@ -268,9 +261,34 @@ describe('accountsApi', () => {
     );
   });
 
+  // describe('/getPublicKey', () => {
+  //   it(
+  //     'should get the public key of an account',
+  //     async () => {
+  //       const secret = 'inch flag pulse valley soup ability clog window airport gauge oval absurd';
+
+  //       const {data} = await accountApi.openAccount(secret);
+  //       console.log({data});
+  //       await lib.onNewBlock();
+
+  //       const address = 'G2uSrVTEUpH5fZVyBxGWufTQBmAv7';
+  //       // const response = await accountApi.getPublicKey(address);
+  //       try {
+  //         const getPromise = await axios.get(
+  //           'http://localhost:4096/api/accounts/getPublicKey?address=' + address
+  //         );
+  //       } catch(error) {
+  //         console.log(error);
+  //       }
+  //       // expect(response.status).toEqual(200);
+  //     },
+  //     lib.oneMinute
+  //   );
+  // });
+
   describe('/generatePublicKey', () => {
     it(
-      'should get the address and keys of the secet',
+      'should generate the public key',
       async () => {
         const secret =
           'swap try awkward damp noble kit undo whisper field wrestle marble chimney';
