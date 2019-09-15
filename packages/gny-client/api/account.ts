@@ -2,7 +2,7 @@ import { Basic } from './basic';
 
 export class Account extends Basic {
   public async generateAccount() {
-    return await this.get('/api/generateAccount');
+    return await this.get('/api/accounts/generateAccount');
   }
 
   public async openAccount(secret: string) {
@@ -28,11 +28,17 @@ export class Account extends Basic {
     return await this.get('/api/accounts/', params);
   }
 
-  public async getVotedDelegates(address: string, username: string) {
-    const params = {
-      address: address,
-      username: username,
-    };
+  public async getVotedDelegates(query: any) {
+    let params: any = {};
+    if (query.address) {
+      params = {
+        address: query.address,
+      };
+    } else if (query.username) {
+      params = {
+        username: query.username,
+      };
+    }
     return await this.get('/api/accounts/getVotes', params);
   }
 
