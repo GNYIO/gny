@@ -1,17 +1,20 @@
 import { Basic } from './basic';
 
+interface Query {
+  ownerId?: string;
+  currency?: string;
+  senderId?: string;
+  recipientId?: string;
+  limit?: string | number;
+  offset?: string | number;
+}
 export class Transfer extends Basic {
-  public async getRoot(
-    ownerId: string,
-    currency: string,
-    limit?: string | number,
-    offset?: string | number
-  ) {
+  public async getRoot(query: Query) {
     const params = {
-      ownerId,
-      currency,
-      limit,
-      offset,
+      ownerId: query.ownerId,
+      currency: query.currency,
+      limit: query.limit,
+      offset: query.offset,
     };
     return await this.get('/api/transfers', params);
   }
@@ -21,6 +24,6 @@ export class Transfer extends Basic {
       startTimestamp,
       endTimestamp,
     };
-    return await this.get('/api/transfers', params);
+    return await this.get('/api/transfers/amount', params);
   }
 }
