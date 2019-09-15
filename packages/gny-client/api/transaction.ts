@@ -1,27 +1,28 @@
 import { Basic } from './basic';
 
+interface Query {
+  limit?: number;
+  offset?: number;
+  id?: string;
+  senderId?: string;
+  senderPublicKey?: string;
+  blockId?: string;
+  type?: number;
+  height?: number | string;
+  message?: string;
+}
 export class Transaction extends Basic {
-  public async getTransactions(
-    limit?: number,
-    offset?: number,
-    id?: string,
-    senderId?: string,
-    senderPublicKey?: string,
-    blockId?: string,
-    type?: number,
-    height?: number | string,
-    message?: string
-  ) {
+  public async getTransactions(query: Query) {
     const params = {
-      limit: limit,
-      offset: offset,
-      id: id,
-      senderId: senderId,
-      senderPublicKey: senderPublicKey,
-      blockId: blockId,
-      type: type,
-      height: height,
-      message: message,
+      limit: query.limit,
+      offset: query.offset,
+      id: query.id,
+      senderId: query.senderId,
+      senderPublicKey: query.senderPublicKey,
+      blockId: query.blockId,
+      type: query.type,
+      height: query.height,
+      message: query.message,
     };
     return await this.get('/api/transactions/', params);
   }
@@ -65,7 +66,7 @@ export class Transaction extends Basic {
     return await this.put('/api/transactions/', params);
   }
 
-  public async addTransactions(transactions) {
+  public async addTransactions(transactions: any) {
     const params = {
       transactions: transactions,
     };
