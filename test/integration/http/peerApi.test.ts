@@ -19,7 +19,15 @@ describe('peerApi', () => {
   }, lib.oneMinute);
 
   describe('/', () => {
-    it.skip('should get peer info', async () => {});
+    it(
+      'should get peer info',
+      async () => {
+        const { data } = await axios.get('http://localhost:4096/api/peers/');
+        expect(data).toHaveProperty('peers', []);
+        expect(data).toHaveProperty('count', 0);
+      },
+      lib.oneMinute
+    );
   });
 
   describe('/version', () => {

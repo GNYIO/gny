@@ -1,6 +1,12 @@
 import * as libp2p from 'libp2p';
 import { extractIpAndPort } from './util';
-import { ILogger, P2PMessage, P2PSubscribeHandler } from '../../src/interfaces';
+import {
+  ILogger,
+  P2PMessage,
+  P2PSubscribeHandler,
+  PeerNode,
+  SimplePeerInfo,
+} from '../../src/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
 const Bootstrap = require('libp2p-bootstrap');
@@ -10,6 +16,7 @@ const DHT = require('libp2p-kad-dht');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 import * as PeerId from 'peer-id';
 import { Options as LibP2POptions } from 'libp2p';
+import { cloneDeep } from 'lodash';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
@@ -48,7 +55,7 @@ export class Bundle extends libp2p {
           },
         },
         relay: {
-          enabled: true,
+          enabled: false,
         },
         dht: {
           kBucketSize: 20,
@@ -100,18 +107,17 @@ export class Bundle extends libp2p {
     await this.pubsub.publish(topic, data);
   }
 
-  public getRandomNode() {
-    const allPeers = this.peerBook.getAllArray();
-    if (allPeers.length > 0) {
-      const index = Math.floor(Math.random() * allPeers.length);
-      const peerInfo = allPeers[index];
-      const extracted = extractIpAndPort(peerInfo);
+  public getConnectedRandomNode() {
+    const allConnectedPeers = this.getAllConnectedPeers();
+    if (allConnectedPeers.length > 0) {
+      const index = Math.floor(Math.random() * allConnectedPeers.length);
+      const result = allConnectedPeers[index];
       this.logger.info(
-        `[P2P] getRandomPeer: ${peerInfo.id.toB58String()}; ${JSON.stringify(
-          extracted
+        `[P2P] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
+          result.simple
         )}`
       );
-      return extracted;
+      return result.simple;
     }
     return undefined;
   }
@@ -146,5 +152,25 @@ export class Bundle extends libp2p {
     };
 
     this.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
+  }
+
+  getAllConnectedPeers() {
+    const result: SimplePeerInfo[] = [];
+    const copy = cloneDeep(
+      this.peerBook.getAllArray().filter(x => x.isConnected())
+    );
+    copy.forEach(one => {
+      const onePeerWithSimplePort: SimplePeerInfo = {
+        id: {
+          id: one.id.toJSON().id,
+          pubKey: one.id.toJSON().pubKey,
+        },
+        multiaddrs: one.multiaddrs.toArray().map(x => x.toString()),
+        simple: extractIpAndPort(one),
+      };
+      result.push(onePeerWithSimplePort);
+    });
+
+    return result;
   }
 }

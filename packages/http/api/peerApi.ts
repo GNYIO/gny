@@ -40,14 +40,10 @@ export default class PeerApi {
   };
 
   private getPeers = (req: Request, res: Response, next: Next) => {
-    Peer.findSeenNodesInDb((err, nodes) => {
-      let peers = [];
-      if (err) {
-        this.library.logger.error('Failed to find nodes in db', err);
-      } else {
-        peers = nodes;
-      }
-      res.json({ count: peers.length, peers });
+    const peers = Peer.p2p.getAllConnectedPeers();
+    return res.json({
+      peers,
+      count: peers.length,
     });
   };
 
