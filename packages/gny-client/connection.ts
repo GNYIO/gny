@@ -6,7 +6,7 @@ export class Connection {
   network: string;
   baseUrl: string;
 
-  constructor(host: string, port: number, network: string) {
+  constructor(host?: string, port?: number, network?: string) {
     this.host = host || '127.0.0.1';
     this.port = port || 4096;
     this.network = network || 'testnet';
