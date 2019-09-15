@@ -11,15 +11,17 @@
   "tslint.ignoreDefinitionFiles": false,
   "tslint.autoFixOnSave": true,
   "tslint.exclude": "**/node_modules/**/*",
-  "cSpell.words": [
-      "csrf",
-      "definitelytyped",
-      "promisified"
-  ],
   "typescript.surveys.enabled": false,
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
   "editor.renderWhitespace": "boundary",
-  "editor.insertSpaces": true
+  "editor.insertSpaces": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[typescript]": {
+    "editor.rulers": [80]
+  },
+  "telemetry.enableCrashReporter": false,
+  "telemetry.enableTelemetry": false
 }
