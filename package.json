@@ -7,7 +7,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --ci",
     "tsc": "lerna run --no-bail tsc; npm run copyStaticFiles",
-    "copyStaticAssets": "ts-node copyStaticAssets",
+    "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/src/",
     "start": "cd dist/ && node app.js",
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
