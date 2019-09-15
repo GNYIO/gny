@@ -1,6 +1,12 @@
 import { Connection } from '../connection';
 import axios from 'axios';
 
+const config = {
+  headers: {
+    magic: '594fe0f3',
+  },
+};
+
 export class Basic {
   public constructor(protected readonly connection: Connection) {}
 
@@ -24,7 +30,8 @@ export class Basic {
     try {
       const { data, headers, status } = await axios.post(
         this.connection.baseUrl + url,
-        params
+        params,
+        config
       );
       return {
         data,
