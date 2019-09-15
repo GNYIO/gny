@@ -51,7 +51,6 @@ describe('block', () => {
 
         const height = 2;
         const { data } = await blockApi.getBlockByHeight(height);
-        console.log({ data });
         const id = data.block.id;
         const response = await blockApi.getBlockById(id);
         expect(response.status).toEqual(200);
