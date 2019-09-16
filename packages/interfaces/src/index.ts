@@ -141,8 +141,6 @@ export interface IConfig {
   version: string;
   magic: string;
   baseDir: string;
-  dataDir: string;
-  appDir: string;
   buildVersion: string;
   netVersion: string;
   publicDir: string;

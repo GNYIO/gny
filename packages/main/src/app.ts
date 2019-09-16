@@ -23,13 +23,12 @@ function main() {
     .option('-x, --peers [peers...]', 'Peers list')
     .option('-l, --log <level>', 'Log level')
     .option('-d, --daemon', 'Run gny node as daemon')
-    .option('--app <dir>', 'App directory')
     .option('--base <dir>', 'Base directory')
-    .option('--data <dir>', 'Data directory')
     .option('--ormConfig <file>', 'ormconfig.json file')
     .parse(process.argv);
 
-  const baseDir = program.base || './';
+  const baseDir = program.base || process.cwd();
+  const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
   const seedPort = 81;
   const seeds = [757137132];
   let appConfigFile: string;
@@ -52,21 +51,14 @@ function main() {
 
   appConfig.version = version;
   appConfig.baseDir = baseDir;
-  appConfig.dataDir = program.data || path.resolve(baseDir, 'data');
-  appConfig.appDir = program.app || path.resolve(baseDir, 'src');
   appConfig.buildVersion = 'DEFAULT_BUILD_TIME';
   appConfig.netVersion = process.env.NET_VERSION || 'testnet';
-  appConfig.publicDir = path.join(
-    process.cwd(),
-    'packages/main/dist/src',
-    'public',
-    'dist'
-  );
+  appConfig.publicDir = path.join(transpiledDir, 'public', 'dist');
 
   global.Config = appConfig;
 
   if (program.genesisblock) {
-    genesisBlockFile = path.resolve(process.cwd(), program.genesisblock);
+    genesisBlockFile = path.resolve(baseDir, program.genesisblock);
   } else {
     genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
@@ -106,12 +98,7 @@ function main() {
   if (program.log) {
     appConfig.logLevel = program.log;
   }
-  const pathToLogFile = path.join(
-    process.cwd(),
-    'packages/main/dist/src',
-    'logs',
-    'debug.log'
-  );
+  const pathToLogFile = path.join(transpiledDir, 'logs', 'debug.log');
   const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
 
   if (program.daemon) {
@@ -121,20 +108,18 @@ function main() {
   }
 
   if (program.ormConfig) {
-    appConfig.ormConfigRaw = fs.readFileSync(program.ormConfig, {
+    const ormConfigFilePath = path.join(baseDir, program.ormConfig);
+    appConfig.ormConfigRaw = fs.readFileSync(ormConfigFilePath, {
       encoding: 'utf8',
     });
   } else {
-    appConfig.ormConfigRaw = fs.readFileSync('ormconfig.json', {
+    const ormConfigFilePath = path.join(baseDir, 'ormconfig.json');
+    appConfig.ormConfigRaw = fs.readFileSync(ormConfigFilePath, {
       encoding: 'utf8',
     });
   }
 
-  const p2pKeyFilePath = path.join(
-    process.cwd(),
-    'packages/main/dist/src',
-    appConfig.peers.p2pKeyFile
-  );
+  const p2pKeyFilePath = path.join(transpiledDir, appConfig.peers.p2pKeyFile);
   appConfig.peers.rawPeerInfo = fs.readFileSync(p2pKeyFilePath, {
     encoding: 'utf8',
   });

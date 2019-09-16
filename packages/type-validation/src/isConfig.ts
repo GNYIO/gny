@@ -69,8 +69,6 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
 
     version: joi.string(),
     baseDir: joi.string(),
-    dataDir: joi.string(),
-    appDir: joi.string(),
     buildVersion: joi.string(),
     netVersion: joi.string(),
     publicDir: joi.string(),
