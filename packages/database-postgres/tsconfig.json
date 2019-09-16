@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2016",
     "module": "commonjs",
+    "moduleResolution": "node",
     "lib": [
       "es2015",
       "es2016",
@@ -17,7 +18,7 @@
     "strictNullChecks": false,
     "noImplicitThis": true,
     "alwaysStrict": false,
-    "noUnusedLocals": true, 
+    "noUnusedLocals": true,
     "noImplicitReturns": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
