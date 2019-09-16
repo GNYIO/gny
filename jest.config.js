@@ -35,4 +35,8 @@ module.exports = {
       },
     },
   },
+
+  moduleNameMapper: {
+    '@gny/(.*)$': '<rootDir>/packages/$1',
+  },
 };

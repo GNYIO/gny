@@ -1,6 +1,6 @@
-import { BlockBase } from '../../../packages/base/blockBase';
-import { KeyPair, IBlock, ITransaction } from '../../../packages/interfaces';
-import * as ed from '../../../packages/ed';
+import { BlockBase } from '@gny/base';
+import { KeyPair, IBlock, ITransaction } from '@gny/interfaces';
+import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
 
 function createTransation() {
