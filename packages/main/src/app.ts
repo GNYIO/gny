@@ -56,7 +56,12 @@ function main() {
   appConfig.appDir = program.app || path.resolve(baseDir, 'src');
   appConfig.buildVersion = 'DEFAULT_BUILD_TIME';
   appConfig.netVersion = process.env.NET_VERSION || 'testnet';
-  appConfig.publicDir = path.join(baseDir, 'public', 'dist');
+  appConfig.publicDir = path.join(
+    process.cwd(),
+    'packages/main/dist/src',
+    'public',
+    'dist'
+  );
 
   global.Config = appConfig;
 
@@ -101,7 +106,13 @@ function main() {
   if (program.log) {
     appConfig.logLevel = program.log;
   }
-  const logger = createLogger('logs/debug.log', LogLevel[appConfig.logLevel]);
+  const pathToLogFile = path.join(
+    process.cwd(),
+    'packages/main/dist/src',
+    'logs',
+    'debug.log'
+  );
+  const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
 
   if (program.daemon) {
     console.log('Server started as daemon...');
@@ -119,7 +130,12 @@ function main() {
     });
   }
 
-  appConfig.peers.rawPeerInfo = fs.readFileSync(appConfig.peers.p2pKeyFile, {
+  const p2pKeyFilePath = path.join(
+    process.cwd(),
+    'packages/main/dist/src',
+    appConfig.peers.p2pKeyFile
+  );
+  appConfig.peers.rawPeerInfo = fs.readFileSync(p2pKeyFilePath, {
     encoding: 'utf8',
   });
 

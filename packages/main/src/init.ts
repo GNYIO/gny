@@ -48,7 +48,7 @@ async function init_alt(options: IOptions) {
     appConfig.publicIp = getPublicIp();
   }
 
-  const protoFile = path.join(__dirname, '..', 'proto', 'index.proto');
+  const protoFile = path.join(process.cwd(), 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
     console.log("Error: Proto file doesn't exist!");
     return;

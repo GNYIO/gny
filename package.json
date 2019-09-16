@@ -5,8 +5,9 @@
   "description": "Decentralized machine learning on the blockchain",
   "main": "dist/app.js",
   "scripts": {
-    "bootstrap": "lerna bootstrap --ci",
-    "tsc": "lerna run --no-bail tsc; npm run copyStaticFiles",
+    "lerna:bootstrap": "lerna bootstrap --ci",
+    "lerna:clean": "lerna clean --yes",
+    "lerna:tsc": "lerna run --no-bail tsc; npm run copyStaticFiles",
     "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/src/",
     "start": "cd dist/ && node app.js",
     "test": "jest --ci --runInBand test/unit",
