@@ -7,3 +7,4 @@ export * from './messageBus';
 export * from './protobuf';
 export * from './sequence';
 export * from './slots';
+export * from 'bignumber.js';

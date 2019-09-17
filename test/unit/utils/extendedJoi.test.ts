@@ -1,4 +1,4 @@
-import { joi as extendedJoi } from '../../../packages/extendedJoi';
+import { joi as extendedJoi } from '../../../packages/extendedJoi/src/index';
 
 describe('extendedJoi', () => {
   let joi;

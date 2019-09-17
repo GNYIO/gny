@@ -1,5 +1,5 @@
-import { BlockReward } from '../../../packages/utils/block-reward';
-import { BigNumber } from 'bignumber.js';
+import { BlockReward } from '../../../packages/utils/src/index';
+import { BigNumber } from '@gny/utils';
 
 function range(start: number, end: number) {
   const result: number[] = [];

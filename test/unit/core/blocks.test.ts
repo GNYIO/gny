@@ -1,21 +1,21 @@
-import Blocks from '../../../src/core/blocks';
+import Blocks from '../../../packages/main/src/core/blocks';
 import {
   IBlock,
   KeyPair,
   IGenesisBlock,
   ProcessBlockOptions,
 } from '../../../packages/interfaces';
-import { IState } from '../../../src/globalInterfaces';
-import { BlockBase } from '../../../packages/base/blockBase';
-import { TransactionBase } from '../../../packages/base/transactionBase';
+import { IState } from '../../../packages/main/src/globalInterfaces';
+import { BlockBase } from '../../../packages/base/src/blockBase';
+import { TransactionBase } from '../../../packages/base/src/transactionBase';
 import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
 import * as crypto from 'crypto';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 import * as ed from '../../../packages/ed';
-import { slots } from '../../../packages/utils/slots';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { slots } from '../../../packages/utils/src/slots';
+import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import * as fs from 'fs';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {

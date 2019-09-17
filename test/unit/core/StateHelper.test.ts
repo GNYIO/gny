@@ -1,6 +1,6 @@
-import { StateHelper } from '../../../src/core/StateHelper';
+import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { IBlock } from '../../../packages/interfaces';
-import { IState } from '../../../src/globalInterfaces';
+import { IState } from '../../../packages/main/src/globalInterfaces';
 
 function resetGlobalState() {
   global.state = {} as IState;

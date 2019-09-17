@@ -1,4 +1,4 @@
-import { Sequence } from '../../../packages/utils/sequence';
+import { Sequence } from '../../../packages/utils/src/sequence';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 

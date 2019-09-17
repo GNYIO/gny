@@ -1,4 +1,4 @@
-import Delegates from '../../../src/core/delegates';
+import Delegates from '../../../packages/main/src/core/delegates';
 import {
   KeyPairsIndexer,
   IBlock,
@@ -6,7 +6,7 @@ import {
 } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 
 interface DelegateTestData {
   delegateList: string[];
