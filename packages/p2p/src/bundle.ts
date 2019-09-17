@@ -9,7 +9,9 @@ const TCP = require('libp2p-tcp');
 const DHT = require('libp2p-kad-dht');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 import * as PeerId from 'peer-id';
+
 import { Options as LibP2POptions } from 'libp2p';
+export { Options as LibP2POptions } from 'libp2p';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
