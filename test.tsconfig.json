@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2016",
+    "module": "commonjs",
+    "lib": ["es2015", "es2016", "es2017"],
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": false,
+    "sourceMap": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+    "noUnusedLocals": true,
+    "noImplicitReturns": false,
+
+    "esModuleInterop": false,
+    "inlineSourceMap": false,
+    "inlineSources": false,
+
+    "emitDecoratorMetadata": true
+  }
+}
