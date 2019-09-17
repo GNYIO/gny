@@ -6,7 +6,7 @@ import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import { slots } from '../../../packages/utils/src/slots';
 import { ConsensusBase } from '../../../packages/base/src/consensusBase';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
 
 function createRandomBlock(
   height: string = String(6),

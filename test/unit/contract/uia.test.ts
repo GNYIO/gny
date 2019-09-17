@@ -1,5 +1,5 @@
 import uia from '../../../packages/main/src/contract/uia';
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
 import {
   ILogger,
   IAccount,

@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
 import { slots } from '../../../packages/utils/src/slots';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
 
 const dummyLogger = {
   log: x => x,
