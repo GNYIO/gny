@@ -8,6 +8,7 @@
     "lerna:bootstrap": "lerna bootstrap --ci",
     "lerna:clean": "lerna clean --yes",
     "lerna:tsc": "lerna run --no-bail tsc; npm run copyStaticFiles",
+    "lerna:removeArtifacts": "lerna run removeArtifacts",
     "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/src/",
     "start": "cd dist/ && node app.js",
     "test": "jest --ci --runInBand test/unit",

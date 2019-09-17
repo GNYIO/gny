@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "devDependencies": {},
   "scripts": {
-    "tsc": "rm -rf dist && ../../node_modules/typescript/bin/tsc"
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
   },
   "keywords": [],
   "author": "",
