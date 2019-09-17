@@ -1,15 +1,15 @@
-import uia from '../../../src/contract/uia';
-import BigNumber from 'bignumber.js';
+import uia from '../../../packages/main/src/contract/uia';
+import { BigNumber } from '@gny/utils';
 import {
   ILogger,
   IAccount,
   IBlock,
   ITransaction,
-} from '../../../packages/interfaces';
+} from '../../../packages/interfaces/src/index';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import BalanceManager from '../../../src/smartdb/balance-manager';
+import BalanceManager from '../../../packages/main/src/smartdb/balance-manager';
 
-jest.mock('../../../src/smartdb/balance-manager');
+jest.mock('../../../packages/main/src/smartdb/balance-manager');
 jest.mock('../../../packages/database-postgres/src/smartDB');
 
 describe('uia', () => {

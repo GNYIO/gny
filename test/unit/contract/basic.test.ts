@@ -1,10 +1,10 @@
-import basic from '../../../src/contract/basic';
+import basic from '../../../packages/main/src/contract/basic';
 import {
   ILogger,
   IAccount,
   IBlock,
   ITransaction,
-} from '../../../packages/interfaces';
+} from '../../../packages/interfaces/src/index';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');
