@@ -7,7 +7,7 @@ const config = {
   },
 };
 
-export class Basic {
+export class Base {
   public constructor(protected readonly connection: Connection) {}
 
   public async get(url: string, params?: any) {

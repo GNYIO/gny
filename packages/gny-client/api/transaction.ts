@@ -1,4 +1,4 @@
-import { Basic } from './basic';
+import { Base } from './base';
 
 interface Query {
   limit?: number;
@@ -11,7 +11,7 @@ interface Query {
   height?: number | string;
   message?: string;
 }
-export class Transaction extends Basic {
+export class Transaction extends Base {
   public async getTransactions(query: Query) {
     const params = {
       limit: query.limit,

@@ -1,6 +1,6 @@
-import { Basic } from './basic';
+import { Base } from './base';
 
-export class Uia extends Basic {
+export class Uia extends Base {
   public async getIssuers(limit?: number, offset?: number) {
     const params = {
       limit: limit,

@@ -1,6 +1,6 @@
-import { Basic } from './basic';
+import { Base } from './base';
 
-export class Loader extends Basic {
+export class Loader extends Base {
   public async getStatus() {
     return await this.get('/api/loader/status');
   }

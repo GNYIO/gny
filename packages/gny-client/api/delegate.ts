@@ -1,7 +1,7 @@
-import { Basic } from './basic';
-import { Secret } from 'dockerode';
+import { Base } from './base';
+import { basic } from '../../../packages/gny-client';
 
-export class Delegate extends Basic {
+export class Delegate extends Base {
   public async count() {
     return await this.get('/api/delegates/count');
   }
@@ -63,5 +63,13 @@ export class Delegate extends Basic {
       publicKey: publicKey,
     };
     return await this.get('/api/delegates/forging/status', params);
+  }
+
+  public async registerDelegate(secret: string) {
+    const trs = basic.registerDelegate(secret);
+    const params = {
+      transaction: trs,
+    };
+    return await this.post('/peer/transactions', params);
   }
 }

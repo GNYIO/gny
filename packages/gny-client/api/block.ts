@@ -1,6 +1,6 @@
-import { Basic } from './basic';
+import { Base } from './base';
 
-export class Block extends Basic {
+export class Block extends Base {
   public async getBlockById(id: string) {
     const params = {
       id: id,

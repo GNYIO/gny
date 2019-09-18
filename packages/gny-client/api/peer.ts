@@ -1,6 +1,6 @@
-import { Basic } from './basic';
+import { Base } from './base';
 
-export class Peer extends Basic {
+export class Peer extends Base {
   public async getPeers() {
     return await this.get('/api/peers');
   }
