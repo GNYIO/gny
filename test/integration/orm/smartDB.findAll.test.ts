@@ -395,7 +395,7 @@ describe('smartDB.findAll()', () => {
     done();
   });
 
-  it('findAll() - returns empty array when no results where found', async done => {
+  it('findAll() - returns empty array when no results were found', async done => {
     await saveGenesisBlock(sut);
 
     const result = await sut.findAll<Account>(Account, {

@@ -203,6 +203,16 @@ export interface PeerNode {
   port: number;
 }
 
+export interface SimplePeerId {
+  id: string;
+  pubKey: string;
+}
+export interface SimplePeerInfo {
+  multiaddrs: string[];
+  id: SimplePeerId;
+  simple: PeerNode;
+}
+
 export interface ProcessBlockOptions {
   local?: true;
   broadcast?: true;
