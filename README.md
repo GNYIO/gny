@@ -85,6 +85,7 @@ node packages/main/dist/src/app
 ```
 
 Default ports:
+
 | Service | Port | Where to change |
 | :--: | :--: | :--: |
 | Postgres | 3000 | `ormconfig.json` |
