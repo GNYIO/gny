@@ -228,6 +228,7 @@ export type BlockHeightId = Pick<IBlock, 'height' | 'id'>;
 
 // Models
 export interface IBlock {
+  [index: string]: string | number | ITransaction[] | undefined;
   id: string;
   height: string;
   version: number;

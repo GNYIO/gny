@@ -95,14 +95,15 @@ export class BlockBase {
   }
 
   public static normalizeBlock(old: IBlock) {
-    const block = copyObject(old);
+    const block = copyObject<IBlock>(old);
 
     for (const i in block) {
       if (block[i] == undefined || typeof block[i] === 'undefined') {
         delete block[i];
       }
       if (Buffer.isBuffer(block[i])) {
-        block[i] = block[i].toString();
+        // !, because we already checked if the property is a Buffer
+        block[i] = block[i]!.toString();
       }
     }
 
@@ -160,9 +161,11 @@ export class BlockBase {
     }
 
     try {
-      for (let i = 0; i < block.transactions.length; i++) {
-        block.transactions[i] = TransactionBase.normalizeTransaction(
-          block.transactions[i]
+      // we know that the "transactions" property is available
+      // we validated it with joi
+      for (let i = 0; i < block.transactions!.length; i++) {
+        block.transactions![i] = TransactionBase.normalizeTransaction(
+          block.transactions![i]
         );
       }
     } catch (e) {

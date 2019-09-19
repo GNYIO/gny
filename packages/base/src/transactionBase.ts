@@ -177,7 +177,7 @@ export class TransactionBase {
 
     const feeCalculator = feeCalculators[trs.type];
     if (!feeCalculator) return 'Fee calculator not found';
-    const minFee = 100000000 * feeCalculator(trs);
+    const minFee = 100000000 * feeCalculator();
     if (new BigNumber(trs.fee).lt(minFee)) return 'Fee not enough';
 
     try {
@@ -195,7 +195,10 @@ export class TransactionBase {
   }
 
   public static create(data: CreateTransactionType) {
-    const transaction: Partial<ITransaction> = {
+    const transaction: Omit<
+      ITransaction,
+      'id' | 'signatures' | 'secondSignature' | 'height'
+    > = {
       type: data.type,
       senderId: addressHelper.generateAddress(
         data.keypair.publicKey.toString('hex')
@@ -207,21 +210,41 @@ export class TransactionBase {
       fee: data.fee,
     };
 
-    transaction.signatures = [TransactionBase.sign(data.keypair, transaction)];
+    const intermediate: Omit<ITransaction, 'id' | 'height'> = {
+      ...transaction,
+      signatures: [TransactionBase.sign(data.keypair, transaction)],
+      secondSignature: undefined,
+    };
 
     if (data.secondKeypair) {
-      transaction.secondSignature = TransactionBase.sign(
+      intermediate.secondSignature = TransactionBase.sign(
         data.secondKeypair,
-        transaction
+        intermediate
       );
     }
 
-    transaction.id = TransactionBase.getHash(transaction).toString('hex');
+    const final: Omit<ITransaction, 'height'> = {
+      ...intermediate,
+      id: TransactionBase.getHash(intermediate).toString('hex'),
+    };
 
-    return transaction as ITransaction;
+    return final;
   }
 
-  private static sign(keypair: KeyPair, transaction) {
+  private static sign(
+    keypair: KeyPair,
+    transaction: Pick<
+      ITransaction,
+      | 'type'
+      | 'timestamp'
+      | 'fee'
+      | 'senderId'
+      | 'message'
+      | 'args'
+      | 'signatures'
+      | 'secondSignature'
+    >
+  ) {
     const bytes = TransactionBase.getBytes(transaction, true, true);
     const hash = crypto
       .createHash('sha256')
@@ -231,11 +254,23 @@ export class TransactionBase {
     return ed.sign(hash, keypair.privateKey).toString('hex');
   }
 
-  public static getId(transaction) {
+  public static getId(transaction: ITransaction) {
     return TransactionBase.getHash(transaction).toString('hex');
   }
 
-  private static getHash(transaction) {
+  private static getHash(
+    transaction: Pick<
+      ITransaction,
+      | 'type'
+      | 'timestamp'
+      | 'fee'
+      | 'senderId'
+      | 'message'
+      | 'args'
+      | 'signatures'
+      | 'secondSignature'
+    >
+  ) {
     return crypto
       .createHash('sha256')
       .update(TransactionBase.getBytes(transaction))
@@ -243,14 +278,24 @@ export class TransactionBase {
   }
 
   public static getBytes(
-    transaction,
-    skipSignature?,
-    skipSecondSignature?
+    transaction: Pick<
+      ITransaction,
+      | 'type'
+      | 'timestamp'
+      | 'fee'
+      | 'senderId'
+      | 'message'
+      | 'args'
+      | 'signatures'
+      | 'secondSignature'
+    >,
+    skipSignature?: boolean,
+    skipSecondSignature?: boolean
   ): Buffer {
     const byteBuffer = new ByteBuffer(1, true);
     byteBuffer.writeInt(transaction.type);
     byteBuffer.writeInt(transaction.timestamp);
-    byteBuffer.writeInt64(transaction.fee);
+    byteBuffer.writeInt64((transaction.fee as unknown) as number);
     byteBuffer.writeString(transaction.senderId);
 
     if (transaction.message) byteBuffer.writeString(transaction.message);

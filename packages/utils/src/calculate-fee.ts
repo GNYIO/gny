@@ -1,4 +1,8 @@
-export const feeCalculators = {
+export interface FeeCalculatorIndexer {
+  [index: number]: () => number;
+}
+
+export const feeCalculators: FeeCalculatorIndexer = {
   0: () => 0.1,
   1: () => 5,
   2: () => 5,
