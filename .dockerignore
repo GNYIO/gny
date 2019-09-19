@@ -8,7 +8,7 @@ test
 createSecondNode.js
 genGenesisBlock.txt
 jest.config.js
-test.tsconfig.json
+jest.tsconfig.json
 launchAllNodes.js
 purge-all-docker-containers
 rebuild.sh
