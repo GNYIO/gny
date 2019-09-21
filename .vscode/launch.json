@@ -8,23 +8,9 @@
       "type": "node",
       "request": "launch",
       "name": "DEBUG_1",
-      "program": "${workspaceFolder}/dist/app.js",
-      "cwd": "${workspaceFolder}/dist",
+      "program": "${workspaceFolder}/packages/main/dist/src/app.js",
+      "cwd": "${workspaceFolder}",
       "args": ["--ormConfig", "ormconfig.json"],
-      "env": {
-        "DEBUG": "debug"
-      },
-      "skipFiles": [
-        "<node_internals>/**/*.js"
-      ]
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "DEBUG_2",
-      "program": "${workspaceFolder}/dist1/app.js",
-      "cwd": "${workspaceFolder}/dist1",
-      "args": ["--log", "trace"],
       "env": {
         "DEBUG": "debug"
       },
