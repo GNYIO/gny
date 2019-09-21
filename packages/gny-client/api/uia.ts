@@ -1,5 +1,5 @@
 import { Base } from './base';
-
+import { uia } from '../../../packages/gny-client';
 export class Uia extends Base {
   public async getIssuers(limit?: number, offset?: number) {
     const params = {
@@ -47,5 +47,40 @@ export class Uia extends Base {
 
   public async getBalance(address: string, currency: string) {
     return await this.get(`/api/uia/balances/${address}/${currency}`);
+  }
+
+  public async registerAsset(
+    name: string,
+    desc: string,
+    maximum: string,
+    precision: number,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = uia.registerAsset(
+      name,
+      desc,
+      maximum,
+      precision,
+      secret,
+      secondSecret
+    );
+    const params = {
+      transaction: trs,
+    };
+    return await this.post('/peer/transactions', params);
+  }
+
+  public async registerIssuer(
+    name: string,
+    desc: string,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = uia.registerIssuer(name, desc, secret, secondSecret);
+    const params = {
+      transaction: trs,
+    };
+    return await this.post('/peer/transactions', params);
   }
 }
