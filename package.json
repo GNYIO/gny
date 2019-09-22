@@ -51,11 +51,9 @@
   },
   "homepage": "https://github.com/GNYIO/gny-experiment#readme",
   "dependencies": {
-    "@types/bytebuffer": "=5.0.39",
     "@types/fs-extra": "^8.0.0",
     "@types/jest": "^23.3.2",
     "@types/lodash": "^4.14.118",
-    "@types/method-override": "=0.0.31",
     "@types/shelljs": "=0.8.1",
     "axios": "^0.19.0",
     "babel-eslint": "^9.0.0",
