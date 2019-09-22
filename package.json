@@ -61,7 +61,6 @@
     "babel-eslint": "^9.0.0",
     "benchmark": "^2.1.4",
     "docker-compose": "^0.17.5",
-    "ejs": "=2.5.7",
     "fs-extra": "^8.1.0",
     "is-root": "^2.0.0",
     "lodash": "^4.17.15",
