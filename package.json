@@ -66,7 +66,6 @@
     "fs-extra": "^8.1.0",
     "is-root": "^2.0.0",
     "lodash": "^4.17.15",
-    "lolex": "^4.1.0",
     "peer-info": "^0.15.1",
     "protocol-buffers": "=3.2.1",
     "shelljs": "=0.8.3",
@@ -75,6 +74,7 @@
     "typescript": "^3.5.3"
   },
   "devDependencies": {
+    "@types/lolex": "^3.1.1",
     "@typescript-eslint/eslint-plugin": "^1.6.0",
     "bignumber.js": "^8.1.1",
     "eslint": "^5.5.0",
@@ -83,6 +83,7 @@
     "jest-cli": "^24.8.0",
     "lerna": "^3.16.4",
     "lint-staged": "^8.1.5",
+    "lolex": "^4.2.0",
     "prettier": "1.16.4",
     "sinon": "^7.2.7",
     "systeminformation": "^4.13.1",

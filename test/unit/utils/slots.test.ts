@@ -1,7 +1,6 @@
 import { slots } from '../../../packages/utils/src/slots';
 import { INTERVAL } from '../../../packages/utils/src/constants';
-
-const lolex = require('lolex');
+import * as lolex from 'lolex';
 
 describe('slots', () => {
   it('should be object', () => {
