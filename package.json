@@ -64,7 +64,6 @@
     "lodash": "^4.17.15",
     "peer-info": "^0.15.1",
     "shelljs": "=0.8.3",
-    "sql.js": "^0.5.0",
     "ts-node": "=7.0.1",
     "typescript": "^3.5.3"
   },
