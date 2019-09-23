@@ -418,7 +418,7 @@ describe('uiaApi', () => {
 
   describe('/balances/:address/:currency', () => {
     it(
-      'should get issuers',
+      'should get balance by address and currency',
       async () => {
         const recipient = randomAddress();
         // prepare
