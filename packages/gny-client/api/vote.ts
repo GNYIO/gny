@@ -2,8 +2,8 @@ import { Base } from './base';
 import { basic } from '../../../packages/gny-client';
 
 export class Vote extends Base {
-  public async vote(keyList: string[], secrete: string, secondSecrete: string) {
-    const trs = basic.vote(keyList, secrete, secondSecrete);
+  public async vote(keyList: string[], secret: string, secondSecret?: string) {
+    const trs = basic.vote(keyList, secret, secondSecret);
     const params = {
       transaction: trs,
     };
@@ -13,10 +13,10 @@ export class Vote extends Base {
 
   public async unvote(
     keyList: string[],
-    secrete: string,
-    secondSecrete: string
+    secret: string,
+    secondSecret?: string
   ) {
-    const trs = basic.unvote(keyList, secrete, secondSecrete);
+    const trs = basic.unvote(keyList, secret, secondSecret);
     const params = {
       transaction: trs,
     };
