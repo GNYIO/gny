@@ -88,7 +88,7 @@ describe('account', () => {
       'should open an account with public key',
       async done => {
         const secret =
-          'swap try awkward damp noble kit undo whisper field wrestle marble chimney';
+          'grow pencil ten junk bomb right describe trade rich valid tuna service';
         const response = await accountApi.openAccount(secret);
         expect(response.status).toEqual(200);
         done();
@@ -261,38 +261,73 @@ describe('account', () => {
     );
   });
 
-  // describe('/getPublicKey', () => {
-  //   it(
-  //     'should get the public key of an account',
-  //     async () => {
-  //       const secret = 'inch flag pulse valley soup ability clog window airport gauge oval absurd';
+  describe('/getPublicKey', () => {
+    it(
+      'should get the public key of an account',
+      async () => {
+        const secret =
+          'inch flag pulse valley soup ability clog window airport gauge oval absurd';
 
-  //       const {data} = await accountApi.openAccount(secret);
-  //       console.log({data});
-  //       await lib.onNewBlock();
+        const { data } = await accountApi.openAccount(secret);
+        console.log({ data });
+        await lib.onNewBlock();
 
-  //       const address = 'G2uSrVTEUpH5fZVyBxGWufTQBmAv7';
-  //       // const response = await accountApi.getPublicKey(address);
-  //       try {
-  //         const getPromise = await axios.get(
-  //           'http://localhost:4096/api/accounts/getPublicKey?address=' + address
-  //         );
-  //       } catch(error) {
-  //         console.log(error);
-  //       }
-  //       // expect(response.status).toEqual(200);
-  //     },
-  //     lib.oneMinute
-  //   );
-  // });
+        const address = 'G2uSrVTEUpH5fZVyBxGWufTQBmAv7';
+        // const response = await accountApi.getPublicKey(address);
+        try {
+          const getPromise = await axios.get(
+            'http://localhost:4096/api/accounts/getPublicKey?address=' + address
+          );
+        } catch (error) {
+          console.log(error);
+        }
+        // expect(response.status).toEqual(200);
+      },
+      lib.oneMinute
+    );
+  });
 
   describe('/generatePublicKey', () => {
     it(
       'should generate the public key',
       async () => {
         const secret =
-          'swap try awkward damp noble kit undo whisper field wrestle marble chimney';
+          'grow pencil ten junk bomb right describe trade rich valid tuna service';
         const response = await accountApi.generatePublicKey(secret);
+        expect(response.status).toEqual(200);
+      },
+      lib.oneMinute
+    );
+  });
+
+  describe('/setUserName', () => {
+    it(
+      'should set username',
+      async () => {
+        const username = 'a1300';
+        const secret =
+          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+        const response = await accountApi.setUserName(username, secret);
+        expect(response.status).toEqual(200);
+      },
+      lib.oneMinute
+    );
+  });
+
+  describe('/lockAccount', () => {
+    it(
+      'should lock account',
+      async () => {
+        const height = 173000;
+        const amount = 30 * 1e8;
+        const secret =
+          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+        const username = 'a1300';
+
+        // set username
+        await accountApi.setUserName(username, secret);
+
+        const response = await accountApi.lockAccount(height, amount, secret);
         expect(response.status).toEqual(200);
       },
       lib.oneMinute
