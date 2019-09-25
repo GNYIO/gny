@@ -261,31 +261,31 @@ describe('account', () => {
     );
   });
 
-  describe('/getPublicKey', () => {
-    it(
-      'should get the public key of an account',
-      async () => {
-        const secret =
-          'inch flag pulse valley soup ability clog window airport gauge oval absurd';
+  // describe('/getPublicKey', () => {
+  //   it(
+  //     'should get the public key of an account',
+  //     async () => {
+  //       const secret =
+  //         'inch flag pulse valley soup ability clog window airport gauge oval absurd';
 
-        const { data } = await accountApi.openAccount(secret);
-        console.log({ data });
-        await lib.onNewBlock();
+  //       const { data } = await accountApi.openAccount(secret);
+  //       console.log({ data });
+  //       await lib.onNewBlock();
 
-        const address = 'G2uSrVTEUpH5fZVyBxGWufTQBmAv7';
-        // const response = await accountApi.getPublicKey(address);
-        try {
-          const getPromise = await axios.get(
-            'http://localhost:4096/api/accounts/getPublicKey?address=' + address
-          );
-        } catch (error) {
-          console.log(error);
-        }
-        // expect(response.status).toEqual(200);
-      },
-      lib.oneMinute
-    );
-  });
+  //       const address = 'G2uSrVTEUpH5fZVyBxGWufTQBmAv7';
+  //       // const response = await accountApi.getPublicKey(address);
+  //       try {
+  //         const getPromise = await axios.get(
+  //           'http://localhost:4096/api/accounts/getPublicKey?address=' + address
+  //         );
+  //       } catch (error) {
+  //         console.log(error);
+  //       }
+  //       // expect(response.status).toEqual(200);
+  //     },
+  //     lib.oneMinute
+  //   );
+  // });
 
   describe('/generatePublicKey', () => {
     it(
