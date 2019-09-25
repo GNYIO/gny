@@ -2,7 +2,7 @@ import * as fs from 'fs';
 
 import Api from '../lib/api';
 import * as cryptoLib from '../lib/crypto';
-import { BlockBase } from '../../../src/base/block';
+import { BlockBase } from '../../../packages/base/blockBase';
 
 let globalOptions;
 

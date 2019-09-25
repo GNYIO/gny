@@ -1,21 +1,7 @@
-import {
-  TransactionBase,
-  CreateTransactionType,
-} from '../../../src/base/transaction';
-import basic from '../../../src/contract/basic';
-import {
-  ITransaction,
-  Context,
-  IBlock,
-  IAccount,
-} from '../../../src/interfaces';
-import { ILogger } from '../../../src/interfaces';
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { TransactionBase, CreateTransactionType } from '@gny/base';
+import { ITransaction, Context, IAccount } from '@gny/packages';
 import * as crypto from 'crypto';
-import * as ed from '../../../src/utils/ed';
-
-jest.mock('../../../packages/database-postgres/src/smartDB');
-jest.mock('../../../src/contract/basic');
+import * as ed from '@gny/ed';
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
@@ -43,26 +29,6 @@ function createTransation() {
 }
 
 describe('Transaction', () => {
-  beforeEach(done => {
-    const logger: ILogger = {
-      log: x => x,
-      trace: x => x,
-      debug: x => x,
-      info: x => x,
-      warn: x => x,
-      error: x => x,
-      fatal: x => x,
-    };
-    const sdb = new SmartDB(logger);
-    global.app = {
-      getContractName: jest.fn(type => 'basic.transfer'),
-      contract: { basic: basic },
-      sdb: sdb,
-      validate: jest.fn((type, value) => null),
-    };
-    done();
-  });
-
   describe('create', () => {
     let trs: ITransaction;
     beforeEach(done => {
@@ -296,32 +262,6 @@ describe('Transaction', () => {
     it('should return true when valid bytes are checked', () => {
       const verified = TransactionBase.verifyBytes(bytes, publicKey, signature);
       expect(verified).toBeTruthy();
-    });
-  });
-
-  describe('apply', () => {
-    let context: Context;
-    let trs: ITransaction;
-    let sender;
-    let block: Pick<IBlock, 'height'>;
-
-    beforeEach(done => {
-      trs = createTransation();
-      sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 400000000000000000,
-      };
-      block = { height: String(1) };
-      context = { trs, sender, block };
-      done();
-    });
-
-    it.skip('should return nothing if applied', async () => {
-      global.app.sdb.update.mockReturnValue(true);
-      global.app.contract.basic.transfer.mockReturnValue(null);
-
-      const applied = await TransactionBase.apply(context);
-      expect(applied).toBeNull();
     });
   });
 

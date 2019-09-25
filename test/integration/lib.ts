@@ -1,10 +1,9 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
-import * as Docker from 'dockerode';
 import { randomBytes } from 'crypto';
-import { generateAddress } from '../../src/utils/address';
+import { generateAddress } from '@gny/utils';
 import * as isRoot from 'is-root';
-import { BigNumber } from 'bignumber.js';
+import { BigNumber } from '@gny/utils';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',

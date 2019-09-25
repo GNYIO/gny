@@ -8,7 +8,7 @@ import * as lib from '../integration/lib';
 
 import si = require('systeminformation');
 import Benchmark = require('benchmark');
-import { generateAddress } from '../../src/utils/address';
+import { generateAddress } from '../../packages/utils/address';
 
 async function onStart() {
   console.log('Benchmark for single transaction started...');

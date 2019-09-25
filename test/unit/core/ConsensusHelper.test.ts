@@ -1,11 +1,11 @@
-import { IBlock, ManyVotes, ITransaction } from '../../../src/interfaces';
-import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
-import * as ed from '../../../src/utils/ed';
+import { IBlock, ManyVotes, ITransaction } from '../../../packages/interfaces';
+import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
+import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
-import slots from '../../../src/utils/slots';
-import { ConsensusBase } from '../../../src/base/consensus';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
+import { slots } from '../../../packages/utils/src/slots';
+import { ConsensusBase } from '../../../packages/base/src/consensusBase';
+import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
 
 function createRandomBlock(

@@ -1,0 +1,29 @@
+{
+  "name": "@gny/base",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/ed": "1.0.0",
+    "@gny/extendedJoi": "1.0.0",
+    "@gny/interfaces": "1.0.0",
+    "@gny/utils": "1.0.0",
+    "@types/bytebuffer": "^5.0.39",
+    "@types/ip": "0.0.32",
+    "bignumber.js": "^8.1.1",
+    "bytebuffer": "^5.0.1",
+    "ip": "^1.1.3"
+  }
+}

@@ -1,9 +1,8 @@
 import * as gnyJS from '../../../packages/gny-js';
 import * as lib from '../lib';
 import axios from 'axios';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import { randomBytes } from 'crypto';
-import { description } from 'joi';
 
 const config = {
   headers: {

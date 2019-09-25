@@ -1,7 +1,7 @@
 import * as lib from '../lib';
 import * as gnyJS from '../../../packages/gny-js';
 import axios from 'axios';
-import { generateAddress } from '../../../src/utils/address';
+import { generateAddress } from '../../../packages/utils/address';
 import { randomBytes } from 'crypto';
 
 const genesisSecret =

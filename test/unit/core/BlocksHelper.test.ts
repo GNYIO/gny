@@ -1,4 +1,4 @@
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
+import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import {
   ITransaction,
   IConfig,
@@ -7,14 +7,14 @@ import {
   BlockPropose,
   IGenesisBlock,
   NewBlockMessage,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import * as crypto from 'crypto';
-import { generateAddress } from '../../../src/utils/address';
-import * as ed from '../../../src/utils/ed';
+import { generateAddress } from '../../../packages/utils/src/address';
+import * as ed from '../../../packages/ed';
 import * as fs from 'fs';
-import { ConsensusHelper } from '../../../src/core/ConsensusHelper';
-import slots from '../../../src/utils/slots';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
+import { slots } from '../../../packages/utils/src/slots';
+import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
 
 const dummyLogger = {

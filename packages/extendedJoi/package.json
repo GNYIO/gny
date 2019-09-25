@@ -1,0 +1,24 @@
+{
+  "name": "@gny/extendedJoi",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/utils": "1.0.0",
+    "@types/bip39": "^2.4.2",
+    "@types/joi": "^14.0.1",
+    "bignumber.js": "^8.1.1",
+    "bip39": "^2.6.0",
+    "joi": "^14.3.1"
+  }
+}

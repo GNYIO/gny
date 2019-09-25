@@ -13,7 +13,7 @@ services:
   app:
     build: .
     image: gny-experiment:integration # tags
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; cd dist && node app.js --ormConfig "ormconfig.integration.json"'
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; node packages/main/dist/src/app --ormConfig "ormconfig.integration.json"'
     environment:
       NODE_ENV: production
     ports:

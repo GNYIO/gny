@@ -1,5 +1,5 @@
-import { MessageBus } from '../../../src/utils/messageBus';
-import { Modules, CoreApi } from '../../../src/interfaces';
+import { MessageBus } from '../../../packages/utils/src/messageBus';
+import { Modules, CoreApi } from '../../../packages/interfaces';
 
 describe('messageBus', () => {
   it('message() - event gets executed in all Modules and all registered CoreApi instances', done => {
