@@ -8,6 +8,7 @@ import { System } from './system';
 import { Transfer } from './transfer';
 import { Transport } from './transport';
 import { Uia } from './uia';
+import { Vote } from './vote';
 
 export const Api = {
   Account,
@@ -20,4 +21,5 @@ export const Api = {
   Transfer,
   Transport,
   Uia,
+  Vote,
 };
