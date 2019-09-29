@@ -1,6 +1,6 @@
 import 'jest-extended';
 import * as gnyClient from '../index';
-import extendedJoi from '../../../src/utils/extendedJoi';
+import { joi } from '@gny/extendedJoi';
 
 describe('crypto.js', () => {
   const crypto = gnyClient.crypto;
@@ -207,22 +207,19 @@ describe('crypto.js', () => {
       expect(keys).toHaveProperty('publicKey');
       expect(keys).toHaveProperty('privateKey');
 
-      const publicSchema = extendedJoi
+      const publicSchema = joi
         .string()
         .hex(32)
         .required();
 
-      const publicReport = extendedJoi.validate(keys.publicKey, publicSchema);
+      const publicReport = joi.validate(keys.publicKey, publicSchema);
       expect(publicReport.error).toBeNull();
 
-      const privateSchema = extendedJoi
+      const privateSchema = joi
         .string()
         .hex(64)
         .required();
-      const privateReport = extendedJoi.validate(
-        keys.privateKey,
-        privateSchema
-      );
+      const privateReport = joi.validate(keys.privateKey, privateSchema);
       expect(privateReport.error).toBeNull();
     });
   });

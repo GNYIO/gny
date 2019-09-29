@@ -1,5 +1,6 @@
 import * as gnyClient from '../index';
-import extendedJoi from '../../../src/utils/extendedJoi';
+import { joi } from '@gny/extendedJoi';
+
 import 'jest-extended';
 
 describe('basic', () => {
@@ -111,12 +112,12 @@ describe('basic', () => {
       });
 
       it('should publicKey of secondSecret be in hex array', () => {
-        const schema = extendedJoi
+        const schema = joi
           .string()
           .hex(32)
           .required();
 
-        const report = extendedJoi.validate(trs.args[0], schema);
+        const report = joi.validate(trs.args[0], schema);
         expect(report.error).toBeNull();
       });
     });

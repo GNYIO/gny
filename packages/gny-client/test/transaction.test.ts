@@ -1,6 +1,6 @@
 import 'jest-extended';
 import * as gnyClient from '../index';
-import extendedJoi from '../../../src/utils/extendedJoi';
+import { joi } from '@gny/extendedJoi';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
@@ -64,15 +64,12 @@ describe('transaction', () => {
       });
 
       it('should have senderPublicKey as hex string', () => {
-        const publicSchema = extendedJoi
+        const publicSchema = joi
           .string()
           .hex(32)
           .required();
 
-        const publicReport = extendedJoi.validate(
-          trs.senderPublicKey,
-          publicSchema
-        );
+        const publicReport = joi.validate(trs.senderPublicKey, publicSchema);
         expect(publicReport.error).toBeNull();
       });
 
@@ -89,12 +86,12 @@ describe('transaction', () => {
       });
 
       it('should have signature as hex string', () => {
-        const schema = extendedJoi
+        const schema = joi
           .string()
           .hex(64)
           .required();
 
-        const report = extendedJoi.validate(trs.signatures[0], schema);
+        const report = joi.validate(trs.signatures[0], schema);
         expect(report.error).toBeNull();
       });
 
@@ -152,15 +149,12 @@ describe('transaction', () => {
       });
 
       it('should have senderPublicKey as hex string', () => {
-        const publicSchema = extendedJoi
+        const publicSchema = joi
           .string()
           .hex(32)
           .required();
 
-        const publicReport = extendedJoi.validate(
-          trs.senderPublicKey,
-          publicSchema
-        );
+        const publicReport = joi.validate(trs.senderPublicKey, publicSchema);
         expect(publicReport.error).toBeNull();
       });
 
@@ -177,22 +171,22 @@ describe('transaction', () => {
       });
 
       it('should have signature as hex string', () => {
-        const schema = extendedJoi
+        const schema = joi
           .string()
           .hex(64)
           .required();
 
-        const report = extendedJoi.validate(trs.signatures[0], schema);
+        const report = joi.validate(trs.signatures[0], schema);
         expect(report.error).toBeNull();
       });
 
       it('should have secondSignature as hex string', () => {
-        const schema = extendedJoi
+        const schema = joi
           .string()
           .hex(64)
           .required();
 
-        const report = extendedJoi.validate(trs.secondSignature, schema);
+        const report = joi.validate(trs.secondSignature, schema);
         expect(report.error).toBeNull();
       });
 

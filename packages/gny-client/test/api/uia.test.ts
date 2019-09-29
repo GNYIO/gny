@@ -2,7 +2,7 @@ import { Connection } from '../../connection';
 import * as lib from './lib';
 import * as gnyClient from '../../index';
 import axios from 'axios';
-import { generateAddress } from '../../../../src/utils/address';
+import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
 
 const config = {
