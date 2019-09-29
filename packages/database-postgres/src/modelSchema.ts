@@ -118,6 +118,7 @@ export class ModelSchema {
     return this.propertiesSet.has(typeName);
   }
 
+  // @ts-ignore
   private isValidEntityKey(selector) {
     return this.isValidPrimaryKey(selector) || this.isValidUniqueKey(selector);
   }
@@ -165,6 +166,7 @@ export class ModelSchema {
       : CodeContract.partialCopy(obj, [this.primaryKey]);
   }
 
+  // @ts-ignore
   private normalizePrimaryKey(result) {
     if (!CodeContract.isPrimitiveKey(result)) {
       return result;
@@ -173,7 +175,6 @@ export class ModelSchema {
     item[this.primaryKey] = result;
     return item;
   }
-
   public isValidPrimaryKey(key) {
     // TODO: refactor
     return (
@@ -184,6 +185,7 @@ export class ModelSchema {
     );
   }
 
+  // @ts-ignore
   private isValidUniqueKey(name) {
     return undefined !== this.getUniqueName(name);
   }
@@ -206,6 +208,7 @@ export class ModelSchema {
     return data === ModelSchema.PRIMARY_KEY_NAME;
   }
 
+  // @ts-ignore
   private getUniqueIndex(name) {
     return this.allUniqueIndexes.find(function(functionImport) {
       return functionImport.name === name;
@@ -234,6 +237,7 @@ export class ModelSchema {
     });
   }
 
+  // @ts-ignore
   private splitEntityAndVersion(obj) {
     const result = obj[ENTITY_VERSION_PROPERTY];
     return (
@@ -273,7 +277,6 @@ export class ModelSchema {
   public get schemaObject() {
     // TODO test
     throw new Error('not ready');
-    return this.schema;
   }
 
   public get isCompsiteKey() {

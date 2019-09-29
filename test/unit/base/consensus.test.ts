@@ -1,15 +1,14 @@
-import { ConsensusBase } from '../../../src/base/consensus';
+import { ConsensusBase } from '@gny/base';
 import {
   KeyPair,
   IBlock,
   ManyVotes,
   Signature,
   BlockPropose,
-} from '../../../src/interfaces';
-import { BlockBase } from '../../../src/base/block';
-import * as ed from '../../../src/utils/ed';
+} from '@gny/interfaces';
+import { BlockBase } from '@gny/base';
+import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
-import { BigNumber } from 'bignumber.js';
 
 function createRandomSignature() {
   const signature: Signature = {

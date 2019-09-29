@@ -81,8 +81,9 @@ export class LRUEntityCache {
     let _iteratorNormalCompletion3 = true;
     let _didIteratorError5 = false;
     let _iteratorError5 = undefined;
+    let _iterator3 = undefined;
     try {
-      const _iterator3 = this.modelCaches.values()[Symbol.iterator]();
+      _iterator3 = this.modelCaches.values()[Symbol.iterator]();
       let $__6;
       for (
         ;

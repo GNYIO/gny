@@ -1,26 +1,15 @@
-import {
-  SmartDB,
-  SmartDBOptions,
-} from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import {
   IBlock,
   IAccount,
   IDelegate,
-  IAsset,
-  ITransaction,
-  IVariable,
-  IRound,
   IBalance,
-} from '../../../src/interfaces';
-import { generateAddress } from '../../../src/utils/address';
-import { cloneDeep } from 'lodash';
+} from '../../../packages/interfaces';
+import { generateAddress } from '../../../packages/utils/address';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Asset } from '../../../packages/database-postgres/entity/Asset';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
 import {
   createRandomBytes,

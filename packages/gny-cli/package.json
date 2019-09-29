@@ -1,5 +1,6 @@
 {
   "name": "gny-cli",
+  "private": true,
   "version": "1.0.0",
   "description": "gny command cline tool",
   "main": "index",

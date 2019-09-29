@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
-import * as ed from '../../../src/utils/ed';
+import * as ed from '../../../packages/ed';
 import Api from '../lib/api';
-import { TransactionBase } from '../../../src/base/transaction';
+import { TransactionBase } from '../../../packages/base/transactionBase';
 
 let globalOptions;
 

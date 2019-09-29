@@ -16,7 +16,7 @@ export NVM_DIR="$HOME/.nvm"
 nvm use # uses node version in the .nvmrc file
 nvm alias default # set node version in .nvmrc as default one
 ```
-__Important__  
+__Important__
 > Follow [this Tutorial](https://docs.docker.com/install/linux/docker-ce/ubuntu/) to install __Docker__ and [this Tutorial](https://docs.docker.com/compose/install/) to install __Docker-Compose__.
 
 <br/>
@@ -37,37 +37,7 @@ All GNY tokens are first on the __genesis Account__. Use the secret below to exe
 }
 ```
 
-## Run Tests
 
-To run the unit tests, simple run:
-```bash
-npm run test
-```
-
-To run the integration tests you need to first login as the root user (because of docker):
-```bash
-sudo -s
-npm run test:integration
-```
-
-<br/>
-
-
-## Run Many Nodes
-
-First rebuild the project with: `npm run tsc`
-
-Then create the different nodes with `sudo node createSecondNode.js`
-You can pass as argument how many nodes you want to run: E.g. 10 nodes `sudo node createSecondNode.js 10`
-
-Then lauch all nodes with `sudo node launchAllNodes.js`.
-
-If you want all nodes to stop, press `Ctrl + C`
-
-
-
-
-<br/>
 
 ## Installation
 
@@ -78,34 +48,44 @@ Clone this repository:
 git clone https://github.com/gnyio/gny-experiment
 ```
 
-### 2 Install Node Dependencies
+### 2 Install Tools
 
 Install exactly the dependencies from `package-lock.json` with `npm ci`:
 ```bash
 npm ci
 ```
 
-### 3 Transpile Files with TypeScript
+### 3 Install Lerna Packages
 
-Execute:
+Bootstrap all [lerna.js](https://github.com/lerna/lerna) packages with:
+
 ```bash
-npm run tsc
+npm run lerna:bootstrap
 ```
 
-### 4 Start Node
+### 4 Transpile all Lerna Packages
 
+Transpile all [lerna.js](https://github.com/lerna/lerna) packages with:
+
+```bash
+npm run lerna:tsc
 ```
+
+### 5 Start Node
+
+Start a postgres docker container:
+```bash
 # start POSTGRESQL database on port 3000
 sudo docker run --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres -p 3000:5432 postgres
+```
 
-# open new console and change directory
-cd dist
-
-# start blockchain
-node app
+Open a new `console` and start the GNY blockchain:
+```bash
+node packages/main/dist/src/app
 ```
 
 Default ports:
+
 | Service | Port | Where to change |
 | :--: | :--: | :--: |
 | Postgres | 3000 | `ormconfig.json` |
@@ -116,9 +96,13 @@ Default ports:
 > __Attention__
 > After changing ports be sure to rebuild the project with `npm run tsc`
 
+<br/>
 
 # Extra: Run whole Blockchain only in Docker
-First build the image for the `node.js` Blockchain node and the `postgres` database:
+
+First verify that you executed the [Installation](#Installation) process.
+
+The following command builds the image for the GNY Blockchain node and the `postgres` database:
 ```bash
 sudo docker-compose build
 ```
@@ -161,3 +145,39 @@ sudo docker stop $(sudo docker ps --all --quiet)
 ```bash
 sudo docker rm $(sudo docker ps --all --quiet)
 ```
+
+<br/>
+
+
+
+## Run Tests
+
+Before running the unit tests be sure to have the project installed with [Installation](#Installation)
+
+To run the unit tests, simple run:
+```bash
+npm run test
+```
+
+To run the integration tests you need to first login as the root user (because of docker):
+```bash
+sudo -s
+npm run test:integration
+```
+
+<br/>
+
+
+
+## Run Many Nodes
+
+First rebuild the project with: `npm run lerna:tsc`
+
+Then create the different nodes with `sudo node createSecondNode.js`
+You can pass as argument how many nodes you want to run: E.g. 10 nodes `sudo node createSecondNode.js 10`
+
+Then lauch all nodes with `sudo node launchAllNodes.js`.
+
+If you want all nodes to stop, press `Ctrl + C`
+
+<br/>

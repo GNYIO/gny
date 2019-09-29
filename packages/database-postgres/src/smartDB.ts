@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection } from 'typeorm';
-import { loadConfig } from '../loadConfig';
-import { ILogger, IBlock } from '../../../src/interfaces';
+import { loadConfig } from './config/loadConfig';
+import { ILogger, IBlock } from '@gny/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract';
@@ -21,9 +21,22 @@ import {
   FindAllOptions,
   ArrayCondition,
   Condition,
-} from '../searchTypes';
+} from './searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
 import { Transaction } from '../entity/Transaction';
+
+export * from '../entity/Account';
+export * from '../entity/Asset';
+export * from '../entity/Balance';
+export * from '../entity/Block';
+export * from '../entity/BlockHistory';
+export * from '../entity/Delegate';
+export * from '../entity/Issuer';
+export * from '../entity/Round';
+export * from '../entity/Transaction';
+export * from '../entity/Transfer';
+export * from '../entity/Variable';
+export * from '../entity/Vote';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -339,6 +352,7 @@ export class SmartDB extends EventEmitter {
       this.log.info('SUCCESS commitBlock height = ' + this.lastBlockHeight);
       return this.lastBlockHeight;
     } catch (err) {
+      // @ts-ignore
       this.log.error(
         'FAILD commitBlock ( height = ' + this.currentBlock.height + ' )',
         err
@@ -427,6 +441,7 @@ export class SmartDB extends EventEmitter {
     const schema = this.getSchema(model, true);
     const result = await this.load<T>(
       model,
+      // @ts-ignore
       schema.getNormalizedPrimaryKey(entity)
     );
     return {
@@ -770,6 +785,7 @@ export class SmartDB extends EventEmitter {
       const trans = await this.blockSession.getTransactionsByBlockHeight(
         blocks[i].height
       );
+      // @ts-ignore
       blocks[i].transactions = trans || [];
     }
     return blocks;

@@ -1,5 +1,5 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { IDelegate } from '../../../src/interfaces';
+import { IDelegate } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';

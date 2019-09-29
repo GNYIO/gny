@@ -9,17 +9,20 @@ RUN apt-get update && \
     make gcc g++ autoconf automake \
     python build-essential
 
-# next copy only package.json and package-lock.json for installation
-COPY package.json package-lock.json ./
-# all installed dependencies are now cached
-RUN npm ci
+
 
 # next copy all files (except files and dirs in .dockerignore) to container
 # when a file changes, then only from this part on will the Dockerfile get executed, the rest is cached
 COPY . .
 
+# all installed (root)dependencies are now cached
+RUN npm ci
+
+# install all depdencies for packages/*
+RUN npm run lerna:bootstrap
+
 # compile all TypeScript files
-RUN npm run tsc
+RUN npm run lerna:tsc
 EXPOSE 4096
 
 # gets overriden in docker-compose.yml file

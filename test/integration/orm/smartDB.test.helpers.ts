@@ -7,12 +7,10 @@ import {
   ITransaction,
   ILogger,
   IGenesisBlock,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
-import { generateAddress } from '../../../src/utils/address';
-import * as lib from '../lib';
-import * as fs from 'fs';
+import { generateAddress } from '../../../packages/utils/address';
 
 export const CUSTOM_GENESIS: IGenesisBlock = {
   version: 0,

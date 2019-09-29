@@ -1,0 +1,31 @@
+{
+  "name": "@gny/database-postgres",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {},
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/src/smartDB",
+  "types": "dist/src/smartDB",
+  "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "@types/lodash": "^4.14.138",
+    "@types/lru-cache": "^5.1.0",
+    "bignumber.js": "^8.1.1",
+    "json-sql": "^0.4.11",
+    "lodash": "^4.17.15",
+    "lru-cache": "^5.1.1",
+    "pg": "^7.12.1",
+    "reflect-metadata": "^0.1.13",
+    "sql.js": "^0.5.0",
+    "type-fest": "^0.6.0",
+    "typeorm": "^0.2.18"
+  }
+}

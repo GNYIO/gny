@@ -1,4 +1,4 @@
-import { RoundBase } from '../../../src/base/round';
+import { RoundBase } from '@gny/base';
 
 describe('base/round', () => {
   it('calculateRound() - height 0', () => {

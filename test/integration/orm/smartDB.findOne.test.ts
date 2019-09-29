@@ -1,10 +1,9 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { IAccount, IBalance } from '../../../src/interfaces';
+import { IAccount, IBalance } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { FindOneOptions } from '../../../packages/database-postgres/searchTypes';
 import {
   saveGenesisBlock,
   createBlock,

@@ -4,7 +4,7 @@ import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';
 import { Variable } from '../../../packages/database-postgres/entity/Variable';
 import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
-import { Condition } from '../../../packages/database-postgres/searchTypes';
+import { Condition } from '../../../packages/database-postgres/src/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { Balance } from '../../../packages/database-postgres/entity/Balance';
 

@@ -64,6 +64,10 @@ export function notNullOrWhitespace(data: any) {
   return checkResult;
 }
 
+export interface Result<T, K extends keyof T> {
+  [key: string]: T[K];
+}
+
 /**
  * @param {Object[]} iterable
  * @param {Function} getKey
@@ -79,10 +83,7 @@ export function makeJsonObject<T, K extends keyof T>(
   argument('getKey', () => notNull(getKey));
   argument('getValue', () => notNull(getValue));
 
-  interface Result {
-    [key: string]: T[K];
-  }
-  const result: Result = {};
+  const result: Result<T, K> = {};
 
   for (const data of iterable) {
     result[getKey(data)] = getValue(data);

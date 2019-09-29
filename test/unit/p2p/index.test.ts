@@ -1,15 +1,9 @@
-import { createPeerInfo } from '../../../packages/p2p/createPeerInfo';
-import {
-  ILogger,
-  P2PMessage,
-  PeerNode,
-  SimplePeerInfo,
-} from '../../../src/interfaces';
+import { createPeerInfo } from '../../../packages/p2p/src/createPeerInfo';
+import { ILogger, P2PMessage, PeerNode } from '../../../packages/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
-import { Bundle } from '../../../packages/p2p/bundle';
-import { attachEventHandlers } from '../../../packages/p2p/util';
-import { Options as LibP2POptions } from 'libp2p';
+import { Bundle, LibP2POptions } from '../../../packages/p2p/src/bundle';
+import { attachEventHandlers } from '../../../packages/p2p/src/util';
 
 const delay = (x: number): Promise<void> =>
   new Promise(resolve => setInterval(resolve, x));

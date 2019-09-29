@@ -1,7 +1,7 @@
 import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
-import { CommonBlockParams, ManyVotes } from '../../../src/interfaces';
+import { CommonBlockParams, ManyVotes } from '../../../packages/interfaces';
 import * as crypto from 'crypto';
 import BigNumber from 'bignumber.js';
 

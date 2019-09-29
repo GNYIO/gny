@@ -1,31 +1,40 @@
 import * as shell from 'shelljs';
 import * as PeerInfo from 'peer-info';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 
-shell.exec('rm -rf dist/data');
-shell.cp('-r', 'proto', 'dist');
-shell.cp('genesisBlock.json', 'dist');
-shell.cp('config.json', 'dist');
-shell.cp('gnyd', 'dist');
+if (process.argv.length <= 2) {
+  throw new Error('please pass a directory as argument');
+}
 
-shell.cp('ormconfig.integration.json', 'dist');
-shell.cp('ormconfig.json', 'dist');
-shell.cp('ormconfig.postgres.json', 'dist');
-shell.cp('ormconfig.test.json', 'dist');
+const destinationPath = String(process.argv[2]);
+if (!fs.lstatSync(destinationPath).isDirectory()) {
+  throw new Error('provided argument is not a directory');
+}
 
-shell.cp('docker-compose.yml', 'dist');
-shell.cp('docker-compose.many.yml', 'dist');
+shell.cp('genesisBlock.json', destinationPath);
+shell.cp('config.json', destinationPath);
+shell.cp('gnyd', destinationPath);
 
-shell.mkdir('-p', 'dist/data/blocks');
-shell.mkdir('-p', 'dist/logs');
+shell.cp('ormconfig.integration.json', destinationPath);
+shell.cp('ormconfig.json', destinationPath);
+shell.cp('ormconfig.postgres.json', destinationPath);
+shell.cp('ormconfig.test.json', destinationPath);
 
-shell.mkdir('-p', 'dist/public/dist');
-shell.cp('packages/gui-wallet/*', 'dist/public/dist');
+shell.cp('docker-compose.yml', destinationPath);
+shell.cp('docker-compose.many.yml', destinationPath);
+
+const logDirectory = path.join(destinationPath, 'logs');
+shell.mkdir('-p', logDirectory);
+
+const publicDistDirForWebServer = path.join(destinationPath, 'public', 'dist');
+shell.mkdir('-p', publicDistDirForWebServer);
+shell.cp('packages/gui-wallet/*', publicDistDirForWebServer);
 
 PeerInfo.create((err, peerInfo) => {
   const jsonId = JSON.stringify(peerInfo.id.toJSON());
-  fs.writeFile('./dist/p2p_key.json', jsonId, err => {
+  const p2pKeyFilePath = path.join(destinationPath, 'p2p_key.json');
+  fs.writeFile(p2pKeyFilePath, jsonId, err => {
     if (err) {
       throw err;
     }
@@ -39,10 +48,11 @@ fs.readFile(
     if (err) {
       throw err;
     } else {
-      const parsedData: any = JSON.parse(data);
+      const parsedData: any = JSON.parse(data.toString());
       const postgresPort = parsedData.port;
       const envContent = `POSTGRES_PORT=${postgresPort}`;
-      fs.writeFile('dist/.env', envContent, { encoding: 'utf8' }, err => {
+      const envFilePath = path.join(destinationPath, '.env');
+      fs.writeFile(envFilePath, envContent, { encoding: 'utf8' }, err => {
         if (err) {
           throw err;
         }

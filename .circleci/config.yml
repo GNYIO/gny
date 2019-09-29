@@ -6,18 +6,33 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      - restore_cache:
-          key: node-10-16-2-unit-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: npm install dependencies
+          name: md5sum of all package-lock.json files
+          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+      - restore_cache:
+          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}
+      - run:
+          name: install dependencies, bootstrap lerna, compile project
           command: |
             if [ ! -d node_modules ]; then
-              npm ci # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-unit-cache-{{ checksum "package-lock.json" }}
+          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}
           paths:
             - ./node_modules
+            - ./packages/base/node_modules
+            - ./packages/database-postgres/node_modules
+            - ./packages/ed/node_modules
+            - ./packages/extendedJoi/node_modules
+            - ./packages/gny-js/node_modules
+            - ./packages/interfaces/node_modules
+            - ./packages/logger/node_modules
+            - ./packages/main/node_modules
+            - ./packages/p2p/node_modules
+            - ./packages/transaction-pool/node_modules
+            - ./packages/type-validation/node_modules
+            - ./packages/utils/node_modules
       - run:
           name: test
           command: npm run test
@@ -34,13 +49,13 @@ jobs:
       - run:
           name: load nvm and install node@10.16.2
           command: |
-            set +e             
+            set +e
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm install v10.16.2
             nvm alias default v10.16.2
-            
+
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
@@ -78,13 +93,13 @@ jobs:
       - run:
           name: load nvm and install node@10.16.2
           command: |
-            set +e             
+            set +e
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm install v10.16.2
             nvm alias default v10.16.2
-            
+
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV

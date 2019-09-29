@@ -1,11 +1,10 @@
-import basic from '../../../src/contract/basic';
-import BigNumber from 'bignumber.js';
+import basic from '../../../packages/main/src/contract/basic';
 import {
   ILogger,
   IAccount,
   IBlock,
   ITransaction,
-} from '../../../src/interfaces';
+} from '../../../packages/interfaces/src/index';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 
 jest.mock('../../../packages/database-postgres/src/smartDB');
@@ -24,13 +23,6 @@ describe('basic', () => {
 
     global.app = {
       validate: jest.fn((type, value) => null),
-      util: {
-        address: {
-          isAddress: jest.fn(addr => true),
-          generateAddress: jest.fn(),
-        },
-        bignumber: BigNumber,
-      },
       sdb: new SmartDB(logger),
     };
     done();
@@ -201,14 +193,13 @@ describe('basic', () => {
 
     it('should return Invalid account type', async done => {
       (basic as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        address: 'SOME-WRONG-ADDRESS',
         gny: String(100000000),
         secondPublicKey: null,
       } as IAccount;
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.update.mockReturnValue(null);
-      global.app.util.address.isAddress.mockReturnValue(false);
 
       const set = await basic.setSecondPassphrase(publicKey);
       expect(set).toBe('Invalid account type');
