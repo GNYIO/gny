@@ -50,7 +50,7 @@ describe('delegate', () => {
 
   describe('/getVoters', () => {
     it(
-      'should get voters by usernane',
+      'should get voters by username',
       async done => {
         // set username
         const username = 'xpgeng';

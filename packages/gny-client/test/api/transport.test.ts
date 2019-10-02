@@ -222,7 +222,7 @@ describe('transport', () => {
 
   describe('/getHeight', () => {
     it(
-      'should execute one transaction',
+      'should get the height',
       async () => {
         const response = await transportApi.getHeight();
         expect(response.status).toEqual(200);

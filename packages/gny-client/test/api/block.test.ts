@@ -107,7 +107,7 @@ describe('block', () => {
 
   describe('/getSupply', () => {
     it(
-      'should get the address and keys of the secet',
+      'should get the supply',
       async () => {
         const response = await blockApi.getSupply();
         expect(response.status).toEqual(200);

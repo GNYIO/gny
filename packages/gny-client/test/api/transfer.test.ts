@@ -38,7 +38,7 @@ describe('transfer', () => {
 
   describe('/getRoot', () => {
     it(
-      'should get transfers',
+      'should get the root',
       async () => {
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
