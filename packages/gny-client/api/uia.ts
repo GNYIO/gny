@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { uia } from '../../../packages/gny-client';
+import { uia } from '../';
 export class Uia extends Base {
   public async getIssuers(limit?: number, offset?: number) {
     const params = {

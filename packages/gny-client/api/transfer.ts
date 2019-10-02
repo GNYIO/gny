@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { basic } from '../../../packages/gny-client';
+import { basic } from '../';
 
 interface Query {
   ownerId?: string;

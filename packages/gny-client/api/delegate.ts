@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { basic } from '../../../packages/gny-client';
+import { basic } from '../';
 
 export class Delegate extends Base {
   public async count() {
