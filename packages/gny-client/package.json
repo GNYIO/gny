@@ -8,7 +8,8 @@
   "license": "MIT",
   "keywords": [],
   "scripts": {
-    "test": "jest --ci --runInBand test"
+    "test": "jest --ci --runInBand test",
+    "lerna:bootstrap": "lerna bootstrap --ci"
   },
   "engines": {
     "node": "=10.16.2"

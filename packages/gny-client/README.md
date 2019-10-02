@@ -2,10 +2,20 @@
 
 ## Installion
 
+### Install Dependencies
+
 Install exactly the dependencies from `package-lock.json` with `npm ci`:
 
 ```bash
 npm ci
+```
+
+### Install Lerna Packages
+
+Bootstrap all [lerna.js](https://github.com/lerna/lerna) packages with:
+
+```bash
+npm run lerna:bootstrap
 ```
 
 ## Usage
