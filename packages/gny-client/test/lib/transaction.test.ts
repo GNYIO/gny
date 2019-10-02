@@ -1,5 +1,5 @@
 import 'jest-extended';
-import * as gnyClient from '../index';
+import * as gnyClient from '../../index';
 import { joi } from '@gny/extendedJoi';
 
 const genesisSecret =
