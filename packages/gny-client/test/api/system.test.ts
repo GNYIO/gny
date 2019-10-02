@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { Connection } from '../../connection';
 import * as lib from './lib';
 
