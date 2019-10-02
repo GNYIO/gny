@@ -44,6 +44,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: md5sum of all package-lock.json files
+          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+      - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
@@ -63,17 +66,29 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "package-lock.json" }}
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}
       - run:
-          name: npm install dependencies
+          name: install dependencies, bootstrap lerna, compile project
           command: |
             if [ ! -d node_modules ]; then
-              npm ci # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "package-lock.json" }}
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}
           paths:
             - ./node_modules
+            - ./packages/base/node_modules
+            - ./packages/database-postgres/node_modules
+            - ./packages/ed/node_modules
+            - ./packages/extendedJoi/node_modules
+            - ./packages/gny-js/node_modules
+            - ./packages/interfaces/node_modules
+            - ./packages/logger/node_modules
+            - ./packages/main/node_modules
+            - ./packages/p2p/node_modules
+            - ./packages/transaction-pool/node_modules
+            - ./packages/type-validation/node_modules
+            - ./packages/utils/node_modules
       - run:
           name: gny-js-dependencies
           command: cd ./packages/gny-js/ && npm ci && cd ../..
