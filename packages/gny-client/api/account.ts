@@ -1,6 +1,5 @@
 import { Base } from './base';
 import { basic } from '../';
-import * as gnyClient from '../';
 
 export class Account extends Base {
   public async generateAccount() {
