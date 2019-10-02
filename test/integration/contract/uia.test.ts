@@ -1,7 +1,7 @@
 import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 import { randomBytes } from 'crypto';
 
 const config = {
