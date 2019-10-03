@@ -668,11 +668,11 @@ describe('p2p', () => {
           if (randomNode.port === 13001) ++count2;
         }
 
-        // node1 and node2 should have each 500 (+/-) 20 occurrences
-        expect(count1).toBeGreaterThan(480);
-        expect(count1).toBeLessThan(520);
-        expect(count2).toBeGreaterThan(480);
-        expect(count2).toBeLessThan(520);
+        // node1 and node2 should have each 500 (+/-) 30 occurrences
+        expect(count1).toBeGreaterThan(470);
+        expect(count1).toBeLessThan(530);
+        expect(count2).toBeGreaterThan(470);
+        expect(count2).toBeLessThan(530);
 
         // cleanup
         await node1.stop();
