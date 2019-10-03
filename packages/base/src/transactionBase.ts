@@ -204,7 +204,7 @@ export class TransactionBase {
         data.keypair.publicKey.toString('hex')
       ),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
-      timestamp: slots.getTime(undefined),
+      timestamp: slots.getEpochTime(),
       message: data.message,
       args: data.args,
       fee: data.fee,

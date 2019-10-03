@@ -4,20 +4,16 @@ class Slots {
   public delegates = DELEGATES;
   constructor() {}
 
-  getEpochTime = (time: number | undefined) => {
+  getEpochTime = (time?: number) => {
     if (time === undefined) {
       time = Date.now();
     }
     return Math.floor((time - EPOCH_TIME.getTime()) / 1000);
   };
 
-  getTime = (time: number | undefined) => {
-    return this.getEpochTime(time);
-  };
-
-  getRealTime = epochTime => {
+  getRealTime = (epochTime?: number) => {
     if (epochTime === undefined) {
-      epochTime = this.getTime(undefined);
+      epochTime = this.getEpochTime(undefined);
     }
 
     const start = Math.floor(EPOCH_TIME.getTime() / 1000) * 1000;
@@ -26,7 +22,7 @@ class Slots {
 
   getSlotNumber = (epochTime?: number) => {
     if (epochTime === undefined) {
-      epochTime = this.getTime(undefined);
+      epochTime = this.getEpochTime();
     }
 
     return Math.floor(epochTime / INTERVAL);
