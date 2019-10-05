@@ -59,7 +59,9 @@ export type MethodActions =
   | 'onReceivePropose'
   | 'onReceiveTransaction';
 
-export interface ICoreModule {}
+export interface ICoreModule {
+  cleanup?: (cb: any) => void;
+}
 
 export interface Modules {
   [key: string]: ICoreModule;

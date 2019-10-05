@@ -9,11 +9,16 @@ import { Modules } from '@gny/interfaces';
 
 export default function loadModules() {
   const modules: Modules = {
+    // @ts-ignore
     transactions: Transactions,
+    // @ts-ignore
     loader: Loader,
     peer: Peer,
+    // @ts-ignore
     transport: Transport,
+    // @ts-ignore
     delegates: Delegates,
+    // @ts-ignore
     blocks: Blocks,
   };
   return modules;
