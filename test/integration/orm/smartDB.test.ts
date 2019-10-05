@@ -5,7 +5,7 @@ import {
   IDelegate,
   IBalance,
 } from '../../../packages/interfaces';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/entity/Account';

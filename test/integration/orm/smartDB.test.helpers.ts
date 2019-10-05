@@ -9,7 +9,7 @@ import {
 } from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 
 export const CUSTOM_GENESIS: IBlock = {
   version: 0,
