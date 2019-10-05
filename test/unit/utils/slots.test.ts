@@ -9,7 +9,6 @@ describe('slots', () => {
 
   it('should have properties', () => {
     const properties = [
-      'delegates',
       'getEpochTime',
       'getRealTime',
       'getSlotNumber',
@@ -29,15 +28,6 @@ describe('slots', () => {
     it('should be number and not NaN', () => {
       expect(typeof interval).toBe('number');
       expect(interval).not.toBeNull();
-    });
-  });
-
-  describe('.delegates', () => {
-    const delegates = slots.delegates;
-
-    it('should be number and not NaN', () => {
-      expect(typeof delegates).toBe('number');
-      expect(delegates).not.toBeNull();
     });
   });
 
