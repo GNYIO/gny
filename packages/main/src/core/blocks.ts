@@ -279,7 +279,7 @@ export default class Blocks implements ICoreModule {
   }
 
   public static ProcessBlockFireEvents(
-    block: Block,
+    block: IBlock,
     options: ProcessBlockOptions
   ) {
     if (options.broadcast && options.local) {
