@@ -1,7 +1,13 @@
 import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, DelegateViewModel, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  DelegateViewModel,
+  IHttpApi,
+  AccountWeightViewModel,
+} from '@gny/interfaces';
 import { BlockReward } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
@@ -10,6 +16,7 @@ import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { joi } from '@gny/extendedJoi';
+import { BigNumber } from 'bignumber.js';
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;
@@ -91,20 +98,29 @@ export default class DelegatesApi implements IHttpApi {
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
-      const accounts = await global.app.sdb.findAll<Account>(Account, {
-        condition: {
-          address: {
-            $in: addresses,
+      const accounts =
+        (await global.app.sdb.findAll<Account>(Account, {
+          condition: {
+            address: {
+              $in: addresses,
+            },
           },
-        },
-      });
+        })) || [];
       const lastBlock = StateHelper.getState().lastBlock;
       const totalSupply = this.blockReward.calculateSupply(lastBlock.height);
-      for (const a of accounts) {
-        a.balance = a.gny;
-        a.weightRatio = (a.weight * 100) / totalSupply;
-      }
-      return res.json({ accounts });
+      const accountsViewModel = accounts.map(ac => {
+        const acVM: AccountWeightViewModel = {
+          ...ac,
+          balance: ac.gny,
+          weightRatio: new BigNumber(ac.lockAmount)
+            .times(100)
+            .dividedBy(totalSupply)
+            .toFixed(),
+        };
+        return acVM;
+      });
+
+      return res.json({ accounts: accountsViewModel });
     } catch (e) {
       this.library.logger.error('Failed to find voters', e);
       return next('Server error');
@@ -336,7 +352,7 @@ export default class DelegatesApi implements IHttpApi {
     return res.json({ success: true });
   };
 
-  public forgingDisableAll = (req: Request, res: Response, next: Next) => {
+  private forgingDisableAll = (req: Request, res: Response, next: Next) => {
     StateHelper.SetForgingEnabled(false);
     return res.json({ success: true });
   };

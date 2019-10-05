@@ -254,6 +254,11 @@ export type AccountViewModel = Pick<
   | 'username'
 > & { balance: string };
 
+export interface AccountWeightViewModel extends IAccount {
+  balance: string;
+  weightRatio: string;
+}
+
 export interface ITransaction {
   id: string;
   type: number;
