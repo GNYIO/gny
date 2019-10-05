@@ -306,7 +306,7 @@ export interface IBalance {
 export interface IAsset {
   name: string;
   tid: string;
-  timestamp: string;
+  timestamp: number;
   maximum: string;
   precision: number;
   quantity: string;

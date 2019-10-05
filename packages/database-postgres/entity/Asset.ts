@@ -26,11 +26,11 @@ export class Asset implements Versioned {
   public tid: string;
 
   @Column({
-    type: 'bigint',
+    type: 'int',
     nullable: false,
   })
   @Index()
-  public timestamp: string;
+  public timestamp: number;
 
   @Column({
     type: 'bigint',
