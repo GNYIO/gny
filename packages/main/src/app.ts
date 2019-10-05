@@ -6,7 +6,7 @@ import { createLogger, LogLevel } from '@gny/logger';
 
 import Application from './index';
 import * as packageJson from '../package.json';
-import { IConfig, IGenesisBlock } from '@gny/interfaces';
+import { IConfig, IBlock } from '@gny/interfaces';
 
 const version = packageJson.version;
 
@@ -60,7 +60,7 @@ function main() {
     genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisBlock: IGenesisBlock = JSON.parse(
+  const genesisBlock: IBlock = JSON.parse(
     fs.readFileSync(genesisBlockFile, 'utf8')
   );
 

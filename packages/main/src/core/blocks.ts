@@ -4,7 +4,6 @@ import { generateAddress } from '@gny/utils';
 import { BlockReward } from '@gny/utils';
 import {
   KeyPair,
-  IGenesisBlock,
   PeerNode,
   ProcessBlockOptions,
   BlockPropose,
@@ -292,7 +291,7 @@ export default class Blocks implements ICoreModule {
 
   public static processBlock = async (
     state: IState,
-    block: IBlock | IGenesisBlock,
+    block: IBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) => {
@@ -853,10 +852,10 @@ export default class Blocks implements ICoreModule {
   public static RunGenesisOrLoadLastBlock = async (
     old: IState,
     numberOfBlocksInDb: string | null,
-    genesisBlock: IGenesisBlock,
+    genesisBlock: IBlock,
     processBlock: (
       state: IState,
-      block: IBlock | IGenesisBlock,
+      block: IBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
     ) => Promise<IState>,

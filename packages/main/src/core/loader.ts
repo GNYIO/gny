@@ -1,12 +1,6 @@
 import { slots } from '@gny/utils';
 import { TIMEOUT } from '@gny/utils';
-import {
-  IGenesisBlock,
-  PeerNode,
-  IBlock,
-  ITransaction,
-  ICoreModule,
-} from '@gny/interfaces';
+import { PeerNode, IBlock, ITransaction, ICoreModule } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '@gny/type-validation';
@@ -84,10 +78,7 @@ export default class Loader implements ICoreModule {
     return;
   }
 
-  public static async loadBlocks(
-    lastBlock: IBlock,
-    genesisBlock: IGenesisBlock
-  ) {
+  public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
     let result;
     try {
       result = await Peer.randomRequestAsync('getHeight', {});

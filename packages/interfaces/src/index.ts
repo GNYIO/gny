@@ -8,7 +8,7 @@ import * as SocketIO from 'socket.io';
 
 declare interface IBase {
   bus: IMessageBus;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
 }
 
 export interface IProtobuf {
@@ -37,7 +37,7 @@ export interface IScope {
   protobuf: IProtobuf;
   config: IConfig;
   logger: ILogger;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
   network: INetwork;
   sequence: ISequence;
   base: IBase;
@@ -112,21 +112,6 @@ export interface INetwork {
 }
 
 export type ILogger = tracer.Tracer.Logger;
-
-export interface IGenesisBlock {
-  version: number;
-  payloadHash: string;
-  timestamp: number;
-  prevBlockId: null;
-  delegate: string;
-  height: string;
-  count: number;
-  fees: string;
-  reward: string;
-  signature: string;
-  id: string;
-  transactions: ITransaction[];
-}
 
 type ILogLevel =
   | 'trace'
