@@ -314,7 +314,7 @@ describe('uia', () => {
 
   describe('/getBalances', () => {
     it(
-      'should get balance by address',
+      'should get balances by address',
       async () => {
         const recipient = randomAddress();
         // prepare
