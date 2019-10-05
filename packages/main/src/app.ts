@@ -1,7 +1,6 @@
 import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as ip from 'ip';
 import daemon = require('daemon');
 import { createLogger, LogLevel } from '@gny/logger';
 
@@ -29,8 +28,6 @@ function main() {
 
   const baseDir = program.base || process.cwd();
   const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
-  const seedPort = 81;
-  const seeds = [757137132];
   let appConfigFile: string;
   let genesisBlockFile: string;
 
@@ -77,21 +74,9 @@ function main() {
   }
   if (program.peers) {
     if (typeof program.peers === 'string') {
-      appConfig.peers.list = program.peers.split(',').map((peer: string) => {
-        const parts = peer.split(':');
-        return {
-          ip: parts.shift(),
-          port: parts.shift() || appConfig.port,
-        };
-      });
+      appConfig.peers.bootstrap = program.peers.split(',');
     } else {
-      appConfig.peers.list = [];
-    }
-  }
-
-  if (appConfig.netVersion === 'mainnet') {
-    for (let i = 0; i < seeds.length; ++i) {
-      appConfig.peers.list.push({ ip: ip.fromLong(seeds[i]), port: seedPort });
+      appConfig.peers.bootstrap = [];
     }
   }
 

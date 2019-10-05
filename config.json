@@ -10,11 +10,8 @@
     }
   },
   "peers": {
-    "bootstrap": null,
-    "p2pKeyFile": "p2p_key.json",
-    "options": {
-      "timeout": 4000
-    }
+    "bootstrap": [],
+    "p2pKeyFile": "p2p_key.json"
   },
   "forging": {
     "secret": [

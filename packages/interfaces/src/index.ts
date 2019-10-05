@@ -148,7 +148,7 @@ export interface IConfig {
   peerPort: number;
   address: string;
   peers: {
-    bootstrap: string | null;
+    bootstrap: string[];
     p2pKeyFile: string;
     rawPeerInfo: string;
     options: {
