@@ -100,7 +100,10 @@ export class TransactionBase {
   }
 
   public static verifyNormalSignature(
-    transaction: ITransaction,
+    transaction: Pick<
+      ITransaction,
+      'senderPublicKey' | 'signatures' | 'secondSignature'
+    >,
     sender: IAccount,
     bytes: Buffer
   ) {
