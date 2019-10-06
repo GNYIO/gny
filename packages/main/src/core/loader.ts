@@ -1,6 +1,12 @@
 import { slots } from '@gny/utils';
 import { TIMEOUT } from '@gny/utils';
-import { PeerNode, IBlock, ITransaction, ICoreModule } from '@gny/interfaces';
+import {
+  PeerNode,
+  IBlock,
+  ITransaction,
+  ICoreModule,
+  UnconfirmedTransaction,
+} from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from './BlocksHelper';
 import { isPeerNode } from '@gny/type-validation';
@@ -167,15 +173,16 @@ export default class Loader implements ICoreModule {
         return cb('validation of peer failed');
       }
 
-      const transactions = data.transactions as ITransaction[];
+      const transactions = data.transactions as Array<UnconfirmedTransaction>;
       const peerStr = `${peer.host}:${peer.port - 1}`;
 
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = TransactionBase.normalizeTransaction(
+          transactions[i] = TransactionBase.normalizeUnconfirmedTransaction(
             transactions[i]
           );
         } catch (e) {
+          // TODO: check/correct statement below
           global.library.logger.info(
             `Transaction ${
               transactions[i] ? transactions[i].id : 'null'
@@ -186,7 +193,7 @@ export default class Loader implements ICoreModule {
         }
       }
 
-      const trs: ITransaction[] = [];
+      const trs: Array<UnconfirmedTransaction> = [];
       for (let i = 0; i < transactions.length; ++i) {
         const one = transactions[i];
         if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {

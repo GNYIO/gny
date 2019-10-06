@@ -16,8 +16,8 @@ export interface IProtobuf {
   decodeBlockPropose(data: Buffer): BlockPropose;
   encodeBlockVotes(obj: any): Buffer;
   decodeBlockVotes(data: Buffer);
-  encodeTransaction(trs: ITransaction): Buffer;
-  decodeTransaction(data: Buffer);
+  encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;
+  decodeUnconfirmedTransaction(data: Buffer);
   encodeNewBlockMessage(msg): Buffer;
   decodeNewBlockMessage(data: Buffer): NewBlockMessage;
 }
@@ -91,12 +91,12 @@ export interface CoreApi {
 }
 
 export interface ITransactionPool {
-  add(trs: ITransaction): void;
+  add(trs: UnconfirmedTransaction): void;
   remove(id: string): void;
   has(id: string): boolean;
-  getUnconfirmed(): ITransaction[];
+  getUnconfirmed(): Array<UnconfirmedTransaction>;
   clear(): void;
-  get(id: string): ITransaction;
+  get(id: string): UnconfirmedTransaction;
 }
 
 interface IMessageEmitter {
@@ -259,6 +259,21 @@ export interface AccountWeightViewModel extends IAccount {
   weightRatio: string;
 }
 
+export interface UnconfirmedTransaction {
+  // ITransaction without "height"
+  id: string;
+  type: number;
+  timestamp: number;
+  senderId: string;
+  senderPublicKey: string;
+  fee: string;
+  signatures?: any;
+  secondSignature?: any;
+  args: any;
+  message?: string;
+  _version_?: number;
+}
+
 export interface ITransaction {
   id: string;
   type: number;
@@ -390,7 +405,7 @@ export interface CommonBlockResult {
 }
 
 export interface Context {
-  trs: ITransaction;
+  trs: UnconfirmedTransaction;
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
 }

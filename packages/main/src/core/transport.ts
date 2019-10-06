@@ -9,6 +9,7 @@ import {
   IBlock,
   BlockAndVotes,
   ICoreModule,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -31,9 +32,9 @@ export default class Transport implements ICoreModule {
 
   // broadcast to peers Transaction
   public static onUnconfirmedTransaction = async (
-    transaction: ITransaction
+    transaction: UnconfirmedTransaction
   ) => {
-    const encodedTransaction = global.library.protobuf.encodeTransaction(
+    const encodedTransaction = global.library.protobuf.encodeUnconfirmedTransaction(
       transaction
     );
     await Peer.p2p.broadcastTransactionAsync(encodedTransaction);
@@ -185,7 +186,9 @@ export default class Transport implements ICoreModule {
   public static receivePeer_Transaction = (message: P2PMessage) => {
     let transaction: ITransaction;
     try {
-      transaction = global.library.protobuf.decodeTransaction(message.data);
+      transaction = global.library.protobuf.decodeUnconfirmedTransaction(
+        message.data
+      );
     } catch (e) {
       global.library.logger.warn(
         `could not decode Transaction with protobuf from ${message.from}`

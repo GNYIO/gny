@@ -1,11 +1,12 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
 import { Versioned } from '../src/searchTypes';
+import { ITransaction } from '@gny/interfaces';
 
 @Config({ memory: false })
 @Entity()
 export class Block implements Versioned {
-  [index: string]: string | number | undefined;
+  [index: string]: string | number | ITransaction[] | undefined;
   @PrimaryColumn({
     type: 'varchar',
     length: 64,

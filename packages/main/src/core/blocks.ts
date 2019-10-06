@@ -15,6 +15,7 @@ import {
   CommonBlockResult,
   IRound,
   ICoreModule,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -320,11 +321,10 @@ export default class Blocks implements ICoreModule {
       'Blocks#saveBlockTransactions height',
       block.height
     );
-    for (const trs of block.transactions) {
-      trs.height = block.height;
-      // trs.block = block;
-      trs.signatures = JSON.stringify(trs.signatures);
-      trs.args = JSON.stringify(trs.args);
+
+    for (let trs of block.transactions) {
+      trs = TransactionBase.stringifySignatureAndArgs(trs);
+
       await global.app.sdb.create<Transaction>(Transaction, trs);
     }
     global.app.logger.trace('Blocks#save transactions');
@@ -532,7 +532,7 @@ export default class Blocks implements ICoreModule {
   public static generateBlock = async (
     old: IState,
     activeDelegates: KeyPair[],
-    unconfirmedTransactions: ITransaction[],
+    unconfirmedTransactions: Array<UnconfirmedTransaction>,
     keypair: KeyPair,
     timestamp: number
   ) => {
@@ -631,7 +631,7 @@ export default class Blocks implements ICoreModule {
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
       if (fitInLineResult === BlockFitsInLine.Success) {
-        const pendingTrsMap = new Map<string, ITransaction>();
+        const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
           for (const t of pendingTrs) {
