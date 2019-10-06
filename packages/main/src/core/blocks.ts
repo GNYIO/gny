@@ -209,17 +209,11 @@ export default class Blocks implements ICoreModule {
     if (!block.transactions) block.transactions = [];
     if (!options.local) {
       try {
+        // this validates the block and its transactions
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
         global.app.logger.error(`Failed to normalize block: ${e}`, block);
         throw e;
-      }
-
-      // TODO use bloomfilter
-      for (let i = 0; i < block.transactions.length; ++i) {
-        block.transactions[i] = TransactionBase.normalizeTransaction(
-          block.transactions[i]
-        );
       }
     }
     return block; // important
