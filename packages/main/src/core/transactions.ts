@@ -45,7 +45,7 @@ export default class Transactions implements ICoreModule {
 
   public static processUnconfirmedTransaction = (
     state: IState,
-    transaction: ITransaction,
+    transaction: UnconfirmedTransaction,
     cb
   ) => {
     (async () => {

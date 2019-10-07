@@ -184,9 +184,9 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Transaction = (message: P2PMessage) => {
-    let transaction: ITransaction;
+    let unconfirmedTrs: UnconfirmedTransaction;
     try {
-      transaction = global.library.protobuf.decodeUnconfirmedTransaction(
+      unconfirmedTrs = global.library.protobuf.decodeUnconfirmedTransaction(
         message.data
       );
     } catch (e) {
@@ -198,7 +198,9 @@ export default class Transport implements ICoreModule {
 
     try {
       // normalize and validate
-      transaction = TransactionBase.normalizeTransaction(transaction);
+      unconfirmedTrs = TransactionBase.normalizeUnconfirmedTransaction(
+        unconfirmedTrs
+      );
     } catch (e) {
       global.library.logger.error('Received transaction parse error', {
         message,
@@ -207,7 +209,7 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    global.library.bus.message('onReceiveTransaction', transaction);
+    global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
   };
 
   public static sendVotes = async (votes: ManyVotes, address: string) => {

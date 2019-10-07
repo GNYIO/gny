@@ -142,7 +142,7 @@ export default class DelegatesApi implements IHttpApi {
       });
     }
 
-    const delegates = await Delegates.getDelegates();
+    const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
       return next('no delegates');
     }

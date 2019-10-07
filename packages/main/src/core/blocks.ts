@@ -768,11 +768,13 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onReceiveTransaction = (transaction: ITransaction) => {
+  public static onReceiveTransaction = (
+    unconfirmedTrs: UnconfirmedTransaction
+  ) => {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
-          `Receive invalid transaction ${transaction.id}`,
+          `Receive invalid transaction ${unconfirmedTrs.id}`,
           err
         );
       } else {
@@ -794,7 +796,7 @@ export default class Blocks implements ICoreModule {
         return cb();
       }
 
-      Transactions.processUnconfirmedTransaction(state, transaction, cb);
+      Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
     }, finishCallback);
   };
 

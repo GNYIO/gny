@@ -17,7 +17,7 @@ export interface IProtobuf {
   encodeBlockVotes(obj: any): Buffer;
   decodeBlockVotes(data: Buffer);
   encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;
-  decodeUnconfirmedTransaction(data: Buffer);
+  decodeUnconfirmedTransaction(data: Buffer): UnconfirmedTransaction;
   encodeNewBlockMessage(msg): Buffer;
   decodeNewBlockMessage(data: Buffer): NewBlockMessage;
 }
@@ -337,7 +337,7 @@ export interface IDelegate {
 
 export interface DelegateViewModel extends IDelegate {
   rate: number;
-  approval: number;
+  approval: string;
   productivity: string;
 }
 
