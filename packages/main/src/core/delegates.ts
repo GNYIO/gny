@@ -346,15 +346,22 @@ export default class Delegates implements ICoreModule {
         .times(100)
         .toFixed();
 
-      let percent =
-        100 -
-        current.missedBlocks /
-          (current.producedBlocks + current.missedBlocks) /
-          100;
-      percent = percent || 0;
-      current.productivity = parseFloat(
-        Math.floor(percent * 100) / 100
-      ).toFixed(2);
+      const myBlocks = new BigNumber(current.producedBlocks).plus(
+        current.missedBlocks
+      );
+      let percent = new BigNumber(100)
+        .minus(
+          new BigNumber(current.missedBlocks).dividedBy(myBlocks).dividedBy(100)
+        )
+        .toFixed();
+      percent = percent || new BigNumber(0).toFixed();
+
+      // TODO refactor
+      current.productivity = (Math.floor(+percent * 100) / 100)
+        .toFixed(2)
+        .toString();
+
+      // why is getDelegates() updating the database??
       await global.app.sdb.update<Delegate>(Delegate, current, {
         address: current.address,
       });
