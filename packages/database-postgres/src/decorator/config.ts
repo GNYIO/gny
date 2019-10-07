@@ -6,7 +6,7 @@ export interface ConfigOptions {
 }
 
 export function Config(options: ConfigOptions) {
-  return function (target: Function) {
+  return function(target: Function) {
     MetaDataStore.add(target.name, options);
   };
 }

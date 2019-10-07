@@ -1,67 +1,66 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
-import { Versioned } from '../src/searchTypes';
+import { Versioned } from '../searchTypes';
 
-@Config({ memory: true })
+@Config({ memory: false })
 @Entity()
-export class Asset implements Versioned {
-  // @PrimaryColumn({
-  //   type: 'varchar',
-  //   length: 50,
-  // })
-  // public organization: string;
-
+export class Transfer implements Versioned {
   @PrimaryColumn({
     type: 'varchar',
-    length: 50,
-  })
-  public name: string;
-
-  @Column({
     length: 64,
-    type: 'varchar',
     nullable: false,
-    unique: true,
   })
   public tid: string;
 
   @Column({
-    type: 'int',
+    type: 'varchar',
+    length: 50,
     nullable: false,
+  })
+  @Index()
+  public senderId: string;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: false,
+  })
+  @Index()
+  public recipientId: string;
+
+  @Column({
+    length: 30,
+    type: 'varchar',
+    nullable: true,
+  })
+  public recipientName: string;
+
+  @Column({
+    type: 'varchar',
+    length: 30,
+    nullable: false,
+  })
+  @Index()
+  public currency: string;
+
+  @Column({
+    type: 'bigint',
+    nullable: false,
+  })
+  public amount: string;
+
+  @Column({
+    type: 'int',
   })
   @Index()
   public timestamp: number;
 
   @Column({
-    type: 'bigint',
     nullable: false,
+    type: 'bigint',
   })
   @Index()
-  public maximum: string;
-
-  @Column({
-    type: Number,
-    nullable: false,
-  })
-  public precision: number;
-
-  @Column({
-    type: 'bigint',
-    nullable: false,
-  })
-  public quantity: string;
-
-  @Column({
-    type: 'text',
-  })
-  public desc: string;
-
-  @Column({
-    length: 50,
-    type: 'varchar',
-    nullable: false,
-  })
-  public issuerId: string;
+  public height: string;
 
   @Column({
     default: 0,

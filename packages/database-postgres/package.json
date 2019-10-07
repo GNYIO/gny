@@ -12,8 +12,8 @@
   "files": [
     "dist"
   ],
-  "main": "dist/src/smartDB",
-  "types": "dist/src/smartDB",
+  "main": "dist/smartDB",
+  "types": "dist/smartDB",
   "dependencies": {
     "@gny/interfaces": "1.0.0",
     "@types/lodash": "^4.14.138",

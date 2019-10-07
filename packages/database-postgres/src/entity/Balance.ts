@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config';
-import { Versioned } from '../src/searchTypes';
+import { Versioned } from '../searchTypes';
 
 @Config({ memory: true })
 @Entity()
