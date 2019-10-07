@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import {
   createPeerInfoArgs,
   createFromJSON,
@@ -33,7 +33,7 @@ export default class Peer implements ICoreModule {
 
     let result;
     try {
-      const config = {
+      const config: AxiosRequestConfig = {
         headers: headers,
         responseType: 'json',
         timeout: undefined || timeout,
