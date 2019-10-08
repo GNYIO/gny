@@ -35,6 +35,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
           .required(),
         p2pKeyFile: joi.string().required(),
         rawPeerInfo: joi.string().required(),
+        privateP2PKey: joi.string().optional(),
       }),
       forging: joi
         .object()

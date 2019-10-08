@@ -24,6 +24,10 @@ function main() {
     .option('-d, --daemon', 'Run gny node as daemon')
     .option('--base <dir>', 'Base directory')
     .option('--ormConfig <file>', 'ormconfig.json file')
+    .option(
+      '--privateP2PKey <key>',
+      'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
+    )
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();

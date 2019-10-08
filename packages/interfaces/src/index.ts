@@ -141,6 +141,7 @@ export interface IConfig {
     options: {
       timeout: number;
     };
+    privateP2PKey: string;
   };
   forging: {
     secret: string[];

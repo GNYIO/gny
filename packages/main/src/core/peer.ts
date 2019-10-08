@@ -3,10 +3,11 @@ import axios, { AxiosRequestConfig } from 'axios';
 import {
   createPeerInfoArgs,
   createFromJSON,
+  createFromPrivKey,
   Bundle,
   attachEventHandlers,
 } from '@gny/p2p';
-import { PeerNode, ICoreModule } from '@gny/interfaces';
+import { PeerNode, ICoreModule, SimplePeerId } from '@gny/interfaces';
 
 export default class Peer implements ICoreModule {
   public static p2p: Bundle;
@@ -71,7 +72,17 @@ export default class Peer implements ICoreModule {
   public static preparePeerInfo = async (rawPeerInfo: string) => {
     const KEY = JSON.parse(rawPeerInfo);
 
-    const peerId = await createFromJSON(KEY);
+    let peerId: any;
+    if (global.library.config.peers.privateP2PKey) {
+      const buf = Buffer.from(
+        global.library.config.peers.privateP2PKey,
+        'base64'
+      );
+      peerId = await createFromPrivKey(buf);
+    } else {
+      peerId = await createFromJSON(KEY);
+    }
+
     const peerInfo = await createPeerInfoArgs(peerId);
 
     const multi = `/ip4/${global.library.config.publicIp}/tcp/${
