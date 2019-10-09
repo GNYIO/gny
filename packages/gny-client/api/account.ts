@@ -1,6 +1,14 @@
 import { Base } from './base';
 import { basic } from '../';
 
+interface OnlyAddress {
+  address: string;
+}
+
+interface OnlyUserName {
+  username: string;
+}
+
 export class Account extends Base {
   public async generateAccount() {
     return await this.get('/api/accounts/generateAccount');
@@ -29,18 +37,8 @@ export class Account extends Base {
     return await this.get('/api/accounts/', params);
   }
 
-  public async getVotedDelegates(query: any) {
-    let params: any = {};
-    if (query.address) {
-      params = {
-        address: query.address,
-      };
-    } else if (query.username) {
-      params = {
-        username: query.username,
-      };
-    }
-    return await this.get('/api/accounts/getVotes', params);
+  public async getVotedDelegates(query: OnlyAddress | OnlyUserName) {
+    return await this.get('/api/accounts/getVotes', query);
   }
 
   public async countAccounts() {
