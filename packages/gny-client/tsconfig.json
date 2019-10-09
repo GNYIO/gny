@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2016",
     "module": "commonjs",
+    "moduleResolution": "node",
     "lib": [
       "es2015",
       "es2016",
@@ -14,16 +15,14 @@
     "outDir": "./dist",
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "strictNullChecks": false,
-    "types": ["node"],
-    "noEmit": true,
-    "forceConsistentCasingInFileNames": true
+    "strictNullChecks": false
   },
   "exclude": [
     "node_modules/**"
   ],
   "include": [
     "lib/*.ts",
-    "index.ts",
-  ],
+    "api/*.ts",
+    "index.ts"
+  ]
 }
