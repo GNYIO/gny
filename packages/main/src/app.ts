@@ -28,6 +28,7 @@ function main() {
       '--privateP2PKey <key>',
       'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
     )
+    .option('--secret [secret...]', 'comma separated secrets')
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();
@@ -112,6 +113,10 @@ function main() {
   appConfig.peers.rawPeerInfo = fs.readFileSync(p2pKeyFilePath, {
     encoding: 'utf8',
   });
+
+  if (program.secret) {
+    appConfig.forging.secret = program.secret.split(',');
+  }
 
   const options = {
     appConfig,
