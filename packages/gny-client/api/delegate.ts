@@ -20,7 +20,7 @@ export class Delegate extends Base {
     return await this.get('/api/delegates/get', params);
   }
 
-  public async getDelegateByUnsername(username: string) {
+  public async getDelegateByUsername(username: string) {
     const params = {
       username: username,
     };

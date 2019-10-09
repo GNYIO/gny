@@ -140,7 +140,7 @@ describe('delegate', () => {
         );
         await lib.onNewBlock();
 
-        const response = await delegateApi.getDelegateByUnsername(username);
+        const response = await delegateApi.getDelegateByUsername(username);
         expect(response.status).toEqual(200);
         done();
       },
