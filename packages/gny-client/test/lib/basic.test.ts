@@ -7,8 +7,8 @@ describe('basic', () => {
   const basic = gnyClient.basic;
 
   describe('#setUserName', () => {
-    let setName;
-    let trs;
+    let setName: any;
+    let trs: any;
 
     beforeEach(() => {
       setName = gnyClient.basic.setUserName;
@@ -53,7 +53,7 @@ describe('basic', () => {
   });
 
   describe('#setSecondSecret', () => {
-    let trs;
+    let trs: any;
     const setSecondSecret = basic.setSecondPassphrase;
 
     beforeEach(() => {

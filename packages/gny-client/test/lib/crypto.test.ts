@@ -5,18 +5,18 @@ import { joi } from '@gny/extendedJoi';
 describe('crypto.js', () => {
   const crypto = gnyClient.crypto;
 
-  let bytes;
-  let getBytes;
-  let getHash;
-  let getId;
-  let getFee;
-  let fixedPoint;
-  let sign;
-  let secondSign;
-  let getKeys;
-  let getAddress;
-  let verify;
-  let verifySecondSignature;
+  let bytes: any;
+  let getBytes: any;
+  let getHash: any;
+  let getId: any;
+  let getFee: any;
+  let fixedPoint: any;
+  let sign: any;
+  let secondSign: any;
+  let getKeys: any;
+  let getAddress: any;
+  let verify: any;
+  let verifySecondSignature: any;
 
   beforeEach(() => {
     bytes = null;
