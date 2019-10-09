@@ -114,6 +114,10 @@ function main() {
     encoding: 'utf8',
   });
 
+  if (program.privateP2PKey) {
+    appConfig.peers.privateP2PKey = program.privateP2PKey;
+  }
+
   if (program.secret) {
     appConfig.forging.secret = program.secret.split(',');
   }
