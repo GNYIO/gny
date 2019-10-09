@@ -15,10 +15,17 @@ export class Block extends Base {
     return await this.get('/api/blocks/getBlock', params);
   }
 
-  public async getBlocks(offset: string, limit: string) {
+  public async getBlocks(
+    offset?: string,
+    limit?: string,
+    orderBy?: string,
+    transactions?: boolean
+  ) {
     const params = {
       offset: offset,
       limit: limit,
+      orderBy: orderBy,
+      transactions: transactions,
     };
     return await this.get('/api/blocks', params);
   }
