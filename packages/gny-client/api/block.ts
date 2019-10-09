@@ -30,6 +30,10 @@ export class Block extends Base {
     return await this.get('/api/blocks', params);
   }
 
+  public async getHeight() {
+    return await this.get('/api/blocks/getHeight');
+  }
+
   public async getMilestone() {
     return await this.get('/api/blocks/getMilestone');
   }
