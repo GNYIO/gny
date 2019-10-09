@@ -83,6 +83,17 @@ describe('block', () => {
     );
   });
 
+  describe('/getHeight', () => {
+    it(
+      'should get the height',
+      async () => {
+        const response = await blockApi.getHeight();
+        expect(response.status).toEqual(200);
+      },
+      lib.oneMinute
+    );
+  });
+
   describe('/getMilestone', () => {
     it(
       'should get the milestone',
