@@ -1,26 +1,5 @@
 # GNY Client
 
-## Installion
-
-### Install Dependencies
-
-Install exactly the dependencies from `package-lock.json` with `npm ci`:
-
-```bash
-npm ci
-```
-
-> If you don't want to run the tests, please delete the lerna dependecies `@gny/utils` and `@gny/extendedJoi` in package.json and use the above command to install the dependencies.
-
-### Install Lerna Packages
-
-Bootstrap all [lerna.js](https://github.com/lerna/lerna) packages with:
-
-```bash
-npm run lerna:bootstrap
-```
-> If you want to run tests, you should also download the gny depedencies `utils` and `extendedJoi`.
-
 ## Usage
 
 ```typescript
