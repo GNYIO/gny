@@ -100,7 +100,7 @@ export default class Peer implements ICoreModule {
 
     // TODO persist peerBook of node
     const bootstrapNode = global.library.config.peers.bootstrap
-      ? [global.library.config.peers.bootstrap]
+      ? global.library.config.peers.bootstrap
       : [];
     const config = {
       peerInfo,
