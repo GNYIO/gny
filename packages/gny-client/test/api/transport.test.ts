@@ -141,7 +141,7 @@ describe('transport', () => {
           genesisSecret
         );
 
-        const response = await transportApi.getTransactions(trs);
+        const response = await transportApi.sendTransaction(trs);
         expect(response.status).toEqual(200);
       },
       lib.oneMinute
