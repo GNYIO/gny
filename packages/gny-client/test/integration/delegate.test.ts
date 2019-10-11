@@ -109,7 +109,7 @@ describe('delegate', () => {
     );
   });
 
-  describe('/getDelegateByUnsername', () => {
+  describe('/getDelegateByUsername', () => {
     it(
       'should get delegate by username',
       async done => {

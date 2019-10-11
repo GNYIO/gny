@@ -2,6 +2,7 @@ import crypto = require('./crypto');
 import constants = require('../constants');
 import slots = require('../time/slots');
 import options = require('../options');
+import { ITransaction } from '@gny/interfaces';
 
 export function calculateFee(amount: number) {
   const min = constants.fees.send;
@@ -28,7 +29,7 @@ export function createTransactionEx(params: any) {
     transaction.secondSignature = crypto.secondSign(transaction, secondKeys);
   }
   transaction.id = crypto.getId(transaction);
-  return transaction;
+  return transaction as ITransaction;
 }
 
 export function createMultiSigTransaction(params: any) {

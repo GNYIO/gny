@@ -1,4 +1,5 @@
 import { Base } from './base';
+import { ITransaction } from '@gny/interfaces';
 
 export class Transport extends Base {
   public async getNewBlock(id: string) {
@@ -25,7 +26,7 @@ export class Transport extends Base {
     return await this.post('/peer/blocks', params);
   }
 
-  public async getTransactions(transaction: any) {
+  public async sendTransaction(transaction: ITransaction) {
     const params = {
       transaction: transaction,
     };
