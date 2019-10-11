@@ -85,7 +85,7 @@ export default class Peer implements ICoreModule {
 
     const peerInfo = await createPeerInfoArgs(peerId);
 
-    const multi = `/ip4/${global.library.config.publicIp}/tcp/${
+    const multi = `/ip4/${global.library.config.address}/tcp/${
       global.library.config.peerPort
     }`;
     peerInfo.multiaddrs.add(multi);

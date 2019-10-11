@@ -29,6 +29,7 @@ function main() {
       'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
     )
     .option('--secret [secret...]', 'comma separated secrets')
+    .option('--publicIP <ip>', 'Public IP of own server')
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();
@@ -120,6 +121,10 @@ function main() {
 
   if (program.secret) {
     appConfig.forging.secret = program.secret.split(',');
+  }
+
+  if (program.publicIP) {
+    appConfig.publicIp = program.publicIP;
   }
 
   const options = {

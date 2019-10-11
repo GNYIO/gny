@@ -44,9 +44,9 @@ async function init_alt(options: IOptions) {
   }
   const appConfig: IConfig = options.appConfig;
 
-  if (!appConfig.publicIp) {
-    appConfig.publicIp = getPublicIp();
-  }
+  // if (!appConfig.publicIp) {
+  // appConfig.publicIp = getPublicIp();
+  // }
 
   const protoFile = path.join(process.cwd(), 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
