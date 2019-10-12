@@ -2,6 +2,7 @@ import * as sha256 from 'fast-sha256';
 import * as nacl from 'tweetnacl';
 import * as ByteBuffer from 'bytebuffer';
 import { generateAddress, isAddress } from '@gny/utils';
+import { ITransaction } from '@gny/interfaces';
 
 const fixedPoint = Math.pow(10, 8);
 
@@ -31,83 +32,6 @@ function sha256Bytes(data: any) {
 
 function sha256Hex(data: any) {
   return Buffer.from(sha256.hash(data)).toString('hex');
-}
-
-function getDAppBytes(dapp: any) {
-  let buf = Buffer.from([]);
-  try {
-    const nameBuf = Buffer.from(dapp.name, 'utf8');
-    buf = Buffer.concat([buf, nameBuf]);
-
-    if (dapp.description) {
-      const descriptionBuf = Buffer.from(dapp.description, 'utf8');
-      buf = Buffer.concat([buf, descriptionBuf]);
-    }
-
-    if (dapp.tags) {
-      const tagsBuf = Buffer.from(dapp.tags, 'utf8');
-      buf = Buffer.concat([buf, tagsBuf]);
-    }
-
-    if (dapp.link) {
-      buf = Buffer.concat([buf, Buffer.from(dapp.link, 'utf8')]);
-    }
-
-    if (dapp.icon) {
-      buf = Buffer.concat([buf, Buffer.from(dapp.icon, 'utf8')]);
-    }
-
-    const bb = new ByteBuffer(1, true);
-    bb.writeInt(dapp.type);
-    bb.writeInt(dapp.category);
-    bb.writeString(dapp.delegates.join(','));
-    bb.writeInt(dapp.unlockDelegates);
-    bb.flip();
-
-    buf = Buffer.concat([buf, bb.toBuffer()]);
-  } catch (e) {
-    throw Error(e.toString());
-  }
-
-  return buf;
-}
-
-function getInTransferBytes(inTransfer: any) {
-  let buf = Buffer.from([]);
-  try {
-    const dappId = Buffer.from(inTransfer.dappId, 'utf8');
-    const currency = Buffer.from(inTransfer.currency, 'utf8');
-    buf = Buffer.concat([buf, dappId, currency]);
-    if (inTransfer.currency !== 'XAS') {
-      const amount = Buffer.from(inTransfer.amount, 'utf8');
-      buf = Buffer.concat([buf, amount]);
-    }
-  } catch (e) {
-    throw Error(e.toString());
-  }
-
-  return buf;
-}
-
-function getOutTransferBytes(outTransfer: any) {
-  let buf = Buffer.from([]);
-  try {
-    const dappIdBuf = Buffer.from(outTransfer.dappId, 'utf8');
-    const transactionIdBuff = Buffer.from(outTransfer.transactionId, 'utf8');
-    const currencyBuff = Buffer.from(outTransfer.currency, 'utf8');
-    const amountBuff = Buffer.from(outTransfer.amount, 'utf8');
-    buf = Buffer.concat([
-      buf,
-      dappIdBuf,
-      transactionIdBuff,
-      currencyBuff,
-      amountBuff,
-    ]);
-  } catch (e) {
-    throw Error(e.toString());
-  }
-
-  return buf;
 }
 
 function getBytes(trs: any, skipSignature?: any, skipSecondSignature?: any) {
@@ -154,7 +78,7 @@ function getBytes(trs: any, skipSignature?: any, skipSecondSignature?: any) {
   return toLocalBuffer(bb);
 }
 
-function getId(transaction: any) {
+function getId(transaction: ITransaction) {
   return sha256Hex(getBytes(transaction));
 }
 function getHash(
@@ -163,26 +87,6 @@ function getHash(
   skipSecondSignature: any
 ) {
   return sha256Bytes(getBytes(transaction, skipSignature, skipSecondSignature));
-}
-
-function getFee(transaction: any) {
-  switch (transaction.type) {
-    case 0: // Normal
-      return 0.1 * fixedPoint;
-      break;
-
-    case 1: // Signature
-      return 100 * fixedPoint;
-      break;
-
-    case 2: // Delegate
-      return 10000 * fixedPoint;
-      break;
-
-    case 3: // Vote
-      return 1 * fixedPoint;
-      break;
-  }
 }
 
 function sign(transaction: any, keys: any) {
@@ -279,7 +183,6 @@ export {
   getBytes,
   getHash,
   getId,
-  getFee,
   sign,
   secondSign,
   getKeys,
