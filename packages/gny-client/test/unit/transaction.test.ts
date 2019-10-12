@@ -24,7 +24,7 @@ describe('transaction', () => {
       trs = createTransaction({
         type: 1,
         fee: 1 * 1e8,
-        massage: '',
+        message: '',
         secret: genesisSecret,
         args: [200000000000, 'G3FkpyJr5gZmd1gPCZ6pQGAM5DPSv'],
       });
@@ -42,7 +42,7 @@ describe('transaction', () => {
       trs = createTransaction({
         type: 1,
         fee: 1 * 1e8,
-        massage: '',
+        message: '',
         secret: genesisSecret,
         args: [200000000000, 'G3FkpyJr5gZmd1gPCZ6pQGAM5DPSv'],
       });
@@ -119,7 +119,7 @@ describe('transaction', () => {
       trs = createTransaction({
         type: 1,
         fee: 1 * 1e8,
-        massage: '',
+        message: '',
         secret: genesisSecret,
         secondSecret:
           'carpet pudding topple genuine relax rally problem before pill gun nation method',
