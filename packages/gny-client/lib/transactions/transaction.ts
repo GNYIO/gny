@@ -1,6 +1,5 @@
 import crypto = require('./crypto');
-import constants = require('../constants');
-import slots = require('../time/slots');
+import { slots } from '@gny/utils';
 import options = require('../options');
 import { ITransaction } from '@gny/interfaces';
 

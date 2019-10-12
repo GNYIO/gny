@@ -1,4 +1,4 @@
-import slots = require('./slots');
+import { slots } from '@gny/utils';
 
 export function timeAgo(time: any) {
   const d = slots.beginEpochTime();
