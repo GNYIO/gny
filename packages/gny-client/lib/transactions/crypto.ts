@@ -1,20 +1,19 @@
 import * as sha256 from 'fast-sha256';
 import * as nacl from 'tweetnacl';
 import * as ByteBuffer from 'bytebuffer';
-import { generateAddress, isAddress } from '@gny/utils';
+import { generateAddress } from '@gny/utils';
 import { ITransaction } from '@gny/interfaces';
 
 interface Keypair {
   publicKey: Uint8Array;
   secretKey: Uint8Array;
 }
+
 interface Keys {
   keypair: Keypair;
   publicKey: string;
   privateKey: string;
 }
-
-const fixedPoint = Math.pow(10, 8);
 
 export function getSignatureBytes(signature: any) {
   const bb = new ByteBuffer(32, true);
