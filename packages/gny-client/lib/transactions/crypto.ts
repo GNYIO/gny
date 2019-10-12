@@ -4,9 +4,19 @@ import * as ByteBuffer from 'bytebuffer';
 import { generateAddress, isAddress } from '@gny/utils';
 import { ITransaction } from '@gny/interfaces';
 
+interface Keypair {
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
+}
+interface Keys {
+  keypair: Keypair;
+  publicKey: string;
+  privateKey: string;
+}
+
 const fixedPoint = Math.pow(10, 8);
 
-function getSignatureBytes(signature: any) {
+export function getSignatureBytes(signature: any) {
   const bb = new ByteBuffer(32, true);
   const publicKeyBuffer = Buffer.from(signature.publicKey, 'hex');
 
@@ -18,7 +28,7 @@ function getSignatureBytes(signature: any) {
   return new Uint8Array(bb.toArrayBuffer());
 }
 
-function toLocalBuffer(buf: any) {
+export function toLocalBuffer(buf: ByteBuffer) {
   if (typeof window !== 'undefined') {
     return new Uint8Array(buf.toArrayBuffer());
   } else {
@@ -26,15 +36,19 @@ function toLocalBuffer(buf: any) {
   }
 }
 
-function sha256Bytes(data: any) {
+export function sha256Bytes(data: Uint8Array) {
   return sha256.hash(data);
 }
 
-function sha256Hex(data: any) {
+export function sha256Hex(data: Uint8Array) {
   return Buffer.from(sha256.hash(data)).toString('hex');
 }
 
-function getBytes(trs: any, skipSignature?: any, skipSecondSignature?: any) {
+export function getBytes(
+  trs: ITransaction,
+  skipSignature?: boolean,
+  skipSecondSignature?: boolean
+) {
   const bb = new ByteBuffer(1, true);
   bb.writeInt(trs.type);
   bb.writeInt(trs.timestamp);
@@ -78,10 +92,10 @@ function getBytes(trs: any, skipSignature?: any, skipSecondSignature?: any) {
   return toLocalBuffer(bb);
 }
 
-function getId(transaction: ITransaction) {
+export function getId(transaction: ITransaction) {
   return sha256Hex(getBytes(transaction));
 }
-function getHash(
+export function getHash(
   transaction: any,
   skipSignature: any,
   skipSecondSignature: any
@@ -89,26 +103,26 @@ function getHash(
   return sha256Bytes(getBytes(transaction, skipSignature, skipSecondSignature));
 }
 
-function sign(transaction: any, keys: any) {
+export function sign(transaction: ITransaction, keys: Keys) {
   const hash = getHash(transaction, true, true);
   const signature = nacl.sign.detached(hash, keys.keypair.secretKey);
 
   return Buffer.from(signature).toString('hex');
 }
 
-function secondSign(transaction: any, keys: any) {
+export function secondSign(transaction: ITransaction, keys: Keys) {
   const hash = getHash(transaction, true, true);
   const signature = nacl.sign.detached(hash, keys.keypair.secretKey);
   return Buffer.from(signature).toString('hex');
 }
 
-function signBytes(bytes: any, keys: any) {
+export function signBytes(bytes: string, keys: Keys) {
   const hash = sha256Bytes(Buffer.from(bytes, 'hex'));
   const signature = nacl.sign.detached(hash, keys.keypair.secretKey);
   return Buffer.from(signature).toString('hex');
 }
 
-function verify(transaction: any) {
+export function verify(transaction: ITransaction) {
   let remove = 64;
 
   if (transaction.secondSignature) {
@@ -135,7 +149,10 @@ function verify(transaction: any) {
   return res;
 }
 
-function verifySecondSignature(transaction: any, publicKey: any) {
+export function verifySecondSignature(
+  transaction: ITransaction,
+  publicKey: string
+) {
   const bytes = getBytes(transaction, true, true);
   const data2 = Buffer.alloc(bytes.length, 0);
 
@@ -156,7 +173,11 @@ function verifySecondSignature(transaction: any, publicKey: any) {
   return res;
 }
 
-function verifyBytes(bytes: string, signature: string, publicKey: string) {
+export function verifyBytes(
+  bytes: string,
+  signature: string,
+  publicKey: string
+) {
   const hash = sha256Bytes(Buffer.from(bytes, 'hex'));
   const signatureBuffer = Buffer.from(signature, 'hex');
   const publicKeyBuffer = Buffer.from(publicKey, 'hex');
@@ -164,7 +185,7 @@ function verifyBytes(bytes: string, signature: string, publicKey: string) {
   return res;
 }
 
-function getKeys(secret: string) {
+export function getKeys(secret: string) {
   const hash = sha256Bytes(Buffer.from(secret));
   const keypair = nacl.sign.keyPair.fromSeed(hash);
 
@@ -175,23 +196,6 @@ function getKeys(secret: string) {
   };
 }
 
-function getAddress(publicKey: string) {
+export function getAddress(publicKey: string) {
   return generateAddress(publicKey);
 }
-
-export {
-  getBytes,
-  getHash,
-  getId,
-  sign,
-  secondSign,
-  getKeys,
-  getAddress,
-  verify,
-  verifySecondSignature,
-  fixedPoint,
-  signBytes,
-  toLocalBuffer,
-  verifyBytes,
-  isAddress,
-};
