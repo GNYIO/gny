@@ -1,9 +1,16 @@
 import crypto = require('./crypto');
 import { slots } from '@gny/utils';
-import options = require('../options');
 import { ITransaction } from '@gny/interfaces';
 
-export function createTransactionEx(params: any) {
+interface Params {
+  type: number;
+  fee: number;
+  args: string[];
+  secret: string;
+  message?: string;
+  secondSecret?: string;
+}
+export function createTransactionEx(params: Params) {
   if (!params.secret) throw new Error('Secret needed');
   const keys = crypto.getKeys(params.secret);
   const transaction: any = {
@@ -23,24 +30,4 @@ export function createTransactionEx(params: any) {
   }
   transaction.id = crypto.getId(transaction);
   return transaction as ITransaction;
-}
-
-export function createMultiSigTransaction(params: any) {
-  const transaction = {
-    type: params.type,
-    fee: params.fee,
-    senderId: params.senderId,
-    requestId: params.requestId,
-    mode: params.mode,
-    timestamp: slots.getTime() - options.get('clientDriftSeconds'),
-    args: params.args,
-  };
-  return transaction;
-}
-
-export function signMultiSigTransaction(transaction: any, secret: string) {
-  const keys = crypto.getKeys(secret);
-  const signature = crypto.sign(transaction, keys);
-
-  return keys.publicKey + signature;
 }
