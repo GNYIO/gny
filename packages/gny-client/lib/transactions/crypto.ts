@@ -1,14 +1,7 @@
 import * as sha256 from 'fast-sha256';
-import { AddressHelper } from '../address';
-
-const addressHelper = new AddressHelper();
-
-// if (typeof Buffer === 'undefined') {
-//   Buffer = require('buffer/').Buffer;
-// }
-
-const ByteBuffer = require('bytebuffer');
-const nacl = require('tweetnacl');
+import * as nacl from 'tweetnacl';
+import * as ByteBuffer from 'bytebuffer';
+import { generateAddress, isAddress } from '@gny/utils';
 
 const fixedPoint = Math.pow(10, 8);
 
@@ -279,11 +272,8 @@ function getKeys(secret: string) {
 }
 
 function getAddress(publicKey: string) {
-  return addressHelper.generateNormalAddress(publicKey);
+  return generateAddress(publicKey);
 }
-
-const isAddress = addressHelper.isAddress;
-const isBase58CheckAddress = addressHelper.isBase58CheckAddress;
 
 export {
   getBytes,
@@ -301,5 +291,4 @@ export {
   toLocalBuffer,
   verifyBytes,
   isAddress,
-  isBase58CheckAddress,
 };
