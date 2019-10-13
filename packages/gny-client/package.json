@@ -8,7 +8,10 @@
   "license": "MIT",
   "keywords": [],
   "scripts": {
-    "test": "jest --ci --runInBand test",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist",
+    "test": "jest --ci --runInBand test/api",
+    "test:integration": "jest --ci --runInBand test/api",
     "lerna:bootstrap": "lerna bootstrap --ci"
   },
   "engines": {
