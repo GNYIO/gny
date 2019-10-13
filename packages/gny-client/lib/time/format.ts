@@ -48,21 +48,21 @@ export function fullTimestamp(time: any) {
   const t = parseInt(String(d.getTime() / 1000));
 
   d = new Date((time + t) * 1000);
-  let month = d.getMonth() + 1;
+  let month: number | string = d.getMonth() + 1;
 
   if (month < 10) {
     month = '0' + month;
   }
 
-  let day = d.getDate();
+  let day: number | string = d.getDate();
 
   if (day < 10) {
     day = '0' + day;
   }
 
-  let h = d.getHours();
-  let m = d.getMinutes();
-  let s = d.getSeconds();
+  let h: number | string = d.getHours();
+  let m: number | string = d.getMinutes();
+  let s: number | string = d.getSeconds();
 
   if (h < 10) {
     h = '0' + h;
