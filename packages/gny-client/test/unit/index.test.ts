@@ -1,7 +1,7 @@
 import 'jest-extended';
 import gnyClient = require('../../index');
 
-describe('Gny JS', () => {
+describe('GNY client', () => {
   it('should be object', () => {
     expect(gnyClient).toBeObject();
   });

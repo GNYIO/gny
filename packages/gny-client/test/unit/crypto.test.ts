@@ -2,15 +2,13 @@ import 'jest-extended';
 import * as gnyClient from '../../index';
 import { joi } from '@gny/extendedJoi';
 
-describe('crypto.js', () => {
+describe('crypto', () => {
   const crypto = gnyClient.crypto;
 
   let bytes: any;
   let getBytes: any;
   let getHash: any;
   let getId: any;
-  let getFee: any;
-  let fixedPoint: any;
   let sign: any;
   let secondSign: any;
   let getKeys: any;
@@ -23,8 +21,6 @@ describe('crypto.js', () => {
     getBytes = crypto.getBytes;
     getHash = crypto.getHash;
     getId = crypto.getId;
-    getFee = crypto.getFee;
-    fixedPoint = crypto.fixedPoint;
     sign = crypto.sign;
     secondSign = crypto.secondSign;
     getKeys = crypto.getKeys;

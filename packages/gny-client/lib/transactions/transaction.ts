@@ -1,19 +1,20 @@
-import crypto = require('./crypto');
-import constants = require('../constants');
-import slots = require('../time/slots');
-import options = require('../options');
+// import crypto = require('./crypto');
+import * as crypto from './crypto';
+import { slots } from '@gny/utils';
 import { ITransaction } from '@gny/interfaces';
 
-export function calculateFee(amount: number) {
-  const min = constants.fees.send;
-  const fee = parseFloat((amount * 0.0001).toFixed(0));
-  return fee < min ? min : fee;
+interface Params {
+  type: number;
+  fee: number;
+  args: (string | number)[];
+  secret: string;
+  message?: string;
+  secondSecret?: string;
 }
-
-export function createTransactionEx(params: any) {
+export function createTransactionEx(params: Params) {
   if (!params.secret) throw new Error('Secret needed');
   const keys = crypto.getKeys(params.secret);
-  const transaction: any = {
+  const transaction = {
     type: params.type,
     timestamp: slots.getTime(),
     fee: String(params.fee),
@@ -22,7 +23,7 @@ export function createTransactionEx(params: any) {
     senderPublicKey: keys.publicKey,
     senderId: crypto.getAddress(keys.publicKey),
     signatures: [],
-  };
+  } as ITransaction;
   transaction.signatures.push(crypto.sign(transaction, keys));
   if (params.secondSecret) {
     const secondKeys = crypto.getKeys(params.secondSecret);
@@ -30,24 +31,4 @@ export function createTransactionEx(params: any) {
   }
   transaction.id = crypto.getId(transaction);
   return transaction as ITransaction;
-}
-
-export function createMultiSigTransaction(params: any) {
-  const transaction = {
-    type: params.type,
-    fee: params.fee,
-    senderId: params.senderId,
-    requestId: params.requestId,
-    mode: params.mode,
-    timestamp: slots.getTime() - options.get('clientDriftSeconds'),
-    args: params.args,
-  };
-  return transaction;
-}
-
-export function signMultiSigTransaction(transaction: any, secret: string) {
-  const keys = crypto.getKeys(secret);
-  const signature = crypto.sign(transaction, keys);
-
-  return keys.publicKey + signature;
 }

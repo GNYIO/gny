@@ -24,11 +24,6 @@ module.exports = {
         alwaysStrict: false,
         noUnusedLocals: true,
         noImplicitReturns: false,
-        typeRoots: [
-          'types',
-          'node_modules/@polkadot/ts/types/',
-          'node_modules/@types',
-        ],
         esModuleInterop: false,
         inlineSourceMap: false,
         inlineSources: false,
