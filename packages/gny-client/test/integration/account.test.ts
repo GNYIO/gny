@@ -59,7 +59,7 @@ async function registerAssetAsync(
 
 describe('account', () => {
   const connection = new Connection();
-  const accountApi = connection.api('Account');
+  const accountApi = connection.api.Account;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

@@ -6,7 +6,7 @@ import * as lib from './lib';
 
 describe('peer', () => {
   const connection = new Connection();
-  const peerApi = connection.api('Peer');
+  const peerApi = connection.api.Peer;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

@@ -13,8 +13,5 @@ export class Connection {
     this.baseUrl = 'http://' + this.host + ':' + this.port;
   }
 
-  public api(name: string) {
-    // @ts-ignore
-    return new Api[name](this);
-  }
+  public api = Api(this);
 }

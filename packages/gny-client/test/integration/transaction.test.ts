@@ -17,7 +17,7 @@ const genesisSecret =
 
 describe('transaction', () => {
   const connection = new Connection();
-  const transactionApi = connection.api('Transaction');
+  const transactionApi = connection.api.Transaction;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

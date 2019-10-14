@@ -17,7 +17,7 @@ const genesisSecret =
 
 describe('delegate', () => {
   const connection = new Connection();
-  const delegateApi = connection.api('Delegate');
+  const delegateApi = connection.api.Delegate;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
@@ -187,7 +187,7 @@ describe('delegate', () => {
         const amount = 30 * 1e8;
 
         // set username
-        const accountApi = connection.api('Account');
+        const accountApi = connection.api.Account;
         await accountApi.setUserName(username, secret);
         await lib.onNewBlock();
 

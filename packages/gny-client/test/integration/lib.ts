@@ -2,7 +2,6 @@ import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
-import * as isRoot from 'is-root';
 import { BigNumber } from 'bignumber.js';
 
 export const GENESIS = {
@@ -129,9 +128,3 @@ export function createRandomAddress() {
 export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
-
-export function exitIfNotRoot() {
-  if (!isRoot()) {
-    process.exit(1);
-  }
-}

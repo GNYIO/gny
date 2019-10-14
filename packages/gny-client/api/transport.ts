@@ -47,8 +47,4 @@ export class Transport extends Base {
   public async getUnconfirmedTransactions() {
     return await this.post('/peer/getUnconfirmedTransactions');
   }
-
-  public async getHeight() {
-    return await this.post('/peer/getHeight');
-  }
 }

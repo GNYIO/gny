@@ -6,7 +6,7 @@ import * as lib from './lib';
 
 describe('system', () => {
   const connection = new Connection();
-  const systemApi = connection.api('System');
+  const systemApi = connection.api.System;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

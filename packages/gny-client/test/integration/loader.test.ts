@@ -6,7 +6,7 @@ import * as lib from './lib';
 
 describe('loader', () => {
   const connection = new Connection();
-  const loaderApi = connection.api('Loader');
+  const loaderApi = connection.api.Loader;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

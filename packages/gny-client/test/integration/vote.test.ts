@@ -9,9 +9,9 @@ const genesisSecret =
 
 describe('vote', () => {
   const connection = new Connection();
-  const voteApi = connection.api('Vote');
-  const accountApi = connection.api('Account');
-  const delegateApi = connection.api('Delegate');
+  const voteApi = connection.api.Vote;
+  const accountApi = connection.api.Account;
+  const delegateApi = connection.api.Delegate;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

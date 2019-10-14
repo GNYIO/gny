@@ -55,7 +55,7 @@ async function beforeUiaTransfer(uiaApi: any) {
 
 describe('uia', () => {
   const connection = new Connection();
-  const uiaApi = connection.api('Uia');
+  const uiaApi = connection.api.Uia;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();

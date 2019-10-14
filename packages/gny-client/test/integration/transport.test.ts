@@ -18,7 +18,8 @@ const genesisSecret =
 
 describe('transport', () => {
   const connection = new Connection();
-  const transportApi = connection.api('Transport');
+  const transportApi = connection.api.Transport;
+  const blockApi = connection.api.Block;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
@@ -41,7 +42,7 @@ describe('transport', () => {
     it(
       'should get new block',
       async done => {
-        const { data } = await transportApi.getHeight();
+        const { data } = await blockApi.getHeight();
 
         const blockData = await axios.get(
           'http://localhost:4096/api/blocks/getBlock?height=' + data.height
@@ -66,7 +67,7 @@ describe('transport', () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
 
-        const { data } = await transportApi.getHeight();
+        const { data } = await blockApi.getHeight();
 
         const height = data.height;
 
@@ -101,7 +102,7 @@ describe('transport', () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
 
-        const { data } = await transportApi.getHeight();
+        const { data } = await blockApi.getHeight();
         const height = data.height;
 
         const blockData = await axios.get(
@@ -224,7 +225,7 @@ describe('transport', () => {
     it(
       'should get the height',
       async () => {
-        const response = await transportApi.getHeight();
+        const response = await blockApi.getHeight();
         expect(response.status).toEqual(200);
       },
       lib.oneMinute

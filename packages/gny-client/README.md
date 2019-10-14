@@ -6,7 +6,7 @@
 import { Connection } from '@gny/gny-client';
 
 const connection = new Connection();
-const accountApi = connection.api('Account');
+const accountApi = connection.api.Account;
 
 const generateAccount = async () => {
   response = await accountApi..generateAccount();

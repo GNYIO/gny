@@ -6,7 +6,7 @@ import * as lib from './lib';
 
 describe('block', () => {
   const connection = new Connection();
-  const blockApi = connection.api('Block');
+  const blockApi = connection.api.Block;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
@@ -34,7 +34,7 @@ describe('block', () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
 
-        const height = 2;
+        const height = String(2);
         const response = await blockApi.getBlockByHeight(height);
         expect(response.status).toEqual(200);
         done();
@@ -52,7 +52,7 @@ describe('block', () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
 
-        const height = 2;
+        const height = String(2);
         const { data } = await blockApi.getBlockByHeight(height);
         const id = data.block.id;
         const response = await blockApi.getBlockById(id);
