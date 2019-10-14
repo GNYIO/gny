@@ -10,7 +10,7 @@ interface Query {
   offset?: string | number;
 }
 export class Transfer extends Base {
-  public async getRoot(query: Query) {
+  public async getRoot(query: Partial<Query>) {
     const params = {
       ownerId: query.ownerId,
       currency: query.currency,

@@ -62,7 +62,7 @@ describe('transfer', () => {
           config
         );
         await lib.onNewBlock();
-        const query = { ownerid: senderId };
+        const query = { ownerId: senderId };
         const response = await transferApi.getRoot(query);
         expect(response.status).toEqual(200);
       },
