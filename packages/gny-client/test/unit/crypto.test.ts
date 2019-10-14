@@ -42,14 +42,12 @@ describe('crypto', () => {
       'getBytes',
       'getHash',
       'getId',
-      'getFee',
       'sign',
       'secondSign',
       'getKeys',
       'getAddress',
       'verify',
       'verifySecondSignature',
-      'fixedPoint',
     ];
     properties.forEach(function(property) {
       expect(crypto).toHaveProperty(property);
@@ -141,45 +139,6 @@ describe('crypto', () => {
       expect(id).toEqual(
         '07152e2898a19b1547de48f81d92ed696b33ff9fe00f7abd1bfbe40b39e521aa'
       );
-    });
-  });
-
-  describe('#getFee', () => {
-    it('should return number', () => {
-      const fee = getFee({ amount: 100000, type: 0 });
-      expect(fee).toBeNumber();
-      expect(fee).not.toBeNull();
-    });
-
-    it('should return 10000000', () => {
-      const fee = getFee({ amount: 100000, type: 0 });
-      expect(fee).toBeNumber();
-      expect(fee).toEqual(10000000);
-    });
-
-    it('should return 10000000000', () => {
-      const fee = getFee({ type: 1 });
-      expect(fee).toBeNumber();
-      expect(fee).toEqual(10000000000);
-    });
-
-    it('should be equal 1000000000000', () => {
-      const fee = getFee({ type: 2 });
-      expect(fee).toBeNumber();
-      expect(fee).toEqual(1000000000000);
-    });
-
-    it('should be equal 100000000', () => {
-      const fee = getFee({ type: 3 });
-      expect(fee).toBeNumber();
-      expect(fee).toEqual(100000000);
-    });
-  });
-
-  describe('fixedPoint', () => {
-    it('should be number and equal to 100000000', () => {
-      expect(fixedPoint).toBeNumber();
-      expect(fixedPoint).toEqual(100000000);
     });
   });
 

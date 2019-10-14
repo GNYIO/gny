@@ -23,8 +23,9 @@
     "dist/**"
   ],
   "include": [
-    "lib/*.ts",
-    "api/*.ts",
-    "index.ts"
+    "lib/**/*.ts",
+    "api/**/*.ts",
+    "index.ts",
+    "test/**/*.test.ts"
   ]
 }

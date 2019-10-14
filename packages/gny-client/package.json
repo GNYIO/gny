@@ -10,8 +10,8 @@
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist",
-    "test": "jest --ci --runInBand test/api",
-    "test:integration": "jest --ci --runInBand test/api",
+    "test": "jest --ci --runInBand test/unit",
+    "test:integration": "jest --ci --runInBand test/integration",
     "lerna:bootstrap": "lerna bootstrap --ci"
   },
   "engines": {

@@ -8,11 +8,11 @@ describe('GNY client', () => {
 
   it('should have properties', () => {
     const properties = [
+      'Connection',
       'basic',
       'crypto',
       'transaction',
       'uia',
-      'options',
       'utils',
       'Connection',
     ];
