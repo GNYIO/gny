@@ -1,6 +1,7 @@
 import 'jest-extended';
 import * as gnyClient from '../../index';
 import { joi } from '@gny/extendedJoi';
+import { ITransaction } from '@gny/interfaces';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
@@ -18,7 +19,7 @@ describe('transaction', () => {
 
   describe('#createTransaction', () => {
     const createTransaction = transaction.createTransactionEx;
-    let trs;
+    let trs: ITransaction;
 
     beforeEach(() => {
       trs = createTransaction({
@@ -110,7 +111,7 @@ describe('transaction', () => {
 
   describe('#createTransaction with second secret', () => {
     const createTransaction = transaction.createTransactionEx;
-    let trs;
+    let trs: ITransaction;
     const secondSecret =
       'carpet pudding topple genuine relax rally problem before pill gun nation method';
     const keys = gnyClient.crypto.getKeys(secondSecret);

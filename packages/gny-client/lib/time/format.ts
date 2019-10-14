@@ -1,7 +1,7 @@
-import { slots } from '@gny/utils';
+import { slots, EPOCH_TIME } from '@gny/utils';
 
 export function timeAgo(time: any) {
-  const d = slots.beginEpochTime();
+  const d = EPOCH_TIME;
   const t = parseInt(String(d.getTime() / 1000));
 
   time = new Date((time + t) * 1000);
@@ -44,7 +44,7 @@ export function timeAgo(time: any) {
 }
 
 export function fullTimestamp(time: any) {
-  let d = slots.beginEpochTime();
+  let d = EPOCH_TIME;
   const t = parseInt(String(d.getTime() / 1000));
 
   d = new Date((time + t) * 1000);

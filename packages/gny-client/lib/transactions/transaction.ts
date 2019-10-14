@@ -16,7 +16,7 @@ export function createTransactionEx(params: Params) {
   const keys = crypto.getKeys(params.secret);
   const transaction = {
     type: params.type,
-    timestamp: slots.getTime(),
+    timestamp: slots.getTime(undefined),
     fee: String(params.fee),
     message: params.message,
     args: params.args,

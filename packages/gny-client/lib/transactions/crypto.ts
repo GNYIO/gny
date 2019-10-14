@@ -53,12 +53,6 @@ export function getBytes(
   bb.writeInt(trs.timestamp);
   bb.writeLong(trs.fee);
   bb.writeString(trs.senderId);
-  if (trs.requestorId) {
-    bb.writeString(trs.requestorId);
-  }
-  if (trs.mode) {
-    bb.writeInt(trs.mode);
-  }
 
   if (trs.message) bb.writeString(trs.message);
   if (trs.args) {

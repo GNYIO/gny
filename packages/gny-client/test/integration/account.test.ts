@@ -15,7 +15,11 @@ const config = {
   },
 };
 
-async function registerIssuerAsync(name, desc, secret = genesisSecret) {
+async function registerIssuerAsync(
+  name: string,
+  desc: string,
+  secret = genesisSecret
+) {
   const issuerTrs = gnyClient.uia.registerIssuer(name, desc, secret);
   const issuerTransData = {
     transaction: issuerTrs,
@@ -30,10 +34,10 @@ async function registerIssuerAsync(name, desc, secret = genesisSecret) {
 }
 
 async function registerAssetAsync(
-  name,
-  desc,
-  amount,
-  precision,
+  name: string,
+  desc: string,
+  amount: string,
+  precision: number,
   secret = genesisSecret
 ) {
   const assetTrs = gnyClient.uia.registerAsset(
