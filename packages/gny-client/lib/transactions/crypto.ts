@@ -51,7 +51,7 @@ export function getBytes(
   const bb = new ByteBuffer(1, true);
   bb.writeInt(trs.type);
   bb.writeInt(trs.timestamp);
-  bb.writeLong(trs.fee);
+  bb.writeInt64((trs.fee as unknown) as number);
   bb.writeString(trs.senderId);
 
   if (trs.message) bb.writeString(trs.message);

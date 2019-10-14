@@ -21,7 +21,7 @@ export async function getHeight() {
   return ret.height as string;
 }
 
-export function sleep(ms) {
+export function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
