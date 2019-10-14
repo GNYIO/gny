@@ -3,8 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "description": "GNY Client Library",
-  "main": "index.js",
-  "typings": "index.d.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "license": "MIT",
   "keywords": [],
   "scripts": {
