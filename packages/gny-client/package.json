@@ -28,7 +28,6 @@
     "bytebuffer": "^5.0.1",
     "crypto": "^1.0.1",
     "fast-sha256": "^1.1.0",
-    "is-root": "^2.1.0",
     "sha.js": "^2.4.11",
     "tweetnacl": "^1.0.1"
   },
