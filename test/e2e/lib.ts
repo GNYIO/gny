@@ -3,6 +3,14 @@ import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
 import { BigNumber } from '@gny/utils';
+import * as gnyJS from '../../packages/gny-js';
+import * as crypto from 'crypto';
+
+const config = {
+  headers: {
+    magic: '594fe0f3',
+  },
+};
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -95,6 +103,28 @@ export async function stopAndKillContainer(configFile?: string) {
 export function createRandomAddress(): string {
   const rand = randomBytes(10).toString('hex');
   return generateAddress(rand);
+}
+
+export function createRandomAccount() {
+  interface ExtendedAccount {
+    keypair: nacl.SignKeyPair;
+    publicKey: string;
+    privateKey: string;
+    secret: string;
+    address: string;
+  }
+
+  const secret = crypto.randomBytes(32).toString('hex');
+  const partial: Pick<
+    ExtendedAccount,
+    'keypair' | 'publicKey' | 'privateKey'
+  > = gnyJS.crypto.getKeys(secret);
+  const full = {
+    ...partial,
+    address: gnyJS.crypto.getAddress(partial.publicKey),
+    secret: secret,
+  };
+  return full;
 }
 
 export const thirtySeconds = 30 * 1000;
