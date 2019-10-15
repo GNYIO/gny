@@ -13,13 +13,44 @@ RUN apt-get update && \
 
 # next copy all files (except files and dirs in .dockerignore) to container
 # when a file changes, then only from this part on will the Dockerfile get executed, the rest is cached
-COPY . .
+COPY package.json package-lock.json lerna.json ./
 
 # all installed (root)dependencies are now cached
 RUN npm ci
 
+# copy all package-lock files (bash: find -name "package-lock.json" -not -path "**/node_modules/*")
+COPY packages/p2p/package-lock.json ./packages/p2p/package-lock.json
+COPY packages/extendedJoi/package-lock.json ./packages/extendedJoi/package-lock.json
+COPY packages/gny-js/package-lock.json ./packages/gny-js/package-lock.json
+COPY packages/interfaces/package-lock.json ./packages/interfaces/package-lock.json
+COPY packages/ed/package-lock.json ./packages/ed/package-lock.json
+COPY packages/utils/package-lock.json ./packages/utils/package-lock.json
+COPY packages/main/package-lock.json ./packages/main/package-lock.json
+COPY packages/base/package-lock.json ./packages/base/package-lock.json
+COPY packages/database-postgres/package-lock.json ./packages/database-postgres/package-lock.json
+COPY packages/logger/package-lock.json ./packages/logger/package-lock.json
+COPY packages/gny-cli/package-lock.json ./packages/gny-cli/package-lock.json
+
+# copy all package.json files
+COPY packages/p2p/package.json ./packages/p2p/package.json
+COPY packages/extendedJoi/package.json ./packages/extendedJoi/package.json
+COPY packages/gny-js/package.json ./packages/gny-js/package.json
+COPY packages/interfaces/package.json ./packages/interfaces/package.json
+COPY packages/ed/package.json ./packages/ed/package.json
+COPY packages/utils/package.json ./packages/utils/package.json
+COPY packages/main/package.json ./packages/main/package.json
+COPY packages/type-validation/package.json ./packages/type-validation/package.json
+COPY packages/base/package.json ./packages/base/package.json
+COPY packages/database-postgres/package.json ./packages/database-postgres/package.json
+COPY packages/transaction-pool/package.json ./packages/transaction-pool/package.json
+COPY packages/logger/package.json ./packages/logger/package.json
+COPY packages/gny-cli/package.json ./packages/gny-cli/package.json
+
 # install all depdencies for packages/*
 RUN npm run lerna:bootstrap
+
+# copy the rest of the code
+COPY . .
 
 # compile all TypeScript files
 RUN npm run lerna:tsc
