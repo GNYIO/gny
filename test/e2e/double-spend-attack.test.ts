@@ -2,22 +2,17 @@ import * as lib from './lib';
 import * as gnyJS from '../../packages/gny-js';
 import axios from 'axios';
 
+interface IsTrsAvailable {
+  transactionId: string;
+  port: number;
+  isPersisted: boolean;
+}
+
 const DOCKER_COMPOSE_P2P = 'config/e2e/docker-compose.p2p.yml';
 
-is;
-it;
-possible;
-to;
-have;
-send;
-effectivly;
-0;
-GNY;
-to;
-an;
-account;
-to;
-'activate it?';
+function allItemsEqual(arr: any[]) {
+  return new Set(arr).size == 1;
+}
 
 const config = {
   headers: {
@@ -29,7 +24,7 @@ async function getGNYBalance(port: number, account: string) {
   const { data } = await axios.get(
     `http://localhost:${port}/api/accounts?address=${account}`
   );
-  return data.account.gny as string;
+  return data.account.balance as string;
 }
 
 async function assertBalanceOnNodes(
@@ -42,6 +37,100 @@ async function assertBalanceOnNodes(
     // TODO add custom error message
     expect(balance).toEqual(expectedBalance);
   }
+}
+
+async function getTransactionPersistedData(
+  transactionId: string,
+  ports: number[]
+) {
+  const result: IsTrsAvailable[] = [];
+
+  for (const p of ports) {
+    const url = `http://localhost:${p}/api/transactions?id=${transactionId}`;
+    const { data } = await axios.get(url);
+    result.push({
+      transactionId: transactionId,
+      port: p,
+      isPersisted: data.count === 1 ? true : false,
+    });
+  }
+
+  return result;
+
+  // [
+  //   {
+  //     transactionId: '568a0b86490177ea105c26...',
+  //     port: 4096,
+  //     isPersisted: true,
+  //   },
+  //   {
+  //     transactionId: 'fbfe7c968da9552205b88e...',
+  //     port: 4098,
+  //     isPersisted: true,
+  //   }
+  // ]
+}
+
+/**
+ * Either a transaction is persisted on all nodes or not persisted on
+ */
+async function assertTrsAvailabiltyIsTheSameOnAllNodes(
+  ids: string[],
+  ports: number[]
+) {
+  const allTrsAvailableData: IsTrsAvailable[] = [];
+
+  for (const id of ids) {
+    const oneTrsAvailableData = await getTransactionPersistedData(id, ports);
+    allTrsAvailableData.push(...oneTrsAvailableData);
+
+    // check transaction availibity status
+    // transaction availability status should be the same on all nodes
+    // good: [true, true]
+    // good: [false, false]
+    // bad: [true, false]
+    const persistedArray: boolean[] = oneTrsAvailableData.map(
+      x => x.isPersisted
+    );
+    expect(allItemsEqual(persistedArray)).toEqual(true);
+  }
+
+  // only two transaction should be persisted
+  // example:
+  // [
+  //   {
+  //     "transactionId": "ecf67c0d3d5d3cf6e549fe5de407c70ae0013b3d3b162ae5285818d4a6734bd1",
+  //     "port": 4096,
+  //     "isPersisted": true
+  //   },
+  //   {
+  //     "transactionId": "ecf67c0d3d5d3cf6e549fe5de407c70ae0013b3d3b162ae5285818d4a6734bd1",
+  //     "port": 4098,
+  //     "isPersisted": true
+  //   },
+  //   {
+  //     "transactionId": "3f4bc88440fd389b74d89a738b5393c5d5752683f6dd91f993a57661bcf5a936",
+  //     "port": 4096,
+  //     "isPersisted": false
+  //   },
+  //   {
+  //     "transactionId": "3f4bc88440fd389b74d89a738b5393c5d5752683f6dd91f993a57661bcf5a936",
+  //     "port": 4098,
+  //     "isPersisted": false
+  //   }
+  // ]
+
+  console.log(
+    `attack-transactions-on-all-nodes:\n${JSON.stringify(
+      allTrsAvailableData,
+      null,
+      2
+    )}`
+  );
+  const persistedArrayAccrossTransactions = allTrsAvailableData
+    .map(x => x.isPersisted)
+    .filter(x => x === true);
+  expect(persistedArrayAccrossTransactions.length).toEqual(2);
 }
 
 async function attack(port: number, transaction: any) {
@@ -156,7 +245,7 @@ describe('double spend attack', () => {
       await lib.onNewBlock(4098);
 
       // TODO
-      // check if one of the transactions is in the block
+      // check if one of the transactions is written to the blockchain
 
       // check accounts
       await assertBalanceOnNodes(String(0 * 1e8), account_0.address, [
@@ -168,8 +257,14 @@ describe('double spend attack', () => {
         4098,
       ]);
 
+      // check transactions
+      await assertTrsAvailabiltyIsTheSameOnAllNodes(
+        [attackTrs_0.id as string, attackTrs_1.id as string],
+        [4096, 4098]
+      );
+
       done();
     },
     2 * lib.oneMinute
-  ); // make two minutes
+  );
 });
