@@ -8,7 +8,8 @@ interface IsTrsAvailable {
   isPersisted: boolean;
 }
 
-const DOCKER_COMPOSE_P2P = 'config/e2e/docker-compose.p2p.yml';
+const DOCKER_COMPOSE_P2P =
+  'config/e2e/double-spend-attack/docker-compose.p2p.yml';
 
 function allItemsEqual(arr: any[]) {
   return new Set(arr).size == 1;

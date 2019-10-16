@@ -11,9 +11,9 @@ services:
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
   app1:
-    build: ../..
+    build: ../../..
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/first.json" --publicIP $$(./getIP.sh app1) --ormConfig "config/e2e/ormconfig.first.json"'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/double-spend-attack/first.json" --publicIP $$(./getIP.sh app1) --ormConfig "config/e2e/double-spend-attack/ormconfig.first.json"'
     environment:
       NODE_ENV: production
     ports:
@@ -31,9 +31,9 @@ services:
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
   app2:
-    build: ../..
+    build: ../../..
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/second.json" --publicIP $$(./getIP.sh app2) --ormConfig "config/e2e/ormconfig.second.json" --peers "/ip4/$$(./getIP.sh app1)/tcp/4097/ipfs/QmQbVdde9AeXSP3FoLyVNd3Fi3BjCe2tFyJV43bNWEBYSA"'
+    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/double-spend-attack/second.json" --publicIP $$(./getIP.sh app2) --ormConfig "config/e2e/double-spend-attack/ormconfig.second.json" --peers "/ip4/$$(./getIP.sh app1)/tcp/4097/ipfs/QmQbVdde9AeXSP3FoLyVNd3Fi3BjCe2tFyJV43bNWEBYSA"'
     environment:
       NODE_ENV: production
     ports:
