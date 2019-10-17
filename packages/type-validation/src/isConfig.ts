@@ -40,12 +40,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       forging: joi
         .object()
         .keys({
-          secret: joi.array().items(
-            joi
-              .string()
-              .secret()
-              .required()
-          ),
+          secret: joi
+            .array()
+            .items(joi.string().secret())
+            .required(),
           access: joi.object().keys({
             whiteList: joi
               .array()
