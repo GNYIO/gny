@@ -1,4 +1,4 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
 
@@ -12,7 +12,7 @@ const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
 async function registerIssuerAsync(name, desc, secret = genesisSecret) {
-  const issuerTrs = gnyJS.uia.registerIssuer(name, desc, secret);
+  const issuerTrs = gnyClient.uia.registerIssuer(name, desc, secret);
   const issuerTransData = {
     transaction: issuerTrs,
   };
@@ -40,7 +40,7 @@ async function registerAssetAsync(
   precision,
   secret = genesisSecret
 ) {
-  const assetTrs = gnyJS.uia.registerAsset(
+  const assetTrs = gnyClient.uia.registerAsset(
     name,
     desc,
     amount,
@@ -196,7 +196,11 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         // issue
-        const trs = gnyJS.uia.issue('AAA.TWO', String(11 * 1e8), genesisSecret);
+        const trs = gnyClient.uia.issue(
+          'AAA.TWO',
+          String(11 * 1e8),
+          genesisSecret
+        );
         const transData = {
           transaction: trs,
         };
@@ -238,7 +242,7 @@ describe('accountsApi', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -250,7 +254,7 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -262,7 +266,7 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -280,7 +284,7 @@ describe('accountsApi', () => {
         expect(beforeVote.data.delegates).toHaveLength(0);
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -327,7 +331,7 @@ describe('accountsApi', () => {
         const query = {
           secret: genesisSecret,
         };
-        const account = await axios.post(
+        await axios.post(
           'http://localhost:4096/api/accounts/open',
           query,
           config

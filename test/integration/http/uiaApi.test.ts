@@ -1,7 +1,7 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 import { randomBytes } from 'crypto';
 
 const config = {
@@ -19,7 +19,7 @@ function randomAddress() {
 
 async function beforeUiaTransfer() {
   // prepare registerIssuer
-  const registerIssuer = gnyJS.uia.registerIssuer(
+  const registerIssuer = gnyClient.uia.registerIssuer(
     'ABC',
     'some desc',
     genesisSecret
@@ -35,7 +35,7 @@ async function beforeUiaTransfer() {
   await lib.onNewBlock();
 
   // prepare registerAsset
-  const registerAsset = gnyJS.uia.registerAsset(
+  const registerAsset = gnyClient.uia.registerAsset(
     'BBB',
     'some desc',
     String(10 * 1e8),
@@ -53,7 +53,7 @@ async function beforeUiaTransfer() {
   await lib.onNewBlock();
 
   // prepare issue
-  const issue = gnyJS.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
+  const issue = gnyClient.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
   const issueTransData = {
     transaction: issue,
   };
@@ -90,7 +90,11 @@ describe('uiaApi', () => {
         const offset = 0;
 
         // register issuer
-        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
+        const trs = gnyClient.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
         const transData = {
           transaction: trs,
         };
@@ -123,7 +127,11 @@ describe('uiaApi', () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
 
         // register issuer
-        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
+        const trs = gnyClient.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
         const transData = {
           transaction: trs,
         };
@@ -151,7 +159,11 @@ describe('uiaApi', () => {
         const name = 'liang';
 
         // register issuer
-        const trs = gnyJS.uia.registerIssuer('liang', 'liang', genesisSecret);
+        const trs = gnyClient.uia.registerIssuer(
+          'liang',
+          'liang',
+          genesisSecret
+        );
         const transData = {
           transaction: trs,
         };
@@ -181,7 +193,7 @@ describe('uiaApi', () => {
         const offset = 0;
 
         // register issuer
-        const issuerTrs = gnyJS.uia.registerIssuer(
+        const issuerTrs = gnyClient.uia.registerIssuer(
           'liang',
           'liang',
           genesisSecret
@@ -198,7 +210,7 @@ describe('uiaApi', () => {
         await lib.onNewBlock();
 
         // register assets
-        const assetTrs = gnyJS.uia.registerAsset(
+        const assetTrs = gnyClient.uia.registerAsset(
           'BBB',
           'some description',
           String(10 * 1e8),
@@ -233,11 +245,8 @@ describe('uiaApi', () => {
     it(
       'should get issuers',
       async () => {
-        const limit = 5;
-        const offset = 0;
-
         // register issuer
-        const issuerTrs = gnyJS.uia.registerIssuer(
+        const issuerTrs = gnyClient.uia.registerIssuer(
           'liang',
           'liang',
           genesisSecret
@@ -254,7 +263,7 @@ describe('uiaApi', () => {
         await lib.onNewBlock();
 
         // register assets
-        const assetTrs = gnyJS.uia.registerAsset(
+        const assetTrs = gnyClient.uia.registerAsset(
           'BBB',
           'some description',
           String(10 * 1e8),
@@ -287,7 +296,7 @@ describe('uiaApi', () => {
         const name = 'liang.BBB';
 
         // register issuer
-        const issuerTrs = gnyJS.uia.registerIssuer(
+        const issuerTrs = gnyClient.uia.registerIssuer(
           'liang',
           'liang',
           genesisSecret
@@ -304,7 +313,7 @@ describe('uiaApi', () => {
         await lib.onNewBlock();
 
         // register assets
-        const assetTrs = gnyJS.uia.registerAsset(
+        const assetTrs = gnyClient.uia.registerAsset(
           'BBB',
           'some description',
           String(10 * 1e8),
@@ -339,7 +348,7 @@ describe('uiaApi', () => {
         await beforeUiaTransfer();
 
         // act
-        const transfer = gnyJS.uia.transfer(
+        const transfer = gnyClient.uia.transfer(
           'ABC.BBB',
           String(10 * 1e8),
           recipient,
@@ -409,14 +418,14 @@ describe('uiaApi', () => {
 
   describe('/balances/:address/:currency', () => {
     it(
-      'should get issuers',
+      'should get balance by address and currency',
       async () => {
         const recipient = randomAddress();
         // prepare
         await beforeUiaTransfer();
 
         // act
-        const transfer = gnyJS.uia.transfer(
+        const transfer = gnyClient.uia.transfer(
           'ABC.BBB',
           String(10 * 1e8),
           recipient,

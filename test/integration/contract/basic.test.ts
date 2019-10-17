@@ -1,4 +1,4 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '../../../packages/gny-client';
 import * as lib from '../lib';
 import axios from 'axios';
 import * as crypto from 'crypto';
@@ -28,14 +28,14 @@ function createRandomAddress() {
 }
 
 function createAddress(secret) {
-  const keys = gnyJS.crypto.getKeys(secret);
-  return gnyJS.crypto.getAddress(keys.publicKey);
+  const keys = gnyClient.crypto.getKeys(secret);
+  return gnyClient.crypto.getAddress(keys.publicKey);
 }
 
 async function voteUser(name) {
   // set username
   const username = name;
-  const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+  const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
   const nameTransData = {
     transaction: nameTrs,
   };
@@ -47,7 +47,7 @@ async function voteUser(name) {
   await lib.onNewBlock();
 
   // lock the account
-  const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+  const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
   const lockTransData = {
     transaction: lockTrs,
   };
@@ -59,7 +59,7 @@ async function voteUser(name) {
   await lib.onNewBlock();
 
   // register delegate
-  const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+  const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
   const delegateTransData = {
     transaction: delegateTrs,
   };
@@ -70,7 +70,7 @@ async function voteUser(name) {
   );
   await lib.onNewBlock();
   // vote
-  const voteTrs = gnyJS.basic.vote([username], genesisSecret);
+  const voteTrs = gnyClient.basic.vote([username], genesisSecret);
   const voteTransData = {
     transaction: voteTrs,
   };
@@ -105,7 +105,7 @@ describe('basic', () => {
   describe('transfer', () => {
     it(
       'should transfer to a recipient account',
-      async () => {
+      async done => {
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -117,9 +117,9 @@ describe('basic', () => {
         expect(beforeTrs.data.balances[0].gny).toBe(String(0));
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -141,6 +141,7 @@ describe('basic', () => {
           'http://localhost:4096/api/accounts/getBalance?address=' + recipient
         );
         expect(afterTrs.data.balances[0].gny).toBe(String(5 * 1e8));
+        done();
       },
       lib.oneMinute
     );
@@ -163,9 +164,9 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -202,9 +203,9 @@ describe('basic', () => {
         const message = '';
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -234,7 +235,7 @@ describe('basic', () => {
         const message = '';
 
         // set usename
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -248,9 +249,9 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );
@@ -284,7 +285,7 @@ describe('basic', () => {
         expect(beforeset.data).toHaveLength(0);
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.setUserName(username, genesisSecret);
+        const trs = gnyClient.basic.setUserName(username, genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -318,7 +319,7 @@ describe('basic', () => {
         expect(beforeset.data).toHaveLength(0);
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.setUserName(username, genesisSecret);
+        const trs = gnyClient.basic.setUserName(username, genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -336,7 +337,7 @@ describe('basic', () => {
 
         // set the same username twice
 
-        const trsTwice = gnyJS.basic.setUserName(username, genesisSecret);
+        const trsTwice = gnyClient.basic.setUserName(username, genesisSecret);
         const transTwiceData = {
           transaction: trsTwice,
         };
@@ -365,7 +366,7 @@ describe('basic', () => {
         expect(beforeset.data).toHaveLength(0);
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.setUserName(username, genesisSecret);
+        const trs = gnyClient.basic.setUserName(username, genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -384,7 +385,10 @@ describe('basic', () => {
         // set the another username to same account
         const anotherName = 'liang';
 
-        const trsTwice = gnyJS.basic.setUserName(anotherName, genesisSecret);
+        const trsTwice = gnyClient.basic.setUserName(
+          anotherName,
+          genesisSecret
+        );
         const transTwiceData = {
           transaction: trsTwice,
         };
@@ -408,8 +412,8 @@ describe('basic', () => {
       'should lock the sender with an amount according to the height',
       async () => {
         // Before lock
-        const keys = gnyJS.crypto.getKeys(genesisSecret);
-        const senderId = gnyJS.crypto.getAddress(keys.publicKey);
+        const keys = gnyClient.crypto.getKeys(genesisSecret);
+        const senderId = gnyClient.crypto.getAddress(keys.publicKey);
         const beforeLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + senderId
         );
@@ -417,7 +421,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -446,7 +450,7 @@ describe('basic', () => {
       'should return the error: Height should be positive integer',
       async () => {
         // lock
-        const trs = gnyJS.basic.lock(0, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(0, 30 * 1e8, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -477,7 +481,7 @@ describe('basic', () => {
       'should return the error: Insufficient balance',
       async () => {
         // lock
-        const trs = gnyJS.basic.lock(173000, 40 * 1e16, genesisSecret);
+        const trs = gnyClient.basic.lock(173000, 40 * 1e16, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -508,7 +512,7 @@ describe('basic', () => {
       'should return the error: Invalid lock height',
       async () => {
         // lock
-        const trs = gnyJS.basic.lock(17300, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(17300, 30 * 1e8, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -539,7 +543,7 @@ describe('basic', () => {
       'should return the error: Invalid amount',
       async () => {
         // lock
-        const trs = gnyJS.basic.lock(173000, 0, genesisSecret);
+        const trs = gnyClient.basic.lock(173000, 0, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -570,7 +574,7 @@ describe('basic', () => {
       'should return the error: Invalid lock height, when the sender has been locked',
       async () => {
         // lock the sender before locking again
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
 
         const transLockData = {
           transaction: lockTrs,
@@ -584,7 +588,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -615,7 +619,7 @@ describe('basic', () => {
       'should return the error: Invalid amount, when the sender has been locked',
       async () => {
         // lock the sender before locking again
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
 
         const transLockData = {
           transaction: lockTrs,
@@ -629,7 +633,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyJS.basic.lock(173000 * 2 + 20, 0, genesisSecret);
+        const trs = gnyClient.basic.lock(173000 * 2 + 20, 0, genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -661,7 +665,7 @@ describe('basic', () => {
     it(
       'cannot unlock the sender account',
       async () => {
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -681,7 +685,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // unlock
-        const trs = gnyJS.basic.unlock(genesisSecret);
+        const trs = gnyClient.basic.unlock(genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -703,7 +707,7 @@ describe('basic', () => {
     it(
       'should return the error: Account is not locked',
       async () => {
-        const trs = gnyJS.basic.unlock(genesisSecret);
+        const trs = gnyClient.basic.unlock(genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -729,7 +733,7 @@ describe('basic', () => {
       async () => {
         const username = 'xpgeng';
 
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -749,7 +753,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // Register the delegate
-        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+        const trs = gnyClient.basic.registerDelegate(genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -777,7 +781,7 @@ describe('basic', () => {
     it(
       'should return error if username is not set',
       async () => {
-        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+        const trs = gnyClient.basic.registerDelegate(genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -803,7 +807,7 @@ describe('basic', () => {
         // set username
         const username = 'xpgeng';
 
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -816,7 +820,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register the delegate first
-        const regTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const regTrs = gnyClient.basic.registerDelegate(genesisSecret);
 
         const transRegData = {
           transaction: regTrs,
@@ -830,7 +834,7 @@ describe('basic', () => {
 
         await lib.onNewBlock();
         // register the delegate twice
-        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+        const trs = gnyClient.basic.registerDelegate(genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -857,7 +861,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -869,7 +873,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -881,7 +885,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -899,7 +903,7 @@ describe('basic', () => {
         expect(beforeVote.data.delegates).toHaveLength(0);
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -929,7 +933,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -941,7 +945,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -960,7 +964,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // vote
-        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -994,7 +998,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -1006,7 +1010,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1018,7 +1022,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -1041,7 +1045,7 @@ describe('basic', () => {
         for (let i = 0; i < 34; i++) {
           delegates += 'xpgeng' + i + ',';
         }
-        const trs = gnyJS.basic.vote([delegates], genesisSecret);
+        const trs = gnyClient.basic.vote([delegates], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1073,7 +1077,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -1085,7 +1089,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1097,7 +1101,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -1116,7 +1120,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // vote
-        const trs = gnyJS.basic.vote(['xpgeng,xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng,xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1148,7 +1152,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -1160,7 +1164,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1172,7 +1176,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -1191,7 +1195,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // vote first time
-        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1205,7 +1209,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // vote twice
-        const trsTwice = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trsTwice = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transTwiceData = {
           transaction: trsTwice,
@@ -1238,7 +1242,7 @@ describe('basic', () => {
       async () => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -1250,7 +1254,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1269,7 +1273,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // vote
-        const trs = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1312,7 +1316,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // Unvote
-        const trs = gnyJS.basic.unvote([username], genesisSecret);
+        const trs = gnyClient.basic.unvote([username], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1351,7 +1355,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // unvote first time
-        const trs = gnyJS.basic.unvote([username], genesisSecret);
+        const trs = gnyClient.basic.unvote([username], genesisSecret);
 
         const transData = {
           transaction: trs,
@@ -1365,7 +1369,7 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // Unvote twice
-        const trsTwice = gnyJS.basic.unvote([username], genesisSecret);
+        const trsTwice = gnyClient.basic.unvote([username], genesisSecret);
 
         const transTwiceData = {
           transaction: trsTwice,
@@ -1398,7 +1402,7 @@ describe('basic', () => {
       'successfully invoke two different basic.transfer transactions in one block',
       async done => {
         const recipient1 = createRandomAddress();
-        const basicTransfer1 = gnyJS.basic.transfer(
+        const basicTransfer1 = gnyClient.basic.transfer(
           recipient1,
           String(10 * 1e8),
           undefined,
@@ -1409,7 +1413,7 @@ describe('basic', () => {
         };
 
         const recipient2 = createRandomAddress();
-        const basicTransfer2 = gnyJS.basic.transfer(
+        const basicTransfer2 = gnyClient.basic.transfer(
           recipient2,
           String(20 * 1e8),
           undefined,
