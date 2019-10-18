@@ -5,7 +5,7 @@ import { ITransaction } from '@gny/interfaces';
 
 interface Params {
   type: number;
-  fee: number;
+  fee: string;
   args: (string | number)[];
   secret: string;
   message?: string;

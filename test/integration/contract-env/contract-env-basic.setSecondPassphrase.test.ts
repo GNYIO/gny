@@ -111,7 +111,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
       const secondSignature = newSignature('second');
       const trans = gnyClient.transaction.createTransactionEx({
         type: 2,
-        fee: 5 * 1e8,
+        fee: String(5 * 1e8),
         args: [secondSignature.publicKey, 'additionalArgument'],
         secret: genesisSecret,
       });
@@ -133,7 +133,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
     it('basic.setSecondPassphrase calling contract with too few arguments throws error', async () => {
       const trans = gnyClient.transaction.createTransactionEx({
         type: 2,
-        fee: 5 * 1e8,
+        fee: String(5 * 1e8),
         args: [],
         secret: genesisSecret,
       });

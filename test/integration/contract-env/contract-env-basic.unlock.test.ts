@@ -62,7 +62,7 @@ describe('contract-env - basic.unlock', () => {
           type: 6,
           args: ['unnecessary argument'],
           secret: genesisSecret,
-          fee: 0 * 1e8,
+          fee: String(0 * 1e8),
         });
         const transData = {
           transaction: unlock,

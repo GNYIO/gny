@@ -128,7 +128,7 @@ describe('contract-env - uia.registerAsset', () => {
             'unnecessary argument',
           ],
           secret: genesisSecret,
-          fee: 500 * 1e8,
+          fee: String(500 * 1e8),
         });
         const transData = {
           transaction: registerAsset,
@@ -156,7 +156,7 @@ describe('contract-env - uia.registerAsset', () => {
           type: 101,
           args: ['ABC', 'some desc', String(10 * 1e8)],
           secret: genesisSecret,
-          fee: 500 * 1e8,
+          fee: String(500 * 1e8),
         });
         const transData = {
           transaction: registerAsset,

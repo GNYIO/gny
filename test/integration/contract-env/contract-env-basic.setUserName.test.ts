@@ -90,7 +90,7 @@ describe('contract-env - basic.setUserName', () => {
           type: 1,
           args: ['liangpeili', 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 5 * 1e8,
+          fee: String(5 * 1e8),
         });
         const transData = {
           transaction: setUserName,
@@ -115,7 +115,7 @@ describe('contract-env - basic.setUserName', () => {
           type: 1,
           args: [],
           secret: genesisSecret,
-          fee: 5 * 1e8,
+          fee: String(5 * 1e8),
         });
         const transData = {
           transaction: setUserName,

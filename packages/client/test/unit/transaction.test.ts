@@ -24,7 +24,7 @@ describe('transaction', () => {
     beforeEach(() => {
       trs = createTransaction({
         type: 1,
-        fee: 1 * 1e8,
+        fee: String(1 * 1e8),
         message: '',
         secret: genesisSecret,
         args: [200000000000, 'G3FkpyJr5gZmd1gPCZ6pQGAM5DPSv'],
@@ -42,7 +42,7 @@ describe('transaction', () => {
     it('should create transaction without second signature', () => {
       trs = createTransaction({
         type: 1,
-        fee: 1 * 1e8,
+        fee: String(1 * 1e8),
         message: '',
         secret: genesisSecret,
         args: [200000000000, 'G3FkpyJr5gZmd1gPCZ6pQGAM5DPSv'],
@@ -119,7 +119,7 @@ describe('transaction', () => {
     beforeEach(() => {
       trs = createTransaction({
         type: 1,
-        fee: 1 * 1e8,
+        fee: String(1 * 1e8),
         message: '',
         secret: genesisSecret,
         secondSecret:

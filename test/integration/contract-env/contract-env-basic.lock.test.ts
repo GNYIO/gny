@@ -77,7 +77,7 @@ describe('contract-env - basic.lock', () => {
         type: 3,
         args: [String(173000), String(30 * 1e8), 'unnecessary variable'],
         secret: genesisSecret,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
       });
       const transData = {
         transaction: basicLock,
@@ -99,7 +99,7 @@ describe('contract-env - basic.lock', () => {
         type: 3,
         args: [String(173000)],
         secret: genesisSecret,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
       });
       const transData = {
         transaction: basicLock,

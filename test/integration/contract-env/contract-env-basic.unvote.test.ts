@@ -122,7 +122,7 @@ describe('contract-env - basic.unvote', () => {
           type: 5,
           args: ['gny_d2', 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: unvote,
