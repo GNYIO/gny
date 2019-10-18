@@ -1,4 +1,4 @@
-import * as gnyClient from '../..';
+import * as gnyClient from '@gny/client';
 import { joi } from '@gny/extendedJoi';
 
 import 'jest-extended';

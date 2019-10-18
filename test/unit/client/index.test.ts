@@ -1,5 +1,5 @@
 import 'jest-extended';
-import * as gnyClient from '../..';
+import * as gnyClient from '@gny/client';
 
 describe('GNY client', () => {
   it('should be object', () => {
