@@ -12,7 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "strict": false, // TODO: change
+    "strict": true,
     "outDir": "./dist",
     "noImplicitAny": true,
     "noImplicitThis": true,
