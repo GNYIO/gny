@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../../connection';
+import { Connection } from '../..';
 import * as lib from './lib';
-import * as gnyClient from '../../index';
+import * as gnyClient from '../..';
 import axios from 'axios';
 
 const config = {

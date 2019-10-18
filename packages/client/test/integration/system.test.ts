@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../../connection';
+import { Connection } from '../..';
 import * as lib from './lib';
 
 describe('system', () => {

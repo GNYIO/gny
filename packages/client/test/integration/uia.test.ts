@@ -1,9 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../../connection';
 import * as lib from './lib';
-import * as gnyClient from '../../index';
+import * as gnyClient from '../..';
 import axios from 'axios';
 import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
@@ -54,7 +53,7 @@ async function beforeUiaTransfer(uiaApi: any) {
 }
 
 describe('uia', () => {
-  const connection = new Connection();
+  const connection = new gnyClient.Connection();
   const uiaApi = connection.api.Uia;
 
   beforeAll(async done => {

@@ -1,5 +1,5 @@
 import 'jest-extended';
-import * as gnyClient from '../../index';
+import * as gnyClient from '../..';
 import { joi } from '@gny/extendedJoi';
 import { ITransaction } from '@gny/interfaces';
 

@@ -1,5 +1,5 @@
 import 'jest-extended';
-import gnyClient = require('../../index');
+import * as gnyClient from '../..';
 
 describe('GNY client', () => {
   it('should be object', () => {

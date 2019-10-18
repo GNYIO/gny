@@ -1,9 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../../connection';
 import * as lib from './lib';
-import * as gnyClient from '../../index';
+import * as gnyClient from '../..';
 import axios from 'axios';
 
 const genesisSecret =
@@ -58,7 +57,7 @@ async function registerAssetAsync(
 }
 
 describe('account', () => {
-  const connection = new Connection();
+  const connection = new gnyClient.Connection();
   const accountApi = connection.api.Account;
 
   beforeAll(async done => {
