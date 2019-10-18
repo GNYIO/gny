@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../..';
-import * as lib from './lib';
+import { Connection } from '@gny/client';
+import * as lib from '../lib';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';

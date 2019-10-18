@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../..';
-import * as lib from './lib';
+import { Connection } from '@gny/client';
+import * as lib from '../lib';
 
 describe('peer', () => {
   const connection = new Connection();

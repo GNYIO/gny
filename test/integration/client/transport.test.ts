@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from './lib';
-import * as gnyClient from '../..';
+import * as lib from '../lib';
+import * as gnyClient from '@gny/client';
 
 const config = {
   headers: {

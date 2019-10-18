@@ -1,9 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '../..';
-import * as lib from './lib';
-import * as gnyClient from '../..';
+import * as lib from '../lib';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const config = {
@@ -16,7 +15,7 @@ const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
 describe('transaction', () => {
-  const connection = new Connection();
+  const connection = new gnyClient.Connection();
   const transactionApi = connection.api.Transaction;
 
   beforeAll(async done => {
