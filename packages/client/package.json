@@ -1,5 +1,5 @@
 {
-  "name": "@gny/gny-client",
+  "name": "@gny/client",
   "private": true,
   "version": "1.0.0",
   "description": "GNY Client Library",

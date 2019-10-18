@@ -3,7 +3,7 @@
 ## Usage
 
 ```typescript
-import { Connection } from '@gny/gny-client';
+import { Connection } from '@gny/client';
 
 const connection = new Connection();
 const accountApi = connection.api.Account;

@@ -1,4 +1,4 @@
-import * as gnyClient from '../../../packages/gny-client';
+import * as gnyClient from '../../../packages/client';
 import * as lib from '../lib';
 import axios from 'axios';
 import { generateAddress } from '../../../packages/utils/src/address';

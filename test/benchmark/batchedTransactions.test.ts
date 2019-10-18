@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import * as gnyClient from '../../packages/gny-client';
+import * as gnyClient from '../../packages/client';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import * as lib from '../integration/lib';
