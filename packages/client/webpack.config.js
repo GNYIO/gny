@@ -1,43 +1,37 @@
 const path = require('path');
 
-nodeConfig = {
-  target: 'node',
-  entry: './src/index.ts',
-  module: {
-    rules: [
-      {
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    filename: 'index.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
+module.exports = function() {
+  return {
+    mode: 'production',
+    performance: {
+      hints: false,
+    },
+    devtool: 'inline-source-map',
+    entry: path.resolve(__dirname, 'src', 'index.ts'),
+    resolve: {
+      extensions: ['.ts', '.js'],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          loader: 'ts-loader',
+          options: {
+            compilerOptions: {
+              declarationDir: path.resolve(__dirname, 'dist'),
+              sourceMap: true,
+              module: 'commonjs',
+            },
+          },
+        },
+      ],
+    },
+    target: 'web',
+    output: {
+      path: path.resolve(__dirname, 'browser'),
+      filename: 'browser.js',
+      libraryTarget: 'umd',
+      library: 'gnyClient', // global variable in browser
+    },
+  };
 };
-
-webConfig = {
-  target: 'web',
-  entry: './src/index.ts',
-  module: {
-    rules: [
-      {
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    filename: 'browser.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
-};
-
-module.exports = [nodeConfig, webConfig];
