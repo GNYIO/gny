@@ -83,8 +83,11 @@
     "sinon": "^7.2.7",
     "systeminformation": "^4.13.1",
     "ts-jest": "^24.0.2",
+    "ts-loader": "^6.2.0",
     "tslint": "^5.14.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript-eslint-parser": "^18.0.0"
+    "typescript-eslint-parser": "^18.0.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   }
 }
