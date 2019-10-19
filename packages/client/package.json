@@ -8,6 +8,10 @@
   "browser": "browser/browser.js",
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "browser",
+    "dist"
+  ],
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist",
