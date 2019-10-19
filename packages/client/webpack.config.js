@@ -26,6 +26,7 @@ module.exports = function() {
         },
       ],
     },
+    node: { fs: 'empty' },
     target: 'web',
     output: {
       path: path.resolve(__dirname, 'browser'),
