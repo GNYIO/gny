@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "GNY Client Library",
   "main": "dist/index.js",
+  "browser": "dist/browser.js",
   "typings": "dist/index.d.ts",
   "license": "MIT",
   "keywords": [],
@@ -12,7 +13,8 @@
     "removeArtifacts": "rm -rf dist",
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "jest --ci --runInBand test/integration",
-    "lerna:bootstrap": "lerna bootstrap --ci"
+    "lerna:bootstrap": "lerna bootstrap --ci",
+    "build": "webpack --display-error-details"
   },
   "engines": {
     "node": "=10.16.2"
@@ -38,9 +40,12 @@
     "nyc": "^14.1.1",
     "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
+    "ts-loader": "^6.2.0",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-immutable": "^6.0.1",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   }
 }
