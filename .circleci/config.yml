@@ -25,7 +25,7 @@ jobs:
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/gny-js/node_modules
+            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
@@ -81,7 +81,7 @@ jobs:
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/gny-js/node_modules
+            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
@@ -89,9 +89,6 @@ jobs:
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-      - run:
-          name: gny-js-dependencies
-          command: cd ./packages/gny-js/ && npm ci && cd ../..
       - run:
           name: test-integration
           command: npm run test:integration
@@ -133,9 +130,6 @@ jobs:
           key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
-      - run:
-          name: gny-js-dependencies
-          command: cd ./packages/gny-js/ && npm ci && cd ../..
       - run:
           name: benchmark tests
           command: npm run benchmark

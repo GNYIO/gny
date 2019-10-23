@@ -1,7 +1,7 @@
 {
   "name": "@gny/client",
   "version": "1.0.0",
-  "description": "GNY Client Library",
+  "description": "GNY JavaScript Client Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "browser": "browser/browser.js",

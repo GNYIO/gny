@@ -1,4 +1,4 @@
-# gny-js Examples
+# @gny/client Example
 
 Order in which transactions should be executed
 
@@ -23,6 +23,6 @@ Order in which transactions should be executed
 3. `gnyUnvote.js` (optional)
 
 ## Transfer GNY examples
-`gnyTransferGNY.js`  
-`gnyTransferGNYToRandomAccount.js`  
-`gnyTransferGNYUnconfirmed.js` (this doesn't sign the transaction)  
+`gnyTransferGNY.js`
+`gnyTransferGNYToRandomAccount.js`
+`gnyTransferGNYUnconfirmed.js` (this doesn't sign the transaction)
