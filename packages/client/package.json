@@ -1,6 +1,5 @@
 {
   "name": "@gny/client",
-  "private": true,
   "version": "1.0.0",
   "description": "GNY Client Library",
   "main": "dist/index.js",
@@ -53,5 +52,9 @@
     "typescript": "^3.5.3",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9"
-  }
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "author": "GNY"
 }
