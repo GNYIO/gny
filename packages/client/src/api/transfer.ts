@@ -31,9 +31,9 @@ export class Transfer extends Base {
   public async send(
     recipient: string,
     amount: string,
-    message: string,
     secret: string,
-    secondeSecret: string
+    message?: string,
+    secondeSecret?: string
   ) {
     const trs = basic.transfer(
       recipient,
