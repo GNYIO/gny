@@ -76,7 +76,7 @@
     "jest": "^24.8.0",
     "jest-cli": "^24.8.0",
     "jest-extended": "^0.11.2",
-    "lerna": "^3.16.4",
+    "lerna": "^3.18.3",
     "lint-staged": "^8.1.5",
     "lolex": "^4.2.0",
     "prettier": "1.16.4",
