@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyClient from '../../../packages/client';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 import { generateAddress } from '../../../packages/utils/src/address';
 import { randomBytes } from 'crypto';

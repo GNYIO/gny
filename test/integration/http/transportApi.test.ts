@@ -1,4 +1,4 @@
-import * as gnyClient from '../../../packages/client';
+import * as gnyClient from '@gny/client';
 import * as lib from '../lib';
 import axios from 'axios';
 import { CommonBlockParams, ManyVotes } from '../../../packages/interfaces';
