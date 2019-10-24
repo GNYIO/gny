@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyClient from '../../../packages/gny-client';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -111,7 +111,7 @@ describe('contract-env - basic.registerDelegate', () => {
           type: 10,
           args: ['unnecessary argument'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: String(100 * 1e8),
         });
         const transData = {
           transaction: registerDelegate,

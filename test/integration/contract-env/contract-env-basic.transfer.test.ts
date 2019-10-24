@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyClient from '../../../packages/gny-client';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const config = {
@@ -32,7 +32,7 @@ describe('contract-env - basic.transfer', () => {
     const recipient = lib.createRandomAddress();
     const basicTransfer = gnyClient.transaction.createTransactionEx({
       type: 0,
-      fee: 0.1 * 1e8,
+      fee: String(0.1 * 1e8),
       args: ['1', recipient],
       secret: genesisSecret,
     });
@@ -57,7 +57,7 @@ describe('contract-env - basic.transfer', () => {
     const recipient = lib.createRandomAddress();
     const basicTransfer = gnyClient.transaction.createTransactionEx({
       type: 0,
-      fee: 0.01 * 1e8,
+      fee: String(0.01 * 1e8),
       args: ['1', recipient],
       secret: genesisSecret,
     });
@@ -87,7 +87,7 @@ describe('contract-env - basic.transfer', () => {
       const recipient = lib.createRandomAddress();
       const basicTransfer = gnyClient.transaction.createTransactionEx({
         type: 0,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
         args: ['1', recipient, 'someOtherArgument'],
         secret: genesisSecret,
       });
@@ -114,7 +114,7 @@ describe('contract-env - basic.transfer', () => {
     async () => {
       const basicTransfer = gnyClient.transaction.createTransactionEx({
         type: 0,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
         args: ['1'],
         secret: genesisSecret,
       });

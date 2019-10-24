@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyClient from '../../../packages/gny-client';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -139,7 +139,7 @@ describe('contract-env - uia.registerAsset', () => {
           type: 102,
           args: ['ABC.BBB', String(10 * 1e8), 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,
@@ -167,7 +167,7 @@ describe('contract-env - uia.registerAsset', () => {
           type: 102,
           args: ['ABC'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,

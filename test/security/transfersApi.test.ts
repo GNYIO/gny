@@ -1,4 +1,4 @@
-import * as gnyClient from '../../packages/gny-client';
+import * as gnyClient from '@gny/client';
 import * as lib from './lib';
 import axios from 'axios';
 
