@@ -14,12 +14,8 @@
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist",
-    "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js",
-    "removeBrowserDir": "rm -rf browser",
-    "test": "jest --ci --runInBand test/unit",
-    "test:integration": "jest --ci --runInBand test/integration",
-    "lerna:bootstrap": "lerna bootstrap --ci",
-    "build": "webpack --display-error-details"
+    "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js --display-error-details",
+    "removeBrowserDir": "rm -rf browser"
   },
   "engines": {
     "node": "=10.16.2"
@@ -45,13 +41,10 @@
     "nyc": "^14.1.1",
     "prettier": "^1.18.2",
     "ts-jest": "^24.0.2",
-    "ts-loader": "^6.2.0",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-immutable": "^6.0.1",
-    "typescript": "^3.5.3",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9"
+    "typescript": "^3.5.3"
   },
   "directories": {
     "example": "examples"
