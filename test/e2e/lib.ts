@@ -40,6 +40,7 @@ export async function onNewBlock(port: number = 4096) {
 async function waitForLoaded(port: number) {
   let loaded = false;
   while (loaded === false) {
+    console.log('wait for ' + port);
     try {
       const height = await getHeight(port);
       if (
