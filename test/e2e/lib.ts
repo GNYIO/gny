@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
-import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
 import { BigNumber } from '@gny/utils';
 import * as gnyJS from '../../packages/gny-js';
@@ -100,7 +99,7 @@ export async function stopAndKillContainer(configFile?: string) {
 }
 
 export function createRandomAddress(): string {
-  const rand = randomBytes(10).toString('hex');
+  const rand = crypto.randomBytes(10).toString('hex');
   return generateAddress(rand);
 }
 
