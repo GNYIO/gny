@@ -18,7 +18,7 @@ async function bothHeightsAreTheSame(ports: number[] = []) {
   return result;
 }
 
-describe('double spend attack', () => {
+describe('sync only e2e test', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
