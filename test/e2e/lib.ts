@@ -4,6 +4,7 @@ import { generateAddress } from '@gny/utils';
 import { BigNumber } from '@gny/utils';
 import * as gnyJS from '../../packages/gny-js';
 import * as crypto from 'crypto';
+import * as shellJS from 'shelljs';
 
 const config = {
   headers: {
@@ -37,7 +38,7 @@ export async function onNewBlock(port: number = 4096) {
   return height;
 }
 
-async function waitForLoaded(port: number) {
+export async function waitForLoaded(port: number) {
   let loaded = false;
   while (loaded === false) {
     console.log('wait for ' + port);
@@ -71,7 +72,12 @@ export async function buildDockerImage(configFile?: string) {
   });
 }
 
+export function createP2PContainersOnlyNoStarting(configFile: string) {
+  shellJS.exec(`docker-compose --file "${configFile}" up --no-start`);
+}
+
 export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
+  // await dockerCompose
   await dockerCompose.upAll({
     cwd: process.cwd(),
     log: true,
@@ -81,6 +87,27 @@ export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
 
   const waitForAllContainers = ports.map(x => waitForLoaded(x));
   await Promise.all(waitForAllContainers);
+}
+
+export async function startP2PContainers(
+  configFile: string,
+  services: string[]
+) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" start ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
+export async function restartP2PContainers(
+  configFile: string,
+  services: string[]
+) {
+  console.log(`starting services: ${JSON.stringify(services)}`);
+  await dockerCompose.restartMany(services, {
+    config: configFile,
+    cwd: process.cwd(),
+  });
 }
 
 export async function printActiveContainers() {
