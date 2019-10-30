@@ -1,4 +1,5 @@
 import { Api } from './api';
+import { Contract } from './contract';
 
 export class Connection {
   host: string;
@@ -14,4 +15,6 @@ export class Connection {
   }
 
   public api = Api(this);
+
+  public contract = Contract(this);
 }

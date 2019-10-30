@@ -1,5 +1,4 @@
 import { Base } from './base';
-import { basic } from '../';
 
 export class Delegate extends Base {
   public async count() {
@@ -63,13 +62,5 @@ export class Delegate extends Base {
       publicKey: publicKey,
     };
     return await this.get('/api/delegates/forging/status', params);
-  }
-
-  public async registerDelegate(secret: string) {
-    const trs = basic.registerDelegate(secret);
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
   }
 }

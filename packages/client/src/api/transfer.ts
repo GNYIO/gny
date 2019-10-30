@@ -1,5 +1,4 @@
 import { Base } from './base';
-import { basic } from '../';
 
 interface Query {
   ownerId?: string;
@@ -26,25 +25,5 @@ export class Transfer extends Base {
       endTimestamp,
     };
     return await this.get('/api/transfers/amount', params);
-  }
-
-  public async send(
-    recipient: string,
-    amount: string,
-    secret: string,
-    message?: string,
-    secondeSecret?: string
-  ) {
-    const trs = basic.transfer(
-      recipient,
-      amount,
-      message,
-      secret,
-      secondeSecret
-    );
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
   }
 }
