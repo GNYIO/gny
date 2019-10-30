@@ -52,7 +52,7 @@ export let getId = function(data) {
   return hash.toString('hex');
 };
 
-export function generateSecret() {
+export function generateSecret(): string {
   return new Mnemonic(Mnemonic.Words.ENGLISH).toString();
 }
 

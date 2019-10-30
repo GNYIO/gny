@@ -10,7 +10,11 @@ import peer from './api/peer';
 import transaction from './api/transaction';
 import vote from './api/vote';
 
+import newGenesisBlock from './lib/newGenesisBlock';
+
 const api = [account, basic, block, delegate, peer, transaction, vote];
+
+const lib = [newGenesisBlock];
 
 function main() {
   const defaultHost = process.env.GNY_HOST || '127.0.0.1';
@@ -29,6 +33,10 @@ function main() {
     .option('-M, --main', 'Specify the mainnet, default: false');
 
   api.forEach(function(el) {
+    el(program);
+  });
+
+  lib.forEach(function(el) {
     el(program);
   });
 
