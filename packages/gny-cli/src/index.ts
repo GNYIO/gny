@@ -12,13 +12,10 @@ import vote from './api/vote';
 
 const api = [account, basic, block, delegate, peer, transaction, vote];
 
-const packageJson = require('./package.json');
-
 function main() {
   const defaultHost = process.env.GNY_HOST || '127.0.0.1';
   const defaultPort = process.env.GNY_PORT || 4096;
   program
-    .version(packageJson.version)
     .option(
       '-H, --host <host>',
       'Specify the hostname or ip of the node, default: ' + defaultHost,

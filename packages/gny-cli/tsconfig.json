@@ -1,14 +1,15 @@
 {
-  "extends": "../../tsconfig",
   "compilerOptions": {
-    "strictNullChecks": true,
-    "outDir": "./bin",
-    "moduleResolution": "node"
+    "target": "ES2016",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": [
+      "es2015",
+      "es2016",
+      "es2017"
+    ],
+    "strict": false, // TODO: change
+    "outDir": "./dist"
   },
-  "include": [
-    "lib/*[.ts|.js]",
-    "api/*[.ts|.js]",
-    "index.ts",
-    "test/**/*.ts"
-  ],
+  "include": ["src/**/**.ts"]
 }
