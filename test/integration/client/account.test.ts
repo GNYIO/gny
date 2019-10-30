@@ -281,40 +281,4 @@ describe('account', () => {
       );
     });
   });
-
-  describe('Set account information', () => {
-    describe('/setUserName', () => {
-      it(
-        'should set username',
-        async () => {
-          const username = 'a1300';
-          const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
-          const response = await accountApi.setUserName(username, secret);
-          expect(response.status).toEqual(200);
-        },
-        lib.oneMinute
-      );
-    });
-
-    describe('/lockAccount', () => {
-      it(
-        'should lock account',
-        async () => {
-          const height = 173000;
-          const amount = 30 * 1e8;
-          const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
-          const username = 'a1300';
-
-          // set username
-          await accountApi.setUserName(username, secret);
-
-          const response = await accountApi.lockAccount(height, amount, secret);
-          expect(response.status).toEqual(200);
-        },
-        lib.oneMinute
-      );
-    });
-  });
 });
