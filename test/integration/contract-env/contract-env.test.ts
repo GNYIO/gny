@@ -1,6 +1,6 @@
 import * as lib from '../lib';
 import axios from 'axios';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import BigNumber from 'bignumber.js';
 
 const config = {
@@ -94,7 +94,7 @@ describe('contract environment', () => {
       'sending SIGNED transaction without http magic returns error',
       async () => {
         const recipient = lib.createRandomAddress();
-        const basicTransfer = gnyJS.transaction.createTransactionEx({
+        const basicTransfer = gnyClient.transaction.createTransactionEx({
           type: 0,
           fee: String(0.1 * 1e8),
           args: ['1', recipient],
@@ -122,7 +122,7 @@ describe('contract environment', () => {
       'sending SIGNED transaction with wrong http magic returns error',
       async () => {
         const recipient = lib.createRandomAddress();
-        const basicTransfer = gnyJS.transaction.createTransactionEx({
+        const basicTransfer = gnyClient.transaction.createTransactionEx({
           type: 0,
           fee: String(0.1 * 1e8),
           args: ['1', recipient],
@@ -183,9 +183,9 @@ describe('contract environment', () => {
         const firstBlock = data.blocks[firstHeight];
         expect(firstBlock.count).toEqual(0);
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );
@@ -271,9 +271,9 @@ describe('contract environment', () => {
       async () => {
         const UNREGISTERED_SECOND_PASSWORD = 'pass';
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          10 * 1e8,
+          String(10 * 1e8),
           undefined,
           genesisSecret,
           UNREGISTERED_SECOND_PASSWORD
@@ -306,9 +306,9 @@ describe('contract environment', () => {
       async () => {
         const firstHeight = await lib.onNewBlock();
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );
@@ -347,7 +347,7 @@ describe('contract environment', () => {
       'negative fee with SIGNED transaction',
       async () => {
         const SMALLER_FEE = String(-1 * 1e8);
-        const unlock = gnyJS.transaction.createTransactionEx({
+        const unlock = gnyClient.transaction.createTransactionEx({
           type: 6,
           args: [],
           secret: genesisSecret,
@@ -427,9 +427,9 @@ describe('contract environment', () => {
         const amount = 1 * 1e8;
         const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
 
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           NON_ALPHYNUMERICAL_MESSAGE,
           genesisSecret
         );
@@ -492,9 +492,9 @@ describe('contract environment', () => {
         // create 101 simple transactions
         // for every transaction there should be 0.1 GNY fee that should get distributed
         for (let i = 0; i < 101; ++i) {
-          const trs = gnyJS.basic.transfer(
+          const trs = gnyClient.basic.transfer(
             lib.createRandomAddress(),
-            1 * 1e8, // this is not imporant
+            String(1 * 1e8), // this is not imporant
             undefined,
             genesisSecret
           );
@@ -519,7 +519,7 @@ describe('contract environment', () => {
         });
 
         // wait until block 101 (end of round 1)
-        await lib.waitUntilBlock(101);
+        await lib.waitUntilBlock(String(101));
 
         // now every delegate should have 0.1 GNY
         const result = await getAllDelegateData();
@@ -539,7 +539,7 @@ describe('contract environment', () => {
       'too big transaction gets rejected by server',
       async () => {
         const VERY_LONG_USERNAME = 'a'.repeat(8 * 1024 * 1024); // 8mb
-        const setUserNameTrs = gnyJS.basic.setUserName(
+        const setUserNameTrs = gnyClient.basic.setUserName(
           VERY_LONG_USERNAME,
           genesisSecret
         );
@@ -568,9 +568,9 @@ describe('contract environment', () => {
         const recipient = lib.createRandomAddress();
         const amount = 22 * 1e8;
         const extraLongMessage = 'a'.repeat(257);
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           extraLongMessage,
           genesisSecret
         );
@@ -684,9 +684,9 @@ describe('contract environment', () => {
       async done => {
         const firstHeight = await lib.onNewBlock();
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );
@@ -720,9 +720,9 @@ describe('contract environment', () => {
       async done => {
         const firstHeight = await lib.onNewBlock();
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );
@@ -757,9 +757,9 @@ describe('contract environment', () => {
       async done => {
         const firstHeight = await lib.onNewBlock();
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );
@@ -795,9 +795,9 @@ describe('contract environment', () => {
       async done => {
         const firstHeight = await lib.onNewBlock();
 
-        const basicTransfer = gnyJS.basic.transfer(
+        const basicTransfer = gnyClient.basic.transfer(
           lib.createRandomAddress(),
-          22 * 1e8,
+          String(22 * 1e8),
           undefined,
           genesisSecret
         );

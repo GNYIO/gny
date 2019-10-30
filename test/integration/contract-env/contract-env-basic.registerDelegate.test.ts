@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -12,7 +12,7 @@ const config = {
 };
 
 async function prepareRegisterDelegateContract() {
-  const setUserName = gnyJS.basic.setUserName('liangpeili', genesisSecret);
+  const setUserName = gnyClient.basic.setUserName('liangpeili', genesisSecret);
   const setUserNameTransData = {
     transaction: setUserName,
   };
@@ -48,7 +48,9 @@ describe('contract-env - basic.registerDelegate', () => {
         await prepareRegisterDelegateContract();
 
         // act
-        const registerDelegate = gnyJS.basic.registerDelegate(genesisSecret);
+        const registerDelegate = gnyClient.basic.registerDelegate(
+          genesisSecret
+        );
         const transData = {
           transaction: registerDelegate,
         };
@@ -74,7 +76,7 @@ describe('contract-env - basic.registerDelegate', () => {
 
         // act
         const SMALLER_FEE = String(0.01 * 1e8);
-        const registerDelegate = gnyJS.transaction.createTransactionEx({
+        const registerDelegate = gnyClient.transaction.createTransactionEx({
           type: 10,
           args: [],
           secret: genesisSecret,
@@ -105,11 +107,11 @@ describe('contract-env - basic.registerDelegate', () => {
         await prepareRegisterDelegateContract();
 
         // act
-        const registerDelegate = gnyJS.transaction.createTransactionEx({
+        const registerDelegate = gnyClient.transaction.createTransactionEx({
           type: 10,
           args: ['unnecessary argument'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: String(100 * 1e8),
         });
         const transData = {
           transaction: registerDelegate,

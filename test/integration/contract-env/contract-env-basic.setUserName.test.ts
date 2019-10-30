@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -32,7 +32,7 @@ describe('contract-env - basic.setUserName', () => {
     it(
       'basic.setUserName correct fee is 5GNY',
       async done => {
-        const setUserName = gnyJS.basic.setUserName(
+        const setUserName = gnyClient.basic.setUserName(
           'liangpeili',
           genesisSecret
         );
@@ -58,7 +58,7 @@ describe('contract-env - basic.setUserName', () => {
       'basic.setUserName too small fee returns error',
       async () => {
         const SMALLER_FEE = String(4 * 1e8);
-        const setUserName = gnyJS.transaction.createTransactionEx({
+        const setUserName = gnyClient.transaction.createTransactionEx({
           type: 1,
           args: [],
           secret: genesisSecret,
@@ -86,11 +86,11 @@ describe('contract-env - basic.setUserName', () => {
     it(
       'basic.setUserName adding extra arguments to args array throws error',
       async () => {
-        const setUserName = gnyJS.transaction.createTransactionEx({
+        const setUserName = gnyClient.transaction.createTransactionEx({
           type: 1,
           args: ['liangpeili', 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 5 * 1e8,
+          fee: String(5 * 1e8),
         });
         const transData = {
           transaction: setUserName,
@@ -111,11 +111,11 @@ describe('contract-env - basic.setUserName', () => {
     it(
       'basic.setUserName calling contract with too few arguments throws error',
       async () => {
-        const setUserName = gnyJS.transaction.createTransactionEx({
+        const setUserName = gnyClient.transaction.createTransactionEx({
           type: 1,
           args: [],
           secret: genesisSecret,
-          fee: 5 * 1e8,
+          fee: String(5 * 1e8),
         });
         const transData = {
           transaction: setUserName,

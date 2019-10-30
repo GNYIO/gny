@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -32,7 +32,7 @@ describe('contract-env - uia.registerIssuer', () => {
     it(
       'uia.registerIssuer correct fee is 100GNY',
       async done => {
-        const registerIssuer = gnyJS.uia.registerIssuer(
+        const registerIssuer = gnyClient.uia.registerIssuer(
           'ABC',
           'some desc',
           genesisSecret
@@ -59,7 +59,7 @@ describe('contract-env - uia.registerIssuer', () => {
       'uia.registerIssuer too small fee returns error',
       async () => {
         const SMALLER_FEE = String(99 * 1e8);
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
+        const registerIssuer = gnyClient.transaction.createTransactionEx({
           type: 100,
           args: ['ABC', 'some desc'],
           secret: genesisSecret,
@@ -87,11 +87,11 @@ describe('contract-env - uia.registerIssuer', () => {
     it(
       'uia.registerIssuer adding extra arguments to args array throws error',
       async () => {
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
+        const registerIssuer = gnyClient.transaction.createTransactionEx({
           type: 100,
           args: ['ABC', 'some desc', 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: String(100 * 1e8),
         });
         const transData = {
           transaction: registerIssuer,
@@ -112,11 +112,11 @@ describe('contract-env - uia.registerIssuer', () => {
     it(
       'uia.registerIssuer calling contract with too few arguments throws error',
       async () => {
-        const registerIssuer = gnyJS.transaction.createTransactionEx({
+        const registerIssuer = gnyClient.transaction.createTransactionEx({
           type: 100,
           args: ['ABC'],
           secret: genesisSecret,
-          fee: 100 * 1e8,
+          fee: String(100 * 1e8),
         });
         const transData = {
           transaction: registerIssuer,

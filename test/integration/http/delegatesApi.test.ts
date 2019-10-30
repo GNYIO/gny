@@ -1,4 +1,4 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import * as lib from '../lib';
 import axios from 'axios';
 
@@ -94,7 +94,7 @@ describe('delegatesApi', () => {
         // register delegate
         const username = 'xpgeng';
 
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -106,7 +106,7 @@ describe('delegatesApi', () => {
         );
         await lib.onNewBlock();
 
-        const trs = gnyJS.basic.registerDelegate(genesisSecret);
+        const trs = gnyClient.basic.registerDelegate(genesisSecret);
         const transData = {
           transaction: trs,
         };
@@ -134,7 +134,7 @@ describe('delegatesApi', () => {
       async done => {
         // set username
         const username = 'xpgeng';
-        const nameTrs = gnyJS.basic.setUserName(username, genesisSecret);
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
         const nameTransData = {
           transaction: nameTrs,
         };
@@ -146,7 +146,7 @@ describe('delegatesApi', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -158,7 +158,7 @@ describe('delegatesApi', () => {
         await lib.onNewBlock();
 
         // register delegate
-        const delegateTrs = gnyJS.basic.registerDelegate(genesisSecret);
+        const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
         const delegateTransData = {
           transaction: delegateTrs,
         };
@@ -170,7 +170,7 @@ describe('delegatesApi', () => {
         await lib.onNewBlock();
 
         // vote
-        const trsVote = gnyJS.basic.vote(['xpgeng'], genesisSecret);
+        const trsVote = gnyClient.basic.vote(['xpgeng'], genesisSecret);
         const transVoteData = {
           transaction: trsVote,
         };
@@ -196,7 +196,6 @@ describe('delegatesApi', () => {
     it(
       'should return the error: Access denied',
       async () => {
-        const username = 'gny_d1';
         const publicKey =
           '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9';
         const secret =

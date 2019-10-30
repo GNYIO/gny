@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 import { generateAddress } from '../../../packages/utils/src/address';
 import { randomBytes } from 'crypto';
@@ -19,7 +19,7 @@ function randomAddress() {
 
 async function beforeUiaTransfer() {
   // prepare registerIssuer
-  const registerIssuer = gnyJS.uia.registerIssuer(
+  const registerIssuer = gnyClient.uia.registerIssuer(
     'ABC',
     'some desc',
     genesisSecret
@@ -35,7 +35,7 @@ async function beforeUiaTransfer() {
   await lib.onNewBlock();
 
   // prepare registerAsset
-  const registerAsset = gnyJS.uia.registerAsset(
+  const registerAsset = gnyClient.uia.registerAsset(
     'BBB',
     'some desc',
     String(10 * 1e8),
@@ -53,7 +53,7 @@ async function beforeUiaTransfer() {
   await lib.onNewBlock();
 
   // prepare issue
-  const issue = gnyJS.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
+  const issue = gnyClient.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
   const issueTransData = {
     transaction: issue,
   };
@@ -90,7 +90,7 @@ describe('contract-env - uia.registerAsset', () => {
         await beforeUiaTransfer();
 
         // act
-        const transfer = gnyJS.uia.transfer(
+        const transfer = gnyClient.uia.transfer(
           'ABC.BBB',
           String(10 * 1e8),
           randomAddress(),
@@ -124,7 +124,7 @@ describe('contract-env - uia.registerAsset', () => {
 
         // act
         const SMALLER_FEE = String(0.01 * 1e8);
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 103,
           args: ['ABC.BBB', String(10 * 1e8), randomAddress(), undefined],
           secret: genesisSecret,
@@ -155,7 +155,7 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await beforeUiaTransfer();
 
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 103,
           args: [
             'ABC.BBB',
@@ -165,7 +165,7 @@ describe('contract-env - uia.registerAsset', () => {
             'unnecessary argument',
           ],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,
@@ -189,11 +189,11 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await beforeUiaTransfer();
 
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 103,
           args: ['ABC.BBB', String(10 * 1e8)],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,

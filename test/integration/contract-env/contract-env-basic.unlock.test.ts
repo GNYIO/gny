@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -32,7 +32,7 @@ describe('contract-env - basic.unlock', () => {
     it(
       'basic.unlock correct fee is 0GNY',
       async () => {
-        const unlock = gnyJS.basic.unlock(genesisSecret);
+        const unlock = gnyClient.basic.unlock(genesisSecret);
         const transData = {
           transaction: unlock,
         };
@@ -58,11 +58,11 @@ describe('contract-env - basic.unlock', () => {
     it(
       'basic.unlock adding extra arguments to args array throws error',
       async () => {
-        const unlock = gnyJS.transaction.createTransactionEx({
+        const unlock = gnyClient.transaction.createTransactionEx({
           type: 6,
           args: ['unnecessary argument'],
           secret: genesisSecret,
-          fee: 0 * 1e8,
+          fee: String(0 * 1e8),
         });
         const transData = {
           transaction: unlock,

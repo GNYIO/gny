@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const config = {
@@ -12,7 +12,7 @@ const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
 function newSignature(secret: string) {
-  const keys = gnyJS.crypto.getKeys(secret);
+  const keys = gnyClient.crypto.getKeys(secret);
   const signature = {
     publicKey: keys.publicKey,
   };
@@ -20,7 +20,10 @@ function newSignature(secret: string) {
 }
 
 async function setSecondPassPhrase(secondPassPhrase: string) {
-  const trs = gnyJS.basic.setSecondPassphrase(genesisSecret, secondPassPhrase);
+  const trs = gnyClient.basic.setSecondPassphrase(
+    genesisSecret,
+    secondPassPhrase
+  );
   const transData = {
     transaction: trs,
   };
@@ -53,7 +56,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
 
   describe('fee', () => {
     it('basic.setSecondPassphrase correct fee is 5 GNY', async done => {
-      const basicSetSecondPassphrase = gnyJS.basic.setSecondPassphrase(
+      const basicSetSecondPassphrase = gnyClient.basic.setSecondPassphrase(
         genesisSecret,
         'second'
       );
@@ -79,7 +82,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
     it('basic.setSecondPassphrase too small fee returns error', async () => {
       const secondSignature = newSignature('secret');
       const SMALLER_FEE = String(4 * 1e8);
-      const trans = gnyJS.transaction.createTransactionEx({
+      const trans = gnyClient.transaction.createTransactionEx({
         type: 2,
         fee: SMALLER_FEE,
         args: [secondSignature.publicKey],
@@ -106,9 +109,9 @@ describe('contract-env - basic.setSecondPassphrase', () => {
   describe('args', () => {
     it('basic.setSecondPassphrase adding extra arguments to args array throws error', async () => {
       const secondSignature = newSignature('second');
-      const trans = gnyJS.transaction.createTransactionEx({
+      const trans = gnyClient.transaction.createTransactionEx({
         type: 2,
-        fee: 5 * 1e8,
+        fee: String(5 * 1e8),
         args: [secondSignature.publicKey, 'additionalArgument'],
         secret: genesisSecret,
       });
@@ -128,9 +131,9 @@ describe('contract-env - basic.setSecondPassphrase', () => {
     });
 
     it('basic.setSecondPassphrase calling contract with too few arguments throws error', async () => {
-      const trans = gnyJS.transaction.createTransactionEx({
+      const trans = gnyClient.transaction.createTransactionEx({
         type: 2,
-        fee: 5 * 1e8,
+        fee: String(5 * 1e8),
         args: [],
         secret: genesisSecret,
       });
@@ -158,9 +161,9 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicTransfer = gnyJS.basic.transfer(
+          const basicTransfer = gnyClient.basic.transfer(
             lib.createRandomAddress(),
-            22 * 1e8,
+            String(22 * 1e8),
             undefined,
             genesisSecret,
             SECOND_SECRET
@@ -190,7 +193,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicLock = gnyJS.basic.lock(
+          const basicLock = gnyClient.basic.lock(
             173000,
             30 * 1e8,
             genesisSecret,
@@ -221,7 +224,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.basic.registerDelegate(
+          const basicRegisterDelegate = gnyClient.basic.registerDelegate(
             genesisSecret,
             SECOND_SECRET
           );
@@ -250,7 +253,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.basic.setUserName(
+          const basicRegisterDelegate = gnyClient.basic.setUserName(
             'liangpeili',
             genesisSecret,
             SECOND_SECRET
@@ -280,7 +283,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.basic.unlock(
+          const basicRegisterDelegate = gnyClient.basic.unlock(
             genesisSecret,
             SECOND_SECRET
           );
@@ -309,7 +312,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.basic.unvote(
+          const basicRegisterDelegate = gnyClient.basic.unvote(
             [],
             genesisSecret,
             SECOND_SECRET
@@ -339,7 +342,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.basic.vote(
+          const basicRegisterDelegate = gnyClient.basic.vote(
             [],
             genesisSecret,
             SECOND_SECRET
@@ -371,7 +374,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.uia.registerIssuer(
+          const basicRegisterDelegate = gnyClient.uia.registerIssuer(
             'liang',
             'liang',
             genesisSecret,
@@ -402,7 +405,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.uia.registerAsset(
+          const basicRegisterDelegate = gnyClient.uia.registerAsset(
             'BBB',
             'some description',
             String(10 * 1e8),
@@ -435,7 +438,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.uia.issue(
+          const basicRegisterDelegate = gnyClient.uia.issue(
             'ABC.BBB',
             String(10 * 1e8),
             genesisSecret,
@@ -466,7 +469,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const SECOND_SECRET = undefined;
-          const basicRegisterDelegate = gnyJS.uia.transfer(
+          const basicRegisterDelegate = gnyClient.uia.transfer(
             'ABC.BBB',
             String(10 * 1e8),
             lib.createRandomAddress(),
@@ -503,9 +506,9 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
           const VALID_SECOND_SECRET = 'second';
 
-          const basicTransfer = gnyJS.basic.transfer(
+          const basicTransfer = gnyClient.basic.transfer(
             lib.createRandomAddress(),
-            22 * 1e8,
+            String(22 * 1e8),
             undefined,
             genesisSecret,
             VALID_SECOND_SECRET
@@ -535,7 +538,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
           const VALID_SECOND_SECRET = 'second';
 
-          const basicLock = gnyJS.basic.lock(
+          const basicLock = gnyClient.basic.lock(
             173000,
             30 * 1e8,
             genesisSecret,
@@ -566,7 +569,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // prepare (setUserName)
-          const setUserName = gnyJS.basic.setUserName(
+          const setUserName = gnyClient.basic.setUserName(
             'a1300',
             genesisSecret,
             VALID_SECOND_SECRET
@@ -584,7 +587,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // act
-          const basicRegisterDelegate = gnyJS.basic.registerDelegate(
+          const basicRegisterDelegate = gnyClient.basic.registerDelegate(
             genesisSecret,
             VALID_SECOND_SECRET
           );
@@ -611,7 +614,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await setSecondPassPhrase('second');
 
           const VALID_SECOND_SECRET = 'second';
-          const basicSetUserName = gnyJS.basic.setUserName(
+          const basicSetUserName = gnyClient.basic.setUserName(
             'liangpeili',
             genesisSecret,
             VALID_SECOND_SECRET
@@ -641,7 +644,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // we can not wait for 173000 blocks after a "lock", so we directly try to "unlock" (which will fail), but we test only the secondSignature
-          const basicUnlock = gnyJS.basic.unlock(
+          const basicUnlock = gnyClient.basic.unlock(
             genesisSecret,
             VALID_SECOND_SECRET
           );
@@ -673,7 +676,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // prepare (lock)
-          const basicLock = gnyJS.basic.lock(
+          const basicLock = gnyClient.basic.lock(
             173000,
             30 * 1e8,
             genesisSecret,
@@ -692,7 +695,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // prepare (vote)
-          const basicVote = gnyJS.basic.vote(
+          const basicVote = gnyClient.basic.vote(
             ['gny_d72'],
             genesisSecret,
             VALID_SECOND_SECRET
@@ -709,7 +712,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           );
           await lib.onNewBlock();
 
-          const basicUnvote = gnyJS.basic.unvote(
+          const basicUnvote = gnyClient.basic.unvote(
             ['gny_d72'],
             genesisSecret,
             VALID_SECOND_SECRET
@@ -737,7 +740,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // prepare (lock)
-          const basicLock = gnyJS.basic.lock(
+          const basicLock = gnyClient.basic.lock(
             173000,
             30 * 1e8,
             genesisSecret,
@@ -756,7 +759,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // act
-          const basicVote = gnyJS.basic.vote(
+          const basicVote = gnyClient.basic.vote(
             ['gny_d72'],
             genesisSecret,
             VALID_SECOND_SECRET
@@ -786,7 +789,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // act
-          const uiaRegisterIssuer = gnyJS.uia.registerIssuer(
+          const uiaRegisterIssuer = gnyClient.uia.registerIssuer(
             'liang',
             'some desc',
             genesisSecret,
@@ -817,7 +820,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // preparation (register issuer)
-          const uiaRegisterIssuer = gnyJS.uia.registerIssuer(
+          const uiaRegisterIssuer = gnyClient.uia.registerIssuer(
             'ABC',
             'some desc',
             genesisSecret,
@@ -836,7 +839,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // act
-          const basicRegisterDelegate = gnyJS.uia.registerAsset(
+          const basicRegisterDelegate = gnyClient.uia.registerAsset(
             'BBB',
             'some description',
             String(10 * 1e8),
@@ -867,7 +870,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // preparation (register issuer)
-          const uiaRegisterIssuer = gnyJS.uia.registerIssuer(
+          const uiaRegisterIssuer = gnyClient.uia.registerIssuer(
             'ABC',
             'some desc',
             genesisSecret,
@@ -886,7 +889,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // preparation (register asset)
-          const uiaRegisterAsset = gnyJS.uia.registerAsset(
+          const uiaRegisterAsset = gnyClient.uia.registerAsset(
             'BBB',
             'some desc',
             String(10 * 1e8),
@@ -907,7 +910,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // act
-          const basicRegisterDelegate = gnyJS.uia.issue(
+          const basicRegisterDelegate = gnyClient.uia.issue(
             'ABC.BBB',
             String(10 * 1e8),
             genesisSecret,
@@ -936,7 +939,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           const VALID_SECOND_SECRET = 'second';
 
           // preparation (register issuer)
-          const uiaRegisterIssuer = gnyJS.uia.registerIssuer(
+          const uiaRegisterIssuer = gnyClient.uia.registerIssuer(
             'ABC',
             'some desc',
             genesisSecret,
@@ -955,7 +958,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // preparation (register asset)
-          const uiaRegisterAsset = gnyJS.uia.registerAsset(
+          const uiaRegisterAsset = gnyClient.uia.registerAsset(
             'BBB',
             'some desc',
             String(10 * 1e8),
@@ -976,7 +979,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // preparation (issue asset)
-          const uiaIssueAsset = gnyJS.uia.issue(
+          const uiaIssueAsset = gnyClient.uia.issue(
             'ABC.BBB',
             String(10 * 1e8),
             genesisSecret,
@@ -995,7 +998,7 @@ describe('contract-env - basic.setSecondPassphrase', () => {
           await lib.onNewBlock();
 
           // act
-          const uiaTransfer = gnyJS.uia.transfer(
+          const uiaTransfer = gnyClient.uia.transfer(
             'ABC.BBB',
             String(10 * 1e8),
             lib.createRandomAddress(),

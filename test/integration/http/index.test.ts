@@ -1,4 +1,4 @@
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import * as lib from '../lib';
 import axios from 'axios';
 
@@ -31,9 +31,9 @@ describe('index', () => {
         const message = '';
 
         // Transaction
-        const trs = gnyJS.basic.transfer(
+        const trs = gnyClient.basic.transfer(
           recipient,
-          amount,
+          String(amount),
           message,
           genesisSecret
         );

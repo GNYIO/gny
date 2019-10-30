@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -30,7 +30,7 @@ describe('contract-env - basic.lock', () => {
 
   describe('fee', () => {
     it('basic.lock correct fee is 0.1GNY', async done => {
-      const basicLock = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+      const basicLock = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
       const transData = {
         transaction: basicLock,
       };
@@ -49,7 +49,7 @@ describe('contract-env - basic.lock', () => {
 
     it('basic.lock too small fee returns error', async () => {
       const SMALLER_FEE = String(0.01 * 1e8);
-      const basicLock = gnyJS.transaction.createTransactionEx({
+      const basicLock = gnyClient.transaction.createTransactionEx({
         type: 3,
         args: [String(173000), String(30 * 1e8)],
         secret: genesisSecret,
@@ -73,11 +73,11 @@ describe('contract-env - basic.lock', () => {
 
   describe('args', () => {
     it('basic.lock adding extra arguments to args array throws error', async () => {
-      const basicLock = gnyJS.transaction.createTransactionEx({
+      const basicLock = gnyClient.transaction.createTransactionEx({
         type: 3,
         args: [String(173000), String(30 * 1e8), 'unnecessary variable'],
         secret: genesisSecret,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
       });
       const transData = {
         transaction: basicLock,
@@ -95,11 +95,11 @@ describe('contract-env - basic.lock', () => {
     });
 
     it('basic.lock calling contract with too few arguments throws error', async () => {
-      const basicLock = gnyJS.transaction.createTransactionEx({
+      const basicLock = gnyClient.transaction.createTransactionEx({
         type: 3,
         args: [String(173000)],
         secret: genesisSecret,
-        fee: 0.1 * 1e8,
+        fee: String(0.1 * 1e8),
       });
       const transData = {
         transaction: basicLock,

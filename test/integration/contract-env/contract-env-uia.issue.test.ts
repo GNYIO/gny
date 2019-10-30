@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -13,7 +13,7 @@ const config = {
 
 async function beforeAssetIssue() {
   // prepare registerIssuer
-  const registerIssuer = gnyJS.uia.registerIssuer(
+  const registerIssuer = gnyClient.uia.registerIssuer(
     'ABC',
     'some desc',
     genesisSecret
@@ -29,7 +29,7 @@ async function beforeAssetIssue() {
   await lib.onNewBlock();
 
   // prepare issue
-  const registerAsset = gnyJS.uia.registerAsset(
+  const registerAsset = gnyClient.uia.registerAsset(
     'BBB',
     'some desc',
     String(10 * 1e8),
@@ -72,7 +72,7 @@ describe('contract-env - uia.registerAsset', () => {
         await beforeAssetIssue();
 
         // act
-        const issue = gnyJS.uia.issue(
+        const issue = gnyClient.uia.issue(
           'ABC.BBB',
           String(10 * 1e8),
           genesisSecret
@@ -104,7 +104,7 @@ describe('contract-env - uia.registerAsset', () => {
 
         // act
         const SMALLER_FEE = 0.01 * 1e8;
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 102,
           args: ['ABC.BBB', String(10 * 1e8)],
           secret: genesisSecret,
@@ -135,11 +135,11 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await beforeAssetIssue();
 
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 102,
           args: ['ABC.BBB', String(10 * 1e8), 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,
@@ -163,11 +163,11 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await beforeAssetIssue();
 
-        const issue = gnyJS.transaction.createTransactionEx({
+        const issue = gnyClient.transaction.createTransactionEx({
           type: 102,
           args: ['ABC'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: issue,

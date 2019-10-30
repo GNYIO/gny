@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -12,7 +12,7 @@ const config = {
 };
 
 async function prepareRegisterAsset() {
-  const registerIssuer = gnyJS.uia.registerIssuer(
+  const registerIssuer = gnyClient.uia.registerIssuer(
     'ABC',
     'some desc',
     genesisSecret
@@ -53,7 +53,7 @@ describe('contract-env - uia.registerAsset', () => {
         await prepareRegisterAsset();
 
         // act
-        const registerAsset = gnyJS.uia.registerAsset(
+        const registerAsset = gnyClient.uia.registerAsset(
           'BBB',
           'some desc',
           String(10 * 1e8),
@@ -87,7 +87,7 @@ describe('contract-env - uia.registerAsset', () => {
 
         // act
         const SMALLER_FEE = String(499 * 1e8);
-        const registerAsset = gnyJS.transaction.createTransactionEx({
+        const registerAsset = gnyClient.transaction.createTransactionEx({
           type: 101,
           args: ['BBB', 'some desc', String(10 * 1e8), String(8)],
           secret: genesisSecret,
@@ -118,7 +118,7 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await prepareRegisterAsset();
 
-        const registerAsset = gnyJS.transaction.createTransactionEx({
+        const registerAsset = gnyClient.transaction.createTransactionEx({
           type: 101,
           args: [
             'ABC',
@@ -128,7 +128,7 @@ describe('contract-env - uia.registerAsset', () => {
             'unnecessary argument',
           ],
           secret: genesisSecret,
-          fee: 500 * 1e8,
+          fee: String(500 * 1e8),
         });
         const transData = {
           transaction: registerAsset,
@@ -152,11 +152,11 @@ describe('contract-env - uia.registerAsset', () => {
         // prepare
         await prepareRegisterAsset();
 
-        const registerAsset = gnyJS.transaction.createTransactionEx({
+        const registerAsset = gnyClient.transaction.createTransactionEx({
           type: 101,
           args: ['ABC', 'some desc', String(10 * 1e8)],
           secret: genesisSecret,
-          fee: 500 * 1e8,
+          fee: String(500 * 1e8),
         });
         const transData = {
           transaction: registerAsset,

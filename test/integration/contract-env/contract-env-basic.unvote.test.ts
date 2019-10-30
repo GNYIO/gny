@@ -1,5 +1,5 @@
 import * as lib from '../lib';
-import * as gnyJS from '../../../packages/gny-js';
+import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -13,7 +13,7 @@ const config = {
 
 async function prepareUnvote() {
   // prepare lock
-  const lock = gnyJS.basic.lock(173000, 30 * 1e8, genesisSecret);
+  const lock = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
   const lockTransData = {
     transaction: lock,
   };
@@ -25,7 +25,7 @@ async function prepareUnvote() {
   await lib.onNewBlock();
 
   // prepare vote
-  const vote = gnyJS.basic.vote(['gny_d2'], genesisSecret);
+  const vote = gnyClient.basic.vote(['gny_d2'], genesisSecret);
   const voteTransData = {
     transaction: vote,
   };
@@ -61,7 +61,7 @@ describe('contract-env - basic.unvote', () => {
         await prepareUnvote();
 
         // act
-        const unvote = gnyJS.basic.unvote(['gny_d2'], genesisSecret);
+        const unvote = gnyClient.basic.unvote(['gny_d2'], genesisSecret);
         const transData = {
           transaction: unvote,
         };
@@ -87,7 +87,7 @@ describe('contract-env - basic.unvote', () => {
 
         // act
         const SMALLER_FEE = String(0.01 * 1e8);
-        const unvote = gnyJS.transaction.createTransactionEx({
+        const unvote = gnyClient.transaction.createTransactionEx({
           type: 5,
           args: ['gny_d2'],
           secret: genesisSecret,
@@ -118,11 +118,11 @@ describe('contract-env - basic.unvote', () => {
         await prepareUnvote();
 
         // act
-        const unvote = gnyJS.transaction.createTransactionEx({
+        const unvote = gnyClient.transaction.createTransactionEx({
           type: 5,
           args: ['gny_d2', 'unnecessary argument'],
           secret: genesisSecret,
-          fee: 0.1 * 1e8,
+          fee: String(0.1 * 1e8),
         });
         const transData = {
           transaction: unvote,

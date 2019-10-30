@@ -1,0 +1,53 @@
+{
+  "name": "@gny/client",
+  "version": "1.0.0",
+  "description": "GNY JavaScript Client Library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "browser": "browser/browser.js",
+  "license": "MIT",
+  "keywords": [],
+  "files": [
+    "browser",
+    "dist"
+  ],
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist",
+    "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js --display-error-details",
+    "removeBrowserDir": "rm -rf browser"
+  },
+  "engines": {
+    "node": "=10.16.2"
+  },
+  "dependencies": {
+    "@gny/interfaces": "^1.0.0",
+    "@gny/utils": "^1.0.0",
+    "@types/bs58": "^3.0.32",
+    "@types/bytebuffer": "^5.0.40",
+    "axios": "^0.19.0",
+    "bs58": "^3.1.0",
+    "bytebuffer": "^5.0.1",
+    "crypto": "^1.0.1",
+    "fast-sha256": "^1.1.0",
+    "sha.js": "^2.4.11",
+    "tweetnacl": "^1.0.1"
+  },
+  "devDependencies": {
+    "@gny/extendedJoi": "^1.0.0",
+    "@types/jest": "^24.0.18",
+    "jest": "^24.9.0",
+    "jest-extended": "^0.11.2",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-immutable": "^6.0.1",
+    "typescript": "^3.5.3"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "author": "GNY"
+}
