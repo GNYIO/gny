@@ -3,58 +3,9 @@
  */
 import * as lib from '../../lib';
 import * as gnyClient from '@gny/client';
-import axios from 'axios';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
-
-async function registerIssuerAsync(
-  name: string,
-  desc: string,
-  secret = genesisSecret
-) {
-  const issuerTrs = gnyClient.uia.registerIssuer(name, desc, secret);
-  const issuerTransData = {
-    transaction: issuerTrs,
-  };
-
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    issuerTransData,
-    config
-  );
-  await lib.onNewBlock();
-}
-
-async function registerAssetAsync(
-  name: string,
-  desc: string,
-  amount: string,
-  precision: number,
-  secret = genesisSecret
-) {
-  const assetTrs = gnyClient.uia.registerAsset(
-    name,
-    desc,
-    amount,
-    precision,
-    secret
-  );
-  const assetTransData = {
-    transaction: assetTrs,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    assetTransData,
-    config
-  );
-}
 
 describe('account', () => {
   const connection = new gnyClient.Connection();

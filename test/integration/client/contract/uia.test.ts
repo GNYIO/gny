@@ -1,56 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from '../../lib';
 import * as gnyClient from '@gny/client';
-import axios from 'axios';
-import { generateAddress } from '@gny/utils';
-import { randomBytes } from 'crypto';
-
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
-
-const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-function randomAddress() {
-  return generateAddress(randomBytes(32).toString('hex'));
-}
-
-async function beforeUiaTransfer(uiaApi: any) {
-  // prepare registerIssuer
-  const name = 'ABC';
-  const desc = 'some desc';
-  const secret = genesisSecret;
-
-  await uiaApi.registerIssuer(name, desc, secret);
-  await lib.onNewBlock();
-
-  // prepare registerAsset
-  await uiaApi.registerAsset(
-    'BBB',
-    'some desc',
-    String(10 * 1e8),
-    8,
-    genesisSecret
-  );
-  await lib.onNewBlock();
-
-  // prepare issue
-  const issue = gnyClient.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
-  const issueTransData = {
-    transaction: issue,
-  };
-  await axios.post(
-    'http://localhost:4096/peer/transactions',
-    issueTransData,
-    config
-  );
-  await lib.onNewBlock();
-}
 
 describe('uia', () => {
   const connection = new gnyClient.Connection();
