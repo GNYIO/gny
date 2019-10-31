@@ -21,7 +21,7 @@ RUN npm ci
 # copy all package-lock files (bash: find -name "package-lock.json" -not -path "**/node_modules/*")
 COPY packages/p2p/package-lock.json ./packages/p2p/package-lock.json
 COPY packages/extendedJoi/package-lock.json ./packages/extendedJoi/package-lock.json
-COPY packages/gny-js/package-lock.json ./packages/gny-js/package-lock.json
+COPY packages/client/package-lock.json ./packages/client/package-lock.json
 COPY packages/interfaces/package-lock.json ./packages/interfaces/package-lock.json
 COPY packages/ed/package-lock.json ./packages/ed/package-lock.json
 COPY packages/utils/package-lock.json ./packages/utils/package-lock.json
@@ -34,7 +34,7 @@ COPY packages/gny-cli/package-lock.json ./packages/gny-cli/package-lock.json
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
 COPY packages/extendedJoi/package.json ./packages/extendedJoi/package.json
-COPY packages/gny-js/package.json ./packages/gny-js/package.json
+COPY packages/client/package.json ./packages/client/package.json
 COPY packages/interfaces/package.json ./packages/interfaces/package.json
 COPY packages/ed/package.json ./packages/ed/package.json
 COPY packages/utils/package.json ./packages/utils/package.json

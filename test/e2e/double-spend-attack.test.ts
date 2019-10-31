@@ -1,5 +1,5 @@
 import * as lib from './lib';
-import * as gnyJS from '../../packages/gny-js';
+import * as gnyJS from '@gny/client';
 import axios from 'axios';
 
 interface IsTrsAvailable {

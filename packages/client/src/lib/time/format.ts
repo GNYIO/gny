@@ -1,4 +1,4 @@
-import { slots, EPOCH_TIME } from '@gny/utils';
+import { EPOCH_TIME } from '@gny/utils';
 
 export function timeAgo(time: any) {
   const d = EPOCH_TIME;

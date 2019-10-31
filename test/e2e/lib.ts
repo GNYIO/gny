@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { generateAddress } from '@gny/utils';
 import { BigNumber } from '@gny/utils';
-import * as gnyJS from '../../packages/gny-js';
+import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
 
