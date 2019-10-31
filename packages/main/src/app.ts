@@ -1,13 +1,12 @@
 import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as ip from 'ip';
 import daemon = require('daemon');
 import { createLogger, LogLevel } from '@gny/logger';
 
 import Application from './index';
 import * as packageJson from '../package.json';
-import { IConfig, IGenesisBlock } from '@gny/interfaces';
+import { IConfig, IBlock } from '@gny/interfaces';
 
 const version = packageJson.version;
 
@@ -25,12 +24,16 @@ function main() {
     .option('-d, --daemon', 'Run gny node as daemon')
     .option('--base <dir>', 'Base directory')
     .option('--ormConfig <file>', 'ormconfig.json file')
+    .option(
+      '--privateP2PKey <key>',
+      'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
+    )
+    .option('--secret [secret...]', 'comma separated secrets')
+    .option('--publicIP <ip>', 'Public IP of own server')
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();
   const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
-  const seedPort = 81;
-  const seeds = [757137132];
   let appConfigFile: string;
   let genesisBlockFile: string;
 
@@ -63,7 +66,7 @@ function main() {
     genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
 
-  const genesisBlock: IGenesisBlock = JSON.parse(
+  const genesisBlock: IBlock = JSON.parse(
     fs.readFileSync(genesisBlockFile, 'utf8')
   );
 
@@ -77,21 +80,9 @@ function main() {
   }
   if (program.peers) {
     if (typeof program.peers === 'string') {
-      appConfig.peers.list = program.peers.split(',').map((peer: string) => {
-        const parts = peer.split(':');
-        return {
-          ip: parts.shift(),
-          port: parts.shift() || appConfig.port,
-        };
-      });
+      appConfig.peers.bootstrap = program.peers.split(',');
     } else {
-      appConfig.peers.list = [];
-    }
-  }
-
-  if (appConfig.netVersion === 'mainnet') {
-    for (let i = 0; i < seeds.length; ++i) {
-      appConfig.peers.list.push({ ip: ip.fromLong(seeds[i]), port: seedPort });
+      appConfig.peers.bootstrap = [];
     }
   }
 
@@ -123,6 +114,18 @@ function main() {
   appConfig.peers.rawPeerInfo = fs.readFileSync(p2pKeyFilePath, {
     encoding: 'utf8',
   });
+
+  if (program.privateP2PKey) {
+    appConfig.peers.privateP2PKey = program.privateP2PKey;
+  }
+
+  if (program.secret) {
+    appConfig.forging.secret = program.secret.split(',');
+  }
+
+  if (program.publicIP) {
+    appConfig.publicIp = program.publicIP;
+  }
 
   const options = {
     appConfig,

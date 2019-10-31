@@ -11,8 +11,8 @@ import { BlockCache } from './blockCache';
 import * as _ from 'lodash';
 import { ModelSchema } from './modelSchema';
 import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
-import { Block } from '../entity/Block';
-import { BlockHistory } from '../entity/BlockHistory';
+import { Block } from './entity/Block';
+import { BlockHistory } from './entity/BlockHistory';
 import { createMetaSchema } from './createMetaSchema';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -23,20 +23,20 @@ import {
   Condition,
 } from './searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
-import { Transaction } from '../entity/Transaction';
+import { Transaction } from './entity/Transaction';
 
-export * from '../entity/Account';
-export * from '../entity/Asset';
-export * from '../entity/Balance';
-export * from '../entity/Block';
-export * from '../entity/BlockHistory';
-export * from '../entity/Delegate';
-export * from '../entity/Issuer';
-export * from '../entity/Round';
-export * from '../entity/Transaction';
-export * from '../entity/Transfer';
-export * from '../entity/Variable';
-export * from '../entity/Vote';
+export * from './entity/Account';
+export * from './entity/Asset';
+export * from './entity/Balance';
+export * from './entity/Block';
+export * from './entity/BlockHistory';
+export * from './entity/Delegate';
+export * from './entity/Issuer';
+export * from './entity/Round';
+export * from './entity/Transaction';
+export * from './entity/Transfer';
+export * from './entity/Variable';
+export * from './entity/Vote';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {

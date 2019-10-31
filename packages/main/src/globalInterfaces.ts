@@ -2,7 +2,6 @@ import * as tracer from 'tracer';
 import {
   IScope,
   IConfig,
-  IGenesisBlock,
   BlockAndVotes,
   NewBlockMessage,
   ILimitCache,
@@ -64,7 +63,7 @@ export type ILogger = tracer.Tracer.Logger;
 
 export interface IOptions {
   appConfig: IConfig;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
   logger: ILogger;
   pidFile: string;
   modules?: any;

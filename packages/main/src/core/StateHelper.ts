@@ -4,6 +4,7 @@ import {
   NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import { TransactionPool } from '@gny/transaction-pool';
@@ -112,7 +113,9 @@ export class StateHelper {
   public static ClearUnconfirmedTransactions() {
     global.transactionPool.clear();
   }
-  public static AddUnconfirmedTransactions(transaction: ITransaction) {
+  public static AddUnconfirmedTransactions(
+    transaction: ITransaction | UnconfirmedTransaction
+  ) {
     global.transactionPool.add(transaction);
   }
 

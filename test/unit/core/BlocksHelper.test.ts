@@ -5,7 +5,6 @@ import {
   IBlock,
   KeyPair,
   BlockPropose,
-  IGenesisBlock,
   NewBlockMessage,
 } from '../../../packages/interfaces';
 import * as crypto from 'crypto';
@@ -31,7 +30,7 @@ function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
     encoding: 'utf8',
   });
-  const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
+  const genesisBlock: IBlock = JSON.parse(genesisBlockRaw);
   return genesisBlock;
 }
 

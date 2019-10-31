@@ -8,7 +8,7 @@ import * as SocketIO from 'socket.io';
 
 declare interface IBase {
   bus: IMessageBus;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
 }
 
 export interface IProtobuf {
@@ -16,8 +16,8 @@ export interface IProtobuf {
   decodeBlockPropose(data: Buffer): BlockPropose;
   encodeBlockVotes(obj: any): Buffer;
   decodeBlockVotes(data: Buffer);
-  encodeTransaction(trs: ITransaction): Buffer;
-  decodeTransaction(data: Buffer);
+  encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;
+  decodeUnconfirmedTransaction(data: Buffer): UnconfirmedTransaction;
   encodeNewBlockMessage(msg): Buffer;
   decodeNewBlockMessage(data: Buffer): NewBlockMessage;
 }
@@ -37,7 +37,7 @@ export interface IScope {
   protobuf: IProtobuf;
   config: IConfig;
   logger: ILogger;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
   network: INetwork;
   sequence: ISequence;
   base: IBase;
@@ -59,7 +59,9 @@ export type MethodActions =
   | 'onReceivePropose'
   | 'onReceiveTransaction';
 
-export interface ICoreModule {}
+export interface ICoreModule {
+  cleanup?: (cb: any) => void;
+}
 
 export interface Modules {
   [key: string]: ICoreModule;
@@ -89,12 +91,12 @@ export interface CoreApi {
 }
 
 export interface ITransactionPool {
-  add(trs: ITransaction): void;
+  add(trs: UnconfirmedTransaction): void;
   remove(id: string): void;
   has(id: string): boolean;
-  getUnconfirmed(): ITransaction[];
+  getUnconfirmed(): Array<UnconfirmedTransaction>;
   clear(): void;
-  get(id: string): ITransaction;
+  get(id: string): UnconfirmedTransaction;
 }
 
 interface IMessageEmitter {
@@ -112,21 +114,6 @@ export interface INetwork {
 }
 
 export type ILogger = tracer.Tracer.Logger;
-
-export interface IGenesisBlock {
-  version: number;
-  payloadHash: string;
-  timestamp: number;
-  prevBlockId: null;
-  delegate: string;
-  height: string;
-  count: number;
-  fees: string;
-  reward: string;
-  signature: string;
-  id: string;
-  transactions: ITransaction[];
-}
 
 type ILogLevel =
   | 'trace'
@@ -148,12 +135,13 @@ export interface IConfig {
   peerPort: number;
   address: string;
   peers: {
-    bootstrap: string | null;
+    bootstrap: string[];
     p2pKeyFile: string;
     rawPeerInfo: string;
     options: {
       timeout: number;
     };
+    privateP2PKey: string;
   };
   forging: {
     secret: string[];
@@ -267,6 +255,26 @@ export type AccountViewModel = Pick<
   | 'username'
 > & { balance: string };
 
+export interface AccountWeightViewModel extends IAccount {
+  balance: string;
+  weightRatio: string;
+}
+
+export interface UnconfirmedTransaction {
+  // ITransaction without "height"
+  id: string;
+  type: number;
+  timestamp: number;
+  senderId: string;
+  senderPublicKey: string;
+  fee: string;
+  signatures?: any;
+  secondSignature?: any;
+  args: any;
+  message?: string;
+  _version_?: number;
+}
+
 export interface ITransaction {
   id: string;
   type: number;
@@ -306,7 +314,7 @@ export interface IBalance {
 export interface IAsset {
   name: string;
   tid: string;
-  timestamp: string;
+  timestamp: number;
   maximum: string;
   precision: number;
   quantity: string;
@@ -330,7 +338,7 @@ export interface IDelegate {
 
 export interface DelegateViewModel extends IDelegate {
   rate: number;
-  approval: number;
+  approval: string;
   productivity: string;
 }
 
@@ -398,7 +406,7 @@ export interface CommonBlockResult {
 }
 
 export interface Context {
-  trs: ITransaction;
+  trs: UnconfirmedTransaction;
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
 }

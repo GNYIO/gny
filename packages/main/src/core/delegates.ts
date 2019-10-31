@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import { slots } from '@gny/utils';
+import { slots, DELEGATES } from '@gny/utils';
 import { BlockReward } from '@gny/utils';
 import {
   KeyPairsIndexer,
@@ -56,7 +56,7 @@ export default class Delegates implements ICoreModule {
     const lastSlot = slots.getLastSlot(slot);
 
     for (let currentSlot = slot; currentSlot < lastSlot; currentSlot += 1) {
-      const delegatePos = currentSlot % slots.delegates;
+      const delegatePos = currentSlot % DELEGATES;
 
       const delegateKey = activeDelegates[delegatePos];
 
@@ -271,7 +271,7 @@ export default class Delegates implements ICoreModule {
     activeDelegates: string[]
   ) => {
     const currentSlot = slots.getSlotNumber(propose.timestamp);
-    const delegateKey = activeDelegates[currentSlot % slots.delegates];
+    const delegateKey = activeDelegates[currentSlot % DELEGATES];
 
     if (delegateKey && propose.generatorPublicKey === delegateKey) {
       return;
@@ -316,7 +316,7 @@ export default class Delegates implements ICoreModule {
     activeDelegates: string[]
   ) => {
     const currentSlot = slots.getSlotNumber(block.timestamp);
-    const delegateKey = activeDelegates[currentSlot % slots.delegates];
+    const delegateKey = activeDelegates[currentSlot % DELEGATES];
 
     if (delegateKey && block.delegate === delegateKey) {
       return;
@@ -346,15 +346,22 @@ export default class Delegates implements ICoreModule {
         .times(100)
         .toFixed();
 
-      let percent =
-        100 -
-        current.missedBlocks /
-          (current.producedBlocks + current.missedBlocks) /
-          100;
-      percent = percent || 0;
-      current.productivity = parseFloat(
-        Math.floor(percent * 100) / 100
-      ).toFixed(2);
+      const myBlocks = new BigNumber(current.producedBlocks).plus(
+        current.missedBlocks
+      );
+      let percent = new BigNumber(100)
+        .minus(
+          new BigNumber(current.missedBlocks).dividedBy(myBlocks).dividedBy(100)
+        )
+        .toFixed();
+      percent = percent || new BigNumber(0).toFixed();
+
+      // TODO refactor
+      current.productivity = (Math.floor(+percent * 100) / 100)
+        .toFixed(2)
+        .toString();
+
+      // why is getDelegates() updating the database??
       await global.app.sdb.update<Delegate>(Delegate, current, {
         address: current.address,
       });

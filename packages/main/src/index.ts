@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import initRuntime from './runtime';
 import initAlt from './init';
-import { IScope, IConfig, ILogger, IGenesisBlock } from '@gny/interfaces';
+import { IScope, IConfig, ILogger, IBlock } from '@gny/interfaces';
 import { StateHelper } from './core/StateHelper';
 import { verifyGenesisBlock } from './verifyGenesisBlock';
 
 interface LocalOptions {
   appConfig: IConfig;
-  genesisBlock: IGenesisBlock;
+  genesisBlock: IBlock;
   logger: ILogger;
   pidFile: string;
   library?: Partial<IScope>;

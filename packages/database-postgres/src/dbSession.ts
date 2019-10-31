@@ -11,8 +11,8 @@ import {
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
-import { Block } from '../entity/Block';
-import { Transaction } from '../entity/Transaction';
+import { Block } from './entity/Block';
+import { Transaction } from './entity/Transaction';
 import * as _ from 'lodash';
 import { BigNumber } from 'bignumber.js';
 

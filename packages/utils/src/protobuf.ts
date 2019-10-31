@@ -6,6 +6,7 @@ import {
   BlockPropose,
   ITransaction,
   IProtobuf,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 
 export class Protobuf implements IProtobuf {
@@ -44,7 +45,7 @@ export class Protobuf implements IProtobuf {
     return obj;
   }
 
-  encodeTransaction(trs: ITransaction): Buffer {
+  encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer {
     const obj = _.cloneDeep(trs);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
@@ -53,17 +54,16 @@ export class Protobuf implements IProtobuf {
       obj.args = JSON.stringify(obj.args);
     }
 
-    return this.schema.Transaction.encode(obj);
+    return this.schema.UnconfirmedTransaction.encode(obj);
   }
 
-  decodeTransaction(data: Buffer) {
-    const obj = this.schema.Transaction.decode(data);
+  decodeUnconfirmedTransaction(data: Buffer) {
+    const obj = this.schema.UnconfirmedTransaction.decode(
+      data
+    ) as UnconfirmedTransaction;
     // this is default protobuf behaviour to add an empty string
     if (obj.secondSignature === '') {
       delete obj.secondSignature;
-    }
-    if (obj.height === '') {
-      delete obj.height;
     }
     return obj;
   }

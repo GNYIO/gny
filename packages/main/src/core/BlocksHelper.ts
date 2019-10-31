@@ -6,6 +6,7 @@ import {
   IConfig,
   NewBlockMessage,
   ILogger,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { IState, ISimpleCache } from '../globalInterfaces';
 import { TransactionBase } from '@gny/base';
@@ -31,7 +32,7 @@ export enum BlockMessageFitInLineResult {
 
 export class BlocksHelper {
   public static areTransactionsExceedingPayloadLength(
-    transactions: ITransaction[]
+    transactions: Array<UnconfirmedTransaction | ITransaction>
   ) {
     let payloadLength = 0;
 
@@ -45,7 +46,9 @@ export class BlocksHelper {
     return false;
   }
 
-  public static payloadHashOfAllTransactions(transactions: ITransaction[]) {
+  public static payloadHashOfAllTransactions(
+    transactions: Array<UnconfirmedTransaction | ITransaction>
+  ) {
     const payloadHash = crypto.createHash('sha256');
 
     for (const one of transactions) {
@@ -55,7 +58,9 @@ export class BlocksHelper {
     return payloadHash.digest();
   }
 
-  public static getFeesOfAll(transactions: ITransaction[]) {
+  public static getFeesOfAll(
+    transactions: Array<UnconfirmedTransaction | ITransaction>
+  ) {
     return transactions.reduce(
       (prev: string, oneTrs: ITransaction) =>
         new BigNumber(prev).plus(oneTrs.fee || 0).toFixed(),
@@ -67,7 +72,7 @@ export class BlocksHelper {
     keypair: KeyPair,
     timestamp: number,
     lastBlock: IBlock,
-    unconfirmedTransactions: ITransaction[]
+    unconfirmedTransactions: Array<UnconfirmedTransaction>
   ) {
     if (
       BlocksHelper.areTransactionsExceedingPayloadLength(
@@ -86,13 +91,16 @@ export class BlocksHelper {
     const count = unconfirmedTransactions.length;
     const reward = blockReward.calculateReward(height);
 
+    const transactions = unconfirmedTransactions.map(x =>
+      TransactionBase.turnIntoFullTransaction(x, height)
+    );
     const block: IBlock = {
       version: 0,
       delegate: keypair.publicKey.toString('hex'),
       height,
       prevBlockId,
       timestamp,
-      transactions: unconfirmedTransactions,
+      transactions,
       count,
       fees: String(fees),
       payloadHash: payloadHash.toString('hex'),

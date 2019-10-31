@@ -9,6 +9,7 @@ import {
   ITransaction,
   IBlock,
   IHttpApi,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -197,7 +198,7 @@ export default class TransactionsApi implements IHttpApi {
     }
 
     const transactions = StateHelper.GetUnconfirmedTransactionList();
-    const toSend: ITransaction[] = [];
+    const toSend: Array<UnconfirmedTransaction | ITransaction> = [];
 
     if (query.senderPublicKey || query.address) {
       for (let i = 0; i < transactions.length; i++) {
@@ -286,7 +287,7 @@ export default class TransactionsApi implements IHttpApi {
                   .digest()
               );
             }
-            const trs = TransactionBase.create({
+            const unconfirmedTrs = TransactionBase.create({
               fee: query.fee,
               type: query.type,
               args: query.args || null,
@@ -294,9 +295,15 @@ export default class TransactionsApi implements IHttpApi {
               secondKeypair,
               keypair,
             });
-            await Transactions.processUnconfirmedTransactionAsync(state, trs);
-            this.library.bus.message('onUnconfirmedTransaction', trs);
-            callback(null, { success: true, transactionId: trs.id });
+            await Transactions.processUnconfirmedTransactionAsync(
+              state,
+              unconfirmedTrs
+            );
+            this.library.bus.message(
+              'onUnconfirmedTransaction',
+              unconfirmedTrs
+            );
+            callback(null, { success: true, transactionId: unconfirmedTrs.id });
           } catch (e) {
             this.library.logger.warn(
               'Failed to process unsigned transaction',

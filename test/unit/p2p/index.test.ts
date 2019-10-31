@@ -1,9 +1,16 @@
 import { createPeerInfo } from '../../../packages/p2p/src/createPeerInfo';
-import { ILogger, P2PMessage, PeerNode } from '../../../packages/interfaces';
+import {
+  ILogger,
+  P2PMessage,
+  SimplePeerInfo,
+} from '../../../packages/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle, LibP2POptions } from '../../../packages/p2p/src/bundle';
-import { attachEventHandlers } from '../../../packages/p2p/src/util';
+import {
+  attachEventHandlers,
+  extractIpAndPort,
+} from '../../../packages/p2p/src/util';
 
 const delay = (x: number): Promise<void> =>
   new Promise(resolve => setInterval(resolve, x));
@@ -281,7 +288,7 @@ describe('p2p', () => {
 
   describe('broadcast', () => {
     it('node 1,2,3: node 1 -> 2; and 2 -> 3 are connected. If I broadcast a message from node 3; node 1 should get the message', async done => {
-      expect.assertions(3);
+      expect.assertions(4);
 
       const BOOTSTRAP_INTERVAL = 2000;
 
@@ -308,7 +315,8 @@ describe('p2p', () => {
       node1.subscribeCustom('test', (message: P2PMessage) => {
         expect(message.data.toString()).toBe('from node 3');
         expect(message.from).toBe(node3.peerInfo.id.toB58String());
-        expect(message.peerInfo).toEqual({ host: '127.0.0.1', port: 5002 });
+        expect(message.peerInfo).toEqual(extractIpAndPort(node3.peerInfo));
+        expect(message.peerInfo.port).toEqual(5002);
       });
       node2.subscribeCustom('test', (message: P2PMessage) => {
         // necessary to forward message
@@ -411,7 +419,7 @@ describe('p2p', () => {
     it(
       'node that broadcasted message should be in the peerInfo prop',
       async done => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const node1 = await createNewBundle(16001);
         await node1.start();
@@ -430,11 +438,8 @@ describe('p2p', () => {
         node1.subscribeCustom('hello', (message: P2PMessage) => {});
         node2.subscribeCustom('hello', (message: P2PMessage) => {});
         node3.subscribeCustom('hello', (message: P2PMessage) => {
-          const expected: PeerNode = {
-            host: '127.0.0.1',
-            port: 16001,
-          };
-          expect(message.peerInfo).toEqual(expected);
+          expect(message.peerInfo.port).toEqual(16001);
+          expect(message.peerInfo).toEqual(extractIpAndPort(node1.peerInfo));
         });
 
         await sleep(2000);
@@ -584,10 +589,7 @@ describe('p2p', () => {
 
         // act
         const result = node2.getConnectedRandomNode();
-        expect(result).toEqual({
-          host: '127.0.0.1',
-          port: 14000,
-        });
+        expect(result).toEqual(extractIpAndPort(node1.peerInfo));
 
         // cleanup
         await node1.stop();
@@ -611,14 +613,12 @@ describe('p2p', () => {
         await sleep(2000);
 
         // test before
-        expect(node1.getConnectedRandomNode()).toEqual({
-          port: 13001,
-          host: '127.0.0.1',
-        });
-        expect(node2.getConnectedRandomNode()).toEqual({
-          port: 13000,
-          host: '127.0.0.1',
-        });
+        expect(node1.getConnectedRandomNode()).toEqual(
+          extractIpAndPort(node2.peerInfo)
+        );
+        expect(node2.getConnectedRandomNode()).toEqual(
+          extractIpAndPort(node1.peerInfo)
+        );
 
         // stop node1
         await node1.stop();
@@ -728,10 +728,7 @@ describe('p2p', () => {
           multiaddrs: node2.peerInfo.multiaddrs
             .toArray()
             .map(x => x.toString()),
-          simple: {
-            port: 30001,
-            host: '127.0.0.1',
-          },
+          simple: extractIpAndPort(node2.peerInfo),
         };
         expect(result1[0]).toEqual(expectedInPeerStoreFromPeer1);
 
@@ -748,10 +745,7 @@ describe('p2p', () => {
           multiaddrs: node1.peerInfo.multiaddrs
             .toArray()
             .map(x => x.toString()),
-          simple: {
-            port: 30000,
-            host: '127.0.0.1',
-          },
+          simple: extractIpAndPort(node1.peerInfo),
         };
         expect(result2[0]).toEqual(expectedInPeerStoreFromPeer2);
 

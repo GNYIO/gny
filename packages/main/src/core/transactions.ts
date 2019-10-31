@@ -1,4 +1,10 @@
-import { ITransaction, Context, IAccount, ICoreModule } from '@gny/interfaces';
+import {
+  ITransaction,
+  Context,
+  IAccount,
+  ICoreModule,
+  UnconfirmedTransaction,
+} from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from './StateHelper';
@@ -10,7 +16,7 @@ import { isAddress } from '@gny/utils';
 export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactions = (
     state: IState,
-    transactions: ITransaction[],
+    transactions: Array<UnconfirmedTransaction>,
     cb
   ) => {
     (async () => {
@@ -30,7 +36,7 @@ export default class Transactions implements ICoreModule {
 
   public static processUnconfirmedTransactionsAsync = async (
     state: IState,
-    transactions: ITransaction[]
+    transactions: Array<UnconfirmedTransaction>
   ) => {
     for (const transaction of transactions) {
       await Transactions.processUnconfirmedTransactionAsync(state, transaction);
@@ -39,7 +45,7 @@ export default class Transactions implements ICoreModule {
 
   public static processUnconfirmedTransaction = (
     state: IState,
-    transaction: ITransaction,
+    transaction: UnconfirmedTransaction,
     cb
   ) => {
     (async () => {
@@ -57,7 +63,7 @@ export default class Transactions implements ICoreModule {
 
   public static processUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: ITransaction
+    transaction: UnconfirmedTransaction
   ) => {
     try {
       if (!transaction.id) {
@@ -96,7 +102,7 @@ export default class Transactions implements ICoreModule {
 
   public static applyUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: ITransaction
+    transaction: ITransaction | UnconfirmedTransaction
   ) => {
     const height = state.lastBlock.height;
     const block = {
