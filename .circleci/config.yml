@@ -92,8 +92,6 @@ jobs:
       - run:
           name: test-integration
           command: npm run test:integration
-
-
   node@10.16.2-end2end:
     machine:
       enabled: true
@@ -150,7 +148,6 @@ jobs:
       - run:
           name: test-end2end
           command: npm run test:e2e
-
   node@10.16.2-benchmark:
     machine:
       enabled: true
@@ -216,6 +213,9 @@ workflows:
                - develop
     jobs:
       - node@10.16.2-integration
+  all_end2end_test_every_commit:
+    jobs:
+      - node@10.16.2-end2end
   benchmarking_every_third_night_on_develop_branch:
     triggers:
       - schedule:
