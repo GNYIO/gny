@@ -92,6 +92,71 @@ jobs:
       - run:
           name: test-integration
           command: npm run test:integration
+  node@10.16.2-end2end:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+         name: Update to Docker Compose 1.24.1
+         command: |
+           curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+           chmod +x ~/docker-compose
+           sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run:
+          name: md5sum of all package-lock.json files
+          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+      - run:
+          name: install-linux-dependencies
+          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
+      - run:
+          name: load nvm and install node@10.16.2
+          command: |
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v10.16.2
+            nvm alias default v10.16.2
+
+            # Each step uses the same `$BASH_ENV`, so need to modify it
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+      - run:
+          name: update-npm
+          command: npm install -g npm
+      - restore_cache:
+          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}
+      - run:
+          name: install dependencies, bootstrap lerna, compile project
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
+            fi
+      - run:
+         name: compile project
+         command: npm run lerna:tsc
+      - save_cache:
+          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}
+          paths:
+            - ./node_modules
+            - ./packages/base/node_modules
+            - ./packages/database-postgres/node_modules
+            - ./packages/ed/node_modules
+            - ./packages/extendedJoi/node_modules
+            - ./packages/client/node_modules
+            - ./packages/interfaces/node_modules
+            - ./packages/logger/node_modules
+            - ./packages/main/node_modules
+            - ./packages/p2p/node_modules
+            - ./packages/transaction-pool/node_modules
+            - ./packages/type-validation/node_modules
+            - ./packages/utils/node_modules
+      - run:
+          name: test-end2end
+          command: npm run test:e2e
   node@10.16.2-benchmark:
     machine:
       enabled: true
@@ -157,6 +222,9 @@ workflows:
                - develop
     jobs:
       - node@10.16.2-integration
+  all_end2end_test_every_commit:
+    jobs:
+      - node@10.16.2-end2end
   benchmarking_every_third_night_on_develop_branch:
     triggers:
       - schedule:
