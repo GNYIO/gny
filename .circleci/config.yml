@@ -127,8 +127,11 @@ jobs:
           name: install dependencies, bootstrap lerna, compile project
           command: |
             if [ ! -d node_modules ]; then
-              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+      - run:
+         name: compile project
+         command: npm run lerna:tsc
       - save_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}
           paths:
