@@ -100,6 +100,12 @@ jobs:
     steps:
       - checkout
       - run:
+         name: Update to Docker Compose 1.24.1
+         command: |
+           curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+           chmod +x ~/docker-compose
+           sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run:
           name: md5sum of all package-lock.json files
           command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
       - run:
