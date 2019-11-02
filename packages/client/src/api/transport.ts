@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { ITransaction } from '@gny/interfaces';
+import { UnconfirmedTransaction } from '@gny/interfaces';
 
 interface Keypair {
   publicKey: string;
@@ -12,7 +12,7 @@ interface Votes {
 }
 
 export class Transport extends Base {
-  public async sendTransaction(transaction: ITransaction) {
+  public async sendTransaction(transaction: UnconfirmedTransaction) {
     const params = {
       transaction: transaction,
     };

@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { ITransaction } from '@gny/interfaces';
+import { UnconfirmedTransaction } from '@gny/interfaces';
 
 interface Query {
   limit?: number;
@@ -67,7 +67,7 @@ export class Transaction extends Base {
     return await this.put('/api/transactions/', params);
   }
 
-  public async addTransactions(transactions: ITransaction[]) {
+  public async addTransactions(transactions: UnconfirmedTransaction[]) {
     const params = {
       transactions: transactions,
     };
