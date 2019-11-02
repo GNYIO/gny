@@ -4,6 +4,7 @@
 import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
+import BigNumber from 'bignumber.js';
 
 const config = {
   headers: {
@@ -84,14 +85,18 @@ describe('transport', () => {
         await lib.onNewBlock();
         await lib.onNewBlock();
         await lib.onNewBlock();
+        await lib.onNewBlock();
 
-        const height = String(1);
-        const { data } = await blockApi.getBlockByHeight(height);
-        const id = data.block.id;
+        const height = await lib.getHeight();
 
-        const max = '3';
-        const min = '1';
-        const ids = [id];
+        const blockData = await axios.get(
+          'http://localhost:4096/api/blocks/getBlock?height=' + height
+        );
+
+        // get common block
+        const min = new BigNumber(height).minus(4).toFixed();
+        const max = height;
+        const ids = [blockData.data.block.id as string];
 
         const response = await transportApi.getBlocksByIds(max, min, ids);
         expect(response.status).toEqual(200);
