@@ -9,6 +9,7 @@ import {
   IBlock,
   CommonBlockResult,
   IHttpApi,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
@@ -262,13 +263,15 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
-    let transaction: ITransaction;
+    let unconfirmedTrs: UnconfirmedTransaction;
     try {
-      transaction = TransactionBase.normalizeTransaction(req.body.transaction);
+      unconfirmedTrs = TransactionBase.normalizeUnconfirmedTransaction(
+        req.body.transaction
+      );
     } catch (e) {
       this.library.logger.error('Received transaction parse error', {
         raw: req.body,
-        trs: transaction,
+        trs: unconfirmedTrs,
         error: e.toString(),
       });
       return next('Invalid transaction body');
@@ -277,16 +280,16 @@ export default class TransportApi implements IHttpApi {
     const finished = err => {
       if (err) {
         this.library.logger.warn(
-          `Receive invalid transaction ${transaction.id}`,
+          `Receive invalid transaction ${unconfirmedTrs.id}`,
           err
         );
         const errMsg = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
-        this.library.bus.message('onUnconfirmedTransaction', transaction);
+        this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs);
         return res
           .status(200)
-          .json({ success: true, transactionId: transaction.id });
+          .json({ success: true, transactionId: unconfirmedTrs.id });
       }
     };
 
@@ -303,7 +306,7 @@ export default class TransportApi implements IHttpApi {
           return cb('Blockchain is not ready');
         }
 
-        Transactions.processUnconfirmedTransaction(state, transaction, cb);
+        Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
       },
       undefined,
       finished

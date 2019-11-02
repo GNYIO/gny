@@ -1,14 +1,18 @@
-import { ITransaction, ITransactionPool } from '@gny/interfaces';
+import {
+  ITransaction,
+  ITransactionPool,
+  UnconfirmedTransaction,
+} from '@gny/interfaces';
 
 export class TransactionPool implements ITransactionPool {
   private index: Map<string, number>;
-  private unConfirmed: ITransaction[];
+  private unConfirmed: Array<UnconfirmedTransaction>;
   constructor() {
     this.index = new Map();
     this.unConfirmed = [];
   }
 
-  public add(trs: ITransaction) {
+  public add(trs: UnconfirmedTransaction) {
     this.unConfirmed.push(trs);
     this.index.set(trs.id, this.unConfirmed.length - 1);
   }
@@ -25,7 +29,7 @@ export class TransactionPool implements ITransactionPool {
   }
 
   public getUnconfirmed() {
-    const a: ITransaction[] = [];
+    const a: Array<UnconfirmedTransaction> = [];
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {

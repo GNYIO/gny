@@ -2,7 +2,6 @@ import Blocks from '../../../packages/main/src/core/blocks';
 import {
   IBlock,
   KeyPair,
-  IGenesisBlock,
   ProcessBlockOptions,
 } from '../../../packages/interfaces';
 import { IState } from '../../../packages/main/src/globalInterfaces';
@@ -21,7 +20,7 @@ function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
     encoding: 'utf8',
   });
-  const genesisBlock: IGenesisBlock = JSON.parse(genesisBlockRaw);
+  const genesisBlock: IBlock = JSON.parse(genesisBlockRaw);
   return genesisBlock;
 }
 

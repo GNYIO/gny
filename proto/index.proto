@@ -21,6 +21,19 @@ message Block {
   repeated Transaction transactions = 14;
 }
 
+message UnconfirmedTransaction { // without height
+  required int32 type = 1;
+  required int32 timestamp = 2;
+  required string senderPublicKey = 3;
+  required string signatures = 4;
+  required string senderId = 5;
+  required string fee = 6;
+  required string id = 7;
+  optional string args = 8;
+  optional string secondSignature = 9;
+  optional string message = 11;
+}
+
 message Transaction {
   required int32 type = 1;
   required int32 timestamp = 2;

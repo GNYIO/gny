@@ -6,13 +6,12 @@ import {
   IBlock,
   ITransaction,
   ILogger,
-  IGenesisBlock,
 } from '../../../packages/interfaces';
 import { randomBytes } from 'crypto';
 import { cloneDeep } from 'lodash';
-import { generateAddress } from '../../../packages/utils/address';
+import { generateAddress } from '../../../packages/utils/src/address';
 
-export const CUSTOM_GENESIS: IGenesisBlock = {
+export const CUSTOM_GENESIS: IBlock = {
   version: 0,
   payloadHash:
     '4b1598f8e52794520ea65837b44f58b39517cda40548ef6094e5b24c11af3493',

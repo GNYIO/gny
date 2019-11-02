@@ -1,14 +1,14 @@
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '@gny/ed';
-import { KeyPair, IAccount } from '@gny/interfaces';
+import { KeyPair, IAccount, UnconfirmedTransaction } from '@gny/interfaces';
 import { copyObject } from './helpers';
 import { ITransaction, Context } from '@gny/interfaces';
 import { slots } from '@gny/utils';
 import { feeCalculators } from '@gny/utils';
 import * as addressHelper from '@gny/utils';
-import { joi } from '@gny/extendedJoi';
 import BigNumber from 'bignumber.js';
+import { isTransaction, isUnconfirmedTransaction } from '@gny/type-validation';
 
 export interface CreateTransactionType {
   type: number;
@@ -20,7 +20,29 @@ export interface CreateTransactionType {
 }
 
 export class TransactionBase {
-  public static normalizeTransaction(old: any) {
+  public static normalizeTransaction(transaction: ITransaction) {
+    transaction = TransactionBase.cleanTransaction(transaction);
+
+    if (isTransaction(transaction)) {
+      return transaction;
+    }
+
+    throw new Error('is not a valid transaction');
+  }
+
+  public static normalizeUnconfirmedTransaction(
+    transaction: UnconfirmedTransaction
+  ) {
+    transaction = TransactionBase.cleanTransaction(transaction);
+
+    if (isUnconfirmedTransaction(transaction)) {
+      return transaction;
+    }
+
+    throw new Error('is not a valid unconfirmedTransaction');
+  }
+
+  private static cleanTransaction(old: any) {
     const transaction = copyObject(old);
 
     for (const i in transaction) {
@@ -48,65 +70,6 @@ export class TransactionBase {
       } catch (e) {
         throw new Error(`Failed to parse signatures: ${e}`);
       }
-    }
-
-    const signedTransactionSchema = joi.object().keys({
-      fee: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      type: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      timestamp: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      args: joi.array().optional(),
-      message: joi
-        .string()
-        .max(256)
-        .alphanum()
-        .allow('')
-        .optional(),
-      senderId: joi
-        .string()
-        .address()
-        .required(),
-      senderPublicKey: joi
-        .string()
-        .publicKey()
-        .required(),
-      signatures: joi
-        .array()
-        .length(1)
-        .items(
-          joi
-            .string()
-            .signature()
-            .required()
-        )
-        .required()
-        .single(),
-      secondSignature: joi
-        .string()
-        .signature()
-        .optional(),
-      id: joi
-        .string()
-        .hex()
-        .required(),
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .optional(),
-    });
-    const report = joi.validate(transaction, signedTransactionSchema);
-    if (report.error) {
-      throw new Error(report.error.message);
     }
 
     return transaction;
@@ -137,7 +100,10 @@ export class TransactionBase {
   }
 
   public static verifyNormalSignature(
-    transaction: ITransaction,
+    transaction: Pick<
+      ITransaction,
+      'senderPublicKey' | 'signatures' | 'secondSignature'
+    >,
     sender: IAccount,
     bytes: Buffer
   ) {
@@ -204,7 +170,7 @@ export class TransactionBase {
         data.keypair.publicKey.toString('hex')
       ),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
-      timestamp: slots.getTime(undefined),
+      timestamp: slots.getEpochTime(),
       message: data.message,
       args: data.args,
       fee: data.fee,
@@ -223,7 +189,7 @@ export class TransactionBase {
       );
     }
 
-    const final: Omit<ITransaction, 'height'> = {
+    const final: UnconfirmedTransaction = {
       ...intermediate,
       id: TransactionBase.getHash(intermediate).toString('hex'),
     };
@@ -254,7 +220,7 @@ export class TransactionBase {
     return ed.sign(hash, keypair.privateKey).toString('hex');
   }
 
-  public static getId(transaction: ITransaction) {
+  public static getId(transaction: ITransaction | UnconfirmedTransaction) {
     return TransactionBase.getHash(transaction).toString('hex');
   }
 
@@ -334,5 +300,24 @@ export class TransactionBase {
     byteBuffer.flip();
 
     return byteBuffer.toBuffer();
+  }
+
+  public static turnIntoFullTransaction(
+    unconfirmed: UnconfirmedTransaction,
+    height: string
+  ) {
+    const trs: ITransaction = {
+      ...unconfirmed,
+      height: height,
+    };
+    return trs;
+  }
+
+  public static stringifySignatureAndArgs(transaction: ITransaction) {
+    return {
+      ...transaction,
+      signatures: JSON.stringify(transaction.signatures),
+      args: JSON.stringify(transaction.args),
+    } as ITransaction;
   }
 }

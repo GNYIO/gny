@@ -12,6 +12,7 @@
     "packages/utils",
     "packages/p2p",
     "packages/logger",
+    "packages/gny-cli",
     "packages/client"
   ],
   "npmClient": "npm"

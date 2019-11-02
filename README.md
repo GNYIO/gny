@@ -76,7 +76,7 @@ npm run lerna:tsc
 Start a postgres docker container:
 ```bash
 # start POSTGRESQL database on port 3000
-sudo docker run --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres -p 3000:5432 postgres
+sudo docker run --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres -p 3000:5432 postgres:9.6.12
 ```
 
 Open a new `console` and start the GNY blockchain:

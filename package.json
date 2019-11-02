@@ -14,6 +14,7 @@
     "test": "jest --ci --runInBand test/unit",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",
+    "test:e2e": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e",
     "benchmark": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/benchmark",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",

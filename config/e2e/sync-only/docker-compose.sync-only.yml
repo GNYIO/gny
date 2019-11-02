@@ -1,0 +1,43 @@
+version: '3.3'
+services:
+  db1:
+    image: "postgres:9.6.12"
+    container_name: 'db1'
+    restart: always
+    ports:
+      - '3000:5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+  forger:
+    build: ../../..
+    container_name: 'forger'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-only/forger.json" --publicIP $$(./getIP.sh forger) --ormConfig "config/e2e/sync-only/ormconfig.forger.json"'
+    environment:
+      NODE_ENV: production
+    ports:
+      - '4096:4096'
+      - '4097:4097'
+
+  db2:
+    image: "postgres:9.6.12"
+    container_name: 'db2'
+    restart: always
+    ports:
+      - '3001:5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+  syncer:
+    build: ../../..
+    container_name: 'syncer'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/sync-only/syncer.json" --publicIP $$(./getIP.sh syncer) --ormConfig "config/e2e/sync-only/ormconfig.syncer.json" --peers "/ip4/$$(./getIP.sh forger)/tcp/4097/ipfs/QmY27AWmLSG3eEVFXqsH3wioLbmDstAhjzEV9TJTQLwhxC"'
+    environment:
+      NODE_ENV: production
+    ports:
+      - '4098:4096'
+      - '4099:4097'

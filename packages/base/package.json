@@ -20,6 +20,7 @@
     "@gny/extendedJoi": "1.0.0",
     "@gny/interfaces": "1.0.0",
     "@gny/utils": "1.0.0",
+    "@gny/type-validation": "1.0.0",
     "@types/bytebuffer": "^5.0.39",
     "@types/ip": "0.0.32",
     "bignumber.js": "^8.1.1",

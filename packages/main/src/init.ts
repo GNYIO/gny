@@ -12,7 +12,7 @@ import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gny/type-validation';
 import { MessageBus } from '@gny/utils';
 
-import initNetwork from './http/index';
+import { composeNetwork } from './http/index';
 
 function getPublicIp() {
   let publicIp;
@@ -44,9 +44,9 @@ async function init_alt(options: IOptions) {
   }
   const appConfig: IConfig = options.appConfig;
 
-  if (!appConfig.publicIp) {
-    appConfig.publicIp = getPublicIp();
-  }
+  // if (!appConfig.publicIp) {
+  // appConfig.publicIp = getPublicIp();
+  // }
 
   const protoFile = path.join(process.cwd(), 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
@@ -69,7 +69,11 @@ async function init_alt(options: IOptions) {
   global.library = scope;
 
   scope.modules = loadedModules();
-  scope.network = await initNetwork(appConfig, scope.modules, options.logger);
+  scope.network = await composeNetwork(
+    appConfig,
+    scope.modules,
+    options.logger
+  );
   scope.coreApi = loadCoreApi(scope);
 
   scope.network.app.use((req, res) => {

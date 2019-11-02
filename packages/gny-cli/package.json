@@ -2,24 +2,24 @@
   "name": "gny-cli",
   "private": true,
   "version": "1.0.0",
-  "description": "gny command cline tool",
-  "main": "index",
-  "files": [
-    "index.ts",
-    "api/**",
-    "lib/**"
-  ],
+  "description": "gny command line tool",
+  "main": "dist/index",
   "scripts": {
-    "start": "node ./bin/packages/gny-cli/index.js",
-    "build": "tsc; cp package.json ./bin/packages/gny-cli/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
   },
   "bin": {
-    "gny-cli": "./bin/packages/gny-cli/index.js"
+    "gny-cli": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@gny/ed": "1.0.0",
+    "@gny/base": "1.0.0",
+    "@gny/interfaces": "1.0.0",
     "@types/node": "^12.6.8",
     "assert": "^2.0.0",
     "async": "^3.1.0",

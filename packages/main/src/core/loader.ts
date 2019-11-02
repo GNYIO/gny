@@ -1,11 +1,11 @@
 import { slots } from '@gny/utils';
 import { TIMEOUT } from '@gny/utils';
 import {
-  IGenesisBlock,
   PeerNode,
   IBlock,
   ITransaction,
   ICoreModule,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from './BlocksHelper';
@@ -84,10 +84,7 @@ export default class Loader implements ICoreModule {
     return;
   }
 
-  public static async loadBlocks(
-    lastBlock: IBlock,
-    genesisBlock: IGenesisBlock
-  ) {
+  public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
     let result;
     try {
       result = await Peer.randomRequestAsync('getHeight', {});
@@ -176,15 +173,16 @@ export default class Loader implements ICoreModule {
         return cb('validation of peer failed');
       }
 
-      const transactions = data.transactions as ITransaction[];
+      const transactions = data.transactions as Array<UnconfirmedTransaction>;
       const peerStr = `${peer.host}:${peer.port - 1}`;
 
       for (let i = 0; i < transactions.length; i++) {
         try {
-          transactions[i] = TransactionBase.normalizeTransaction(
+          transactions[i] = TransactionBase.normalizeUnconfirmedTransaction(
             transactions[i]
           );
         } catch (e) {
+          // TODO: check/correct statement below
           global.library.logger.info(
             `Transaction ${
               transactions[i] ? transactions[i].id : 'null'
@@ -195,7 +193,7 @@ export default class Loader implements ICoreModule {
         }
       }
 
-      const trs: ITransaction[] = [];
+      const trs: Array<UnconfirmedTransaction> = [];
       for (let i = 0; i < transactions.length; ++i) {
         const one = transactions[i];
         if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {

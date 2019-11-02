@@ -4,7 +4,6 @@ import { generateAddress } from '@gny/utils';
 import { BlockReward } from '@gny/utils';
 import {
   KeyPair,
-  IGenesisBlock,
   PeerNode,
   ProcessBlockOptions,
   BlockPropose,
@@ -16,6 +15,7 @@ import {
   CommonBlockResult,
   IRound,
   ICoreModule,
+  UnconfirmedTransaction,
 } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -210,17 +210,11 @@ export default class Blocks implements ICoreModule {
     if (!block.transactions) block.transactions = [];
     if (!options.local) {
       try {
+        // this validates the block and its transactions
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
         global.app.logger.error(`Failed to normalize block: ${e}`, block);
         throw e;
-      }
-
-      // TODO use bloomfilter
-      for (let i = 0; i < block.transactions.length; ++i) {
-        block.transactions[i] = TransactionBase.normalizeTransaction(
-          block.transactions[i]
-        );
       }
     }
     return block; // important
@@ -280,7 +274,7 @@ export default class Blocks implements ICoreModule {
   }
 
   public static ProcessBlockFireEvents(
-    block: Block,
+    block: IBlock,
     options: ProcessBlockOptions
   ) {
     if (options.broadcast && options.local) {
@@ -292,7 +286,7 @@ export default class Blocks implements ICoreModule {
 
   public static processBlock = async (
     state: IState,
-    block: IBlock | IGenesisBlock,
+    block: IBlock,
     options: ProcessBlockOptions,
     delegateList: string[]
   ) => {
@@ -327,11 +321,10 @@ export default class Blocks implements ICoreModule {
       'Blocks#saveBlockTransactions height',
       block.height
     );
-    for (const trs of block.transactions) {
-      trs.height = block.height;
-      // trs.block = block;
-      trs.signatures = JSON.stringify(trs.signatures);
-      trs.args = JSON.stringify(trs.args);
+
+    for (let trs of block.transactions) {
+      trs = TransactionBase.stringifySignatureAndArgs(trs);
+
       await global.app.sdb.create<Transaction>(Transaction, trs);
     }
     global.app.logger.trace('Blocks#save transactions');
@@ -539,7 +532,7 @@ export default class Blocks implements ICoreModule {
   public static generateBlock = async (
     old: IState,
     activeDelegates: KeyPair[],
-    unconfirmedTransactions: ITransaction[],
+    unconfirmedTransactions: Array<UnconfirmedTransaction>,
     keypair: KeyPair,
     timestamp: number
   ) => {
@@ -638,7 +631,7 @@ export default class Blocks implements ICoreModule {
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
       if (fitInLineResult === BlockFitsInLine.Success) {
-        const pendingTrsMap = new Map<string, ITransaction>();
+        const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
           for (const t of pendingTrs) {
@@ -775,11 +768,13 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onReceiveTransaction = (transaction: ITransaction) => {
+  public static onReceiveTransaction = (
+    unconfirmedTrs: UnconfirmedTransaction
+  ) => {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
-          `Receive invalid transaction ${transaction.id}`,
+          `Receive invalid transaction ${unconfirmedTrs.id}`,
           err
         );
       } else {
@@ -801,7 +796,7 @@ export default class Blocks implements ICoreModule {
         return cb();
       }
 
-      Transactions.processUnconfirmedTransaction(state, transaction, cb);
+      Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
     }, finishCallback);
   };
 
@@ -853,10 +848,10 @@ export default class Blocks implements ICoreModule {
   public static RunGenesisOrLoadLastBlock = async (
     old: IState,
     numberOfBlocksInDb: string | null,
-    genesisBlock: IGenesisBlock,
+    genesisBlock: IBlock,
     processBlock: (
       state: IState,
-      block: IBlock | IGenesisBlock,
+      block: IBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
     ) => Promise<IState>,

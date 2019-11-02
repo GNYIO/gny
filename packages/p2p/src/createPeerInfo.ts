@@ -14,6 +14,10 @@ function _createFromJSON(data: PeerId.JSON, cb: PeerId.CreateCb) {
   PeerId.createFromJSON(data, cb);
 }
 
+function _createFromPrivKey(data: Buffer, cb: PeerId.CreateCb) {
+  PeerId.createFromPrivKey(data, cb);
+}
+
 export function createPeerInfo(): Promise<PeerInfo> {
   return promisify(_createPeerInfo)();
 }
@@ -24,4 +28,8 @@ export function createPeerInfoArgs(id): Promise<PeerInfo> {
 
 export function createFromJSON(data): Promise<PeerId> {
   return promisify(_createFromJSON)(data);
+}
+
+export function createFromPrivKey(data): Promise<PeerId> {
+  return promisify(_createFromPrivKey)(data);
 }

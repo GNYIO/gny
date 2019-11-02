@@ -10,7 +10,7 @@ import * as methodOverride from 'method-override';
 import * as ip from 'ip';
 import { slots } from '@gny/utils';
 import queryParser from './express-query-int';
-import { IConfig, Modules, ILogger } from '@gny/interfaces';
+import { IConfig, Modules, ILogger, INetwork } from '@gny/interfaces';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 
@@ -21,7 +21,7 @@ const CIPHERS = `
   DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:
   !aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA`;
 
-export default async function initNetwork(
+export async function composeNetwork(
   appConfig: IConfig,
   modules: Modules,
   logger: ILogger
@@ -162,7 +162,7 @@ export default async function initNetwork(
     });
   }
 
-  return {
+  const network: INetwork = {
     express,
     app: expressApp,
     server,
@@ -170,6 +170,7 @@ export default async function initNetwork(
     sslServer,
     sslio,
   };
+  return network;
 }
 
 function isNumberOrNumberString(value) {

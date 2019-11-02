@@ -16,10 +16,7 @@ shell.cp('genesisBlock.json', destinationPath);
 shell.cp('config.json', destinationPath);
 shell.cp('gnyd', destinationPath);
 
-shell.cp('ormconfig.integration.json', destinationPath);
-shell.cp('ormconfig.json', destinationPath);
-shell.cp('ormconfig.postgres.json', destinationPath);
-shell.cp('ormconfig.test.json', destinationPath);
+shell.cp('ormconfig*', destinationPath);
 
 shell.cp('docker-compose.yml', destinationPath);
 shell.cp('docker-compose.many.yml', destinationPath);

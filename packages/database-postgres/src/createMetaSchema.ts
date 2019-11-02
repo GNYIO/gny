@@ -1,19 +1,19 @@
 import { MetaSchema, ModelSchema, OneIndex, NormalColumn } from './modelSchema';
 import { getConnection, EntityMetadata } from 'typeorm';
-import { MetaDataStore } from '../decorator/metaDataStore';
+import { MetaDataStore } from './decorator/metaDataStore';
 
-import { Account } from '../entity/Account';
-import { Asset } from '../entity/Asset';
-import { Balance } from '../entity/Balance';
-import { Block } from '../entity/Block';
-import { Delegate } from '../entity/Delegate';
-import { Issuer } from '../entity/Issuer';
-import { Round } from '../entity/Round';
-import { Transaction } from '../entity/Transaction';
-import { Transfer } from '../entity/Transfer';
-import { Variable } from '../entity/Variable';
-import { Vote } from '../entity/Vote';
-import { BlockHistory } from '../entity/BlockHistory';
+import { Account } from './entity/Account';
+import { Asset } from './entity/Asset';
+import { Balance } from './entity/Balance';
+import { Block } from './entity/Block';
+import { Delegate } from './entity/Delegate';
+import { Issuer } from './entity/Issuer';
+import { Round } from './entity/Round';
+import { Transaction } from './entity/Transaction';
+import { Transfer } from './entity/Transfer';
+import { Variable } from './entity/Variable';
+import { Vote } from './entity/Vote';
+import { BlockHistory } from './entity/BlockHistory';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);

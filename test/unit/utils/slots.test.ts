@@ -9,9 +9,7 @@ describe('slots', () => {
 
   it('should have properties', () => {
     const properties = [
-      'delegates',
       'getEpochTime',
-      'getTime',
       'getRealTime',
       'getSlotNumber',
       'getSlotTime',
@@ -33,26 +31,17 @@ describe('slots', () => {
     });
   });
 
-  describe('.delegates', () => {
-    const delegates = slots.delegates;
-
-    it('should be number and not NaN', () => {
-      expect(typeof delegates).toBe('number');
-      expect(delegates).not.toBeNull();
-    });
-  });
-
-  describe('#getTime', () => {
-    const getTime = slots.getTime;
+  describe('#getEpochTime', () => {
+    const getEpochTime = slots.getEpochTime;
 
     it('should be a function', () => {
-      expect(typeof getTime).toBe('function');
+      expect(typeof getEpochTime).toBe('function');
     });
 
     it('should return epoch time as number, equal to 4410100', () => {
       const d = 1546981300000;
 
-      const time = getTime(d);
+      const time = getEpochTime(d);
 
       expect(typeof time).toBe('number');
       expect(time).toEqual(4410100);
@@ -63,7 +52,7 @@ describe('slots', () => {
       const clock = lolex.install({ now: date });
       const d = undefined;
 
-      const time = getTime(d);
+      const time = getEpochTime(d);
       expect(typeof time).toBe('number');
       expect(time).toEqual(3729600);
       clock.uninstall();

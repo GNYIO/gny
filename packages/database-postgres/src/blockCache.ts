@@ -1,4 +1,4 @@
-import { Block } from '../entity/Block';
+import { Block } from './entity/Block';
 import BigNumber from 'bignumber.js';
 
 /**
