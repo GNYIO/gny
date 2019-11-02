@@ -19,7 +19,7 @@ export class Transport extends Base {
     return await this.post('/peer/transactions', params);
   }
 
-  public async getLatestLock(id: string) {
+  public async getNewBlock(id: string) {
     const params = {
       id: id,
     };
