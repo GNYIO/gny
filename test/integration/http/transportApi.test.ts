@@ -299,7 +299,7 @@ describe('transportApi', () => {
 
   describe('/votes', () => {
     it(
-      'should get transactions',
+      'should validate the votes',
       async done => {
         // set username
         const username = 'xpgeng';
