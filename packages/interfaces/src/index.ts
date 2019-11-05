@@ -420,7 +420,7 @@ export interface ApiSuccess {
   success: true;
 }
 
-export type ApiResult<K, T = string> = K & ApiSuccess;
+export type ApiResult<K, T = string> = K & ApiSuccess | ApiError<T>;
 
 export type OffsetAndLimitError =
   | 'child "offset" fails because ["offset" must be a number]'
@@ -439,9 +439,11 @@ export type ValidationError =
   | 'child "positiveOrZeroBigInt" fails because ["positiveOrZeroBigInt" is not a positive or zero big integer amount]'
   | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]';
 
-export type AccountGenerateModel = Pick<IAccount, 'publicKey' | 'address'> & {
+export type AccountGenerateModel = {
   secret: string;
+  publicKey: string;
   privateKey: string;
+  address: string;
 };
 
 export type ServerError = 'Server Error';
