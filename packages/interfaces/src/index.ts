@@ -410,3 +410,55 @@ export interface Context {
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
 }
+
+export interface ApiError<T> {
+  success: false;
+  error: T;
+}
+
+export interface ApiSuccess {
+  success: true;
+}
+
+export type ApiResult<K, T = string> = K & ApiSuccess;
+
+export type OffsetAndLimitError =
+  | 'child "offset" fails because ["offset" must be a number]'
+  | 'child "limit" fails because ["limit" must be a number]'
+  | 'child "offset" fails because ["offset" must be larger than or equal to 0]'
+  | 'child "limit" fails because ["limit" must be less than or equal to 100]';
+
+export type ValidationError =
+  | 'child "address" fails because ["address" is not a GNY address]'
+  | 'child "publicKey" fails because ["publicKey" is not in the format of a 32 char long hex string buffer]'
+  | 'child "secret" fails because ["secret" is not BIP39 complient]'
+  | 'child "username" fails because ["username" is not an GNY username]'
+  | 'child "issuer" fails because ["address" is not a valid GNY issuer name]'
+  | 'child "asset" fails because ["asset" is not a valid GNY asset name]'
+  | 'child "signature" fails because ["signature" is not a valid GNY signature]'
+  | 'child "positiveOrZeroBigInt" fails because ["positiveOrZeroBigInt" is not a positive or zero big integer amount]'
+  | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]';
+
+export type AccountGenerateModel = Pick<IAccount, 'publicKey' | 'address'> & {
+  secret: string;
+  privateKey: string;
+};
+
+export type ServerError = 'Server Error';
+
+export type GetAccountError =
+  | 'provided address is not a GNY address'
+  | ServerError;
+
+export interface AccountOpenModel {
+  account: AccountViewModel;
+  latestBlock: {
+    height: string;
+    timestamp: number;
+  };
+  version: {
+    version: string;
+    build: string;
+    net: string;
+  };
+}
