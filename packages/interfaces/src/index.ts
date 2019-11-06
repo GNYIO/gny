@@ -420,7 +420,7 @@ export interface ApiSuccess {
   success: true;
 }
 
-export type ApiResult<K, T = string> = K & ApiSuccess | ApiError<T>;
+export type ApiResult<K, T = string> = (K & ApiSuccess) | ApiError<T>;
 
 export type OffsetAndLimitError =
   | 'child "offset" fails because ["offset" must be a number]'
@@ -470,3 +470,10 @@ export interface ApiResponse<T, K> {
   headers: { [key: string]: string };
   status: number;
 }
+
+export type ResponseError =
+  | GetAccountError
+  | ValidationError
+  | OffsetAndLimitError;
+
+export type BalanceResponseError = ResponseError | 'No balance';
