@@ -8,6 +8,12 @@ import {
   DelegateViewModel,
   IBalance,
   IHttpApi,
+  ApiResult,
+  AccountGenerateModel,
+  IAccount,
+  ServerError,
+  GetAccountError,
+  AccountOpenModel,
 } from '@gny/interfaces';
 import {
   generateAddressByPublicKey,
@@ -76,7 +82,11 @@ export default class AccountsApi implements IHttpApi {
     );
   };
 
-  private generateAccount = (req: Request, res: Response, next: Next) => {
+  private generateAccount = (
+    req: Request,
+    res: Response,
+    next: Next
+  ): ApiResult<AccountGenerateModel, ServerError> => {
     const secret = bip39.generateMnemonic();
     const keypair = ed.generateKeyPair(
       crypto
@@ -88,6 +98,7 @@ export default class AccountsApi implements IHttpApi {
       keypair.publicKey.toString('hex')
     );
     return res.json({
+      success: true,
       secret,
       publicKey: keypair.publicKey.toString('hex'),
       privateKey: keypair.privateKey.toString('hex'),
@@ -95,7 +106,11 @@ export default class AccountsApi implements IHttpApi {
     });
   };
 
-  private open = async (req: Request, res: Response, next: Next) => {
+  private open = async (
+    req: Request,
+    res: Response,
+    next: Next
+  ): Promise<ApiResult<AccountOpenModel, GetAccountError>> => {
     const { body } = req;
     const publicKeyOrSecret = joi
       .object()
@@ -138,7 +153,7 @@ export default class AccountsApi implements IHttpApi {
     req: Request,
     res: Response,
     next: Next
-  ) => {
+  ): Promise<ApiResult<IAccount, GetAccountError>> => {
     const { query } = req;
     const addressOrAccountName = joi
       .object()
