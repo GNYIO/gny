@@ -464,3 +464,9 @@ export interface AccountOpenModel {
     net: string;
   };
 }
+
+export interface ApiResponse<T, K> {
+  data: ApiResult<T, K>;
+  headers: { [key: string]: string };
+  status: number;
+}
