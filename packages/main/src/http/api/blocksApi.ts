@@ -13,6 +13,7 @@ import {
   MilestoneWrapper,
   RewardWrappper,
   SupplyWrapper,
+  Status,
 } from '@gny/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gny/base';
