@@ -27,21 +27,6 @@ interface OnlyUserName {
   username: string;
 }
 
-interface BalanceResult {
-  count: number;
-  balances: IBalance[];
-}
-
-interface DelegateResult {
-  delegates: DelegateViewModel[];
-}
-
-interface CountResult {
-  count: number;
-}
-
-type PublicKeyError = 'Can not find public key';
-
 export class Account extends Base {
   public async generateAccount() {
     const res = await this.get('/api/accounts/generateAccount');
