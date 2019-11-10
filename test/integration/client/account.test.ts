@@ -83,7 +83,7 @@ describe('account', () => {
         'should generate an account',
         async done => {
           const response = await accountApi.generateAccount();
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
           done();
         },
         lib.oneMinute
@@ -97,7 +97,7 @@ describe('account', () => {
           const secret =
             'grow pencil ten junk bomb right describe trade rich valid tuna service';
           const response = await accountApi.openAccount(secret);
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
           done();
         },
         lib.oneMinute
@@ -110,7 +110,7 @@ describe('account', () => {
         async done => {
           const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
           const response = await accountApi.getBalance(address);
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
           done();
         },
         lib.oneMinute
@@ -151,7 +151,7 @@ describe('account', () => {
             address,
             currecny
           );
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );
@@ -163,7 +163,7 @@ describe('account', () => {
         async () => {
           const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
           const response = await accountApi.getAccountByAddress(address);
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );
@@ -187,7 +187,7 @@ describe('account', () => {
           await lib.onNewBlock();
 
           const response = await accountApi.getAccountByUsername(username);
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );
@@ -251,7 +251,7 @@ describe('account', () => {
             address,
             username,
           });
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );
@@ -262,7 +262,7 @@ describe('account', () => {
         'should get the number of accounts',
         async () => {
           const response = await accountApi.countAccounts();
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );
@@ -275,7 +275,7 @@ describe('account', () => {
           const secret =
             'grow pencil ten junk bomb right describe trade rich valid tuna service';
           const response = await accountApi.generatePublicKey(secret);
-          expect(response.status).toEqual(200);
+          expect(response.success).toBeTruthy();
         },
         lib.oneMinute
       );

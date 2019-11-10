@@ -36,7 +36,7 @@ describe('block', () => {
 
         const height = String(2);
         const response = await blockApi.getBlockByHeight(height);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -56,7 +56,7 @@ describe('block', () => {
         const { data } = await blockApi.getBlockByHeight(height);
         const id = data.block.id;
         const response = await blockApi.getBlockById(id);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -76,7 +76,7 @@ describe('block', () => {
         await lib.onNewBlock();
 
         const response = await blockApi.getBlocks(offset, limit);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -88,7 +88,7 @@ describe('block', () => {
       'should get the height',
       async () => {
         const response = await blockApi.getHeight();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -99,7 +99,7 @@ describe('block', () => {
       'should get the milestone',
       async () => {
         const response = await blockApi.getMilestone();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -110,7 +110,7 @@ describe('block', () => {
       'should get the reward',
       async () => {
         const response = await blockApi.getReward();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -121,7 +121,7 @@ describe('block', () => {
       'should get the supply',
       async () => {
         const response = await blockApi.getSupply();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -132,7 +132,7 @@ describe('block', () => {
       'should get status',
       async () => {
         const response = await blockApi.getStatus();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
