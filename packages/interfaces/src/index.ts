@@ -413,7 +413,7 @@ export interface Context {
 
 export interface ApiError<T> {
   success: false;
-  error: T;
+  error: T | string;
 }
 
 export interface ApiSuccess {
@@ -464,6 +464,31 @@ export interface AccountOpenModel {
     net: string;
   };
 }
+
+export interface BalancesModel {
+  count: number;
+  balances: IBalance[];
+}
+
+export interface IBalanceWrapper {
+  balance: IBalance;
+}
+
+export interface DelegatesWrapper {
+  delegates: DelegateViewModel[];
+}
+
+export type DelegateError = 'Account not found' | ServerError;
+
+export interface CountWrapper {
+  count: number;
+}
+
+export interface PulicKeyWapper {
+  publicKey: string;
+}
+
+// Client
 
 export interface ApiResponse<T, K> {
   data: ApiResult<T, K>;
