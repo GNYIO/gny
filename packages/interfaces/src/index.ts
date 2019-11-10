@@ -488,17 +488,46 @@ export interface PulicKeyWapper {
   publicKey: string;
 }
 
-// Client
-
-export interface ApiResponse<T, K> {
-  data: ApiResult<T, K>;
-  headers: { [key: string]: string };
-  status: number;
+export interface BlockWrapper {
+  block: IBlock;
 }
+
+export type BlockError = 'Block not found';
+
+export interface BlocksModel {
+  count: number;
+  blocks: IBlock[];
+}
+
+export interface HeightWrapper {
+  height: string;
+}
+
+export interface MilestoneWrapper {
+  milestone: number;
+}
+
+export interface RewardWrappper {
+  reward: number;
+}
+
+export interface SupplyWrapper {
+  supply: string;
+}
+
+export interface Status {
+  height: string;
+  fee: string;
+  milestone: number;
+  reward: number;
+  supply: string;
+}
+
+// Client
 
 export type ResponseError =
   | GetAccountError
   | ValidationError
   | OffsetAndLimitError;
 
-export type BalanceResponseError = ResponseError | 'No balance';
+export type BalanceResponseError = 'No balance';
