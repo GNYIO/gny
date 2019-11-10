@@ -2,13 +2,21 @@ import { Base } from './base';
 import {
   DelegateViewModel,
   IBalance,
-  ApiResponse,
+  ApiResult,
   AccountGenerateModel,
+  GetAccountError,
+  BalancesModel,
+  IBalanceWrapper,
   IAccount,
   ServerError,
   AccountOpenModel,
   ResponseError,
   BalanceResponseError,
+  ValidationError,
+  DelegatesWrapper,
+  DelegateError,
+  CountWrapper,
+  PulicKeyWapper,
 } from '@gny/interfaces';
 
 interface OnlyAddress {
@@ -35,76 +43,75 @@ interface CountResult {
 type PublicKeyError = 'Can not find public key';
 
 export class Account extends Base {
-  public async generateAccount<
-    T = AccountGenerateModel,
-    K = ServerError
-  >(): Promise<ApiResponse<T, K>> {
-    return await this.get('/api/accounts/generateAccount');
+  public async generateAccount() {
+    const res = await this.get('/api/accounts/generateAccount');
+    const result: ApiResult<AccountGenerateModel, ServerError> = res.data;
+    return result;
   }
 
-  public async openAccount<T = AccountOpenModel, K = ResponseError>(
-    secret: string
-  ): Promise<ApiResponse<T, K>> {
-    return await this.post('/api/accounts/open', { secret: secret });
+  public async openAccount(secret: string) {
+    const res = await this.post('/api/accounts/open', { secret: secret });
+    const result: ApiResult<AccountOpenModel, GetAccountError> = res.data;
+    return result;
   }
 
-  public async getBalance<T = BalanceResult, K = ResponseError>(
-    address: string
-  ): Promise<ApiResponse<T, K>> {
+  public async getBalance(address: string) {
     const params = { address: address };
-    return await this.get('/api/accounts/getBalance', params);
+    const res = await this.get('/api/accounts/getBalance', params);
+    const result: ApiResult<BalancesModel, ResponseError> = res.data;
+    return result;
   }
 
-  public async getAddressCurrencyBalance<
-    T = IBalance,
-    K = BalanceResponseError
-  >(address: string, currency: string): Promise<ApiResponse<T, K>> {
-    return await this.get(`/api/accounts/${address}/${currency}`);
+  public async getAddressCurrencyBalance(address: string, currency: string) {
+    const res = await this.get(`/api/accounts/${address}/${currency}`);
+    const result: ApiResult<
+      IBalanceWrapper,
+      ValidationError | BalanceResponseError
+    > = res.data;
+    return result;
   }
 
-  public async getAccountByAddress<T = AccountOpenModel, K = ResponseError>(
-    address: string
-  ): Promise<ApiResponse<T, K>> {
+  public async getAccountByAddress(address: string) {
     const params = { address: address };
-    return await this.get('/api/accounts/', params);
+    const res = await this.get('/api/accounts/', params);
+    const result: ApiResult<AccountOpenModel, ServerError> = res.data;
+    return result;
   }
 
-  public async getAccountByUsername<T = IAccount, K = ResponseError>(
-    username: string
-  ): Promise<ApiResponse<T, K>> {
+  public async getAccountByUsername(username: string) {
     const params = { username: username };
-    return await this.get('/api/accounts/', params);
+    const res = await this.get('/api/accounts/', params);
+    const result: ApiResult<IAccount, ServerError> = res.data;
+    return result;
   }
 
-  public async getVotedDelegates<T = DelegateResult, K = ResponseError>(
-    query: OnlyAddress | OnlyUserName
-  ): Promise<ApiResponse<T, K>> {
-    return await this.get('/api/accounts/getVotes', query);
+  public async getVotedDelegates(query: OnlyAddress | OnlyUserName) {
+    const res = await this.get('/api/accounts/getVotes', query);
+    const result: ApiResult<DelegatesWrapper, DelegateError> = res.data;
+    return result;
   }
 
-  public async countAccounts<T = CountResult, K = ServerError>(): Promise<
-    ApiResponse<T, K>
-  > {
-    return await this.get('/api/accounts/count');
+  public async countAccounts() {
+    const res = await this.get('/api/accounts/count');
+    const result: ApiResult<CountWrapper, ServerError> = res.data;
+    return result;
   }
 
-  public async getPublicKey<
-    T = Pick<IAccount, 'publicKey'>,
-    K = ResponseError | PublicKeyError
-  >(address: string): Promise<ApiResponse<T, K>> {
+  public async getPublicKey(address: string) {
     const params = {
       address: address,
     };
-    return await this.get('/api/accounts/getPublicKey', params);
+    const res = await this.get('/api/accounts/getPublicKey', params);
+    const result: ApiResult<PulicKeyWapper, GetAccountError> = res.data;
+    return result;
   }
 
-  public async generatePublicKey<
-    T = Pick<IAccount, 'publicKey'>,
-    K = ResponseError
-  >(secret: string): Promise<ApiResponse<T, K>> {
+  public async generatePublicKey(secret: string) {
     const params = {
       secret: secret,
     };
-    return await this.post('/api/accounts/generatePublicKey', params);
+    const res = await this.post('/api/accounts/generatePublicKey', params);
+    const result: ApiResult<PulicKeyWapper, ServerError> = res.data;
+    return result;
   }
 }
