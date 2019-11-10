@@ -1,6 +1,19 @@
 import * as _ from 'lodash';
 import { BlockReward } from '@gny/utils';
-import { IScope, Next, IBlock, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  IBlock,
+  IHttpApi,
+  ApiResult,
+  BlockWrapper,
+  BlockError,
+  BlocksModel,
+  HeightWrapper,
+  MilestoneWrapper,
+  RewardWrappper,
+  SupplyWrapper,
+} from '@gny/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gny/base';
 import { getBlocks as getBlocksFromApi } from '../util';
@@ -84,7 +97,11 @@ export default class BlocksApi implements IHttpApi {
       if (!block) {
         return next('Block not found');
       }
-      return res.json({ block: block });
+      const result: ApiResult<BlockWrapper, BlockError> = {
+        success: true,
+        block,
+      };
+      return res.json(result);
     } catch (e) {
       this.library.logger.error(e);
       return next('Server error');
@@ -147,7 +164,12 @@ export default class BlocksApi implements IHttpApi {
         blocks = _.reverse(blocks);
       }
       const count = global.app.sdb.blocksCount;
-      return res.json({ count, blocks });
+      const result: ApiResult<BlocksModel> = {
+        success: true,
+        count,
+        blocks,
+      };
+      return res.json(result);
     } catch (err) {
       return next(err.message);
     }
@@ -155,24 +177,40 @@ export default class BlocksApi implements IHttpApi {
 
   private getHeight = (req: Request, res: Response, next: Next) => {
     const height = StateHelper.getState().lastBlock.height;
-    return res.json({ height });
+    const result: ApiResult<HeightWrapper> = {
+      success: true,
+      height,
+    };
+    return res.json(result);
   };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
     const height = StateHelper.getState().lastBlock.height;
     const milestone = this.blockReward.calculateMilestone(height);
-    return res.json({ milestone });
+    const result: ApiResult<MilestoneWrapper> = {
+      success: true,
+      milestone,
+    };
+    return res.json(result);
   };
 
   private getReward = (req: Request, res: Response, next: Next) => {
     const height = StateHelper.getState().lastBlock.height;
     const reward = this.blockReward.calculateReward(height);
-    return res.json({ reward });
+    const result: ApiResult<RewardWrappper> = {
+      success: true,
+      reward,
+    };
+    return res.json(result);
   };
 
   private getSupply = (req: Request, res: Response, next: Next) => {
     const height = StateHelper.getState().lastBlock.height;
     const supply = this.blockReward.calculateSupply(height);
+    const result: ApiResult<SupplyWrapper> = {
+      success: true,
+      supply,
+    };
     return res.json({ supply });
   };
 
@@ -182,12 +220,14 @@ export default class BlocksApi implements IHttpApi {
     const milestone = this.blockReward.calculateMilestone(height);
     const reward = this.blockReward.calculateReward(height);
     const supply = this.blockReward.calculateSupply(height);
-    return res.json({
+    const result: ApiResult<Status> = {
+      success: true,
       height,
       fee,
       milestone,
       reward,
       supply,
-    });
+    };
+    return res.json(result);
   };
 }
