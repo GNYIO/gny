@@ -541,6 +541,16 @@ export interface ForgingStatus {
   enabled: boolean;
 }
 
+export interface LoaderStatus {
+  loaded: boolean;
+}
+
+export interface SyncStatus {
+  syncing: boolean;
+  blocks: number;
+  height: string;
+}
+
 // Client
 
 export type ResponseError =
