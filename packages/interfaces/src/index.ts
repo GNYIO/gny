@@ -551,6 +551,17 @@ export interface SyncStatus {
   height: string;
 }
 
+export interface PeersWrapper {
+  peers: SimplePeerInfo[];
+  count: number;
+}
+
+export interface VersionWrapper {
+  version: string;
+  build: string;
+  net: string;
+}
+
 // Client
 
 export type ResponseError =
