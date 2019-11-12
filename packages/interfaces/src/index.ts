@@ -437,7 +437,8 @@ export type ValidationError =
   | 'child "asset" fails because ["asset" is not a valid GNY asset name]'
   | 'child "signature" fails because ["signature" is not a valid GNY signature]'
   | 'child "positiveOrZeroBigInt" fails because ["positiveOrZeroBigInt" is not a positive or zero big integer amount]'
-  | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]';
+  | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]'
+  | 'Invalid params';
 
 export type AccountGenerateModel = {
   secret: string;
@@ -523,6 +524,23 @@ export interface Status {
   supply: string;
 }
 
+export interface AccountsWrapper {
+  accounts: AccountWeightViewModel[];
+}
+
+export interface DelegateWrapper {
+  delegate: DelegateViewModel;
+}
+
+export interface DelegatesWrapper {
+  tatolCount: number;
+  delegates: DelegateViewModel[];
+}
+
+export interface ForgingStatus {
+  enabled: boolean;
+}
+
 // Client
 
 export type ResponseError =
@@ -531,3 +549,16 @@ export type ResponseError =
   | OffsetAndLimitError;
 
 export type BalanceResponseError = 'No balance';
+
+export type DelegateResponseError =
+  | 'Failed to count delegates'
+  | 'no delegates'
+  | 'Can not find delegate'
+  | 'No delegates found'
+  | 'Delegate not found';
+
+export type ForgingError =
+  | 'Access denied'
+  | 'Invalid passphrase'
+  | 'Forging is already enabled'
+  | 'Delegate not found';
