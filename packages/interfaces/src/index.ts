@@ -573,6 +573,18 @@ export interface SystemInfo {
   };
 }
 
+export interface UnconfirmedTransactionWrapper {
+  transaction: UnconfirmedTransaction;
+}
+
+export interface TransactionsWrapper {
+  count: number;
+  transactions: Array<UnconfirmedTransaction | ITransaction>;
+}
+
+export interface TransactionIdWapper {
+  transactionId: string;
+}
 // Client
 
 export type ResponseError =
@@ -594,3 +606,8 @@ export type ForgingError =
   | 'Invalid passphrase'
   | 'Forging is already enabled'
   | 'Delegate not found';
+
+export type TransactionError =
+  | 'Transaction not found'
+  | 'Invalid transaction body: is not a valid transaction'
+  | 'Invalid transaction body';
