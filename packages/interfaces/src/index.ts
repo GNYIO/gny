@@ -562,6 +562,17 @@ export interface VersionWrapper {
   net: string;
 }
 
+export interface SystemInfo {
+  os: string;
+  version: string;
+  timestamp: number;
+  lastBlock: {
+    height: string;
+    timestamp: number;
+    behind: number;
+  };
+}
+
 // Client
 
 export type ResponseError =
