@@ -585,6 +585,16 @@ export interface TransactionsWrapper {
 export interface TransactionIdWapper {
   transactionId: string;
 }
+
+export interface TransfersWapper {
+  count: number;
+  transfers: ITransfer[];
+}
+
+export interface AmountWrapper {
+  count: number;
+  strTotalAmount: string;
+}
 // Client
 
 export type ResponseError =

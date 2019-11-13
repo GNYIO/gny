@@ -1,4 +1,10 @@
 import { Base } from './base';
+import {
+  ApiResult,
+  TransfersWapper,
+  ValidationError,
+  AmountWapper,
+} from '@gny/interfaces';
 
 interface Query {
   ownerId?: string;
@@ -16,7 +22,9 @@ export class Transfer extends Base {
       limit: query.limit,
       offset: query.offset,
     };
-    return await this.get('/api/transfers', params);
+    const res = await this.get('/api/transfers', params);
+    const result: ApiResult<TransfersWapper, ValidationError> = res.data;
+    return result;
   }
 
   public async getAmount(startTimestamp: string, endTimestamp: string) {
@@ -24,6 +32,8 @@ export class Transfer extends Base {
       startTimestamp,
       endTimestamp,
     };
-    return await this.get('/api/transfers/amount', params);
+    const res = await this.get('/api/transfers/amount', params);
+    const result: ApiResult<AmountWapper, ValidationError> = res.data;
+    return result;
   }
 }

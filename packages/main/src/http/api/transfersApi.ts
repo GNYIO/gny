@@ -1,6 +1,14 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, ITransfer, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  ITransfer,
+  IHttpApi,
+  ApiResult,
+  TransfersWapper,
+  AmountWapper,
+} from '@gny/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transfer } from '@gny/database-postgres';
@@ -127,7 +135,12 @@ export default class TransfersApi implements IHttpApi {
         }
       }
     }
-    return res.json({ count, transfers });
+    const result: ApiResult<TransfersWapper> = {
+      success: true,
+      count,
+      transfers,
+    };
+    return res.json(result);
   };
 
   private getAmount = async (req: Request, res: Response, next: Next) => {
@@ -173,7 +186,12 @@ export default class TransfersApi implements IHttpApi {
       }
     }
     const strTotalAmount = String(totalAmount);
-    return res.json({ count, strTotalAmount });
+    const result: ApiResult<AmountWapper> = {
+      success: true,
+      count,
+      strTotalAmount,
+    };
+    return res.json(result);
   };
 
   // helper function
