@@ -205,6 +205,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: npm install dependencies
+          command: npm ci
+      - run:
           name: npm audit dependencies
           command: node auditAllPackages.js
 workflows:
