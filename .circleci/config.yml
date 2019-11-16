@@ -33,6 +33,7 @@ jobs:
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
+            - ./packages/protobuf/node_modules
       - run:
           name: test
           command: npm run test
@@ -89,6 +90,7 @@ jobs:
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
+            - ./packages/protobuf/node_modules
       - run:
           name: test-integration
           command: npm run test:integration
@@ -154,6 +156,7 @@ jobs:
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
+            - ./packages/protobuf/node_modules
       - run:
           name: test-end2end
           command: npm run test:e2e
