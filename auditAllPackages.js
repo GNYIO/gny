@@ -5,6 +5,8 @@ const shellJS = require('shelljs');
 const lernaJsonFilePath = path.join('.', 'lerna.json');
 const lernaJSONFile = JSON.parse(fs.readFileSync(lernaJsonFilePath));
 
+let errorOccured = false;
+
 function stripDependencies(packageJson) {
   lernaJSONFile.packages.map(lernaPkg => {
     lernaPkg = lernaPkg.replace('packages', '@gny');
@@ -21,6 +23,9 @@ function runNpmAuditInDir(dir) {
     cwd: dir,
   });
   console.log(`\n\npackage: ${dir}\n${result.stdout}`);
+  if (result.code > 0) {
+    errorOccured = true;
+  }
 }
 
 function auditRoot() {
@@ -68,3 +73,7 @@ function auditPackages() {
 
 auditRoot();
 auditPackages();
+
+if (errorOccured) {
+  throw new Error('npm audit error');
+}
