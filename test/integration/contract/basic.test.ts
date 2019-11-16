@@ -447,7 +447,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Height should be positive integer',
+      'trying to lock amount till height "0" returns error',
       async () => {
         // lock
         const trs = gnyClient.basic.lock(0, 30 * 1e8, genesisSecret);
@@ -464,7 +464,7 @@ describe('basic', () => {
 
         expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: Height should be positive integer',
+          error: 'Error: Amount should be positive integer',
         });
 
         // After lock
@@ -509,7 +509,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Invalid lock height',
+      'locking account below the MIN_LOCK_HEIGHT returns error',
       async () => {
         // lock
         const trs = gnyClient.basic.lock(17300, 30 * 1e8, genesisSecret);
@@ -540,7 +540,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Invalid amount',
+      'trying to lock account with amount "0" results in error',
       async () => {
         // lock
         const trs = gnyClient.basic.lock(173000, 0, genesisSecret);
@@ -557,7 +557,7 @@ describe('basic', () => {
 
         expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: Invalid amount',
+          error: 'Error: Amount should be positive integer',
         });
 
         // After lock
@@ -571,7 +571,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Invalid lock height, when the sender has been locked',
+      'trying to lock account two times with same height returns error',
       async () => {
         // lock the sender before locking again
         const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
@@ -616,7 +616,7 @@ describe('basic', () => {
     );
 
     it(
-      'should return the error: Invalid amount, when the sender has been locked',
+      'locking account a second time with an amount of "0" should return error',
       async () => {
         // lock the sender before locking again
         const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
@@ -647,7 +647,7 @@ describe('basic', () => {
 
         expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: Invalid amount',
+          error: 'Error: Amount should be positive integer',
         });
 
         // After lock

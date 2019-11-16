@@ -262,14 +262,6 @@ describe('basic', () => {
       done();
     });
 
-    it('should return Height should be positive integer', async done => {
-      height = 1.2;
-      amount = 99;
-      const locked = await basic.lock(height, amount);
-      expect(locked).toBe('Height should be positive integer');
-      done();
-    });
-
     it('should return Insufficient balance', async done => {
       height = 5760 * 30 + 2;
       amount = 101;
