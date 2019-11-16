@@ -206,7 +206,7 @@ jobs:
       - checkout
       - run:
           name: npm audit dependencies
-          command: npm audit
+          command: node auditAllPackages.js
 workflows:
   version: 2
   all_unit_tests_every_commit:
