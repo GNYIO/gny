@@ -35,7 +35,7 @@ describe('uia', () => {
           'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
         const response = await uiaApi.registerIssuer(name, desc, secret);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -63,7 +63,7 @@ describe('uia', () => {
           precision,
           secret
         );
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

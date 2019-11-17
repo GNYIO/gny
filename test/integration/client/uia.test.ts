@@ -98,7 +98,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuers(limit, offset);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -129,7 +129,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.isIssuer(address);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -160,7 +160,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuer(name);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -211,7 +211,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuerAssets(name, limit, offset);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -257,7 +257,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getAssets();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -305,7 +305,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getAsset(name);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -338,7 +338,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getBalances(recipient);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -371,7 +371,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getBalance(recipient, 'ABC.BBB');
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

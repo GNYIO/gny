@@ -30,7 +30,7 @@ describe('peer', () => {
       'should get peers',
       async () => {
         const response = await peerApi.getPeers();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -41,7 +41,7 @@ describe('peer', () => {
       'should get version',
       async () => {
         const response = await peerApi.getVersion();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

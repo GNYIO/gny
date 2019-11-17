@@ -65,7 +65,7 @@ describe('transaction', () => {
           senderId: senderId,
         };
         const response = await transactionApi.getTransactions(query);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute

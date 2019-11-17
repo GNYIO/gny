@@ -54,7 +54,7 @@ describe('transport', () => {
         );
 
         const response = await transportApi.sendTransaction(trs);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -71,7 +71,7 @@ describe('transport', () => {
         const id = data.block.id;
 
         const response = await transportApi.getNewBlock(id);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -99,7 +99,7 @@ describe('transport', () => {
         const ids = [blockData.data.block.id as string];
 
         const response = await transportApi.getBlocksByIds(max, min, ids);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -120,7 +120,7 @@ describe('transport', () => {
         const limit = '1';
 
         const response = await transportApi.getBlocksByLimit(limit, id);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -194,7 +194,7 @@ describe('transport', () => {
         };
 
         const response = await transportApi.validateVote(query);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -205,7 +205,7 @@ describe('transport', () => {
       'should get unconfirmed transactions',
       async () => {
         const response = await transportApi.getUnconfirmedTransactions();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -216,7 +216,7 @@ describe('transport', () => {
       'should get block height',
       async () => {
         const response = await transportApi.getHeight();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
