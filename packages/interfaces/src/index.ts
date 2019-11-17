@@ -613,6 +613,38 @@ export interface BlocksWrapper {
   blocks: IBlock[];
 }
 
+export interface IssuerWrapper {
+  issuer: IIssuer;
+}
+
+export interface IssuesWrapper {
+  count: number;
+  issues: IIssuer[];
+}
+
+export interface IsIssuerWrapper {
+  isIssuer: boolean;
+  issuerName: string | undefined;
+}
+
+export interface AssetsWrapper {
+  count: number;
+  assets: IAsset[];
+}
+
+export interface AssetWrapper {
+  asset: IAsset;
+}
+
+export interface BalancesWrapper {
+  count: number;
+  balances: IBalance[];
+}
+
+export interface BalanceWrapper {
+  balance: IBalance;
+}
+
 // Client
 
 export type ResponseError =
@@ -651,3 +683,9 @@ export type CommonBlockError =  // lack of specific validation error
   | 'Blocks not found'
   | 'Common block not found'
   | 'Failed to find common block';
+
+export type IssueError = 'Issuer not found';
+
+export type AssetError = 'Asset not found';
+
+export type BalanceError = 'Balance info not found';
