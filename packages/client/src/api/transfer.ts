@@ -1,7 +1,7 @@
 import { Base } from './base';
 import {
   ApiResult,
-  TransfersWapper,
+  TransfersWrapper,
   ValidationError,
   AmountWapper,
 } from '@gny/interfaces';
@@ -23,7 +23,7 @@ export class Transfer extends Base {
       offset: query.offset,
     };
     const res = await this.get('/api/transfers', params);
-    const result: ApiResult<TransfersWapper, ValidationError> = res.data;
+    const result: ApiResult<TransfersWrapper, ValidationError> = res.data;
     return result;
   }
 

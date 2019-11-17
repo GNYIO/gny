@@ -13,7 +13,7 @@ import {
   ApiResult,
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
-  TransactionIdWapper,
+  TransactionIdWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -326,7 +326,7 @@ export default class TransactionsApi implements IHttpApi {
               'onUnconfirmedTransaction',
               unconfirmedTrs
             );
-            const result: ApiResult<TransactionIdWapper> = {
+            const result: ApiResult<TransactionIdWrapper> = {
               success: true,
               transactionId: unconfirmedTrs.id,
             };

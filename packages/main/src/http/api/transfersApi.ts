@@ -6,7 +6,7 @@ import {
   ITransfer,
   IHttpApi,
   ApiResult,
-  TransfersWapper,
+  TransfersWrapper,
   AmountWapper,
 } from '@gny/interfaces';
 import { Merge } from 'type-fest';
@@ -135,7 +135,7 @@ export default class TransfersApi implements IHttpApi {
         }
       }
     }
-    const result: ApiResult<TransfersWapper> = {
+    const result: ApiResult<TransfersWrapper> = {
       success: true,
       count,
       transfers,

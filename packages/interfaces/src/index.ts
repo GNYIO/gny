@@ -428,6 +428,8 @@ export type OffsetAndLimitError =
   | 'child "offset" fails because ["offset" must be larger than or equal to 0]'
   | 'child "limit" fails because ["limit" must be less than or equal to 100]';
 
+export type ParamsError = 'Invalid params';
+
 export type ValidationError =
   | 'child "address" fails because ["address" is not a GNY address]'
   | 'child "publicKey" fails because ["publicKey" is not in the format of a 32 char long hex string buffer]'
@@ -438,7 +440,7 @@ export type ValidationError =
   | 'child "signature" fails because ["signature" is not a valid GNY signature]'
   | 'child "positiveOrZeroBigInt" fails because ["positiveOrZeroBigInt" is not a positive or zero big integer amount]'
   | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]'
-  | 'Invalid params';
+  | ParamsError;
 
 export type AccountGenerateModel = {
   secret: string;
@@ -492,8 +494,6 @@ export interface PulicKeyWapper {
 export interface BlockWrapper {
   block: IBlock;
 }
-
-export type BlockError = 'Block not found';
 
 export interface BlocksModel {
   count: number;
@@ -582,11 +582,15 @@ export interface TransactionsWrapper {
   transactions: Array<UnconfirmedTransaction | ITransaction>;
 }
 
-export interface TransactionIdWapper {
+export interface UnconfirmedTransactionsWrapper {
+  transactions: Array<UnconfirmedTransaction>;
+}
+
+export interface TransactionIdWrapper {
   transactionId: string;
 }
 
-export interface TransfersWapper {
+export interface TransfersWrapper {
   count: number;
   transfers: ITransfer[];
 }
@@ -595,6 +599,20 @@ export interface AmountWrapper {
   count: number;
   strTotalAmount: string;
 }
+
+export interface NewBlockWrapper {
+  block: IBlock;
+  votes: ManyVotes;
+}
+
+export interface CommonBlockWrapper {
+  common: IBlock;
+}
+
+export interface BlocksWrapper {
+  blocks: IBlock[];
+}
+
 // Client
 
 export type ResponseError =
@@ -621,3 +639,15 @@ export type TransactionError =
   | 'Transaction not found'
   | 'Invalid transaction body: is not a valid transaction'
   | 'Invalid transaction body';
+
+export type NewBlockError =
+  | 'Invalid params'
+  | 'Block not found'
+  | 'validation failed'
+  | 'New block not found';
+
+export type CommonBlockError =  // lack of specific validation error
+  | 'too big min,max'
+  | 'Blocks not found'
+  | 'Common block not found'
+  | 'Failed to find common block';

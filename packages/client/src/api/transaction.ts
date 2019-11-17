@@ -7,7 +7,7 @@ import {
   ServerError,
   UnconfirmedTransactionWrapper,
   TransactionError,
-  TransactionIdWapper,
+  TransactionIdWrapper,
 } from '@gny/interfaces';
 
 interface Query {
@@ -87,7 +87,7 @@ export class Transaction extends Base {
     };
     const res = await this.put('/api/transactions/', params);
     const result: ApiResult<
-      TransactionIdWapper,
+      TransactionIdWrapper,
       TransactionError | ServerError
     > = res.data;
     return result;
