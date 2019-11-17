@@ -1,5 +1,6 @@
 import { Base } from '../api/base';
 import { basic } from '../';
+import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
 
 export class Basic extends Base {
   public async setUserName(
@@ -11,7 +12,9 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async lockAccount(height: number, amount: number, secret: string) {
@@ -19,7 +22,9 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async unlockAccount(secrete: string) {
@@ -27,7 +32,9 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async registerDelegate(secret: string) {
@@ -35,7 +42,9 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async send(
@@ -55,7 +64,9 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async vote(keyList: string[], secret: string, secondSecret?: string) {
@@ -64,7 +75,9 @@ export class Basic extends Base {
       transaction: trs,
     };
 
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async unvote(
@@ -76,6 +89,8 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 }

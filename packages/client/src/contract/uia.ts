@@ -1,5 +1,6 @@
 import { Base } from '../api/base';
 import { uia } from '../';
+import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
 
 export class Uia extends Base {
   public async registerIssuer(
@@ -12,7 +13,9 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 
   public async registerAsset(
@@ -34,6 +37,8 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
   }
 }
