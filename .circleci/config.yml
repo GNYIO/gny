@@ -100,7 +100,7 @@ jobs:
     steps:
       - checkout
       - run:
-         name: Update to Docker Compose 1.24.1
+         name: Update to Docker Compose 1.24.1 # to enable: docker-compose up --no-start
          command: |
            curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
            chmod +x ~/docker-compose
@@ -205,8 +205,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: npm install dependencies
+          command: npm ci
+      - run:
           name: npm audit dependencies
-          command: npm audit
+          command: node auditAllPackages.js
 workflows:
   version: 2
   all_unit_tests_every_commit:
@@ -222,7 +225,14 @@ workflows:
                - develop
     jobs:
       - node@10.16.2-integration
-  all_end2end_test_every_commit:
+  all_end2end_every_second_night_on_develop_branch:
+    triggers:
+      - schedule:
+         cron: "59 23 2,4,6,8,10,12,14,16,18,20,22,24,26,28,30 * *"
+         filters:
+           branches:
+             only:
+               - develop
     jobs:
       - node@10.16.2-end2end
   benchmarking_every_third_night_on_develop_branch:
