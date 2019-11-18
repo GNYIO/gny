@@ -157,23 +157,25 @@ export default {
     return null;
   },
 
-  async lock(this: Context, height, amount) {
+  async lock(this: Context, height: BigNumber, amount: BigNumber) {
     if (arguments.length !== 2) return 'Invalid arguments length';
-    if (!Number.isInteger(height) || height <= 0)
-      return 'Height should be positive integer';
-    // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
 
-    height = Number(height);
-    amount = Number(amount);
+    global.app.validate('amount', String(height));
+    global.app.validate('amount', String(amount));
+
+    height = new BigNumber(height);
+    amount = new BigNumber(amount);
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
     // const MIN_LOCK_HEIGHT = 8640 * 30
     // 60/15 * 60 * 24 = 5760
     const MIN_LOCK_HEIGHT = 5760 * 30;
-    const sender = this.sender as IAccount;
-    if (new BigNumber(sender.gny).minus(100000000).isLessThan(amount))
+    const sender = this.sender;
+    if (new BigNumber(sender.gny).minus(100000000).isLessThan(amount)) {
       return 'Insufficient balance';
+    }
     if (sender.isLocked) {
       if (
         BigNumber.max(this.block.height, sender.lockHeight)
@@ -182,18 +184,18 @@ export default {
       ) {
         return 'Invalid lock height';
       }
-      if (amount === 0) {
+      if (new BigNumber(0).isEqualTo(amount)) {
         return 'Invalid amount';
       }
     } else {
       if (
-        new BigNumber(height).isLessThan(
+        height.isLessThan(
           new BigNumber(this.block.height).plus(MIN_LOCK_HEIGHT)
         )
       ) {
         return 'Invalid lock height';
       }
-      if (amount === 0) {
+      if (amount.isEqualTo(0)) {
         return 'Invalid amount';
       }
     }
@@ -201,10 +203,10 @@ export default {
     if (!sender.isLocked) {
       sender.isLocked = 1;
     }
-    if (height !== 0) {
-      sender.lockHeight = height;
+    if (!height.isEqualTo(0)) {
+      sender.lockHeight = new BigNumber(height).toFixed();
     }
-    if (amount !== 0) {
+    if (!amount.isEqualTo(0)) {
       sender.gny = new BigNumber(sender.gny).minus(amount).toFixed();
       sender.lockAmount = new BigNumber(sender.lockAmount)
         .plus(amount)

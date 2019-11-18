@@ -27,7 +27,8 @@ export default async function runtime(options: IOptions) {
   global.app.validators = {
     amount: amount => {
       if (typeof amount !== 'string') return 'Invalid amount type';
-      if (!/^[1-9][0-9]*$/.test(amount)) return 'Amount should be integer';
+      if (!/^[1-9][0-9]*$/.test(amount))
+        return 'Amount should be positive integer';
 
       let bnAmount;
       try {
