@@ -1,5 +1,5 @@
 {
-  "name": "gny-cli",
+  "name": "cli",
   "private": true,
   "version": "1.0.0",
   "description": "gny command line tool",
@@ -9,7 +9,7 @@
     "removeArtifacts": "rm -rf dist"
   },
   "bin": {
-    "gny-cli": "./dist/index.js"
+    "cli": "./dist/index.js"
   },
   "files": [
     "dist"
