@@ -4,7 +4,7 @@ import * as os from 'os';
 import * as ip from 'ip';
 import * as _ from 'lodash';
 import { Sequence } from '@gny/utils';
-import { getSchema } from '@gny/utils';
+import { getSchema } from '@gny/protobuf';
 import loadedModules from './loadModules';
 import loadCoreApi from './loadCoreApi';
 import { IScope, IConfig } from '@gny/interfaces';
