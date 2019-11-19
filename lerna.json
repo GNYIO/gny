@@ -13,7 +13,8 @@
     "packages/p2p",
     "packages/logger",
     "packages/cli",
-    "packages/client"
+    "packages/client",
+    "packages/protobuf"
   ],
   "npmClient": "npm"
 }
