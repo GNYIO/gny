@@ -3,7 +3,7 @@ import {
   ApiResult,
   TransfersWrapper,
   ValidationError,
-  AmountWapper,
+  AmountWrapper,
 } from '@gny/interfaces';
 
 interface Query {
@@ -33,7 +33,7 @@ export class Transfer extends Base {
       endTimestamp,
     };
     const res = await this.get('/api/transfers/amount', params);
-    const result: ApiResult<AmountWapper, ValidationError> = res.data;
+    const result: ApiResult<AmountWrapper, ValidationError> = res.data;
     return result;
   }
 }

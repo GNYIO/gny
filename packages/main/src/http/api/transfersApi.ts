@@ -7,7 +7,7 @@ import {
   IHttpApi,
   ApiResult,
   TransfersWrapper,
-  AmountWapper,
+  AmountWrapper,
 } from '@gny/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -186,7 +186,7 @@ export default class TransfersApi implements IHttpApi {
       }
     }
     const strTotalAmount = String(totalAmount);
-    const result: ApiResult<AmountWapper> = {
+    const result: ApiResult<AmountWrapper> = {
       success: true,
       count,
       strTotalAmount,

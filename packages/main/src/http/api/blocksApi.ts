@@ -7,8 +7,7 @@ import {
   IHttpApi,
   ApiResult,
   BlockWrapper,
-  BlockError,
-  BlocksModel,
+  BlocksWrapper,
   HeightWrapper,
   MilestoneWrapper,
   RewardWrappper,
@@ -98,7 +97,7 @@ export default class BlocksApi implements IHttpApi {
       if (!block) {
         return next('Block not found');
       }
-      const result: ApiResult<BlockWrapper, BlockError> = {
+      const result: ApiResult<BlockWrapper> = {
         success: true,
         block,
       };
@@ -165,7 +164,7 @@ export default class BlocksApi implements IHttpApi {
         blocks = _.reverse(blocks);
       }
       const count = global.app.sdb.blocksCount;
-      const result: ApiResult<BlocksModel> = {
+      const result: ApiResult<BlocksWrapper> = {
         success: true,
         count,
         blocks,
@@ -212,7 +211,7 @@ export default class BlocksApi implements IHttpApi {
       success: true,
       supply,
     };
-    return res.json({ supply });
+    return res.json(result);
   };
 
   private getStatus = (req: Request, res: Response, next: Next) => {

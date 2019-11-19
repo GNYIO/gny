@@ -5,7 +5,7 @@ import {
   ServerError,
   BlockError,
   ValidationError,
-  BlocksModel,
+  BlocksWrapper,
   HeightWrapper,
   MilestoneWrapper,
   RewardWrappper,
@@ -52,7 +52,7 @@ export class Block extends Base {
     };
     const res = await this.get('/api/blocks', params);
     // TODO: add error type
-    const result: ApiResult<BlocksModel> = res.data;
+    const result: ApiResult<BlocksWrapper> = res.data;
     return result;
   }
 

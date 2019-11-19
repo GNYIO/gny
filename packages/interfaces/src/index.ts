@@ -6,6 +6,8 @@ import * as express from 'express';
 import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
+import BigNumber from 'bignumber.js';
+
 declare interface IBase {
   bus: IMessageBus;
   genesisBlock: IBlock;
@@ -477,10 +479,6 @@ export interface IBalanceWrapper {
   balance: IBalance;
 }
 
-export interface DelegatesWrapper {
-  delegates: DelegateViewModel[];
-}
-
 export type DelegateError = 'Account not found' | ServerError;
 
 export interface CountWrapper {
@@ -495,8 +493,8 @@ export interface BlockWrapper {
   block: IBlock;
 }
 
-export interface BlocksModel {
-  count: number;
+export interface BlocksWrapper {
+  count?: string;
   blocks: IBlock[];
 }
 
@@ -513,7 +511,7 @@ export interface RewardWrappper {
 }
 
 export interface SupplyWrapper {
-  supply: string;
+  supply: BigNumber;
 }
 
 export interface Status {
@@ -521,7 +519,7 @@ export interface Status {
   fee: string;
   milestone: number;
   reward: number;
-  supply: string;
+  supply: BigNumber;
 }
 
 export interface AccountsWrapper {
@@ -533,7 +531,7 @@ export interface DelegateWrapper {
 }
 
 export interface DelegatesWrapper {
-  tatolCount: number;
+  totalCount?: number;
   delegates: DelegateViewModel[];
 }
 
@@ -578,7 +576,7 @@ export interface UnconfirmedTransactionWrapper {
 }
 
 export interface TransactionsWrapper {
-  count: number;
+  count?: number;
   transactions: Array<UnconfirmedTransaction | ITransaction>;
 }
 
@@ -602,15 +600,11 @@ export interface AmountWrapper {
 
 export interface NewBlockWrapper {
   block: IBlock;
-  votes: ManyVotes;
+  votes: string;
 }
 
 export interface CommonBlockWrapper {
   common: IBlock;
-}
-
-export interface BlocksWrapper {
-  blocks: IBlock[];
 }
 
 export interface IssuerWrapper {
@@ -672,11 +666,13 @@ export type TransactionError =
   | 'Invalid transaction body: is not a valid transaction'
   | 'Invalid transaction body';
 
+export type BlockError = 'Block not found';
+
 export type NewBlockError =
   | 'Invalid params'
-  | 'Block not found'
   | 'validation failed'
-  | 'New block not found';
+  | 'New block not found'
+  | BlockError;
 
 export type CommonBlockError =  // lack of specific validation error
   | 'too big min,max'

@@ -376,11 +376,11 @@ export default class AccountsApi implements IHttpApi {
         delegateNames.add(v.delegate);
       }
       const delegates: DelegateViewModel[] = await Delegates.getDelegates();
-      let result: ApiResult<DelegatesWrapper, DelegateError>;
+      let result: ApiResult<DelegatesWrapper>;
       if (!delegates || !delegates.length) {
         result = {
           success: true,
-          delegates: [],
+          delegates: [] as DelegateViewModel[],
         };
         return res.json(result);
       }
