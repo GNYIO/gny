@@ -30,6 +30,8 @@ COPY packages/base/package-lock.json ./packages/base/package-lock.json
 COPY packages/database-postgres/package-lock.json ./packages/database-postgres/package-lock.json
 COPY packages/logger/package-lock.json ./packages/logger/package-lock.json
 COPY packages/gny-cli/package-lock.json ./packages/gny-cli/package-lock.json
+COPY packages/protobuf/package-lock.json ./packages/protobuf/package-lock.json
+
 
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
@@ -45,7 +47,7 @@ COPY packages/database-postgres/package.json ./packages/database-postgres/packag
 COPY packages/transaction-pool/package.json ./packages/transaction-pool/package.json
 COPY packages/logger/package.json ./packages/logger/package.json
 COPY packages/gny-cli/package.json ./packages/gny-cli/package.json
-
+COPY packages/protobuf/package.json ./packages/protobuf/package.json
 # install all depdencies for packages/*
 RUN npm run lerna:bootstrap
 
