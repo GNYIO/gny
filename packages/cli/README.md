@@ -10,7 +10,7 @@ A command line interface for bootstrapping and managing __GNY__ blockchain apps.
 
 ```bash
 
-# install dependencies 
+# install dependencies
 npm install
 ```
 
@@ -18,5 +18,5 @@ npm install
 
 ```bash
 # create genesisfile
-gny-cli getheight
+cli getheight
 ```
