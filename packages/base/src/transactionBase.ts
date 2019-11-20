@@ -128,6 +128,9 @@ export class TransactionBase {
         return 'Invalid second signature';
       }
     }
+    if (transaction.secondSignature && !sender.secondPublicKey) {
+      return 'Second password was not registered';
+    }
     return undefined;
   }
 
