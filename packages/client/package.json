@@ -23,8 +23,8 @@
   "dependencies": {
     "@gny/interfaces": "^1.0.0",
     "@gny/utils": "^1.0.0",
+    "@gny/web-ed": "1.0.0",
     "@types/bs58": "^3.0.32",
-    "@types/bytebuffer": "^5.0.40",
     "axios": "^0.19.0",
     "bs58": "^3.1.0",
     "bytebuffer": "^5.0.1",

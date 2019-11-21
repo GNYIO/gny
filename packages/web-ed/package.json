@@ -17,6 +17,7 @@
   "dependencies": {
     "@gny/interfaces": "1.0.0",
     "@gny/utils": "1.0.0",
+    "@types/bytebuffer": "^5.0.40",
     "bytebuffer": "^5.0.1",
     "fast-sha256": "^1.1.0",
     "tweetnacl": "^1.0.1"

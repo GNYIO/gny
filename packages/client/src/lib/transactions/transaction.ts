@@ -1,5 +1,4 @@
-// import crypto = require('./crypto');
-import * as crypto from './crypto';
+import * as crypto from '@gny/web-ed';
 import { slots } from '@gny/utils';
 import { ITransaction } from '@gny/interfaces';
 
