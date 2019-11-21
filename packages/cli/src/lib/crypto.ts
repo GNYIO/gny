@@ -1,4 +1,4 @@
-import * as crypto from 'crypto-browserify';
+import * as crypto from 'crypto';
 import * as Mnemonic from 'bitcore-mnemonic';
 import * as nacl from 'tweetnacl';
 import * as bs58 from 'bs58';
