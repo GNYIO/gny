@@ -1,0 +1,24 @@
+{
+  "name": "@gny/web-ed",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "@gny/utils": "1.0.0",
+    "bytebuffer": "^5.0.1",
+    "fast-sha256": "^1.1.0",
+    "tweetnacl": "^1.0.1"
+  }
+}
