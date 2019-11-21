@@ -1,12 +1,14 @@
 import * as fs from 'fs';
 import * as accountHelper from './account';
-import * as cryptoLib from './crypto';
+import * as cryptoLib from '@gny/web-ed';
 import * as crypto from 'crypto';
 import { TransactionBase, CreateTransactionType, BlockBase } from '@gny/base';
 import {
   KeyPair,
   UnconfirmedTransaction,
   IBlock,
+  IBlockWithoutId,
+  IBlockWithoutSignatureId,
   ITransaction,
 } from '@gny/interfaces';
 
@@ -164,23 +166,10 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
 
   const finalPayloadHash = payloadHash.digest();
 
-  const block: Pick<
-    IBlock,
-    | 'version'
-    | 'payloadHash'
-    | 'timestamp'
-    | 'previousBlock'
-    | 'delegate'
-    | 'transactions'
-    | 'height'
-    | 'count'
-    | 'fees'
-    | 'reward'
-  > = {
+  const block: IBlockWithoutSignatureId = {
     version: 0,
     payloadHash: finalPayloadHash.toString('hex'),
     timestamp: 0,
-    previousBlock: null,
     delegate: sender.keypair.publicKey,
     transactions: transactions.map(x => {
       const fullTrs: ITransaction = {
@@ -195,15 +184,21 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
     reward: String(0),
   };
 
-  // bytes = BlockBase.getBytes(block);
-  // BlockBase.sign()
-  // block.signature = cryptoLib.sign(sender.keypair, bytes);
-  block.signature = BlockBase.sign(block, sender.keypair);
-  // block.id =  cryptoLib.getId(bytes);
-  block.id = BlockBase.getId(block);
+  const almostFinalBlock: IBlockWithoutId = {
+    ...block,
+    signature: BlockBase.sign(
+      block,
+      cryptoLib.fromNaclKeysToKeypair(sender.keypair.keypair)
+    ),
+  };
+
+  const finalBlock: IBlock = {
+    ...almostFinalBlock,
+    id: BlockBase.getId(almostFinalBlock),
+  };
 
   return {
-    block: block,
+    block: finalBlock,
     delegates: delegates,
   };
 }

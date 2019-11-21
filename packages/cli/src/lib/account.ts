@@ -1,8 +1,8 @@
-import * as crypto from '../lib/crypto';
+import * as crypto from '@gny/web-ed';
 
-export function account(secret) {
+export function account(secret: string) {
   const kp = crypto.keypair(secret);
-  const address = crypto.getAddress(new Buffer(kp.publicKey, 'hex'));
+  const address = crypto.getAddress(kp.publicKey);
 
   return {
     keypair: kp,
@@ -11,7 +11,7 @@ export function account(secret) {
   };
 }
 
-export function isValidSecret(secret) {
+export function isValidSecret(secret: string) {
   return crypto.isValidSecret(secret);
 }
 

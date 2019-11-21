@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 
 import Api from '../lib/api';
-import * as cryptoLib from '../lib/crypto';
+import * as cryptoLib from '@gny/web-ed';
 import { BlockBase } from '@gny/base';
+import { IBlock } from '@gny/interfaces';
 
 let globalOptions;
 
@@ -66,15 +67,14 @@ function getBlockBytes(options) {
 }
 
 function getBlockId(options) {
-  let block;
+  let block: IBlock;
   try {
     block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
   }
-  const bytes = BlockBase.getBytes(block);
-  console.log(cryptoLib.getId(bytes));
+  console.log(BlockBase.getId(block));
 }
 
 export default function account(program) {

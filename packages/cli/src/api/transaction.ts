@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
 import Api from '../lib/api';
+import { ITransaction } from '@gny/interfaces';
 
 let globalOptions;
 
@@ -163,7 +164,7 @@ function getTransactionBytes(options: any) {
 }
 
 function getTransactionId(options) {
-  let trs;
+  let trs: ITransaction;
   try {
     trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {

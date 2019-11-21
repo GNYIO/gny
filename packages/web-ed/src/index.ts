@@ -2,15 +2,16 @@ import * as sha256 from 'fast-sha256';
 import * as nacl from 'tweetnacl';
 import * as ByteBuffer from 'bytebuffer';
 import { generateAddress } from '@gny/utils';
-import { ITransaction } from '@gny/interfaces';
+import { ITransaction, KeyPair } from '@gny/interfaces';
+import * as Mnemonic from 'bitcore-mnemonic';
 
-interface Keypair {
+interface NaclKeypair {
   publicKey: Uint8Array;
   secretKey: Uint8Array;
 }
 
 interface Keys {
-  keypair: Keypair;
+  keypair: NaclKeypair;
   publicKey: string;
   privateKey: string;
 }
@@ -88,6 +89,7 @@ export function getBytes(
 export function getId(transaction: ITransaction) {
   return sha256Hex(getBytes(transaction));
 }
+
 export function getHash(
   transaction: any,
   skipSignature: any,
@@ -189,6 +191,36 @@ export function getKeys(secret: string) {
   };
 }
 
+export let keypair = getKeys;
+
 export function getAddress(publicKey: string) {
   return generateAddress(publicKey);
+}
+
+export function randomString(max: number) {
+  let text = '';
+  const possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#$%^&*@';
+
+  for (let i = 0; i < max; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+
+  return text;
+}
+
+export function generateSecret(): string {
+  return new Mnemonic(Mnemonic.Words.ENGLISH).toString();
+}
+
+export function isValidSecret(secret: string) {
+  return Mnemonic.isValid(secret);
+}
+
+export function fromNaclKeysToKeypair(old: NaclKeypair) {
+  const keypair: KeyPair = {
+    privateKey: Buffer.from(old.secretKey),
+    publicKey: Buffer.from(old.publicKey),
+  };
+  return keypair;
 }

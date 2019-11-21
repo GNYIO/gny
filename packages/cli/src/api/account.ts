@@ -1,7 +1,7 @@
 import * as inquirer from 'inquirer';
 
 import Api from '../lib/api';
-import * as cryptoLib from '../lib/crypto';
+import * as cryptoLib from '@gny/web-ed';
 import * as accountHelper from '../lib/account';
 
 let globalOptions;

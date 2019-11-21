@@ -232,6 +232,35 @@ export interface IBlock {
   transactions?: ITransaction[];
 }
 
+export interface IBlockWithoutId {
+  height: string;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: string;
+  reward: string;
+  payloadHash: string;
+  delegate: string;
+  signature: string;
+  _version_?: number;
+  transactions?: ITransaction[];
+}
+
+export interface IBlockWithoutSignatureId {
+  height: string;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: string;
+  reward: string;
+  payloadHash: string;
+  delegate: string;
+  _version_?: number;
+  transactions?: ITransaction[];
+}
+
 export interface IAccount {
   address: string;
   username?: string;
