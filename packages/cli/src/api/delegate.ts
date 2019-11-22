@@ -36,21 +36,21 @@ function getVoters(username) {
   });
 }
 
-function getDelegateByPublicKey(publicKey) {
+function getDelegateByPublicKey(publicKey: String) {
   const params = { publicKey: publicKey };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
-function getDelegateByUsername(username) {
+function getDelegateByUsername(username: String) {
   const params = { username: username };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
-function getDelegateByAddress(address) {
+function getDelegateByAddress(address: String) {
   const params = { address: address };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));

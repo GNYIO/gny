@@ -12,7 +12,7 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
+function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 

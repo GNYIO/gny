@@ -62,7 +62,7 @@ function lock(options) {
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [options.height, options.amout],
+    args: [String(options.height), String(options.amout)],
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {

@@ -2,6 +2,7 @@ import * as inquirer from 'inquirer';
 import { Api, ApiConfig } from '../lib/api';
 import * as cryptoLib from '@gny/web-ed';
 import * as accountHelper from '../lib/account';
+import { AddressOrUsername } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -39,12 +40,8 @@ function getAccount(address: string) {
   });
 }
 
-function getVotedDelegates(options) {
-  const params = {
-    address: options.address,
-    username: options.username,
-  };
-  getApi().get('/api/accounts/getVotes', params, function(err, result) {
+function getVotedDelegates(options: AddressOrUsername) {
+  getApi().get('/api/accounts/getVotes', options, function(err, result) {
     console.log(err || result);
   });
 }
@@ -85,11 +82,11 @@ async function genAccount() {
   const accounts = [];
 
   for (let i = 0; i < n; i++) {
-    const a = accountHelper.account(cryptoLib.generateSecret());
+    const one = accountHelper.account(cryptoLib.generateSecret());
     accounts.push({
-      address: a.address,
-      secret: a.secret,
-      publicKey: a.keypair.publicKey,
+      address: one.address,
+      secret: one.secret,
+      publicKey: one.keypair.publicKey,
     });
   }
   console.log(accounts);

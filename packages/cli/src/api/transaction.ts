@@ -45,7 +45,7 @@ function getTransactions(options) {
   });
 }
 
-function getUnconfirmedTransaction(id) {
+function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
   getApi().get('/api/transactions/get', params, function(err, result) {
     console.log(err || pretty(result.transaction));

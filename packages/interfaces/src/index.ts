@@ -439,3 +439,13 @@ export interface Context {
   block: Pick<IBlock, 'height'>;
   sender: IAccount;
 }
+
+export interface OnlyAddress {
+  address: string;
+}
+
+export interface OnlyUserName {
+  username: string;
+}
+
+export type AddressOrUsername = OnlyAddress | OnlyUserName;

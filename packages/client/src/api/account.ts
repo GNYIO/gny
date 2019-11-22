@@ -1,13 +1,6 @@
 import { Base } from './base';
 import { basic } from '../';
-
-interface OnlyAddress {
-  address: string;
-}
-
-interface OnlyUserName {
-  username: string;
-}
+import { AddressOrUsername } from '@gny/interfaces';
 
 export class Account extends Base {
   public async generateAccount() {
@@ -37,7 +30,7 @@ export class Account extends Base {
     return await this.get('/api/accounts/', params);
   }
 
-  public async getVotedDelegates(query: OnlyAddress | OnlyUserName) {
+  public async getVotedDelegates(query: AddressOrUsername) {
     return await this.get('/api/accounts/getVotes', query);
   }
 
@@ -79,8 +72,8 @@ export class Account extends Base {
     return await this.post('/peer/transactions', params);
   }
 
-  public async unlockAccount(secrete: string) {
-    const trs = basic.unlock(secrete);
+  public async unlockAccount(secret: string) {
+    const trs = basic.unlock(secret);
     const params = {
       transaction: trs,
     };
