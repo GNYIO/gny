@@ -1,6 +1,6 @@
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -57,7 +57,7 @@ function getDelegateByAddress(address) {
   });
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

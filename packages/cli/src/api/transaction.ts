@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 import { ITransaction } from '@gny/interfaces';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -184,7 +184,7 @@ function verifyBytes(options) {
   );
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

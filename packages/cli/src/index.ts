@@ -11,6 +11,7 @@ import transaction from './api/transaction';
 import vote from './api/vote';
 
 import newGenesisBlock from './lib/newGenesisBlock';
+import { ApiConfig } from './lib/api';
 
 const api = [account, basic, block, delegate, peer, transaction, vote];
 
@@ -22,23 +23,18 @@ function main() {
   program
     .option(
       '-H, --host <host>',
-      'Specify the hostname or ip of the node, default: ' + defaultHost,
+      `Specify the hostname or ip of the node, default: ${defaultHost}`,
       defaultHost
     )
     .option(
       '-P, --port <port>',
-      'Specify the port of the node, default: ' + defaultPort,
+      `Specify the port of the node, default: ${defaultPort}`,
       defaultPort
     )
     .option('-M, --main', 'Specify the mainnet, default: false');
 
-  api.forEach(function(el) {
-    el(program);
-  });
-
-  lib.forEach(function(el) {
-    el(program);
-  });
+  api.forEach(one => one(program as ApiConfig));
+  lib.forEach(one => one(program));
 
   if (!process.argv.slice(2).length) {
     program.outputHelp();

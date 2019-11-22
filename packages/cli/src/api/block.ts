@@ -1,11 +1,9 @@
 import * as fs from 'fs';
-
-import Api from '../lib/api';
-import * as cryptoLib from '@gny/web-ed';
+import { Api, ApiConfig } from '../lib/api';
 import { BlockBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -48,7 +46,7 @@ function getBlockById(id) {
   });
 }
 
-function getBlockByHeight(height) {
+function getBlockByHeight(height: string) {
   const params = { height: height };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
     console.log(err || pretty(result.block));
@@ -77,7 +75,7 @@ function getBlockId(options) {
   console.log(BlockBase.getId(block));
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

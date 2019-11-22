@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -68,7 +68,7 @@ function unvote(secret, publicKeys, secondSecret) {
   });
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

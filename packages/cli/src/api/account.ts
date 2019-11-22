@@ -1,10 +1,9 @@
 import * as inquirer from 'inquirer';
-
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 import * as cryptoLib from '@gny/web-ed';
 import * as accountHelper from '../lib/account';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -13,11 +12,11 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
+function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
-function openAccount(secret) {
+function openAccount(secret: string) {
   getApi().post('/api/accounts/open', { secret: secret }, function(
     err,
     result
@@ -26,14 +25,14 @@ function openAccount(secret) {
   });
 }
 
-function getBalance(address) {
+function getBalance(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/getBalance', params, function(err, result) {
     console.log(err || result.balances);
   });
 }
 
-function getAccount(address) {
+function getAccount(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/', params, function(err, result) {
     console.log(err || pretty(result));
@@ -56,7 +55,7 @@ function countAccounts() {
   });
 }
 
-async function getPublicKey(address) {
+async function getPublicKey(address: string) {
   const params = {
     address: address,
   };
@@ -65,7 +64,7 @@ async function getPublicKey(address) {
   });
 }
 
-async function genPublicKey(secret) {
+async function genPublicKey(secret: string) {
   const data = {
     secret: secret,
   };
@@ -97,7 +96,7 @@ async function genAccount() {
   console.log('Done');
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program
