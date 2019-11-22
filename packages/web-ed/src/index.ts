@@ -201,10 +201,6 @@ export function generateSecret(): string {
   return new Mnemonic(Mnemonic.Words.ENGLISH).toString();
 }
 
-export function isValidSecret(secret: string) {
-  return Mnemonic.isValid(secret);
-}
-
 export function fromNaclKeysToKeypair(old: NaclKeypair) {
   const keypair: KeyPair = {
     privateKey: Buffer.from(old.secretKey),

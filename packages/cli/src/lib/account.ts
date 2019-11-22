@@ -11,11 +11,6 @@ export function account(secret: string) {
   };
 }
 
-export function isValidSecret(secret: string) {
-  return crypto.isValidSecret(secret);
-}
-
 export default {
   account: account,
-  isValidSecret: isValidSecret,
 };
