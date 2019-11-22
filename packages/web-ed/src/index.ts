@@ -2,7 +2,7 @@ import * as sha256 from 'fast-sha256';
 import * as nacl from 'tweetnacl';
 import * as ByteBuffer from 'bytebuffer';
 import { generateAddress } from '@gny/utils';
-import { ITransaction, KeyPair } from '@gny/interfaces';
+import { ITransaction, KeyPair, UnconfirmedTransaction } from '@gny/interfaces';
 import * as Mnemonic from 'bitcore-mnemonic';
 
 interface NaclKeypair {
@@ -14,18 +14,6 @@ interface Keys {
   keypair: NaclKeypair;
   publicKey: string;
   privateKey: string;
-}
-
-export function getSignatureBytes(signature: any) {
-  const bb = new ByteBuffer(32, true);
-  const publicKeyBuffer = Buffer.from(signature.publicKey, 'hex');
-
-  for (let i = 0; i < publicKeyBuffer.length; i++) {
-    bb.writeByte(publicKeyBuffer[i]);
-  }
-
-  bb.flip();
-  return new Uint8Array(bb.toArrayBuffer());
 }
 
 export function toLocalBuffer(buf: ByteBuffer) {
@@ -45,7 +33,7 @@ export function sha256Hex(data: Uint8Array) {
 }
 
 export function getBytes(
-  trs: ITransaction,
+  trs: UnconfirmedTransaction,
   skipSignature?: boolean,
   skipSecondSignature?: boolean
 ) {
@@ -86,26 +74,26 @@ export function getBytes(
   return toLocalBuffer(bb);
 }
 
-export function getId(transaction: ITransaction) {
+export function getId(transaction: UnconfirmedTransaction) {
   return sha256Hex(getBytes(transaction));
 }
 
 export function getHash(
-  transaction: any,
-  skipSignature: any,
-  skipSecondSignature: any
+  transaction: UnconfirmedTransaction,
+  skipSignature: boolean,
+  skipSecondSignature: boolean
 ) {
   return sha256Bytes(getBytes(transaction, skipSignature, skipSecondSignature));
 }
 
-export function sign(transaction: ITransaction, keys: Keys) {
+export function sign(transaction: UnconfirmedTransaction, keys: Keys) {
   const hash = getHash(transaction, true, true);
   const signature = nacl.sign.detached(hash, keys.keypair.secretKey);
 
   return Buffer.from(signature).toString('hex');
 }
 
-export function secondSign(transaction: ITransaction, keys: Keys) {
+export function secondSign(transaction: UnconfirmedTransaction, keys: Keys) {
   const hash = getHash(transaction, true, true);
   const signature = nacl.sign.detached(hash, keys.keypair.secretKey);
   return Buffer.from(signature).toString('hex');
