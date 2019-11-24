@@ -363,7 +363,7 @@ export default class TransportApi implements IHttpApi {
     }
 
     this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
-    res.json({});
+    res.json({ success: true });
   };
 
   // POST

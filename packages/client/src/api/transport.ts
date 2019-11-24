@@ -68,7 +68,10 @@ export class Transport extends Base {
     const params = {
       votes: votes,
     };
-    return await this.post('/peer/votes', params);
+
+    const res = await this.post('/peer/votes', params);
+    const result: ApiResult<undefined> = res.data;
+    return result;
   }
 
   public async getUnconfirmedTransactions() {
