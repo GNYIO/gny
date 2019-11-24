@@ -36,6 +36,7 @@ jobs:
             - ./packages/protobuf/node_modules
             - ./packages/cli/node_modules
             - ./packages/web-ed/node_modules
+            - ./packages/web-base/node_modules
       - run:
           name: test
           command: npm run test
@@ -95,6 +96,7 @@ jobs:
             - ./packages/protobuf/node_modules
             - ./packages/cli/node_modules
             - ./packages/web-ed/node_modules
+            - ./packages/web-base/node_modules
       - run:
           name: test-integration
           command: npm run test:integration
@@ -163,6 +165,7 @@ jobs:
             - ./packages/protobuf/node_modules
             - ./packages/cli/node_modules
             - ./packages/web-ed/node_modules
+            - ./packages/web-base/node_modules
       - run:
           name: test-end2end
           command: npm run test:e2e

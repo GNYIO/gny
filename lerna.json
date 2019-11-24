@@ -15,7 +15,8 @@
     "packages/cli",
     "packages/client",
     "packages/protobuf",
-    "packages/web-ed"
+    "packages/web-ed",
+    "packages/web-base"
   ],
   "npmClient": "npm"
 }
