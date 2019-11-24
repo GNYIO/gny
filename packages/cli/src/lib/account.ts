@@ -1,8 +1,8 @@
-import * as crypto from '@gny/web-ed';
+import * as webBase from '@gny/web-base';
 
 export function account(secret: string) {
-  const kp = crypto.keypair(secret);
-  const address = crypto.getAddress(kp.publicKey);
+  const kp = webBase.keypair(secret);
+  const address = webBase.getAddress(kp.publicKey);
 
   return {
     keypair: kp,

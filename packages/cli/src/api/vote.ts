@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import { Api, ApiConfig } from '../lib/api';
-import * as ed from '@gny/ed';
-import { TransactionBase } from '@gny/base';
+import * as webEd from '@gny/web-ed';
+import { TransactionWebBase } from '@gny/web-base';
 
 let globalOptions: ApiConfig;
 
@@ -20,14 +20,14 @@ function vote(secret, publicKeys, secondSecret) {
     .createHash('sha256')
     .update(secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
+  const keypair = webEd.generateKeyPair(hash);
+  const secondKeypair = webEd.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 4,
     fee: String(10000000),
     keypair: keypair,
@@ -48,14 +48,14 @@ function unvote(secret, publicKeys, secondSecret) {
     .createHash('sha256')
     .update(secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
+  const keypair = webEd.generateKeyPair(hash);
+  const secondKeypair = webEd.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 5,
     fee: String(10000000),
     keypair: keypair,

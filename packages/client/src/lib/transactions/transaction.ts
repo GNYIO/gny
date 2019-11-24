@@ -1,4 +1,4 @@
-import * as crypto from '@gny/web-ed';
+import * as webBase from '@gny/web-base';
 import { slots } from '@gny/utils';
 import { ITransaction } from '@gny/interfaces';
 
@@ -12,7 +12,7 @@ interface Params {
 }
 export function createTransactionEx(params: Params) {
   if (!params.secret) throw new Error('Secret needed');
-  const keys = crypto.getKeys(params.secret);
+  const keys = webBase.getKeys(params.secret);
   const transaction = {
     type: params.type,
     timestamp: slots.getEpochTime(),
@@ -20,14 +20,17 @@ export function createTransactionEx(params: Params) {
     message: params.message,
     args: params.args,
     senderPublicKey: keys.publicKey,
-    senderId: crypto.getAddress(keys.publicKey),
+    senderId: webBase.getAddress(keys.publicKey),
     signatures: [],
   } as ITransaction;
-  transaction.signatures.push(crypto.sign(transaction, keys));
+  transaction.signatures.push(webBase.sign(transaction, keys.keypair));
   if (params.secondSecret) {
-    const secondKeys = crypto.getKeys(params.secondSecret);
-    transaction.secondSignature = crypto.secondSign(transaction, secondKeys);
+    const secondKeys = webBase.getKeys(params.secondSecret);
+    transaction.secondSignature = webBase.secondSign(
+      transaction,
+      secondKeys.keypair
+    );
   }
-  transaction.id = crypto.getId(transaction);
+  transaction.id = webBase.getId(transaction);
   return transaction as ITransaction;
 }

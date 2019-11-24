@@ -15,5 +15,13 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
+    "@gny/interfaces": "1.0.0",
+    "@gny/utils": "1.0.0",
+    "@gny/web-ed": "1.0.0",
+    "@types/bytebuffer": "^5.0.40",
+    "bitcore-mnemonic": "^8.12.0",
+    "bytebuffer": "^5.0.1",
+    "fast-sha256": "^1.1.1",
+    "lodash": "^4.17.15"
   }
 }

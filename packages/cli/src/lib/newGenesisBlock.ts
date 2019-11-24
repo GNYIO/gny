@@ -1,10 +1,13 @@
 import * as fs from 'fs';
 import * as accountHelper from './account';
-import * as cryptoLib from '@gny/web-ed';
+import * as webBase from '@gny/web-base';
 import * as crypto from 'crypto';
-import { TransactionBase, CreateTransactionType, BlockBase } from '@gny/base';
 import {
-  KeyPair,
+  TransactionWebBase,
+  BlockWebBase,
+  CreateTransactionTypeWeb,
+} from '@gny/web-base';
+import {
   UnconfirmedTransaction,
   IBlock,
   IBlockWithoutId,
@@ -46,7 +49,7 @@ function genGenesisBlock(options) {
   if (options.genesis) {
     genesisAccount = accountHelper.account(options.genesis);
   } else {
-    genesisAccount = accountHelper.account(cryptoLib.generateSecret());
+    genesisAccount = accountHelper.account(webBase.generateSecret());
   }
   const newBlockInfo = generateGenesis(
     genesisAccount,
@@ -66,7 +69,7 @@ function genGenesisBlock(options) {
   );
 }
 
-const sender = accountHelper.account(cryptoLib.generateSecret());
+const sender = accountHelper.account(webBase.generateSecret());
 
 function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
   let payloadLength = 0;
@@ -85,35 +88,35 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
         process.exit(1);
       }
       const amount = String(Number(parts[1]) * 100000000);
-      const trs: CreateTransactionType = {
+      const trs: CreateTransactionTypeWeb = {
         type: 1,
         fee: String(0),
         args: [Number(amount), parts[0]],
         keypair: {
           publicKey: Buffer.from(sender.keypair.publicKey, 'hex'),
-          privateKey: Buffer.from(sender.keypair.privateKey, 'hex'),
+          secretKey: Buffer.from(sender.keypair.privateKey, 'hex'),
         },
       };
 
-      transactions.push(TransactionBase.create(trs));
+      transactions.push(TransactionWebBase.create(trs));
     }
   } else {
-    const balanceTransaction: CreateTransactionType = {
+    const balanceTransaction: CreateTransactionTypeWeb = {
       type: 0,
       fee: String(0),
       args: [intialAmount, genesisAccount.address],
       keypair: {
         publicKey: Buffer.from(sender.keypair.publicKey, 'hex'),
-        privateKey: Buffer.from(sender.keypair.privateKey, 'hex'),
+        secretKey: Buffer.from(sender.keypair.privateKey, 'hex'),
       },
     };
 
-    transactions.push(TransactionBase.create(balanceTransaction));
+    transactions.push(TransactionWebBase.create(balanceTransaction));
   }
 
   // make delegates
   for (let i = 0; i < 101; i++) {
-    const delegate = accountHelper.account(cryptoLib.generateSecret());
+    const delegate = accountHelper.account(webBase.generateSecret());
 
     const username = 'gny_d' + (i + 1);
     interface DelegateAccount {
@@ -133,33 +136,33 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
     };
     delegates.push(finishedDelegate);
 
-    const nameTrs: CreateTransactionType = {
+    const nameTrs: CreateTransactionTypeWeb = {
       type: 1,
       fee: String(0),
       args: [username],
       keypair: {
         publicKey: Buffer.from(finishedDelegate.keypair.publicKey, 'hex'),
-        privateKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
+        secretKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
       },
     };
-    const delegateTrs: CreateTransactionType = {
+    const delegateTrs: CreateTransactionTypeWeb = {
       type: 10,
       args: [],
       fee: String(),
       keypair: {
         publicKey: Buffer.from(finishedDelegate.keypair.publicKey, 'hex'),
-        privateKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
+        secretKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
       },
     };
 
-    transactions.push(TransactionBase.create(nameTrs));
-    transactions.push(TransactionBase.create(delegateTrs));
+    transactions.push(TransactionWebBase.create(nameTrs));
+    transactions.push(TransactionWebBase.create(delegateTrs));
   }
 
   let bytes;
 
   transactions.forEach(tx => {
-    bytes = TransactionBase.getBytes(tx);
+    bytes = TransactionWebBase.getBytes(tx);
     payloadLength += bytes.length;
     payloadHash.update(bytes);
   });
@@ -186,15 +189,12 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
 
   const almostFinalBlock: IBlockWithoutId = {
     ...block,
-    signature: BlockBase.sign(
-      block,
-      cryptoLib.fromNaclKeysToKeypair(sender.keypair.keypair)
-    ),
+    signature: BlockWebBase.sign(block, sender.keypair.keypair),
   };
 
   const finalBlock: IBlock = {
     ...almostFinalBlock,
-    id: BlockBase.getId(almostFinalBlock),
+    id: BlockWebBase.getId(almostFinalBlock),
   };
 
   return {

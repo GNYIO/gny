@@ -173,6 +173,11 @@ export interface KeyPair {
   privateKey: Buffer;
 }
 
+export interface NaclKeyPair {
+  publicKey: Uint8Array;
+  secretKey: Uint8Array;
+}
+
 export interface ManyVotes {
   height: string;
   id: string;

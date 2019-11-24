@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
+import * as ed from '@gny/web-ed';
 import { Api, ApiConfig } from '../lib/api';
-import { TransactionBase } from '@gny/base';
+import { TransactionWebBase } from '@gny/web-base';
 
 let globalOptions: ApiConfig;
 
@@ -25,10 +25,10 @@ function setSecondSecret(options) {
       .digest()
   );
   const secondSignature = {
-    publicKey: keys.publicKey.toString('hex'),
+    publicKey: Buffer.from(keys.publicKey).toString('hex'),
   };
 
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 2,
     fee: String(5 * 1e8),
     args: [secondSignature.publicKey],
@@ -56,7 +56,7 @@ function lock(options) {
     );
   }
 
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 3,
     fee: String(10000000),
     message: options.message,
