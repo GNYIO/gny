@@ -21,6 +21,17 @@ export class BlockWebBase {
     return hash.toString('hex');
   }
 
+  public static sign(
+    oldBlock: IBlockWithoutSignatureId,
+    oldKeypair: NaclKeyPair
+  ): string {
+    const block = copyObject(oldBlock);
+    const keypair = copyObject(oldKeypair);
+
+    const hash = BlockWebBase.calculateHash(block);
+    return Buffer.from(webEd.sign(hash, keypair.secretKey)).toString('hex');
+  }
+
   public static getBytes(block: IBlockWithoutSignatureId): Buffer;
   public static getBytes(
     block: IBlockWithoutSignatureId,
@@ -60,17 +71,6 @@ export class BlockWebBase {
     bb.flip();
     const b = bb.toBuffer();
     return b;
-  }
-
-  public static sign(
-    oldBlock: IBlockWithoutSignatureId,
-    oldKeypair: NaclKeyPair
-  ): string {
-    const block = copyObject(oldBlock);
-    const keypair = copyObject(oldKeypair);
-
-    const hash = BlockWebBase.calculateHash(block);
-    return Buffer.from(webEd.sign(hash, keypair.secretKey)).toString('hex');
   }
 
   public static calculateHash(block: IBlockWithoutSignatureId): Buffer;
