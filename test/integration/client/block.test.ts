@@ -53,8 +53,8 @@ describe('block', () => {
         await lib.onNewBlock();
 
         const height = String(2);
-        const { data } = await blockApi.getBlockByHeight(height);
-        const id = data.block.id;
+        const blockResponse = await blockApi.getBlockByHeight(height);
+        const id = blockResponse.block.id;
         const response = await blockApi.getBlockById(id);
         expect(response.success).toBeTruthy();
         done();

@@ -67,8 +67,8 @@ describe('transport', () => {
         await lib.onNewBlock();
 
         const height = String(1);
-        const { data } = await blockApi.getBlockByHeight(height);
-        const id = data.block.id;
+        const blockResponse = await blockApi.getBlockByHeight(height);
+        const id = blockResponse.block.id;
 
         const response = await transportApi.getNewBlock(id);
         expect(response.success).toBeTruthy();
@@ -114,8 +114,8 @@ describe('transport', () => {
         await lib.onNewBlock();
 
         const height = String(1);
-        const { data } = await blockApi.getBlockByHeight(height);
-        const id = data.block.id;
+        const blockResponse = await blockApi.getBlockByHeight(height);
+        const id = blockResponse.block.id;
 
         const limit = '1';
 

@@ -245,11 +245,11 @@ describe('account', () => {
             transData,
             config
           );
+          await lib.onNewBlock();
 
           const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
           const response = await accountApi.getVotedDelegates({
             address,
-            username,
           });
           expect(response.success).toBeTruthy();
         },

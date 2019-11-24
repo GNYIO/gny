@@ -55,6 +55,7 @@ describe('account', () => {
 
           // set username
           await basicApi.setUserName(username, secret);
+          await lib.onNewBlock();
 
           const response = await basicApi.lockAccount(height, amount, secret);
           expect(response.success).toBeTruthy();
@@ -76,12 +77,11 @@ describe('account', () => {
         const amount = 30 * 1e8;
 
         // set username
-        const accountApi = connection.api.Account;
-        await accountApi.setUserName(username, secret);
+        await basicApi.setUserName(username, secret);
         await lib.onNewBlock();
 
         // lock account
-        await accountApi.lockAccount(height, amount, secret);
+        await basicApi.lockAccount(height, amount, secret);
         await lib.onNewBlock();
 
         const response = await basicApi.registerDelegate(secret);
@@ -103,12 +103,11 @@ describe('account', () => {
         const amount = 30 * 1e8;
 
         // set username
-        const accountApi = connection.api.Account;
-        await accountApi.setUserName(username, secret);
+        await basicApi.setUserName(username, secret);
         await lib.onNewBlock();
 
         // lock account
-        await accountApi.lockAccount(height, amount, secret);
+        await basicApi.lockAccount(height, amount, secret);
         await lib.onNewBlock();
 
         const response = await basicApi.registerDelegate(secret);
