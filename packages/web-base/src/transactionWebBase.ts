@@ -23,6 +23,65 @@ export interface CreateTransactionTypeWeb {
 }
 
 export class TransactionWebBase {
+  public static verifyBytes(
+    bytes: Buffer,
+    publicKey: string,
+    signature: string
+  ) {
+    try {
+      const data2 = Buffer.alloc(bytes.length);
+
+      for (let i = 0; i < data2.length; i++) {
+        data2[i] = bytes[i];
+      }
+
+      const hash = crypto
+        .createHash('sha256')
+        .update(data2)
+        .digest();
+      const signatureBuffer = Buffer.from(signature, 'hex');
+      const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+      return webEd.verify(hash, signatureBuffer, publicKeyBuffer);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static create(data: CreateTransactionTypeWeb) {
+    const transaction: Omit<
+      ITransaction,
+      'id' | 'signatures' | 'secondSignature' | 'height'
+    > = {
+      type: data.type,
+      senderId: addressHelper.generateAddress(toHex(data.keypair.publicKey)),
+      senderPublicKey: toHex(data.keypair.publicKey),
+      timestamp: slots.getEpochTime(),
+      message: data.message,
+      args: data.args,
+      fee: data.fee,
+    };
+
+    const intermediate: Omit<ITransaction, 'id' | 'height'> = {
+      ...transaction,
+      signatures: [TransactionWebBase.sign(data.keypair, transaction)],
+      secondSignature: undefined,
+    };
+
+    if (data.secondKeypair) {
+      intermediate.secondSignature = TransactionWebBase.sign(
+        data.secondKeypair,
+        intermediate
+      );
+    }
+
+    const final: UnconfirmedTransaction = {
+      ...intermediate,
+      id: TransactionWebBase.getHash(intermediate).toString('hex'),
+    };
+
+    return final;
+  }
+
   private static sign(
     keypair: NaclKeyPair,
     transaction: Pick<
@@ -44,6 +103,10 @@ export class TransactionWebBase {
       .digest();
 
     return toHex(webEd.sign(hash, keypair.secretKey));
+  }
+
+  public static getId(transaction: ITransaction | UnconfirmedTransaction) {
+    return TransactionWebBase.getHash(transaction).toString('hex');
   }
 
   private static getHash(
@@ -122,68 +185,5 @@ export class TransactionWebBase {
     byteBuffer.flip();
 
     return byteBuffer.toBuffer();
-  }
-
-  static create(data: CreateTransactionTypeWeb) {
-    const transaction: Omit<
-      ITransaction,
-      'id' | 'signatures' | 'secondSignature' | 'height'
-    > = {
-      type: data.type,
-      senderId: addressHelper.generateAddress(toHex(data.keypair.publicKey)),
-      senderPublicKey: toHex(data.keypair.publicKey),
-      timestamp: slots.getEpochTime(),
-      message: data.message,
-      args: data.args,
-      fee: data.fee,
-    };
-
-    const intermediate: Omit<ITransaction, 'id' | 'height'> = {
-      ...transaction,
-      signatures: [TransactionWebBase.sign(data.keypair, transaction)],
-      secondSignature: undefined,
-    };
-
-    if (data.secondKeypair) {
-      intermediate.secondSignature = TransactionWebBase.sign(
-        data.secondKeypair,
-        intermediate
-      );
-    }
-
-    const final: UnconfirmedTransaction = {
-      ...intermediate,
-      id: TransactionWebBase.getHash(intermediate).toString('hex'),
-    };
-
-    return final;
-  }
-
-  public static verifyBytes(
-    bytes: Buffer,
-    publicKey: string,
-    signature: string
-  ) {
-    try {
-      const data2 = Buffer.alloc(bytes.length);
-
-      for (let i = 0; i < data2.length; i++) {
-        data2[i] = bytes[i];
-      }
-
-      const hash = crypto
-        .createHash('sha256')
-        .update(data2)
-        .digest();
-      const signatureBuffer = Buffer.from(signature, 'hex');
-      const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-      return webEd.verify(hash, signatureBuffer, publicKeyBuffer);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  public static getId(transaction: ITransaction | UnconfirmedTransaction) {
-    return TransactionWebBase.getHash(transaction).toString('hex');
   }
 }
