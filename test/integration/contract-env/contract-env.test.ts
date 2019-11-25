@@ -266,7 +266,7 @@ describe('contract environment', () => {
       lib.oneMinute
     );
 
-    it.skip(
+    it(
       'signing a transaction with a second password should return error (if second password was not registered)',
       async () => {
         const UNREGISTERED_SECOND_PASSWORD = 'pass';
@@ -294,7 +294,7 @@ describe('contract environment', () => {
           'response.data',
           {
             success: false,
-            error: '',
+            error: 'Error: Second password was not registered',
           }
         );
       },

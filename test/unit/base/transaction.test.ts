@@ -97,6 +97,8 @@ describe('Transaction', () => {
   describe('verifyNormalSignature', () => {
     it('verifyNormalSignature() - should return undefined when simple signature check was successful', () => {
       const trs = createTransation();
+      delete trs.secondSignature;
+
       const sender = {} as IAccount;
       const bytes = TransactionBase.getBytes(trs, true, true);
 
@@ -241,6 +243,8 @@ describe('Transaction', () => {
     });
 
     it('should return undefined when valid normal signature is checked', async () => {
+      delete trs.secondSignature;
+
       const verified = await TransactionBase.verify(context);
       expect(verified).toBeUndefined();
     });
