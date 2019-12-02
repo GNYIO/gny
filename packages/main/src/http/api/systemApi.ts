@@ -1,7 +1,7 @@
 import { slots } from '@gny/utils';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
-import { IScope, Next, IHttpApi } from '@gny/interfaces';
+import { IScope, Next, IHttpApi, ApiResult, SystemInfo } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class SystemApi implements IHttpApi {
@@ -38,8 +38,8 @@ export default class SystemApi implements IHttpApi {
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
     try {
       const lastBlock = StateHelper.getState().lastBlock;
-
-      return res.json({
+      const result: ApiResult<SystemInfo> = {
+        success: true,
         os: `${os.platform()}_${os.release()}`,
         version: this.library.config.version,
         timestamp: Date.now(),
@@ -50,7 +50,8 @@ export default class SystemApi implements IHttpApi {
             slots.getNextSlot() -
             (slots.getSlotNumber(lastBlock.timestamp) + 1),
         },
-      });
+      };
+      return res.json(result);
     } catch (err) {
       return next('Server error');
     }

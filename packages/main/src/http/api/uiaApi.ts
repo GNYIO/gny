@@ -1,7 +1,20 @@
 import { isAddress } from '@gny/utils';
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IIssuer, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  IIssuer,
+  IHttpApi,
+  ApiResult,
+  IssuesWrapper,
+  IssuerWrapper,
+  IsIssuerWrapper,
+  AssetsWrapper,
+  AssetWrapper,
+  BalancesWrapper,
+  BalanceWrapper,
+} from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
@@ -69,11 +82,12 @@ export default class UiaApi implements IHttpApi {
         },
       });
 
-      return res.json({
+      const result: ApiResult<IsIssuerWrapper> = {
         success: true,
         isIssuer: issuer ? true : false,
         issuerName: issuer ? issuer.name : undefined,
-      });
+      };
+      return res.json(result);
     } catch (err) {
       return next(`Failed to check for existing Issuer: ${err.message}`);
     }
@@ -102,7 +116,12 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
-      return res.json({ count, issues });
+      const result: ApiResult<IssuesWrapper> = {
+        success: true,
+        count,
+        issues,
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get issuers: ${dbErr}`);
     }
@@ -122,6 +141,7 @@ export default class UiaApi implements IHttpApi {
     }
 
     const name: string = query.name;
+    let result: ApiResult<IssuerWrapper>;
     try {
       if (isAddress(name)) {
         const issuer: IIssuer = await global.app.sdb.findOne<Issuer>(Issuer, {
@@ -130,7 +150,11 @@ export default class UiaApi implements IHttpApi {
         if (!issuer) {
           return next('Issuer not found');
         }
-        return res.json({ issuer });
+        result = {
+          success: true,
+          issuer,
+        };
+        return res.json(result);
       } else {
         const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
           condition: {
@@ -138,7 +162,11 @@ export default class UiaApi implements IHttpApi {
           },
         });
         if (!issuer) return next('Issuer not found');
-        return res.json({ issuer: issuer });
+        result = {
+          success: true,
+          issuer,
+        };
+        return res.json(result);
       }
     } catch (err) {
       return next(err.toString());
@@ -192,7 +220,12 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
-      return res.json({ count, assets: assets });
+      const result: ApiResult<AssetsWrapper> = {
+        success: true,
+        count,
+        assets,
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get assets: ${dbErr}`);
     }
@@ -223,7 +256,12 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
-      return res.json({ count, assets: assets });
+      const result: ApiResult<AssetsWrapper> = {
+        success: true,
+        count,
+        assets,
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get assets: ${dbErr}`);
     }
@@ -252,7 +290,11 @@ export default class UiaApi implements IHttpApi {
         },
       });
       if (!assets || assets.length === 0) return next('Asset not found');
-      return res.json({ asset: assets[0] });
+      const result: ApiResult<AssetWrapper> = {
+        success: true,
+        asset: assets[0],
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get asset: ${dbErr}`);
     }
@@ -297,7 +339,12 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit,
         offset: query.offset,
       });
-      return res.json({ count, balances: balances });
+      const result: ApiResult<BalancesWrapper> = {
+        success: true,
+        count,
+        balances: balances,
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get balances: ${dbErr}`);
     }
@@ -332,7 +379,11 @@ export default class UiaApi implements IHttpApi {
       });
       if (!balances || balances.length === 0)
         return next('Balance info not found');
-      return res.json({ balance: balances[0] });
+      const result: ApiResult<BalanceWrapper> = {
+        success: true,
+        balance: balances[0],
+      };
+      return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get issuers: ${dbErr}`);
     }

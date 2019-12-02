@@ -30,7 +30,7 @@ describe('loader', () => {
       'should get status',
       async () => {
         const response = await loaderApi.getStatus();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -41,7 +41,7 @@ describe('loader', () => {
       'should sync status',
       async () => {
         const response = await loaderApi.syncStatus();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

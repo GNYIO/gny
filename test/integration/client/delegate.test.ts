@@ -40,7 +40,7 @@ describe('delegate', () => {
       'should count the number of delegate',
       async done => {
         const response = await delegateApi.count();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -101,7 +101,7 @@ describe('delegate', () => {
         await lib.onNewBlock();
 
         const response = await delegateApi.getVoters(username);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -140,7 +140,7 @@ describe('delegate', () => {
         await lib.onNewBlock();
 
         const response = await delegateApi.getDelegateByUsername(username);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -155,7 +155,7 @@ describe('delegate', () => {
         const limit = '5';
 
         const response = await delegateApi.getDelegates(offset, limit);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -168,34 +168,7 @@ describe('delegate', () => {
         const publicKey =
           '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
         const response = await delegateApi.forgingStatus(publicKey);
-        expect(response.status).toEqual(200);
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/registerDelegate', () => {
-    it(
-      'should get forging status',
-      async () => {
-        const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-        const username = 'a1300';
-        const height = 183000;
-        const amount = 30 * 1e8;
-
-        // set username
-        const accountApi = connection.api.Account;
-        await accountApi.setUserName(username, secret);
-        await lib.onNewBlock();
-
-        // lock account
-        await accountApi.lockAccount(height, amount, secret);
-        await lib.onNewBlock();
-
-        const response = await delegateApi.registerDelegate(secret);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

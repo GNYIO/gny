@@ -1,20 +1,42 @@
 import { Base } from './base';
-import { uia } from '../';
+import {
+  ApiResult,
+  IssuesWrapper,
+  ValidationError,
+  IssuerWrapper,
+  IssueError,
+  IsIssuerWrapper,
+  AssetsWrapper,
+  AssetWrapper,
+  AssetError,
+  BalancesWrapper,
+  BalanceWrapper,
+  BalanceError,
+} from '@gny/interfaces';
+
 export class Uia extends Base {
   public async getIssuers(limit?: number, offset?: number) {
     const params = {
       limit: limit,
       offset: offset,
     };
-    return await this.get('/api/uia/issuers', params);
+    const res = await this.get('/api/uia/issuers', params);
+    const result: ApiResult<IssuesWrapper, ValidationError | string> = res.data;
+    return result;
   }
 
   public async isIssuer(address: string) {
-    return await this.get(`/api/uia/isIssuer/${address}`);
+    const res = await this.get(`/api/uia/isIssuer/${address}`);
+    const result: ApiResult<IsIssuerWrapper, ValidationError | string> =
+      res.data;
+    return result;
   }
 
   public async getIssuer(name: string) {
-    return await this.get(`/api/uia/issuers/${name}`);
+    const res = await this.get(`/api/uia/issuers/${name}`);
+    const result: ApiResult<IssuerWrapper, ValidationError | IssueError> =
+      res.data;
+    return result;
   }
 
   public async getIssuerAssets(name: string, limit?: number, offset?: number) {
@@ -22,7 +44,9 @@ export class Uia extends Base {
       limit: limit,
       offset: offset,
     };
-    return await this.get(`/api/uia/issuers/${name}/assets`, params);
+    const res = await this.get(`/api/uia/issuers/${name}/assets`, params);
+    const result: ApiResult<AssetsWrapper, ValidationError | string> = res.data;
+    return result;
   }
 
   public async getAssets(limit?: number, offset?: number) {
@@ -30,11 +54,18 @@ export class Uia extends Base {
       limit: limit,
       offset: offset,
     };
-    return await this.get('/api/uia/assets', params);
+    const res = await this.get('/api/uia/assets', params);
+    const result: ApiResult<AssetsWrapper, ValidationError | string> = res.data;
+    return result;
   }
 
   public async getAsset(name: string) {
-    return await this.get(`/api/uia/assets/${name}`);
+    const res = await this.get(`/api/uia/assets/${name}`);
+    const result: ApiResult<
+      AssetWrapper,
+      ValidationError | AssetError | string
+    > = res.data;
+    return result;
   }
 
   public async getBalances(address: string, limit?: number, offset?: number) {
@@ -42,45 +73,18 @@ export class Uia extends Base {
       limit: limit,
       offset: offset,
     };
-    return await this.get(`/api/uia/balances/${address}`, params);
+    const res = await this.get(`/api/uia/balances/${address}`, params);
+    const result: ApiResult<BalancesWrapper, ValidationError | string> =
+      res.data;
+    return result;
   }
 
   public async getBalance(address: string, currency: string) {
-    return await this.get(`/api/uia/balances/${address}/${currency}`);
-  }
-
-  public async registerAsset(
-    name: string,
-    desc: string,
-    maximum: string,
-    precision: number,
-    secret: string,
-    secondSecret?: string
-  ) {
-    const trs = uia.registerAsset(
-      name,
-      desc,
-      maximum,
-      precision,
-      secret,
-      secondSecret
-    );
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
-  }
-
-  public async registerIssuer(
-    name: string,
-    desc: string,
-    secret: string,
-    secondSecret?: string
-  ) {
-    const trs = uia.registerIssuer(name, desc, secret, secondSecret);
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
+    const res = await this.get(`/api/uia/balances/${address}/${currency}`);
+    const result: ApiResult<
+      BalanceWrapper,
+      ValidationError | BalanceError | string
+    > = res.data;
+    return result;
   }
 }

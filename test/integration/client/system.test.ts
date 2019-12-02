@@ -30,7 +30,7 @@ describe('system', () => {
       'should get system information',
       async () => {
         const response = await systemApi.getSystemInfo();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

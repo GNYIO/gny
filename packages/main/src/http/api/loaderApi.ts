@@ -1,6 +1,13 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  IHttpApi,
+  ApiResult,
+  LoaderStatus,
+  SyncStatus,
+} from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 
 export default class LoaderApi implements IHttpApi {
@@ -41,19 +48,23 @@ export default class LoaderApi implements IHttpApi {
 
   private status = (req: Request, res: Response, next: Next) => {
     const loaded = StateHelper.BlockchainReady(); // TODO: wrap in try/catch
-    return res.json({
+    const result: ApiResult<LoaderStatus> = {
+      success: true,
       loaded,
-    });
+    };
+    return res.json(result);
   };
 
   private sync = (req: Request, res: Response, next: Next) => {
     const lastBlock = StateHelper.getState().lastBlock;
     const syncing = StateHelper.IsSyncing();
     const blocksToSync = StateHelper.GetBlocksToSync();
-    return res.json({
+    const result: ApiResult<SyncStatus> = {
+      success: true,
       syncing: syncing,
       blocks: blocksToSync,
       height: lastBlock.height,
-    });
+    };
+    return res.json(result);
   };
 }

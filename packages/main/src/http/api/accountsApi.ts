@@ -8,6 +8,19 @@ import {
   DelegateViewModel,
   IBalance,
   IHttpApi,
+  ApiResult,
+  AccountGenerateModel,
+  IAccount,
+  ServerError,
+  GetAccountError,
+  AccountOpenModel,
+  BalancesModel,
+  BalanceResponseError,
+  IBalanceWrapper,
+  DelegatesWrapper,
+  DelegateError,
+  CountWrapper,
+  PulicKeyWapper,
 } from '@gny/interfaces';
 import {
   generateAddressByPublicKey,
@@ -87,15 +100,18 @@ export default class AccountsApi implements IHttpApi {
     const address = generateAddressByPublicKey(
       keypair.publicKey.toString('hex')
     );
-    return res.json({
+    const result: ApiResult<AccountGenerateModel, ServerError> = {
+      success: true,
       secret,
       publicKey: keypair.publicKey.toString('hex'),
       privateKey: keypair.privateKey.toString('hex'),
       address,
-    });
+    };
+    return res.json(result);
   };
 
   private open = async (req: Request, res: Response, next: Next) => {
+    let result: ApiResult<AccountOpenModel, GetAccountError>;
     const { body } = req;
     const publicKeyOrSecret = joi
       .object()
@@ -114,23 +130,26 @@ export default class AccountsApi implements IHttpApi {
     }
 
     if (body.secret) {
-      const result = await this.openAccount(body.secret);
-      if (typeof result === 'string') {
-        return next(result);
+      const result1 = await this.openAccount(body.secret);
+      if (typeof result1 === 'string') {
+        return next(result1);
       }
-      return res.json({
+      result = {
         success: true,
-        ...result,
-      });
+        ...result1,
+      };
+      return res.json(result);
     } else {
       const result2 = await this.openAccount2(body.publicKey);
       if (typeof result2 === 'string') {
         return next(result2);
       }
-      return res.json({
+
+      result = {
         success: true,
-        result2,
-      });
+        ...result2,
+      };
+      return res.json(result);
     }
   };
 
@@ -160,14 +179,22 @@ export default class AccountsApi implements IHttpApi {
       if (typeof account === 'string') {
         return next(account);
       }
-      return res.json(account);
+      const result1: ApiResult<IAccount, ServerError> = {
+        success: true,
+        ...account,
+      };
+      return res.json(result1);
     }
 
     const account = await getAccount(query.address);
     if (typeof account === 'string') {
       return next(account);
     }
-    return res.json(account);
+    const result2: ApiResult<AccountOpenModel, GetAccountError> = {
+      success: true,
+      ...account,
+    };
+    return res.json(result2);
   };
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
@@ -246,10 +273,12 @@ export default class AccountsApi implements IHttpApi {
       gny: gnyBalance,
     });
 
-    return res.json({
+    const result: ApiResult<BalancesModel, string> = {
+      success: true,
       count: count + 1,
       balances,
-    });
+    };
+    return res.json(result);
   };
 
   private getAddressCurrencyBalance = async (
@@ -293,7 +322,11 @@ export default class AccountsApi implements IHttpApi {
       });
     }
 
-    return res.json({ balance });
+    const result: ApiResult<IBalanceWrapper, BalanceResponseError> = {
+      success: true,
+      balance,
+    };
+    return res.json(result);
   };
 
   private getVotedDelegates = async (
@@ -343,14 +376,23 @@ export default class AccountsApi implements IHttpApi {
         delegateNames.add(v.delegate);
       }
       const delegates: DelegateViewModel[] = await Delegates.getDelegates();
+      let result: ApiResult<DelegatesWrapper>;
       if (!delegates || !delegates.length) {
-        return res.json({ delegates: [] });
+        result = {
+          success: true,
+          delegates: [] as DelegateViewModel[],
+        };
+        return res.json(result);
       }
 
       const myVotedDelegates = delegates.filter(d =>
         delegateNames.has(d.username)
       );
-      return res.json({ delegates: myVotedDelegates });
+      result = {
+        success: true,
+        delegates: myVotedDelegates,
+      };
+      return res.json(result);
     } catch (e) {
       this.library.logger.error('get voted delegates error', e);
       return next('Server error');
@@ -360,7 +402,11 @@ export default class AccountsApi implements IHttpApi {
   private count = async (req: Request, res: Response, next: Next) => {
     try {
       const count = await global.app.sdb.count<Account>(Account, {});
-      return res.json({ success: true, count });
+      const result: ApiResult<CountWrapper, ServerError> = {
+        success: true,
+        count,
+      };
+      return res.json(result);
     } catch (e) {
       return next('Server error');
     }
@@ -384,12 +430,16 @@ export default class AccountsApi implements IHttpApi {
 
     const accountInfoOrError = await getAccount(query.address);
     if (typeof accountInfoOrError === 'string') {
-      return res.json(accountInfoOrError);
+      return next(accountInfoOrError);
     }
     if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
       return next('Can not find public key');
     }
-    return res.json({ publicKey: accountInfoOrError.account.publicKey });
+    const result: ApiResult<PulicKeyWapper, GetAccountError> = {
+      success: true,
+      publicKey: accountInfoOrError.account.publicKey,
+    };
+    return res.json(result);
   };
 
   private generatePublicKey = (req: Request, res: Response, next: Next) => {
@@ -416,7 +466,12 @@ export default class AccountsApi implements IHttpApi {
           .digest()
       );
       const publicKey = kp.publicKey.toString('hex');
-      return res.json({ publicKey });
+
+      const result: ApiResult<PulicKeyWapper, ServerError> = {
+        success: true,
+        publicKey,
+      };
+      return res.json(result);
     } catch (err) {
       return next('Server error');
     }

@@ -7,6 +7,12 @@ import {
   DelegateViewModel,
   IHttpApi,
   AccountWeightViewModel,
+  ApiResult,
+  CountWrapper,
+  AccountsWrapper,
+  DelegateWrapper,
+  DelegatesWrapper,
+  ForgingStatus,
 } from '@gny/interfaces';
 import { BlockReward } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -66,7 +72,11 @@ export default class DelegatesApi implements IHttpApi {
   private count = async (req: Request, res: Response, next: Next) => {
     try {
       const delegates = await global.app.sdb.getAll<Delegate>(Delegate);
-      return res.json({ count: delegates.length });
+      const result: ApiResult<CountWrapper> = {
+        success: true,
+        count: delegates.length,
+      };
+      return res.json(result);
     } catch (e) {
       this.library.logger.error('Error in counting delegates', e);
       return next('Failed to count delegates');
@@ -89,12 +99,19 @@ export default class DelegatesApi implements IHttpApi {
       });
     }
 
+    let result: ApiResult<AccountsWrapper>;
+
     try {
       const votes = await global.app.sdb.findAll<Vote>(Vote, {
         condition: {
           delegate: query.username,
         },
       });
+
+      result = {
+        success: true,
+        accounts: [] as AccountWeightViewModel[],
+      };
       if (!votes || !votes.length) return res.json({ accounts: [] });
 
       const addresses = votes.map(v => v.voterAddress);
@@ -120,7 +137,11 @@ export default class DelegatesApi implements IHttpApi {
         return acVM;
       });
 
-      return res.json({ accounts: accountsViewModel });
+      result = {
+        success: true,
+        accounts: accountsViewModel,
+      };
+      return res.json(result);
     } catch (e) {
       this.library.logger.error('Failed to find voters', e);
       return next('Server error');
@@ -162,7 +183,11 @@ export default class DelegatesApi implements IHttpApi {
     });
 
     if (delegate) {
-      return res.json({ delegate });
+      const result: ApiResult<DelegateWrapper> = {
+        success: true,
+        delegate,
+      };
+      return res.json(result);
     }
     return next('Can not find delegate');
   };
@@ -196,10 +221,12 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) return next('No delegates found');
-    return res.json({
+    const result: ApiResult<DelegatesWrapper> = {
+      success: true,
       totalCount: delegates.length,
       delegates: delegates.slice(offset, offset + limit),
-    });
+    };
+    return res.json(result);
   };
 
   private forgingEnable = async (req: Request, res: Response, next: Next) => {
@@ -340,10 +367,11 @@ export default class DelegatesApi implements IHttpApi {
     }
 
     const isEnabled = !!StateHelper.isPublicKeyInKeyPairs(query.publicKey);
-    return res.json({
+    const result: ApiResult<ForgingStatus> = {
       success: true,
       enabled: isEnabled,
-    });
+    };
+    return res.json(result);
   };
 
   // only used in DEBUG

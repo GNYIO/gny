@@ -7,9 +7,15 @@ import {
   ManyVotes,
   ITransaction,
   IBlock,
-  CommonBlockResult,
   IHttpApi,
   UnconfirmedTransaction,
+  ApiResult,
+  NewBlockWrapper,
+  CommonBlockWrapper,
+  BlocksWrapper,
+  TransactionIdWrapper,
+  UnconfirmedTransactionsWrapper,
+  HeightWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
@@ -129,11 +135,12 @@ export default class TransportApi implements IHttpApi {
     if (!newBlock) {
       return next('New block not found');
     }
-    return res.json({
+    const result: ApiResult<NewBlockWrapper> = {
       success: true,
       block: newBlock.block,
       votes: newBlock.votes,
-    });
+    };
+    return res.json(result);
   };
 
   // POST
@@ -196,7 +203,7 @@ export default class TransportApi implements IHttpApi {
       if (!commonBlock) {
         return next('Common block not found');
       }
-      const result: CommonBlockResult = {
+      const result: ApiResult<CommonBlockWrapper> = {
         success: true,
         common: commonBlock,
       };
@@ -240,6 +247,7 @@ export default class TransportApi implements IHttpApi {
       });
     }
 
+    let result: ApiResult<BlocksWrapper>;
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
@@ -251,13 +259,21 @@ export default class TransportApi implements IHttpApi {
         .toFixed();
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
       const blocks = await getBlocksFromApi(minHeight, maxHeight, true);
-      return res.json({ blocks });
+      result = {
+        success: true,
+        blocks,
+      };
+      return res.json(result);
     } catch (e) {
       global.app.logger.error(
         '/peer/blocks (POST), Failed to get blocks with transactions',
         e
       );
-      return res.json({ blocks: [] });
+      result = {
+        success: true,
+        blocks: [] as IBlock[],
+      };
+      return res.json(result);
     }
   };
 
@@ -287,9 +303,11 @@ export default class TransportApi implements IHttpApi {
         return next(errMsg);
       } else {
         this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs);
-        return res
-          .status(200)
-          .json({ success: true, transactionId: unconfirmedTrs.id });
+        const result: ApiResult<TransactionIdWrapper> = {
+          success: true,
+          transactionId: unconfirmedTrs.id,
+        };
+        return res.status(200).json(result);
       }
     };
 
@@ -345,22 +363,25 @@ export default class TransportApi implements IHttpApi {
     }
 
     this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
-    res.json({});
+    res.json({ success: true });
   };
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
-    return res.json({
+    const result: ApiResult<UnconfirmedTransactionsWrapper> = {
+      success: true,
       transactions: StateHelper.GetUnconfirmedTransactionList(),
-    });
+    };
+    return res.json(result);
   };
 
   // POST
   private getHeight = (req: Request, res: Response) => {
     const lastBlock = StateHelper.getState().lastBlock;
-
-    return res.json({
+    const result: ApiResult<HeightWrapper> = {
+      success: true,
       height: lastBlock.height,
-    });
+    };
+    return res.json(result);
   };
 }

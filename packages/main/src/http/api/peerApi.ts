@@ -1,6 +1,13 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IHttpApi } from '@gny/interfaces';
+import {
+  IScope,
+  Next,
+  IHttpApi,
+  ApiResult,
+  PeersWrapper,
+  VersionWrapper,
+} from '@gny/interfaces';
 import Peer from '../../../src/core/peer';
 import { StateHelper } from '../../../src/core/StateHelper';
 
@@ -41,17 +48,21 @@ export default class PeerApi implements IHttpApi {
 
   private getPeers = (req: Request, res: Response, next: Next) => {
     const peers = Peer.p2p.getAllConnectedPeers();
-    return res.json({
+    const result: ApiResult<PeersWrapper> = {
+      success: true,
       peers,
       count: peers.length,
-    });
+    };
+    return res.json(result);
   };
 
   private version = (req: Request, res: Response, next: Next) => {
-    return res.json({
+    const result: ApiResult<VersionWrapper> = {
+      success: true,
       version: this.library.config.version,
       build: this.library.config.buildVersion,
       net: this.library.config.netVersion,
-    });
+    };
+    return res.json(result);
   };
 }
