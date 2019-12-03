@@ -161,7 +161,6 @@ export default class TransactionsApi implements IHttpApi {
       return res.json(result);
     } catch (e) {
       global.app.logger.error('Failed to get transactions', e);
-      // return next(`System error: ${e}`);
       return next('Server Error');
     }
   };
@@ -336,7 +335,6 @@ export default class TransactionsApi implements IHttpApi {
               'Failed to process unsigned transaction',
               e
             );
-            // callback(e.toString());
             callback('Server Error');
           }
         })();

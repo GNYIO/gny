@@ -511,7 +511,7 @@ export interface RewardWrappper {
 }
 
 export interface SupplyWrapper {
-  supply: BigNumber;
+  supply: string;
 }
 
 export interface Status {
@@ -519,7 +519,7 @@ export interface Status {
   fee: string;
   milestone: number;
   reward: number;
-  supply: BigNumber;
+  supply: string;
 }
 
 export interface AccountsWrapper {
