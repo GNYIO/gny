@@ -82,7 +82,7 @@ export class TransactionWebBase {
     return final;
   }
 
-  private static sign(
+  public static sign(
     keypair: NaclKeyPair,
     transaction: Pick<
       ITransaction,

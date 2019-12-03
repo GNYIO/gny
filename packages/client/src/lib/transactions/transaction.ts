@@ -1,6 +1,8 @@
 import * as webBase from '@gny/web-base';
+import { TransactionWebBase } from '@gny/web-base';
 import { slots } from '@gny/utils';
-import { ITransaction } from '@gny/interfaces';
+import { ITransaction, NaclKeyPair } from '@gny/interfaces';
+import { generateAddress } from '@gny/utils';
 
 interface Params {
   type: number;
@@ -13,24 +15,20 @@ interface Params {
 export function createTransactionEx(params: Params) {
   if (!params.secret) throw new Error('Secret needed');
   const keys = webBase.getKeys(params.secret);
-  const transaction = {
+
+  let secondKeys: { keypair: NaclKeyPair };
+  if (params.secondSecret) {
+    secondKeys = webBase.getKeys(params.secondSecret);
+  }
+
+  const transaction = TransactionWebBase.create({
+    keypair: keys.keypair,
+    secondKeypair: secondKeys.keypair,
     type: params.type,
-    timestamp: slots.getEpochTime(),
     fee: String(params.fee),
     message: params.message,
     args: params.args,
-    senderPublicKey: keys.publicKey,
-    senderId: webBase.getAddress(keys.publicKey),
-    signatures: [],
-  } as ITransaction;
-  transaction.signatures.push(webBase.sign(transaction, keys.keypair));
-  if (params.secondSecret) {
-    const secondKeys = webBase.getKeys(params.secondSecret);
-    transaction.secondSignature = webBase.secondSign(
-      transaction,
-      secondKeys.keypair
-    );
-  }
-  transaction.id = webBase.getId(transaction);
-  return transaction as ITransaction;
+  });
+
+  return transaction;
 }

@@ -1,8 +1,9 @@
 import * as webBase from '@gny/web-base';
+import { generateAddress } from '@gny/utils';
 
 export function account(secret: string) {
-  const kp = webBase.keypair(secret);
-  const address = webBase.getAddress(kp.publicKey);
+  const kp = webBase.getKeys(secret);
+  const address = generateAddress(kp.publicKey);
 
   return {
     keypair: kp,
