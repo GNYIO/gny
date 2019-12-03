@@ -64,7 +64,6 @@ export class TransactionWebBase {
     const intermediate: Omit<ITransaction, 'id' | 'height'> = {
       ...transaction,
       signatures: [TransactionWebBase.sign(data.keypair, transaction)],
-      secondSignature: undefined,
     };
 
     if (data.secondKeypair) {
@@ -109,7 +108,7 @@ export class TransactionWebBase {
     return TransactionWebBase.getHash(transaction).toString('hex');
   }
 
-  private static getHash(
+  public static getHash(
     transaction: Pick<
       ITransaction,
       | 'type'
