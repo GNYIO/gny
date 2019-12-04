@@ -27,8 +27,8 @@ export class Basic extends Base {
     return result;
   }
 
-  public async unlockAccount(secrete: string) {
-    const trs = basic.unlock(secrete);
+  public async unlockAccount(secret: string) {
+    const trs = basic.unlock(secret);
     const params = {
       transaction: trs,
     };
