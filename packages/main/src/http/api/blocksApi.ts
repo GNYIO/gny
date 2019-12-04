@@ -206,7 +206,7 @@ export default class BlocksApi implements IHttpApi {
 
   private getSupply = (req: Request, res: Response, next: Next) => {
     const height = StateHelper.getState().lastBlock.height;
-    const supply = this.blockReward.calculateSupply(height);
+    const supply = this.blockReward.calculateSupply(height).toString();
     const result: ApiResult<SupplyWrapper> = {
       success: true,
       supply,
@@ -219,7 +219,7 @@ export default class BlocksApi implements IHttpApi {
     const fee = BlockBase.calculateFee();
     const milestone = this.blockReward.calculateMilestone(height);
     const reward = this.blockReward.calculateReward(height);
-    const supply = this.blockReward.calculateSupply(height);
+    const supply = this.blockReward.calculateSupply(height).toString();
     const result: ApiResult<Status> = {
       success: true,
       height,
