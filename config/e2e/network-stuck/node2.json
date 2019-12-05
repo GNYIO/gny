@@ -1,0 +1,60 @@
+{
+  "port": 4096,
+  "address": "0.0.0.0",
+  "publicIp": "0.0.0.0",
+  "logLevel": "debug",
+  "magic": "594fe0f3",
+  "api": {
+    "access": {
+      "whiteList": []
+    }
+  },
+  "peers": {
+    "bootstrap": [],
+    "p2pKeyFile": "p2p_key.json",
+    "privateP2PKey": "CAASqQkwggSlAgEAAoIBAQC3H9azHRSZH5wn3xZC7Dx1uoHbRQAgltB4PLhvBWuHb37932eOX24TojPyn3ebMoKdhXKUGP3AJpSNc+V2v2mNyIs6pfsPGU4LXJtclwCb9rchODN3PApeSsDOuIpuIxZcae5g6Zg3k5UIeuZU5cUo2+b3AjqfP5MyvHS6Q8eqM39wcFuy/Nrr01QiAQO3BAYNw9YczAhMBfVhNydXsnYIt2UfVxAHYjpBe3zuBNkd67DcnS45J+oCjCB0fmM2R1zAzXwKWriPcRJS/Ms/lCQj1GQ5s4HQ561HDfzpqhUJMLcO/8o+UceJgFSJFgciD2yfr2HnKGxw9aWKFMWmdQJtAgMBAAECggEBALDDDt89xtA3bugdssNOfN229fnNlN3gNcKZ+f1QYgcNXKt5peALxZk2DKa5vx4Tl3itg3fo16dOlj4kDO6evSia16n45Wohpu/YqC6ro27oqsRqF2OUlP2Hcq0X/KdrPv5dUjhBwyiCUG0rFIIGeFWETmFHyYZGO7PRrWrOWkCyaHb2ZAYEw2ZFAfDU9R88QoG5LhsrlVGPBRif4KjB5VzfB9dewbNg3DlQqSmMHzv4Wbk3GXkAksWBAI1zLnY9PQwjwzMEIeXXDcKnjvvMdypbTzcaRXVL72hEY53fowMZiyyLbrj2j5v4ZUuApyHL9WA1h/RIsBTZ/DxamALkpQECgYEA8S09FQF/f1Z1x64GXhtorU1pVPwzQGh2sFM1EL1cOwaRTH2X2O7iKeMiWsoM620CWWh0bcD3YTlpoCyaNSYzNCNGHNsNeF7S/heek3sj2KQSWfcgJWoxaRI9GJX2DQc6p+Hbpu/8qMmP8R/VG5rqfjRWoVfXxpQABJCDhc3s+FECgYEAwmEu/ZtLPI579qZLErE+VARGsSc6CQ3GPy4iv7EBNPm+/04to8SG7czWkuhUazS5qd9Y5dQ82onkdqwCkEfgimmhJPsNY4CYLB4D73Y9nfo4VFrqRH6ZPXBzSDFO/MdkzXr5hSO9JxeTiJwSysmcyNDcXo4t6KUnaocpRxubvV0CgYEAlBOAg1suGtLM8dKpWjJd7LmwyFsoZI0/Aje0RxjcfekkYOBj0O+qsKkiOLgBgrKlVJvLkG9/85O6hHueGq/flE1sCN99v8AIr7V0yXw7oBHsqowOkqpGuApYtLWuIoWjv9vubuq+KCvJUvSGdbKB8wbTgbBbbTMFZ8gK2KZ8rmECgYAqdSXZeVE+wfSr1HjzdUmi+mgii+nuTlbuN/qZGmWkF6UziPUJH4VFbge0gRDnddXUGBgH44sDRTlk/n902m5ebWIofLnY8R7MDCZZ6N7eoegp7M3c9jYsqGJV84dISZloFKNqBHttjYXJQiYMq2sWpiBseuvmNCTe7PUENjCXdQKBgQCDxMv0IFcRNcvnIXiEgGAgkC5cHJBYnKpwYMfuecteKVjTfkNlZR1+bzQNICbikSEzrqEiLd+KzTK64yuJXrHybSuTbT3CywY2ptyBDtCbKZbC0pn7N5ZjnuXtsb/g3bgMVLooowbzG+vauhClBUqgT49s8hyxxgN3MP84J45bvg=="
+  },
+  "forging": {
+    "secret": [
+      "describe attend story sure another rely ripple strike profit better earn run",
+      "dizzy possible game increase scout hub idle abstract tree cousin make figure",
+      "general brother genre guess educate worry giant submit donkey fashion used ripple",
+      "arch acquire hobby arrive month bone moral impose fame six sibling tragic",
+      "coral ribbon reward bench excuse goddess dinner cinnamon unable wage unit potato",
+      "skirt inject shield century distance saddle solar ghost believe fuel female lamp",
+      "brass stadium boy eternal idea holiday three record connect mass original flock",
+      "kingdom rather bitter risk month hood ahead joy emerge girl easily pelican",
+      "spin crouch asthma wish behind swear buyer athlete title share employ escape",
+      "panic legend level deer avocado replace beauty title sport hat grass fortune",
+      "evolve acquire save pond provide clever black outside tip just spin pistol",
+      "dog shoulder cement fossil mammal business essay beef rule hurdle month slot",
+      "ranch snake sock silly case cover biology idle eternal pull govern title",
+      "image trouble permit now high current dust gaze ozone forget surprise tattoo",
+      "canyon ticket help during paddle swallow pottery jar scrub case enemy brave",
+      "palm uncle output stereo notice one tower vessel split when glance beauty",
+      "evidence replace onion floor dismiss write turn immune captain hello panther give",
+      "skate harbor leaf syrup call dish title fancy young country utility captain",
+      "enact dish perfect usual sail demise easy foot large trigger acid pitch",
+      "kit world gas episode unfold fix reopen discover deal cream gospel index",
+      "juice gossip trust actress cool female city february scene pride cannon social",
+      "census you model essence suggest alter blur winner thunder latin bunker left",
+      "fog remember velvet remember license hurt run ball tissue powder guide universe",
+      "street annual maple ceiling eager adult injury review panic cluster cherry that",
+      "lake august amount walnut ivory carry mountain tiger kid alter adult era"
+    ],
+    "access": {
+      "whiteList": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "ssl": {
+    "enabled": false,
+    "options": {
+      "port": 443,
+      "address": "0.0.0.0",
+      "key": "./ssl/server.key",
+      "cert": "./ssl/server.crt"
+    }
+  }
+}
