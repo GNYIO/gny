@@ -1,23 +1,9 @@
 import * as lib from './lib';
+import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/network-stuck/docker-compose.network-stuck.yml';
-
-function allItemsEqual(arr: any[]) {
-  return new Set(arr).size == 1;
-}
-
-async function allHeightsAreTheSame(ports: number[] = []) {
-  const promises = ports.map(x => lib.getHeight(x));
-  const result = await Promise.all(promises);
-
-  console.log(`allHeightsAreTheSame: ${JSON.stringify(result)}`);
-  const areAllHeightsTheSame = allItemsEqual(result);
-  expect(areAllHeightsTheSame).toEqual(true);
-
-  return result;
-}
 
 describe('network-stuck e2e test', () => {
   beforeAll(async done => {
@@ -44,7 +30,7 @@ describe('network-stuck e2e test', () => {
       await lib.sleep(100 * 1000);
 
       // all nodes should have the same height
-      await allHeightsAreTheSame([4096, 4098, 4100, 4102]);
+      await helpers.allHeightsAreTheSame([4096, 4098, 4100, 4102]);
 
       // now block height should be greater than 6
       const height = await lib.getHeight(4096);
