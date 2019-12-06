@@ -99,6 +99,16 @@ export async function startP2PContainers(
   await sleep(5000);
 }
 
+export async function stopP2PContainers(
+  configFile: string,
+  services: string[]
+) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" stop ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
 export async function restartP2PContainers(
   configFile: string,
   services: string[]
