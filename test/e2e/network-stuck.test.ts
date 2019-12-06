@@ -27,9 +27,7 @@ describe('network-stuck e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    // create **only** network, volumes and all containers, don't start them
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100, 4102]);
-
     await lib.sleep(10 * 1000);
     done();
   }, lib.oneMinute);
@@ -40,7 +38,7 @@ describe('network-stuck e2e test', () => {
   }, lib.oneMinute);
 
   it(
-    'sync-later',
+    'network-stuck',
     async done => {
       // sleep for 100 seconds (let the network get some traction)
       await lib.sleep(100 * 1000);
@@ -52,7 +50,7 @@ describe('network-stuck e2e test', () => {
       const height = await lib.getHeight(4096);
       expect(new BigNumber(height).isGreaterThanOrEqualTo(6)).toEqual(true);
 
-      // stop node3 and node4
+      // stop node3 and node4 (now network has not enough votes for block generation)
       console.log('stopping: "node3", "node4"');
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
 
