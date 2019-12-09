@@ -41,7 +41,7 @@ export async function onNewBlock(port: number = 4096) {
 export async function waitForLoaded(port: number) {
   let loaded = false;
   while (loaded === false) {
-    console.log('wait for ' + port);
+    console.log(`wait for ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -95,6 +95,16 @@ export async function startP2PContainers(
 ) {
   shellJS.exec(
     `docker-compose --file "${configFile}" start ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
+export async function stopP2PContainers(
+  configFile: string,
+  services: string[]
+) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" stop ${services.join(' ')}`
   );
   await sleep(5000);
 }

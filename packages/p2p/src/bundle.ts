@@ -50,7 +50,7 @@ export class Bundle extends libp2p {
         peerDiscovery: {
           autoDial: true,
           bootstrap: {
-            interval: 10 * 1000,
+            interval: 1000,
             enabled: true,
             list: [],
           },
