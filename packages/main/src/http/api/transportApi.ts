@@ -16,6 +16,7 @@ import {
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
   HeightWrapper,
+  P2PApiResult,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
@@ -247,7 +248,7 @@ export default class TransportApi implements IHttpApi {
       });
     }
 
-    let result: ApiResult<BlocksWrapper>;
+    let result: P2PApiResult<BlocksWrapper>;
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
@@ -260,7 +261,6 @@ export default class TransportApi implements IHttpApi {
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
       const blocks = await getBlocksFromApi(minHeight, maxHeight, true);
       result = {
-        success: true,
         blocks,
       };
       return res.json(result);
@@ -270,7 +270,6 @@ export default class TransportApi implements IHttpApi {
         e
       );
       result = {
-        success: true,
         blocks: [] as IBlock[],
       };
       return res.json(result);
@@ -303,8 +302,7 @@ export default class TransportApi implements IHttpApi {
         return next(errMsg);
       } else {
         this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs);
-        const result: ApiResult<TransactionIdWrapper> = {
-          success: true,
+        const result: P2PApiResult<TransactionIdWrapper> = {
           transactionId: unconfirmedTrs.id,
         };
         return res.status(200).json(result);
@@ -363,13 +361,12 @@ export default class TransportApi implements IHttpApi {
     }
 
     this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
-    res.json({ success: true });
+    res.json({});
   };
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
-    const result: ApiResult<UnconfirmedTransactionsWrapper> = {
-      success: true,
+    const result: P2PApiResult<UnconfirmedTransactionsWrapper> = {
       transactions: StateHelper.GetUnconfirmedTransactionList(),
     };
     return res.json(result);
@@ -378,8 +375,7 @@ export default class TransportApi implements IHttpApi {
   // POST
   private getHeight = (req: Request, res: Response) => {
     const lastBlock = StateHelper.getState().lastBlock;
-    const result: ApiResult<HeightWrapper> = {
-      success: true,
+    const result: P2PApiResult<HeightWrapper> = {
       height: lastBlock.height,
     };
     return res.json(result);

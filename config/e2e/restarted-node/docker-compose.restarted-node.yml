@@ -1,0 +1,22 @@
+version: '3.3'
+services:
+  db1:
+    image: "postgres:9.6.12"
+    container_name: 'db1'
+    restart: always
+    ports:
+      - '3000:5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+  node1:
+    build: ../../..
+    container_name: 'node1'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/restarted-node/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/restarted-node/ormconfig.node1.json"'
+    environment:
+      NODE_ENV: production
+    ports:
+      - '4096:4096'
+      - '4097:4097'

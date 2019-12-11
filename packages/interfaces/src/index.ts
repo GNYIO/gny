@@ -423,6 +423,7 @@ export interface ApiSuccess {
 }
 
 export type ApiResult<K, T = string> = (K & ApiSuccess) | ApiError<T>;
+export type P2PApiResult<K> = K;
 
 export type OffsetAndLimitError =
   | 'child "offset" fails because ["offset" must be a number]'
