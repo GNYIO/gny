@@ -61,17 +61,6 @@ export default class Api {
     );
   };
 
-  put = function(path, data, cb) {
-    request(
-      {
-        method: 'PUT',
-        url: this.baseUrl + path,
-        json: data,
-      },
-      resultHandler(cb)
-    );
-  };
-
   post = function(path, data, cb) {
     request(
       {
