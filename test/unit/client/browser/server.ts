@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const webpack = require('webpack');
 const middleware = require('webpack-dev-middleware');
@@ -6,24 +5,6 @@ const middleware = require('webpack-dev-middleware');
 const compiler = webpack(
   require('../../../../packages/client/webpack.config.js')
 );
-
-// Turns input into an array if not one already
-function normalizeArray(arr) {
-  return Array.isArray(arr) ? arr : [arr];
-}
-
-// Gets all the Javascript paths that Webpack has compiled, across chunks
-function getAllJsPaths(webpackJson) {
-  const { assetsByChunkName } = webpackJson;
-  return Object.values(assetsByChunkName).reduce((paths, assets) => {
-    for (const asset of normalizeArray(assets)) {
-      if (asset != null && asset.endsWith('.js')) {
-        paths.push(asset);
-      }
-    }
-    return paths;
-  }, []);
-}
 
 let port = 4444;
 const index = Math.max(
@@ -37,8 +18,7 @@ if (index !== -1) {
 const app = express()
   .use(middleware(compiler, { serverSideRender: true }))
   .use((req, res) => {
-    const webpackJson = res.locals.webpackStats.toJson();
-    const paths = getAllJsPaths(webpackJson);
+    const path = 'browser.js';
     res.send(
       `<!DOCTYPE html>
       <html>
@@ -47,7 +27,7 @@ const app = express()
         </head>
         <body>
           <div id="root"></div>
-          ${paths.map(path => `<script src="${path}"></script>`).join('')}
+          <script src="${path}"></script>
         </body>
       </html>`
     );
