@@ -10,3 +10,4 @@ export const getBytes = TransactionWebBase.getBytes;
 export const getHash = TransactionWebBase.getHash;
 export const getId = TransactionWebBase.getId;
 export const sign = TransactionWebBase.sign;
+export const secondSign = TransactionWebBase.sign;
