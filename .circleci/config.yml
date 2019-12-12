@@ -216,11 +216,50 @@ jobs:
       - run:
           name: npm audit dependencies
           command: node auditAllPackages.js
+  browser@client-unit:
+    docker:
+      - image: circleci/node:10.16.2
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: md5sum of all package-lock.json files
+          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+      - restore_cache:
+          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}
+      - run:
+          name: install dependencies, bootstrap lerna, compile project
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
+            fi
+      - save_cache:
+          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}
+          paths:
+            - ./node_modules
+            - ./packages/base/node_modules
+            - ./packages/database-postgres/node_modules
+            - ./packages/ed/node_modules
+            - ./packages/extendedJoi/node_modules
+            - ./packages/client/node_modules
+            - ./packages/interfaces/node_modules
+            - ./packages/logger/node_modules
+            - ./packages/main/node_modules
+            - ./packages/p2p/node_modules
+            - ./packages/transaction-pool/node_modules
+            - ./packages/type-validation/node_modules
+            - ./packages/utils/node_modules
+            - ./packages/protobuf/node_modules
+            - ./packages/cli/node_modules
+      - run:
+          name: browser test
+          command: npm run test:browser
 workflows:
   version: 2
   all_unit_tests_every_commit:
     jobs:
       - node@10.16.2-unit
+      - browser@client-unit
   all_integration_every_third_night_on_develop_branch:
     triggers:
       - schedule:
