@@ -1,23 +1,9 @@
 import * as lib from './lib';
+import * as helpers from './helpers';
 import BigNumber from 'bignumber.js';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-later/docker-compose.sync-later.yml';
-
-function allItemsEqual(arr: any[]) {
-  return new Set(arr).size == 1;
-}
-
-async function bothHeightsAreTheSame(ports: number[] = []) {
-  const promises = ports.map(x => lib.getHeight(x));
-  const result = await Promise.all(promises);
-
-  console.log(`bothHeightsAreTheSame: ${JSON.stringify(result)}`);
-  const areAllHeightsTheSame = allItemsEqual(result);
-  expect(areAllHeightsTheSame).toEqual(true);
-
-  return result;
-}
 
 describe('sync-later e2e test', () => {
   beforeAll(async done => {
@@ -64,7 +50,7 @@ describe('sync-later e2e test', () => {
       await lib.sleep(20 * 1000);
 
       // check if both heights are the same
-      await bothHeightsAreTheSame([4096, 4098]);
+      await helpers.allHeightsAreTheSame([4096, 4098]);
 
       // now
       done();

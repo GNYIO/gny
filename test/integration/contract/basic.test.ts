@@ -282,7 +282,8 @@ describe('basic', () => {
         const beforeset = await axios.get(
           'http://localhost:4096/api/accounts?username=' + username
         );
-        expect(beforeset.data).toHaveLength(0);
+        console.log(beforeset.data.username);
+        expect(beforeset.data.username).toBeUndefined();
         await lib.onNewBlock();
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -316,7 +317,7 @@ describe('basic', () => {
         const beforeset = await axios.get(
           'http://localhost:4096/api/accounts?username=' + username
         );
-        expect(beforeset.data).toHaveLength(0);
+        expect(beforeset.data.username).toBeUndefined();
         await lib.onNewBlock();
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -363,7 +364,7 @@ describe('basic', () => {
         const beforeset = await axios.get(
           'http://localhost:4096/api/accounts?username=' + username
         );
-        expect(beforeset.data).toHaveLength(0);
+        expect(beforeset.data.username).toBeUndefined();
         await lib.onNewBlock();
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);

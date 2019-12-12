@@ -10,6 +10,10 @@ import {
   IBlock,
   IHttpApi,
   UnconfirmedTransaction,
+  ApiResult,
+  TransactionsWrapper,
+  UnconfirmedTransactionWrapper,
+  TransactionIdWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -123,10 +127,16 @@ export default class TransactionsApi implements IHttpApi {
 
     try {
       let block: IBlock;
+      let result: ApiResult<TransactionsWrapper>;
       if (query.blockId) {
         block = await global.app.sdb.getBlockById(query.blockId);
         if (block === undefined) {
-          return res.json({ transactions: [], count: 0 });
+          result = {
+            success: true,
+            count: 0,
+            transactions: [] as ITransaction[],
+          };
+          return res.json(result);
         }
         condition.height = block.height;
       }
@@ -143,10 +153,15 @@ export default class TransactionsApi implements IHttpApi {
         }
       );
       if (!transactions) transactions = [];
-      return res.json({ transactions, count });
+      result = {
+        success: true,
+        count: count,
+        transactions: transactions as ITransaction[],
+      };
+      return res.json(result);
     } catch (e) {
       global.app.logger.error('Failed to get transactions', e);
-      return next(`System error: ${e}`);
+      return next('Server Error');
     }
   };
 
@@ -173,10 +188,13 @@ export default class TransactionsApi implements IHttpApi {
     const unconfirmedTransaction = StateHelper.GetUnconfirmedTransaction(
       query.id
     );
-
+    const result: ApiResult<UnconfirmedTransactionWrapper> = {
+      success: true,
+      transaction: unconfirmedTransaction,
+    };
     return !unconfirmedTransaction
       ? next('Transaction not found')
-      : res.json({ transaction: unconfirmedTransaction });
+      : res.json(result);
   };
 
   private getUnconfirmedTransactions = (
@@ -213,7 +231,11 @@ export default class TransactionsApi implements IHttpApi {
       transactions.forEach(t => toSend.push(t));
     }
 
-    return res.json({ transactions: toSend });
+    const result: ApiResult<TransactionsWrapper> = {
+      success: true,
+      transactions: toSend,
+    };
+    return res.json(result);
   };
 
   private addTransactionUnsigned = (
@@ -303,13 +325,17 @@ export default class TransactionsApi implements IHttpApi {
               'onUnconfirmedTransaction',
               unconfirmedTrs
             );
-            callback(null, { success: true, transactionId: unconfirmedTrs.id });
+            const result: ApiResult<TransactionIdWrapper> = {
+              success: true,
+              transactionId: unconfirmedTrs.id,
+            };
+            callback(null, result);
           } catch (e) {
             this.library.logger.warn(
               'Failed to process unsigned transaction',
               e
             );
-            callback(e.toString());
+            callback('Server Error');
           }
         })();
       },
@@ -326,7 +352,11 @@ export default class TransactionsApi implements IHttpApi {
       if (err) {
         return next(err);
       }
-      return res.json({ success: true, transactions: result });
+      const trsResult: ApiResult<TransactionsWrapper> = {
+        success: true,
+        transactions: result,
+      };
+      return res.json(trsResult);
     };
 
     const trs = req.body.transactions;

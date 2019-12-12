@@ -1,0 +1,69 @@
+{
+  "port": 4096,
+  "address": "0.0.0.0",
+  "publicIp": "0.0.0.0",
+  "logLevel": "debug",
+  "magic": "594fe0f3",
+  "api": {
+    "access": {
+      "whiteList": []
+    }
+  },
+  "peers": {
+    "bootstrap": [],
+    "p2pKeyFile": "p2p_key.json",
+    "privateP2PKey": "CAASpwkwggSjAgEAAoIBAQDPZqpB+rHgWRICMVS0R296QXjJmvkg4dlZvv3yYR7A2hfa7YgCRwzjZeFHi2aVGl9J/L/fnH1E28UOHAngPA8i+Ix14xIEuRs3+WGZGKyllgsiID9MAhTHgK7ktrVWp1e8yvu8wUIz1RammBBIH7xm0+otJRDCJJeapVyTTB+mfs31lzsYRMGDjQrMy/21ec7O4BMqLiaMYp1cZHmtf7tmyfVEbPhpM4irBKeVurwt9HYcO+i8jVj60jnCjfFcsPBvHnUEj06lNgE+/9J7S6Z7n7MTVuxCBCs4HPbbKHfolin1HOcYcje64K78qdlGnnurG23P52ie1OStvdBW6YFvAgMBAAECggEAOIh7kFCNe+HLjt1zgVCXinOeQRYFInltjZEKF69xeo/4QKzOjhBf6vwyVBYjeDEgGELU6lb1rndZV2c9Keo1Fgs5/khO+Qqb6L4JZHndVaV4k2zG1CkdEOR6x80l0OD8gXGy/NiQ+x/ydKauiXpdGIpbIsMftkvTJ0w718rANdmMsc0QWn1APatld1F/BStwNKVw2jB/KukzD4S7GEyEkXOH3h2G31yv0ljK+WpwGK4YhF5bwDRM/8VFjTPfpR8RfUUok1JrG5BOIRWjxJgw0Wfm+edOprHL0HMmyORIkFns63/9+2p636pp5+kPcfHiKBmj7lr4ku99DBQyekMrAQKBgQD58RNVkkwmznZQfcpdHDY0CU1EDCPxjhppp6CxOog7Bw7CqpXx8AMet3vkX7/Ah5qxJXKwPkESqkModdWyDcMqQ3GfXsvfic6R+/Ctp9UdmwBzJRLqT4RNaEIxIuP4xPXxlLqddJlm3NAg/rK6fYVLyvDCWIGzuMO7/VXeHhQx0QKBgQDUbZ5ZNJu0HdI9iX1aHJxgarHMfF9eN16WLMzNa91K+p0kXIrx4c7dEVU2DW77JYRI/6E1Tc2EvMAPFgOdEqT+vhhJbljzx2+M0fdXz4ImmssnJEmeAaBGVcYIYnhLe6MCwpA9GFGPfVgR6fmJedxAldKuGm/Phq6uFWO5nCYPPwKBgQCE2CZvl/eTtK7b70/slz8T/1Gq9kzwaZgOSgM1z6dywDiPLP3PfsMZw2o9IssXOLv2pbHEjQInOonBaofvQDNYNkqg61Cu+l7p5p+wnQC/4I+no6/fC+6E+gIcfa/vnDggc+2QHNYf/wM8VkOGrYp4k1/N3B7r+CtIssi96vzO0QKBgHIvqlqRKNEc5pIlgbgagQRi1cfxYuImKTXYRw502LMhG68b/6QdmTDDzGYNuoZNmFoU7vbUJ5EeVK7HSpH4H7C/RhbStgX0QkYT5zzQUkmmE2Wq39eLUDf+i0CejcMlZm5pX1c35z+WROz8NCJt2rLs1h64HzoST3tMDBsNkHfJAoGAMhqgJbfE2Sg17N/261KgX5oKtITN/qG3WgkQtOD6GZcj4hldZwoFuk31cq/41HI8fB5Wya2rDwxABxh3hU3Fi6Q2IOxvi1lCQ6NxjV63ec0bIsxozWfbEd5tJp12hAplKZJZUXIbA3b4/Q/+Rpg4fFWZb5fBRx4hQDUlJ4/7FRg="
+  },
+  "forging": {
+    "secret": [
+      "panic legend level deer avocado replace beauty title sport hat grass fortune",
+      "evolve acquire save pond provide clever black outside tip just spin pistol",
+      "dog shoulder cement fossil mammal business essay beef rule hurdle month slot",
+      "ranch snake sock silly case cover biology idle eternal pull govern title",
+      "image trouble permit now high current dust gaze ozone forget surprise tattoo",
+      "canyon ticket help during paddle swallow pottery jar scrub case enemy brave",
+      "palm uncle output stereo notice one tower vessel split when glance beauty",
+      "evidence replace onion floor dismiss write turn immune captain hello panther give",
+      "skate harbor leaf syrup call dish title fancy young country utility captain",
+      "enact dish perfect usual sail demise easy foot large trigger acid pitch",
+      "kit world gas episode unfold fix reopen discover deal cream gospel index",
+      "juice gossip trust actress cool female city february scene pride cannon social",
+      "census you model essence suggest alter blur winner thunder latin bunker left",
+      "fog remember velvet remember license hurt run ball tissue powder guide universe",
+      "street annual maple ceiling eager adult injury review panic cluster cherry that",
+      "lake august amount walnut ivory carry mountain tiger kid alter adult era",
+      "student worth gallery help patch park casino shuffle twelve ridge very rural",
+      "fatigue kiwi bind gain check level file lunar fun around dash bottom",
+      "action focus wrestle clinic hunt hero letter error tip unhappy turtle resource",
+      "chief pulse absorb matter glad banner mountain pizza same float then item",
+      "vague scorpion faint mistake weather wear above interest slow prosper foam scatter",
+      "waste grain material town thank garment limit adjust merry narrow tattoo assist",
+      "grief remember recycle ivory giggle damage say travel rotate again enrich witness",
+      "actress acoustic spice shiver parrot rule notice palm mom segment special stumble",
+      "debate sustain noise suggest road worry ring skirt near yellow banana omit",
+      "castle debris oven manage invite employ orbit border split divert leaf cliff",
+      "twice shy gap expose actor indicate final verify nephew legend height rug",
+      "hybrid stem dust various undo upon rent hundred update east blossom reason",
+      "frog version large narrow among awesome mad face habit secret elevator unfair",
+      "inspire engage impact great orbit right flock liquid elbow basic shrug toss",
+      "music actress sphere narrow chat convince muscle develop solve sing human punch",
+      "wet margin unit palm salad thank foster wool traffic near essay lazy",
+      "adjust artefact into bacon crisp depend history rubber carry guilt foil hawk",
+      "chase evidence seek excite laundry treat fire verb better outdoor jazz unknown"
+    ],
+    "access": {
+      "whiteList": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "ssl": {
+    "enabled": false,
+    "options": {
+      "port": 443,
+      "address": "0.0.0.0",
+      "key": "./ssl/server.key",
+      "cert": "./ssl/server.crt"
+    }
+  }
+}

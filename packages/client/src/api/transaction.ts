@@ -1,5 +1,14 @@
 import { Base } from './base';
-import { ITransaction } from '@gny/interfaces';
+import {
+  ITransaction,
+  ApiResult,
+  TransactionsWrapper,
+  ValidationError,
+  ServerError,
+  UnconfirmedTransactionWrapper,
+  TransactionError,
+  TransactionIdWrapper,
+} from '@gny/interfaces';
 
 interface Query {
   limit?: number;
@@ -25,14 +34,24 @@ export class Transaction extends Base {
       height: query.height,
       message: query.message,
     };
-    return await this.get('/api/transactions/', params);
+    const res = await this.get('/api/transactions/', params);
+    const result: ApiResult<
+      TransactionsWrapper,
+      ValidationError | ServerError
+    > = res.data;
+    return result;
   }
 
   public async getUnconfirmedTransaction(id: string) {
     const params = {
       id: id,
     };
-    return await this.get('/api/transactions/unconfirmed/get', params);
+    const res = await this.get('/api/transactions/unconfirmed/get', params);
+    const result: ApiResult<
+      UnconfirmedTransactionWrapper,
+      ValidationError | TransactionError
+    > = res.data;
+    return result;
   }
 
   public async getUnconfirmedTransactions(
@@ -43,7 +62,9 @@ export class Transaction extends Base {
       senderPublicKey: senderPublicKey,
       address: address,
     };
-    return await this.get('/api/transactions/unconfirmed', params);
+    const res = await this.get('/api/transactions/unconfirmed', params);
+    const result: ApiResult<TransactionsWrapper, ValidationError> = res.data;
+    return result;
   }
 
   public async addTransactionUnsigned(
@@ -64,13 +85,23 @@ export class Transaction extends Base {
       message: message,
       senderId: senderId,
     };
-    return await this.put('/api/transactions/', params);
+    const res = await this.put('/api/transactions/', params);
+    const result: ApiResult<
+      TransactionIdWrapper,
+      TransactionError | ServerError
+    > = res.data;
+    return result;
   }
 
   public async addTransactions(transactions: ITransaction[]) {
     const params = {
       transactions: transactions,
     };
-    return await this.put('/api/transactions/batch', params);
+    const res = await this.put('/api/transactions/batch', params);
+    const result: ApiResult<
+      TransactionsWrapper,
+      ValidationError | TransactionError
+    > = res.data;
+    return result;
   }
 }

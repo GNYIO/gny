@@ -6,6 +6,8 @@ import * as express from 'express';
 import { Server } from 'http';
 import * as SocketIO from 'socket.io';
 
+import BigNumber from 'bignumber.js';
+
 declare interface IBase {
   bus: IMessageBus;
   genesisBlock: IBlock;
@@ -454,3 +456,276 @@ export interface OnlyUserName {
 }
 
 export type AddressOrUsername = OnlyAddress | OnlyUserName;
+export interface ApiError<T> {
+  success: false;
+  error: T | string;
+}
+
+export interface ApiSuccess {
+  success: true;
+}
+
+export type ApiResult<K, T = string> = (K & ApiSuccess) | ApiError<T>;
+export type P2PApiResult<K> = K;
+
+export type OffsetAndLimitError =
+  | 'child "offset" fails because ["offset" must be a number]'
+  | 'child "limit" fails because ["limit" must be a number]'
+  | 'child "offset" fails because ["offset" must be larger than or equal to 0]'
+  | 'child "limit" fails because ["limit" must be less than or equal to 100]';
+
+export type ParamsError = 'Invalid params';
+
+export type ValidationError =
+  | 'child "address" fails because ["address" is not a GNY address]'
+  | 'child "publicKey" fails because ["publicKey" is not in the format of a 32 char long hex string buffer]'
+  | 'child "secret" fails because ["secret" is not BIP39 complient]'
+  | 'child "username" fails because ["username" is not an GNY username]'
+  | 'child "issuer" fails because ["address" is not a valid GNY issuer name]'
+  | 'child "asset" fails because ["asset" is not a valid GNY asset name]'
+  | 'child "signature" fails because ["signature" is not a valid GNY signature]'
+  | 'child "positiveOrZeroBigInt" fails because ["positiveOrZeroBigInt" is not a positive or zero big integer amount]'
+  | 'child "ipv4PlusPort" fails because ["ipv4PlusPort" is not a ipv4:port]'
+  | ParamsError;
+
+export type AccountGenerateModel = {
+  secret: string;
+  publicKey: string;
+  privateKey: string;
+  address: string;
+};
+
+export type ServerError = 'Server Error';
+
+export type GetAccountError =
+  | 'provided address is not a GNY address'
+  | ServerError;
+
+export interface AccountOpenModel {
+  account: AccountViewModel;
+  latestBlock: {
+    height: string;
+    timestamp: number;
+  };
+  version: {
+    version: string;
+    build: string;
+    net: string;
+  };
+}
+
+export interface BalancesModel {
+  count: number;
+  balances: IBalance[];
+}
+
+export interface IBalanceWrapper {
+  balance: IBalance;
+}
+
+export type DelegateError = 'Account not found' | ServerError;
+
+export interface CountWrapper {
+  count: number;
+}
+
+export interface PulicKeyWapper {
+  publicKey: string;
+}
+
+export interface BlockWrapper {
+  block: IBlock;
+}
+
+export interface BlocksWrapper {
+  count?: string;
+  blocks: IBlock[];
+}
+
+export interface HeightWrapper {
+  height: string;
+}
+
+export interface MilestoneWrapper {
+  milestone: number;
+}
+
+export interface RewardWrappper {
+  reward: number;
+}
+
+export interface SupplyWrapper {
+  supply: string;
+}
+
+export interface Status {
+  height: string;
+  fee: string;
+  milestone: number;
+  reward: number;
+  supply: string;
+}
+
+export interface AccountsWrapper {
+  accounts: AccountWeightViewModel[];
+}
+
+export interface DelegateWrapper {
+  delegate: DelegateViewModel;
+}
+
+export interface DelegatesWrapper {
+  totalCount?: number;
+  delegates: DelegateViewModel[];
+}
+
+export interface ForgingStatus {
+  enabled: boolean;
+}
+
+export interface LoaderStatus {
+  loaded: boolean;
+}
+
+export interface SyncStatus {
+  syncing: boolean;
+  blocks: number;
+  height: string;
+}
+
+export interface PeersWrapper {
+  peers: SimplePeerInfo[];
+  count: number;
+}
+
+export interface VersionWrapper {
+  version: string;
+  build: string;
+  net: string;
+}
+
+export interface SystemInfo {
+  os: string;
+  version: string;
+  timestamp: number;
+  lastBlock: {
+    height: string;
+    timestamp: number;
+    behind: number;
+  };
+}
+
+export interface UnconfirmedTransactionWrapper {
+  transaction: UnconfirmedTransaction;
+}
+
+export interface TransactionsWrapper {
+  count?: number;
+  transactions: Array<UnconfirmedTransaction | ITransaction>;
+}
+
+export interface UnconfirmedTransactionsWrapper {
+  transactions: Array<UnconfirmedTransaction>;
+}
+
+export interface TransactionIdWrapper {
+  transactionId: string;
+}
+
+export interface TransfersWrapper {
+  count: number;
+  transfers: ITransfer[];
+}
+
+export interface AmountWrapper {
+  count: number;
+  strTotalAmount: string;
+}
+
+export interface NewBlockWrapper {
+  block: IBlock;
+  votes: string;
+}
+
+export interface CommonBlockWrapper {
+  common: IBlock;
+}
+
+export interface IssuerWrapper {
+  issuer: IIssuer;
+}
+
+export interface IssuesWrapper {
+  count: number;
+  issues: IIssuer[];
+}
+
+export interface IsIssuerWrapper {
+  isIssuer: boolean;
+  issuerName: string | undefined;
+}
+
+export interface AssetsWrapper {
+  count: number;
+  assets: IAsset[];
+}
+
+export interface AssetWrapper {
+  asset: IAsset;
+}
+
+export interface BalancesWrapper {
+  count: number;
+  balances: IBalance[];
+}
+
+export interface BalanceWrapper {
+  balance: IBalance;
+}
+
+// Client
+
+export type ResponseError =
+  | GetAccountError
+  | ValidationError
+  | OffsetAndLimitError;
+
+export type BalanceResponseError = 'No balance';
+
+export type DelegateResponseError =
+  | 'Failed to count delegates'
+  | 'no delegates'
+  | 'Can not find delegate'
+  | 'No delegates found'
+  | 'Delegate not found';
+
+export type ForgingError =
+  | 'Access denied'
+  | 'Invalid passphrase'
+  | 'Forging is already enabled'
+  | 'Delegate not found';
+
+export type TransactionError =
+  | 'Transaction not found'
+  | 'Invalid transaction body: is not a valid transaction'
+  | 'Invalid transaction body';
+
+export type BlockError = 'Block not found';
+
+export type NewBlockError =
+  | 'Invalid params'
+  | 'validation failed'
+  | 'New block not found'
+  | BlockError;
+
+export type CommonBlockError =  // lack of specific validation error
+  | 'too big min,max'
+  | 'Blocks not found'
+  | 'Common block not found'
+  | 'Failed to find common block';
+
+export type IssueError = 'Issuer not found';
+
+export type AssetError = 'Asset not found';
+
+export type BalanceError = 'Balance info not found';

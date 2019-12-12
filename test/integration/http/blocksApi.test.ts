@@ -161,6 +161,7 @@ describe('blocksApi', () => {
       'should get the status',
       async () => {
         const expected = {
+          success: true,
           height: String(1),
           fee: String(10000000),
           milestone: 0,

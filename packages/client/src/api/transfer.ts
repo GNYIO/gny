@@ -1,5 +1,10 @@
 import { Base } from './base';
-import { basic } from '../';
+import {
+  ApiResult,
+  TransfersWrapper,
+  ValidationError,
+  AmountWrapper,
+} from '@gny/interfaces';
 
 interface Query {
   ownerId?: string;
@@ -17,7 +22,9 @@ export class Transfer extends Base {
       limit: query.limit,
       offset: query.offset,
     };
-    return await this.get('/api/transfers', params);
+    const res = await this.get('/api/transfers', params);
+    const result: ApiResult<TransfersWrapper, ValidationError> = res.data;
+    return result;
   }
 
   public async getAmount(startTimestamp: string, endTimestamp: string) {
@@ -25,26 +32,8 @@ export class Transfer extends Base {
       startTimestamp,
       endTimestamp,
     };
-    return await this.get('/api/transfers/amount', params);
-  }
-
-  public async send(
-    recipient: string,
-    amount: string,
-    secret: string,
-    message?: string,
-    secondeSecret?: string
-  ) {
-    const trs = basic.transfer(
-      recipient,
-      amount,
-      message,
-      secret,
-      secondeSecret
-    );
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
+    const res = await this.get('/api/transfers/amount', params);
+    const result: ApiResult<AmountWrapper, ValidationError> = res.data;
+    return result;
   }
 }

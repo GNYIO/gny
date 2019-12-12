@@ -1,82 +1,102 @@
 import { Base } from './base';
-import { basic } from '../';
-import { AddressOrUsername } from '@gny/interfaces';
+import {
+  DelegateViewModel,
+  IBalance,
+  ApiResult,
+  AccountGenerateModel,
+  GetAccountError,
+  BalancesModel,
+  IBalanceWrapper,
+  IAccount,
+  ServerError,
+  AccountOpenModel,
+  ResponseError,
+  BalanceResponseError,
+  ValidationError,
+  DelegatesWrapper,
+  DelegateError,
+  CountWrapper,
+  PulicKeyWapper,
+} from '@gny/interfaces';
+
+interface OnlyAddress {
+  address: string;
+}
+
+interface OnlyUserName {
+  username: string;
+}
 
 export class Account extends Base {
   public async generateAccount() {
-    return await this.get('/api/accounts/generateAccount');
+    const res = await this.get('/api/accounts/generateAccount');
+    const result: ApiResult<AccountGenerateModel, ServerError> = res.data;
+    return result;
   }
 
   public async openAccount(secret: string) {
-    return await this.post('/api/accounts/open', { secret: secret });
+    const res = await this.post('/api/accounts/open', { secret: secret });
+    const result: ApiResult<AccountOpenModel, GetAccountError> = res.data;
+    return result;
   }
 
   public async getBalance(address: string) {
     const params = { address: address };
-    return await this.get('/api/accounts/getBalance', params);
+    const res = await this.get('/api/accounts/getBalance', params);
+    const result: ApiResult<BalancesModel, ResponseError> = res.data;
+    return result;
   }
 
   public async getAddressCurrencyBalance(address: string, currency: string) {
-    return await this.get(`/api/accounts/${address}/${currency}`);
+    const res = await this.get(`/api/accounts/${address}/${currency}`);
+    const result: ApiResult<
+      IBalanceWrapper,
+      ValidationError | BalanceResponseError
+    > = res.data;
+    return result;
   }
 
   public async getAccountByAddress(address: string) {
     const params = { address: address };
-    return await this.get('/api/accounts/', params);
+    const res = await this.get('/api/accounts/', params);
+    const result: ApiResult<AccountOpenModel, ServerError> = res.data;
+    return result;
   }
 
   public async getAccountByUsername(username: string) {
     const params = { username: username };
-    return await this.get('/api/accounts/', params);
+    const res = await this.get('/api/accounts/', params);
+    const result: ApiResult<IAccount, ServerError> = res.data;
+    return result;
   }
 
-  public async getVotedDelegates(query: AddressOrUsername) {
-    return await this.get('/api/accounts/getVotes', query);
+  public async getVotedDelegates(query: OnlyAddress | OnlyUserName) {
+    const res = await this.get('/api/accounts/getVotes', query);
+    const result: ApiResult<DelegatesWrapper, DelegateError> = res.data;
+    return result;
   }
 
   public async countAccounts() {
-    return await this.get('/api/accounts/count');
+    const res = await this.get('/api/accounts/count');
+    const result: ApiResult<CountWrapper, ServerError> = res.data;
+    return result;
   }
 
   public async getPublicKey(address: string) {
     const params = {
       address: address,
     };
-    return await this.get('/api/accounts/getPublicKey', params);
+    const res = await this.get('/api/accounts/getPublicKey', params);
+    const result: ApiResult<PulicKeyWapper, GetAccountError> = res.data;
+    return result;
   }
 
   public async generatePublicKey(secret: string) {
     const params = {
       secret: secret,
     };
-    return await this.post('/api/accounts/generatePublicKey', params);
-  }
-
-  public async setUserName(
-    username: string,
-    secret: string,
-    secondSecret?: string
-  ) {
-    const trs = basic.setUserName(username, secret, secondSecret);
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
-  }
-
-  public async lockAccount(height: number, amount: number, secret: string) {
-    const trs = basic.lock(height, amount, secret);
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
-  }
-
-  public async unlockAccount(secret: string) {
-    const trs = basic.unlock(secret);
-    const params = {
-      transaction: trs,
-    };
-    return await this.post('/peer/transactions', params);
+    const res = await this.post('/api/accounts/generatePublicKey', params);
+    const result: ApiResult<PulicKeyWapper, ServerError> = res.data;
+    return result;
   }
 }

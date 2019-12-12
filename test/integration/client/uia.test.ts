@@ -98,7 +98,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuers(limit, offset);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -129,7 +129,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.isIssuer(address);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -160,7 +160,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuer(name);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
         done();
       },
       lib.oneMinute
@@ -211,7 +211,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getIssuerAssets(name, limit, offset);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -257,7 +257,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getAssets();
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -305,7 +305,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getAsset(name);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -338,7 +338,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getBalances(recipient);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -371,51 +371,7 @@ describe('uia', () => {
         await lib.onNewBlock();
 
         const response = await uiaApi.getBalance(recipient, 'ABC.BBB');
-        expect(response.status).toEqual(200);
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/registerIssuer', () => {
-    it(
-      'should register issuer',
-      async () => {
-        const name = 'ABC';
-        const desc = 'some desc';
-        const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-        const response = await uiaApi.registerIssuer(name, desc, secret);
-        expect(response.status).toEqual(200);
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/registerAsset', () => {
-    it(
-      'should register asset',
-      async () => {
-        const name = 'BBB';
-        const desc = 'some desc';
-        const maximum = String(10 * 1e8);
-        const precision = 8;
-        const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
-
-        // register issuer
-        await uiaApi.registerIssuer(name, desc, secret);
-        await lib.onNewBlock();
-
-        const response = await uiaApi.registerAsset(
-          name,
-          desc,
-          maximum,
-          precision,
-          secret
-        );
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );

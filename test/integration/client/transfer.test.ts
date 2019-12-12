@@ -63,7 +63,7 @@ describe('transfer', () => {
         await lib.onNewBlock();
         const query = { ownerId: senderId };
         const response = await transferApi.getRoot(query);
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
@@ -107,7 +107,7 @@ describe('transfer', () => {
           startTimestamp,
           endTimestamp
         );
-        expect(response.status).toEqual(200);
+        expect(response.success).toBeTruthy();
       },
       lib.oneMinute
     );
