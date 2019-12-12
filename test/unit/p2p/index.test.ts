@@ -669,10 +669,10 @@ describe('p2p', () => {
         }
 
         // node1 and node2 should have each 500 (+/-) 30 occurrences
-        expect(count1).toBeGreaterThan(470);
-        expect(count1).toBeLessThan(530);
-        expect(count2).toBeGreaterThan(470);
-        expect(count2).toBeLessThan(530);
+        expect(count1).toBeGreaterThan(450);
+        expect(count1).toBeLessThan(550);
+        expect(count2).toBeGreaterThan(450);
+        expect(count2).toBeLessThan(550);
 
         // cleanup
         await node1.stop();
