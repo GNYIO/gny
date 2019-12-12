@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import * as webEd from '@gny/web-ed';
-import { TransactionWebBase } from '@gny/web-base';
+import * as ed from '@gny/ed';
+import { TransactionBase } from '@gny/base';
 import { Api, ApiConfig } from '../lib/api';
 import { ITransaction } from '@gny/interfaces';
 
@@ -57,14 +57,14 @@ function sendMoney(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = webEd.generateKeyPair(hash);
-  const secondKeypair = webEd.generateKeyPair(
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(options.secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionWebBase.create({
+  const trs = TransactionBase.create({
     type: 0,
     fee: String(10000000),
     keypair: keypair,
@@ -82,14 +82,14 @@ function sendAsset(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = webEd.generateKeyPair(hash);
-  const secondKeypair = webEd.generateKeyPair(
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(options.secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionWebBase.create({
+  const trs = TransactionBase.create({
     type: 103,
     fee: String(10000000),
     message: options.message,
@@ -107,14 +107,14 @@ function registerDelegate(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = webEd.generateKeyPair(hash);
-  const secondKeypair = webEd.generateKeyPair(
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(options.secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionWebBase.create({
+  const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),
     message: options.message,
@@ -132,14 +132,14 @@ function transaction(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = webEd.generateKeyPair(hash);
-  const secondKeypair = webEd.generateKeyPair(
+  const keypair = ed.generateKeyPair(hash);
+  const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
       .update(options.secondSecret, 'utf8')
       .digest()
   );
-  const trs = TransactionWebBase.create({
+  const trs = TransactionBase.create({
     type: Number(options.type),
     fee: String(options.fee) || String(10000000),
     message: options.message,
@@ -160,7 +160,7 @@ function getTransactionBytes(options: any) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(TransactionWebBase.getBytes(trs, true, true).toString('hex'));
+  console.log(TransactionBase.getBytes(trs, true, true).toString('hex'));
 }
 
 function getTransactionId(options) {
@@ -171,12 +171,12 @@ function getTransactionId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(TransactionWebBase.getId(trs));
+  console.log(TransactionBase.getId(trs));
 }
 
 function verifyBytes(options) {
   console.log(
-    TransactionWebBase.verifyBytes(
+    TransactionBase.verifyBytes(
       options.bytes,
       options.signature,
       options.publicKey

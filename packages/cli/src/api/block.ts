@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { Api, ApiConfig } from '../lib/api';
-import { BlockWebBase } from '@gny/web-base';
+import { BlockBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
@@ -61,7 +61,7 @@ function getBlockBytes(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(BlockWebBase.getBytes(block, true).toString('hex'));
+  console.log(BlockBase.getBytes(block, true).toString('hex'));
 }
 
 function getBlockId(options) {
@@ -72,7 +72,7 @@ function getBlockId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(BlockWebBase.getId(block));
+  console.log(BlockBase.getId(block));
 }
 
 export default function account(program: ApiConfig) {

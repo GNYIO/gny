@@ -19,8 +19,8 @@
   "dependencies": {
     "@gny/interfaces": "1.0.0",
     "@gny/utils": "1.0.0",
-    "@gny/web-ed": "1.0.0",
-    "@gny/web-base": "1.0.0",
+    "@gny/ed": "1.0.0",
+    "@gny/base": "1.0.0",
     "@types/node": "^12.6.8",
     "assert": "^2.0.0",
     "async": "^3.1.0",

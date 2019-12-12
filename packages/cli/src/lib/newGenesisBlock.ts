@@ -1,18 +1,15 @@
 import * as fs from 'fs';
 import * as accountHelper from './account';
-import * as webBase from '@gny/web-base';
+import { generateSecret } from '@gny/utils';
 import * as crypto from 'crypto';
-import {
-  TransactionWebBase,
-  BlockWebBase,
-  CreateTransactionTypeWeb,
-} from '@gny/web-base';
+import { TransactionBase, BlockBase, CreateTransactionType } from '@gny/base';
 import {
   UnconfirmedTransaction,
   IBlock,
   IBlockWithoutId,
   IBlockWithoutSignatureId,
   ITransaction,
+  KeyPair,
 } from '@gny/interfaces';
 
 export default function newGenesisBlock(program: any) {
@@ -49,7 +46,7 @@ function genGenesisBlock(options) {
   if (options.genesis) {
     genesisAccount = accountHelper.account(options.genesis);
   } else {
-    genesisAccount = accountHelper.account(webBase.generateSecret());
+    genesisAccount = accountHelper.account(generateSecret());
   }
   const newBlockInfo = generateGenesis(
     genesisAccount,
@@ -69,7 +66,7 @@ function genGenesisBlock(options) {
   );
 }
 
-const sender = accountHelper.account(webBase.generateSecret());
+const sender = accountHelper.account(generateSecret());
 
 function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
   let payloadLength = 0;
@@ -88,42 +85,33 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
         process.exit(1);
       }
       const amount = String(Number(parts[1]) * 100000000);
-      const trs: CreateTransactionTypeWeb = {
+      const trs: CreateTransactionType = {
         type: 1,
         fee: String(0),
         args: [Number(amount), parts[0]],
-        keypair: {
-          publicKey: Buffer.from(sender.keypair.publicKey, 'hex'),
-          secretKey: Buffer.from(sender.keypair.privateKey, 'hex'),
-        },
+        keypair: sender.keypair,
       };
 
-      transactions.push(TransactionWebBase.create(trs));
+      transactions.push(TransactionBase.create(trs));
     }
   } else {
-    const balanceTransaction: CreateTransactionTypeWeb = {
+    const balanceTransaction: CreateTransactionType = {
       type: 0,
       fee: String(0),
       args: [intialAmount, genesisAccount.address],
-      keypair: {
-        publicKey: Buffer.from(sender.keypair.publicKey, 'hex'),
-        secretKey: Buffer.from(sender.keypair.privateKey, 'hex'),
-      },
+      keypair: sender.keypair,
     };
 
-    transactions.push(TransactionWebBase.create(balanceTransaction));
+    transactions.push(TransactionBase.create(balanceTransaction));
   }
 
   // make delegates
   for (let i = 0; i < 101; i++) {
-    const delegate = accountHelper.account(webBase.generateSecret());
+    const delegate = accountHelper.account(generateSecret());
 
     const username = 'gny_d' + (i + 1);
     interface DelegateAccount {
-      keypair: {
-        publicKey: string;
-        privateKey: string;
-      };
+      keypair: KeyPair;
       address: string;
       secret: any;
       name: string;
@@ -136,33 +124,27 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
     };
     delegates.push(finishedDelegate);
 
-    const nameTrs: CreateTransactionTypeWeb = {
+    const nameTrs: CreateTransactionType = {
       type: 1,
       fee: String(0),
       args: [username],
-      keypair: {
-        publicKey: Buffer.from(finishedDelegate.keypair.publicKey, 'hex'),
-        secretKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
-      },
+      keypair: finishedDelegate.keypair,
     };
-    const delegateTrs: CreateTransactionTypeWeb = {
+    const delegateTrs: CreateTransactionType = {
       type: 10,
       args: [],
       fee: String(),
-      keypair: {
-        publicKey: Buffer.from(finishedDelegate.keypair.publicKey, 'hex'),
-        secretKey: Buffer.from(finishedDelegate.keypair.privateKey, 'hex'),
-      },
+      keypair: finishedDelegate.keypair,
     };
 
-    transactions.push(TransactionWebBase.create(nameTrs));
-    transactions.push(TransactionWebBase.create(delegateTrs));
+    transactions.push(TransactionBase.create(nameTrs));
+    transactions.push(TransactionBase.create(delegateTrs));
   }
 
   let bytes;
 
   transactions.forEach(tx => {
-    bytes = TransactionWebBase.getBytes(tx);
+    bytes = TransactionBase.getBytes(tx);
     payloadLength += bytes.length;
     payloadHash.update(bytes);
   });
@@ -173,7 +155,7 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
     version: 0,
     payloadHash: finalPayloadHash.toString('hex'),
     timestamp: 0,
-    delegate: sender.keypair.publicKey,
+    delegate: sender.keypair.publicKey.toString('hex'),
     transactions: transactions.map(x => {
       const fullTrs: ITransaction = {
         ...x,
@@ -189,12 +171,12 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
 
   const almostFinalBlock: IBlockWithoutId = {
     ...block,
-    signature: BlockWebBase.sign(block, sender.keypair.keypair),
+    signature: BlockBase.sign(block, sender.keypair),
   };
 
   const finalBlock: IBlock = {
     ...almostFinalBlock,
-    id: BlockWebBase.getId(almostFinalBlock),
+    id: BlockBase.getId(almostFinalBlock),
   };
 
   return {

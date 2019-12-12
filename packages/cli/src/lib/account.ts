@@ -1,9 +1,14 @@
-import * as webBase from '@gny/web-base';
+import * as ed from '@gny/ed';
+import * as crypto from 'crypto';
 import { generateAddress } from '@gny/utils';
 
 export function account(secret: string) {
-  const kp = webBase.getKeys(secret);
-  const address = generateAddress(kp.publicKey);
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  const kp = ed.generateKeyPair(hash);
+  const address = generateAddress(kp.publicKey.toString('hex'));
 
   return {
     keypair: kp,

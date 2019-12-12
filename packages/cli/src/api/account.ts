@@ -1,6 +1,6 @@
 import * as inquirer from 'inquirer';
 import { Api, ApiConfig } from '../lib/api';
-import * as webBase from '@gny/web-base';
+import { generateSecret } from '@gny/utils';
 import * as accountHelper from '../lib/account';
 import { AddressOrUsername } from '@gny/interfaces';
 
@@ -82,7 +82,7 @@ async function genAccount() {
   const accounts = [];
 
   for (let i = 0; i < n; i++) {
-    const one = accountHelper.account(webBase.generateSecret());
+    const one = accountHelper.account(generateSecret());
     accounts.push({
       address: one.address,
       secret: one.secret,

@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
 import * as sha256 from 'fast-sha256';
 import * as webEd from '@gny/web-ed';
-import * as Mnemonic from 'bitcore-mnemonic';
 import { UnconfirmedTransaction } from '@gny/interfaces';
 import { TransactionWebBase } from './transactionWebBase';
 
@@ -30,9 +29,6 @@ export function getKeys(secret: string) {
     publicKey: Buffer.from(keypair.publicKey).toString('hex'),
     privateKey: Buffer.from(keypair.secretKey).toString('hex'),
   };
-}
-export function generateSecret(): string {
-  return new Mnemonic(Mnemonic.Words.ENGLISH).toString();
 }
 
 export function verifySecondSignature(
