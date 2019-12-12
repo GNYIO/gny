@@ -6,10 +6,6 @@ describe('crypto', () => {
     await page.goto(PATH, { waitUntil: 'load' });
   });
 
-  // afterAll(async () => {
-  //   await page.close();
-  // });
-
   describe('/getBytes', () => {
     it(
       'should return Buffer of simply transaction and buffer most be 155 length',

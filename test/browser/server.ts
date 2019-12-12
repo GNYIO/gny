@@ -2,9 +2,7 @@ const express = require('express');
 const webpack = require('webpack');
 const middleware = require('webpack-dev-middleware');
 
-const compiler = webpack(
-  require('../../../../packages/client/webpack.config.js')
-);
+const compiler = webpack(require('../../packages/client/webpack.config.js'));
 
 let port = 4444;
 const index = Math.max(

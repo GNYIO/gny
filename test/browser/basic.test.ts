@@ -5,10 +5,6 @@ describe('basic', () => {
     await page.goto(PATH, { waitUntil: 'load' });
   });
 
-  // afterAll(async () => {
-  //   await page.close();
-  // });
-
   describe('/setUserName', () => {
     it(
       'should return the transaction id',

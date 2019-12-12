@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'jest-puppeteer',
-  roots: ['<rootDir>/test/unit/client/browser/'],
+  roots: ['<rootDir>/test/browser/'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
