@@ -5,6 +5,7 @@ import { BigNumber } from '@gny/utils';
 import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
+import { KeyPair } from '@gny/interfaces';
 
 const config = {
   headers: {
@@ -143,7 +144,7 @@ export function createRandomAddress(): string {
 
 export function createRandomAccount() {
   interface ExtendedAccount {
-    keypair: nacl.SignKeyPair;
+    keypair: KeyPair;
     publicKey: string;
     privateKey: string;
     secret: string;

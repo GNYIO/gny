@@ -1,4 +1,5 @@
 import * as lib from './lib';
+import * as helpers from './helpers';
 import * as gnyJS from '@gny/client';
 import axios from 'axios';
 
@@ -10,10 +11,6 @@ interface IsTrsAvailable {
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/double-spend-attack/docker-compose.p2p.yml';
-
-function allItemsEqual(arr: any[]) {
-  return new Set(arr).size == 1;
-}
 
 const config = {
   headers: {
@@ -93,7 +90,7 @@ async function assertTrsAvailabiltyIsTheSameOnAllNodes(
     const persistedArray: boolean[] = oneTrsAvailableData.map(
       x => x.isPersisted
     );
-    expect(allItemsEqual(persistedArray)).toEqual(true);
+    expect(helpers.allItemsEqual(persistedArray)).toEqual(true);
   }
 
   // only two transaction should be persisted
