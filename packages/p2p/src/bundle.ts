@@ -126,7 +126,7 @@ export class Bundle extends libp2p {
   subscribeCustom(topic: string, handler: P2PSubscribeHandler) {
     const filterBroadcastsEventHandler = (message: P2PMessage) => {
       const id = PeerId.createFromB58String(message.from);
-      this.peerRouting.findPeer(id, {}, (err, result) => {
+      this.peerRouting.findPeer(id, {}, (err, result: PeerInfo) => {
         // find peer in routing table that broadcasted message
         if (err) {
           this.logger.warn('could not find peer that broadcasted message');
