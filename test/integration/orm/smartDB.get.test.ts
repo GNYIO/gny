@@ -166,11 +166,12 @@ describe('smartDB.get()', () => {
     await saveGenesisBlock(sut);
 
     // first save data
-    const balance = {
+    const balance: IBalance = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       currency: 'ABC.ABC',
       balance: String(2000),
-    } as IBalance;
+      flag: 1,
+    };
     await sut.create<Balance>(Balance, balance);
 
     const notWholeCompositeKey = {
@@ -178,7 +179,7 @@ describe('smartDB.get()', () => {
     };
     const getPromise = sut.get<Balance>(Balance, notWholeCompositeKey);
     return expect(getPromise).rejects.toEqual(
-      new Error("Cannot read property 'key' of undefined")
+      new Error('no primary key of entity found')
     );
   });
 });
