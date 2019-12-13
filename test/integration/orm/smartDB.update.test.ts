@@ -1,12 +1,12 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
-import { Transfer } from '../../../packages/database-postgres/entity/Transfer';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
+import { Transfer } from '../../../packages/database-postgres/src/entity/Transfer';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { randomBytes } from 'crypto';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
 
 describe('smartDB.update()', () => {
   let sut: SmartDB;

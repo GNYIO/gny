@@ -7,15 +7,15 @@ import {
 } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Round } from '../../../packages/database-postgres/entity/Round';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Round } from '../../../packages/database-postgres/src/entity/Round';
 import {
   saveGenesisBlock,
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
 
 describe('smartDB.createOrLoad()', () => {
   let sut: SmartDB;

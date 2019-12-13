@@ -1,12 +1,12 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
+import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
 import { Condition } from '../../../packages/database-postgres/src/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
 
 describe('smartDB.count', () => {
   let sut: SmartDB;

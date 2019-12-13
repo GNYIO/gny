@@ -1,5 +1,5 @@
 import { BlockCache } from '../../../packages/database-postgres/src/blockCache';
-import { Block } from '../../../packages/database-postgres/entity/Block';
+import { Block } from '../../../packages/database-postgres/src/entity/Block';
 import { randomBytes } from 'crypto';
 
 function createRandomBytes(length: number) {

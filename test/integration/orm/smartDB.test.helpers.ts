@@ -1,5 +1,5 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
+import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
 import {
   IAccount,
   IAsset,

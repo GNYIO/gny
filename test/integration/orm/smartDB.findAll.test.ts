@@ -2,10 +2,10 @@ import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import { IAsset, ITransaction, IBalance } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Asset } from '../../../packages/database-postgres/entity/Asset';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Asset } from '../../../packages/database-postgres/src/entity/Asset';
+import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
 import { FindAllOptions } from '../../../packages/database-postgres/src/searchTypes';
 import {
   saveGenesisBlock,

@@ -2,10 +2,10 @@ import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import { IDelegate } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
 
 describe('smartDB.getAll()', () => {
   let sut: SmartDB;

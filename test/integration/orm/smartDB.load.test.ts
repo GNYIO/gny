@@ -1,8 +1,8 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 
 describe('smartDB.load()', () => {
