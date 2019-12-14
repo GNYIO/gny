@@ -38,6 +38,10 @@ export async function onNewBlock(port: number = 4096) {
   return height;
 }
 
+/**
+ * This function finishes when the height of the node is > 0
+ * @param port of the node
+ */
 export async function waitForLoaded(port: number) {
   let loaded = false;
   while (loaded === false) {
@@ -47,6 +51,27 @@ export async function waitForLoaded(port: number) {
       if (
         typeof height === 'string' &&
         new BigNumber(height).isGreaterThan(0)
+      ) {
+        loaded = true;
+      }
+    } catch (err) {}
+    await sleep(1000);
+  }
+}
+
+/**
+ * This function finishes when the genesisBlock (height 0) via API can be reached
+ * @param port of the node
+ */
+export async function waitForApiToBeReadyReady(port: number) {
+  let loaded = false;
+  while (loaded === false) {
+    console.log(`wait for _ready_ ${port} (${Date.now()})`);
+    try {
+      const height = await getHeight(port);
+      if (
+        typeof height === 'string' &&
+        new BigNumber(height).isGreaterThanOrEqualTo(0)
       ) {
         loaded = true;
       }
