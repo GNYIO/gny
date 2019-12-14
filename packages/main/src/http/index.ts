@@ -103,7 +103,13 @@ export async function composeNetwork(
       const host =
         req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-      logger.debug(`receive request: ${req.method} ${req.url} from ${host}`);
+      logger.debug(
+        `receive request: ${req.method} ${
+          req.url
+        } from remoteHost: ${host}, localAddress: ${
+          req.connection.localAddress
+        }`
+      );
 
       res.setHeader('X-Frame-Options', 'DENY');
       res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
