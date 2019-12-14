@@ -84,7 +84,7 @@ services:
       - '4102:4096'
       - '4103:4097'
 
-  db4:
+  db5:
     image: "postgres:9.6.12"
     container_name: 'db5'
     restart: always
@@ -98,7 +98,7 @@ services:
     build: ../../..
     container_name: 'node5'
     image: gny-experiment:integration # tags
-    command: bash -c 'node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node5.json" --publicIP $$(./getIP.sh node5) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node5.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
+    command: bash -c 'node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node5.json" --publicIP $$(./getIP.sh node5) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node5.json" --peers "/ip4/$$(./getIP.sh node4)/tcp/4097/ipfs/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU"' # connect to node4
     environment:
       NODE_ENV: production
     ports:
