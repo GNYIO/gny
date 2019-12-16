@@ -1,23 +1,9 @@
 import * as lib from './lib';
+import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/68-secrets/docker-compose.68-secrets.yml';
-
-function allItemsEqual(arr: any[]) {
-  return new Set(arr).size == 1;
-}
-
-async function allHeightsAreEqual(ports: number[] = []) {
-  const promises = ports.map(x => lib.getHeight(x));
-  const result = await Promise.all(promises);
-
-  console.log(`allHeightsAreEqual: ${JSON.stringify(result)}`);
-  const areAllHeightsTheSame = allItemsEqual(result);
-  expect(areAllHeightsTheSame).toEqual(true);
-
-  return result;
-}
 
 describe('68-secrets', () => {
   beforeAll(async done => {
@@ -50,7 +36,7 @@ describe('68-secrets', () => {
       // wait again
       await lib.sleep(20 * 1000);
 
-      await allHeightsAreEqual([4096, 4098]);
+      await helpers.allHeightsAreTheSame([4096, 4098]);
 
       const after1 = await lib.getHeight(4096);
       const after2 = await lib.getHeight(4098);
