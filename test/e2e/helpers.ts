@@ -1,7 +1,7 @@
 import * as lib from './lib';
 import axios from 'axios';
 
-function allItemsEqual(arr: any[]) {
+export function allItemsEqual(arr: any[]) {
   return new Set(arr).size == 1;
 }
 
