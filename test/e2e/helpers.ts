@@ -1,6 +1,6 @@
 import * as lib from './lib';
 
-function allItemsEqual(arr: any[]) {
+export function allItemsEqual(arr: any[]) {
   return new Set(arr).size == 1;
 }
 

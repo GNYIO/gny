@@ -5,6 +5,7 @@ import { BigNumber } from '@gny/utils';
 import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
+import { KeyPair } from '@gny/interfaces';
 
 const config = {
   headers: {
@@ -65,9 +66,10 @@ export async function deleteOldDockerImages() {
 export async function buildDockerImage(configFile?: string) {
   // first stop all running containers
   // then delete image file
+  console.log(`building "${configFile}"`);
   await dockerCompose.buildAll({
     cwd: process.cwd(),
-    log: true,
+    log: false,
     config: configFile,
   });
 }
@@ -143,7 +145,7 @@ export function createRandomAddress(): string {
 
 export function createRandomAccount() {
   interface ExtendedAccount {
-    keypair: nacl.SignKeyPair;
+    keypair: KeyPair;
     publicKey: string;
     privateKey: string;
     secret: string;

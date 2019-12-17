@@ -1,4 +1,5 @@
 import * as lib from './lib';
+import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 import * as gnyClient from '@gny/client';
 import { generateAddress } from '@gny/utils';
@@ -24,12 +25,6 @@ async function getUnconfirmedTrsCount(port: number) {
   return count;
 }
 
-function createRandomAccount() {
-  const randomBytes = crypto.randomBytes(30).toString('hex');
-  const address = generateAddress(randomBytes);
-  return address;
-}
-
 function createTransactions(count: number) {
   const genesisSecret =
     'grow pencil ten junk bomb right describe trade rich valid tuna service';
@@ -39,7 +34,7 @@ function createTransactions(count: number) {
   const transactions = [];
 
   for (let i = 0; i < count; ++i) {
-    const recipient = createRandomAccount();
+    const recipient = lib.createRandomAddress();
     const trs = gnyClient.basic.transfer(
       recipient,
       String(amount),
@@ -61,21 +56,6 @@ async function sendRandomTransaction(numberOfTransaction: number) {
     );
     console.log(JSON.stringify(result.data, null, 2));
   }
-}
-
-function allItemsEqual(arr: any[]) {
-  return new Set(arr).size == 1;
-}
-
-async function allHeightsAreTheSame(ports: number[] = []) {
-  const promises = ports.map(x => lib.getHeight(x));
-  const result = await Promise.all(promises);
-
-  console.log(`allHeightsAreTheSame: ${JSON.stringify(result)}`);
-  const areAllHeightsTheSame = allItemsEqual(result);
-  expect(areAllHeightsTheSame).toEqual(true);
-
-  return result;
 }
 
 describe('unconfirmed-trs e2e test', () => {
@@ -102,7 +82,7 @@ describe('unconfirmed-trs e2e test', () => {
       // node2 and node3 should receive transactions
       await lib.sleep(20 * 1000);
 
-      await allHeightsAreTheSame([4096, 4098, 4100]);
+      await helpers.allHeightsAreTheSame([4096, 4098, 4100]);
       const height = await lib.getHeight(4096);
       expect(new BigNumber(height).isGreaterThan(2)).toEqual(true);
 
