@@ -1,5 +1,5 @@
 import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger } from '@gny/interfaces';
+import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
 
@@ -35,7 +35,20 @@ export function getB58String(peerInfo: PeerInfo) {
 
 export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   const startCallback = function() {
-    logger.info(`started node: ${getB58String(bundle.peerInfo)}`);
+    logger.info(`[p2p] start callback: ${getB58String(bundle.peerInfo)}`);
+
+    // subscribe after we started
+    bundle.pubsub.subscribe(
+      'newMember',
+      (message: P2PMessage) => {
+        logger.info(`[p2p] pubsub event "newMember" fired`);
+        const multiAddrs: any = Multiaddr(message.data.toString());
+        bundle.dial(multiAddrs, err => {
+          logger.info(`[p2] dialing new member: ${multiAddrs}`);
+        });
+      },
+      () => {}
+    );
   };
   const stopCallback = function() {
     logger.info(`stopped node: ${getB58String(bundle.peerInfo)}`);
@@ -54,14 +67,21 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
       logger.info(
         `node ${getB58String(bundle.peerInfo)} discovered ${getB58String(peer)}`
       );
+      logger.info(`peer-discovered: ${JSON.stringify(peer, null, 2)}`);
     }
   };
-  const peerConnectedCallback = function(peer) {
+  const peerConnectedCallback = function(peer: PeerInfo) {
     logger.info(
       `node ${getB58String(bundle.peerInfo)} connected with ${getB58String(
         peer
       )}`
     );
+
+    const multiaddr = getMultiAddrsThatIsNotLocalAddress(peer);
+    logger.info(
+      `[p2p] after "peer:connect" we let other peers know of new member: ${multiaddr}`
+    );
+    bundle.pubsub.publish('newMember', Buffer.from(multiaddr.toString()));
   };
   const peerDisconnectCallback = function(peer) {
     logger.info(
@@ -87,4 +107,22 @@ export function printOwnPeerInfo(bundle: Bundle, logger: ILogger) {
   bundle.logger.info(
     `\n[P2P] started node: ${bundle.peerInfo.id.toB58String()}\n${addresses}`
   );
+}
+
+export function getMultiAddrsThatIsNotLocalAddress(peerInfo: PeerInfo) {
+  const result = peerInfo.multiaddrs.toArray().filter(multi => {
+    if (
+      multi.toString().includes('tcp') &&
+      multi.toString().includes('ip4') &&
+      !multi.toString().includes('127.0.0.1')
+    ) {
+      return true;
+    }
+    return false;
+  });
+  if (result.length === 0) {
+    throw new Error('no valid multiaddrs provided');
+  }
+
+  return result[0];
 }
