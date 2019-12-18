@@ -1,6 +1,6 @@
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -9,7 +9,7 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
+function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
@@ -19,7 +19,7 @@ function getPeers() {
   });
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

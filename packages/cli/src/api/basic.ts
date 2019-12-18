@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 import { TransactionBase } from '@gny/base';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -25,7 +25,7 @@ function setSecondSecret(options) {
       .digest()
   );
   const secondSignature = {
-    publicKey: keys.publicKey.toString('hex'),
+    publicKey: Buffer.from(keys.publicKey).toString('hex'),
   };
 
   const trs = TransactionBase.create({
@@ -62,7 +62,7 @@ function lock(options) {
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [options.height, options.amout],
+    args: [String(options.height), String(options.amout)],
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
@@ -70,7 +70,7 @@ function lock(options) {
   });
 }
 
-export default function basic(program) {
+export default function basic(program: ApiConfig) {
   globalOptions = program;
 
   program

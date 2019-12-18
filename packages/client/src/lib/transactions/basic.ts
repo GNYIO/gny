@@ -1,4 +1,4 @@
-import * as crypto from './crypto';
+import * as webBase from '@gny/web-base';
 import * as transaction from './transaction';
 
 function transfer(
@@ -29,7 +29,7 @@ function setUserName(username: string, secret: string, secondSecret?: string) {
 }
 
 function newSignature(secondSecret: string) {
-  const keys = crypto.getKeys(secondSecret);
+  const keys = webBase.getKeys(secondSecret);
   const signature = {
     publicKey: keys.publicKey,
   };

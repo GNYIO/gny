@@ -1,14 +1,14 @@
 {
-  "name": "@gny/utils",
+  "name": "@gny/web-ed",
   "private": true,
   "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "files": [
     "dist"
   ],
@@ -16,13 +16,6 @@
   "types": "dist/index",
   "dependencies": {
     "@gny/interfaces": "1.0.0",
-    "@types/async": "^1.4.29",
-    "@types/bs58": "^3.0.32",
-    "@types/lodash": "^4.14.138",
-    "async": "^1.5.2",
-    "bignumber.js": "^8.1.1",
-    "bitcore-mnemonic": "^8.13.2",
-    "bs58": "^3.1.0",
-    "lodash": "^4.17.15"
+    "tweetnacl": "^1.0.1"
   }
 }

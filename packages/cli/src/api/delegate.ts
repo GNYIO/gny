@@ -1,6 +1,6 @@
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -36,28 +36,28 @@ function getVoters(username) {
   });
 }
 
-function getDelegateByPublicKey(publicKey) {
+function getDelegateByPublicKey(publicKey: String) {
   const params = { publicKey: publicKey };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
-function getDelegateByUsername(username) {
+function getDelegateByUsername(username: String) {
   const params = { username: username };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
-function getDelegateByAddress(address) {
+function getDelegateByAddress(address: String) {
   const params = { address: address };
   getApi().get('/api/delegates/get', params, function(err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

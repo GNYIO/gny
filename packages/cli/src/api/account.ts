@@ -1,10 +1,10 @@
 import * as inquirer from 'inquirer';
-
-import Api from '../lib/api';
-import * as cryptoLib from '../lib/crypto';
+import { Api, ApiConfig } from '../lib/api';
+import { generateSecret } from '@gny/utils';
 import * as accountHelper from '../lib/account';
+import { AddressOrUsername } from '@gny/interfaces';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -13,11 +13,11 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
+function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
-function openAccount(secret) {
+function openAccount(secret: string) {
   getApi().post('/api/accounts/open', { secret: secret }, function(
     err,
     result
@@ -26,26 +26,22 @@ function openAccount(secret) {
   });
 }
 
-function getBalance(address) {
+function getBalance(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/getBalance', params, function(err, result) {
     console.log(err || result.balances);
   });
 }
 
-function getAccount(address) {
+function getAccount(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/', params, function(err, result) {
     console.log(err || pretty(result));
   });
 }
 
-function getVotedDelegates(options) {
-  const params = {
-    address: options.address,
-    username: options.username,
-  };
-  getApi().get('/api/accounts/getVotes', params, function(err, result) {
+function getVotedDelegates(options: AddressOrUsername) {
+  getApi().get('/api/accounts/getVotes', options, function(err, result) {
     console.log(err || result);
   });
 }
@@ -56,7 +52,7 @@ function countAccounts() {
   });
 }
 
-async function getPublicKey(address) {
+async function getPublicKey(address: string) {
   const params = {
     address: address,
   };
@@ -65,7 +61,7 @@ async function getPublicKey(address) {
   });
 }
 
-async function genPublicKey(secret) {
+async function genPublicKey(secret: string) {
   const data = {
     secret: secret,
   };
@@ -86,18 +82,18 @@ async function genAccount() {
   const accounts = [];
 
   for (let i = 0; i < n; i++) {
-    const a = accountHelper.account(cryptoLib.generateSecret());
+    const one = accountHelper.account(generateSecret());
     accounts.push({
-      address: a.address,
-      secret: a.secret,
-      publicKey: a.keypair.publicKey,
+      address: one.address,
+      secret: one.secret,
+      publicKey: one.keypair.publicKey,
     });
   }
   console.log(accounts);
   console.log('Done');
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program
