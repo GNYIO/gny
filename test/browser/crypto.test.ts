@@ -1,6 +1,8 @@
 import 'jest-extended';
 import { joi } from '@gny/extendedJoi';
 
+const TIMEOUT = 60000;
+
 describe('crypto', () => {
   beforeEach(async () => {
     await page.goto(PATH, { waitUntil: 'load' });

@@ -1,6 +1,7 @@
+import 'jest-extended';
 import * as gnyClient from '@gny/client';
 
-import 'jest-extended';
+const TIMEOUT = 60000;
 
 describe('uia', () => {
   beforeEach(async () => {
