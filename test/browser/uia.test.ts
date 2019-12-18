@@ -1,8 +1,6 @@
 import 'jest-extended';
 import * as gnyClient from '@gny/client';
 
-const TIMEOUT = 60000;
-
 describe('uia', () => {
   beforeEach(async () => {
     await page.goto(PATH, { waitUntil: 'load' });

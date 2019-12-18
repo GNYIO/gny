@@ -1,7 +1,5 @@
 import 'jest-extended';
 
-const TIMEOUT = 60000;
-
 describe('transaction', () => {
   beforeEach(async () => {
     await page.goto(PATH, { waitUntil: 'load' });

@@ -146,10 +146,10 @@ describe('crypto', () => {
     );
   });
 
-  describe(
-    '/getAddress',
-    () => {
-      it('should generate address by publicKey', async () => {
+  describe('/getAddress', () => {
+    it(
+      'should generate address by publicKey',
+      async () => {
         const address = await page.evaluate(() => {
           const keys = gnyClient.crypto.getKeys('secret');
           return gnyClient.crypto.getAddress(keys.publicKey);
@@ -157,8 +157,8 @@ describe('crypto', () => {
 
         expect(address).toBeString();
         expect(address).toEqual('G3FkpyJr5gZmd1gPCZ6pQGAM5DPSv');
-      });
-    },
-    TIMEOUT
-  );
+      },
+      TIMEOUT
+    );
+  });
 });
