@@ -1,0 +1,35 @@
+{
+  "port": 4096,
+  "address": "0.0.0.0",
+  "publicIp": "0.0.0.0",
+  "logLevel": "debug",
+  "magic": "594fe0f3",
+  "api": {
+    "access": {
+      "whiteList": []
+    }
+  },
+  "peers": {
+    "bootstrap": [],
+    "p2pKeyFile": "p2p_key.json",
+    "privateP2PKey": "CAASqAkwggSkAgEAAoIBAQDs8terta2i2+CC1tyvxPJMFAZoQpWwh1tVvFyNiwJxhFTICq538W803W71bZLiTD6cuywUhlOtc5yyXvCleYN8KpWfr/wy9yqPSABRpGwtjMs6IRUJZeHyU489dkmmJpTzHoCVHuWS48k4Pb1uXGFr/xQlsM6PsT9SwD94W3XU3j0IsUk7ggztuJFbIEVXbz+lWGxO1Cqc8MJZTf4AaVCcbjuUjAc6oCbqJhUouoNJ6je1szpVgl2Ol0DzOXplS9ePCkvOyYxbK0tYS6Ey7DmvhcPYOnl0UJli4KGkJebv9Rul3tRskvnzHQw97EoLzRq/yFMEntbLlovBz7TO2YoLAgMBAAECggEBAOyQu4CEv5nkem9Gw0h9kgcgyxDWwYpgaXDcwW7ThZn+K4MZHv1DP+sA1SIVxttGkhB60tSfE/YNgjmXjh03h221OnMXCe18VbJ9iUv5o8OKWPBtTQp3/LCqek07xuYqiPV905SOJ1iTMTeEdJc1hlKDdgL3VhOiO/2LURMCBU+Cso8krEDNld5Uz8gBhQzp7jYJr7S1YlGeFHZ4P5uWbENZZvM/jQsVux7RBT1o3qgMQ7QoDoXeO2fr5xdXIQzQmLq1v3ATSRrQKMUy06k8sluwDct1rg2ktAyHeZZNZCJIUBkSTjNG2/OaJsxrzSkNe/xdlFFqvczVroDExqpBw7kCgYEA+I8FnKrCyy4jgoeQHf+iKZT72ZnTU7GtogMGNELUh1uAhqbs9aKCpSHQs7PjW/MGjIyHRlxrNpfBgNIujsOEvBOYQzWJtDZQRj6HEY7yfzh0BoB3UvBEyJQYl7jYFmeOV12+d8SvARkqTlD3JCCVAOG2wcaGf9/td+APEHo5F80CgYEA9ArW++7TAS0uVJRa7XSf7Wq4vMPb17eWiHdwrW8ilI+LSULPgiunPxJsoO9yVOuqxRJg1/yv31RMxu+Xat4FK2SqNn5ADAwLlG8zARRwf5WI0rQCgv2m7708UX7iXgbDJcq8h2/a7eoAOQ3jDeqFK3BtCBLWibbq9pFHWyaUITcCgYBDGXkOXhrP9tinOClzr7r7Nrj2eUxPX7vb7K0UFqaBE/aSYyW8+e4C3ioVGQ7bl7PA5X7vQ6u9xSH7wMHI0IdYroGAQ0e1WqQ5ElAsMUbNiVPpHW0Y+rvW2gP5kXDkO3h1pVzxwCruRPjiw4C0RAd1gXlwvkM46h6VKetnK1eWUQKBgQC9Oap4rjXuM5o4+s+GT2eyL44Oz88m9LNEHVjBIesuRh86LxO3WyHTRfX007VTI2jGZfmxf7ze7f6aQiymMIDRpLxWhI4kyTIxZgemTrLsOoZc2jcYWpWWTqT2i+v5/ERUiV6lpZWb5FVH5/ymTbH0fLgOCo1POwX1KbCqfL9fAQKBgEJUxzm826eJ4akpTMNgTq5Lz7Jh/p85o8GQ8oXPnSfAFf55p12i2tm3fsmYt3voSg9HV/6GP6/lswTZ1MyRP8v1XwlxgxIdWaE+J9Z4/xw6GuN/qDfk0a5qG5neMGKOz2ei6qcH/YNZ7NSswzLHOgty6CIDHNxulm/ss7AMWvSj"
+  },
+  "forging": {
+    "secret": [
+    ],
+    "access": {
+      "whiteList": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "ssl": {
+    "enabled": false,
+    "options": {
+      "port": 443,
+      "address": "0.0.0.0",
+      "key": "./ssl/server.key",
+      "cert": "./ssl/server.crt"
+    }
+  }
+}
