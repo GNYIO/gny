@@ -1,9 +1,8 @@
-// import crypto = require('./crypto');
-import * as crypto from './crypto';
-import { slots } from '@gny/utils';
-import { ITransaction } from '@gny/interfaces';
+import * as webBase from '@gny/web-base';
+import { TransactionWebBase } from '@gny/web-base';
+import { NaclKeyPair } from '@gny/interfaces';
 
-interface Params {
+export interface Params {
   type: number;
   fee: string;
   args: (string | number)[];
@@ -13,22 +12,25 @@ interface Params {
 }
 export function createTransactionEx(params: Params) {
   if (!params.secret) throw new Error('Secret needed');
-  const keys = crypto.getKeys(params.secret);
-  const transaction = {
+  const keys = webBase.getKeys(params.secret);
+
+  if (params.secondSecret) {
+    const secondKeys = webBase.getKeys(params.secondSecret);
+    return TransactionWebBase.create({
+      keypair: keys.keypair,
+      secondKeypair: secondKeys.keypair,
+      type: params.type,
+      fee: String(params.fee),
+      message: params.message,
+      args: params.args,
+    });
+  }
+
+  return TransactionWebBase.create({
+    keypair: keys.keypair,
     type: params.type,
-    timestamp: slots.getEpochTime(),
     fee: String(params.fee),
     message: params.message,
     args: params.args,
-    senderPublicKey: keys.publicKey,
-    senderId: crypto.getAddress(keys.publicKey),
-    signatures: [],
-  } as ITransaction;
-  transaction.signatures.push(crypto.sign(transaction, keys));
-  if (params.secondSecret) {
-    const secondKeys = crypto.getKeys(params.secondSecret);
-    transaction.secondSignature = crypto.secondSign(transaction, secondKeys);
-  }
-  transaction.id = crypto.getId(transaction);
-  return transaction as ITransaction;
+  });
 }

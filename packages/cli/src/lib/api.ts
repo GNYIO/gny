@@ -1,4 +1,6 @@
 import * as request from 'request';
+import * as program from 'commander';
+import { UnconfirmedTransaction } from '@gny/interfaces';
 
 export function resultHandler(cb) {
   return function(err, resp, body) {
@@ -22,34 +24,35 @@ export function resultHandler(cb) {
   };
 }
 
-interface Options {
+export interface ApiOptions {
   host: string;
-  port: string;
+  port: number;
 }
 
-export default class Api {
-  options: Options;
-  host: any;
-  port: any;
+export type ApiConfig = Partial<program.CommanderStatic> & ApiOptions;
+
+export class Api {
+  options: ApiConfig;
+  host: string;
+  port: number;
   baseUrl: string;
   magic: string;
 
-  constructor(options: Options) {
+  constructor(options: ApiConfig) {
     this.options = options;
     this.host = this.options.host || '127.0.0.1';
     this.port = this.options.port || 4096;
-    this.baseUrl = 'http://' + this.host + ':' + this.port;
+    this.baseUrl = `http://${this.host}:${this.port}`;
     this.magic = '594fe0f3';
   }
 
-  get = async function(path, params, cb?) {
+  get = async function(path: string, params, cb?) {
     let qs = null;
     if (typeof params === 'function') {
       cb = params;
     } else {
       qs = params;
     }
-    // const { data } = await axios.get(this.baseUrl + path);
     request(
       {
         method: 'GET',
@@ -72,7 +75,7 @@ export default class Api {
     );
   };
 
-  broadcastTransaction = function(trs, cb) {
+  broadcastTransaction = function(trs: UnconfirmedTransaction, cb) {
     request(
       {
         method: 'POST',

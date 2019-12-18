@@ -1,4 +1,9 @@
-import { IBlock, KeyPair } from '@gny/interfaces';
+import {
+  IBlock,
+  KeyPair,
+  IBlockWithoutSignatureId,
+  IBlockWithoutId,
+} from '@gny/interfaces';
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '@gny/ed';
@@ -10,7 +15,7 @@ export class BlockBase {
   /***
    * @returns Block Id
    */
-  public static getId(old: IBlock) {
+  public static getId(old: IBlockWithoutSignatureId) {
     const block = copyObject(old);
 
     const bytes = BlockBase.getBytes(block);
@@ -24,7 +29,10 @@ export class BlockBase {
   /***
    * @returns Block signature
    */
-  public static sign(oldBlock: IBlock, oldKeypair: KeyPair): string {
+  public static sign(
+    oldBlock: IBlockWithoutSignatureId,
+    oldKeypair: KeyPair
+  ): string {
     const block = copyObject(oldBlock);
     const keypair = copyObject(oldKeypair);
 
@@ -35,7 +43,13 @@ export class BlockBase {
   /***
    * @returns Block bytes
    */
-  public static getBytes(block: IBlock, skipSignature?: any): Buffer {
+  public static getBytes(block: IBlockWithoutSignatureId): Buffer;
+  public static getBytes(
+    block: IBlockWithoutSignatureId,
+    skipSignature: false
+  ): Buffer;
+  public static getBytes(block: IBlockWithoutId, skipSignature: true): Buffer;
+  public static getBytes(block: IBlock, skipSignature?: boolean): Buffer {
     const size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
     const bb = new ByteBuffer(size, true);
@@ -70,7 +84,7 @@ export class BlockBase {
     return b;
   }
 
-  public static verifySignature(block: IBlock) {
+  public static verifySignature(block: IBlockWithoutId) {
     const remove = 64;
 
     try {
@@ -175,6 +189,7 @@ export class BlockBase {
     return block;
   }
 
+  public static calculateHash(block: IBlockWithoutSignatureId): Buffer;
   public static calculateHash(block: IBlock) {
     const bytes = BlockBase.getBytes(block);
     return crypto

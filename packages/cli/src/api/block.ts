@@ -1,10 +1,9 @@
 import * as fs from 'fs';
-
-import Api from '../lib/api';
-import * as cryptoLib from '../lib/crypto';
+import { Api, ApiConfig } from '../lib/api';
 import { BlockBase } from '@gny/base';
+import { IBlock } from '@gny/interfaces';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -13,7 +12,7 @@ function getApi() {
   });
 }
 
-function pretty(obj) {
+function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
@@ -47,7 +46,7 @@ function getBlockById(id) {
   });
 }
 
-function getBlockByHeight(height) {
+function getBlockByHeight(height: string) {
   const params = { height: height };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
     console.log(err || pretty(result.block));
@@ -66,18 +65,17 @@ function getBlockBytes(options) {
 }
 
 function getBlockId(options) {
-  let block;
+  let block: IBlock;
   try {
     block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
     console.log('Invalid transaction format');
     return;
   }
-  const bytes = BlockBase.getBytes(block);
-  console.log(cryptoLib.getId(bytes));
+  console.log(BlockBase.getId(block));
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program
