@@ -9,7 +9,7 @@ module.exports = {
   collectCoverage: false,
   globals: {
     PATH: 'http://localhost:4444/',
-    TIMEOUT: 5000,
+    TIMEOUT: 60000,
     'ts-jest': {
       diagnostics: false,
       tsConfig: '<rootDir>/jest.tsconfig.json',
