@@ -228,7 +228,7 @@ jobs:
           command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
       - run:
           name: update linux dependencies
-          command: apt-get update
+          command: sudo apt-get update
       - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
