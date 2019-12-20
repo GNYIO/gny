@@ -41,8 +41,22 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     bundle.pubsub.subscribe(
       'newMember',
       (message: P2PMessage) => {
-        logger.info(`[p2p] pubsub event "newMember" fired`);
+        logger.info(
+          `[p2p] pubsub event "newMember" fired, new member is: ${message.data.toString()}, (self ${getB58String(
+            bundle.peerInfo
+          )})`
+        );
         const multiAddrs: any = Multiaddr(message.data.toString());
+
+        // don't dial yourself if peer heard about you
+        logger.info(
+          `message.from: ${
+            message.from
+          } === self: ${bundle.peerInfo.id.toB58String()}`
+        );
+        if (message.from === bundle.peerInfo.id.toB58String()) {
+          return;
+        }
         bundle.dial(multiAddrs, err => {
           logger.info(`[p2] dialing new member: ${multiAddrs}`);
         });
