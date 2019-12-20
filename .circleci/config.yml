@@ -22,21 +22,21 @@ jobs:
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test
           command: npm run test
@@ -82,21 +82,21 @@ jobs:
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test-integration
           command: npm run test:integration
@@ -151,21 +151,21 @@ jobs:
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test-end2end
           command: npm run test:e2e
@@ -267,19 +267,21 @@ jobs:
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
+            - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: browser test
           command: npm run test:browser
