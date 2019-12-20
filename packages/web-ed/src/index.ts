@@ -1,21 +1,36 @@
 import * as nacl from 'tweetnacl';
-import { NaclKeyPair } from '@gny/interfaces';
+import { KeyPair } from '@gny/interfaces';
+import { Buffer } from 'buffer';
 
-export function generateKeyPair(hash: Uint8Array): NaclKeyPair {
-  const keypair = nacl.sign.keyPair.fromSeed(hash);
-  return <NaclKeyPair>keypair;
+export function generateKeyPair(hash: Buffer): KeyPair {
+  const uint = Uint8Array.from(hash);
+
+  const keypair = nacl.sign.keyPair.fromSeed(uint);
+
+  const bufferKeyPair: KeyPair = {
+    privateKey: Buffer.from(keypair.secretKey),
+    publicKey: Buffer.from(keypair.publicKey),
+  };
+  return bufferKeyPair;
 }
 
-export function sign(hash: Uint8Array, secretKey: Uint8Array): Uint8Array {
-  const signature = nacl.sign.detached(hash, secretKey);
-  return signature;
+export function sign(hash: Buffer, secretKey: Buffer): Buffer {
+  const uintHash = Uint8Array.from(hash);
+  const uintSecretKey = Uint8Array.from(secretKey);
+
+  const signature = nacl.sign.detached(uintHash, uintSecretKey);
+  return Buffer.from(signature);
 }
 
 export function verify(
-  hash: Uint8Array,
-  signature: Uint8Array,
-  publicKey: Uint8Array
+  hash: Buffer,
+  signature: Buffer,
+  publicKey: Buffer
 ): boolean {
-  const res = nacl.sign.detached.verify(hash, signature, publicKey);
+  const uintHash = Uint8Array.from(hash);
+  const uintSignature = Uint8Array.from(signature);
+  const uintPublicKey = Uint8Array.from(publicKey);
+
+  const res = nacl.sign.detached.verify(uintHash, uintSignature, uintPublicKey);
   return res;
 }

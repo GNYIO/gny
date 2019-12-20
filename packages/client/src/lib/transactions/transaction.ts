@@ -1,6 +1,5 @@
 import * as webBase from '@gny/web-base';
 import { TransactionWebBase } from '@gny/web-base';
-import { NaclKeyPair } from '@gny/interfaces';
 
 export interface Params {
   type: number;

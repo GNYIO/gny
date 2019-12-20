@@ -2,12 +2,13 @@ import {
   IBlock,
   IBlockWithoutSignatureId,
   IBlockWithoutId,
-  NaclKeyPair,
+  KeyPair,
 } from '@gny/interfaces';
 import * as webEd from '@gny/web-ed';
 import * as ByteBuffer from 'bytebuffer';
 import { copyObject } from './helpers';
 import * as crypto from 'crypto';
+import { Buffer } from 'buffer';
 
 export class BlockWebBase {
   public static getId(old: IBlockWithoutSignatureId) {
@@ -23,13 +24,12 @@ export class BlockWebBase {
 
   public static sign(
     oldBlock: IBlockWithoutSignatureId,
-    oldKeypair: NaclKeyPair
+    keypair: KeyPair
   ): string {
     const block = copyObject(oldBlock);
-    const keypair = copyObject(oldKeypair);
 
     const hash = BlockWebBase.calculateHash(block);
-    return Buffer.from(webEd.sign(hash, keypair.secretKey)).toString('hex');
+    return webEd.sign(hash, keypair.privateKey).toString('hex');
   }
 
   public static getBytes(block: IBlockWithoutSignatureId): Buffer;
