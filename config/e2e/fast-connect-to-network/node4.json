@@ -1,0 +1,33 @@
+{
+  "port": 4096,
+  "address": "0.0.0.0",
+  "publicIp": "0.0.0.0",
+  "logLevel": "debug",
+  "magic": "594fe0f3",
+  "api": {
+    "access": {
+      "whiteList": []
+    }
+  },
+  "peers": {
+    "bootstrap": [],
+    "p2pKeyFile": "p2p_key.json"
+  },
+  "forging": {
+    "secret": [],
+    "access": {
+      "whiteList": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "ssl": {
+    "enabled": false,
+    "options": {
+      "port": 443,
+      "address": "0.0.0.0",
+      "key": "./ssl/server.key",
+      "cert": "./ssl/server.crt"
+    }
+  }
+}

@@ -2,9 +2,10 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
-import Api from '../lib/api';
+import { Api, ApiConfig } from '../lib/api';
+import { ITransaction } from '@gny/interfaces';
 
-let globalOptions;
+let globalOptions: ApiConfig;
 
 function getApi() {
   return new Api({
@@ -44,7 +45,7 @@ function getTransactions(options) {
   });
 }
 
-function getUnconfirmedTransaction(id) {
+function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
   getApi().get('/api/transactions/get', params, function(err, result) {
     console.log(err || pretty(result.transaction));
@@ -163,7 +164,7 @@ function getTransactionBytes(options: any) {
 }
 
 function getTransactionId(options) {
-  let trs;
+  let trs: ITransaction;
   try {
     trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
   } catch (e) {
@@ -183,7 +184,7 @@ function verifyBytes(options) {
   );
 }
 
-export default function account(program) {
+export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program

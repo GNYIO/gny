@@ -1,0 +1,11 @@
+{
+  "type": "postgres",
+  "host": "db4",
+  "port": 5432,
+  "username": "postgres",
+  "password": "docker",
+  "database": "postgres",
+  "synchronize": true,
+  "dropSchema": false,
+  "logging": false
+}

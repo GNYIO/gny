@@ -5,6 +5,7 @@ import { BigNumber } from '@gny/utils';
 import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
+import { KeyPair } from '@gny/interfaces';
 
 const config = {
   headers: {
@@ -38,6 +39,10 @@ export async function onNewBlock(port: number = 4096) {
   return height;
 }
 
+/**
+ * This function finishes when the height of the node is > 0
+ * @param port of the node
+ */
 export async function waitForLoaded(port: number) {
   let loaded = false;
   while (loaded === false) {
@@ -47,6 +52,27 @@ export async function waitForLoaded(port: number) {
       if (
         typeof height === 'string' &&
         new BigNumber(height).isGreaterThan(0)
+      ) {
+        loaded = true;
+      }
+    } catch (err) {}
+    await sleep(1000);
+  }
+}
+
+/**
+ * This function finishes when the genesisBlock (height 0) via API can be reached
+ * @param port of the node
+ */
+export async function waitForApiToBeReadyReady(port: number) {
+  let loaded = false;
+  while (loaded === false) {
+    console.log(`wait for _ready_ ${port} (${Date.now()})`);
+    try {
+      const height = await getHeight(port);
+      if (
+        typeof height === 'string' &&
+        new BigNumber(height).isGreaterThanOrEqualTo(0)
       ) {
         loaded = true;
       }
@@ -65,9 +91,10 @@ export async function deleteOldDockerImages() {
 export async function buildDockerImage(configFile?: string) {
   // first stop all running containers
   // then delete image file
+  console.log(`building "${configFile}"`);
   await dockerCompose.buildAll({
     cwd: process.cwd(),
-    log: true,
+    log: false,
     config: configFile,
   });
 }
@@ -143,7 +170,7 @@ export function createRandomAddress(): string {
 
 export function createRandomAccount() {
   interface ExtendedAccount {
-    keypair: nacl.SignKeyPair;
+    keypair: KeyPair;
     publicKey: string;
     privateKey: string;
     secret: string;
