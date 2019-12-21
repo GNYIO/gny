@@ -6,7 +6,7 @@ const TIMEOUT = 60000;
 describe('crypto', () => {
   beforeEach(async () => {
     await page.goto(PATH, { waitUntil: 'load' });
-  });
+  }, 30 * 1000);
 
   describe('/getBytes', () => {
     it(

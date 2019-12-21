@@ -3,21 +3,16 @@ import * as sha256 from 'fast-sha256';
 import * as webEd from '@gny/web-ed';
 import { UnconfirmedTransaction } from '@gny/interfaces';
 import { TransactionWebBase } from './transactionWebBase';
+import { Buffer } from 'buffer';
 
 export function copyObject<T>(obj: T) {
   return cloneDeep<T>(obj);
 }
 
-export function toLocalBuffer(buf: ByteBuffer) {
-  if (typeof window !== 'undefined') {
-    return new Uint8Array(buf.toArrayBuffer());
-  } else {
-    return buf.toBuffer();
-  }
-}
-
-export function sha256Bytes(data: Uint8Array) {
-  return sha256.hash(data);
+function sha256Bytes(data: Buffer): Buffer {
+  const uintBuffer = Uint8Array.from(data);
+  const hash = sha256.hash(uintBuffer);
+  return Buffer.from(hash);
 }
 
 export function getKeys(secret: string) {
@@ -26,8 +21,8 @@ export function getKeys(secret: string) {
 
   return {
     keypair,
-    publicKey: Buffer.from(keypair.publicKey).toString('hex'),
-    privateKey: Buffer.from(keypair.secretKey).toString('hex'),
+    publicKey: keypair.publicKey.toString('hex'),
+    privateKey: keypair.privateKey.toString('hex'),
   };
 }
 

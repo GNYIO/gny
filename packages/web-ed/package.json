@@ -16,6 +16,7 @@
   "types": "dist/index",
   "dependencies": {
     "@gny/interfaces": "1.0.0",
+    "buffer": "^5.4.3",
     "tweetnacl": "^1.0.1"
   }
 }

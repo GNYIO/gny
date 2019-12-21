@@ -1,25 +1,22 @@
-import {
-  NaclKeyPair,
-  ITransaction,
-  UnconfirmedTransaction,
-} from '@gny/interfaces';
+import { ITransaction, UnconfirmedTransaction, KeyPair } from '@gny/interfaces';
 import * as addressHelper from '@gny/utils';
 import { slots } from '@gny/utils';
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as webEd from '@gny/web-ed';
+import { Buffer } from 'buffer';
 
-function toHex(uint8Array: Uint8Array) {
-  return Buffer.from(uint8Array).toString('hex');
+function toHex(buffer: Buffer) {
+  return Buffer.from(buffer).toString('hex');
 }
 
-export interface CreateTransactionTypeWeb {
+export interface CreateTransactionType {
   type: number;
-  keypair: NaclKeyPair;
+  keypair: KeyPair;
   message?: string;
   args: any;
   fee: string;
-  secondKeypair?: NaclKeyPair;
+  secondKeypair?: KeyPair;
 }
 
 export class TransactionWebBase {
@@ -47,7 +44,7 @@ export class TransactionWebBase {
     }
   }
 
-  static create(data: CreateTransactionTypeWeb) {
+  static create(data: CreateTransactionType) {
     const transaction: Omit<
       ITransaction,
       'id' | 'signatures' | 'secondSignature' | 'height'
@@ -82,7 +79,7 @@ export class TransactionWebBase {
   }
 
   public static sign(
-    keypair: NaclKeyPair,
+    keypair: KeyPair,
     transaction: Pick<
       ITransaction,
       | 'type'
@@ -101,7 +98,7 @@ export class TransactionWebBase {
       .update(bytes)
       .digest();
 
-    return toHex(webEd.sign(hash, keypair.secretKey));
+    return toHex(webEd.sign(hash, keypair.privateKey));
   }
 
   public static getId(transaction: ITransaction | UnconfirmedTransaction) {
@@ -120,7 +117,7 @@ export class TransactionWebBase {
       | 'signatures'
       | 'secondSignature'
     >
-  ) {
+  ): Buffer {
     return crypto
       .createHash('sha256')
       .update(TransactionWebBase.getBytes(transaction))
@@ -183,6 +180,7 @@ export class TransactionWebBase {
 
     byteBuffer.flip();
 
-    return byteBuffer.toBuffer();
+    const result = byteBuffer.toBuffer();
+    return Buffer.from(result);
   }
 }
