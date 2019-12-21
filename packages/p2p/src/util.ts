@@ -48,48 +48,90 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         );
         const multiAddrs: any = Multiaddr(message.data.toString());
 
-        // don't dial yourself if peer heard about you
         logger.info(
           `message.from: ${
             message.from
           } === self: ${bundle.peerInfo.id.toB58String()}`
         );
-        if (message.from === bundle.peerInfo.id.toB58String()) {
+
+        // don't dial yourself if peer heard about you
+        // test if newMember multiaddrs string (example /ipv/ipAddress/tcp/port/ipfs/id) includes my peerId
+        if (
+          Buffer.isBuffer(message.data) &&
+          message.data.toString().includes(bundle.peerInfo.id.toB58String())
+        ) {
           return;
         }
         bundle.dial(multiAddrs, err => {
-          logger.info(`[p2] dialing new member: ${multiAddrs}`);
+          if (err) {
+            logger.info(
+              `[p2p] Error: (${err}) while dialing new member ${multiAddrs}`
+            );
+          }
         });
       },
       () => {}
     );
   };
+
   const stopCallback = function() {
     logger.info(`stopped node: ${getB58String(bundle.peerInfo)}`);
   };
+
   const errorCallback = function(err: Error) {
-    logger.error(
-      `error "${err.message}" for node: ${getB58String(bundle.peerInfo)}`
-    );
-    if (typeof err.message === 'string' && err.message.includes('EADDRINUSE')) {
+    logger.error(`Error: ${err} for node: ${getB58String(bundle.peerInfo)}`);
+    if (
+      err &&
+      typeof err.message === 'string' &&
+      err.message.includes('EADDRINUSE')
+    ) {
       logger.warn('port is already in use, shutting down...');
       throw err;
     }
   };
-  const peerDiscoveryCallback = function(peer) {
-    if (!bundle.peerBook.has(peer)) {
-      logger.info(
-        `node ${getB58String(bundle.peerInfo)} discovered ${getB58String(peer)}`
-      );
-      logger.info(`peer-discovered: ${JSON.stringify(peer, null, 2)}`);
+
+  const peerDiscoveryCallback = function(peer: PeerInfo) {
+    const allConnectedPeers = bundle.getAllConnectedPeers().map(x => x.id.id);
+    // stop dialing peer if he is in the peerBook and we have an active connection
+    if (
+      bundle.peerBook.has(peer) &&
+      allConnectedPeers.includes(peer.id.toB58String())
+    ) {
+      return;
     }
+
+    logger.info(
+      `[p2p] node ${getB58String(bundle.peerInfo)} has ${getB58String(
+        peer
+      )} not in peerBook. dialing peer now.`
+    );
+    bundle.dial(peer, (err: Error) => {
+      if (err) {
+        logger.info(
+          `[p2p] dialing from ${getB58String(
+            bundle.peerInfo
+          )} to ${getB58String(peer)} failed. Error: ${err}`
+        );
+      }
+    });
   };
+
   const peerConnectedCallback = function(peer: PeerInfo) {
     logger.info(
-      `node ${getB58String(bundle.peerInfo)} connected with ${getB58String(
-        peer
-      )}`
+      `[p2p] node ${getB58String(
+        bundle.peerInfo
+      )} connected with ${getB58String(peer)}`
     );
+    if (!bundle.peerBook.has(peer)) {
+      logger.warn(
+        `[p2p] node ${getB58String(
+          bundle.peerInfo
+        )} connected with peer ${getB58String(
+          peer
+        )}. BUT they are not connected!`
+      );
+      // dial to peer
+    }
 
     const multiaddr = getMultiAddrsThatIsNotLocalAddress(peer);
     logger.info(
@@ -97,6 +139,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     );
     bundle.pubsub.publish('newMember', Buffer.from(multiaddr.toString()));
   };
+
   const peerDisconnectCallback = function(peer) {
     logger.info(
       `node ${getB58String(

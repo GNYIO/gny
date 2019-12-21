@@ -32,6 +32,10 @@ export class Bundle extends libp2p {
       throw new Error('no null in string[]');
 
     const defaults: Partial<LibP2POptions> = {
+      switch: {
+        denyTTL: 1,
+        denyAttempts: Infinity,
+      },
       connectionManager: {
         // this plays into the option autoDial: true
         // link: https://github.com/libp2p/js-libp2p/blob/master/PEER_DISCOVERY.md
@@ -48,7 +52,7 @@ export class Bundle extends libp2p {
       },
       config: {
         peerDiscovery: {
-          autoDial: true,
+          autoDial: false,
           bootstrap: {
             interval: 1000,
             enabled: true,
