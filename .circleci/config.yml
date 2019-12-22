@@ -58,10 +58,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: md5sum of all package.json and package-lock.json files
-        command: |
-          find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
-          cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
       - store_artifacts:
@@ -127,20 +127,20 @@ jobs:
     steps:
       - checkout
       - run:
-         name: Update to Docker Compose 1.24.1 # to enable: docker-compose up --no-start
-         command: |
-           curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-           chmod +x ~/docker-compose
-           sudo mv ~/docker-compose /usr/local/bin/docker-compose
-       - run:
-            name: md5sum of all package.json and package-lock.json files
-            command: |
-              find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
-              cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-        - store_artifacts:
-            path: ~/repo/packages.txt
-        - store_artifacts:
-            path: ~/repo/hash.txt
+          name: Update to Docker Compose 1.24.1 # to enable: docker-compose up --no-start
+          command: |
+            curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            chmod +x ~/docker-compose
+             sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run:
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+      - store_artifacts:
+          path: ~/repo/packages.txt
+      - store_artifacts:
+          path: ~/repo/hash.txt
       - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
