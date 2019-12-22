@@ -46,6 +46,7 @@ jobs:
       - run:
           name: test
           command: npm run test
+          no_output_timeout: 5m
   node@10.16.2-integration:
     machine:
       enabled: true
