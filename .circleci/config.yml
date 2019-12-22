@@ -13,7 +13,7 @@ jobs:
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
-      -store_artifacts:
+      - store_artifacts:
           path: ~/repo/hash.txt
       - restore_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
@@ -64,7 +64,7 @@ jobs:
           cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
-      -store_artifacts:
+      - store_artifacts:
           path: ~/repo/hash.txt
       - run:
           name: install-linux-dependencies
@@ -139,7 +139,7 @@ jobs:
               cat packages.txt | md5sum | awk '{print $1}' > hash.txt
         - store_artifacts:
             path: ~/repo/packages.txt
-        -store_artifacts:
+        - store_artifacts:
             path: ~/repo/hash.txt
       - run:
           name: install-linux-dependencies
@@ -261,7 +261,7 @@ jobs:
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
-      -store_artifacts:
+      - store_artifacts:
           path: ~/repo/hash.txt
       - run:
           name: update linux dependencies
