@@ -10,7 +10,7 @@ jobs:
           name: md5sum of all package.json and package-lock.json files
           command: |
             # set locale for consistent sort results
-            LC_ALL=en_US.utf8 find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
@@ -62,7 +62,7 @@ jobs:
           name: md5sum of all package.json and package-lock.json files
           command: |
             # set locale for consistent sort results
-            LC_ALL=en_US.utf8 find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
@@ -138,7 +138,7 @@ jobs:
           name: md5sum of all package.json and package-lock.json files
           command: |
             # set locale for consistent sort results
-            LC_ALL=en_US.utf8 find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
@@ -261,7 +261,7 @@ jobs:
           name: md5sum of all package.json and package-lock.json files
           command: |
             # set locale for consistent sort results
-            LC_ALL=en_US.utf8 find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 > packages.txt
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
             cat packages.txt | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/packages.txt
