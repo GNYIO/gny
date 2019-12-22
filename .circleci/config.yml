@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: md5sum of all package.json and package-lock.json files
-          command: find -type f \( -name "package-lock.json" -o -name "package.json" \) -not -path "**/node_modules/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
+          command: find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/hash.txt
           destination: file-hash-unit-tests.txt
@@ -55,7 +55,7 @@ jobs:
       - checkout
       - run:
           name: md5sum of all package.json and package-lock.json files
-          command: find -type f \( -name "package-lock.json" -o -name "package.json" \) -not -path "**/node_modules/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
+          command: find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/hash.txt
           destination: file-hash-integration-tests.txt
@@ -127,7 +127,7 @@ jobs:
            sudo mv ~/docker-compose /usr/local/bin/docker-compose
       - run:
           name: md5sum of all package-lock.json files
-          command: find -type f \( -name "package-lock.json" -o -name "package.json" \) -not -path "**/node_modules/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
+          command: find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/hash.txt
           destination: file-hash-e2e-tests.txt
@@ -246,7 +246,7 @@ jobs:
       - checkout
       - run:
           name: md5sum of all package-lock.json files
-          command: find -type f \( -name "package-lock.json" -o -name "package.json" \) -not -path "**/node_modules/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
+          command: find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 | md5sum | awk '{print $1}' > hash.txt
       - store_artifacts:
           path: ~/repo/hash.txt
           destination: file-hash-browser-tests.txt
