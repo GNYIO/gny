@@ -12,7 +12,7 @@ describe('bootstrap-nodes e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100, 4102]);
+    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
     await lib.sleep(10 * 1000);
     done();
   }, lib.oneMinute);
