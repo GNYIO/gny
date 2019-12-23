@@ -19,6 +19,7 @@ describe('restarted node e2e test', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'restarted-node');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);

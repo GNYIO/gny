@@ -19,6 +19,7 @@ describe('should connect e2e test', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'should-connect');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);

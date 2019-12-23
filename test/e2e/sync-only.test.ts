@@ -17,6 +17,7 @@ describe('sync only e2e test', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);

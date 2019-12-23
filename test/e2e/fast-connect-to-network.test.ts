@@ -18,6 +18,7 @@ describe('fast-connect-to-network e2e test', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'fast-connect-to-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);
