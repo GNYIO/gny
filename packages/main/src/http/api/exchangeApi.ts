@@ -8,12 +8,11 @@ import {
   Next,
   IHttpApi,
   ApiResult,
-  TransactionsWrapper,
   TransactionIdWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
-import Exchange from '../../../src/core/exchange';
+import Transactions from '../../../src/core/transactions';
 import { joi } from '@gny/extendedJoi';
 
 export default class ExchangeApi implements IHttpApi {
@@ -35,7 +34,6 @@ export default class ExchangeApi implements IHttpApi {
     });
 
     router.put('/', this.addTransactionUnsigned);
-    router.put('/batch', this.addTransactions);
 
     router.use((req: Request, res: Response) => {
       res.status(500).json({ success: false, error: 'API endpoint not found' });
@@ -130,7 +128,7 @@ export default class ExchangeApi implements IHttpApi {
               secondKeypair,
               keypair,
             });
-            await Exchange.processUnconfirmedTransactionAsync(
+            await Transactions.processUnconfirmedTransactionAsync(
               state,
               unconfirmedTrs
             );
@@ -154,39 +152,6 @@ export default class ExchangeApi implements IHttpApi {
       },
       undefined,
       finishSequence
-    );
-  };
-
-  private addTransactions = (req: Request, res: Response, next: Next) => {
-    if (!req.body || !req.body.transactions) {
-      return next('Invalid params');
-    }
-    const finishedCallback = (err: string, result: any) => {
-      if (err) {
-        return next(err);
-      }
-      const trsResult: ApiResult<TransactionsWrapper> = {
-        success: true,
-        transactions: result,
-      };
-      return res.json(trsResult);
-    };
-
-    const trs = req.body.transactions;
-    try {
-      for (let i = 0; i < trs.length; ++i) {
-        trs[i] = TransactionBase.normalizeTransaction(trs[i]);
-      }
-    } catch (e) {
-      return next(`Invalid transaction body: ${e.toString()}`);
-    }
-    return this.library.sequence.add(
-      callback => {
-        const state = StateHelper.getState();
-        Exchange.processUnconfirmedTransactions(state, trs, callback);
-      },
-      undefined,
-      finishedCallback
     );
   };
 }

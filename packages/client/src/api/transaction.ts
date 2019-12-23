@@ -66,4 +66,16 @@ export class Transaction extends Base {
     const result: ApiResult<TransactionsWrapper, ValidationError> = res.data;
     return result;
   }
+
+  public async addTransactions(transactions: ITransaction[]) {
+    const params = {
+      transactions: transactions,
+    };
+    const res = await this.put('/api/transactions/batch', params);
+    const result: ApiResult<
+      TransactionsWrapper,
+      ValidationError | TransactionError
+    > = res.data;
+    return result;
+  }
 }
