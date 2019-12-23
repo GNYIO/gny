@@ -10,7 +10,7 @@ jobs:
           name: md5sum of all package-lock.json files
           command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
       - restore_cache:
-          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
       - run:
           name: install dependencies, bootstrap lerna, compile project
           command: |
@@ -18,25 +18,25 @@ jobs:
               npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test
           command: npm run test
@@ -70,7 +70,7 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
       - run:
           name: install dependencies, bootstrap lerna, compile project
           command: |
@@ -78,25 +78,25 @@ jobs:
               npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test-integration
           command: npm run test:integration
@@ -136,7 +136,7 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
       - run:
           name: install dependencies, bootstrap lerna, compile project
           command: |
@@ -147,25 +147,25 @@ jobs:
          name: compile project
          command: npm run lerna:tsc
       - save_cache:
-          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/web-ed/node_modules
             - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: test-end2end
           command: npm run test:e2e
@@ -196,7 +196,7 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}
+          key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}-v1
       - run:
           name: npm install dependencies
           command: |
@@ -204,7 +204,7 @@ jobs:
               npm ci # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}
+          key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}-v1
           paths:
             - ./node_modules
       - run:
@@ -255,7 +255,7 @@ jobs:
           name: update-npm
           command: npm install -g npm
       - restore_cache:
-          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
       - run:
           name: install dependencies, bootstrap lerna, compile project
           command: |
@@ -263,23 +263,25 @@ jobs:
               npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
             fi
       - save_cache:
-          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}
+          key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
           paths:
             - ./node_modules
             - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
             - ./packages/extendedJoi/node_modules
-            - ./packages/client/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
             - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
             - ./packages/transaction-pool/node_modules
             - ./packages/type-validation/node_modules
             - ./packages/utils/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/cli/node_modules
+            - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
       - run:
           name: browser test
           command: npm run test:browser
