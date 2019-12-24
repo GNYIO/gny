@@ -198,7 +198,10 @@ export const tenMinutes = 10 * 60 * 1000;
 
 export function getLogsOfAllServices(configFile: string, e2eTestName: string) {
   const result = shellJS.exec(
-    `docker-compose --file ${configFile} logs --no-color --timestamp | sort -k3,3`
+    `docker-compose --file ${configFile} logs --no-color --timestamp | sort -k3,3`,
+    {
+      silent: true,
+    }
   );
 
   const logsDir = path.join(__dirname, '..', '..', 'logs');

@@ -12,7 +12,7 @@ describe('bootstrap-nodes e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
+    await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
     done();
   }, lib.oneMinute);
@@ -27,16 +27,41 @@ describe('bootstrap-nodes e2e test', () => {
     'bootstrap-nodes',
     async done => {
       // node1, node2 and node3 have no forging secrets
+      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
+        'db1',
+        'db2',
+        'db3',
+        'node1',
+        'node2',
+        'node3',
+      ]);
+      await lib.waitForApiToBeReadyReady(4096);
+      await lib.waitForApiToBeReadyReady(4098);
+      await lib.waitForApiToBeReadyReady(4100);
+
       // after 10 seconds node3 should have 2 peers
       await lib.sleep(10 * 1000);
 
+      const node1Port = 4096;
+      const { data: data1 } = await axios.get(
+        `http://localhost:${node1Port}/api/peers`
+      );
+      expect(data1.peers.length).toEqual(2);
+
+      const node2Port = 4098;
+      const { data: data2 } = await axios.get(
+        `http://localhost:${node2Port}/api/peers`
+      );
+      expect(data2.peers.length).toEqual(2);
+
       const node3Port = 4100;
-      const result = await axios.get(`http://localhost:${node3Port}/api/peers`);
-      console.log(JSON.stringify(result.data, null, 2));
-      expect(result.data.peers).toHaveLength(2);
+      const { data: data3 } = await axios.get(
+        `http://localhost:${node3Port}/api/peers`
+      );
+      expect(data3.peers.length).toEqual(2);
 
       done();
     },
-    1 * lib.oneMinute
+    70 * 1000
   );
 });
