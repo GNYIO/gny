@@ -5,6 +5,7 @@
 **/node_modules
 **/dist
 test
+logs
 
 createSecondNode.js
 genGenesisBlock.txt
