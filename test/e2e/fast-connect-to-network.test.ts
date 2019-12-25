@@ -28,7 +28,7 @@ describe('fast-connect-to-network e2e test', () => {
     async done => {
       // start a network of node1, node2, node3, node4
       // every node should be connect to everybody
-      // node5 connects node4
+      // node5 connects to node4
       // after 15 seconds node5 should be connected to all nodes
 
       // first start all databases
