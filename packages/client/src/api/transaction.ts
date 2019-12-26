@@ -67,32 +67,6 @@ export class Transaction extends Base {
     return result;
   }
 
-  public async addTransactionUnsigned(
-    secret: string,
-    fee: string,
-    type: number,
-    secondSecret?: string,
-    args?: [],
-    message?: string,
-    senderId?: string
-  ) {
-    const params = {
-      secret: secret,
-      fee: fee,
-      type: type,
-      secondSecret: secondSecret,
-      args: args,
-      message: message,
-      senderId: senderId,
-    };
-    const res = await this.put('/api/transactions/', params);
-    const result: ApiResult<
-      TransactionIdWrapper,
-      TransactionError | ServerError
-    > = res.data;
-    return result;
-  }
-
   public async addTransactions(transactions: ITransaction[]) {
     const params = {
       transactions: transactions,
