@@ -1,5 +1,5 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
+import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
 import {
   IAccount,
   IAsset,
@@ -65,7 +65,7 @@ export function createAsset(name: string) {
   const asset: IAsset = {
     name,
     tid: createRandomBytes(32),
-    timestamp: String(3000),
+    timestamp: 3000,
     maximum: String(4e8),
     precision: 8,
     quantity: String(0),

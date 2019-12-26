@@ -143,7 +143,7 @@ async function attack(port: number, transaction: any) {
   return attackPromise;
 }
 
-describe('double spend attack', () => {
+describe('double-spend-attack', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
@@ -156,12 +156,13 @@ describe('double spend attack', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'double-spend-attack');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);
 
   it(
-    'attack',
+    'double-spend-attack',
     async done => {
       // setup account_0 (1000 GNY)
       // setup account_1 (0 GNY)

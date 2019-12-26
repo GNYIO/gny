@@ -7,15 +7,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: md5sum of all package-lock.json files
-          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            # set locale for consistent sort results
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+      - store_artifacts:
+          path: ~/repo/packages.txt
+      - store_artifacts:
+          path: ~/repo/hash.txt
       - restore_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
       - run:
-          name: install dependencies, bootstrap lerna, compile project
+          name: install dependencies, bootstrap lerna
           command: |
             if [ ! -d node_modules ]; then
-              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
       - save_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
@@ -38,8 +45,12 @@ jobs:
             - ./packages/web-base/node_modules
             - ./packages/web-ed/node_modules
       - run:
+          name: compile project
+          command: npm run lerna:tsc
+      - run:
           name: test
           command: npm run test
+          no_output_timeout: 5m
   node@10.16.2-integration:
     machine:
       enabled: true
@@ -48,8 +59,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: md5sum of all package-lock.json files
-          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            # set locale for consistent sort results
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+      - store_artifacts:
+          path: ~/repo/packages.txt
+      - store_artifacts:
+          path: ~/repo/hash.txt
       - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
@@ -72,10 +90,10 @@ jobs:
       - restore_cache:
           key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
       - run:
-          name: install dependencies, bootstrap lerna, compile project
+          name: install dependencies, bootstrap lerna
           command: |
             if [ ! -d node_modules ]; then
-              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
       - save_cache:
           key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
@@ -97,6 +115,9 @@ jobs:
             - ./packages/utils/node_modules
             - ./packages/web-base/node_modules
             - ./packages/web-ed/node_modules
+      - run:
+          name: compile project
+          command: npm run lerna:tsc
       - run:
           name: test-integration
           command: npm run test:integration
@@ -108,14 +129,21 @@ jobs:
     steps:
       - checkout
       - run:
-         name: Update to Docker Compose 1.24.1 # to enable: docker-compose up --no-start
-         command: |
-           curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-           chmod +x ~/docker-compose
-           sudo mv ~/docker-compose /usr/local/bin/docker-compose
+          name: Update to Docker Compose 1.24.1 # to enable: docker-compose up --no-start
+          command: |
+            curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            chmod +x ~/docker-compose
+             sudo mv ~/docker-compose /usr/local/bin/docker-compose
       - run:
-          name: md5sum of all package-lock.json files
-          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            # set locale for consistent sort results
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+      - store_artifacts:
+          path: ~/repo/packages.txt
+      - store_artifacts:
+          path: ~/repo/hash.txt
       - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
@@ -138,14 +166,11 @@ jobs:
       - restore_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
       - run:
-          name: install dependencies, bootstrap lerna, compile project
+          name: install dependencies, bootstrap lerna
           command: |
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
-      - run:
-         name: compile project
-         command: npm run lerna:tsc
       - save_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
           paths:
@@ -166,6 +191,9 @@ jobs:
             - ./packages/utils/node_modules
             - ./packages/web-base/node_modules
             - ./packages/web-ed/node_modules
+      - run:
+          name: compile project
+          command: npm run lerna:tsc
       - run:
           name: test-end2end
           command: npm run test:e2e
@@ -230,8 +258,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: md5sum of all package-lock.json files
-          command: find -type f -name "package-lock.json" -not -path "**/node_modules/*" -exec md5sum "{}" + | md5sum | awk '{print $1}' > hash.txt
+          name: md5sum of all package.json and package-lock.json files
+          command: |
+            # set locale for consistent sort results
+            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+      - store_artifacts:
+          path: ~/repo/packages.txt
+      - store_artifacts:
+          path: ~/repo/hash.txt
       - run:
           name: update linux dependencies
           command: sudo apt-get update
@@ -257,10 +292,10 @@ jobs:
       - restore_cache:
           key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
       - run:
-          name: install dependencies, bootstrap lerna, compile project
+          name: install dependencies, bootstrap lerna
           command: |
             if [ ! -d node_modules ]; then
-              npm ci && npm run lerna:bootstrap && npm run lerna:tsc # install only if node_modules is not present
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
       - save_cache:
           key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
@@ -283,6 +318,9 @@ jobs:
             - ./packages/web-base/node_modules
             - ./packages/web-ed/node_modules
       - run:
+          name: compile project
+          command: npm run lerna:tsc
+      - run:
           name: browser test
           command: npm run test:browser
 workflows:
@@ -301,14 +339,7 @@ workflows:
                - develop
     jobs:
       - node@10.16.2-integration
-  all_end2end_every_second_night_on_develop_branch:
-    triggers:
-      - schedule:
-         cron: "59 23 2,4,6,8,10,12,14,16,18,20,22,24,26,28,30 * *"
-         filters:
-           branches:
-             only:
-               - develop
+  run_end2end_on_every_commit:
     jobs:
       - node@10.16.2-end2end
   benchmarking_every_third_night_on_develop_branch:

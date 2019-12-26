@@ -6,6 +6,8 @@ import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
 import { KeyPair } from '@gny/interfaces';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 const config = {
   headers: {
@@ -193,3 +195,26 @@ export function createRandomAccount() {
 export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
+
+export function getLogsOfAllServices(configFile: string, e2eTestName: string) {
+  const result = shellJS.exec(
+    `docker-compose --file ${configFile} logs --no-color --timestamp | sort -k3,3`,
+    {
+      silent: true,
+    }
+  );
+
+  const logsDir = path.join(__dirname, '..', '..', 'logs');
+  fs.ensureDirSync(logsDir);
+
+  const fileName = `end2end-${e2eTestName}-${Date.now()}.log`;
+  const filePath = path.join(logsDir, fileName);
+
+  fs.writeFileSync(filePath, result.stdout, {
+    encoding: 'utf8',
+  });
+  // change permissions of entiry directory
+  shellJS.exec(`sudo chmod 777 -R ${logsDir}`);
+
+  console.log(`storing log file in "${filePath}"`);
+}

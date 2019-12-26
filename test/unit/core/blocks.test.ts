@@ -7,7 +7,7 @@ import {
 import { IState } from '../../../packages/main/src/globalInterfaces';
 import { BlockBase } from '../../../packages/base/src/blockBase';
 import { TransactionBase } from '../../../packages/base/src/transactionBase';
-import { Block as BlockModel } from '../../../packages/database-postgres/entity/Block';
+import { Block as BlockModel } from '../../../packages/database-postgres/src/entity/Block';
 import * as crypto from 'crypto';
 import { generateAddress } from '../../../packages/utils/src/address';
 import * as ed from '../../../packages/ed';

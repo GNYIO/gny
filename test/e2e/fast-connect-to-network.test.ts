@@ -4,7 +4,7 @@ import * as helpers from './helpers';
 const DOCKER_COMPOSE_P2P =
   'config/e2e/fast-connect-to-network/docker-compose.fast-connect-to-network.yml';
 
-describe('network-stuck e2e test', () => {
+describe('fast-connect-to-network e2e test', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
@@ -18,16 +18,17 @@ describe('network-stuck e2e test', () => {
   }, lib.oneMinute);
 
   afterEach(async done => {
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'fast-connect-to-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);
 
   it(
-    'network-stuck',
+    'fast-connect-to-network',
     async done => {
       // start a network of node1, node2, node3, node4
       // every node should be connect to everybody
-      // node5 connects node4
+      // node5 connects to node4
       // after 15 seconds node5 should be connected to all nodes
 
       // first start all databases

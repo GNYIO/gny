@@ -2,11 +2,11 @@ import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import { IAccount, IDelegate, IBalance } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
-import { Asset } from '../../../packages/database-postgres/entity/Asset';
+import { Asset } from '../../../packages/database-postgres/src/entity/Asset';
 
 describe('smartDB.get()', () => {
   let sut: SmartDB;
@@ -166,11 +166,12 @@ describe('smartDB.get()', () => {
     await saveGenesisBlock(sut);
 
     // first save data
-    const balance = {
+    const balance: IBalance = {
       address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
       currency: 'ABC.ABC',
       balance: String(2000),
-    } as IBalance;
+      flag: 1,
+    };
     await sut.create<Balance>(Balance, balance);
 
     const notWholeCompositeKey = {
@@ -178,7 +179,7 @@ describe('smartDB.get()', () => {
     };
     const getPromise = sut.get<Balance>(Balance, notWholeCompositeKey);
     return expect(getPromise).rejects.toEqual(
-      new Error("Cannot read property 'key' of undefined")
+      new Error('no primary key of entity found')
     );
   });
 });

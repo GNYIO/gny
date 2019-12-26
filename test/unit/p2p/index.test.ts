@@ -58,7 +58,7 @@ async function createNewBundle(
   return node;
 }
 
-describe('p2p', () => {
+describe.skip('p2p', () => {
   describe('creation', () => {
     it('constructor() - passing not an array as bootstrapNode into Peer2Peer constructor throws error', async done => {
       const peerInfo = await createPeerInfo();

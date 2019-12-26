@@ -5,7 +5,7 @@ import {
 import { cloneDeep } from 'lodash';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Block } from '../../../packages/database-postgres/entity/Block';
+import { Block } from '../../../packages/database-postgres/src/entity/Block';
 import {
   saveGenesisBlock,
   createBlock,
@@ -13,9 +13,9 @@ import {
   createRandomBytes,
   createAccount,
 } from './smartDB.test.helpers';
-import { Delegate } from '../../../packages/database-postgres/entity/Delegate';
+import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
 import { IDelegate } from '../../../packages/interfaces';
-import { Account } from '../../../packages/database-postgres/entity/Account';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
 
 describe('SmartDB.rollbackBlock()', () => {
   let sut: SmartDB;

@@ -2,11 +2,11 @@ import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import { ITransaction, IVariable } from '../../../packages/interfaces';
 import * as fs from 'fs';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/entity/Account';
-import { Balance } from '../../../packages/database-postgres/entity/Balance';
-import { Transaction } from '../../../packages/database-postgres/entity/Transaction';
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
-import { Block } from '../../../packages/database-postgres/entity/Block';
+import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
+import { Block } from '../../../packages/database-postgres/src/entity/Block';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 
 describe('smartDB.exists()', () => {

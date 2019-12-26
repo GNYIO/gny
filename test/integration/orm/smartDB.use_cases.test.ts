@@ -1,4 +1,4 @@
-import { Variable } from '../../../packages/database-postgres/entity/Variable';
+import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import * as fs from 'fs';
 import * as lib from '../lib';

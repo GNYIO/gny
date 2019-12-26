@@ -343,7 +343,6 @@ export interface IBalance {
   currency: string;
   balance: string;
   flag: number;
-  asset?: IAsset;
   _version_?: number;
 }
 
