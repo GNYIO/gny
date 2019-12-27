@@ -10,7 +10,7 @@ interface IsTrsAvailable {
 }
 
 const DOCKER_COMPOSE_P2P =
-  'config/e2e/double-spend-attack/docker-compose.p2p.yml';
+  'config/e2e/double-spend-attack/docker-compose.double-spend-attack.yml';
 
 const config = {
   headers: {
