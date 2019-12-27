@@ -69,6 +69,9 @@ jobs:
       - store_artifacts:
           path: ~/repo/hash.txt
       - run:
+          name: update linux dependencies
+          command: sudo apt-get update
+      - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
@@ -145,6 +148,9 @@ jobs:
       - store_artifacts:
           path: ~/repo/hash.txt
       - run:
+          name: update linux dependencies
+          command: sudo apt-get update
+      - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
@@ -204,6 +210,9 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
+      - run:
+          name: update linux dependencies
+          command: sudo apt-get update
       - run:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
