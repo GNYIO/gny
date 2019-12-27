@@ -203,6 +203,8 @@ jobs:
       - run:
           name: test-end2end
           command: npm run test:e2e
+      - store_artifacts:
+          path: ~/repo/logs
   node@10.16.2-benchmark:
     machine:
       enabled: true
@@ -338,10 +340,10 @@ workflows:
     jobs:
       - node@10.16.2-unit
       - browser@client-unit
-  all_integration_every_third_night_on_develop_branch:
+  all_integration_every_night_on_develop_branch:
     triggers:
       - schedule:
-         cron: "59 23 3,6,9,12,15,18,21,24,27,30 * *"
+         cron: "59 23 * * *"
          filters:
            branches:
              only:
