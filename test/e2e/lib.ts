@@ -83,11 +83,13 @@ export async function waitForApiToBeReadyReady(port: number) {
   }
 }
 
-export async function deleteOldDockerImages() {
-  await dockerCompose.rm({
-    cwd: process.cwd(),
-    log: true,
-  });
+export async function stopAndRemoveOldContainersAndNetworks() {
+  const command =
+    'docker stop $(sudo docker ps --all --quiet); ' +
+    'docker rm $(sudo docker ps --all --quiet); ' +
+    'docker network prune --force';
+
+  shellJS.exec(command);
 }
 
 export async function buildDockerImage(configFile?: string) {
@@ -163,6 +165,7 @@ export async function stopAndKillContainer(configFile?: string) {
     log: true,
     config: configFile,
   });
+  await sleep(10 * 1000);
 }
 
 export function createRandomAddress(): string {

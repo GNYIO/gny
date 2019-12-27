@@ -6,7 +6,7 @@ const DOCKER_COMPOSE_P2P = 'config/e2e/sync-only/docker-compose.sync-only.yml';
 
 describe('sync only e2e test', () => {
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
+    await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
     done();
   }, lib.tenMinutes);

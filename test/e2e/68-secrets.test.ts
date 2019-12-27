@@ -7,7 +7,7 @@ const DOCKER_COMPOSE_P2P =
 
 describe('68-secrets', () => {
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
+    await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
     done();
   }, lib.tenMinutes);
