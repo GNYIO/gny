@@ -1,8 +1,14 @@
 import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
 import { generateAddress } from '@gny/utils';
+import { KeyPair } from '@gny/interfaces';
 
-export function account(secret: string) {
+export type AccountType = {
+  keypair: KeyPair;
+  address: string;
+  secret: string;
+};
+export function account(secret: string): AccountType {
   const hash = crypto
     .createHash('sha256')
     .update(secret, 'utf8')
@@ -10,7 +16,7 @@ export function account(secret: string) {
   const kp = ed.generateKeyPair(hash);
   const address = generateAddress(kp.publicKey.toString('hex'));
 
-  return {
+  return <AccountType>{
     keypair: kp,
     address: address,
     secret: secret,
