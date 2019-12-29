@@ -200,7 +200,7 @@ export class TransactionBase {
     return final;
   }
 
-  private static sign(
+  public static sign(
     keypair: KeyPair,
     transaction: Pick<
       ITransaction,
@@ -227,7 +227,7 @@ export class TransactionBase {
     return TransactionBase.getHash(transaction).toString('hex');
   }
 
-  private static getHash(
+  public static getHash(
     transaction: Pick<
       ITransaction,
       | 'type'

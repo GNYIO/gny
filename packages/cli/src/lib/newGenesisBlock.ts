@@ -11,6 +11,49 @@ import {
   ITransaction,
   KeyPair,
 } from '@gny/interfaces';
+import * as addressHelper from '@gny/utils';
+import { AccountType } from './account';
+
+type CreateTransactionTypeWithTimestamp = CreateTransactionType & {
+  timestamp: number;
+};
+
+function createTransaction(data: CreateTransactionTypeWithTimestamp) {
+  const transaction: Omit<
+    ITransaction,
+    'id' | 'signatures' | 'secondSignature' | 'height'
+  > = {
+    type: data.type,
+    senderId: addressHelper.generateAddress(
+      data.keypair.publicKey.toString('hex')
+    ),
+    senderPublicKey: data.keypair.publicKey.toString('hex'),
+    timestamp: data.timestamp,
+    message: data.message,
+    args: data.args,
+    fee: data.fee,
+  };
+
+  const intermediate: Omit<ITransaction, 'id' | 'height'> = {
+    ...transaction,
+    signatures: [TransactionBase.sign(data.keypair, transaction)],
+    secondSignature: undefined,
+  };
+
+  if (data.secondKeypair) {
+    intermediate.secondSignature = TransactionBase.sign(
+      data.secondKeypair,
+      intermediate
+    );
+  }
+
+  const final: UnconfirmedTransaction = {
+    ...intermediate,
+    id: TransactionBase.getHash(intermediate).toString('hex'),
+  };
+
+  return final;
+}
 
 export default function newGenesisBlock(program: any) {
   program
@@ -42,7 +85,7 @@ function genGenesisBlock(options) {
     initialAmount = Number(options.amount);
   }
 
-  let genesisAccount: any;
+  let genesisAccount: AccountType;
   if (options.genesis) {
     genesisAccount = accountHelper.account(options.genesis);
   } else {
@@ -56,9 +99,16 @@ function genGenesisBlock(options) {
   const delegateSecrets = newBlockInfo.delegates.map(i => i.secret);
   writeFileSync('./genesisBlock.json', newBlockInfo.block);
 
+  const prettyGenesisAccount = {
+    ...genesisAccount,
+    keypair: {
+      privateKey: genesisAccount.keypair.privateKey.toString('hex'),
+      publicKey: genesisAccount.keypair.publicKey.toString('hex'),
+    },
+  };
   const logFile = './genGenesisBlock.txt';
   writeFileSync(logFile, 'genesis account:\n');
-  appendFileSync(logFile, genesisAccount);
+  appendFileSync(logFile, prettyGenesisAccount);
   appendFileSync(logFile, '\ndelegates secrets:\n');
   appendFileSync(logFile, delegateSecrets);
   console.log(
@@ -68,11 +118,14 @@ function genGenesisBlock(options) {
 
 const sender = accountHelper.account(generateSecret());
 
-function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
+function generateGenesis(
+  genesisAccount: AccountType,
+  accountsFile: string,
+  intialAmount
+) {
   let payloadLength = 0;
   const transactions: UnconfirmedTransaction[] = [];
   const payloadHash = crypto.createHash('sha256');
-  const totalAmount = 0;
   const delegates = [];
 
   // fund recipient account
@@ -85,24 +138,26 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
         process.exit(1);
       }
       const amount = String(Number(parts[1]) * 100000000);
-      const trs: CreateTransactionType = {
+      const trs: CreateTransactionTypeWithTimestamp = {
         type: 1,
+        timestamp: 0,
         fee: String(0),
         args: [Number(amount), parts[0]],
         keypair: sender.keypair,
       };
 
-      transactions.push(TransactionBase.create(trs));
+      transactions.push(createTransaction(trs));
     }
   } else {
-    const balanceTransaction: CreateTransactionType = {
+    const balanceTransaction: CreateTransactionTypeWithTimestamp = {
       type: 0,
+      timestamp: 0,
       fee: String(0),
       args: [intialAmount, genesisAccount.address],
       keypair: sender.keypair,
     };
 
-    transactions.push(TransactionBase.create(balanceTransaction));
+    transactions.push(createTransaction(balanceTransaction));
   }
 
   // make delegates
@@ -124,21 +179,23 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
     };
     delegates.push(finishedDelegate);
 
-    const nameTrs: CreateTransactionType = {
+    const nameTrs: CreateTransactionTypeWithTimestamp = {
       type: 1,
+      timestamp: 0,
       fee: String(0),
       args: [username],
       keypair: finishedDelegate.keypair,
     };
-    const delegateTrs: CreateTransactionType = {
+    const delegateTrs: CreateTransactionTypeWithTimestamp = {
       type: 10,
+      timestamp: 0,
       args: [],
-      fee: String(),
+      fee: String(0),
       keypair: finishedDelegate.keypair,
     };
 
-    transactions.push(TransactionBase.create(nameTrs));
-    transactions.push(TransactionBase.create(delegateTrs));
+    transactions.push(createTransaction(nameTrs));
+    transactions.push(createTransaction(delegateTrs));
   }
 
   let bytes;
@@ -153,6 +210,7 @@ function generateGenesis(genesisAccount, accountsFile: string, intialAmount) {
 
   const block: IBlockWithoutSignatureId = {
     version: 0,
+    prevBlockId: null,
     payloadHash: finalPayloadHash.toString('hex'),
     timestamp: 0,
     delegate: sender.keypair.publicKey.toString('hex'),
