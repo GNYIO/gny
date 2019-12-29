@@ -10,7 +10,7 @@ interface IsTrsAvailable {
 }
 
 const DOCKER_COMPOSE_P2P =
-  'config/e2e/double-spend-attack/docker-compose.p2p.yml';
+  'config/e2e/double-spend-attack/docker-compose.double-spend-attack.yml';
 
 const config = {
   headers: {
@@ -145,7 +145,7 @@ async function attack(port: number, transaction: any) {
 
 describe('double-spend-attack', () => {
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
+    await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
     done();
   }, lib.tenMinutes);

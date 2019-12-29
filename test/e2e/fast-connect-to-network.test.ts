@@ -6,7 +6,7 @@ const DOCKER_COMPOSE_P2P =
 
 describe('fast-connect-to-network e2e test', () => {
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
+    await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
     done();
   }, lib.tenMinutes);

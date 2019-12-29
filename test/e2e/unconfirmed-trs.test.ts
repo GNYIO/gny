@@ -60,7 +60,7 @@ async function sendRandomTransaction(numberOfTransaction: number) {
 
 describe('unconfirmed-trs e2e test', () => {
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
+    await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
     done();
   }, lib.tenMinutes);
