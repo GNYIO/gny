@@ -17,10 +17,10 @@ export interface IProtobuf {
   encodeBlockPropose(propose: BlockPropose): Buffer;
   decodeBlockPropose(data: Buffer): BlockPropose;
   encodeBlockVotes(obj: any): Buffer;
-  decodeBlockVotes(data: Buffer);
+  decodeBlockVotes(data: Buffer): ManyVotes;
   encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;
   decodeUnconfirmedTransaction(data: Buffer): UnconfirmedTransaction;
-  encodeNewBlockMessage(msg): Buffer;
+  encodeNewBlockMessage(msg: NewBlockMessage): Buffer;
   decodeNewBlockMessage(data: Buffer): NewBlockMessage;
 }
 
