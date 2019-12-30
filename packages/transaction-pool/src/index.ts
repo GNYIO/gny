@@ -1,12 +1,8 @@
-import {
-  ITransaction,
-  ITransactionPool,
-  UnconfirmedTransaction,
-} from '@gny/interfaces';
+import { ITransactionPool, UnconfirmedTransaction } from '@gny/interfaces';
 
 export class TransactionPool implements ITransactionPool {
   private index: Map<string, number>;
-  private unConfirmed: Array<UnconfirmedTransaction>;
+  private unConfirmed: Array<UnconfirmedTransaction | undefined>;
   constructor() {
     this.index = new Map();
     this.unConfirmed = [];
@@ -19,8 +15,10 @@ export class TransactionPool implements ITransactionPool {
 
   public remove(id: string) {
     const pos = this.index.get(id);
-    this.index.delete(id);
-    this.unConfirmed[pos] = null;
+    if (typeof pos === 'number') {
+      this.index.delete(id);
+      this.unConfirmed[pos] = undefined;
+    }
   }
 
   public has(id: string) {
@@ -29,7 +27,7 @@ export class TransactionPool implements ITransactionPool {
   }
 
   public getUnconfirmed() {
-    const a: Array<UnconfirmedTransaction> = [];
+    const a: Array<UnconfirmedTransaction | undefined> = [];
 
     for (let i = 0; i < this.unConfirmed.length; i++) {
       if (this.unConfirmed[i]) {
@@ -46,6 +44,9 @@ export class TransactionPool implements ITransactionPool {
 
   public get(id: string) {
     const pos = this.index.get(id);
-    return this.unConfirmed[pos];
+    if (typeof pos === 'number') {
+      return this.unConfirmed[pos];
+    }
+    return undefined;
   }
 }

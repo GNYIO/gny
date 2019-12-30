@@ -96,9 +96,9 @@ export interface ITransactionPool {
   add(trs: UnconfirmedTransaction): void;
   remove(id: string): void;
   has(id: string): boolean;
-  getUnconfirmed(): Array<UnconfirmedTransaction>;
+  getUnconfirmed(): Array<UnconfirmedTransaction | undefined>;
   clear(): void;
-  get(id: string): UnconfirmedTransaction;
+  get(id: string): UnconfirmedTransaction | undefined;
 }
 
 interface IMessageEmitter {
