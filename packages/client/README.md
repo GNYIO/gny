@@ -9,7 +9,7 @@ const connection = new Connection();
 const accountApi = connection.api.Account;
 
 const generateAccount = async () => {
-  response = await accountApi..generateAccount();
+  response = await accountApi.generateAccount();
   console.log(response);
 };
 
