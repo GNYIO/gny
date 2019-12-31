@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
 import * as isRoot from 'is-root';
 import { BigNumber } from '@gny/utils';
+import * as shellJS from 'shelljs';
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -65,10 +66,15 @@ export async function waitUntilBlock(height: string) {
 }
 
 export async function deleteOldDockerImages() {
-  await dockerCompose.rm({
-    cwd: process.cwd(),
-    log: true,
+  const command =
+    'docker stop $(sudo docker ps --all --quiet); ' +
+    'docker rm $(sudo docker ps --all --quiet); ' +
+    'docker network prune --force';
+
+  shellJS.exec(command, {
+    silent: true,
   });
+  console.log('\n');
 }
 
 export async function buildDockerImage() {
@@ -80,10 +86,11 @@ export async function buildDockerImage() {
   });
 }
 
-export async function spawnContainer() {
+export async function spawnContainer(configFile?: string) {
   await dockerCompose.upAll({
     cwd: process.cwd(),
     log: true,
+    config: configFile,
   });
   await sleep(10 * 1000);
   await waitForLoaded();

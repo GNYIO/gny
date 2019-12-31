@@ -67,28 +67,6 @@ describe('contract environment', () => {
     lib.oneMinute
   );
 
-  it(
-    'send unsigned transaction',
-    async done => {
-      const amount = 5 * 1e8;
-      const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
-
-      const trs = {
-        secret: genesisSecret,
-        secondSecret: undefined,
-        fee: String(0.1 * 1e8),
-        type: 0,
-        args: [amount, recipient],
-      };
-
-      const result = await axios.put(UNSIGNED_URL, trs, config);
-
-      expect(result.data).toHaveProperty('transactionId');
-      done();
-    },
-    lib.oneMinute
-  );
-
   describe('contract environment', () => {
     it(
       'sending SIGNED transaction without http magic returns error',
@@ -217,25 +195,6 @@ describe('contract environment', () => {
       'round',
       async done => {
         done();
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'sending UNSIGNED transaction with NOT complient BIP39 secret returns error',
-      async () => {
-        const WRONG_SECRET = 'wrong password';
-        const trs = {
-          type: 0,
-          secret: WRONG_SECRET,
-          args: [lib.createRandomAddress(), 22 * 1e8],
-          message: undefined,
-        };
-        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Invalid transaction body',
-        });
       },
       lib.oneMinute
     );
@@ -373,50 +332,6 @@ describe('contract environment', () => {
     it.skip(
       'negative fee with UNSIGNED transaction',
       async () => {},
-      lib.oneMinute
-    );
-
-    it(
-      'message field (UNSIGNED transaction) allows empty string',
-      async done => {
-        const recipient = lib.createRandomAddress();
-        const EMPTY_STRING = '';
-        const trs = {
-          type: 0,
-          fee: String(0.1 * 1e8),
-          args: ['1', recipient],
-          secret: genesisSecret,
-          message: EMPTY_STRING,
-        };
-
-        const result = await axios.put(UNSIGNED_URL, trs, config);
-
-        expect(result.data).toHaveProperty('transactionId');
-        done();
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'message field (UNSIGNED transaction) rejects if it consists non-alphynumerical letter',
-      async () => {
-        const recipient = lib.createRandomAddress();
-        const NON_ALPHYNUMERICAL_MESSAGE = 'drop table block;--';
-        const trs = {
-          type: 0,
-          fee: String(0.1 * 1e8),
-          args: ['1', recipient],
-          secret: genesisSecret,
-          message: NON_ALPHYNUMERICAL_MESSAGE,
-        };
-
-        const resultPromise = axios.put(UNSIGNED_URL, trs, config);
-
-        return expect(resultPromise).rejects.toHaveProperty('response.data', {
-          error: 'Invalid transaction body',
-          success: false,
-        });
-      },
       lib.oneMinute
     );
 
@@ -584,91 +499,6 @@ describe('contract environment', () => {
           transData,
           config
         );
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Invalid transaction body',
-        });
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'message field (UNSIGNED transaction) longer then 256 returns error',
-      async () => {
-        const recipient = lib.createRandomAddress();
-        const trs = {
-          type: 0,
-          fee: String(0.1 * 1e8),
-          args: ['1', recipient],
-          secret: genesisSecret,
-          message: 'b'.repeat(257),
-        };
-
-        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
-
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Invalid transaction body',
-        });
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'timestamp is bigger (UNSIGNED transaction) then Number Number.MAX_SAFE_INTEGER +1',
-      async () => {
-        const TOO_BIG_timestamp = Number.MAX_SAFE_INTEGER + 100;
-        const trs = {
-          fee: 0.1 * 1e8,
-          secret: genesisSecret,
-          type: 0,
-          timestamp: TOO_BIG_timestamp,
-          args: [lib.createRandomAddress(), 22 * 1e8],
-        };
-        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
-
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Invalid transaction body',
-        });
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'negative timestamp (UNSIGNED transaction) returns error',
-      async () => {
-        const NEGATIVE_timestamp = -10;
-        const trs = {
-          fee: String(0.1 * 1e8),
-          secret: genesisSecret,
-          type: 0,
-          timestamp: NEGATIVE_timestamp,
-          args: [lib.createRandomAddress(), 22 * 1e8],
-        };
-        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
-
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Invalid transaction body',
-        });
-      },
-      lib.oneMinute
-    );
-
-    it(
-      'zero timestamp (UNSIGNED transaction) returns error',
-      async () => {
-        const ZERO_timestamp = 0;
-        const trs = {
-          fee: String(0.1 * 1e8),
-          secret: genesisSecret,
-          type: 0,
-          timestamp: ZERO_timestamp,
-          args: [lib.createRandomAddress(), 22 * 1e8],
-        };
-        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
-
         return expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Invalid transaction body',
