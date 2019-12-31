@@ -15,7 +15,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.0",
+    "@gny/interfaces": "1.0.1",
     "@nodeutils/defaults-deep": "^1.1.0",
     "@polkadot/ts": "git+https://github.com/a1300/ts.git",
     "@types/node": "^10.14.18",

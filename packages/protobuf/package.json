@@ -16,7 +16,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.0",
+    "@gny/interfaces": "1.0.1",
     "lodash": "^4.17.15",
     "protocol-buffers": "^3.2.1"
   }

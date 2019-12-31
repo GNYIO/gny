@@ -17,7 +17,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@gny/interfaces": "1.0.0",
+    "@gny/interfaces": "1.0.1",
     "@gny/utils": "1.0.0",
     "@gny/ed": "1.0.0",
     "@gny/base": "1.0.0",
