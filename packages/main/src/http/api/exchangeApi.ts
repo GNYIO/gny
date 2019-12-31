@@ -26,27 +26,33 @@ export default class ExchangeApi implements IHttpApi {
   public attachApi = () => {
     const router = express.Router();
 
-    router.use((req: Request, res: Response, next) => {
-      if (StateHelper.BlockchainReady()) return next();
-      return res
-        .status(500)
-        .json({ success: false, error: 'Blockchain is loading' });
-    });
+    if (Boolean(process.env['EXCHANGE_API']) === true) {
+      router.use((req: Request, res: Response, next) => {
+        if (StateHelper.BlockchainReady()) return next();
+        return res
+          .status(500)
+          .json({ success: false, error: 'Blockchain is loading' });
+      });
 
-    router.put('/', this.addTransactionUnsigned);
+      router.put('/', this.addTransactionUnsigned);
 
-    router.use((req: Request, res: Response) => {
-      res.status(500).json({ success: false, error: 'API endpoint not found' });
-    });
+      router.use((req: Request, res: Response) => {
+        res
+          .status(500)
+          .json({ success: false, error: 'API endpoint not found' });
+      });
 
-    this.library.network.app.use('/api/exchange', router);
-    this.library.network.app.use(
-      (err: string, req: Request, res: Response, next: Next) => {
-        if (!err) return next();
-        this.library.logger.error(req.url, err.toString());
-        return res.status(500).json({ success: false, error: err.toString() });
-      }
-    );
+      this.library.network.app.use('/api/exchange', router);
+      this.library.network.app.use(
+        (err: string, req: Request, res: Response, next: Next) => {
+          if (!err) return next();
+          this.library.logger.error(req.url, err.toString());
+          return res
+            .status(500)
+            .json({ success: false, error: err.toString() });
+        }
+      );
+    }
   };
 
   private addTransactionUnsigned = (
