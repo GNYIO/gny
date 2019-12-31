@@ -19,7 +19,7 @@
     "@gny/database-postgres": "1.0.0",
     "@gny/ed": "1.0.0",
     "@gny/extendedJoi": "1.0.0",
-    "@gny/interfaces": "1.0.0",
+    "@gny/interfaces": "1.0.1",
     "@gny/logger": "1.0.0",
     "@gny/p2p": "1.0.0",
     "@gny/transaction-pool": "1.0.0",

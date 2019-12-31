@@ -17,6 +17,6 @@
   "types": "dist/index",
   "dependencies": {
     "@gny/extendedJoi": "1.0.0",
-    "@gny/interfaces": "1.0.0"
+    "@gny/interfaces": "1.0.1"
   }
 }
