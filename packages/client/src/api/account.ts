@@ -34,8 +34,10 @@ export class Account extends Base {
     return result;
   }
 
-  public async openAccount(secret: string) {
-    const res = await this.post('/api/accounts/open', { secret: secret });
+  public async openAccount(publicKey: string) {
+    const res = await this.get('/api/accounts/openAccount', {
+      publicKey: publicKey,
+    });
     const result: ApiResult<AccountOpenModel, GetAccountError> = res.data;
     return result;
   }

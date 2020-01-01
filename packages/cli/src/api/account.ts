@@ -17,8 +17,8 @@ function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
-function openAccount(secret: string) {
-  getApi().post('/api/accounts/open', { secret: secret }, function(
+function openAccount(publicKey: string) {
+  getApi().get('/api/accounts/openAccount', { publicKey: publicKey }, function(
     err,
     result
   ) {
