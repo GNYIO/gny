@@ -85,10 +85,6 @@ export default class ExchangeApi implements IHttpApi {
         .alphanum()
         .allow('')
         .optional(),
-      senderId: joi
-        .string()
-        .address()
-        .optional(),
     });
     const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {

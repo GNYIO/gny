@@ -1,12 +1,22 @@
 import * as lib from '../lib';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import * as ed from '../../../packages/ed/src/index';
+import { generateAddress } from '@gny/utils';
 
 const config = {
   headers: {
     magic: '594fe0f3',
   },
 };
+
+function createKeypair(secret: string) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  return ed.generateKeyPair(hash);
+}
 
 const UNSIGNED_URL = 'http://localhost:4096/api/exchange';
 
@@ -277,6 +287,29 @@ describe('contract (exchange) environment', () => {
 
         const trs = {
           id: ID,
+          fee: String(0.1 * 1e8),
+          secret: genesisSecret,
+          type: 0,
+          args: [lib.createRandomAddress(), 10 * 1e8],
+        };
+        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Invalid transaction body',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'sending trs with senderId (UNSIGNED transaction) returns error',
+      async () => {
+        const keys = createKeypair(genesisSecret);
+        const SENDER_ID = generateAddress(keys.publicKey);
+
+        const trs = {
+          senderId: SENDER_ID,
           fee: String(0.1 * 1e8),
           secret: genesisSecret,
           type: 0,
