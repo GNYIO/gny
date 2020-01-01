@@ -1,5 +1,6 @@
 import * as lib from '../lib';
 import axios from 'axios';
+import * as crypto from 'crypto';
 
 const config = {
   headers: {
@@ -79,7 +80,7 @@ describe('contract (exchange) environment', () => {
     }, lib.oneMinute);
 
     it(
-      'send unsigned transaction',
+      'send UNSIGNED transaction',
       async done => {
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
@@ -237,6 +238,49 @@ describe('contract (exchange) environment', () => {
           type: 0,
           timestamp: ZERO_timestamp,
           args: [lib.createRandomAddress(), 22 * 1e8],
+        };
+        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Invalid transaction body',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'negative fee with (UNSIGNED transaction) returns error',
+      async () => {
+        const NEGATIVE_FEE = String(-100);
+        const trs = {
+          fee: NEGATIVE_FEE,
+          secret: genesisSecret,
+          type: 0,
+          args: [lib.createRandomAddress(), 22 * 1e8],
+        };
+        const contractPromise = axios.put(UNSIGNED_URL, trs, config);
+
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Invalid transaction body',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'sending trs with id (UNSIGNED transaction) returns error',
+      async () => {
+        const ID = crypto.randomBytes(32).toString('hex');
+        console.log(ID);
+
+        const trs = {
+          id: ID,
+          fee: String(0.1 * 1e8),
+          secret: genesisSecret,
+          type: 0,
+          args: [lib.createRandomAddress(), 10 * 1e8],
         };
         const contractPromise = axios.put(UNSIGNED_URL, trs, config);
 

@@ -132,26 +132,6 @@ describe('contract environment', () => {
       lib.oneMinute
     );
 
-    // should the header also be set?
-    it.skip(
-      'sending UNSIGNED transaction without http magic returns error',
-      async () => {
-        const trs = {
-          type: 0,
-          secret: genesisSecret,
-          args: [lib.createRandomAddress(), 22 * 1e8],
-        };
-
-        const contractPromise = axios.put(UNSIGNED_URL, trs);
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Request is made on the wrong network',
-          expected: '594fe0f3',
-        });
-      },
-      lib.oneMinute
-    );
-
     it(
       'blocks show correct transactions count',
       async done => {
@@ -205,7 +185,7 @@ describe('contract environment', () => {
       lib.oneMinute
     );
     it.skip(
-      'sending rejected transaction twice (within same block) returns erro',
+      'sending rejected transaction twice (within same block) returns error',
       async () => {},
       lib.oneMinute
     );
@@ -326,12 +306,6 @@ describe('contract environment', () => {
           error: 'Invalid transaction body',
         });
       },
-      lib.oneMinute
-    );
-
-    it.skip(
-      'negative fee with UNSIGNED transaction',
-      async () => {},
       lib.oneMinute
     );
 
