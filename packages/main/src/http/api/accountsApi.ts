@@ -19,7 +19,11 @@ import {
   CountWrapper,
   PulicKeyWapper,
 } from '@gny/interfaces';
-import { getAccountByName, getAccount } from '../util';
+import {
+  getAccountByName,
+  generateAddressByPublicKey,
+  getAccount,
+} from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Balance } from '@gny/database-postgres';
@@ -53,6 +57,7 @@ export default class AccountsApi implements IHttpApi {
     });
 
     router.get('/', this.getAccountEndpoint);
+    router.get('/openAccount', this.openAccount);
     router.get('/getBalance', this.getBalance);
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
     router.get('/getVotes', this.getVotedDelegates);
@@ -122,6 +127,55 @@ export default class AccountsApi implements IHttpApi {
       ...account,
     };
     return res.json(result2);
+  };
+
+  private openAccount = async (req: Request, res: Response, next: Next) => {
+    const { body } = req;
+    const publicKey = joi
+      .object()
+      .keys({
+        publicKey: joi
+          .string()
+          .publicKey()
+          .required(),
+      })
+      .required();
+    const report = joi.validate(body, publicKey);
+
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const result2 = await this.openAccountWithPublicKey(body.publicKey);
+    if (typeof result2 === 'string') {
+      return next(result2);
+    }
+
+    const result: ApiResult<AccountOpenModel, GetAccountError> = {
+      success: true,
+      ...result2,
+    };
+    return res.json(result);
+  };
+
+  private openAccountWithPublicKey = async (publicKey: string) => {
+    const address = generateAddressByPublicKey(publicKey);
+    const accountInfoOrError = await getAccount(address);
+    if (typeof accountInfoOrError === 'string') {
+      return accountInfoOrError;
+    }
+
+    if (
+      accountInfoOrError &&
+      accountInfoOrError.account &&
+      !accountInfoOrError.account.publicKey
+    ) {
+      accountInfoOrError.account.publicKey = publicKey;
+    }
+    return accountInfoOrError;
   };
 
   private getBalance = async (req: Request, res: Response, next: Next) => {

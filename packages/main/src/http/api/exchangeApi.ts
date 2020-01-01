@@ -165,17 +165,18 @@ export default class ExchangeApi implements IHttpApi {
     );
   };
 
-  private open = async (req: Request, res: Response, next: Next) => {
-    let result: ApiResult<AccountOpenModel, GetAccountError>;
+  private openAccount = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
-    const publicKeyOrSecret = joi
+    const secret = joi
       .object()
       .keys({
-        publicKey: joi.string().publicKey(),
-        secret: joi.string().secret(),
+        secret: joi
+          .string()
+          .secret()
+          .required(),
       })
-      .xor('publicKey', 'secret');
-    const report = joi.validate(body, publicKeyOrSecret);
+      .required();
+    const report = joi.validate(body, secret);
 
     if (report.error) {
       return res.status(422).send({
@@ -184,32 +185,19 @@ export default class ExchangeApi implements IHttpApi {
       });
     }
 
-    if (body.secret) {
-      const result1 = await this.openAccount(body.secret);
-      if (typeof result1 === 'string') {
-        return next(result1);
-      }
-      result = {
-        success: true,
-        ...result1,
-      };
-      return res.json(result);
-    } else {
-      const result2 = await this.openAccount2(body.publicKey);
-      if (typeof result2 === 'string') {
-        return next(result2);
-      }
-
-      result = {
-        success: true,
-        ...result2,
-      };
-      return res.json(result);
+    const result1 = await this.openAccountWithSecret(body.secret);
+    if (typeof result1 === 'string') {
+      return next(result1);
     }
+    const result: ApiResult<AccountOpenModel, GetAccountError> = {
+      success: true,
+      ...result1,
+    };
+    return res.json(result);
   };
 
   // helper functions
-  private openAccount = async (passphrase: string) => {
+  private openAccountWithSecret = async (passphrase: string) => {
     const hash = crypto
       .createHash('sha256')
       .update(passphrase, 'utf8')
@@ -218,23 +206,6 @@ export default class ExchangeApi implements IHttpApi {
     const publicKey = keyPair.publicKey.toString('hex');
     const address = generateAddressByPublicKey(publicKey);
 
-    const accountInfoOrError = await getAccount(address);
-    if (typeof accountInfoOrError === 'string') {
-      return accountInfoOrError;
-    }
-
-    if (
-      accountInfoOrError &&
-      accountInfoOrError.account &&
-      !accountInfoOrError.account.publicKey
-    ) {
-      accountInfoOrError.account.publicKey = publicKey;
-    }
-    return accountInfoOrError;
-  };
-
-  private openAccount2 = async (publicKey: string) => {
-    const address = generateAddressByPublicKey(publicKey);
     const accountInfoOrError = await getAccount(address);
     if (typeof accountInfoOrError === 'string') {
       return accountInfoOrError;
