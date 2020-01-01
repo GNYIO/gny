@@ -1,5 +1,4 @@
 import * as ed from '@gny/ed';
-import * as bip39 from 'bip39';
 import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import {
@@ -9,7 +8,6 @@ import {
   IBalance,
   IHttpApi,
   ApiResult,
-  AccountGenerateModel,
   IAccount,
   ServerError,
   GetAccountError,
@@ -18,15 +16,10 @@ import {
   BalanceResponseError,
   IBalanceWrapper,
   DelegatesWrapper,
-  DelegateError,
   CountWrapper,
   PulicKeyWapper,
 } from '@gny/interfaces';
-import {
-  generateAddressByPublicKey,
-  getAccountByName,
-  getAccount,
-} from '../util';
+import { getAccountByName, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Balance } from '@gny/database-postgres';
@@ -59,8 +52,6 @@ export default class AccountsApi implements IHttpApi {
         .send({ success: false, error: 'Blockchain is loading' });
     });
 
-    router.get('/generateAccount', this.generateAccount);
-    router.post('/open', this.open);
     router.get('/', this.getAccountEndpoint);
     router.get('/getBalance', this.getBalance);
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
@@ -87,70 +78,6 @@ export default class AccountsApi implements IHttpApi {
         });
       }
     );
-  };
-
-  private generateAccount = (req: Request, res: Response, next: Next) => {
-    const secret = bip39.generateMnemonic();
-    const keypair = ed.generateKeyPair(
-      crypto
-        .createHash('sha256')
-        .update(secret, 'utf8')
-        .digest()
-    );
-    const address = generateAddressByPublicKey(
-      keypair.publicKey.toString('hex')
-    );
-    const result: ApiResult<AccountGenerateModel, ServerError> = {
-      success: true,
-      secret,
-      publicKey: keypair.publicKey.toString('hex'),
-      privateKey: keypair.privateKey.toString('hex'),
-      address,
-    };
-    return res.json(result);
-  };
-
-  private open = async (req: Request, res: Response, next: Next) => {
-    let result: ApiResult<AccountOpenModel, GetAccountError>;
-    const { body } = req;
-    const publicKeyOrSecret = joi
-      .object()
-      .keys({
-        publicKey: joi.string().publicKey(),
-        secret: joi.string().secret(),
-      })
-      .xor('publicKey', 'secret');
-    const report = joi.validate(body, publicKeyOrSecret);
-
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    if (body.secret) {
-      const result1 = await this.openAccount(body.secret);
-      if (typeof result1 === 'string') {
-        return next(result1);
-      }
-      result = {
-        success: true,
-        ...result1,
-      };
-      return res.json(result);
-    } else {
-      const result2 = await this.openAccount2(body.publicKey);
-      if (typeof result2 === 'string') {
-        return next(result2);
-      }
-
-      result = {
-        success: true,
-        ...result2,
-      };
-      return res.json(result);
-    }
   };
 
   private getAccountEndpoint = async (
@@ -475,47 +402,5 @@ export default class AccountsApi implements IHttpApi {
     } catch (err) {
       return next('Server error');
     }
-  };
-
-  // helper functions
-  private openAccount = async (passphrase: string) => {
-    const hash = crypto
-      .createHash('sha256')
-      .update(passphrase, 'utf8')
-      .digest();
-    const keyPair = ed.generateKeyPair(hash);
-    const publicKey = keyPair.publicKey.toString('hex');
-    const address = generateAddressByPublicKey(publicKey);
-
-    const accountInfoOrError = await getAccount(address);
-    if (typeof accountInfoOrError === 'string') {
-      return accountInfoOrError;
-    }
-
-    if (
-      accountInfoOrError &&
-      accountInfoOrError.account &&
-      !accountInfoOrError.account.publicKey
-    ) {
-      accountInfoOrError.account.publicKey = publicKey;
-    }
-    return accountInfoOrError;
-  };
-
-  private openAccount2 = async (publicKey: string) => {
-    const address = generateAddressByPublicKey(publicKey);
-    const accountInfoOrError = await getAccount(address);
-    if (typeof accountInfoOrError === 'string') {
-      return accountInfoOrError;
-    }
-
-    if (
-      accountInfoOrError &&
-      accountInfoOrError.account &&
-      !accountInfoOrError.account.publicKey
-    ) {
-      accountInfoOrError.account.publicKey = publicKey;
-    }
-    return accountInfoOrError;
   };
 }
