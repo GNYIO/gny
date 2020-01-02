@@ -28,12 +28,6 @@ interface OnlyUserName {
 }
 
 export class Account extends Base {
-  public async generateAccount() {
-    const res = await this.get('/api/accounts/generateAccount');
-    const result: ApiResult<AccountGenerateModel, ServerError> = res.data;
-    return result;
-  }
-
   public async openAccount(publicKey: string) {
     const res = await this.get('/api/accounts/openAccount', {
       publicKey: publicKey,
@@ -90,15 +84,6 @@ export class Account extends Base {
     };
     const res = await this.get('/api/accounts/getPublicKey', params);
     const result: ApiResult<PulicKeyWapper, GetAccountError> = res.data;
-    return result;
-  }
-
-  public async generatePublicKey(secret: string) {
-    const params = {
-      secret: secret,
-    };
-    const res = await this.post('/api/accounts/generatePublicKey', params);
-    const result: ApiResult<PulicKeyWapper, ServerError> = res.data;
     return result;
   }
 }

@@ -13,6 +13,7 @@ import {
   GetAccountError,
   AccountGenerateModel,
   ServerError,
+  PulicKeyWapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -43,6 +44,7 @@ export default class ExchangeApi implements IHttpApi {
       router.put('/', this.addTransactionUnsigned);
       router.post('/openAccount', this.openAccount);
       router.post('/generateAccount', this.generateAccount);
+      router.post('/generatePublicKey', this.generatePublicKey);
 
       router.use((req: Request, res: Response) => {
         res
@@ -240,5 +242,43 @@ export default class ExchangeApi implements IHttpApi {
       address,
     };
     return res.json(result);
+  };
+
+  private generatePublicKey = (req: Request, res: Response, next: Next) => {
+    const { body } = req;
+    const hasSecret = joi
+      .object()
+      .keys({
+        secret: joi
+          .string()
+          .secret()
+          .required(),
+      })
+      .required();
+    const report = joi.validate(body, hasSecret);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    try {
+      const kp = ed.generateKeyPair(
+        crypto
+          .createHash('sha256')
+          .update(body.secret, 'utf8')
+          .digest()
+      );
+      const publicKey = kp.publicKey.toString('hex');
+
+      const result: ApiResult<PulicKeyWapper, ServerError> = {
+        success: true,
+        publicKey,
+      };
+      return res.json(result);
+    } catch (err) {
+      return next('Server error');
+    }
   };
 }

@@ -78,18 +78,6 @@ describe('account', () => {
   }, lib.oneMinute);
 
   describe('Get account information', () => {
-    describe('/generateAccount', () => {
-      it(
-        'should generate an account',
-        async done => {
-          const response = await accountApi.generateAccount();
-          expect(response.success).toBeTruthy();
-          done();
-        },
-        lib.oneMinute
-      );
-    });
-
     describe('/openAccount', () => {
       it(
         'should open an account with public key',
@@ -262,19 +250,6 @@ describe('account', () => {
         'should get the number of accounts',
         async () => {
           const response = await accountApi.countAccounts();
-          expect(response.success).toBeTruthy();
-        },
-        lib.oneMinute
-      );
-    });
-
-    describe('/generatePublicKey', () => {
-      it(
-        'should generate the public key',
-        async () => {
-          const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
-          const response = await accountApi.generatePublicKey(secret);
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute

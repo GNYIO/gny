@@ -3,6 +3,7 @@ import { Api, ApiConfig } from '../lib/api';
 import { generateSecret } from '@gny/utils';
 import * as accountHelper from '../lib/account';
 import { AddressOrUsername } from '@gny/interfaces';
+import { getKeys } from '@gny/web-base';
 
 let globalOptions: ApiConfig;
 
@@ -62,12 +63,8 @@ async function getPublicKey(address: string) {
 }
 
 async function genPublicKey(secret: string) {
-  const data = {
-    secret: secret,
-  };
-  getApi().post('/api/accounts/generatePublicKey', data, function(err, result) {
-    console.log(err || result);
-  });
+  const keys = getKeys(secret);
+  console.log(keys.publicKey);
 }
 
 async function genAccount() {

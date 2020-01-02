@@ -41,35 +41,61 @@ describe('exchangeApi', () => {
       done();
     }, lib.oneMinute);
 
-    it(
-      '/openAccount (should not be reachable)',
-      async () => {
-        const resultPromise = axios.post(
-          'http://localhost:4096/api/exchange/openAccount'
-        );
+    describe('/openAccount', () => {
+      it(
+        '/openAccount should not be reachable',
+        async () => {
+          const resultPromise = axios.post(
+            'http://localhost:4096/api/exchange/openAccount'
+          );
 
-        return expect(resultPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'API endpoint not found',
-        });
-      },
-      lib.oneMinute
-    );
+          return expect(resultPromise).rejects.toHaveProperty('response.data', {
+            success: false,
+            error: 'API endpoint not found',
+          });
+        },
+        lib.oneMinute
+      );
+    });
 
-    it(
-      '/generateAccount (should not be reachable)',
-      async () => {
-        const resultPromise = axios.post(
-          'http://localhost:4096/api/exchange/generateAccount'
-        );
+    describe('/generateAccount', () => {
+      it(
+        '/generateAccount should not be reachable',
+        async () => {
+          const resultPromise = axios.post(
+            'http://localhost:4096/api/exchange/generateAccount'
+          );
 
-        return expect(resultPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'API endpoint not found',
-        });
-      },
-      lib.oneMinute
-    );
+          return expect(resultPromise).rejects.toHaveProperty('response.data', {
+            success: false,
+            error: 'API endpoint not found',
+          });
+        },
+        lib.oneMinute
+      );
+    });
+
+    describe('/generatePublicKey', () => {
+      it(
+        '/generatePublicKey should not be rechable',
+        async () => {
+          const query = {
+            secret: genesisSecret,
+          };
+          const resultPromise = axios.post(
+            'http://localhost:4096/api/exchange/generatePublicKey',
+            query,
+            config
+          );
+
+          return expect(resultPromise).rejects.toHaveProperty('response.data', {
+            success: false,
+            error: 'API endpoint not found',
+          });
+        },
+        lib.oneMinute
+      );
+    });
   });
 
   describe('exchangeApi (EXCHANGE_API=true)', () => {
@@ -92,7 +118,7 @@ describe('exchangeApi', () => {
 
     describe('/openAccount', () => {
       it(
-        'should open an account with the publicKey',
+        '/openAccount should open an account with a secret',
         async () => {
           const publicKey = createKeypair(genesisSecret).publicKey.toString(
             'hex'
@@ -106,7 +132,6 @@ describe('exchangeApi', () => {
             request,
             config
           );
-          console.log(JSON.stringify(data.account, null, 2));
           expect(data).toHaveProperty('account');
         },
         lib.oneMinute
@@ -115,17 +140,34 @@ describe('exchangeApi', () => {
 
     describe('/generateAccount', () => {
       it(
-        'should get the address and keys of the secet',
+        '/generateAccount should return a complete new account',
         async () => {
           const { data } = await axios.post(
             'http://localhost:4096/api/exchange/generateAccount'
           );
 
           expect(data).toHaveProperty('success', true);
-          expect(data).toHaveProperty('address');
+          expect(data).toHaveProperty('address', expect.any(String));
+          expect(data).toHaveProperty('publicKey', expect.any(String));
+          expect(data).toHaveProperty('privateKey', expect.any(String));
+        },
+        lib.oneMinute
+      );
+    });
+
+    describe('/generatePublicKey', () => {
+      it(
+        '/generatePublicKey should generate a public key from a secret',
+        async () => {
+          const query = {
+            secret: genesisSecret,
+          };
+          const { data } = await axios.post(
+            'http://localhost:4096/api/exchange/generatePublicKey',
+            query,
+            config
+          );
           expect(data).toHaveProperty('publicKey');
-          expect(data).toHaveProperty('privateKey');
-          expect(data).toHaveProperty('address');
         },
         lib.oneMinute
       );

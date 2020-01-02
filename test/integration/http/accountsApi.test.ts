@@ -303,7 +303,7 @@ describe('accountsApi', () => {
 
   describe('/getPublicKey', () => {
     it(
-      'should return publicKey',
+      'should return publicKey', // failes because of issue #35
       async () => {
         const address = generateAddress(
           createKeypair(genesisSecret).publicKey.toString('hex')
@@ -339,24 +339,6 @@ describe('accountsApi', () => {
           success: false,
           error: 'Can not find public key',
         });
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/generatePublicKey', () => {
-    it(
-      'should generate the public key',
-      async () => {
-        const query = {
-          secret: genesisSecret,
-        };
-        const { data } = await axios.post(
-          'http://localhost:4096/api/accounts/generatePublicKey',
-          query,
-          config
-        );
-        expect(data).toHaveProperty('publicKey');
       },
       lib.oneMinute
     );

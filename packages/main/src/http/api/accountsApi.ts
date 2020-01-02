@@ -63,7 +63,6 @@ export default class AccountsApi implements IHttpApi {
     router.get('/getVotes', this.getVotedDelegates);
     router.get('/count', this.count);
     router.get('/getPublicKey', this.getPublicKey);
-    router.post('/generatePublicKey', this.generatePublicKey);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -425,40 +424,5 @@ export default class AccountsApi implements IHttpApi {
       publicKey: accountInfoOrError.account.publicKey,
     };
     return res.json(result);
-  };
-
-  private generatePublicKey = (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    const hasSecret = joi.object().keys({
-      secret: joi
-        .string()
-        .secret()
-        .required(),
-    });
-    const report = joi.validate(body, hasSecret);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    try {
-      const kp = ed.generateKeyPair(
-        crypto
-          .createHash('sha256')
-          .update(body.secret, 'utf8')
-          .digest()
-      );
-      const publicKey = kp.publicKey.toString('hex');
-
-      const result: ApiResult<PulicKeyWapper, ServerError> = {
-        success: true,
-        publicKey,
-      };
-      return res.json(result);
-    } catch (err) {
-      return next('Server error');
-    }
   };
 }
