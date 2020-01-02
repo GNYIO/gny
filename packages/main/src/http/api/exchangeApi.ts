@@ -41,8 +41,8 @@ export default class ExchangeApi implements IHttpApi {
       });
 
       router.put('/', this.addTransactionUnsigned);
-      router.get('/openAccount', this.openAccount);
-      router.get('/generateAccount', this.generateAccount);
+      router.post('/openAccount', this.openAccount);
+      router.post('/generateAccount', this.generateAccount);
 
       router.use((req: Request, res: Response) => {
         res

@@ -57,7 +57,7 @@ export default class AccountsApi implements IHttpApi {
     });
 
     router.get('/', this.getAccountEndpoint);
-    router.get('/openAccount', this.openAccount);
+    router.post('/openAccount', this.openAccount);
     router.get('/getBalance', this.getBalance);
     router.get('/:address/:currency', this.getAddressCurrencyBalance);
     router.get('/getVotes', this.getVotedDelegates);
@@ -395,12 +395,16 @@ export default class AccountsApi implements IHttpApi {
 
   private getPublicKey = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const isAddress = joi.object().keys({
-      address: joi
-        .string()
-        .address()
-        .required(),
-    });
+    const isAddress = joi
+      .object()
+      .keys({
+        address: joi
+          .string()
+          .address()
+          .required(),
+      })
+      .required();
+
     const report = joi.validate(query, isAddress);
     if (report.error) {
       return res.status(422).send({
