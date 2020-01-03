@@ -73,7 +73,7 @@
     "peer-info": "^0.15.1",
     "shelljs": "=0.8.3",
     "ts-node": "=7.0.1",
-    "typescript": "^3.5.3"
+    "typescript": "^3.7.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.2",
