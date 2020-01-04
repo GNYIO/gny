@@ -1,6 +1,7 @@
 {
   "version": "0.0.0",
   "packages": [
+    "test",
     "packages/main",
     "packages/base",
     "packages/database-postgres",
