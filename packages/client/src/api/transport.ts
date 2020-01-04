@@ -11,6 +11,8 @@ import {
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
   HeightWrapper,
+  P2PApiResult,
+  ApiSuccess,
 } from '@gny/interfaces';
 
 interface Keypair {
@@ -29,7 +31,7 @@ export class Transport extends Base {
       transaction: transaction,
     };
     const res = await this.post('/peer/transactions', params);
-    const result: ApiResult<TransactionIdWrapper> = res.data;
+    const result: P2PApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 
@@ -59,8 +61,7 @@ export class Transport extends Base {
       lastBlockId,
     };
     const res = await this.post('/peer/blocks', params);
-    // An error left to deal with
-    const result: ApiResult<BlocksWrapper, ParamsError> = res.data;
+    const result: P2PApiResult<BlocksWrapper> = res.data;
     return result;
   }
 
@@ -70,19 +71,19 @@ export class Transport extends Base {
     };
 
     const res = await this.post('/peer/votes', params);
-    const result: ApiResult<undefined> = res.data;
+    const result: P2PApiResult<ApiSuccess> = res.data;
     return result;
   }
 
   public async getUnconfirmedTransactions() {
     const res = await this.post('/peer/getUnconfirmedTransactions');
-    const result: ApiResult<UnconfirmedTransactionsWrapper> = res.data;
+    const result: P2PApiResult<undefined> = res.data;
     return result;
   }
 
   public async getHeight() {
     const res = await this.post('/peer/getHeight');
-    const result: ApiResult<HeightWrapper> = res.data;
+    const result: P2PApiResult<HeightWrapper> = res.data;
     return result;
   }
 }

@@ -54,7 +54,7 @@ describe('transport', () => {
         );
 
         const response = await transportApi.sendTransaction(trs);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactionId');
       },
       lib.oneMinute
     );
@@ -117,10 +117,10 @@ describe('transport', () => {
         const blockResponse = await blockApi.getBlockByHeight(height);
         const id = blockResponse.block.id;
 
-        const limit = '1';
+        const limit = 1;
 
         const response = await transportApi.getBlocksByLimit(limit, id);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('blocks');
       },
       lib.oneMinute
     );
@@ -194,7 +194,7 @@ describe('transport', () => {
         };
 
         const response = await transportApi.validateVote(query);
-        expect(response.success).toBeTruthy();
+        expect(Object.keys(response).length).toBe(0);
       },
       lib.oneMinute
     );
@@ -205,7 +205,7 @@ describe('transport', () => {
       'should get unconfirmed transactions',
       async () => {
         const response = await transportApi.getUnconfirmedTransactions();
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactions');
       },
       lib.oneMinute
     );
@@ -216,7 +216,7 @@ describe('transport', () => {
       'should get block height',
       async () => {
         const response = await transportApi.getHeight();
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('height');
       },
       lib.oneMinute
     );
