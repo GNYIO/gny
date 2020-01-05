@@ -92,7 +92,6 @@ export async function spawnContainer(configFile?: string) {
     log: true,
     config: configFile,
   });
-  await sleep(10 * 1000);
   await waitForLoaded();
 }
 
@@ -105,9 +104,15 @@ export async function printActiveContainers() {
 }
 
 export async function stopAndKillContainer() {
+  await dockerCompose.kill({
+    cwd: process.cwd(),
+    log: true,
+  });
+  // delete volumes with --volumes
   await dockerCompose.down({
     cwd: process.cwd(),
     log: true,
+    commandOptions: ['--volumes'],
   });
 }
 
