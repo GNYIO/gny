@@ -17,10 +17,10 @@ export interface IProtobuf {
   encodeBlockPropose(propose: BlockPropose): Buffer;
   decodeBlockPropose(data: Buffer): BlockPropose;
   encodeBlockVotes(obj: any): Buffer;
-  decodeBlockVotes(data: Buffer);
+  decodeBlockVotes(data: Buffer): ManyVotes;
   encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;
   decodeUnconfirmedTransaction(data: Buffer): UnconfirmedTransaction;
-  encodeNewBlockMessage(msg): Buffer;
+  encodeNewBlockMessage(msg: NewBlockMessage): Buffer;
   decodeNewBlockMessage(data: Buffer): NewBlockMessage;
 }
 
@@ -90,15 +90,16 @@ export interface CoreApi {
   uiaApi: IHttpApi;
   transfersApi: IHttpApi;
   loaderApi: IHttpApi;
+  exchangeApi: IHttpApi;
 }
 
 export interface ITransactionPool {
   add(trs: UnconfirmedTransaction): void;
   remove(id: string): void;
   has(id: string): boolean;
-  getUnconfirmed(): Array<UnconfirmedTransaction>;
+  getUnconfirmed(): Array<UnconfirmedTransaction | undefined>;
   clear(): void;
-  get(id: string): UnconfirmedTransaction;
+  get(id: string): UnconfirmedTransaction | undefined;
 }
 
 interface IMessageEmitter {

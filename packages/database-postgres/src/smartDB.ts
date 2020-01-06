@@ -748,16 +748,6 @@ export class SmartDB extends EventEmitter {
   public async getBlocksByHeightRange(
     min: string,
     max: string,
-    withTransactions?: false // false is here used as a type
-  ): Promise<Block[]>;
-  public async getBlocksByHeightRange(
-    min: string,
-    max: string,
-    withTransactions: true // true is here used as a type
-  ): Promise<IBlock[]>;
-  public async getBlocksByHeightRange(
-    min: string,
-    max: string,
     withTransactions = false
   ) {
     CodeContract.argument(

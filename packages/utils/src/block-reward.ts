@@ -27,7 +27,8 @@ export class BlockReward {
       .minus(this.rewardOffset)
       .dividedToIntegerBy(this.distance);
 
-    const lastMilestone = _.last(REWARDS.MILESTONES);
+    // we know that the REWARD.MILESTONES are never empty, therefore !
+    const lastMilestone = _.last(REWARDS.MILESTONES)!;
 
     if (
       location.isGreaterThan(new BigNumber(REWARDS.MILESTONES.length).minus(1))

@@ -8,6 +8,7 @@ import TransportApi from './http/api/transportApi';
 import UiaApi from './http/api/uiaApi';
 import LoaderApi from './http/api/loaderApi';
 import TransfersApi from './http/api/transfersApi';
+import ExchangeApi from './http/api/exchangeApi';
 import { IScope, CoreApi } from '@gny/interfaces';
 
 export default function loadCoreApi(scope: IScope) {
@@ -21,6 +22,7 @@ export default function loadCoreApi(scope: IScope) {
   const uiaApi = new UiaApi(scope);
   const transfersApi = new TransfersApi(scope);
   const loaderApi = new LoaderApi(scope);
+  const exchangeApi = new ExchangeApi(scope);
 
   const coreApi: CoreApi = {
     blocksApi,
@@ -33,6 +35,7 @@ export default function loadCoreApi(scope: IScope) {
     uiaApi,
     transfersApi,
     loaderApi,
+    exchangeApi,
   };
   return coreApi;
 }

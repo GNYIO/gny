@@ -3,6 +3,8 @@ import { Api, ApiConfig } from '../lib/api';
 import { generateSecret } from '@gny/utils';
 import * as accountHelper from '../lib/account';
 import { AddressOrUsername } from '@gny/interfaces';
+import { generateKeyPair } from '@gny/ed';
+import * as crypto from 'crypto';
 
 let globalOptions: ApiConfig;
 
@@ -17,8 +19,8 @@ function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
-function openAccount(secret: string) {
-  getApi().post('/api/accounts/open', { secret: secret }, function(
+function openAccount(publicKey: string) {
+  getApi().get('/api/accounts/openAccount', { publicKey: publicKey }, function(
     err,
     result
   ) {
@@ -62,12 +64,12 @@ async function getPublicKey(address: string) {
 }
 
 async function genPublicKey(secret: string) {
-  const data = {
-    secret: secret,
-  };
-  getApi().post('/api/accounts/generatePublicKey', data, function(err, result) {
-    console.log(err || result);
-  });
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  const keys = generateKeyPair(hash);
+  console.log(keys.publicKey.toString('hex'));
 }
 
 async function genAccount() {

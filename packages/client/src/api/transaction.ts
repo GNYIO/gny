@@ -1,13 +1,13 @@
 import { Base } from './base';
 import {
-  ITransaction,
   ApiResult,
   TransactionsWrapper,
   ValidationError,
   ServerError,
   UnconfirmedTransactionWrapper,
   TransactionError,
-  TransactionIdWrapper,
+  UnconfirmedTransaction,
+  UnconfirmedTransactionsWrapper,
 } from '@gny/interfaces';
 
 interface Query {
@@ -63,11 +63,12 @@ export class Transaction extends Base {
       address: address,
     };
     const res = await this.get('/api/transactions/unconfirmed', params);
-    const result: ApiResult<TransactionsWrapper, ValidationError> = res.data;
+    const result: ApiResult<UnconfirmedTransactionsWrapper, ValidationError> =
+      res.data;
     return result;
   }
 
-  public async addTransactions(transactions: ITransaction[]) {
+  public async addTransactions(transactions: UnconfirmedTransaction[]) {
     const params = {
       transactions: transactions,
     };
