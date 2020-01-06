@@ -29,7 +29,7 @@ interface OnlyUserName {
 
 export class Account extends Base {
   public async openAccount(publicKey: string) {
-    const res = await this.get('/api/accounts/openAccount', {
+    const res = await this.post('/api/accounts/openAccount', {
       publicKey: publicKey,
     });
     const result: ApiResult<AccountOpenModel, GetAccountError> = res.data;
