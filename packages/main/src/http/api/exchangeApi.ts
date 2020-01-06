@@ -13,7 +13,7 @@ import {
   GetAccountError,
   AccountGenerateModel,
   ServerError,
-  PulicKeyWapper,
+  PulicKeyWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -272,7 +272,7 @@ export default class ExchangeApi implements IHttpApi {
       );
       const publicKey = kp.publicKey.toString('hex');
 
-      const result: ApiResult<PulicKeyWapper, ServerError> = {
+      const result: ApiResult<PulicKeyWrapper, ServerError> = {
         success: true,
         publicKey,
       };

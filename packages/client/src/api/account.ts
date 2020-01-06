@@ -16,7 +16,7 @@ import {
   DelegatesWrapper,
   DelegateError,
   CountWrapper,
-  PulicKeyWapper,
+  PulicKeyWrapper,
 } from '@gny/interfaces';
 
 interface OnlyAddress {
@@ -83,7 +83,7 @@ export class Account extends Base {
       address: address,
     };
     const res = await this.get('/api/accounts/getPublicKey', params);
-    const result: ApiResult<PulicKeyWapper, GetAccountError> = res.data;
+    const result: ApiResult<PulicKeyWrapper, GetAccountError> = res.data;
     return result;
   }
 }
