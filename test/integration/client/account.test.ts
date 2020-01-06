@@ -82,9 +82,9 @@ describe('account', () => {
       it(
         'should open an account with public key',
         async done => {
-          const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
-          const response = await accountApi.openAccount(secret);
+          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const { publicKey } = await accountApi.getPublicKey(address);
+          const response = await accountApi.openAccount(publicKey);
           expect(response.success).toBeTruthy();
           done();
         },
@@ -250,6 +250,18 @@ describe('account', () => {
         'should get the number of accounts',
         async () => {
           const response = await accountApi.countAccounts();
+          expect(response.success).toBeTruthy();
+        },
+        lib.oneMinute
+      );
+    });
+
+    describe('/getPublicKey', () => {
+      it(
+        'should get the public key by address',
+        async () => {
+          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const response = await accountApi.getPublicKey(address);
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
