@@ -26,7 +26,8 @@ export type Condition<T> =
   | Partial<T>
   | InCondition<T>
   | GreaterOrEqualsCondition<T>
-  | LessOrEqualCondition<T>;
+  | LessOrEqualCondition<T>
+  | GreaterOrEqualsCondition<T> & LessOrEqualCondition<T>;
 
 export interface FindAllOptions<T> {
   condition: Condition<T>;

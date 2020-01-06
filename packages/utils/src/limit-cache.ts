@@ -7,8 +7,8 @@ export class LimitCache<KEY, VAL> implements ILimitCache<KEY, VAL> {
   private index = new Array<KEY>();
   private limit: number;
 
-  constructor(limit?: number) {
-    this.limit = limit || DEFAULT_LIMIT;
+  constructor(limit = DEFAULT_LIMIT) {
+    this.limit = limit;
   }
 
   public set(key: KEY, value: VAL) {

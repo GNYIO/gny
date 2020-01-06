@@ -286,4 +286,20 @@ describe('TransactionPool', () => {
 
     done();
   });
+
+  it('remove() - no error when to be removed transaction not available', done => {
+    sut.remove('someTransaction');
+
+    done();
+  });
+
+  it('remove() - duplicate remove does not throw error', done => {
+    const trans1 = createTransaction('trans1');
+    sut.add(trans1);
+
+    sut.remove('trans1');
+    sut.remove('trans1');
+
+    done();
+  });
 });

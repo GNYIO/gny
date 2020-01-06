@@ -122,8 +122,25 @@ jobs:
           name: compile project
           command: npm run lerna:tsc
       - run:
-          name: test-integration
-          command: npm run test:integration
+          name: test-integration-client
+          command: npm run test:integration:client
+          when: always
+      - run:
+          name: test-integration-contract
+          command: npm run test:integration:contract
+          when: always
+      - run:
+          name: test-integration-contract-env
+          command: npm run test:integration:contract-env
+          when: always
+      - run:
+          name: test-integration-http
+          command: npm run test:integration:http
+          when: always
+      - run:
+          name: test-integration-orm
+          command: npm run test:integration:orm
+          when: always
   node@10.16.2-end2end:
     machine:
       enabled: true

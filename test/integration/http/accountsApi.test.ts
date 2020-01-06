@@ -1,12 +1,23 @@
 import * as gnyClient from '@gny/client';
 import * as lib from '../lib';
 import axios from 'axios';
+import * as crypto from 'crypto';
+import { generateAddress } from '@gny/utils';
+import * as ed from '@gny/ed';
 
 const config = {
   headers: {
     magic: '594fe0f3',
   },
 };
+
+function createKeypair(secret: string) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(secret, 'utf8')
+    .digest();
+  return ed.generateKeyPair(hash);
+}
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
@@ -73,38 +84,6 @@ describe('accountsApi', () => {
     await lib.stopAndKillContainer();
     done();
   }, lib.oneMinute);
-
-  describe('/generateAccount', () => {
-    it(
-      'should get the address and keys of the secet',
-      async () => {
-        const account = await axios.get(
-          'http://localhost:4096/api/accounts/generateAccount'
-        );
-        expect(account.data).toHaveProperty('address');
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/open', () => {
-    it(
-      'should open an account',
-      async () => {
-        const query = {
-          secret: genesisSecret,
-        };
-
-        const { data } = await axios.post(
-          'http://localhost:4096/api/accounts/open',
-          query,
-          config
-        );
-        expect(data).toHaveProperty('account');
-      },
-      lib.oneMinute
-    );
-  });
 
   describe('/', () => {
     it(
@@ -296,17 +275,16 @@ describe('accountsApi', () => {
           config
         );
 
-        expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('transactionId');
-
         await lib.onNewBlock();
+
         // After vote
         const afterVote = await axios.get(
           'http://localhost:4096/api/accounts/getVotes?username=' + username
         );
         expect(afterVote.data.delegates).toHaveLength(1);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
   });
 
@@ -325,46 +303,42 @@ describe('accountsApi', () => {
 
   describe('/getPublicKey', () => {
     it(
-      'should can not find the public key',
+      'should return publicKey', // failes because of issue #35
       async () => {
-        // Open account
-        const query = {
-          secret: genesisSecret,
-        };
-        await axios.post(
-          'http://localhost:4096/api/accounts/open',
-          query,
-          config
+        const address = generateAddress(
+          createKeypair(genesisSecret).publicKey.toString('hex')
         );
 
+        const resultPromise = axios.get(
+          'http://localhost:4096/api/accounts/getPublicKey?address=' + address
+        );
+
+        return expect(resultPromise).resolves.toMatchObject({
+          data: {
+            success: true,
+            publicKey: expect.any(String),
+          },
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'returns error when publicKey can not be found',
+      async () => {
         // get the public key
-        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const randomAddress = generateAddress(
+          crypto.randomBytes(32).toString('hex')
+        );
 
         const getPromise = axios.get(
-          'http://localhost:4096/api/accounts/getPublicKey?address=' + address
+          'http://localhost:4096/api/accounts/getPublicKey?address=' +
+            randomAddress
         );
         expect(getPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Can not find public key',
         });
-      },
-      lib.oneMinute
-    );
-  });
-
-  describe('/generatePublicKey', () => {
-    it(
-      'should generate the public key',
-      async () => {
-        const query = {
-          secret: genesisSecret,
-        };
-        const { data } = await axios.post(
-          'http://localhost:4096/api/accounts/generatePublicKey',
-          query,
-          config
-        );
-        expect(data).toHaveProperty('publicKey');
       },
       lib.oneMinute
     );
