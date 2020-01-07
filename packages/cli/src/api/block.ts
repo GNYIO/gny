@@ -22,7 +22,25 @@ function getHeight() {
   });
 }
 
-function getBlockStatus() {
+function getMilestone() {
+  getApi().get('/api/blocks/getMilestone', function(err, result) {
+    console.log(err || pretty(result));
+  });
+}
+
+function getReward() {
+  getApi().get('/api/blocks/getReward', function(err, result) {
+    console.log(err || pretty(result));
+  });
+}
+
+function getSupply() {
+  getApi().get('/api/blocks/getSupply', function(err, result) {
+    console.log(err || pretty(result));
+  });
+}
+
+function getStatus() {
   getApi().get('/api/blocks/getStatus', function(err, result) {
     console.log(err || pretty(result));
   });
@@ -39,7 +57,7 @@ function getBlocks(options) {
   });
 }
 
-function getBlockById(id) {
+function getBlockById(id: string) {
   const params = { id: id };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
     console.log(err || pretty(result.block));
@@ -75,7 +93,7 @@ function getBlockId(options) {
   console.log(BlockBase.getId(block));
 }
 
-export default function account(program: ApiConfig) {
+export default function block(program: ApiConfig) {
   globalOptions = program;
 
   program
@@ -84,9 +102,24 @@ export default function account(program: ApiConfig) {
     .action(getHeight);
 
   program
-    .command('getblockstatus')
+    .command('getstatus')
     .description('get block status')
-    .action(getBlockStatus);
+    .action(getStatus);
+
+  program
+    .command('getmilestone')
+    .description('get block milestone')
+    .action(getMilestone);
+
+  program
+    .command('getreward')
+    .description('get block reward')
+    .action(getReward);
+
+  program
+    .command('getsupply')
+    .description('get block supply')
+    .action(getSupply);
 
   program
     .command('getblocks')
