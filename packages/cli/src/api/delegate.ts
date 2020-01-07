@@ -91,7 +91,7 @@ function listDiffVotes(options) {
   });
 }
 
-export default function account(program: ApiConfig) {
+export default function delegate(program: ApiConfig) {
   globalOptions = program;
 
   program

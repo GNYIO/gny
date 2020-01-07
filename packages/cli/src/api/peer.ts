@@ -25,7 +25,7 @@ function getVersion() {
   });
 }
 
-export default function account(program: ApiConfig) {
+export default function peer(program: ApiConfig) {
   globalOptions = program;
 
   program
