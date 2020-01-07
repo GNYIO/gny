@@ -19,6 +19,12 @@ function getPeers() {
   });
 }
 
+function getVersion() {
+  getApi().get('/api/peers/version', function(err, result) {
+    console.log(err || pretty(result.peers));
+  });
+}
+
 export default function account(program: ApiConfig) {
   globalOptions = program;
 
@@ -26,4 +32,9 @@ export default function account(program: ApiConfig) {
     .command('getpeers')
     .description('get peers')
     .action(getPeers);
+
+  program
+    .command('getversion')
+    .description('get version')
+    .action(getVersion);
 }
