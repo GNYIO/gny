@@ -20,7 +20,7 @@ function pretty(obj: any) {
 }
 
 function openAccount(publicKey: string) {
-  getApi().get('/api/accounts/openAccount', { publicKey: publicKey }, function(
+  getApi().post('/api/accounts/openAccount', { publicKey: publicKey }, function(
     err,
     result
   ) {
@@ -35,8 +35,15 @@ function getBalance(address: string) {
   });
 }
 
-function getAccount(address: string) {
+function getAccountByAddress(address: string) {
   const params = { address: address };
+  getApi().get('/api/accounts/', params, function(err, result) {
+    console.log(err || pretty(result));
+  });
+}
+
+function getAccountByUsername(username: string) {
+  const params = { username: username };
   getApi().get('/api/accounts/', params, function(err, result) {
     console.log(err || pretty(result));
   });
@@ -109,9 +116,14 @@ export default function account(program: ApiConfig) {
     .action(getBalance);
 
   program
-    .command('getaccount [address]')
+    .command('getaccountbyaddress [address]')
     .description('get account by address')
-    .action(getAccount);
+    .action(getAccountByAddress);
+
+  program
+    .command('getaccountbyusername [username]')
+    .description('get account by username')
+    .action(getAccountByUsername);
 
   program
     .command('countaccounts')
