@@ -1,6 +1,7 @@
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { Api, ApiConfig } from '../lib/api';
-import { BlockBase } from '@gny/base';
+import { BlockBase, TransactionBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
@@ -93,6 +94,21 @@ function getBlockId(options) {
   console.log(BlockBase.getId(block));
 }
 
+function getBlockPayloadHash(options) {
+  let block: IBlock;
+  try {
+    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+  } catch (e) {
+    console.log('Invalid transaction format');
+    return;
+  }
+  const payloadHash = crypto.createHash('sha256');
+  for (let i = 0; i < block.transactions.length; ++i) {
+    payloadHash.update(TransactionBase.getBytes(block.transactions[i]));
+  }
+  console.log(payloadHash.digest().toString('hex'));
+}
+
 export default function block(program: ApiConfig) {
   globalOptions = program;
 
@@ -153,4 +169,10 @@ export default function block(program: ApiConfig) {
     .description('get block id')
     .option('-f, --file <file>', 'block file')
     .action(getBlockId);
+
+  program
+    .command('getblockpayloadhash')
+    .description('get block bytes')
+    .option('-f, --file <file>', 'block file')
+    .action(getBlockPayloadHash);
 }

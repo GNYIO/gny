@@ -57,40 +57,6 @@ function getDelegateByAddress(address: String) {
   });
 }
 
-function listDiffVotes(options) {
-  const params = {
-    username: options.username,
-    publicKey: options.publicKey,
-    address: options.address,
-  };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    const username = result.delegate.username;
-    const params = {
-      address: result.delegate.address,
-      username: result.delegate.username,
-    };
-    getApi().get('/api/accounts/getVotes', params, function(err, result) {
-      const names_a = result.delegates.map(delegate => delegate.username);
-      const a = new Set(names_a);
-      const params = { username: username };
-      getApi().get('/api/delegates/getVoters', params, function(err, result) {
-        const names_b = result.accounts.map(account => account.username);
-        const b = new Set(names_b);
-        const diffab = [...a].filter(x => !b.has(x));
-        const diffba = [...b].filter(x => !a.has(x));
-        console.log(
-          "you voted but doesn't vote you: \n\t",
-          JSON.stringify(diffab)
-        );
-        console.log(
-          "\nvoted you but you don't voted: \n\t",
-          JSON.stringify(diffba)
-        );
-      });
-    });
-  });
-}
-
 export default function delegate(program: ApiConfig) {
   globalOptions = program;
 
@@ -125,12 +91,4 @@ export default function delegate(program: ApiConfig) {
     .command('getdelegatebyaddress [address]')
     .description('get delegate by address')
     .action(getDelegateByAddress);
-
-  program
-    .command('listdiffvotes')
-    .description('list the votes by each other')
-    .option('-u, --username <username>', '')
-    .option('-p, --publicKey <publicKey>', '')
-    .option('-a, --address <address>', '')
-    .action(listDiffVotes);
 }

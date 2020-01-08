@@ -77,57 +77,7 @@ function sendMoney(options) {
   });
 }
 
-function sendAsset(options) {
-  const hash = crypto
-    .createHash('sha256')
-    .update(options.secret, 'utf8')
-    .digest();
-  const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
-  const trs = TransactionBase.create({
-    type: 103,
-    fee: String(10000000),
-    message: options.message,
-    keypair: keypair,
-    secondKeypair: secondKeypair,
-    args: [options.currency, options.amount, options.recipient],
-  });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
-  });
-}
-
-function registerDelegate(options) {
-  const hash = crypto
-    .createHash('sha256')
-    .update(options.secret, 'utf8')
-    .digest();
-  const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
-  const trs = TransactionBase.create({
-    type: 10,
-    fee: String(100 * 1e8),
-    message: options.message,
-    keypair: keypair,
-    secondKeypair: secondKeypair,
-    args: [],
-  });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
-  });
-}
-
-function transaction(options) {
+function sendTransactionWithFee(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -184,7 +134,7 @@ function verifyBytes(options) {
   );
 }
 
-export default function account(program: ApiConfig) {
+export default function transaction(program: ApiConfig) {
   globalOptions = program;
 
   program
@@ -197,15 +147,15 @@ export default function account(program: ApiConfig) {
   program
     .command('gettransactions')
     .description('get transactions')
-    .option('-b, --blockId <id>', '')
-    .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
+    .option('-o, --offset <n>', '')
+    .option('-i, --id <id>', '')
+    .option('--senderId <id>', '')
+    .option('--senderPublicKey <key>', '')
+    .option('-b, --blockId <id>', '')
     .option('-t, --type <n>', 'transaction type')
     .option('-h, --height <n>', '')
     .option('-m, --message <message>', '')
-    .option('--senderPublicKey <key>', '')
-    .option('--senderId <id>', '')
-    .option('-i, --id <id>', '')
     .action(getTransactions);
 
   program
@@ -222,25 +172,6 @@ export default function account(program: ApiConfig) {
     .option('-r, --recipient <address>', '')
     .option('-m, --message <message>', '')
     .action(sendMoney);
-
-  program
-    .command('sendasset')
-    .description('send asset to some address')
-    .option('-e, --secret <secret>', '')
-    .option('-s, --secondSecret <secret>', '')
-    .option('-c, --currency <currency>', '')
-    .option('-a, --amount <amount>', '')
-    .option('-r, --recipient <address>', '')
-    .option('-m, --message <message>', '')
-    .action(sendAsset);
-
-  program
-    .command('registerdelegate')
-    .description('register delegate')
-    .option('-e, --secret <secret>', '')
-    .option('-s, --secondSecret <secret>', '')
-    .option('-u, --username <username>', '')
-    .action(registerDelegate);
 
   program
     .command('gettransactionbytes')
@@ -264,12 +195,12 @@ export default function account(program: ApiConfig) {
 
   program
     .command('transaction')
-    .description('create a transaction in mainchain')
+    .description('create a transaction in mainchain with user specified fee')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-t, --type <type>', 'transaction type')
     .option('-a, --args <args>', 'json array format')
     .option('-m, --message <message>', '')
     .option('-f, --fee <fee>', 'transaction fee')
-    .action(transaction);
+    .action(sendTransactionWithFee);
 }

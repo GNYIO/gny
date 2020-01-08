@@ -1,7 +1,9 @@
+import * as fs from 'fs';
 import * as crypto from 'crypto';
-import { Api, ApiConfig } from '../lib/api';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
+import { Api, ApiConfig } from '../lib/api';
+import { ITransaction } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -12,78 +14,79 @@ function getApi() {
   });
 }
 
-function vote(secret, publicKeys, secondSecret) {
-  const keyList = publicKeys.split(',').map(function(el) {
-    return el;
-  });
+function pretty(obj) {
+  return JSON.stringify(obj, null, 2);
+}
+
+function sendAsset(options) {
   const hash = crypto
     .createHash('sha256')
-    .update(secret, 'utf8')
+    .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
   const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
-      .update(secondSecret, 'utf8')
+      .update(options.secondSecret, 'utf8')
       .digest()
   );
   const trs = TransactionBase.create({
-    type: 4,
+    type: 103,
     fee: String(10000000),
+    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: keyList,
+    args: [options.currency, options.amount, options.recipient],
   });
-
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
 }
 
-function unvote(secret, publicKeys, secondSecret) {
-  const keyList = publicKeys.split(',').map(function(el) {
-    return el;
-  });
+function registerDelegate(options) {
   const hash = crypto
     .createHash('sha256')
-    .update(secret, 'utf8')
+    .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
   const secondKeypair = ed.generateKeyPair(
     crypto
       .createHash('sha256')
-      .update(secondSecret, 'utf8')
+      .update(options.secondSecret, 'utf8')
       .digest()
   );
   const trs = TransactionBase.create({
-    type: 5,
-    fee: String(10000000),
+    type: 10,
+    fee: String(100 * 1e8),
+    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: keyList,
+    args: [],
   });
-
   getApi().broadcastTransaction(trs, function(err, result) {
     console.log(err || result.transactionId);
   });
 }
 
-export default function account(program: ApiConfig) {
+export default function uia(program: ApiConfig) {
   globalOptions = program;
 
   program
-    .command('vote')
-    .description('vote for delegates')
+    .command('sendasset')
+    .description('send asset to some address')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-p, --publicKeys <public key list>', '')
-    .action(vote);
+    .option('-c, --currency <currency>', '')
+    .option('-a, --amount <amount>', '')
+    .option('-r, --recipient <address>', '')
+    .option('-m, --message <message>', '')
+    .action(sendAsset);
 
   program
-    .command('unvote')
-    .description('cancel vote for delegates')
+    .command('registerdelegate')
+    .description('register delegate')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-p, --publicKeys <public key list>', '')
-    .action(unvote);
+    .option('-u, --username <username>', '')
+    .action(registerDelegate);
 }
