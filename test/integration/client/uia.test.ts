@@ -55,6 +55,7 @@ async function beforeUiaTransfer(uiaApi: any) {
 describe('uia', () => {
   const connection = new gnyClient.Connection();
   const uiaApi = connection.api.Uia;
+  const contractUiaApi = connection.contract.Uia;
 
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
@@ -317,7 +318,7 @@ describe('uia', () => {
       async () => {
         const recipient = randomAddress();
         // prepare
-        await beforeUiaTransfer(uiaApi);
+        await beforeUiaTransfer(contractUiaApi);
 
         // act
         const transfer = gnyClient.uia.transfer(
@@ -350,7 +351,7 @@ describe('uia', () => {
       async () => {
         const recipient = randomAddress();
         // prepare
-        await beforeUiaTransfer(uiaApi);
+        await beforeUiaTransfer(contractUiaApi);
 
         // act
         const transfer = gnyClient.uia.transfer(
