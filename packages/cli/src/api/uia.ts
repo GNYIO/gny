@@ -18,6 +18,78 @@ function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
+function getIssuers(options) {
+  const param = {
+    limit: options.limit,
+    offest: options.offset,
+  };
+  getApi().get('/api/uia/issuers', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function isIssuer(address: string) {
+  const param = {
+    address: address,
+  };
+  getApi().get('/api/uia/isIssuer', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getIssuer(name: string) {
+  const param = {
+    name: name,
+  };
+  getApi().get('/api/uia/issuers', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getIssuerAssets(name: string) {
+  getApi().get(`/api/uia/issuers/${name}/assets`, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getAssets(options) {
+  const param = {
+    limit: options.limit,
+    offest: options.offset,
+  };
+  getApi().get('/api/uia/assets', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getAsset(name: string) {
+  const param = {
+    name: name,
+  };
+  getApi().get('/api/uia/assets', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getBalances(address: string) {
+  const param = {
+    address: address,
+  };
+  getApi().get('/api/uia/balances', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
+function getBalance(options) {
+  const param = {
+    address: options.address,
+    currency: options.currency,
+  };
+  getApi().get('/api/uia/balances', param, function(err, result) {
+    console.log(err || pretty(result.account));
+  });
+}
+
 function sendAsset(options) {
   const hash = crypto
     .createHash('sha256')
@@ -70,6 +142,52 @@ function registerDelegate(options) {
 
 export default function uia(program: ApiConfig) {
   globalOptions = program;
+
+  program
+    .command('getissuers')
+    .description('get issuers')
+    .option('-o, --offset <n>', '')
+    .option('-l, --limit <n>', '')
+    .action(getIssuers);
+
+  program
+    .command('isissuer [address]')
+    .description('check if is an issuer by address')
+    .action(isIssuer);
+
+  program
+    .command('getissuer [name]')
+    .description('get issuer by name')
+    .action(getIssuer);
+
+  program
+    .command('getissuerassets [name]')
+    .description('get issuer assets by name')
+    .action(getIssuerAssets);
+
+  program
+    .command('getassets')
+    .description('get assets')
+    .option('-o, --offset <n>', '')
+    .option('-l, --limit <n>', '')
+    .action(getAssets);
+
+  program
+    .command('getasset [name]')
+    .description('get asset by name')
+    .action(getAsset);
+
+  program
+    .command('getbalances [address]')
+    .description('get balances by address')
+    .action(getBalances);
+
+  program
+    .command('getbalance')
+    .description('get balance by address and currency')
+    .option('-a, --address <address>', '')
+    .option('-c, --currency <currency>', '')
+    .action(getBalance);
 
   program
     .command('sendasset')
