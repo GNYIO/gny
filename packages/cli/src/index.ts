@@ -9,12 +9,23 @@ import delegate from './api/delegate';
 import system from './api/system';
 import peer from './api/peer';
 import transaction from './api/transaction';
-import vote from './api/vote';
+import uia from './api/uia';
+import exchange from './api/exchange';
 
 import newGenesisBlock from './lib/newGenesisBlock';
 import { ApiConfig } from './lib/api';
 
-const api = [account, basic, block, delegate, system, peer, transaction, vote];
+const api = [
+  account,
+  basic,
+  block,
+  delegate,
+  system,
+  peer,
+  transaction,
+  uia,
+  exchange,
+];
 
 const lib = [newGenesisBlock];
 
