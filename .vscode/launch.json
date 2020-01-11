@@ -20,17 +20,6 @@
     },
     {
       "type": "node",
-      "request": "launch",
-      "name": "second Node",
-      "program": "${workspaceFolder}/createSecondNode.js",
-      "cwd": "${workspaceFolder}",
-      "args": ["2"],
-      "skipFiles": [
-        "<node_internals>/**/*.js"
-      ]
-    },
-    {
-      "type": "node",
       "runtimeVersion": "10.16.2",
       "request": "launch",
       "name": "Unit Tests",
