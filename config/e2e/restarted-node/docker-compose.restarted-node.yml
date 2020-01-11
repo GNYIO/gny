@@ -4,8 +4,8 @@ services:
     image: "postgres:9.6.12"
     container_name: 'db1'
     restart: always
-    ports:
-      - '3000:5432'
+    expose: # only internal
+      - '5432'
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
@@ -20,3 +20,5 @@ services:
     ports:
       - '4096:4096'
       - '4097:4097'
+    depends_on:
+      - db1
