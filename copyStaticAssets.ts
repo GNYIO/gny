@@ -24,10 +24,6 @@ shell.cp('docker-compose.many.yml', destinationPath);
 const logDirectory = path.join(destinationPath, 'logs');
 shell.mkdir('-p', logDirectory);
 
-const publicDistDirForWebServer = path.join(destinationPath, 'public', 'dist');
-shell.mkdir('-p', publicDistDirForWebServer);
-shell.cp('packages/gui-wallet/*', publicDistDirForWebServer);
-
 PeerInfo.create((err, peerInfo) => {
   const jsonId = JSON.stringify(peerInfo.id.toJSON());
   const p2pKeyFilePath = path.join(destinationPath, 'p2p_key.json');

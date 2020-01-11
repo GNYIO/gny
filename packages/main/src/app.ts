@@ -56,7 +56,6 @@ function main() {
   appConfig.baseDir = baseDir;
   appConfig.buildVersion = 'DEFAULT_BUILD_TIME';
   appConfig.netVersion = process.env.NET_VERSION || 'testnet';
-  appConfig.publicDir = path.join(transpiledDir, 'public', 'dist');
 
   global.Config = appConfig;
 
