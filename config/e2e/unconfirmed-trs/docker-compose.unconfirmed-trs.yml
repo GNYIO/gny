@@ -27,7 +27,7 @@ services:
     image: "postgres:9.6.12"
     container_name: 'db2'
     restart: always
-    ports: # only internal
+    expose: # only internal
       - '5432'
     environment:
      POSTGRES_PASSWORD: docker

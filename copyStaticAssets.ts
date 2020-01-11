@@ -19,7 +19,6 @@ shell.cp('gnyd', destinationPath);
 shell.cp('ormconfig*', destinationPath);
 
 shell.cp('docker-compose.yml', destinationPath);
-shell.cp('docker-compose.many.yml', destinationPath);
 
 const logDirectory = path.join(destinationPath, 'logs');
 shell.mkdir('-p', logDirectory);
