@@ -16,7 +16,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/should-connect/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/should-connect/ormconfig.node1.json"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4096:4096'
       - '4097:4097'
@@ -39,7 +39,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/should-connect/node2.json" --publicIP $$(./getIP.sh node2) --ormConfig "config/e2e/should-connect/ormconfig.node2.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmUhjJ2EF76PVcRxWcijf336T6cwYnXsrtqQ3nEy5jeAM8"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4098:4096'
       - '4099:4097'

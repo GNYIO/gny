@@ -16,8 +16,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app --ormConfig "ormconfig.integration.json"'
     environment:
-      NODE_ENV: production
-#    restart: always
+      - NODE_ENV=production
     ports:
       - '4096:4096'
       - '4097:4097'

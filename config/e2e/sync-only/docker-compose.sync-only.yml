@@ -16,7 +16,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-only/forger.json" --publicIP $$(./getIP.sh forger) --ormConfig "config/e2e/sync-only/ormconfig.forger.json"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4096:4096'
       - '4097:4097'
@@ -39,7 +39,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/sync-only/syncer.json" --publicIP $$(./getIP.sh syncer) --ormConfig "config/e2e/sync-only/ormconfig.syncer.json" --peers "/ip4/$$(./getIP.sh forger)/tcp/4097/ipfs/QmY27AWmLSG3eEVFXqsH3wioLbmDstAhjzEV9TJTQLwhxC"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4098:4096'
       - '4099:4097'

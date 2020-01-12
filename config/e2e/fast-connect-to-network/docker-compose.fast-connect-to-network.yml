@@ -16,7 +16,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node1.json"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4096:4096'
       - '4097:4097'
@@ -39,7 +39,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node2.json" --publicIP $$(./getIP.sh node2) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node2.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4098:4096'
       - '4099:4097'
@@ -62,7 +62,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node3.json" --publicIP $$(./getIP.sh node3) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node3.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4100:4096'
       - '4101:4097'
@@ -85,7 +85,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node4.json" --publicIP $$(./getIP.sh node4) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node4.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4102:4096'
       - '4103:4097'
@@ -108,7 +108,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node5.json" --publicIP $$(./getIP.sh node5) --ormConfig "config/e2e/fast-connect-to-network/ormconfig.node5.json" --peers "/ip4/$$(./getIP.sh node4)/tcp/4097/ipfs/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU"' # connect to node4
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4104:4096'
       - '4105:4097'

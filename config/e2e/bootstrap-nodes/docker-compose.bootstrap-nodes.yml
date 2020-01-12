@@ -16,7 +16,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/bootstrap-nodes/ormconfig.node1.json"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4096:4096'
       - '4097:4097'
@@ -39,7 +39,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node2.json" --publicIP $$(./getIP.sh node2) --ormConfig "config/e2e/bootstrap-nodes/ormconfig.node2.json"'
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4098:4096'
       - '4099:4097'
@@ -62,7 +62,7 @@ services:
     image: gny-experiment:integration # tags
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node3.json" --publicIP $$(./getIP.sh node3) --ormConfig "config/e2e/bootstrap-nodes/ormconfig.node3.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmbRnmzsaLcCV9ADGGGuDq6DgHVEFJwsJtPVizG5fXt8SA,/ip4/$$(./getIP.sh node2)/tcp/4097/ipfs/QmWWM1pHXpqq2HKHUECPu5UFV2vVvNp2j3jRaqpUMns95a"' # connect to node1 and node2
     environment:
-      NODE_ENV: production
+      - NODE_ENV=production
     ports:
       - '4100:4096'
       - '4101:4097'
