@@ -1,6 +1,6 @@
-version: 2
+version: 2.1
 jobs:
-  node@10.16.2-unit:
+  node__10-16-2__unit:
     docker:
       - image: circleci/node:10.16.2
     working_directory: ~/repo
@@ -51,7 +51,7 @@ jobs:
           name: test
           command: npm run test
           no_output_timeout: 5m
-  node@10.16.2-integration:
+  node__10-16-2__integration:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -141,7 +141,7 @@ jobs:
           name: test-integration-orm
           command: npm run test:integration:orm
           when: always
-  node@10.16.2-end2end:
+  node__10-16-2__end2end:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -222,7 +222,7 @@ jobs:
           command: npm run test:e2e
       - store_artifacts:
           path: ~/repo/logs
-  node@10.16.2-benchmark:
+  node__10-16-2_benchmark:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -266,7 +266,7 @@ jobs:
       - run:
           name: benchmark tests
           command: npm run benchmark
-  security@npm-audit:
+  security__npm-audit:
     docker:
       - image: circleci/node:10.16.2
     working_directory: ~/repo
@@ -278,7 +278,7 @@ jobs:
       - run:
           name: npm audit dependencies
           command: node auditAllPackages.js
-  browser@client-unit:
+  browser__client-unit:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -355,8 +355,8 @@ workflows:
   version: 2
   all_unit_tests_every_commit:
     jobs:
-      - node@10.16.2-unit
-      - browser@client-unit
+      - node__10-16-2__unit
+      - browser__client-unit
   all_integration_every_night_on_develop_branch:
     triggers:
       - schedule:
@@ -366,10 +366,10 @@ workflows:
              only:
                - develop
     jobs:
-      - node@10.16.2-integration
+      - node__10-16-2__integration
   run_end2end_on_every_commit:
     jobs:
-      - node@10.16.2-end2end
+      - node__10-16-2__end2end
   benchmarking_every_third_night_on_develop_branch:
     triggers:
       - schedule:
@@ -379,7 +379,7 @@ workflows:
              only:
                - develop
     jobs:
-      - node@10.16.2-benchmark
+      - node__10-16-2_benchmark
   run_npm_audit_on_every_commit:
     jobs:
-      - security@npm-audit
+      - security__npm-audit
