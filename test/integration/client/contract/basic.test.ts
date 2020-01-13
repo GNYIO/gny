@@ -37,7 +37,7 @@ describe('account', () => {
           const secret =
             'grow pencil ten junk bomb right describe trade rich valid tuna service';
           const response = await basicApi.setUserName(username, secret);
-          expect(response.success).toBeTruthy();
+          expect(response).toHaveProperty('transactionId');
         },
         lib.oneMinute
       );
@@ -58,7 +58,7 @@ describe('account', () => {
           await lib.onNewBlock();
 
           const response = await basicApi.lockAccount(height, amount, secret);
-          expect(response.success).toBeTruthy();
+          expect(response).toHaveProperty('transactionId');
         },
         lib.oneMinute
       );
@@ -85,7 +85,7 @@ describe('account', () => {
         await lib.onNewBlock();
 
         const response = await basicApi.registerDelegate(secret);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactionId');
       },
       lib.oneMinute
     );
@@ -111,7 +111,7 @@ describe('account', () => {
         await lib.onNewBlock();
 
         const response = await basicApi.registerDelegate(secret);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactionId');
       },
       lib.oneMinute
     );
@@ -139,7 +139,7 @@ describe('account', () => {
 
         // vote
         const response = await basicApi.vote(keyList, secret);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactionId');
       },
       lib.oneMinute
     );
@@ -171,7 +171,7 @@ describe('account', () => {
 
         // unvote
         const response = await basicApi.unvote(keyList, secret);
-        expect(response.success).toBeTruthy();
+        expect(response).toHaveProperty('transactionId');
       },
       lib.oneMinute
     );

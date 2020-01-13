@@ -11,6 +11,8 @@ import {
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
   HeightWrapper,
+  P2PApiResult,
+  ApiSuccess,
 } from '@gny/interfaces';
 
 interface Keypair {
@@ -29,7 +31,7 @@ export class Transport extends Base {
       transaction: transaction,
     };
     const res = await this.post('/peer/transactions', params);
-    const result: ApiResult<TransactionIdWrapper> = res.data;
+    const result: P2PApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 }

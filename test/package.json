@@ -7,7 +7,7 @@
   "license": "MIT",
   "devDependencies": {
     "@gny/base": "1.0.0",
-    "@gny/client": "1.0.3",
+    "@gny/client": "1.0.4",
     "@gny/utils": "1.0.0",
     "@gny/extendedJoi": "1.0.0",
     "@gny/interfaces": "1.0.1",
