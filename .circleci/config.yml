@@ -1,7 +1,7 @@
 version: 2.1
 commands:
   run-md5sum-command:
-    description: "hashes all package.json and package-lock.json files"
+    description: "hashes all package.json and package-lock.json files, produces hash.txt and package.txt files"
     steps:
       - run:
           name: md5sum of all package.json and package-lock.json files
@@ -13,6 +13,31 @@ commands:
           path: ~/repo/packages.txt
       - store_artifacts:
           path: ~/repo/hash.txt
+  run__linux-update-and-install__node-10-16-2__update-npm__command:
+    description: "updates linux image and installs packages, installes node@10.16.2, updates npm"
+    steps:
+      - run:
+          name: update linux dependencies
+          command: sudo apt-get update
+      - run:
+          name: install-linux-dependencies
+          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
+      - run:
+          name: load nvm and install node@10.16.2
+          command: |
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v10.16.2
+            nvm alias default v10.16.2
+
+            # Each step uses the same `$BASH_ENV`, so need to modify it
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+      - run:
+          name: update-npm
+          command: npm install -g npm
 
 jobs:
   node__10-16-2__unit:
@@ -65,28 +90,7 @@ jobs:
     steps:
       - checkout
       - run-md5sum-command
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -152,28 +156,7 @@ jobs:
             chmod +x ~/docker-compose
              sudo mv ~/docker-compose /usr/local/bin/docker-compose
       - run-md5sum-command
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -217,28 +200,7 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}-v1
       - run:
@@ -274,28 +236,7 @@ jobs:
     steps:
       - checkout
       - run-md5sum-command
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
       - run:
