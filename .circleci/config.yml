@@ -1,11 +1,8 @@
 version: 2.1
-jobs:
-  node__10-16-2__unit:
-    docker:
-      - image: circleci/node:10.16.2
-    working_directory: ~/repo
+commands:
+  run-md5sum-command:
+    description: "hashes all package.json and package-lock.json files"
     steps:
-      - checkout
       - run:
           name: md5sum of all package.json and package-lock.json files
           command: |
@@ -16,6 +13,15 @@ jobs:
           path: ~/repo/packages.txt
       - store_artifacts:
           path: ~/repo/hash.txt
+
+jobs:
+  node__10-16-2__unit:
+    docker:
+      - image: circleci/node:10.16.2
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
       - restore_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -58,16 +64,7 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
+      - run-md5sum-command
       - run:
           name: update linux dependencies
           command: sudo apt-get update
@@ -154,16 +151,7 @@ jobs:
             curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
             chmod +x ~/docker-compose
              sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
+      - run-md5sum-command
       - run:
           name: update linux dependencies
           command: sudo apt-get update
@@ -285,16 +273,7 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
+      - run-md5sum-command
       - run:
           name: update linux dependencies
           command: sudo apt-get update
