@@ -116,7 +116,7 @@ jobs:
           name: test
           command: npm run test
           no_output_timeout: 5m
-  node__10-16-2__integration:
+  node__10-16-2__integration__client:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -129,23 +129,58 @@ jobs:
       - run:
           name: test-integration-client
           command: npm run test:integration:client
-          when: always
+  node__10-16-2__integration__contract:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-contract
           command: npm run test:integration:contract
-          when: always
+  node__10-16-2__integration__contract-env:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-contract-env
           command: npm run test:integration:contract-env
-          when: always
+  node__10-16-2__integration__http:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-http
           command: npm run test:integration:http
-          when: always
+  node__10-16-2__integration__orm:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-orm
           command: npm run test:integration:orm
-          when: always
   node__10-16-2__end2end:
     machine:
       enabled: true
@@ -281,16 +316,13 @@ workflows:
     jobs:
       - node__10-16-2__unit
       - browser__client-unit
-  all_integration_every_night_on_develop_branch:
-    triggers:
-      - schedule:
-         cron: "59 23 * * *"
-         filters:
-           branches:
-             only:
-               - develop
+  all_integration_tests_every_commit:
     jobs:
-      - node__10-16-2__integration
+      - node__10-16-2__integration__client
+      - node__10-16-2__integration__contract
+      - node__10-16-2__integration__contract-env
+      - node__10-16-2__integration__http
+      - node__10-16-2__integration__orm
   run_end2end_on_every_commit:
     jobs:
       - node__10-16-2__end2end
