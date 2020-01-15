@@ -41,7 +41,7 @@ function getTransactions(options) {
     message: options.message,
   };
   getApi().get('/api/transactions/', params, function(err, result) {
-    console.log(err || pretty(result.transactions));
+    console.log(err || pretty(result));
   });
 }
 

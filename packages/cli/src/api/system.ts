@@ -15,7 +15,7 @@ function pretty(obj: any) {
 
 function getSystemInfo() {
   getApi().get('/api/system/', function(err, result) {
-    console.log(err || pretty(result.peers));
+    console.log(err || pretty(result));
   });
 }
 

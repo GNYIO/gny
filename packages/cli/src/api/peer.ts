@@ -15,13 +15,13 @@ function pretty(obj: any) {
 
 function getPeers() {
   getApi().get('/api/peers/', function(err, result) {
-    console.log(err || pretty(result.peers));
+    console.log(err || pretty(result));
   });
 }
 
 function getVersion() {
   getApi().get('/api/peers/version', function(err, result) {
-    console.log(err || pretty(result.peers));
+    console.log(err || pretty(result));
   });
 }
 

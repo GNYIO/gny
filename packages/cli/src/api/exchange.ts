@@ -63,11 +63,12 @@ async function genAccount() {
 
 export default function exchange(program: ApiConfig) {
   globalOptions = program;
-  openAccountWithSecret;
+
   program
     .command('openaccountwithsecret [secret]')
     .description('open your account and get the infomation by secret')
     .action(openAccountWithSecret);
+
   program
     .command('genpublickey [secret]')
     .description('generate public key by secret')
