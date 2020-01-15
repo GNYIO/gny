@@ -24,14 +24,14 @@ function openAccount(publicKey: string) {
     err,
     result
   ) {
-    console.log(err || pretty(result.account));
+    console.log(err || pretty(result));
   });
 }
 
 function getBalance(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/getBalance', params, function(err, result) {
-    console.log(err || result.balances);
+    console.log(err || result);
   });
 }
 
@@ -46,6 +46,15 @@ function getAccountByUsername(username: string) {
   const params = { username: username };
   getApi().get('/api/accounts/', params, function(err, result) {
     console.log(err || pretty(result));
+  });
+}
+
+function getAddressCurrencyBalance(options) {
+  getApi().get(`/api/accounts/${options.address}/${options.currency}`, function(
+    err,
+    result
+  ) {
+    console.log(err || result);
   });
 }
 
@@ -129,6 +138,13 @@ export default function account(program: ApiConfig) {
     .command('countaccounts')
     .description('get the number of accounts')
     .action(countAccounts);
+
+  program
+    .command('getbalancebyaddresscurrency')
+    .description('get balance by address and currency')
+    .option('-a, --address [address]', '')
+    .option('-c, --currency [currency]', '')
+    .action(getAddressCurrencyBalance);
 
   program
     .command('getvoteddelegates')
