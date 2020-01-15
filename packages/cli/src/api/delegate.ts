@@ -19,7 +19,7 @@ function getDelegates(options) {
     offset: options.offset,
   };
   getApi().get('/api/delegates/', params, function(err, result) {
-    console.log(err || pretty(result.delegates));
+    console.log(err || pretty(result));
   });
 }
 

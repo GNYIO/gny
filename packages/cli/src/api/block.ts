@@ -146,6 +146,7 @@ export default function block(program: ApiConfig) {
       '-s, --sort <field:mode>',
       'height:asc, totalAmount:asc, totalFee:asc'
     )
+    .option('-t, --transactions', 'true, false')
     .action(getBlocks);
 
   program

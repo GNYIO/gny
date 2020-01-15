@@ -79,38 +79,6 @@ async function getPublicKey(address: string) {
   });
 }
 
-async function genPublicKey(secret: string) {
-  const hash = crypto
-    .createHash('sha256')
-    .update(secret, 'utf8')
-    .digest();
-  const keys = generateKeyPair(hash);
-  console.log(keys.publicKey.toString('hex'));
-}
-
-async function genAccount() {
-  const result: any = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'amount',
-      message: 'Enter number of accounts to generate',
-    },
-  ]);
-  const n = parseInt(result.amount);
-  const accounts = [];
-
-  for (let i = 0; i < n; i++) {
-    const one = accountHelper.account(generateSecret());
-    accounts.push({
-      address: one.address,
-      secret: one.secret,
-      publicKey: one.keypair.publicKey,
-    });
-  }
-  console.log(accounts);
-  console.log('Done');
-}
-
 export default function account(program: ApiConfig) {
   globalOptions = program;
 
@@ -157,14 +125,4 @@ export default function account(program: ApiConfig) {
     .command('getpublickey [address]')
     .description('get public key by address')
     .action(getPublicKey);
-
-  program
-    .command('genpublickey [secret]')
-    .description('generate public key by secret')
-    .action(genPublicKey);
-
-  program
-    .command('genaccount')
-    .description('generate accounts')
-    .action(genAccount);
 }

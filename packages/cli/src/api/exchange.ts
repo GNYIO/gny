@@ -25,7 +25,7 @@ function openAccountWithSecret(secret: string) {
     err,
     result
   ) {
-    console.log(err || pretty(result.account));
+    console.log(err || pretty(result));
   });
 }
 
