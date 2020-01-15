@@ -106,8 +106,8 @@ export default function account(program: ApiConfig) {
   globalOptions = program;
 
   program
-    .command('openaccount [secret]')
-    .description('open your account and get the infomation by secret')
+    .command('openaccount [publicKey]')
+    .description('open your account and get the infomation by publicKey')
     .action(openAccount);
 
   program
