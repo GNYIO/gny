@@ -316,13 +316,28 @@ workflows:
     jobs:
       - node__10-16-2__unit
       - browser__client-unit
-  all_integration_tests_every_commit:
+  all_integration_tests_every_commit_on_develop: # unfortunately no workflow wide branch filters
     jobs:
-      - node__10-16-2__integration__client
-      - node__10-16-2__integration__contract
-      - node__10-16-2__integration__contract-env
-      - node__10-16-2__integration__http
-      - node__10-16-2__integration__orm
+      - node__10-16-2__integration__client:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__contract:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__contract-env:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__http:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__orm:
+          filters:
+            branches:
+              only: develop
   run_end2end_on_every_commit:
     jobs:
       - node__10-16-2__end2end
