@@ -1,22 +1,5 @@
-
-
 # GNY CLI
 
-A command line interface for bootstrapping and managing __GNY__ blockchain apps.
+## Documentation
 
-## Installation
-
-
-
-```bash
-
-# install dependencies
-npm install
-```
-
-## Usage
-
-```bash
-# create genesisfile
-cli getheight
-```
+Please visit our dedicated documentation repository [gnyio/gny-docs](http://www.github.com/gnyio/gny-docs).

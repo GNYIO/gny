@@ -57,8 +57,6 @@ export async function composeNetwork(
     const PAYLOAD_LIMIT_SIZE = '8mb';
     expressApp.engine('html', require('ejs').renderFile);
     expressApp.set('view engine', 'ejs');
-    expressApp.set('views', appConfig.publicDir);
-    expressApp.use(express.static(appConfig.publicDir));
     expressApp.use(bodyParser.raw({ limit: PAYLOAD_LIMIT_SIZE }));
     expressApp.use(
       bodyParser.urlencoded({

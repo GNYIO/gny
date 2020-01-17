@@ -133,7 +133,6 @@ export interface IConfig {
   baseDir: string;
   buildVersion: string;
   netVersion: string;
-  publicDir: string;
   port: number;
   peerPort: number;
   address: string;

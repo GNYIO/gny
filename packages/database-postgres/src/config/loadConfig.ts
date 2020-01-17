@@ -2,7 +2,6 @@ import { createConnection } from 'typeorm';
 import { OrmLogger } from './ormLogger';
 import { ILogger } from '@gny/interfaces';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-import { SqljsConnectionOptions } from 'typeorm/driver/sqljs/SqljsConnectionOptions';
 
 import { Account } from '../entity/Account';
 import { Asset } from '../entity/Asset';
@@ -18,11 +17,9 @@ import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
 
 export async function loadConfig(logger: ILogger, optionsRaw: string) {
-  let options: PostgresConnectionOptions | SqljsConnectionOptions = undefined;
-
-  options = JSON.parse(optionsRaw) as
-    | PostgresConnectionOptions
-    | SqljsConnectionOptions;
+  const options: PostgresConnectionOptions = JSON.parse(
+    optionsRaw
+  ) as PostgresConnectionOptions;
 
   Object.assign(options, {
     entities: [

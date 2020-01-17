@@ -1,22 +1,25 @@
 version: '3.3'
 services:
-  db:
+  db1:
     image: "postgres:9.6.12"
-    container_name: 'postgres_3000'
+    container_name: 'db1'
     restart: always
-    ports:
-      - '3000:5432'
+    expose:
+      - '5432'
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-  app:
+  node1:
     build: ../..
+    container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; node packages/main/dist/src/app --ormConfig "ormconfig.integration.json"'
+    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 1; done; node packages/main/dist/src/app --ormConfig "ormconfig.integration.json"'
     environment:
       - NODE_ENV="production"
-      - EXCHANGE_API=true
+      - EXCHANGE_API=true # this activates the /api/exchange endpoints
     ports:
       - '4096:4096'
       - '4097:4097'
+    depends_on:
+      - db1
