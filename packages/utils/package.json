@@ -1,6 +1,5 @@
 {
   "name": "@gny/utils",
-  "private": true,
   "version": "1.0.0",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
