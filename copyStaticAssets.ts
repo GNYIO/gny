@@ -14,7 +14,6 @@ if (!fs.lstatSync(destinationPath).isDirectory()) {
 
 shell.cp('genesisBlock.json', destinationPath);
 shell.cp('config.json', destinationPath);
-shell.cp('gnyd', destinationPath);
 
 shell.cp('ormconfig*', destinationPath);
 
