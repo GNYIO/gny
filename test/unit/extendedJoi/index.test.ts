@@ -424,4 +424,54 @@ describe('extendedJoi', () => {
       expect(report.error).toBeNull();
     });
   });
+
+  describe('networkType', () => {
+    it('should pass when passed in localnet', () => {
+      const VALUE = 'localnet';
+
+      const schema = joi
+        .string()
+        .networkType()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should pass when passed in testnet', () => {
+      const VALUE = 'testnet';
+
+      const schema = joi
+        .string()
+        .networkType()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should pass when passed in mainnet', () => {
+      const VALUE = 'mainnet';
+
+      const schema = joi
+        .string()
+        .networkType()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should return report when passed in "ibsoeprughcm"', () => {
+      const VALUE = 'ibsoeprughcm';
+
+      const schema = joi
+        .string()
+        .networkType()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+  });
 });
