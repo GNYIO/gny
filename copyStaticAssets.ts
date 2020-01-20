@@ -12,7 +12,7 @@ if (!fs.lstatSync(destinationPath).isDirectory()) {
   throw new Error('provided argument is not a directory');
 }
 
-shell.cp('genesisBlock.json', destinationPath);
+shell.cp('genesisBlock.localnet.json', destinationPath);
 shell.cp('config.json', destinationPath);
 
 shell.cp('ormconfig*', destinationPath);

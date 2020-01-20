@@ -35,7 +35,6 @@ function main() {
   const baseDir = program.base || process.cwd();
   const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
   let appConfigFile: string;
-  let genesisBlockFile: string;
 
   if (program.config) {
     appConfigFile = path.resolve(process.cwd(), program.config);
@@ -59,12 +58,14 @@ function main() {
 
   global.Config = appConfig;
 
+  // genesisBlock.(localnet | testnet | mainnet).json
+  let genesisBlockFile = path.join(
+    baseDir,
+    `genesisBlock.${appConfig.netVersion}.json`
+  );
   if (program.genesisblock) {
     genesisBlockFile = path.resolve(baseDir, program.genesisblock);
-  } else {
-    genesisBlockFile = path.join(baseDir, 'genesisBlock.json');
   }
-
   const genesisBlock: IBlock = JSON.parse(
     fs.readFileSync(genesisBlockFile, 'utf8')
   );
