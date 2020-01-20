@@ -11,7 +11,7 @@ export class Connection {
   constructor(host?: string, port?: number, network?: NetworkType) {
     this.host = host || '127.0.0.1';
     this.port = port || 4096;
-    this.network = network || 'testnet';
+    this.network = network || 'localnet';
     this.baseUrl = `http://${this.host}:${this.port}`;
   }
 

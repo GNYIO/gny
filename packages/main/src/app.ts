@@ -55,7 +55,7 @@ function main() {
   appConfig.version = version;
   appConfig.baseDir = baseDir;
   appConfig.buildVersion = String(new Date());
-  appConfig.netVersion = process.env.NET_VERSION || 'testnet';
+  appConfig.netVersion = process.env.NET_VERSION || 'localnet';
 
   global.Config = appConfig;
 
