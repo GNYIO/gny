@@ -155,7 +155,6 @@ function unvote(options) {
 function listDiffVotes(options) {
   const params = {
     username: options.username,
-    publicKey: options.publicKey,
     address: options.address,
   };
   getApi().get('/api/delegates/get', params, function(err, result) {
