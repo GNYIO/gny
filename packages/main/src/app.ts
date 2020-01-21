@@ -19,10 +19,7 @@ function main() {
     .option('--address <ip>', 'Listening host name or ip')
     .option('--genesisblock <path>', 'Genesisblock path')
     .option('--peers [peers...]', 'Peers list')
-    .option(
-      '---log <level>',
-      'Log level: log|trace|debug|info|warn|error|fatal'
-    )
+    .option('--log <level>', 'Log level: log|trace|debug|info|warn|error|fatal')
     .option('--base <dir>', 'Base directory')
     .option('--ormConfig <file>', 'ormconfig.json file')
     .option(
