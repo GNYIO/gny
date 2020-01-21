@@ -1,11 +1,8 @@
-version: 2
-jobs:
-  node@10.16.2-unit:
-    docker:
-      - image: circleci/node:10.16.2
-    working_directory: ~/repo
+version: 2.1
+commands:
+  run-md5sum-command:
+    description: "hashes all package.json and package-lock.json files, produces hash.txt and package.txt files"
     steps:
-      - checkout
       - run:
           name: md5sum of all package.json and package-lock.json files
           command: |
@@ -16,6 +13,74 @@ jobs:
           path: ~/repo/packages.txt
       - store_artifacts:
           path: ~/repo/hash.txt
+  run__linux-update-and-install__node-10-16-2__update-npm__command:
+    description: "updates linux image and installs packages, installes node@10.16.2, updates npm"
+    steps:
+      - run:
+          name: update linux dependencies
+          command: sudo apt-get update
+      - run:
+          name: install-linux-dependencies
+          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
+      - run:
+          name: load nvm and install node@10.16.2
+          command: |
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v10.16.2
+            nvm alias default v10.16.2
+
+            # Each step uses the same `$BASH_ENV`, so need to modify it
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+      - run:
+          name: update-npm
+          command: npm install -g npm
+  run__prepare-integration-tests__command:
+    description: "steps that prepare integration tests"
+    steps:
+      - restore_cache:
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
+      - run:
+          name: install dependencies, bootstrap lerna
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
+            fi
+      - save_cache:
+          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
+          paths:
+            - ./node_modules
+            - ./packages/base/node_modules
+            - ./packages/cli/node_modules
+            - ./packages/client/node_modules
+            - ./packages/database-postgres/node_modules
+            - ./packages/ed/node_modules
+            - ./packages/extendedJoi/node_modules
+            - ./packages/interfaces/node_modules
+            - ./packages/logger/node_modules
+            - ./packages/main/node_modules
+            - ./packages/p2p/node_modules
+            - ./packages/protobuf/node_modules
+            - ./packages/transaction-pool/node_modules
+            - ./packages/type-validation/node_modules
+            - ./packages/utils/node_modules
+            - ./packages/web-base/node_modules
+            - ./packages/web-ed/node_modules
+      - run:
+          name: compile project
+          command: npm run lerna:tsc
+
+jobs:
+  node__10-16-2__unit:
+    docker:
+      - image: circleci/node:10.16.2
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
       - restore_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -51,97 +116,72 @@ jobs:
           name: test
           command: npm run test
           no_output_timeout: 5m
-  node@10.16.2-integration:
+  node__10-16-2__integration__client:
     machine:
       enabled: true
       image: circleci/classic:edge
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
-      - restore_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
-      - run:
-          name: install dependencies, bootstrap lerna
-          command: |
-            if [ ! -d node_modules ]; then
-              npm ci && npm run lerna:bootstrap # install only if node_modules is not present
-            fi
-      - save_cache:
-          key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
-          paths:
-            - ./node_modules
-            - ./packages/base/node_modules
-            - ./packages/cli/node_modules
-            - ./packages/client/node_modules
-            - ./packages/database-postgres/node_modules
-            - ./packages/ed/node_modules
-            - ./packages/extendedJoi/node_modules
-            - ./packages/interfaces/node_modules
-            - ./packages/logger/node_modules
-            - ./packages/main/node_modules
-            - ./packages/p2p/node_modules
-            - ./packages/protobuf/node_modules
-            - ./packages/transaction-pool/node_modules
-            - ./packages/type-validation/node_modules
-            - ./packages/utils/node_modules
-            - ./packages/web-base/node_modules
-            - ./packages/web-ed/node_modules
-      - run:
-          name: compile project
-          command: npm run lerna:tsc
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-client
           command: npm run test:integration:client
-          when: always
+  node__10-16-2__integration__contract:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-contract
           command: npm run test:integration:contract
-          when: always
+  node__10-16-2__integration__contract-env:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-contract-env
           command: npm run test:integration:contract-env
-          when: always
+  node__10-16-2__integration__http:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-http
           command: npm run test:integration:http
-          when: always
+  node__10-16-2__integration__orm:
+    machine:
+      enabled: true
+      image: circleci/classic:edge
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
+      - run__prepare-integration-tests__command
       - run:
           name: test-integration-orm
           command: npm run test:integration:orm
-          when: always
-  node@10.16.2-end2end:
+  node__10-16-2__end2end:
     machine:
       enabled: true
       image: circleci/classic:edge
@@ -154,38 +194,8 @@ jobs:
             curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
             chmod +x ~/docker-compose
              sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -222,35 +232,14 @@ jobs:
           command: npm run test:e2e
       - store_artifacts:
           path: ~/repo/logs
-  node@10.16.2-benchmark:
+  node__10-16-2_benchmark:
     machine:
       enabled: true
       image: circleci/classic:edge
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-benchmark-cache-{{ checksum "package-lock.json" }}-v1
       - run:
@@ -266,7 +255,7 @@ jobs:
       - run:
           name: benchmark tests
           command: npm run benchmark
-  security@npm-audit:
+  security__npm-audit:
     docker:
       - image: circleci/node:10.16.2
     working_directory: ~/repo
@@ -278,45 +267,15 @@ jobs:
       - run:
           name: npm audit dependencies
           command: node auditAllPackages.js
-  browser@client-unit:
+  browser__client-unit:
     machine:
       enabled: true
       image: circleci/classic:edge
     working_directory: ~/repo
     steps:
       - checkout
-      - run:
-          name: md5sum of all package.json and package-lock.json files
-          command: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
-      - store_artifacts:
-          path: ~/repo/packages.txt
-      - store_artifacts:
-          path: ~/repo/hash.txt
-      - run:
-          name: update linux dependencies
-          command: sudo apt-get update
-      - run:
-          name: install-linux-dependencies
-          command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
-      - run:
-          name: load nvm and install node@10.16.2
-          command: |
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
-            export NVM_DIR="/opt/circleci/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
-
-            # Each step uses the same `$BASH_ENV`, so need to modify it
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-      - run:
-          name: update-npm
-          command: npm install -g npm
+      - run-md5sum-command
+      - run__linux-update-and-install__node-10-16-2__update-npm__command
       - restore_cache:
           key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
       - run:
@@ -355,21 +314,33 @@ workflows:
   version: 2
   all_unit_tests_every_commit:
     jobs:
-      - node@10.16.2-unit
-      - browser@client-unit
-  all_integration_every_night_on_develop_branch:
-    triggers:
-      - schedule:
-         cron: "59 23 * * *"
-         filters:
-           branches:
-             only:
-               - develop
+      - node__10-16-2__unit
+      - browser__client-unit
+  all_integration_tests_every_commit_on_develop: # unfortunately no workflow wide branch filters
     jobs:
-      - node@10.16.2-integration
+      - node__10-16-2__integration__client:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__contract:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__contract-env:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__http:
+          filters:
+            branches:
+              only: develop
+      - node__10-16-2__integration__orm:
+          filters:
+            branches:
+              only: develop
   run_end2end_on_every_commit:
     jobs:
-      - node@10.16.2-end2end
+      - node__10-16-2__end2end
   benchmarking_every_third_night_on_develop_branch:
     triggers:
       - schedule:
@@ -379,7 +350,7 @@ workflows:
              only:
                - develop
     jobs:
-      - node@10.16.2-benchmark
+      - node__10-16-2_benchmark
   run_npm_audit_on_every_commit:
     jobs:
-      - security@npm-audit
+      - security__npm-audit

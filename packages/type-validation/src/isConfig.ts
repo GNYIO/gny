@@ -66,7 +66,6 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       baseDir: joi.string(),
       buildVersion: joi.string(),
       netVersion: joi.string(),
-      publicDir: joi.string(),
       ormConfigRaw: joi.string().required(),
     })
     .required();
