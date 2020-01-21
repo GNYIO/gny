@@ -19,41 +19,71 @@ function getDelegates(options) {
     offset: options.offset,
   };
   getApi().get('/api/delegates/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getDelegatesCount() {
   getApi().get('/api/delegates/count', function(err, result) {
-    console.log(err || result.count);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.count));
+    }
   });
 }
 
 function getVoters(username: string) {
   const params = { username: username };
   getApi().get('/api/delegates/getVoters', params, function(err, result) {
-    console.log(err || pretty(result.accounts));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.accounts));
+    }
   });
 }
 
 function getDelegateByPublicKey(publicKey: String) {
   const params = { publicKey: publicKey };
   getApi().get('/api/delegates/get', params, function(err, result) {
-    console.log(err || pretty(result.delegate));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.delegate));
+    }
   });
 }
 
 function getDelegateByUsername(username: String) {
   const params = { username: username };
   getApi().get('/api/delegates/get', params, function(err, result) {
-    console.log(err || pretty(result.delegate));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.delegate));
+    }
   });
 }
 
 function getDelegateByAddress(address: String) {
   const params = { address: address };
   getApi().get('/api/delegates/get', params, function(err, result) {
-    console.log(err || pretty(result.delegate));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.delegate));
+    }
   });
 }
 

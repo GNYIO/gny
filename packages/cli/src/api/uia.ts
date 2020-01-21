@@ -24,7 +24,12 @@ function getIssuers(options) {
     offest: options.offset,
   };
   getApi().get('/api/uia/issuers', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -33,7 +38,12 @@ function isIssuer(address: string) {
     address: address,
   };
   getApi().get('/api/uia/isIssuer', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -42,13 +52,23 @@ function getIssuer(name: string) {
     name: name,
   };
   getApi().get('/api/uia/issuers', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
 function getIssuerAssets(name: string) {
   getApi().get(`/api/uia/issuers/${name}/assets`, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -58,7 +78,12 @@ function getAssets(options) {
     offest: options.offset,
   };
   getApi().get('/api/uia/assets', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -67,7 +92,12 @@ function getAsset(name: string) {
     name: name,
   };
   getApi().get('/api/uia/assets', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -76,7 +106,12 @@ function getBalances(address: string) {
     address: address,
   };
   getApi().get('/api/uia/balances', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -86,7 +121,12 @@ function getBalance(options) {
     currency: options.currency,
   };
   getApi().get('/api/uia/balances', param, function(err, result) {
-    console.log(err || pretty(result.account));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.account));
+    }
   });
 }
 
@@ -111,7 +151,12 @@ function sendAsset(options) {
     args: [options.currency, options.amount, options.recipient],
   });
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transactionId));
+    }
   });
 }
 
@@ -136,7 +181,12 @@ function registerDelegate(options) {
     args: [],
   });
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transactionId));
+    }
   });
 }
 

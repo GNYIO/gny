@@ -24,28 +24,48 @@ function openAccount(publicKey: string) {
     err,
     result
   ) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getBalance(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/getBalance', params, function(err, result) {
-    console.log(err || result);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getAccountByAddress(address: string) {
   const params = { address: address };
   getApi().get('/api/accounts/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getAccountByUsername(username: string) {
   const params = { username: username };
   getApi().get('/api/accounts/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
@@ -54,19 +74,34 @@ function getAddressCurrencyBalance(options) {
     err,
     result
   ) {
-    console.log(err || result);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getVotedDelegates(options: AddressOrUsername) {
   getApi().get('/api/accounts/getVotes', options, function(err, result) {
-    console.log(err || result);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function countAccounts() {
   getApi().get('/api/accounts/count', function(err, result) {
-    console.log(err || result.count);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
@@ -75,7 +110,12 @@ async function getPublicKey(address: string) {
     address: address,
   };
   getApi().get('/api/accounts/getPublicKey', params, function(err, result) {
-    console.log(err || result);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 

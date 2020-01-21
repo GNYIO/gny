@@ -36,7 +36,12 @@ function setSecondSecret(options) {
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(result.transactionId);
+    }
   });
 }
 
@@ -66,7 +71,12 @@ function lock(options) {
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(result.transactionId);
+    }
   });
 }
 
@@ -97,7 +107,12 @@ function vote(options) {
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(result.transactionId);
+    }
   });
 }
 
@@ -128,7 +143,12 @@ function unvote(options) {
   });
 
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(result.transactionId);
+    }
   });
 }
 
@@ -139,16 +159,30 @@ function listDiffVotes(options) {
     address: options.address,
   };
   getApi().get('/api/delegates/get', params, function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    }
     const username = result.delegate.username;
     const params = {
       address: result.delegate.address,
       username: result.delegate.username,
     };
     getApi().get('/api/accounts/getVotes', params, function(err, result) {
+      if (err) {
+        console.log(err);
+        process.exit(1);
+      }
+
       const names_a = result.delegates.map(delegate => delegate.username);
       const a = new Set(names_a);
       const params = { username: username };
       getApi().get('/api/delegates/getVoters', params, function(err, result) {
+        if (err) {
+          console.log(err);
+          process.exit(1);
+        }
+
         const names_b = result.accounts.map(account => account.username);
         const b = new Set(names_b);
         const diffab = [...a].filter(x => !b.has(x));

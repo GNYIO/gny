@@ -204,7 +204,7 @@ function ipstat() {
   });
 }
 
-export default function account(program: ApiConfig) {
+export default function state(program: ApiConfig) {
   globalOptions = program;
 
   program

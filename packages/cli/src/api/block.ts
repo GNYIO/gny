@@ -19,31 +19,56 @@ function pretty(obj: any) {
 
 function getHeight() {
   getApi().get('/api/blocks/getHeight', function(err, result) {
-    console.log(err || result.height);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.height));
+    }
   });
 }
 
 function getMilestone() {
   getApi().get('/api/blocks/getMilestone', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getReward() {
   getApi().get('/api/blocks/getReward', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getSupply() {
   getApi().get('/api/blocks/getSupply', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getStatus() {
   getApi().get('/api/blocks/getStatus', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.height));
+    }
   });
 }
 
@@ -54,21 +79,36 @@ function getBlocks(options) {
     offset: options.offset,
   };
   getApi().get('/api/blocks/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getBlockById(id: string) {
   const params = { id: id };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    console.log(err || pretty(result.block));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.block));
+    }
   });
 }
 
 function getBlockByHeight(height: string) {
   const params = { height: height };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    console.log(err || pretty(result.block));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.block));
+    }
   });
 }
 

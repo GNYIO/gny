@@ -15,7 +15,12 @@ function pretty(obj: any) {
 
 function getSystemInfo() {
   getApi().get('/api/system/', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 

@@ -13,6 +13,7 @@ import uia from './api/uia';
 import exchange from './api/exchange';
 
 import newGenesisBlock from './lib/newGenesisBlock';
+import state from './lib/state';
 import { ApiConfig } from './lib/api';
 
 const api = [
@@ -27,7 +28,7 @@ const api = [
   exchange,
 ];
 
-const lib = [newGenesisBlock];
+const lib = [newGenesisBlock, state];
 
 function main() {
   const defaultHost = process.env.GNY_HOST || '127.0.0.1';

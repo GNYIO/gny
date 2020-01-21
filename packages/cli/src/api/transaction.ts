@@ -24,7 +24,12 @@ function getUnconfirmedTransactions(options) {
     address: options.address,
   };
   getApi().get('/api/transactions/unconfirmed', params, function(err, result) {
-    console.log(err || pretty(result.transactions));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transactions));
+    }
   });
 }
 
@@ -41,14 +46,24 @@ function getTransactions(options) {
     message: options.message,
   };
   getApi().get('/api/transactions/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
 function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
   getApi().get('/api/transactions/get', params, function(err, result) {
-    console.log(err || pretty(result.transaction));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transaction));
+    }
   });
 }
 
@@ -73,7 +88,12 @@ function sendMoney(options) {
     message: options.message,
   });
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transactionId));
+    }
   });
 }
 
@@ -98,7 +118,12 @@ function sendTransactionWithFee(options) {
     secondKeypair: secondKeypair,
   });
   getApi().broadcastTransaction(trs, function(err, result) {
-    console.log(err || result.transactionId);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.transactionId));
+    }
   });
 }
 
