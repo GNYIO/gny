@@ -1,7 +1,6 @@
 import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
-import daemon = require('daemon');
 import { createLogger, LogLevel } from '@gny/logger';
 
 import Application from './index';
@@ -24,7 +23,6 @@ function main() {
       '---log <level>',
       'Log level: log|trace|debug|info|warn|error|fatal'
     )
-    .option('---daemon', 'Run gny node as daemon')
     .option('--base <dir>', 'Base directory')
     .option('--ormConfig <file>', 'ormconfig.json file')
     .option(
@@ -116,12 +114,6 @@ function main() {
   const pathToLogFile = path.join(transpiledDir, 'logs', 'debug.log');
   const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
 
-  if (program.daemon) {
-    console.log('Server started as daemon...');
-    daemon({ cwd: process.cwd() });
-    fs.writeFileSync(pidFile, process.pid, 'utf8');
-  }
-
   // path to ormconfig.json (default)
   let ormConfigFilePath = path.join(baseDir, 'ormconfig.json');
   // or custom ormconfig.json path
@@ -159,7 +151,6 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
-    pidFile,
   };
 
   const application = new Application(options);
