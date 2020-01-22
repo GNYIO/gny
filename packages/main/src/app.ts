@@ -37,6 +37,8 @@ function main() {
   GNY_P2P_SECRET=<key>     Private P2P Key (base64 encoded) - overrides p2p_key.json file
   GNY_SECRET=[secret...]   comma separated secrets
   GNY_PUBLIC_IP=<ip>       Public IP of own server
+  GNY_P2P_PEERS=[peers...] comma separated peers
+  GNY_ADDRESS=<address>    Listening host name or ip
       `);
     })
     .parse(process.argv);
@@ -93,16 +95,13 @@ function main() {
   // peerPort
   appConfig.peerPort = appConfig.port + 1;
 
-  if (program.address) {
-    appConfig.address = program.address;
+  if (program.address || process.env['GNY_ADDRESS']) {
+    appConfig.address = program.address || process.env['GNY_ADDRESS'];
   }
 
-  if (program.peers) {
-    if (typeof program.peers === 'string') {
-      appConfig.peers.bootstrap = program.peers.split(',');
-    } else {
-      appConfig.peers.bootstrap = [];
-    }
+  if (program.peers || process.env['GNY_P2P_PEERS']) {
+    const peers = program.peers || process.env['GNY_P2P_PEERS'];
+    appConfig.peers.bootstrap = peers.split(',');
   }
 
   // loglevel, default info
