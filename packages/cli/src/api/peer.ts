@@ -15,15 +15,36 @@ function pretty(obj: any) {
 
 function getPeers() {
   getApi().get('/api/peers/', function(err, result) {
-    console.log(err || pretty(result.peers));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
-export default function account(program: ApiConfig) {
+function getVersion() {
+  getApi().get('/api/peers/version', function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
+  });
+}
+
+export default function peer(program: ApiConfig) {
   globalOptions = program;
 
   program
     .command('getpeers')
     .description('get peers')
     .action(getPeers);
+
+  program
+    .command('getversion')
+    .description('get version')
+    .action(getVersion);
 }

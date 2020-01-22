@@ -1,6 +1,7 @@
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { Api, ApiConfig } from '../lib/api';
-import { BlockBase } from '@gny/base';
+import { BlockBase, TransactionBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
@@ -18,13 +19,56 @@ function pretty(obj: any) {
 
 function getHeight() {
   getApi().get('/api/blocks/getHeight', function(err, result) {
-    console.log(err || result.height);
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.height));
+    }
   });
 }
 
-function getBlockStatus() {
+function getMilestone() {
+  getApi().get('/api/blocks/getMilestone', function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
+  });
+}
+
+function getReward() {
+  getApi().get('/api/blocks/getReward', function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
+  });
+}
+
+function getSupply() {
+  getApi().get('/api/blocks/getSupply', function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
+  });
+}
+
+function getStatus() {
   getApi().get('/api/blocks/getStatus', function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.height));
+    }
   });
 }
 
@@ -35,21 +79,36 @@ function getBlocks(options) {
     offset: options.offset,
   };
   getApi().get('/api/blocks/', params, function(err, result) {
-    console.log(err || pretty(result));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
   });
 }
 
-function getBlockById(id) {
+function getBlockById(id: string) {
   const params = { id: id };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    console.log(err || pretty(result.block));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.block));
+    }
   });
 }
 
 function getBlockByHeight(height: string) {
   const params = { height: height };
   getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    console.log(err || pretty(result.block));
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result.block));
+    }
   });
 }
 
@@ -75,7 +134,22 @@ function getBlockId(options) {
   console.log(BlockBase.getId(block));
 }
 
-export default function account(program: ApiConfig) {
+function getBlockPayloadHash(options) {
+  let block: IBlock;
+  try {
+    block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
+  } catch (e) {
+    console.log('Invalid transaction format');
+    return;
+  }
+  const payloadHash = crypto.createHash('sha256');
+  for (let i = 0; i < block.transactions.length; ++i) {
+    payloadHash.update(TransactionBase.getBytes(block.transactions[i]));
+  }
+  console.log(payloadHash.digest().toString('hex'));
+}
+
+export default function block(program: ApiConfig) {
   globalOptions = program;
 
   program
@@ -84,9 +158,24 @@ export default function account(program: ApiConfig) {
     .action(getHeight);
 
   program
-    .command('getblockstatus')
+    .command('getstatus')
     .description('get block status')
-    .action(getBlockStatus);
+    .action(getStatus);
+
+  program
+    .command('getmilestone')
+    .description('get block milestone')
+    .action(getMilestone);
+
+  program
+    .command('getreward')
+    .description('get block reward')
+    .action(getReward);
+
+  program
+    .command('getsupply')
+    .description('get block supply')
+    .action(getSupply);
 
   program
     .command('getblocks')
@@ -97,6 +186,7 @@ export default function account(program: ApiConfig) {
       '-s, --sort <field:mode>',
       'height:asc, totalAmount:asc, totalFee:asc'
     )
+    .option('-t, --transactions', 'true, false')
     .action(getBlocks);
 
   program
@@ -120,4 +210,10 @@ export default function account(program: ApiConfig) {
     .description('get block id')
     .option('-f, --file <file>', 'block file')
     .action(getBlockId);
+
+  program
+    .command('getblockpayloadhash')
+    .description('get block bytes')
+    .option('-f, --file <file>', 'block file')
+    .action(getBlockPayloadHash);
 }
