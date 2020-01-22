@@ -238,7 +238,6 @@ export default function basic(program: ApiConfig) {
     .command('listdiffvotes')
     .description('list the votes by each other')
     .option('-u, --username <username>', '')
-    .option('-p, --publicKey <publicKey>', '')
     .option('-a, --address <address>', '')
     .action(listDiffVotes);
 }

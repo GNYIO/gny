@@ -28,7 +28,7 @@ function getIssuers(options) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -42,7 +42,7 @@ function isIssuer(address: string) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -56,7 +56,7 @@ function getIssuer(name: string) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -67,7 +67,7 @@ function getIssuerAssets(name: string) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -82,7 +82,7 @@ function getAssets(options) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -96,21 +96,23 @@ function getAsset(name: string) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
 
-function getBalances(address: string) {
+function getBalances(options) {
   const param = {
-    address: address,
+    address: options.address,
+    limit: options.limit,
+    offset: options.offset,
   };
   getApi().get('/api/uia/balances', param, function(err, result) {
     if (err) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -125,7 +127,7 @@ function getBalance(options) {
       console.log(err);
       process.exit(1);
     } else {
-      console.log(pretty(result.account));
+      console.log(pretty(result));
     }
   });
 }
@@ -228,8 +230,11 @@ export default function uia(program: ApiConfig) {
     .action(getAsset);
 
   program
-    .command('getbalances [address]')
+    .command('getbalances')
     .description('get balances by address')
+    .option('-a, --address <address>', '')
+    .option('-o, --offset <n>', '')
+    .option('-l, --limit <n>', '')
     .action(getBalances);
 
   program
@@ -255,6 +260,6 @@ export default function uia(program: ApiConfig) {
     .description('register delegate')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-u, --username <username>', '')
+    .option('-m, --message <message>', '')
     .action(registerDelegate);
 }
