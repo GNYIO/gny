@@ -208,6 +208,12 @@ export interface SimplePeerInfo {
   simple: PeerNode;
 }
 
+export interface PeerStateWrapper {
+  peer: SimplePeerInfo;
+  height: string;
+  error?: string;
+}
+
 export interface ProcessBlockOptions {
   local?: true;
   broadcast?: true;
@@ -576,6 +582,11 @@ export interface DelegateWrapper {
 export interface DelegatesWrapper {
   totalCount?: number;
   delegates: DelegateViewModel[];
+}
+
+export interface DelegateStateWrapper {
+  delegate: DelegateViewModel;
+  block: IBlock;
 }
 
 export interface ForgingStatus {
