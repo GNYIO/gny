@@ -46,4 +46,15 @@ describe('peer', () => {
       lib.oneMinute
     );
   });
+
+  describe('/getInfo', () => {
+    it(
+      'should get info',
+      async () => {
+        const response = await peerApi.getInfo();
+        expect(response.success).toEqual(true);
+      },
+      lib.oneMinute
+    );
+  });
 });
