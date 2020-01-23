@@ -603,6 +603,13 @@ export interface SyncStatus {
   height: string;
 }
 
+export interface PeerInfoWrapper {
+  id: string;
+  multiaddrs: string[];
+  publicIp: string;
+  address: string;
+}
+
 export interface PeersWrapper {
   peers: SimplePeerInfo[];
   count: number;
