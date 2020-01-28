@@ -9,7 +9,6 @@ interface LocalOptions {
   appConfig: IConfig;
   genesisBlock: IBlock;
   logger: ILogger;
-  pidFile: string;
   library?: Partial<IScope>;
 }
 
@@ -21,7 +20,6 @@ export default class Application {
 
   async run() {
     const options = this.options;
-    const pidFile = options.pidFile;
 
     const scope = await initAlt(options);
     function cb(err, result) {
@@ -46,9 +44,6 @@ export default class Application {
         scope.logger.error(`Error while cleaning up: ${e}`);
       }
 
-      if (fs.existsSync(pidFile)) {
-        fs.unlinkSync(pidFile);
-      }
       process.exit(1);
     });
 

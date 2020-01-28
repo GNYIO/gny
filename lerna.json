@@ -1,23 +1,23 @@
 {
-  "version": "0.0.0",
+  "version": "1.0.5",
   "packages": [
-    "test",
-    "packages/main",
     "packages/base",
+    "packages/cli",
+    "packages/client",
     "packages/database-postgres",
     "packages/ed",
     "packages/extendedJoi",
     "packages/interfaces",
+    "packages/logger",
+    "packages/main",
+    "packages/p2p",
+    "packages/protobuf",
     "packages/transaction-pool",
     "packages/type-validation",
     "packages/utils",
-    "packages/p2p",
-    "packages/logger",
-    "packages/cli",
-    "packages/client",
-    "packages/protobuf",
+    "packages/web-base",
     "packages/web-ed",
-    "packages/web-base"
+    "test"
   ],
   "npmClient": "npm"
 }

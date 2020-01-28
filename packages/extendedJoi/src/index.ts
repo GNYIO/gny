@@ -14,6 +14,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   hex(bufferLength?: any): this;
   ipv4PlusPort(): this;
   positiveOrZeroBigInt(): this;
+  networkType(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -34,6 +35,7 @@ const stringExtensions: Joi.Extension = {
     hex: 'is not a hex string{{q}}',
     ipv4PlusPort: 'is not a ipv4:port',
     positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
+    networkType: 'is not a networkType',
   },
   rules: [
     {
@@ -243,6 +245,25 @@ const stringExtensions: Joi.Extension = {
           );
         }
         return value;
+      },
+    },
+    {
+      name: 'networkType',
+      validate(params, value, state, options) {
+        if (
+          value === 'localnet' ||
+          value === 'testnet' ||
+          value === 'mainnet'
+        ) {
+          return value;
+        }
+
+        return this.createError(
+          'string.networkType',
+          { v: value },
+          state,
+          options
+        );
       },
     },
   ],

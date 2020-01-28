@@ -16,6 +16,7 @@ RUN apt-get update && \
 COPY package.json package-lock.json lerna.json ./
 
 # all installed (root)dependencies are now cached
+# do not install devDependencies
 RUN npm ci
 
 # copy all package-lock files (bash: find -name "package-lock.json" -not -path "**/node_modules/*")

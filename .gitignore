@@ -64,6 +64,3 @@ typings/
 
 # next.js build output
 .next
-
-# quick rebuild file
-quick-rebuild.sh

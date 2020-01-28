@@ -132,7 +132,7 @@ export interface IConfig {
   magic: string;
   baseDir: string;
   buildVersion: string;
-  netVersion: string;
+  netVersion: NetworkType;
   port: number;
   peerPort: number;
   address: string;
@@ -603,6 +603,13 @@ export interface SyncStatus {
   height: string;
 }
 
+export interface PeerInfoWrapper {
+  id: string;
+  multiaddrs: string[];
+  publicIp: string;
+  address: string;
+}
+
 export interface PeersWrapper {
   peers: SimplePeerInfo[];
   count: number;
@@ -694,6 +701,8 @@ export interface BalanceWrapper {
 }
 
 // Client
+
+export type NetworkType = 'localnet' | 'testnet' | 'mainnet';
 
 export type ResponseError =
   | GetAccountError

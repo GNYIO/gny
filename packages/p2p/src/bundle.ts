@@ -5,6 +5,7 @@ import {
   P2PMessage,
   P2PSubscribeHandler,
   SimplePeerInfo,
+  PeerInfoWrapper,
 } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -176,6 +177,14 @@ export class Bundle extends libp2p {
       result.push(onePeerWithSimplePort);
     });
 
+    return result;
+  }
+
+  info() {
+    const result: Pick<PeerInfoWrapper, 'id' | 'multiaddrs'> = {
+      id: this.peerInfo.id.toB58String(),
+      multiaddrs: this.peerInfo.multiaddrs.toArray().map(x => x.toString()),
+    };
     return result;
   }
 }
