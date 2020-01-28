@@ -120,6 +120,10 @@ export default class Peer implements ICoreModule {
     Peer.p2p
       .start()
       .then(() => {
+        // test
+        Peer.p2p.peerInfo.multiaddrs.delete(
+          Peer.p2p.peerInfo.multiaddrs.toArray()[0]
+        );
         const multi2 = `/ip4/${global.library.config.publicIp}/tcp/${
           global.library.config.peerPort
         }/ipfs/${Peer.p2p.peerInfo.id.toB58String()}`;
