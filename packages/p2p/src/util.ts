@@ -2,6 +2,7 @@ import * as Multiaddr from 'multiaddr';
 import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
+const ip = require('ip');
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
@@ -12,10 +13,12 @@ export function extractIpAndPort(peerInfo): PeerNode {
     const multi = Multiaddr(one);
     // checking if not 127.0.0.1 is a workaround
     // see https://github.com/libp2p/js-libp2p-floodsub/issues/58
+
+    const ipAddress = multi.toString().split('/')[2];
     if (
       multi.toString().includes('tcp') &&
       multi.toString().includes('ip4') &&
-      !multi.toString().includes('127.0.0.1')
+      !ip.isPrivate(ipAddress)
     ) {
       const y = multi.nodeAddress();
       result = {

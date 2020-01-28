@@ -89,6 +89,7 @@ export default class Peer implements ICoreModule {
       global.library.config.peerPort
     }`;
     peerInfo.multiaddrs.add(multi);
+
     return peerInfo;
   };
 
@@ -119,6 +120,11 @@ export default class Peer implements ICoreModule {
     Peer.p2p
       .start()
       .then(() => {
+        const multi2 = `/ip4/${global.library.config.publicIp}/tcp/${
+          global.library.config.peerPort
+        }/ipfs/${Peer.p2p.peerInfo.id.toB58String()}`;
+        Peer.p2p.peerInfo.multiaddrs.add(multi2);
+
         global.library.bus.message('onPeerReady');
       })
       .catch(err => {
