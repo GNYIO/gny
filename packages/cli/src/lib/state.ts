@@ -163,7 +163,7 @@ function delegatestat() {
             d.missedBlocks,
             b ? b.height : '',
             b ? b.id : '',
-            slots.getRealTime(b ? b.timestamp : '')
+            slots.getRealTime(b ? b.timestamp : undefined)
           );
         }
       }
