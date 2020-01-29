@@ -75,7 +75,7 @@ export default function newGenesisBlock(program: any) {
     )
     .option(
       '-d, --delegates <file>',
-      `BIP39 secrets of 101 delegates. Format:
+      `BIP39 secrets of 101 delegates. Default are 101 delegates. Custom delegates can be max 101, min 21. Format:
                             <delegate_name><tab><BIP39_secret><newline>
                             <delegate_name><tab><BIP39_secret><newline>
                             <delegate_name><tab><BIP39_secret><newline>
@@ -273,7 +273,11 @@ function createDelegates(delegatesFile?: string) {
 
   if (delegatesFile) {
     const lines = fs.readFileSync(delegatesFile, 'utf8').split('\n');
-    console.log(`lines: ${JSON.stringify(lines, null, 2)}`);
+    if (lines.length > 101 || lines.length < 21) {
+      console.log('delegates count should be >= 21 and <= 101');
+      process.exit(1);
+    }
+
     for (const i in lines) {
       const parts = lines[i].split('\t');
       if (parts.length != 2) {
