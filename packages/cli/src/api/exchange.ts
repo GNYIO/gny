@@ -59,7 +59,7 @@ async function genAccount() {
     accounts.push({
       address: one.address,
       secret: one.secret,
-      publicKey: one.keypair.publicKey,
+      publicKey: one.keypair.publicKey.toString('hex'),
     });
   }
   console.log(accounts);
