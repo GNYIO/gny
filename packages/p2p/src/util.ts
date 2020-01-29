@@ -14,12 +14,9 @@ export function extractIpAndPort(peerInfo): PeerNode {
     // checking if not 127.0.0.1 is a workaround
     // see https://github.com/libp2p/js-libp2p-floodsub/issues/58
 
+    // issue #255
     const ipAddress = multi.toString().split('/')[2];
-    if (
-      multi.toString().includes('tcp') &&
-      multi.toString().includes('ip4') &&
-      !ip.isPrivate(ipAddress)
-    ) {
+    if (multi.toString().includes('tcp') && multi.toString().includes('ip4')) {
       const y = multi.nodeAddress();
       result = {
         host: y.address,

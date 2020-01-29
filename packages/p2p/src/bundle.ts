@@ -118,6 +118,7 @@ export class Bundle extends libp2p {
     if (allConnectedPeers.length > 0) {
       const index = Math.floor(Math.random() * allConnectedPeers.length);
       const result = allConnectedPeers[index];
+      this.logger.info(`allConnectedPeers: ${JSON.stringify(result, null, 2)}`);
       this.logger.info(
         `[P2P] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
           result.simple

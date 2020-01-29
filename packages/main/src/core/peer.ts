@@ -120,7 +120,11 @@ export default class Peer implements ICoreModule {
     Peer.p2p
       .start()
       .then(() => {
-        // test
+        global.library.logger.error(
+          `publicIp is: ${global.library.config.publicIp}`
+        );
+
+        // issue #255
         Peer.p2p.peerInfo.multiaddrs.delete(
           Peer.p2p.peerInfo.multiaddrs.toArray()[0]
         );

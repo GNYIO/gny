@@ -6,6 +6,7 @@ import { createLogger, LogLevel } from '@gny/logger';
 import Application from './index';
 import * as packageJson from '../package.json';
 import { IConfig, IBlock } from '@gny/interfaces';
+import * as ip from 'ip';
 
 const version = packageJson.version;
 
@@ -27,7 +28,7 @@ function main() {
       'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
     )
     .option('--secret [secret...]', 'comma separated secrets')
-    .option('--publicIP <ip>', 'Public IP of own server')
+    .option('--publicIP <ip>', 'Public IP of own server, default private IP')
     .option('--network <network>', 'Must be: localnet | testnet | mainnet')
     .on('--help', () => {
       console.log(`\nEnvironment Variables:
@@ -36,7 +37,7 @@ function main() {
   GNY_LOG_LEVEL=<level>    log|trace|debug|info|warn|error|fatal
   GNY_P2P_SECRET=<key>     Private P2P Key (base64 encoded) - overrides p2p_key.json file
   GNY_SECRET=[secret...]   comma separated secrets
-  GNY_PUBLIC_IP=<ip>       Public IP of own server
+  GNY_PUBLIC_IP=<ip>       Public IP of own server, default private IP
   GNY_P2P_PEERS=[peers...] comma separated peers
   GNY_ADDRESS=<address>    Listening host name or ip
       `);
@@ -138,6 +139,8 @@ function main() {
 
   if (program.publicIP || process.env['GNY_PUBLIC_IP']) {
     appConfig.publicIp = program.publicIP || process.env['GNY_PUBLIC_IP'];
+  } else {
+    appConfig.publicIp = ip.address();
   }
 
   // asign config to global variable
