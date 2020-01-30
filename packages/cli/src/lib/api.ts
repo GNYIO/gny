@@ -1,4 +1,5 @@
 import * as request from 'request';
+import axios from 'axios';
 import * as program from 'commander';
 import { UnconfirmedTransaction } from '@gny/interfaces';
 
@@ -24,6 +25,10 @@ export function resultHandler(cb) {
   };
 }
 
+function pretty(obj: any) {
+  return JSON.stringify(obj, null, 2);
+}
+
 export interface ApiOptions {
   host: string;
   port: number;
@@ -46,22 +51,32 @@ export class Api {
     this.magic = '594fe0f3';
   }
 
-  get = async function(path: string, params, cb?) {
+  get = function(path: string, params, cb?) {
     let qs = null;
     if (typeof params === 'function') {
       cb = params;
     } else {
       qs = params;
     }
-    request(
-      {
-        method: 'GET',
-        url: this.baseUrl + path,
-        json: true,
-        qs: qs,
-      },
-      resultHandler(cb)
-    );
+
+    axios
+      .get(this.baseUrl + path, { params: params })
+      .then(function(response) {
+        cb(null, response.data);
+      })
+      .catch(function(error) {
+        cb(error, null);
+      });
+
+    // request(
+    //   {
+    //     method: 'GET',
+    //     url: this.baseUrl + path,
+    //     json: true,
+    //     qs: qs,
+    //   },
+    //   resultHandler(cb)
+    // );
   };
 
   post = function(path, data, cb) {
