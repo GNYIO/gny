@@ -14,27 +14,6 @@ import { MessageBus } from '@gny/utils';
 
 import { composeNetwork } from './http/index';
 
-function getPublicIp() {
-  let publicIp;
-  try {
-    const ifaces = os.networkInterfaces();
-    Object.keys(ifaces).forEach(ifname => {
-      ifaces[ifname].forEach(iface => {
-        if (iface.family !== 'IPv4' || iface.internal !== false) {
-          // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-          return;
-        }
-        if (!ip.isPrivate(iface.address)) {
-          publicIp = iface.address;
-        }
-      });
-    });
-  } catch (e) {
-    throw e;
-  }
-  return publicIp;
-}
-
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;
   const genesisBlock = options.genesisBlock;
@@ -43,10 +22,6 @@ async function init_alt(options: IOptions) {
     throw new Error('Config validation failed');
   }
   const appConfig: IConfig = options.appConfig;
-
-  // if (!appConfig.publicIp) {
-  // appConfig.publicIp = getPublicIp();
-  // }
 
   const protoFile = path.join(process.cwd(), 'proto', 'index.proto');
   if (!fs.existsSync(protoFile)) {
