@@ -3,7 +3,6 @@
  */
 import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
-import axios from 'axios';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
