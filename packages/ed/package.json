@@ -1,7 +1,7 @@
 {
   "name": "@gny/ed",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -16,7 +16,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "^1.0.5",
+    "@gny/interfaces": "^1.0.6",
     "sodium": "^3.0.2"
   }
 }
