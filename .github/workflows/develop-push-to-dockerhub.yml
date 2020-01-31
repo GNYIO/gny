@@ -1,0 +1,19 @@
+name: Publish develop branch to DockerHub
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout develop branch
+      uses: actions/checkout@v2
+      with:
+        ref: develop
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: a1300/testnet
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
