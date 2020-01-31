@@ -21,39 +21,71 @@ RUN npm ci
 
 # copy all package-lock files (bash: find -name "package-lock.json" -not -path "**/node_modules/*")
 COPY packages/p2p/package-lock.json ./packages/p2p/package-lock.json
+RUN true
 COPY packages/extendedJoi/package-lock.json ./packages/extendedJoi/package-lock.json
+RUN true
 COPY packages/client/package-lock.json ./packages/client/package-lock.json
+RUN true
 COPY packages/interfaces/package-lock.json ./packages/interfaces/package-lock.json
+RUN true
 COPY packages/ed/package-lock.json ./packages/ed/package-lock.json
+RUN true
 COPY packages/utils/package-lock.json ./packages/utils/package-lock.json
+RUN true
 COPY packages/main/package-lock.json ./packages/main/package-lock.json
+RUN true
 COPY packages/base/package-lock.json ./packages/base/package-lock.json
+RUN true
 COPY packages/database-postgres/package-lock.json ./packages/database-postgres/package-lock.json
+RUN true
 COPY packages/logger/package-lock.json ./packages/logger/package-lock.json
+RUN true
 COPY packages/protobuf/package-lock.json ./packages/protobuf/package-lock.json
+RUN true
 COPY packages/cli/package-lock.json ./packages/cli/package-lock.json
+RUN true
 COPY packages/protobuf/package-lock.json ./packages/protobuf/package-lock.json
+RUN true
 COPY packages/web-ed/package-lock.json ./packages/web-ed/package-lock.json
+RUN true
 COPY packages/web-base/package-lock.json ./packages/web-base/package-lock.json
+RUN true
 
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
+RUN true
 COPY packages/extendedJoi/package.json ./packages/extendedJoi/package.json
+RUN true
 COPY packages/client/package.json ./packages/client/package.json
+RUN true
 COPY packages/interfaces/package.json ./packages/interfaces/package.json
+RUN true
 COPY packages/ed/package.json ./packages/ed/package.json
+RUN true
 COPY packages/utils/package.json ./packages/utils/package.json
+RUN true
 COPY packages/main/package.json ./packages/main/package.json
+RUN true
 COPY packages/type-validation/package.json ./packages/type-validation/package.json
+RUN true
 COPY packages/base/package.json ./packages/base/package.json
+RUN true
 COPY packages/database-postgres/package.json ./packages/database-postgres/package.json
+RUN true
 COPY packages/transaction-pool/package.json ./packages/transaction-pool/package.json
+RUN true
 COPY packages/logger/package.json ./packages/logger/package.json
+RUN true
 COPY packages/protobuf/package.json ./packages/protobuf/package.json
+RUN true
 COPY packages/cli/package.json ./packages/cli/package.json
+RUN true
 COPY packages/protobuf/package.json ./packages/protobuf/package.json
+RUN true
 COPY packages/web-ed/package.json ./packages/web-ed/package.json
+RUN true
 COPY packages/web-base/package.json ./packages/web-base/package.json
+RUN true
 
 # install all depdencies for packages/*
 RUN npm run lerna:bootstrap
