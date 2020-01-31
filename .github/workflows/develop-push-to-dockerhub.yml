@@ -5,7 +5,7 @@ on:
       - develop
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-18.04
     steps:
     - name: Checkout develop branch
       uses: actions/checkout@v2
@@ -17,3 +17,4 @@ jobs:
         name: a1300/testnet
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        tags: "latest,develop"
