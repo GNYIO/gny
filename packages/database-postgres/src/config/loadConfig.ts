@@ -15,6 +15,8 @@ import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
 import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
+import { Mldata } from '../entity/Mldata';
+import { Prediction } from '../entity/Prediction';
 
 export async function loadConfig(logger: ILogger, optionsRaw: string) {
   const options: PostgresConnectionOptions = JSON.parse(
@@ -35,6 +37,8 @@ export async function loadConfig(logger: ILogger, optionsRaw: string) {
       Variable,
       Vote,
       BlockHistory,
+      Mldata,
+      Prediction,
     ],
   });
   Object.assign(options, {

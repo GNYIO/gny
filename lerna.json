@@ -17,6 +17,7 @@
     "packages/utils",
     "packages/web-base",
     "packages/web-ed",
+    "packages/machine-learning",
     "test"
   ],
   "npmClient": "npm"
