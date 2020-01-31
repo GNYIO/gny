@@ -8,6 +8,7 @@ import { System } from './system';
 import { Transfer } from './transfer';
 import { Transport } from './transport';
 import { Uia } from './uia';
+import { Exchange } from './exchange';
 import { Connection } from '../connection';
 
 export const Api = (connection: Connection) => {
@@ -22,5 +23,6 @@ export const Api = (connection: Connection) => {
     Transfer: new Transfer(connection),
     Transport: new Transport(connection),
     Uia: new Uia(connection),
+    Exchange: new Exchange(connection),
   };
 };
