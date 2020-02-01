@@ -1,6 +1,6 @@
 {
   "name": "@gny/extended-joi",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist"

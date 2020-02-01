@@ -1,6 +1,6 @@
 {
   "name": "@gny/logger",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
