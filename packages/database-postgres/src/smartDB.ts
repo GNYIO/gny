@@ -37,6 +37,8 @@ export * from './entity/Transaction';
 export * from './entity/Transfer';
 export * from './entity/Variable';
 export * from './entity/Vote';
+export * from './entity/Mldata';
+export * from './entity/Prediction';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
