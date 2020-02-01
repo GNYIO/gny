@@ -1,4 +1,4 @@
-name: Push to repo copy
+name: Push to GNYIO/gny repo
 on:
   push:
     branches:
