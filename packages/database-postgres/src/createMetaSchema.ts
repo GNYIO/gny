@@ -14,6 +14,8 @@ import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
 import { Vote } from './entity/Vote';
 import { BlockHistory } from './entity/BlockHistory';
+import { Mldata } from './entity/Mldata';
+import { Prediction } from './entity/Prediction';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -80,6 +82,8 @@ export function createMetaSchema() {
   const variable = transform(Variable);
   const vote = transform(Vote);
   const blockHistory = transform(BlockHistory);
+  const mldata = transform(Mldata);
+  const prediction = transform(Prediction);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -93,6 +97,8 @@ export function createMetaSchema() {
   result.set('Variable', variable);
   result.set('Vote', vote);
   result.set('BlockHistory', blockHistory);
+  result.set('Mldata', mldata);
+  result.set('Prediction', prediction);
 
   return result;
 }

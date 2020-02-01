@@ -15,6 +15,7 @@
   "main": "dist/app",
   "types": "dist/app",
   "dependencies": {
+    "@gny/machine-learning": "^1.0.0",
     "@gny/base": "1.0.8",
     "@gny/database-postgres": "1.0.8",
     "@gny/ed": "1.0.8",
