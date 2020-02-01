@@ -1,6 +1,5 @@
 {
   "name": "@gny/base",
-  "private": true,
   "version": "1.0.9",
   "description": "",
   "scripts": {

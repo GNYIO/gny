@@ -1,6 +1,5 @@
 {
   "name": "@gny/type-validation",
-  "private": true,
   "version": "1.0.9",
   "description": "",
   "scripts": {

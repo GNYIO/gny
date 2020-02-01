@@ -1,6 +1,5 @@
 {
   "name": "@gny/extendedJoi",
-  "private": true,
   "version": "1.0.9",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
