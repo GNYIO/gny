@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as accountHelper from './account';
-import { generateSecret } from '@gny/utils';
+import { generateSecret } from '../helpers';
 import * as crypto from 'crypto';
 import { TransactionBase, BlockBase, CreateTransactionType } from '@gny/base';
 import {
