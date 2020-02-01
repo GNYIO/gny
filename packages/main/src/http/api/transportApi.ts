@@ -21,7 +21,7 @@ import {
 import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from '../../../src/core/BlocksHelper';
 import { getBlocks as getBlocksFromApi } from '../util';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
 import { BigNumber } from 'bignumber.js';

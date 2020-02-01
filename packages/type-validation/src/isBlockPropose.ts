@@ -1,5 +1,5 @@
 import { BlockPropose } from '@gny/interfaces';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export function isBlockPropose(propose: any): propose is BlockPropose {
   const schema = joi.object().keys({

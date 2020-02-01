@@ -1,5 +1,5 @@
 import { PeerNode } from '@gny/interfaces';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export function isPeerNode(peer: any): peer is PeerNode {
   const peerSchema = joi.object().keys({

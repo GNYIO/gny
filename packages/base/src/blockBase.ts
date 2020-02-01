@@ -7,7 +7,7 @@ import {
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '@gny/ed';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import { copyObject } from './helpers';
 import { TransactionBase } from './transactionBase';
 
