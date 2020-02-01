@@ -138,12 +138,10 @@ export interface IConfig {
   address: string;
   peers: {
     bootstrap: string[];
-    p2pKeyFile: string;
-    rawPeerInfo: string;
+    privateP2PKey: string;
     options: {
       timeout: number;
     };
-    privateP2PKey: string;
   };
   forging: {
     secret: string[];

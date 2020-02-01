@@ -1,5 +1,4 @@
 import * as shell from 'shelljs';
-import * as PeerInfo from 'peer-info';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -21,16 +20,6 @@ shell.cp('docker-compose.yml', destinationPath);
 
 const logDirectory = path.join(destinationPath, 'logs');
 shell.mkdir('-p', logDirectory);
-
-PeerInfo.create((err, peerInfo) => {
-  const jsonId = JSON.stringify(peerInfo.id.toJSON());
-  const p2pKeyFilePath = path.join(destinationPath, 'p2p_key.json');
-  fs.writeFile(p2pKeyFilePath, jsonId, err => {
-    if (err) {
-      throw err;
-    }
-  });
-});
 
 fs.readFile(
   path.join(__dirname, 'ormconfig.json'),

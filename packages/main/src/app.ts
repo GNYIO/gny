@@ -122,14 +122,12 @@ function main() {
     encoding: 'utf8',
   });
 
-  const p2pKeyFilePath = path.join(transpiledDir, appConfig.peers.p2pKeyFile);
-  appConfig.peers.rawPeerInfo = fs.readFileSync(p2pKeyFilePath, {
-    encoding: 'utf8',
-  });
-
   if (program.privateP2PKey || process.env['GNY_P2P_SECRET']) {
     appConfig.peers.privateP2PKey =
       program.privateP2PKey || process.env['GNY_P2P_SECRET'];
+  } else {
+    console.error(`--privateP2PKey="" or GNY_P2P_SECRET="" are mandatory`);
+    process.exit(1);
   }
 
   if (program.secret || process.env['GNY_SECRET']) {
