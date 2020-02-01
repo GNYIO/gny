@@ -14,6 +14,7 @@ import exchange from './api/exchange';
 
 import newGenesisBlock from './lib/newGenesisBlock';
 import state from './lib/state';
+import newP2PSecret from './lib/newP2PSecret';
 import { ApiConfig } from './lib/api';
 
 const api = [
@@ -28,7 +29,7 @@ const api = [
   exchange,
 ];
 
-const lib = [newGenesisBlock, state];
+const lib = [newGenesisBlock, state, newP2PSecret];
 
 function main() {
   const defaultHost = process.env.GNY_HOST || '127.0.0.1';

@@ -29,6 +29,7 @@
     "commander": "^2.20.0",
     "fast-sha256": "^1.1.0",
     "inquirer": "^6.5.0",
+    "peer-info": "^0.15.1",
     "request": "^2.88.0",
     "shelljs": "^0.8.3",
     "ts-node": "^8.3.0",
