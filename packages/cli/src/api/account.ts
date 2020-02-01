@@ -1,6 +1,6 @@
 import * as inquirer from 'inquirer';
 import { Api, ApiConfig } from '../lib/api';
-import { generateSecret } from '@gny/utils';
+import { generateSecret } from '../helpers';
 import * as accountHelper from '../lib/account';
 import { AddressOrUsername } from '@gny/interfaces';
 import { generateKeyPair } from '@gny/ed';
