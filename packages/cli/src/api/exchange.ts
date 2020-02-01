@@ -62,7 +62,7 @@ async function genAccount() {
       publicKey: one.keypair.publicKey.toString('hex'),
     });
   }
-  console.log(accounts);
+  console.log(pretty(accounts));
   console.log('Done');
 }
 
