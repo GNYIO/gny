@@ -69,19 +69,12 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static preparePeerInfo = async (rawPeerInfo: string) => {
-    const KEY = JSON.parse(rawPeerInfo);
-
-    let peerId: any;
-    if (global.library.config.peers.privateP2PKey) {
-      const buf = Buffer.from(
-        global.library.config.peers.privateP2PKey,
-        'base64'
-      );
-      peerId = await createFromPrivKey(buf);
-    } else {
-      peerId = await createFromJSON(KEY);
-    }
+  public static preparePeerInfo = async () => {
+    const buf = Buffer.from(
+      global.library.config.peers.privateP2PKey,
+      'base64'
+    );
+    const peerId = await createFromPrivKey(buf);
 
     const peerInfo = await createPeerInfoArgs(peerId);
 
@@ -95,9 +88,7 @@ export default class Peer implements ICoreModule {
 
   // Events
   public static onBlockchainReady = async () => {
-    const peerInfo = await Peer.preparePeerInfo(
-      global.library.config.peers.rawPeerInfo
-    );
+    const peerInfo = await Peer.preparePeerInfo();
 
     // TODO persist peerBook of node
     const bootstrapNode = global.library.config.peers.bootstrap
