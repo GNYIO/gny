@@ -84,4 +84,14 @@ export default async function runtime(options: IOptions) {
   global.app.contractTypeMapping[101] = 'uia.registerAsset';
   global.app.contractTypeMapping[102] = 'uia.issue';
   global.app.contractTypeMapping[103] = 'uia.transfer';
+
+  global.app.contractTypeMapping[201] = 'ml.uploadData';
+  global.app.contractTypeMapping[202] = 'ml.getPrediction';
+  global.app.contractTypeMapping[203] = 'ml.getPredictionCategory';
+  global.app.contractTypeMapping[204] = 'ml.getPredictionTime';
+  global.app.contractTypeMapping[205] = 'ml.getPredictionLocation';
+  global.app.contractTypeMapping[206] = 'ml.filterOutliers';
+  global.app.contractTypeMapping[207] = 'ml.fraudDetection';
+  global.app.contractTypeMapping[208] = 'ml.locationPrediction';
+  global.app.contractTypeMapping[209] = 'ml.nlp';
 }

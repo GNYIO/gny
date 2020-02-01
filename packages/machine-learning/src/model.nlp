@@ -1,0 +1,387 @@
+{
+  "settings": {
+    "languages": [
+      "en"
+    ]
+  },
+  "nluManager": {
+    "settings": {},
+    "languages": [
+      "en"
+    ],
+    "intentDomains": {},
+    "domainManagers": {
+      "en": {
+        "settings": {
+          "language": "en",
+          "useNoneFeature": true,
+          "config": {
+            "activation": "leaky-relu",
+            "hiddenLayers": [],
+            "iterations": 20000,
+            "learningRate": 0.7,
+            "errorThresh": 0.00005,
+            "momentum": 0.5,
+            "deltaErrorThresh": 0.000001,
+            "maxDecimals": 9,
+            "leakyReluAlpha": 0.08,
+            "timeout": 120000
+          }
+        },
+        "language": "en",
+        "nluClassName": "BrainNLU",
+        "useMasterDomain": true,
+        "trainByDomain": false,
+        "keepStopwords": true,
+        "stemDict": {
+          "for,goodby,now": {
+            "domain": "default",
+            "intent": "greetings.bye"
+          },
+          "bye,bye,care,take": {
+            "domain": "default",
+            "intent": "greetings.bye"
+          },
+          "later,okay,see,you": {
+            "domain": "default",
+            "intent": "greetings.bye"
+          },
+          "bye,for,now": {
+            "domain": "default",
+            "intent": "greetings.bye"
+          },
+          "go,i,must": {
+            "domain": "default",
+            "intent": "greetings.bye"
+          },
+          "hello": {
+            "domain": "default",
+            "intent": "greetings.hello"
+          },
+          "hi": {
+            "domain": "default",
+            "intent": "greetings.hello"
+          },
+          "howdi": {
+            "domain": "default",
+            "intent": "greetings.hello"
+          }
+        },
+        "intentDict": {
+          "greetings.bye": "default",
+          "greetings.hello": "default"
+        },
+        "useStemDict": true,
+        "domains": {
+          "master_domain": {
+            "settings": {
+              "language": "en",
+              "useNoneFeature": true,
+              "config": {
+                "activation": "leaky-relu",
+                "hiddenLayers": [],
+                "iterations": 20000,
+                "learningRate": 0.7,
+                "errorThresh": 0.00005,
+                "momentum": 0.5,
+                "deltaErrorThresh": 0.000001,
+                "maxDecimals": 9,
+                "leakyReluAlpha": 0.08,
+                "timeout": 120000
+              }
+            },
+            "language": "en",
+            "keepStopwords": true,
+            "docs": [
+              {
+                "intent": "greetings.bye",
+                "tokens": [
+                  "goodby",
+                  "for",
+                  "now"
+                ]
+              },
+              {
+                "intent": "greetings.bye",
+                "tokens": [
+                  "bye",
+                  "bye",
+                  "take",
+                  "care"
+                ]
+              },
+              {
+                "intent": "greetings.bye",
+                "tokens": [
+                  "okay",
+                  "see",
+                  "you",
+                  "later"
+                ]
+              },
+              {
+                "intent": "greetings.bye",
+                "tokens": [
+                  "bye",
+                  "for",
+                  "now"
+                ]
+              },
+              {
+                "intent": "greetings.bye",
+                "tokens": [
+                  "i",
+                  "must",
+                  "go"
+                ]
+              },
+              {
+                "intent": "greetings.hello",
+                "tokens": [
+                  "hello"
+                ]
+              },
+              {
+                "intent": "greetings.hello",
+                "tokens": [
+                  "hi"
+                ]
+              },
+              {
+                "intent": "greetings.hello",
+                "tokens": [
+                  "howdi"
+                ]
+              }
+            ],
+            "features": {
+              "goodby": 1,
+              "for": 2,
+              "now": 2,
+              "bye": 3,
+              "take": 1,
+              "care": 1,
+              "okay": 1,
+              "see": 1,
+              "you": 1,
+              "later": 1,
+              "i": 1,
+              "must": 1,
+              "go": 1,
+              "hello": 1,
+              "hi": 1,
+              "howdi": 1
+            },
+            "isEditing": false,
+            "className": "BrainNLU",
+            "classifier": {
+              "className": "BrainClassifier",
+              "settings": {
+                "language": "en",
+                "useNoneFeature": true,
+                "config": {
+                  "activation": "leaky-relu",
+                  "hiddenLayers": [],
+                  "iterations": 20000,
+                  "learningRate": 0.7,
+                  "errorThresh": 0.00005,
+                  "momentum": 0.5,
+                  "deltaErrorThresh": 0.000001,
+                  "maxDecimals": 9,
+                  "leakyReluAlpha": 0.08,
+                  "timeout": 120000
+                }
+              },
+              "labels": [],
+              "network": {
+                "sizes": [
+                  17,
+                  3
+                ],
+                "layers": [
+                  {
+                    "goodby": {},
+                    "for": {},
+                    "now": {},
+                    "bye": {},
+                    "take": {},
+                    "care": {},
+                    "okay": {},
+                    "see": {},
+                    "you": {},
+                    "later": {},
+                    "i": {},
+                    "must": {},
+                    "go": {},
+                    "hello": {},
+                    "hi": {},
+                    "howdi": {},
+                    "nonefeature": {}
+                  },
+                  {
+                    "greetings.bye": {
+                      "bias": 2.153381865,
+                      "weights": {
+                        "goodby": 3.35956955,
+                        "for": 3.454226494,
+                        "now": 3.454226494,
+                        "bye": 3.496789217,
+                        "take": 3.402131557,
+                        "care": 3.402131557,
+                        "okay": 2.5845263,
+                        "see": 2.5845263,
+                        "you": 2.5845263,
+                        "later": 2.5845263,
+                        "i": 3.447614431,
+                        "must": 3.447614431,
+                        "go": 3.447614431,
+                        "hello": -2.155017138,
+                        "hi": -2.148940086,
+                        "howdi": -2.142019272,
+                        "nonefeature": -2.133960485
+                      }
+                    },
+                    "greetings.hello": {
+                      "bias": 5.165044902,
+                      "weights": {
+                        "goodby": -1.468481302,
+                        "for": -1.845200539,
+                        "now": -1.845200539,
+                        "bye": -1.970536232,
+                        "take": -1.593817234,
+                        "care": -1.593817234,
+                        "okay": -1.290057659,
+                        "see": -1.290057659,
+                        "you": -1.290057659,
+                        "later": -1.290057659,
+                        "i": -1.7189641,
+                        "must": -1.7189641,
+                        "go": -1.7189641,
+                        "hello": 7.26117897,
+                        "hi": 7.265647411,
+                        "howdi": 7.237568855,
+                        "nonefeature": -4.979157925
+                      }
+                    },
+                    "None": {
+                      "bias": 1.728360546,
+                      "weights": {
+                        "goodby": -0.487468362,
+                        "for": -0.623472869,
+                        "now": -0.623472869,
+                        "bye": -0.668678343,
+                        "take": -0.532673955,
+                        "care": -0.532673955,
+                        "okay": -0.433729917,
+                        "see": -0.433729917,
+                        "you": -0.433729917,
+                        "later": -0.433729917,
+                        "i": -0.577848256,
+                        "must": -0.577848256,
+                        "go": -0.577848256,
+                        "hello": -1.656210303,
+                        "hi": -1.642110229,
+                        "howdi": -1.6266855,
+                        "nonefeature": 10.5390625
+                      }
+                    }
+                  }
+                ],
+                "trainOpts": {
+                  "iterations": 20000,
+                  "errorThresh": 0.00005,
+                  "deltaErrorThresh": 0.000001,
+                  "learningRate": 0.7,
+                  "momentum": 0.5,
+                  "leakyReluAlpha": 0.08,
+                  "maxDecimals": 9,
+                  "log": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "extraSentences": [
+      [
+        "en",
+        "goodbye for now"
+      ],
+      [
+        "en",
+        "bye bye take care"
+      ],
+      [
+        "en",
+        "okay see you later"
+      ],
+      [
+        "en",
+        "bye for now"
+      ],
+      [
+        "en",
+        "i must go"
+      ],
+      [
+        "en",
+        "hello"
+      ],
+      [
+        "en",
+        "hi"
+      ],
+      [
+        "en",
+        "howdy"
+      ]
+    ]
+  },
+  "nerManager": {
+    "settings": {},
+    "threshold": 0.8,
+    "builtins": [
+      "Number",
+      "Ordinal",
+      "Percentage",
+      "Age",
+      "Currency",
+      "Dimension",
+      "Temperature",
+      "DateTime",
+      "PhoneNumber",
+      "IpAddress",
+      "Boolean",
+      "Email",
+      "Hashtag",
+      "URL"
+    ],
+    "namedEntities": {}
+  },
+  "slotManager": {},
+  "responses": {
+    "en": {
+      "greetings.bye": [
+        {
+          "response": "Till next time"
+        },
+        {
+          "response": "see you soon!"
+        }
+      ],
+      "greetings.hello": [
+        {
+          "response": "Hey there!"
+        },
+        {
+          "response": "Greetings!"
+        }
+      ]
+    }
+  },
+  "actions": {},
+  "utteranceDict": {
+    "?": "help"
+  }
+}
