@@ -30,7 +30,7 @@ import { Balance } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 interface BalanceCondition {
   address: string;

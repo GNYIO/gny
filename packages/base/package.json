@@ -16,7 +16,7 @@
   "types": "dist/index",
   "dependencies": {
     "@gny/ed": "1.0.9",
-    "@gny/extendedJoi": "1.0.9",
+    "@gny/extended-joi": "1.0.9",
     "@gny/interfaces": "1.0.9",
     "@gny/type-validation": "1.0.9",
     "@gny/utils": "1.0.9",

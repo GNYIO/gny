@@ -1,6 +1,6 @@
 import { AccountViewModel } from '@gny/interfaces';
 import { generateAddress } from '@gny/utils';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import Peer from '../../src/core/peer';
 import { StateHelper } from '../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';

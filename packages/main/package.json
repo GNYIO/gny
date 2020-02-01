@@ -18,7 +18,7 @@
     "@gny/base": "1.0.9",
     "@gny/database-postgres": "1.0.9",
     "@gny/ed": "1.0.9",
-    "@gny/extendedJoi": "1.0.9",
+    "@gny/extended-joi": "1.0.9",
     "@gny/interfaces": "1.0.9",
     "@gny/logger": "1.0.9",
     "@gny/machine-learning": "1.0.9",

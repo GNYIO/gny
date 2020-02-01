@@ -17,7 +17,7 @@ import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transaction } from '@gny/database-postgres';
 import Transactions from '../../../src/core/transactions';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;

@@ -1,5 +1,5 @@
 import { NewBlockMessage } from '@gny/interfaces';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export function isNewBlockMessage(body: any): body is NewBlockMessage {
   const schema = joi.object({
