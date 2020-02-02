@@ -8,7 +8,7 @@
     "removeArtifacts": "rm -rf dist"
   },
   "bin": {
-    "cli": "./dist/index.js"
+    "@gny/cli": "./dist/index.js"
   },
   "files": [
     "dist"
