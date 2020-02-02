@@ -56,6 +56,10 @@ export function isTransaction(transaction: any): transaction is ITransaction {
       .string()
       .positiveOrZeroBigInt()
       .required(),
+    _version_: joi
+      .number()
+      .positive()
+      .optional(),
   });
 
   const report = joi.validate(transaction, schema);
