@@ -91,6 +91,7 @@ export class SmartDB extends EventEmitter {
 
     // bind function to class
     this.getBlockByHeight = this.getBlockByHeight.bind(this);
+    this.getBlocksByHeightRange = this.getBlocksByHeightRange.bind(this);
   }
 
   async init() {
