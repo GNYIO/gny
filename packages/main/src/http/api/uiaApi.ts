@@ -19,7 +19,7 @@ import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
 import { Balance } from '@gny/database-postgres';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export default class UiaApi implements IHttpApi {
   private library: IScope;

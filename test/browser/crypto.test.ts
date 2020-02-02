@@ -1,5 +1,5 @@
 import 'jest-extended';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 const TIMEOUT = 60000;
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
+  "version": "1.0.12",
   "packages": [
     "packages/base",
     "packages/cli",
@@ -9,6 +9,7 @@
     "packages/extendedJoi",
     "packages/interfaces",
     "packages/logger",
+    "packages/machine-learning",
     "packages/main",
     "packages/p2p",
     "packages/protobuf",
@@ -17,7 +18,6 @@
     "packages/utils",
     "packages/web-base",
     "packages/web-ed",
-    "packages/machine-learning",
     "test"
   ],
   "npmClient": "npm"
