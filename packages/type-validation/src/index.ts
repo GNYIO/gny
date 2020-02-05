@@ -5,3 +5,4 @@ export * from './isPeerNode';
 export * from './isNewBlockMessage';
 export * from './isTransaction';
 export * from './isUnconfirmedTransaction';
+export * from './isNetworkType';

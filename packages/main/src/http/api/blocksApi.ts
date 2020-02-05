@@ -19,7 +19,7 @@ import { BlockBase } from '@gny/base';
 import { getBlocks as getBlocksFromApi } from '../util';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { BigNumber } from 'bignumber.js';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;

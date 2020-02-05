@@ -10,5 +10,3 @@ logs
 genGenesisBlock.txt
 jest.config.js
 jest.tsconfig.json
-purge-all-docker-containers
-rebuild.sh

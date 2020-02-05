@@ -7,6 +7,7 @@ import {
   ApiResult,
   PeersWrapper,
   VersionWrapper,
+  PeerInfoWrapper,
 } from '@gny/interfaces';
 import Peer from '../../../src/core/peer';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -30,6 +31,7 @@ export default class PeerApi implements IHttpApi {
     });
 
     router.get('/', this.getPeers);
+    router.get('/info', this.info);
     router.get('/version', this.version);
 
     router.use((req: Request, res: Response) => {
@@ -52,6 +54,16 @@ export default class PeerApi implements IHttpApi {
       success: true,
       peers,
       count: peers.length,
+    };
+    return res.json(result);
+  };
+
+  private info = (req: Request, res: Response, next: Next) => {
+    const result: ApiResult<PeerInfoWrapper> = {
+      success: true,
+      ...Peer.p2p.info(),
+      publicIp: this.library.config.publicIp,
+      address: this.library.config.address,
     };
     return res.json(result);
   };

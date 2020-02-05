@@ -69,19 +69,12 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static preparePeerInfo = async (rawPeerInfo: string) => {
-    const KEY = JSON.parse(rawPeerInfo);
-
-    let peerId: any;
-    if (global.library.config.peers.privateP2PKey) {
-      const buf = Buffer.from(
-        global.library.config.peers.privateP2PKey,
-        'base64'
-      );
-      peerId = await createFromPrivKey(buf);
-    } else {
-      peerId = await createFromJSON(KEY);
-    }
+  public static preparePeerInfo = async () => {
+    const buf = Buffer.from(
+      global.library.config.peers.privateP2PKey,
+      'base64'
+    );
+    const peerId = await createFromPrivKey(buf);
 
     const peerInfo = await createPeerInfoArgs(peerId);
 
@@ -89,14 +82,13 @@ export default class Peer implements ICoreModule {
       global.library.config.peerPort
     }`;
     peerInfo.multiaddrs.add(multi);
+
     return peerInfo;
   };
 
   // Events
   public static onBlockchainReady = async () => {
-    const peerInfo = await Peer.preparePeerInfo(
-      global.library.config.peers.rawPeerInfo
-    );
+    const peerInfo = await Peer.preparePeerInfo();
 
     // TODO persist peerBook of node
     const bootstrapNode = global.library.config.peers.bootstrap
@@ -119,6 +111,50 @@ export default class Peer implements ICoreModule {
     Peer.p2p
       .start()
       .then(() => {
+        global.library.logger.error(
+          `publicIp is: ${global.library.config.publicIp}`
+        );
+
+        // issue #255
+        global.library.logger.log(
+          `multiaddrs before: ${JSON.stringify(
+            Peer.p2p.peerInfo.multiaddrs.toArray(),
+            null,
+            2
+          )}`
+        );
+        const length = Peer.p2p.peerInfo.multiaddrs.toArray().length;
+        for (let i = 0; i < length; ++i) {
+          console.log(
+            `multi-for-loop ${i}: current: ${
+              Peer.p2p.peerInfo.multiaddrs.toArray()[0]
+            }`
+          );
+          Peer.p2p.peerInfo.multiaddrs.delete(
+            Peer.p2p.peerInfo.multiaddrs.toArray()[0]
+          );
+        }
+        console.log(
+          `multiaddrs after: ${JSON.stringify(
+            Peer.p2p.peerInfo.multiaddrs.toArray(),
+            null,
+            2
+          )}\n\n`
+        );
+
+        const multi2 = `/ip4/${global.library.config.publicIp}/tcp/${
+          global.library.config.peerPort
+        }/ipfs/${Peer.p2p.peerInfo.id.toB58String()}`;
+        Peer.p2p.peerInfo.multiaddrs.add(multi2);
+
+        console.log(
+          `multiaddrs after upgrade: ${JSON.stringify(
+            Peer.p2p.peerInfo.multiaddrs.toArray(),
+            null,
+            2
+          )}\n\n`
+        );
+
         global.library.bus.message('onPeerReady');
       })
       .catch(err => {

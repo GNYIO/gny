@@ -1,0 +1,30 @@
+{
+  "name": "@gny/machine-learning",
+  "private": true,
+  "version": "1.0.12",
+  "description": "",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@nodeutils/defaults-deep": "^1.1.0",
+    "@polkadot/ts": "git+https://github.com/a1300/ts.git",
+    "@types/node": "^10.14.18",
+    "anomaly-detector": "^0.1.4",
+    "bayes": "^1.0.0",
+    "csvtojson": "^2.0.10",
+    "hashmap": "^2.4.0",
+    "js-recommender": "^1.0.5",
+    "node-geocoder": "^3.25.0",
+    "node-kmeans": "^1.1.9",
+    "node-nlp": "^4.0.2"
+  }
+}

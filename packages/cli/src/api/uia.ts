@@ -238,7 +238,7 @@ export default function uia(program: ApiConfig) {
     .action(getBalances);
 
   program
-    .command('getbalance')
+    .command('getbalancebycurrency')
     .description('get balance by address and currency')
     .option('-a, --address <address>', '')
     .option('-c, --currency <currency>', '')

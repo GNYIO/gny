@@ -42,4 +42,27 @@ describe('peerApi', () => {
       lib.oneMinute
     );
   });
+
+  describe('/info', () => {
+    it(
+      'should get info about the client',
+      async () => {
+        const { data } = await axios.get(
+          'http://localhost:4096/api/peers/info'
+        );
+        expect(data).toHaveProperty('publicIp');
+        expect(typeof data.publicIp).toEqual('string');
+
+        expect(data).toHaveProperty('address');
+        expect(typeof data.address).toEqual('string');
+
+        expect(data).toHaveProperty('multiaddrs');
+        expect(Array.isArray(data.multiaddrs)).toEqual(true);
+
+        expect(data).toHaveProperty('id');
+        expect(typeof data.id).toEqual('string');
+      },
+      lib.oneMinute
+    );
+  });
 });

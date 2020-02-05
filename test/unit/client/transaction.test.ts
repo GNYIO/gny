@@ -1,6 +1,6 @@
 import 'jest-extended';
 import * as gnyClient from '@gny/client';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import { ITransaction } from '@gny/interfaces';
 
 const genesisSecret =

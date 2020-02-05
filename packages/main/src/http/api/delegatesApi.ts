@@ -21,7 +21,7 @@ import Delegates from '../../../src/core/delegates';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import { BigNumber } from 'bignumber.js';
 
 export default class DelegatesApi implements IHttpApi {

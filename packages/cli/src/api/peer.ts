@@ -35,6 +35,17 @@ function getVersion() {
   });
 }
 
+function getInfo() {
+  getApi().get('/api/peers/info', function(err, result) {
+    if (err) {
+      console.log(err);
+      process.exit(1);
+    } else {
+      console.log(pretty(result));
+    }
+  });
+}
+
 export default function peer(program: ApiConfig) {
   globalOptions = program;
 
@@ -47,4 +58,9 @@ export default function peer(program: ApiConfig) {
     .command('getversion')
     .description('get version')
     .action(getVersion);
+
+  program
+    .command('getinfo')
+    .description('get info')
+    .action(getInfo);
 }

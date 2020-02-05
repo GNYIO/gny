@@ -18,7 +18,7 @@ import {
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
 import Transactions from '../../../src/core/transactions';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import * as bip39 from 'bip39';
 

@@ -1,7 +1,6 @@
 {
   "name": "gny",
   "private": true,
-  "version": "1.0.0",
   "description": "Decentralized machine learning on the blockchain",
   "main": "packages/main/dist/src/app",
   "scripts": {

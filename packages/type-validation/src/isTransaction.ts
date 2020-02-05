@@ -1,5 +1,5 @@
 import { ITransaction } from '@gny/interfaces';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export function isTransaction(transaction: any): transaction is ITransaction {
   // property height is required
@@ -56,6 +56,10 @@ export function isTransaction(transaction: any): transaction is ITransaction {
       .string()
       .positiveOrZeroBigInt()
       .required(),
+    _version_: joi
+      .number()
+      .positive()
+      .optional(),
   });
 
   const report = joi.validate(transaction, schema);

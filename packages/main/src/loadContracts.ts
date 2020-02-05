@@ -1,6 +1,7 @@
 // import contracts
 import basic from './contract/basic';
 import uia from './contract/uia';
+import ml from './contract/ml';
 
 interface ModuleWrapper {
   module: any;
@@ -16,4 +17,5 @@ function addContract(contract: ModuleWrapper) {
 export default async function loadContracts() {
   addContract({ module: basic, name: 'basic' });
   addContract({ module: uia, name: 'uia' });
+  addContract({ module: ml, name: 'ml' });
 }

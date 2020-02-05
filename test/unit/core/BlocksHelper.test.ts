@@ -27,7 +27,7 @@ const dummyLogger = {
 };
 
 function loadGenesisBlock() {
-  const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
+  const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
     encoding: 'utf8',
   });
   const genesisBlock: IBlock = JSON.parse(genesisBlockRaw);

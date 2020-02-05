@@ -1,6 +1,6 @@
 import * as inquirer from 'inquirer';
 import { Api, ApiConfig } from '../lib/api';
-import { generateSecret } from '@gny/utils';
+import { generateSecret } from '../helpers';
 import * as accountHelper from '../lib/account';
 import { generateKeyPair } from '@gny/ed';
 import * as crypto from 'crypto';
@@ -59,10 +59,10 @@ async function genAccount() {
     accounts.push({
       address: one.address,
       secret: one.secret,
-      publicKey: one.keypair.publicKey,
+      publicKey: one.keypair.publicKey.toString('hex'),
     });
   }
-  console.log(accounts);
+  console.log(pretty(accounts));
   console.log('Done');
 }
 

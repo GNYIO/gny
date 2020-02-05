@@ -1,7 +1,6 @@
 {
   "name": "@gny/type-validation",
-  "private": true,
-  "version": "1.0.0",
+  "version": "1.0.12",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -16,7 +15,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/extendedJoi": "1.0.0",
-    "@gny/interfaces": "1.0.1"
+    "@gny/extended-joi": "1.0.12",
+    "@gny/interfaces": "1.0.12"
   }
 }

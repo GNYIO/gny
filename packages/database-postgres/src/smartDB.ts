@@ -37,6 +37,8 @@ export * from './entity/Transaction';
 export * from './entity/Transfer';
 export * from './entity/Variable';
 export * from './entity/Vote';
+export * from './entity/Mldata';
+export * from './entity/Prediction';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
@@ -89,6 +91,7 @@ export class SmartDB extends EventEmitter {
 
     // bind function to class
     this.getBlockByHeight = this.getBlockByHeight.bind(this);
+    this.getBlocksByHeightRange = this.getBlocksByHeightRange.bind(this);
   }
 
   async init() {

@@ -1,5 +1,5 @@
 import { IConfig, ILogger } from '@gny/interfaces';
-import { joi } from '@gny/extendedJoi';
+import { joi } from '@gny/extended-joi';
 
 export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
   const schema = joi
@@ -33,9 +33,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
           .array()
           .items(joi.string())
           .required(),
-        p2pKeyFile: joi.string().required(),
-        rawPeerInfo: joi.string().required(),
-        privateP2PKey: joi.string().optional(),
+        privateP2PKey: joi.string().required(),
       }),
       forging: joi
         .object()
@@ -65,7 +63,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       version: joi.string(),
       baseDir: joi.string(),
       buildVersion: joi.string(),
-      netVersion: joi.string(),
+      netVersion: joi
+        .string()
+        .networkType()
+        .required(),
       ormConfigRaw: joi.string().required(),
     })
     .required();

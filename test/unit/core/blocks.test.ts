@@ -17,7 +17,7 @@ import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 
 function loadGenesisBlock() {
-  const genesisBlockRaw = fs.readFileSync('genesisBlock.json', {
+  const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
     encoding: 'utf8',
   });
   const genesisBlock: IBlock = JSON.parse(genesisBlockRaw);

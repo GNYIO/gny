@@ -132,18 +132,16 @@ export interface IConfig {
   magic: string;
   baseDir: string;
   buildVersion: string;
-  netVersion: string;
+  netVersion: NetworkType;
   port: number;
   peerPort: number;
   address: string;
   peers: {
     bootstrap: string[];
-    p2pKeyFile: string;
-    rawPeerInfo: string;
+    privateP2PKey: string;
     options: {
       timeout: number;
     };
-    privateP2PKey: string;
   };
   forging: {
     secret: string[];
@@ -603,6 +601,13 @@ export interface SyncStatus {
   height: string;
 }
 
+export interface PeerInfoWrapper {
+  id: string;
+  multiaddrs: string[];
+  publicIp: string;
+  address: string;
+}
+
 export interface PeersWrapper {
   peers: SimplePeerInfo[];
   count: number;
@@ -694,6 +699,8 @@ export interface BalanceWrapper {
 }
 
 // Client
+
+export type NetworkType = 'localnet' | 'testnet' | 'mainnet';
 
 export type ResponseError =
   | GetAccountError
