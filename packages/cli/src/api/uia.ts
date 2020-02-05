@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
 import { Api, ApiConfig } from '../lib/api';
-import { ITransaction } from '@gny/interfaces';
+import { ITransaction, KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -166,12 +166,15 @@ function registerDelegate(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
   const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),
@@ -253,8 +256,8 @@ export default function uia(program: ApiConfig) {
   program
     .command('registerdelegate')
     .description('register delegate')
-    .option('-e, --secret <secret>', '')
-    .option('-s, --secondSecret <secret>', '')
-    .option('-u, --username <username>', '')
+    .option('--secret <secret>')
+    .option('--username <username>')
+    .option('--secondSecret [secret]')
     .action(registerDelegate);
 }
