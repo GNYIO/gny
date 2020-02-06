@@ -3,31 +3,11 @@ import axios from 'axios';
 import * as program from 'commander';
 import { UnconfirmedTransaction } from '@gny/interfaces';
 
-export function resultHandler(cb) {
-  return function(err, resp, body) {
-    if (err) {
-      cb('Request error: ' + err);
-    } else if (resp.statusCode != 200) {
-      let msg = 'Unexpected status code: ' + resp.statusCode;
-      if (body.error) {
-        msg += ', ';
-        msg += body.error;
-      }
-      cb(msg);
-    } else {
-      if (body.hasOwnProperty('success') && !body.success) {
-        cb('Server error: ' + (body.error || body.message));
-      } else {
-        console.log(body);
-        cb(null, body);
-      }
-    }
-  };
-}
-
-function pretty(obj: any) {
-  return JSON.stringify(obj, null, 2);
-}
+const config = {
+  headers: {
+    magic: '594fe0f3',
+  },
+};
 
 export interface ApiOptions {
   host: string;
@@ -60,50 +40,37 @@ export class Api {
     }
 
     axios
-      .get(this.baseUrl + path, { params: params })
+      .get(this.baseUrl + path, { params: qs })
       .then(function(response) {
         cb(null, response.data);
       })
       .catch(function(error) {
         cb(error, null);
       });
-
-    // request(
-    //   {
-    //     method: 'GET',
-    //     url: this.baseUrl + path,
-    //     json: true,
-    //     qs: qs,
-    //   },
-    //   resultHandler(cb)
-    // );
   };
 
   post = function(path, data, cb) {
-    request(
-      {
-        method: 'POST',
-        url: this.baseUrl + path,
-        json: data,
-      },
-      resultHandler(cb)
-    );
+    axios
+      .post(this.baseUrl + path, data, config)
+      .then(function(response) {
+        cb(null, response.data);
+      })
+      .catch(function(error) {
+        cb(error, null);
+      });
   };
 
   broadcastTransaction = function(trs: UnconfirmedTransaction, cb) {
-    request(
-      {
-        method: 'POST',
-        url: this.baseUrl + '/peer/transactions',
-        headers: {
-          magic: this.magic,
-          version: '',
-        },
-        json: {
-          transaction: trs,
-        },
-      },
-      resultHandler(cb)
-    );
+    const data = {
+      transaction: trs,
+    };
+    axios
+      .post(this.baseUrl + '/peer/transactions', data, config)
+      .then(function(response) {
+        cb(null, response.data);
+      })
+      .catch(function(error) {
+        cb(error, null);
+      });
   };
 }

@@ -3,7 +3,7 @@ import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
 import { Api, ApiConfig } from '../lib/api';
-import { ITransaction } from '@gny/interfaces';
+import { KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -138,12 +138,17 @@ function sendAsset(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: KeyPair;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
     type: 103,
     fee: String(10000000),
@@ -168,12 +173,17 @@ function registerDelegate(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: KeyPair;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),

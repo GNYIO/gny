@@ -2,6 +2,7 @@ import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { Api, ApiConfig } from '../lib/api';
 import { TransactionBase } from '@gny/base';
+import { KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -52,6 +53,7 @@ function lock(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
+
   if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
@@ -92,12 +94,17 @@ function vote(options) {
     .update(secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: KeyPair;
+  if (secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
     type: 4,
     fee: String(10000000),
@@ -128,12 +135,17 @@ function unvote(options) {
     .update(secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: KeyPair;
+  if (secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
     type: 5,
     fee: String(10000000),
@@ -173,7 +185,9 @@ function listDiffVotes(options) {
         process.exit(1);
       }
 
-      const names_a = result.delegates.map(delegate => delegate.username);
+      const names_a: string[] = result.delegates.map(
+        delegate => delegate.username
+      );
       const a = new Set(names_a);
       const params = { username: username };
       getApi().get('/api/delegates/getVoters', params, function(err, result) {
@@ -182,10 +196,12 @@ function listDiffVotes(options) {
           process.exit(1);
         }
 
-        const names_b = result.accounts.map(account => account.username);
+        const names_b: string[] = result.accounts.map(
+          account => account.username
+        );
         const b = new Set(names_b);
-        const diffab = [...a].filter(x => !b.has(x));
-        const diffba = [...b].filter(x => !a.has(x));
+        const diffab = [...Array.from(a)].filter(x => !b.has(x));
+        const diffba = [...Array.from(b)].filter(x => !a.has(x));
         console.log(
           "you voted but doesn't vote you: \n\t",
           JSON.stringify(diffab)
