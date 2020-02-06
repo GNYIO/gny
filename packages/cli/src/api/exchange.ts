@@ -80,7 +80,7 @@ export default function exchange(program: ApiConfig) {
     .action(genPublicKey);
 
   program
-    .command('getpublickey [secret]')
+    .command('getpublickeybysecret [secret]')
     .description('get public key by secret')
     .action(genPublicKey);
 
