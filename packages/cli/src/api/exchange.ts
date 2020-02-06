@@ -80,6 +80,11 @@ export default function exchange(program: ApiConfig) {
     .action(genPublicKey);
 
   program
+    .command('getpublickey [secret]')
+    .description('get public key by secret')
+    .action(genPublicKey);
+
+  program
     .command('genaccount')
     .description('generate accounts')
     .action(genAccount);

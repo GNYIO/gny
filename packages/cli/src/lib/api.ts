@@ -1,4 +1,3 @@
-import * as request from 'request';
 import axios from 'axios';
 import * as program from 'commander';
 import { UnconfirmedTransaction } from '@gny/interfaces';
