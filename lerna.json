@@ -6,7 +6,7 @@
     "packages/client",
     "packages/database-postgres",
     "packages/ed",
-    "packages/extendedJoi",
+    "packages/extended-joi",
     "packages/interfaces",
     "packages/logger",
     "packages/machine-learning",
