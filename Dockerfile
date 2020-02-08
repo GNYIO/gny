@@ -22,7 +22,7 @@ RUN npm ci
 # copy all package-lock files (bash: find -name "package-lock.json" -not -path "**/node_modules/*")
 COPY packages/p2p/package-lock.json ./packages/p2p/package-lock.json
 RUN true
-COPY packages/extendedJoi/package-lock.json ./packages/extendedJoi/package-lock.json
+COPY packages/extended-joi/package-lock.json ./packages/extended-joi/package-lock.json
 RUN true
 COPY packages/client/package-lock.json ./packages/client/package-lock.json
 RUN true
@@ -56,7 +56,7 @@ RUN true
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
 RUN true
-COPY packages/extendedJoi/package.json ./packages/extendedJoi/package.json
+COPY packages/extended-joi/package.json ./packages/extended-joi/package.json
 RUN true
 COPY packages/client/package.json ./packages/client/package.json
 RUN true

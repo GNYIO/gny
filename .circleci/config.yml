@@ -58,7 +58,7 @@ commands:
             - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
-            - ./packages/extendedJoi/node_modules
+            - ./packages/extended-joi/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
@@ -99,7 +99,7 @@ jobs:
             - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
-            - ./packages/extendedJoi/node_modules
+            - ./packages/extended-joi/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
@@ -215,7 +215,7 @@ jobs:
             - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
-            - ./packages/extendedJoi/node_modules
+            - ./packages/extended-joi/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
@@ -296,7 +296,7 @@ jobs:
             - ./packages/client/node_modules
             - ./packages/database-postgres/node_modules
             - ./packages/ed/node_modules
-            - ./packages/extendedJoi/node_modules
+            - ./packages/extended-joi/node_modules
             - ./packages/interfaces/node_modules
             - ./packages/logger/node_modules
             - ./packages/main/node_modules
