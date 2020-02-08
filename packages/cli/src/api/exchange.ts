@@ -70,12 +70,12 @@ export default function exchange(program: ApiConfig) {
   globalOptions = program;
 
   program
-    .command('openaccountwithsecret [secret]')
+    .command('openaccountwithsecret <secret>')
     .description('open your account and get the infomation by secret')
     .action(openAccountWithSecret);
 
   program
-    .command('genpublickey [secret]')
+    .command('genpublickey <secret>>')
     .description('generate public key by secret')
     .action(genPublicKey);
 

@@ -103,22 +103,22 @@ export default function delegate(program: ApiConfig) {
     .action(getDelegates);
 
   program
-    .command('getvoters [username]')
+    .command('getvoters <username>')
     .description('get voters of a delegate by username')
     .action(getVoters);
 
   program
-    .command('getdelegatebypublickey [publicKey]')
+    .command('getdelegatebypublickey <publicKey>')
     .description('get delegate by public key')
     .action(getDelegateByPublicKey);
 
   program
-    .command('getdelegatebyusername [username]')
+    .command('getdelegatebyusername <username>')
     .description('get delegate by username')
     .action(getDelegateByUsername);
 
   program
-    .command('getdelegatebyaddress [address]')
+    .command('getdelegatebyaddress <address>')
     .description('get delegate by address')
     .action(getDelegateByAddress);
 }
