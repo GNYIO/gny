@@ -22,6 +22,10 @@ function createKeypair(secret: string) {
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
+const genesisAddress = gnyClient.crypto.getAddress(
+  gnyClient.crypto.getKeys(genesisSecret).publicKey
+);
+
 async function registerIssuerAsync(name, desc, secret = genesisSecret) {
   const issuerTrs = gnyClient.uia.registerIssuer(name, desc, secret);
   const issuerTransData = {
@@ -279,10 +283,19 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         // After vote
+
+        // check with username
         const afterVote = await axios.get(
           'http://localhost:4096/api/accounts/getVotes?username=' + username
         );
         expect(afterVote.data.delegates).toHaveLength(1);
+
+        // check with address
+        const afterVote2 = await axios.get(
+          'http://localhost:4096/api/accounts/getVotes?address=' +
+            genesisAddress
+        );
+        expect(afterVote2.data.delegates).toHaveLength(1);
       },
       2 * lib.oneMinute
     );
