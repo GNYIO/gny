@@ -28,5 +28,35 @@ describe('address', () => {
       const address = 'AeVw2DVnLMx4ppcTojqNU7rQPvNW';
       expect(isAddress(address)).toBeFalsy;
     });
+
+    it('should return false if address is ony G', () => {
+      const address = 'G';
+      expect(isAddress(address)).toEqual(false);
+    });
+
+    it('should return false on too short address', () => {
+      const address = 'GAeVw2DVnLMx4p';
+      expect(isAddress(address)).toEqual(false);
+    });
+
+    it('should return false on too long address', () => {
+      const address = 'G' + 'eVw2DVnLMx4ppcTojqNU7rQPvNW' + '4';
+      expect(isAddress(address)).toEqual(false);
+    });
+
+    it('should return false on empty string', () => {
+      const address = '';
+      expect(isAddress(address)).toEqual(false);
+    });
+
+    it('should return false on shorter address', () => {
+      const address = 'GeVw2DVnLMx4ppcTojqNU7rQPvN'; // removed last W
+      expect(isAddress(address)).toEqual(false);
+    });
+
+    it('should return on address with dollar symbol', () => {
+      const address = 'GeVw2DVnLMx4ppcTojqNU7rQPvN$'; // removed last W
+      expect(isAddress(address)).toEqual(false);
+    });
   });
 });
