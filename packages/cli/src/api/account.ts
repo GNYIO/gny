@@ -1,126 +1,107 @@
-import * as inquirer from 'inquirer';
-import { Api, ApiConfig } from '../lib/api';
-import { generateSecret } from '../helpers';
-import * as accountHelper from '../lib/account';
+import { ApiConfig, http } from '../lib/api';
 import { AddressOrUsername } from '@gny/interfaces';
-import { generateKeyPair } from '@gny/ed';
-import * as crypto from 'crypto';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
 function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
-function openAccount(publicKey: string) {
-  getApi().post('/api/accounts/openAccount', { publicKey: publicKey }, function(
-    err,
-    result
-  ) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
+export async function openAccount(publicKey: string) {
+  const { data } = await http.post(baseUrl + '/api/accounts/openAccount', {
+    publicKey: publicKey,
   });
+  console.log(pretty(data));
 }
 
-function getBalance(address: string) {
+export async function getBalance(address: string) {
   const params = { address: address };
-  getApi().get('/api/accounts/getBalance', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  try {
+    const { data } = await http.get(baseUrl + '/api/accounts/getBalance', {
+      params: params,
+    });
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-function getAccountByAddress(address: string) {
+export async function getAccountByAddress(address: string) {
   const params = { address: address };
-  getApi().get('/api/accounts/', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  try {
+    const { data } = await http.get(baseUrl + '/api/accounts/', {
+      params: params,
+    });
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-function getAccountByUsername(username: string) {
+export async function getAccountByUsername(username: string) {
   const params = { username: username };
-  getApi().get('/api/accounts/', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+
+  try {
+    const { data } = await http.get(baseUrl + '/api/accounts/', {
+      params: params,
+    });
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-function getAddressCurrencyBalance(options) {
-  getApi().get(`/api/accounts/${options.address}/${options.currency}`, function(
-    err,
-    result
-  ) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getAddressCurrencyBalance(options) {
+  try {
+    const { data } = await http.get(
+      baseUrl + `/api/accounts/${options.address}/${options.currency}`
+    );
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-function getVotedDelegates(options: AddressOrUsername) {
-  getApi().get('/api/accounts/getVotes', options, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getVotedDelegates(options: AddressOrUsername) {
+  try {
+    const { data } = await http.get(baseUrl + `/api/accounts/getVotes`, {
+      params: options,
+    });
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-function countAccounts() {
-  getApi().get('/api/accounts/count', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function countAccounts() {
+  try {
+    const { data } = await http.get(baseUrl + `/api/accounts/count`);
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
-async function getPublicKey(address: string) {
+export async function getPublicKey(address: string) {
   const params = {
     address: address,
   };
-  getApi().get('/api/accounts/getPublicKey', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  try {
+    const { data } = await http.get(baseUrl + '/api/accounts/getPublicKey', {
+      params: params,
+    });
+    console.log(pretty(data));
+  } catch (error) {
+    console.log(error.response.data);
+  }
 }
 
 export default function account(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('openaccount [publicKey]')
