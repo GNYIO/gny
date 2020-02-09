@@ -118,10 +118,25 @@ describe('delegatesApi', () => {
         );
         await lib.onNewBlock();
 
-        const { data } = await axios.get(
+        // get by username
+        const result1 = await axios.get(
           'http://localhost:4096/api/delegates/get?username=' + username
         );
-        expect(data.delegate.username).toBe(username);
+        expect(result1.data.delegate.username).toBe(username);
+
+        // get by publicKey
+        const publicKey = gnyClient.crypto.getKeys(genesisSecret).publicKey;
+        const result2 = await axios.get(
+          'http://localhost:4096/api/delegates/get?publicKey=' + publicKey
+        );
+        expect(result2.data.delegate.publicKey).toBe(publicKey);
+
+        // get by address
+        const address = gnyClient.crypto.getAddress(publicKey);
+        const result3 = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + address
+        );
+        expect(result3.data.delegate.address).toBe(address);
         done();
       },
       lib.oneMinute
