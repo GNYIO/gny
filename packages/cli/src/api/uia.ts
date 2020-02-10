@@ -1,9 +1,8 @@
-import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
 import { Api, ApiConfig } from '../lib/api';
-import { ITransaction } from '@gny/interfaces';
+import { KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
 
@@ -136,12 +135,17 @@ function sendAsset(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
   const trs = TransactionBase.create({
     type: 103,
     fee: String(10000000),
@@ -166,12 +170,16 @@ function registerDelegate(options) {
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
-  const secondKeypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(options.secondSecret, 'utf8')
-      .digest()
-  );
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
   const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),
@@ -201,17 +209,17 @@ export default function uia(program: ApiConfig) {
     .action(getIssuers);
 
   program
-    .command('isissuer [address]')
+    .command('isissuer <address>')
     .description('check if is an issuer by address')
     .action(isIssuer);
 
   program
-    .command('getissuer [name]')
+    .command('getissuer <name>')
     .description('get issuer by name')
     .action(getIssuer);
 
   program
-    .command('getissuerassets [name]')
+    .command('getissuerassets <name>')
     .description('get issuer assets by name')
     .action(getIssuerAssets);
 
@@ -223,38 +231,38 @@ export default function uia(program: ApiConfig) {
     .action(getAssets);
 
   program
-    .command('getasset [name]')
+    .command('getasset <name>')
     .description('get asset by name')
     .action(getAsset);
 
   program
-    .command('getbalances [address]')
+    .command('getbalances <address>')
     .description('get balances by address')
     .action(getBalances);
 
   program
     .command('getbalancebycurrency')
     .description('get balance by address and currency')
-    .option('-a, --address <address>', '')
-    .option('-c, --currency <currency>', '')
+    .requiredOption('-a, --address <address>', '')
+    .requiredOption('-c, --currency <currency>', '')
     .action(getBalance);
 
   program
     .command('sendasset')
     .description('send asset to some address')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-c, --currency <currency>', '')
-    .option('-a, --amount <amount>', '')
-    .option('-r, --recipient <address>', '')
+    .requiredOption('-c, --currency <currency>', '')
+    .requiredOption('-a, --amount <amount>', '')
+    .requiredOption('-r, --recipient <address>', '')
     .option('-m, --message <message>', '')
     .action(sendAsset);
 
   program
     .command('registerdelegate')
     .description('register delegate')
-    .option('-e, --secret <secret>', '')
-    .option('-s, --secondSecret <secret>', '')
-    .option('-u, --username <username>', '')
+    .requiredOption('--secret <secret>')
+    .requiredOption('--username <username>')
+    .option('--secondSecret <secret>')
     .action(registerDelegate);
 }

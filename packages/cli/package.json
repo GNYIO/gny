@@ -27,7 +27,7 @@
     "bitcore-mnemonic": "^8.13.2",
     "bs58": "^4.0.1",
     "bytebuffer": "^5.0.1",
-    "commander": "^2.20.0",
+    "commander": "^4.1.1",
     "fast-sha256": "^1.1.0",
     "inquirer": "^6.5.0",
     "peer-info": "^0.15.1",

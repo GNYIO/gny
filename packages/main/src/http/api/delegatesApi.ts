@@ -150,11 +150,15 @@ export default class DelegatesApi implements IHttpApi {
 
   private getDelegate = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const publicKeyOrNameOrAddress = joi.object().keys({
-      publicKey: joi.string().publicKey(),
-      username: joi.string().username(),
-      address: joi.string().address(),
-    });
+    const publicKeyOrNameOrAddress = joi
+      .object()
+      .keys({
+        publicKey: joi.string().publicKey(),
+        username: joi.string().username(),
+        address: joi.string().address(),
+      })
+      .xor('publicKey', 'username', 'address')
+      .required();
     const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
       return res.status(422).send({
