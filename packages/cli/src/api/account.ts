@@ -157,7 +157,7 @@ export default function account(program: ApiConfig) {
     .action(getVotedDelegates);
 
   program
-    .requiredOption('getpublickey <address>')
+    .command('getpublickey <address>')
     .description('get public key by address')
     .action(getPublicKey);
 }
