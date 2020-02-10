@@ -1,4 +1,5 @@
-import { ApiConfig, http } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { AddressOrUsername } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
@@ -6,97 +7,44 @@ let baseUrl: string;
 
 baseUrl = `http://127.0.0.1:4096`;
 
-function pretty(obj: any) {
-  return JSON.stringify(obj, null, 2);
-}
-
 export async function openAccount(publicKey: string) {
-  const { data } = await http.post(baseUrl + '/api/accounts/openAccount', {
-    publicKey: publicKey,
-  });
-  console.log(pretty(data));
+  await Api.post(baseUrl + '/api/accounts/openAccount', { publicKey });
 }
 
 export async function getBalance(address: string) {
   const params = { address: address };
-  try {
-    const { data } = await http.get(baseUrl + '/api/accounts/getBalance', {
-      params: params,
-    });
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/getBalance', params);
 }
 
 export async function getAccountByAddress(address: string) {
   const params = { address: address };
-  try {
-    const { data } = await http.get(baseUrl + '/api/accounts/', {
-      params: params,
-    });
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/', params);
 }
 
 export async function getAccountByUsername(username: string) {
   const params = { username: username };
-
-  try {
-    const { data } = await http.get(baseUrl + '/api/accounts/', {
-      params: params,
-    });
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/', params);
 }
 
 export async function getAddressCurrencyBalance(options) {
-  try {
-    const { data } = await http.get(
-      baseUrl + `/api/accounts/${options.address}/${options.currency}`
-    );
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(
+    baseUrl + `/api/accounts/${options.address}/${options.currency}`
+  );
 }
 
 export async function getVotedDelegates(options: AddressOrUsername) {
-  try {
-    const { data } = await http.get(baseUrl + `/api/accounts/getVotes`, {
-      params: options,
-    });
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/getVotes', options);
 }
 
 export async function countAccounts() {
-  try {
-    const { data } = await http.get(baseUrl + `/api/accounts/count`);
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/count');
 }
 
 export async function getPublicKey(address: string) {
   const params = {
     address: address,
   };
-  try {
-    const { data } = await http.get(baseUrl + '/api/accounts/getPublicKey', {
-      params: params,
-    });
-    console.log(pretty(data));
-  } catch (error) {
-    console.log(error.response.data);
-  }
+  await Api.get(baseUrl + '/api/accounts/getPublicKey', params);
 }
 
 export default function account(program: ApiConfig) {
