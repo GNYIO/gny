@@ -190,30 +190,30 @@ export default function block(program: ApiConfig) {
     .action(getBlocks);
 
   program
-    .command('getblockbyid [id]')
+    .command('getblockbyid <id>')
     .description('get block by id')
     .action(getBlockById);
 
   program
-    .command('getblockbyheight [height]')
+    .command('getblockbyheight <height>')
     .description('get block by height')
     .action(getBlockByHeight);
 
   program
     .command('getblockbytes')
     .description('get block bytes')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockBytes);
 
   program
     .command('getblockid')
     .description('get block id')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockId);
 
   program
     .command('getblockpayloadhash')
     .description('get block bytes')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockPayloadHash);
 }

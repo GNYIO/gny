@@ -321,7 +321,8 @@ export default class AccountsApi implements IHttpApi {
         address: joi.string().address(),
         username: joi.string().username(),
       })
-      .xor('address', 'username');
+      .xor('address', 'username')
+      .required();
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
       return res.status(422).send({

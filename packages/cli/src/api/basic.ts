@@ -47,13 +47,13 @@ function setSecondSecret(options) {
 }
 
 function lock(options) {
-  let secondKeypair;
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
   const keypair = ed.generateKeyPair(hash);
 
+  let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
@@ -85,7 +85,6 @@ function lock(options) {
 function vote(options) {
   const secret = options.secret;
   const publicKeys = options.publicKeys;
-  const secondSecret = options.secondSecret;
   const keyList = publicKeys.split(',').map(function(el) {
     return el;
   });
@@ -95,21 +94,20 @@ function vote(options) {
     .digest();
   const keypair = ed.generateKeyPair(hash);
 
-  let secondKeypair: KeyPair;
-  if (secondSecret) {
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
         .createHash('sha256')
-        .update(secondSecret, 'utf8')
+        .update(options.secondSecret, 'utf8')
         .digest()
     );
   }
-
   const trs = TransactionBase.create({
     type: 4,
     fee: String(10000000),
     keypair: keypair,
-    secondKeypair: secondKeypair,
+    secondKeypair,
     args: keyList,
   });
 
@@ -136,8 +134,8 @@ function unvote(options) {
     .digest();
   const keypair = ed.generateKeyPair(hash);
 
-  let secondKeypair: KeyPair;
-  if (secondSecret) {
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
         .createHash('sha256')
@@ -168,6 +166,7 @@ function listDiffVotes(options) {
   const params = {
     username: options.username,
     address: options.address,
+    publicKey: options.publicKey,
   };
   getApi().get('/api/delegates/get', params, function(err, result) {
     if (err) {
@@ -221,33 +220,33 @@ export default function basic(program: ApiConfig) {
   program
     .command('setsecondsecret')
     .description('set second secret')
-    .option('-e, --secret <secret>', '')
-    .option('-s, --secondSecret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
+    .requiredOption('-s, --secondSecret <secret>', '')
     .action(setSecondSecret);
 
   program
     .command('lock')
     .description('lock account transfer')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-h, --height <height>', 'lock height')
-    .option('-m, --amount <amount>', 'lock amount')
+    .requiredOption('-h, --height <height>', 'lock height')
+    .requiredOption('-m, --amount <amount>', 'lock amount')
     .action(lock);
 
   program
     .command('vote')
     .description('vote for delegates')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-p, --publicKeys <public key list>', '')
+    .requiredOption('-p, --publicKeys <public key list>', '')
     .action(vote);
 
   program
     .command('unvote')
     .description('cancel vote for delegates')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-p, --publicKeys <public key list>', '')
+    .requiredOption('-p, --publicKeys <public key list>', '')
     .action(unvote);
 
   program

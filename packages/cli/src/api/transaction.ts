@@ -74,7 +74,7 @@ function sendMoney(options) {
     .digest();
   const keypair = ed.generateKeyPair(hash);
 
-  let secondKeypair: KeyPair;
+  let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
@@ -83,7 +83,6 @@ function sendMoney(options) {
         .digest()
     );
   }
-
   const trs = TransactionBase.create({
     type: 0,
     fee: String(10000000),
@@ -109,7 +108,7 @@ function sendTransactionWithFee(options) {
     .digest();
   const keypair = ed.generateKeyPair(hash);
 
-  let secondKeypair: KeyPair;
+  let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
     secondKeypair = ed.generateKeyPair(
       crypto
@@ -194,48 +193,51 @@ export default function transaction(program: ApiConfig) {
     .action(getTransactions);
 
   program
-    .command('gettransaction [id]')
+    .command('gettransaction <id>')
     .description('get unconfirmed transaction by id')
     .action(getUnconfirmedTransaction);
 
   program
     .command('sendmoney')
     .description('send money to some address')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-a, --amount <n>', '')
-    .option('-r, --recipient <address>', '')
+    .requiredOption('-a, --amount <n>', '')
+    .requiredOption('-r, --recipient <address>', '')
     .option('-m, --message <message>', '')
     .action(sendMoney);
 
   program
     .command('gettransactionbytes')
     .description('get transaction bytes')
-    .option('-f, --file <file>', 'transaction file')
+    .requiredOption('-f, --file <file>', 'transaction file')
     .action(getTransactionBytes);
 
   program
     .command('gettransactionid')
     .description('get transaction id')
-    .option('-f, --file <file>', 'transaction file')
+    .requiredOption('-f, --file <file>', 'transaction file')
     .action(getTransactionId);
 
   program
     .command('verifybytes')
     .description('verify bytes/signature/publickey')
-    .option('-b, --bytes <bytes>', 'transaction or block bytes')
-    .option('-s, --signature <signature>', 'transaction or block signature')
-    .option('-p, --publicKey <publicKey>', 'signer public key')
+    .requiredOption('-b, --bytes <bytes>', 'transaction or block bytes')
+    .requiredOption(
+      '-s, --signature <signature>',
+      'transaction or block signature'
+    )
+    .requiredOption('-p, --publicKey <publicKey>', 'signer public key')
     .action(verifyBytes);
 
   program
     .command('transaction')
     .description('create a transaction in mainchain with user specified fee')
-    .option('-e, --secret <secret>', '')
+    .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .option('-t, --type <type>', 'transaction type')
-    .option('-a, --args <args>', 'json array format')
+    .requiredOption('-t, --type <type>', 'transaction type')
+    .requiredOption('-a, --args <args>', 'json array format')
     .option('-m, --message <message>', '')
-    .option('-f, --fee <fee>', 'transaction fee')
+    .requiredOption('-f, --fee <fee>', 'transaction fee')
     .action(sendTransactionWithFee);
 }
