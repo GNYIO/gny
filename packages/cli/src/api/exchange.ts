@@ -1,40 +1,23 @@
 import * as inquirer from 'inquirer';
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig, pretty } from '../lib/api';
+import Api from '../lib/api';
 import { generateSecret } from '../helpers';
 import * as accountHelper from '../lib/account';
 import { generateKeyPair } from '@gny/ed';
 import * as crypto from 'crypto';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
-
-function pretty(obj: any) {
-  return JSON.stringify(obj, null, 2);
-}
+baseUrl = `http://127.0.0.1:4096`;
 
 // TODO: addTransactionUnsigned
 
-function openAccountWithSecret(secret: string) {
-  getApi().post('/api/exchange/openAccount', { secret: secret }, function(
-    err,
-    result
-  ) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function openAccountWithSecret(secret: string) {
+  await Api.post(baseUrl + '/api/exchange/openAccount', { secret: secret });
 }
 
-function genPublicKey(secret: string) {
+export function genPublicKey(secret: string) {
   const hash = crypto
     .createHash('sha256')
     .update(secret, 'utf8')
@@ -43,7 +26,7 @@ function genPublicKey(secret: string) {
   console.log(keys.publicKey.toString('hex'));
 }
 
-async function genAccount() {
+export async function genAccount() {
   const result: any = await inquirer.prompt([
     {
       type: 'input',
@@ -68,6 +51,7 @@ async function genAccount() {
 
 export default function exchange(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('openaccountwithsecret <secret>')

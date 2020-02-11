@@ -1,137 +1,74 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
-function getIssuers(options) {
-  const param = {
+export async function getIssuers(options) {
+  const params = {
     limit: options.limit,
     offest: options.offset,
   };
-  getApi().get('/api/uia/issuers', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/issuers', params);
 }
 
-function isIssuer(address: string) {
-  const param = {
+export async function isIssuer(address: string) {
+  const params = {
     address: address,
   };
-  getApi().get('/api/uia/isIssuer', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/isIssuer', params);
 }
 
-function getIssuer(name: string) {
-  const param = {
+export async function getIssuer(name: string) {
+  const params = {
     name: name,
   };
-  getApi().get('/api/uia/issuers', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/issuers', params);
 }
 
-function getIssuerAssets(name: string) {
-  getApi().get(`/api/uia/issuers/${name}/assets`, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getIssuerAssets(name: string) {
+  await Api.get(baseUrl + `/api/uia/issuers/${name}/assets`);
 }
 
-function getAssets(options) {
-  const param = {
+export async function getAssets(options) {
+  const params = {
     limit: options.limit,
     offest: options.offset,
   };
-  getApi().get('/api/uia/assets', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/assets', params);
 }
 
-function getAsset(name: string) {
-  const param = {
+export async function getAsset(name: string) {
+  const params = {
     name: name,
   };
-  getApi().get('/api/uia/assets', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/assets', params);
 }
 
-function getBalances(options) {
-  const param = {
+export async function getBalances(options) {
+  const params = {
     address: options.address,
     limit: options.limit,
     offset: options.offset,
   };
-  getApi().get('/api/uia/balances', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/balances', params);
 }
 
-function getBalance(options) {
-  const param = {
+export async function getBalance(options) {
+  const params = {
     address: options.address,
     currency: options.currency,
   };
-  getApi().get('/api/uia/balances', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/uia/balances', params);
 }
 
-function sendAsset(options) {
+export async function sendAsset(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -156,17 +93,10 @@ function sendAsset(options) {
     secondKeypair: secondKeypair,
     args: [options.currency, options.amount, options.recipient],
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function registerDelegate(options) {
+export async function registerDelegate(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -190,18 +120,13 @@ function registerDelegate(options) {
     secondKeypair: secondKeypair,
     args: [],
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
-  });
+
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
 export default function uia(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('getissuers')

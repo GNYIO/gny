@@ -1,31 +1,18 @@
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
-function pretty(obj: any) {
-  return JSON.stringify(obj, null, 2);
-}
-
-function getSystemInfo() {
-  getApi().get('/api/system/', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getSystemInfo() {
+  await Api.get(baseUrl + '/api/system/');
 }
 
 export default function system(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('getsysteminfo')

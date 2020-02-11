@@ -8,7 +8,7 @@ const config = {
   },
 };
 
-function pretty(obj: any) {
+export function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
 
@@ -29,6 +29,7 @@ export async function get(url, params?) {
     console.log(pretty(data));
   } catch (error) {
     console.log(error.response.data);
+    process.exit(1);
   }
 }
 

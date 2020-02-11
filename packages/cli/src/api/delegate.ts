@@ -1,94 +1,46 @@
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
-function getDelegates(options) {
+export async function getDelegates(options) {
   const params = {
     limit: options.limit,
     offset: options.offset,
   };
-  getApi().get('/api/delegates/', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/delegates/', params);
 }
 
-function getDelegatesCount() {
-  getApi().get('/api/delegates/count', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.count));
-    }
-  });
+export async function getDelegatesCount() {
+  await Api.get(baseUrl + '/api/delegates/count');
 }
 
-function getVoters(username: string) {
+export async function getVoters(username: string) {
   const params = { username: username };
-  getApi().get('/api/delegates/getVoters', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.accounts));
-    }
-  });
+  await Api.get(baseUrl + '/api/delegates/getVoters', params);
 }
 
-function getDelegateByPublicKey(publicKey: String) {
+export async function getDelegateByPublicKey(publicKey: String) {
   const params = { publicKey: publicKey };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.delegate));
-    }
-  });
+  await Api.get(baseUrl + '/api/delegates/get', params);
 }
 
-function getDelegateByUsername(username: String) {
+export async function getDelegateByUsername(username: String) {
   const params = { username: username };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.delegate));
-    }
-  });
+  await Api.get(baseUrl + '/api/delegates/get', params);
 }
 
-function getDelegateByAddress(address: String) {
+export async function getDelegateByAddress(address: String) {
   const params = { address: address };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.delegate));
-    }
-  });
+  await Api.get(baseUrl + '/api/delegates/get', params);
 }
 
 export default function delegate(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('getdelegatescount')

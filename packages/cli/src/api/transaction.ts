@@ -2,38 +2,24 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { ITransaction, KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
-function getUnconfirmedTransactions(options) {
+export async function getUnconfirmedTransactions(options) {
   const params = {
     senderPublicKey: options.key,
     address: options.address,
   };
-  getApi().get('/api/transactions/unconfirmed', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactions));
-    }
-  });
+  await Api.get(baseUrl + '/api/transactions/unconfirmed', params);
 }
 
-function getTransactions(options) {
+export async function getTransactions(options) {
   const params = {
     limit: options.limit,
     offset: options.offset,
@@ -45,29 +31,15 @@ function getTransactions(options) {
     height: options.height,
     message: options.message,
   };
-  getApi().get('/api/transactions/', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(baseUrl + '/api/transactions/', params);
 }
 
-function getUnconfirmedTransaction(id: string) {
+export async function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
-  getApi().get('/api/transactions/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transaction));
-    }
-  });
+  await Api.get(baseUrl + '/api/transactions/get', params);
 }
 
-function sendMoney(options) {
+export async function sendMoney(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -91,17 +63,10 @@ function sendMoney(options) {
     args: [options.amount, options.recipient],
     message: options.message,
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function sendTransactionWithFee(options) {
+export async function sendTransactionWithFee(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -126,17 +91,10 @@ function sendTransactionWithFee(options) {
     keypair: keypair,
     secondKeypair: secondKeypair,
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function getTransactionBytes(options: any) {
+export function getTransactionBytes(options: any) {
   let trs;
   try {
     trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
@@ -147,7 +105,7 @@ function getTransactionBytes(options: any) {
   console.log(TransactionBase.getBytes(trs, true, true).toString('hex'));
 }
 
-function getTransactionId(options) {
+export function getTransactionId(options) {
   let trs: ITransaction;
   try {
     trs = JSON.parse(fs.readFileSync(options.file, 'utf8'));
@@ -158,7 +116,7 @@ function getTransactionId(options) {
   console.log(TransactionBase.getId(trs));
 }
 
-function verifyBytes(options) {
+export function verifyBytes(options) {
   console.log(
     TransactionBase.verifyBytes(
       options.bytes,
@@ -170,6 +128,7 @@ function verifyBytes(options) {
 
 export default function transaction(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('getunconfirmedtransactions')
