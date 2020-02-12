@@ -23,7 +23,7 @@ describe('peer', () => {
         count: 0,
       };
 
-      mock.onGet(baseUrl + '/api/peers').reply(200, {
+      mock.onGet(baseUrl + '/api/peers/').reply(200, {
         data: expected,
       });
 
