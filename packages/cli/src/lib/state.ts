@@ -1,5 +1,4 @@
 import { http, ApiConfig } from './api';
-import axios from 'axios';
 import * as async from 'async';
 import {
   SimplePeerInfo,
@@ -8,7 +7,6 @@ import {
   DelegateStateWrapper,
 } from '@gny/interfaces';
 import { slots } from '@gny/utils';
-import * as request from 'request';
 
 let globalOptions: ApiConfig;
 let baseUrl: string;
