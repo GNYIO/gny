@@ -43,16 +43,16 @@ export default function delegate(program: ApiConfig) {
   baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
-    .command('getdelegatescount')
-    .description('get delegates count')
-    .action(getDelegatesCount);
-
-  program
     .command('getdelegates')
     .description('get delegates')
     .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
     .action(getDelegates);
+
+  program
+    .command('getdelegatescount')
+    .description('get delegates count')
+    .action(getDelegatesCount);
 
   program
     .command('getvoters <username>')

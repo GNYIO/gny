@@ -11,7 +11,7 @@ let baseUrl: string;
 baseUrl = `http://127.0.0.1:4096`;
 
 export async function getHeight() {
-  await Api.get(baseUrl + '/api/blocks/getHeighte');
+  await Api.get(baseUrl + '/api/blocks/getHeight');
 }
 
 export async function getMilestone() {
