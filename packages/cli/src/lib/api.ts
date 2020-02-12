@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as program from 'commander';
-import { UnconfirmedTransaction } from '@gny/interfaces';
 
 const config = {
   headers: {
@@ -29,7 +28,6 @@ export async function get(url, params?) {
     console.log(pretty(data));
   } catch (error) {
     console.log(error.response.data);
-    process.exit(1);
   }
 }
 
