@@ -474,4 +474,54 @@ describe('extendedJoi', () => {
       expect(report.error.name).toBe('ValidationError');
     });
   });
+
+  describe('message', () => {
+    it('should pass with string with 256 characters', () => {
+      const VALUE = 'a'.repeat(256);
+
+      const schema = joi
+        .string()
+        .message()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should fail with string of 257 characters', () => {
+      const VALUE = 'a'.repeat(257);
+
+      const schema = joi
+        .string()
+        .message()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should pass when passed in empty string', () => {
+      const VALUE = '';
+
+      const schema = joi
+        .string()
+        .allow('')
+        .message();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should fail with single space character', () => {
+      const VALUE = ' ';
+
+      const schema = joi
+        .string()
+        .message()
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+  });
 });

@@ -3,6 +3,8 @@ import { isAddress } from '@gny/utils';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 
+new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
+
 interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
   secret(): this;
@@ -15,6 +17,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   ipv4PlusPort(): this;
   positiveOrZeroBigInt(): this;
   networkType(): this;
+  message(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -36,6 +39,7 @@ const stringExtensions: Joi.Extension = {
     ipv4PlusPort: 'is not a ipv4:port',
     positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
     networkType: 'is not a networkType',
+    message: 'is not a message',
   },
   rules: [
     {
@@ -264,6 +268,20 @@ const stringExtensions: Joi.Extension = {
           state,
           options
         );
+      },
+    },
+    {
+      name: 'message',
+      validate(params, value, state, options) {
+        // const reg = new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
+        const reg = new RegExp(
+          /^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)/
+        );
+        if (reg.test(value) && String(value).length <= 256) {
+          return value;
+        }
+
+        return this.createError('string.message', { v: value }, state, options);
       },
     },
   ],
