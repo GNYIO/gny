@@ -120,7 +120,7 @@ describe('delegate', () => {
   });
 
   describe('getdelegatebypublickey', () => {
-    it('should get delegate by publickey', async done => {
+    it('should get delegate by public key', async done => {
       const expected = {
         success: true,
         delegate: {

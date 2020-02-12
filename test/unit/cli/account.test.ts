@@ -169,7 +169,7 @@ describe('account', () => {
   });
 
   describe('countaccounts', () => {
-    it('should get account by the username', async done => {
+    it('should get the number of accounts', async done => {
       const expected = {
         success: true,
         count: 103,
