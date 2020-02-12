@@ -36,7 +36,7 @@ export async function getTransactions(options) {
 
 export async function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
-  await Api.get(baseUrl + '/api/transactions/get', params);
+  await Api.get(baseUrl + '/api/transactions/unconfirmed/get', params);
 }
 
 export async function sendMoney(options) {
