@@ -1,5 +1,5 @@
 import * as uia from '../../../packages/cli/src/api/uia';
-import { http, ApiConfig } from '../../../packages/cli/src/lib/api';
+import { http } from '../../../packages/cli/src/lib/api';
 import { stdout } from 'test-console';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -27,13 +27,9 @@ describe('uia', () => {
         offset: 1,
       };
 
-      mock
-        .onGet(baseUrl + '/api/uia/issuers', {
-          params: options,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + '/api/uia/issuers').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await uia.getIssuers(options);
@@ -75,13 +71,9 @@ describe('uia', () => {
       };
       const username = 'xpgeng';
 
-      mock
-        .onGet(baseUrl + '/api/uia/issuers', {
-          params: { username: username },
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + '/api/uia/issuers').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await uia.getIssuer(username);
@@ -98,13 +90,9 @@ describe('uia', () => {
       };
       const username = 'xpgeng';
 
-      mock
-        .onGet(baseUrl + `/api/uia/issuers/${name}/assets`, {
-          params: { username: username },
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + `/api/uia/issuers/${username}/assets`).reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await uia.getIssuerAssets(username);
@@ -126,13 +114,9 @@ describe('uia', () => {
         offset: 1,
       };
 
-      mock
-        .onGet(baseUrl + `/api/uia/assets`, {
-          params: options,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + `/api/uia/assets`).reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await uia.getAssets(options);
