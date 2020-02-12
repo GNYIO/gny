@@ -1,5 +1,5 @@
 import * as account from '../../../packages/cli/src/api/account';
-import { http, ApiConfig } from '../../../packages/cli/src/lib/api';
+import { http } from '../../../packages/cli/src/lib/api';
 import { stdout } from 'test-console';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -43,13 +43,9 @@ describe('account', () => {
       const publicKey =
         'bd1e78c5a10fbf1eca36b28bbb8ea85f320967659cbf1f7ff1603d0a368867b9';
 
-      mock
-        .onPost(baseUrl + '/api/accounts/getPublicKey', {
-          publicKey: publicKey,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onPost(baseUrl + '/api/accounts/openAccount').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await account.openAccount(publicKey);
@@ -73,7 +69,7 @@ describe('account', () => {
       const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
 
       mock
-        .onGet(baseUrl + '/api/accounts/getbalance', {
+        .onGet(baseUrl + '/api/accounts/getBalance', {
           params: { address: address },
         })
         .reply(200, {
