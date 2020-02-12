@@ -10,6 +10,34 @@ let baseUrl: string;
 
 baseUrl = `http://127.0.0.1:4096`;
 
+export async function setUserName(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
+  const trs = TransactionBase.create({
+    type: 1,
+    fee: String(5 * 1e8),
+    args: [options.username],
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+  });
+
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+}
+
 export async function setSecondSecret(options) {
   const hash = crypto
     .createHash('sha256')
@@ -60,6 +88,34 @@ export async function lock(options) {
     keypair: keypair,
     secondKeypair: secondKeypair,
     args: [String(options.height), String(options.amout)],
+  });
+
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+}
+
+export async function unlock(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
+  const trs = TransactionBase.create({
+    type: 6,
+    fee: String(0),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
   });
 
   await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
@@ -131,6 +187,34 @@ export async function unvote(options) {
   await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
+export async function registerDelegate(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+  const trs = TransactionBase.create({
+    type: 10,
+    fee: String(100 * 1e8),
+    message: options.message,
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
+  });
+
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+}
+
 export async function listDiffVotes(options) {
   const params = {
     username: options.username,
@@ -172,6 +256,14 @@ export default function basic(program: ApiConfig) {
   baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
+    .command('setusername')
+    .description('set user name')
+    .requiredOption('-e, --secret <secret>', '')
+    .option('-s, --secondSecret <secret>', '')
+    .requiredOption('-u, --username <username>', '')
+    .action(setUserName);
+
+  program
     .command('setsecondsecret')
     .description('set second secret')
     .requiredOption('-e, --secret <secret>', '')
@@ -188,6 +280,13 @@ export default function basic(program: ApiConfig) {
     .action(lock);
 
   program
+    .command('unlock')
+    .description('unlock account transfer')
+    .requiredOption('-e, --secret <secret>', '')
+    .option('-s, --secondSecret <secret>', '')
+    .action(unlock);
+
+  program
     .command('vote')
     .description('vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
@@ -202,6 +301,14 @@ export default function basic(program: ApiConfig) {
     .option('-s, --secondSecret <secret>', '')
     .requiredOption('-p, --publicKeys <public key list>', '')
     .action(unvote);
+
+  program
+    .command('registerdelegate')
+    .description('register delegate')
+    .requiredOption('--secret <secret>')
+    .requiredOption('--username <username>')
+    .option('--secondSecret <secret>')
+    .action(registerDelegate);
 
   program
     .command('listdiffvotes')

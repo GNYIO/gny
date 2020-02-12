@@ -96,7 +96,7 @@ export async function sendAsset(options) {
   await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-export async function registerDelegate(options) {
+export async function registerIssuer(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -113,12 +113,38 @@ export async function registerDelegate(options) {
     );
   }
   const trs = TransactionBase.create({
-    type: 10,
+    type: 100,
     fee: String(100 * 1e8),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [],
+    args: [options.name, options.desc],
+  });
+
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+}
+
+export async function registerAsset(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+  const trs = TransactionBase.create({
+    type: 101,
+    fee: String(500 * 1e8),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [options.name, options.desc, options.maximum, options.precision],
   });
 
   await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
@@ -189,10 +215,22 @@ export default function uia(program: ApiConfig) {
     .action(sendAsset);
 
   program
-    .command('registerdelegate')
+    .command('registerissuer')
     .description('register delegate')
     .requiredOption('--secret <secret>')
-    .requiredOption('--username <username>')
+    .requiredOption('--name <name>')
+    .requiredOption('-d, --desc <descrption>', '')
     .option('--secondSecret <secret>')
-    .action(registerDelegate);
+    .action(registerIssuer);
+
+  program
+    .command('registerasset')
+    .description('register delegate')
+    .requiredOption('--secret <secret>')
+    .requiredOption('--name <name>')
+    .requiredOption('-d, --desc <desc>', '')
+    .requiredOption('-m, --maximum <maximum>', '')
+    .requiredOption('-p, --precision <precision>', '')
+    .option('--secondSecret <secret>')
+    .action(registerAsset);
 }
