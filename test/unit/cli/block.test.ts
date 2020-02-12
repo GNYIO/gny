@@ -17,7 +17,10 @@ describe('block', () => {
 
   describe('getheight', () => {
     it('should block height', async done => {
-      const expected = {};
+      const expected = {
+        success: true,
+        height: '8432',
+      };
 
       mock.onGet(baseUrl + '/api/blocks/getHeight').reply(200, {
         data: expected,
@@ -111,8 +114,8 @@ describe('block', () => {
     });
   });
 
-  describe('getaccountbyaddress', () => {
-    it('should get account by the address', async done => {
+  describe('getblocks', () => {
+    it('should get blocks', async done => {
       const expected = {
         success: true,
         count: '7188',
@@ -134,42 +137,6 @@ describe('block', () => {
             signature:
               'cf56b32f7e1206bee719ef0cae141beff253b5b93e55b3f9bf7e71705a0f03b4afd8ad53db9aecb32a9054dee5623ee4e85a16fab2c6c75fc17f0263adaefd0c',
           },
-          {
-            id:
-              '8671bf226caa5073a1b5930150e276382f5526f592c5c16456ad80d99f4c4676',
-            version: 0,
-            timestamp: 38070590,
-            height: '1',
-            prevBlockId:
-              '28d65b4b694b4b4eee7f26cd8653097078b2e576671ccfc51619baf3f07b1541',
-            count: 0,
-            fees: '0',
-            reward: '0',
-            payloadHash:
-              'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-            delegate:
-              'ed7b40cff0fcfbbb72b9c144caf46b27eefcabdb0f928d3a8f9952b73c1c687f',
-            signature:
-              '6ed2e64f9d26834e4622f7dc2b8c3bc23e7856060a94937d671a986a73ae2616bbbf60d4f577ed67c96fd87a47cb3841a5466710ec348b333d5703b97ade870b',
-          },
-          {
-            id:
-              'c933a51c391850d24983390bfb52941a6b381f52673da5300e1a602cafde02d3',
-            version: 0,
-            timestamp: 38070600,
-            height: '2',
-            prevBlockId:
-              '8671bf226caa5073a1b5930150e276382f5526f592c5c16456ad80d99f4c4676',
-            count: 0,
-            fees: '0',
-            reward: '0',
-            payloadHash:
-              'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-            delegate:
-              '2893b584e9507f1db9812ea391bcf816af4fc1f4d98054572d047f996e24db2d',
-            signature:
-              'a208295a124d20ed2d58dcaa2dff2f292fcce784e724665576d3187706946cfda3f07c048e4fb71571cd392c36faf0b66683089fe7e7f2547be886daa417cc00',
-          },
         ],
       };
       const options = {
@@ -177,13 +144,9 @@ describe('block', () => {
         offset: 1,
       };
 
-      mock
-        .onGet(baseUrl + '/api/blocks/', {
-          params: options,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + '/api/blocks').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await block.getBlocks(options);
