@@ -1,19 +1,16 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import { Api, ApiConfig } from '../lib/api';
+import api, { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { TransactionBase } from '@gny/base';
 import { KeyPair } from '@gny/interfaces';
 
 let globalOptions: ApiConfig;
+let baseUrl: string;
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
+baseUrl = `http://127.0.0.1:4096`;
 
-function setSecondSecret(options) {
+export async function setSecondSecret(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -36,17 +33,10 @@ function setSecondSecret(options) {
     keypair: keypair,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function lock(options) {
+export async function lock(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -72,17 +62,10 @@ function lock(options) {
     args: [String(options.height), String(options.amout)],
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function vote(options) {
+export async function vote(options) {
   const secret = options.secret;
   const publicKeys = options.publicKeys;
   const keyList = publicKeys.split(',').map(function(el) {
@@ -111,17 +94,10 @@ function vote(options) {
     args: keyList,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function unvote(options) {
+export async function unvote(options) {
   const secret = options.secret;
   const publicKeys = options.publicKeys;
   const secondSecret = options.secondSecret;
@@ -152,70 +128,48 @@ function unvote(options) {
     args: keyList,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
 }
 
-function listDiffVotes(options) {
+export async function listDiffVotes(options) {
   const params = {
     username: options.username,
     address: options.address,
     publicKey: options.publicKey,
   };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    }
-    const username = result.delegate.username;
-    const params = {
-      address: result.delegate.address,
-      username: result.delegate.username,
-    };
-    getApi().get('/api/accounts/getVotes', params, function(err, result) {
-      if (err) {
-        console.log(err);
-        process.exit(1);
-      }
 
-      const names_a: string[] = result.delegates.map(
-        delegate => delegate.username
-      );
-      const a = new Set(names_a);
-      const params = { username: username };
-      getApi().get('/api/delegates/getVoters', params, function(err, result) {
-        if (err) {
-          console.log(err);
-          process.exit(1);
-        }
+  const resultA: any = await Api.get(baseUrl + '/api/delegates/get', params);
+  const usernameA = resultA.delegate.username;
+  const addressA = resultA.delegate.address;
 
-        const names_b: string[] = result.accounts.map(
-          account => account.username
-        );
-        const b = new Set(names_b);
-        const diffab = [...Array.from(a)].filter(x => !b.has(x));
-        const diffba = [...Array.from(b)].filter(x => !a.has(x));
-        console.log(
-          "you voted but doesn't vote you: \n\t",
-          JSON.stringify(diffab)
-        );
-        console.log(
-          "\nvoted you but you don't voted: \n\t",
-          JSON.stringify(diffba)
-        );
-      });
-    });
-  });
+  const paramsA = {
+    usename: usernameA,
+    address: addressA,
+  };
+  const votersA: any = await Api.get(
+    baseUrl + '/api/accounts/getVotes',
+    paramsA
+  );
+  const delegatesListA = votersA.delegates.map(delegate => delegate.username);
+  const setA = new Set(delegatesListA);
+
+  const paramsB = {
+    username: usernameA,
+  };
+  const votersB: any = await Api.get('/api/delegates/getVoters', paramsB);
+  const delegatesListB = votersB.accounts.map(account => account.username);
+  const setB = new Set(delegatesListB);
+
+  const diffAB = [...Array.from(setA)].filter(x => !setB.has(x));
+  const diffBA = [...Array.from(setB)].filter(x => !setA.has(x));
+
+  console.log("you voted but doesn't vote you: \n\t", JSON.stringify(diffAB));
+  console.log("\nvoted you but you don't voted: \n\t", JSON.stringify(diffBA));
 }
 
 export default function basic(program: ApiConfig) {
   globalOptions = program;
+  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
 
   program
     .command('setsecondsecret')
