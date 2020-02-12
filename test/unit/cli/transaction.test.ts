@@ -62,30 +62,31 @@ describe('transaction', () => {
     });
   });
 
-  // describe('gettransaction', () => {
-  //   it('should get transaction by id ', async done => {
-  //     const expected = {
-  //       'success': true,
-  //       'transactions': []
-  //     };
+  describe('gettransaction', () => {
+    it('should get transaction by id ', async done => {
+      const expected = {
+        success: true,
+        transaction: {},
+      };
 
-  //     const id = '6bbfba40cd023e2ae65b8002ede18fdebab73c840a74854e744c95a15edb043c';
+      const id =
+        '6bbfba40cd023e2ae65b8002ede18fdebab73c840a74854e744c95a15edb043c';
 
-  //     mock
-  //       .onGet(baseUrl + '/api/transactions/get', {
-  //         params: { id: id },
-  //       })
-  //       .reply(200, {
-  //         data: expected,
-  //       });
+      mock
+        .onGet(baseUrl + '/api/transactions/unconfirmed/get', {
+          params: { id: id },
+        })
+        .reply(200, {
+          data: expected,
+        });
 
-  //     const inspect = stdout.inspect();
-  //     await transaction.getUnconfirmedTransaction(id);
-  //     inspect.restore();
-  //     expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
-  //     done();
-  //   });
-  // });
+      const inspect = stdout.inspect();
+      await transaction.getUnconfirmedTransaction(id);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
 
   describe('sendmoney', () => {
     it('should send money', async done => {
