@@ -1,5 +1,5 @@
 import * as basic from '../../../packages/cli/src/api/basic';
-import { http, ApiConfig } from '../../../packages/cli/src/lib/api';
+import { http } from '../../../packages/cli/src/lib/api';
 import { stdout } from 'test-console';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -68,7 +68,7 @@ describe('basic', () => {
   });
 
   describe('vote', () => {
-    it('should unlock account transfer', async done => {
+    it('should vote for delegates', async done => {
       const expected = {
         success: true,
         transactionId:
@@ -77,7 +77,8 @@ describe('basic', () => {
       const options = {
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        publicKeys: ['GTg3YWJ7TKubzfqQmh7Sym5Zgeq2'],
+        publicKeys:
+          'GTg3YWJ7TKubzfqQmh7Sym5Zgeq2 G4Ta6QoDhDjgHiAALBPWQsDTRcukK',
       };
 
       mock.onPost(baseUrl + '/peer/transactions').reply(200, {
@@ -93,7 +94,7 @@ describe('basic', () => {
   });
 
   describe('unvote', () => {
-    it('should unlock account transfer', async done => {
+    it('should cancel vote for delegates', async done => {
       const expected = {
         success: true,
         transactionId:
@@ -102,7 +103,8 @@ describe('basic', () => {
       const options = {
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        publicKeys: ['GTg3YWJ7TKubzfqQmh7Sym5Zgeq2'],
+        publicKeys:
+          'GTg3YWJ7TKubzfqQmh7Sym5Zgeq2 G4Ta6QoDhDjgHiAALBPWQsDTRcukK',
       };
 
       mock.onPost(baseUrl + '/peer/transactions').reply(200, {
