@@ -19,10 +19,7 @@ export async function getIssuers(options) {
 }
 
 export async function isIssuer(address: string) {
-  const params = {
-    address: address,
-  };
-  await Api.get(baseUrl + '/api/uia/isIssuer', params);
+  await Api.get(baseUrl + `/api/uia/isIssuer/${address}`);
 }
 
 export async function getIssuer(name: string) {
@@ -53,19 +50,16 @@ export async function getAsset(name: string) {
 
 export async function getBalances(options) {
   const params = {
-    address: options.address,
     limit: options.limit,
     offset: options.offset,
   };
-  await Api.get(baseUrl + '/api/uia/balances', params);
+  await Api.get(baseUrl + `/api/uia/balances/${options.address}`, params);
 }
 
 export async function getBalance(options) {
-  const params = {
-    address: options.address,
-    currency: options.currency,
-  };
-  await Api.get(baseUrl + '/api/uia/balances', params);
+  await Api.get(
+    baseUrl + `/api/uia/balances/${options.address}/${options.currency}`
+  );
 }
 
 export async function sendAsset(options) {
@@ -144,7 +138,12 @@ export async function registerAsset(options) {
     fee: String(500 * 1e8),
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [options.name, options.desc, options.maximum, options.precision],
+    args: [
+      options.name,
+      options.desc,
+      options.maximum,
+      Number(options.precision),
+    ],
   });
 
   await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
@@ -189,9 +188,9 @@ export default function uia(program: ApiConfig) {
     .action(getAsset);
 
   program
-    .command('getbalances <address>')
+    .command('getbalances')
     .description('get balances by address')
-    .option('-a, --address <address>', '')
+    .requiredOption('-a, --address <address>', '')
     .option('-o, --offset <n>', '')
     .option('-l, --limit <n>', '')
     .action(getBalances);
@@ -216,7 +215,7 @@ export default function uia(program: ApiConfig) {
 
   program
     .command('registerissuer')
-    .description('register delegate')
+    .description('register issuer')
     .requiredOption('--secret <secret>')
     .requiredOption('--name <name>')
     .requiredOption('-d, --desc <descrption>', '')
@@ -225,7 +224,7 @@ export default function uia(program: ApiConfig) {
 
   program
     .command('registerasset')
-    .description('register delegate')
+    .description('register asset')
     .requiredOption('--secret <secret>')
     .requiredOption('--name <name>')
     .requiredOption('-d, --desc <desc>', '')
