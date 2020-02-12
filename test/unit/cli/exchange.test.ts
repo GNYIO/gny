@@ -60,28 +60,14 @@ describe('exchange', () => {
       const secret =
         'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
-      mock
-        .onGet(baseUrl + '/exchange/openAccount', {
-          params: { secret: secret },
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onPost(baseUrl + '/api/exchange/openAccount').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await exchange.openAccountWithSecret(secret);
       inspect.restore();
       expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
-      done();
-    });
-  });
-
-  describe('genaccount', () => {
-    it('should generate accounts', async done => {
-      const inspect = stdout.inspect();
-      await exchange.genAccount();
-      inspect.restore();
-      expect(inspect.output[1].indexOf('address')).toBeGreaterThan(0);
       done();
     });
   });
