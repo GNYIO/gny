@@ -1,5 +1,5 @@
 import * as transaction from '../../../packages/cli/src/api/transaction';
-import { http, ApiConfig } from '../../../packages/cli/src/lib/api';
+import { http } from '../../../packages/cli/src/lib/api';
 import { stdout } from 'test-console';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -27,13 +27,9 @@ describe('transaction', () => {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
       };
 
-      mock
-        .onGet(baseUrl + '/api/transactions/unconfirmed', {
-          params: options,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + '/api/transactions/unconfirmed').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await transaction.getUnconfirmedTransactions(options);
@@ -54,13 +50,9 @@ describe('transaction', () => {
         key: '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b',
       };
 
-      mock
-        .onGet(baseUrl + '/api/transactions/', {
-          params: options,
-        })
-        .reply(200, {
-          data: expected,
-        });
+      mock.onGet(baseUrl + '/api/transactions/').reply(200, {
+        data: expected,
+      });
 
       const inspect = stdout.inspect();
       await transaction.getTransactions(options);
@@ -109,7 +101,7 @@ describe('transaction', () => {
         recipient: 'G3yguB3tazFf6bia3CU1RjXtv2iV6',
       };
 
-      mock.onPost(baseUrl + '/api/transactions/').reply(200, {
+      mock.onPost(baseUrl + '/peer/transactions').reply(200, {
         data: expected,
       });
 
@@ -134,10 +126,10 @@ describe('transaction', () => {
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
         fee: 1000000,
         type: 1,
-        args: [1000000, 'G3yguB3tazFf6bia3CU1RjXtv2iV6'],
+        args: JSON.stringify([1000000, 'G3yguB3tazFf6bia3CU1RjXtv2iV6']),
       };
 
-      mock.onPost(baseUrl + '/api/transactions/').reply(200, {
+      mock.onPost(baseUrl + '/peer/transactions').reply(200, {
         data: expected,
       });
 
