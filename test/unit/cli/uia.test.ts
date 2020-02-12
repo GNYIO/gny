@@ -39,30 +39,26 @@ describe('uia', () => {
     });
   });
 
-  // describe('isissuer', () => {
-  //   it('should check if is an issuer by address', async done => {
-  //     const expected = {
-  //       'success': true,
-  //       'count': 0,
-  //       'issues': []
-  //     };
-  //     const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+  describe('isissuer', () => {
+    it('should check if is an issuer by address', async done => {
+      const expected = {
+        success: true,
+        isIssuer: true,
+        issuerName: 'ABC',
+      };
+      const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
 
-  //     mock
-  //       .onGet(baseUrl + '/api/uia/isIssuer', {
-  //         params: {address: address},
-  //       })
-  //       .reply(200, {
-  //         data: expected,
-  //       });
+      mock.onGet(baseUrl + `/api/uia/isIssuer/${address}`).reply(200, {
+        data: expected,
+      });
 
-  //     const inspect = stdout.inspect();
-  //     await uia.isIssuer(address);
-  //     inspect.restore();
-  //     expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
-  //     done();
-  //   });
-  // });
+      const inspect = stdout.inspect();
+      await uia.isIssuer(address);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
 
   describe('getissuer', () => {
     it('should get issuer by username', async done => {
@@ -151,62 +147,58 @@ describe('uia', () => {
     });
   });
 
-  // describe('getbalances', () => {
-  //   it('should get balances by address', async done => {
-  //     const expected = {
-  //       'success': true,
-  //       'count': 0,
-  //       'assets': []
-  //     };
-  //     const options = {
-  //       address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-  //       limit: 1,
-  //       offset: 1,
-  //     };
+  describe('getbalances', () => {
+    it('should get balances by address', async done => {
+      const expected = {
+        success: true,
+        count: 0,
+        balances: [],
+      };
+      const options = {
+        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+        limit: 1,
+        offset: 1,
+      };
 
-  //     mock
-  //       .onGet(baseUrl + `/api/uia/balances`, {
-  //         params: options,
-  //       })
-  //       .reply(200, {
-  //         data: expected,
-  //       });
+      mock.onGet(baseUrl + `/api/uia/balances/${options.address}`).reply(200, {
+        data: expected,
+      });
 
-  //     const inspect = stdout.inspect();
-  //     await uia.getBalances(options);
-  //     inspect.restore();
-  //     expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
-  //     done();
-  //   });
-  // });
+      const inspect = stdout.inspect();
+      await uia.getBalances(options);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
 
-  // describe('getbalancebycurrency', () => {
-  //   it('should get balance by address and currency', async done => {
-  //     const expected = {
-  //       'success': true,
-  //       'count': 0,
-  //       'assets': []
-  //     };
-  //     const options = {
-  //       address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-  //       currency: 'GNY',
-  //     };
+  describe('getbalancebycurrency', () => {
+    it('should get balance by address and currency', async done => {
+      const expected = {
+        success: true,
+        count: 0,
+        balances: [],
+      };
+      const options = {
+        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+        currency: 'ABC.BBB',
+      };
 
-  //     mock
-  //       .onGet(baseUrl + `/api/uia/balances`, {
-  //         params: options,
-  //       })
-  //       .reply(200, {
-  //         data: expected,
-  //       });
+      mock
+        .onGet(
+          baseUrl + `/api/uia/balances/${options.address}/${options.currency}`
+        )
+        .reply(200, {
+          data: expected,
+        });
 
-  //     const inspect = stdout.inspect();
-  //     await uia.getBalance(options);
-  //     inspect.restore();
-  //     expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
-  //     done();
-  //   });
-  // });
+      const inspect = stdout.inspect();
+      await uia.getBalance(options);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
 
   describe('sendasset', () => {
     it('should send asset to some address', async done => {
@@ -235,16 +227,19 @@ describe('uia', () => {
     });
   });
 
-  describe('registerdelegate', () => {
-    it('should register a delegate', async done => {
+  describe('registerissuer', () => {
+    it('should register issuer', async done => {
       const expected = {
         success: true,
+        transactionId:
+          '6461d92a937b013fcd413ec9f83009f415121a06f0b5c7082ddc6a9691eddfee',
       };
 
       const options = {
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        usename: 'xpgeng',
+        usename: 'ABC',
+        desc: 'some desc',
       };
 
       mock.onPost(baseUrl + '/peer/transactions').reply(200, {
@@ -252,7 +247,36 @@ describe('uia', () => {
       });
 
       const inspect = stdout.inspect();
-      await uia.registerDelegate(options);
+      await uia.registerIssuer(options);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
+
+  describe('registerasset', () => {
+    it('should register asset', async done => {
+      const expected = {
+        success: true,
+        transactionId:
+          '242d24f62e2eacac5c48d2a6d748f2bdbdf7d9f8ea6abe1cba01d97c42ba14cc',
+      };
+
+      const options = {
+        secret:
+          'grow pencil ten junk bomb right describe trade rich valid tuna service',
+        name: 'BBB',
+        desc: 'some desc',
+        maximum: String(10 * 1e8),
+        precision: 8,
+      };
+
+      mock.onPost(baseUrl + '/peer/transactions').reply(200, {
+        data: expected,
+      });
+
+      const inspect = stdout.inspect();
+      await uia.registerAsset(options);
       inspect.restore();
       expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
       done();

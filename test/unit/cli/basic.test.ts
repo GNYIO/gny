@@ -118,4 +118,28 @@ describe('basic', () => {
       done();
     });
   });
+
+  describe('registerdelegate', () => {
+    it('should register a delegate', async done => {
+      const expected = {
+        success: true,
+      };
+
+      const options = {
+        secret:
+          'grow pencil ten junk bomb right describe trade rich valid tuna service',
+        usename: 'xpgeng',
+      };
+
+      mock.onPost(baseUrl + '/peer/transactions').reply(200, {
+        data: expected,
+      });
+
+      const inspect = stdout.inspect();
+      await basic.registerDelegate(options);
+      inspect.restore();
+      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      done();
+    });
+  });
 });
