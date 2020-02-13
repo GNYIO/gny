@@ -302,7 +302,6 @@ export default function basic(program: ApiConfig) {
     .command('registerdelegate')
     .description('register delegate')
     .requiredOption('--secret <secret>')
-    .requiredOption('--username <username>')
     .option('--secondSecret <secret>')
     .action(registerDelegate);
 
