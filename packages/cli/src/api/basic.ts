@@ -83,7 +83,7 @@ export async function lock(options) {
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [String(options.height), String(options.amout)],
+    args: [String(options.height), String(options.amount)],
   });
 
   await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
