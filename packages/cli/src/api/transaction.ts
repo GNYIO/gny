@@ -5,18 +5,14 @@ import { TransactionBase } from '@gny/base';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { ITransaction, KeyPair } from '@gny/interfaces';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function getUnconfirmedTransactions(options) {
   const params = {
     senderPublicKey: options.key,
     address: options.address,
   };
-  await Api.get(baseUrl + '/api/transactions/unconfirmed', params);
+  await Api.get(getBaseUrl() + '/api/transactions/unconfirmed', params);
 }
 
 export async function getTransactions(options) {
@@ -31,12 +27,12 @@ export async function getTransactions(options) {
     height: options.height,
     message: options.message,
   };
-  await Api.get(baseUrl + '/api/transactions/', params);
+  await Api.get(getBaseUrl() + '/api/transactions/', params);
 }
 
 export async function getUnconfirmedTransaction(id: string) {
   const params = { id: id };
-  await Api.get(baseUrl + '/api/transactions/unconfirmed/get', params);
+  await Api.get(getBaseUrl() + '/api/transactions/unconfirmed/get', params);
 }
 
 export async function sendMoney(options) {
@@ -63,7 +59,7 @@ export async function sendMoney(options) {
     args: [options.amount, options.recipient],
     message: options.message,
   });
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function sendTransactionWithFee(options) {
@@ -91,7 +87,7 @@ export async function sendTransactionWithFee(options) {
     keypair: keypair,
     secondKeypair: secondKeypair,
   });
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export function getTransactionBytes(options: any) {
@@ -127,9 +123,6 @@ export function verifyBytes(options) {
 }
 
 export default function transaction(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('getunconfirmedtransactions')
     .description('get unconfirmed transactions')

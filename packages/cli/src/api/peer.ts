@@ -1,27 +1,20 @@
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function getPeers() {
-  await Api.get(baseUrl + '/api/peers/');
+  await Api.get(getBaseUrl() + '/api/peers/');
 }
 
 export async function getVersion() {
-  await Api.get(baseUrl + '/api/peers/version');
+  await Api.get(getBaseUrl() + '/api/peers/version');
 }
 
 export async function getInfo() {
-  await Api.get(baseUrl + '/api/peers/info');
+  await Api.get(getBaseUrl() + '/api/peers/info');
 }
 
 export default function peer(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('getpeers')
     .description('get peers')

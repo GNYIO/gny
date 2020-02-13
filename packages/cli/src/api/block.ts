@@ -4,30 +4,26 @@ import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { BlockBase, TransactionBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function getHeight() {
-  await Api.get(baseUrl + '/api/blocks/getHeight');
+  await Api.get(getBaseUrl() + '/api/blocks/getHeight');
 }
 
 export async function getMilestone() {
-  await Api.get(baseUrl + '/api/blocks/getMilestone');
+  await Api.get(getBaseUrl() + '/api/blocks/getMilestone');
 }
 
 export async function getReward() {
-  await Api.get(baseUrl + '/api/blocks/getReward');
+  await Api.get(getBaseUrl() + '/api/blocks/getReward');
 }
 
 export async function getSupply() {
-  await Api.get(baseUrl + '/api/blocks/getSupply');
+  await Api.get(getBaseUrl() + '/api/blocks/getSupply');
 }
 
 export async function getStatus() {
-  await Api.get(baseUrl + '/api/blocks/getStatus');
+  await Api.get(getBaseUrl() + '/api/blocks/getStatus');
 }
 
 export async function getBlocks(options) {
@@ -36,17 +32,17 @@ export async function getBlocks(options) {
     orderBy: options.sort,
     offset: options.offset,
   };
-  await Api.get(baseUrl + '/api/blocks', params);
+  await Api.get(getBaseUrl() + '/api/blocks', params);
 }
 
 export async function getBlockById(id: string) {
   const params = { id: id };
-  await Api.get(baseUrl + '/api/blocks/getBlock', params);
+  await Api.get(getBaseUrl() + '/api/blocks/getBlock', params);
 }
 
 export async function getBlockByHeight(height: string) {
   const params = { height: height };
-  await Api.get(baseUrl + '/api/blocks/getBlock', params);
+  await Api.get(getBaseUrl() + '/api/blocks/getBlock', params);
 }
 
 export function getBlockBytes(options) {
@@ -87,9 +83,6 @@ export function getBlockPayloadHash(options) {
 }
 
 export default function block(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('getheight')
     .description('get latest block height')

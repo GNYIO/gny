@@ -1,47 +1,40 @@
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function getDelegates(options) {
   const params = {
     limit: options.limit,
     offset: options.offset,
   };
-  await Api.get(baseUrl + '/api/delegates/', params);
+  await Api.get(getBaseUrl() + '/api/delegates/', params);
 }
 
 export async function getDelegatesCount() {
-  await Api.get(baseUrl + '/api/delegates/count');
+  await Api.get(getBaseUrl() + '/api/delegates/count');
 }
 
 export async function getVoters(username: string) {
   const params = { username: username };
-  await Api.get(baseUrl + '/api/delegates/getVoters', params);
+  await Api.get(getBaseUrl() + '/api/delegates/getVoters', params);
 }
 
 export async function getDelegateByPublicKey(publicKey: String) {
   const params = { publicKey: publicKey };
-  await Api.get(baseUrl + '/api/delegates/get', params);
+  await Api.get(getBaseUrl() + '/api/delegates/get', params);
 }
 
 export async function getDelegateByUsername(username: String) {
   const params = { username: username };
-  await Api.get(baseUrl + '/api/delegates/get', params);
+  await Api.get(getBaseUrl() + '/api/delegates/get', params);
 }
 
 export async function getDelegateByAddress(address: String) {
   const params = { address: address };
-  await Api.get(baseUrl + '/api/delegates/get', params);
+  await Api.get(getBaseUrl() + '/api/delegates/get', params);
 }
 
 export default function delegate(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('getdelegates')
     .description('get delegates')

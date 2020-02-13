@@ -27,7 +27,7 @@ export async function get(url, params?) {
     });
     console.log(pretty(data));
   } catch (error) {
-    console.log(error.response.data);
+    console.log(error.response ? error.response.data : error.message);
   }
 }
 
@@ -36,7 +36,7 @@ export async function post(url, params) {
     const { data } = await http.post(url, params, config);
     console.log(pretty(data));
   } catch (error) {
-    console.log(error.response.data);
+    console.log(error.response ? error.response.data : error.message);
   }
 }
 

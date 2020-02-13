@@ -9,7 +9,10 @@
       "es2017"
     ],
     "strict": false, // TODO: change
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
   "include": ["src/**/**.ts"]
 }

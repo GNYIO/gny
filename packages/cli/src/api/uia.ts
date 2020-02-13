@@ -4,33 +4,29 @@ import { TransactionBase } from '@gny/base';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { KeyPair } from '@gny/interfaces';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function getIssuers(options) {
   const params = {
     limit: options.limit,
     offest: options.offset,
   };
-  await Api.get(baseUrl + '/api/uia/issuers', params);
+  await Api.get(getBaseUrl() + '/api/uia/issuers', params);
 }
 
 export async function isIssuer(address: string) {
-  await Api.get(baseUrl + `/api/uia/isIssuer/${address}`);
+  await Api.get(getBaseUrl() + `/api/uia/isIssuer/${address}`);
 }
 
 export async function getIssuer(name: string) {
   const params = {
     name: name,
   };
-  await Api.get(baseUrl + '/api/uia/issuers', params);
+  await Api.get(getBaseUrl() + '/api/uia/issuers', params);
 }
 
 export async function getIssuerAssets(name: string) {
-  await Api.get(baseUrl + `/api/uia/issuers/${name}/assets`);
+  await Api.get(getBaseUrl() + `/api/uia/issuers/${name}/assets`);
 }
 
 export async function getAssets(options) {
@@ -38,14 +34,14 @@ export async function getAssets(options) {
     limit: options.limit,
     offest: options.offset,
   };
-  await Api.get(baseUrl + '/api/uia/assets', params);
+  await Api.get(getBaseUrl() + '/api/uia/assets', params);
 }
 
 export async function getAsset(name: string) {
   const params = {
     name: name,
   };
-  await Api.get(baseUrl + '/api/uia/assets', params);
+  await Api.get(getBaseUrl() + '/api/uia/assets', params);
 }
 
 export async function getBalances(options) {
@@ -53,12 +49,12 @@ export async function getBalances(options) {
     limit: options.limit,
     offset: options.offset,
   };
-  await Api.get(baseUrl + `/api/uia/balances/${options.address}`, params);
+  await Api.get(getBaseUrl() + `/api/uia/balances/${options.address}`, params);
 }
 
 export async function getBalance(options) {
   await Api.get(
-    baseUrl + `/api/uia/balances/${options.address}/${options.currency}`
+    getBaseUrl() + `/api/uia/balances/${options.address}/${options.currency}`
   );
 }
 
@@ -87,7 +83,7 @@ export async function sendAsset(options) {
     secondKeypair: secondKeypair,
     args: [options.currency, options.amount, options.recipient],
   });
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function registerIssuer(options) {
@@ -114,7 +110,7 @@ export async function registerIssuer(options) {
     args: [options.name, options.desc],
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function registerAsset(options) {
@@ -146,13 +142,10 @@ export async function registerAsset(options) {
     ],
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export default function uia(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('getissuers')
     .description('get issuers')

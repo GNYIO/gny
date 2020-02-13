@@ -5,16 +5,14 @@ import { generateSecret } from '../helpers';
 import * as accountHelper from '../lib/account';
 import { generateKeyPair } from '@gny/ed';
 import * as crypto from 'crypto';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 // TODO: addTransactionUnsigned
 
 export async function openAccountWithSecret(secret: string) {
-  await Api.post(baseUrl + '/api/exchange/openAccount', { secret: secret });
+  await Api.post(getBaseUrl() + '/api/exchange/openAccount', {
+    secret: secret,
+  });
 }
 
 export function genPublicKey(secret: string) {
@@ -50,9 +48,6 @@ export async function genAccount() {
 }
 
 export default function exchange(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('openaccountwithsecret <secret>')
     .description('open your account and get the infomation by secret')

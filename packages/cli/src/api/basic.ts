@@ -4,11 +4,7 @@ import api, { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { TransactionBase } from '@gny/base';
 import { KeyPair } from '@gny/interfaces';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function setUserName(options) {
   const hash = crypto
@@ -35,7 +31,7 @@ export async function setUserName(options) {
     secondKeypair: secondKeypair,
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function setSecondSecret(options) {
@@ -61,7 +57,7 @@ export async function setSecondSecret(options) {
     keypair: keypair,
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function lock(options) {
@@ -90,7 +86,7 @@ export async function lock(options) {
     args: [String(options.height), String(options.amout)],
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function unlock(options) {
@@ -118,7 +114,7 @@ export async function unlock(options) {
     args: [],
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function vote(options) {
@@ -150,7 +146,7 @@ export async function vote(options) {
     args: keyList,
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function unvote(options) {
@@ -184,7 +180,7 @@ export async function unvote(options) {
     args: keyList,
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function registerDelegate(options) {
@@ -212,7 +208,7 @@ export async function registerDelegate(options) {
     args: [],
   });
 
-  await Api.post(baseUrl + '/peer/transactions', { transaction: trs });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export async function listDiffVotes(options) {
@@ -222,7 +218,10 @@ export async function listDiffVotes(options) {
     publicKey: options.publicKey,
   };
 
-  const resultA: any = await Api.get(baseUrl + '/api/delegates/get', params);
+  const resultA: any = await Api.get(
+    getBaseUrl() + '/api/delegates/get',
+    params
+  );
   const usernameA = resultA.delegate.username;
   const addressA = resultA.delegate.address;
 
@@ -231,7 +230,7 @@ export async function listDiffVotes(options) {
     address: addressA,
   };
   const votersA: any = await Api.get(
-    baseUrl + '/api/accounts/getVotes',
+    getBaseUrl() + '/api/accounts/getVotes',
     paramsA
   );
   const delegatesListA = votersA.delegates.map(delegate => delegate.username);
@@ -252,9 +251,6 @@ export async function listDiffVotes(options) {
 }
 
 export default function basic(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('setusername')
     .description('set user name')

@@ -7,14 +7,10 @@ import {
   DelegateStateWrapper,
 } from '@gny/interfaces';
 import { slots } from '@gny/utils';
-
-let globalOptions: ApiConfig;
-let baseUrl: string;
-
-baseUrl = `http://127.0.0.1:4096`;
+import { getBaseUrl } from '../getBaseUrl';
 
 export async function peerstat() {
-  const { data } = await http.get(baseUrl + '/api/peers');
+  const { data } = await http.get(getBaseUrl() + '/api/peers');
   const peers = data.peers;
 
   async.map(peers, async function(peer: SimplePeerInfo) {
@@ -97,7 +93,7 @@ export async function peerstat() {
 }
 
 export async function delegatestat() {
-  const { data } = await http.get(baseUrl + '/api/delegates');
+  const { data } = await http.get(getBaseUrl() + '/api/delegates');
 
   const delegates = data.delegates;
   if (!data.success) {
@@ -112,7 +108,7 @@ export async function delegatestat() {
         offset: 0,
         orderBy: 'height:desc',
       };
-      const { data } = await http.get(baseUrl + '/api/blocks', {
+      const { data } = await http.get(getBaseUrl() + '/api/blocks', {
         params: params,
       });
 
@@ -161,7 +157,7 @@ export async function delegatestat() {
 }
 
 export async function ipstat() {
-  const { data } = await http.get(baseUrl + '/api/peers');
+  const { data } = await http.get(getBaseUrl() + '/api/peers');
 
   if (data.error) {
     console.log('Failed to get peers', data.error);
@@ -192,9 +188,6 @@ export async function ipstat() {
 }
 
 export default function state(program: ApiConfig) {
-  globalOptions = program;
-  baseUrl = `http://${globalOptions.host}:${globalOptions.port}`;
-
   program
     .command('peerstat')
     .description('analyze block height of all peers')
