@@ -1,11 +1,11 @@
 import * as uia from '../../../packages/cli/src/api/uia';
-import { http } from '../../../packages/cli/src/lib/api';
-import { stdout } from 'test-console';
+import { http, pretty } from '../../../packages/cli/src/lib/api';
 import MockAdapter from 'axios-mock-adapter';
 
 describe('uia', () => {
   let mock: MockAdapter;
   const baseUrl = `http://127.0.0.1:4096`;
+  console.log = jest.fn();
 
   beforeEach(() => {
     mock = new MockAdapter(http);
@@ -31,10 +31,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.getIssuers(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -52,10 +50,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.isIssuer(address);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -71,10 +67,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.getIssuer(username);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -90,10 +84,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.getIssuerAssets(username);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -114,10 +106,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.getAssets(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -139,10 +129,8 @@ describe('uia', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await uia.getAsset(name);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -164,10 +152,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.getBalances(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -192,10 +178,8 @@ describe('uia', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await uia.getBalance(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -219,10 +203,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.sendAsset(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -246,10 +228,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.registerIssuer(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -275,10 +255,8 @@ describe('uia', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await uia.registerAsset(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });

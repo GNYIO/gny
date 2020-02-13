@@ -1,11 +1,11 @@
 import * as exchange from '../../../packages/cli/src/api/exchange';
-import { http } from '../../../packages/cli/src/lib/api';
-import { stdout } from 'test-console';
+import { http, pretty } from '../../../packages/cli/src/lib/api';
 import MockAdapter from 'axios-mock-adapter';
 
 describe('exchange', () => {
   let mock: MockAdapter;
   const baseUrl = `http://127.0.0.1:4096`;
+  console.log = jest.fn();
 
   beforeEach(() => {
     mock = new MockAdapter(http);
@@ -23,10 +23,8 @@ describe('exchange', () => {
       const secret =
         'grow pencil ten junk bomb right describe trade rich valid tuna service';
 
-      const inspect = stdout.inspect();
       await exchange.genPublicKey(secret);
-      inspect.restore();
-      expect(inspect.output[1].indexOf(expected)).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(expected);
       done();
     });
   });
@@ -64,10 +62,8 @@ describe('exchange', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await exchange.openAccountWithSecret(secret);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });

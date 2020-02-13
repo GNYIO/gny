@@ -1,11 +1,11 @@
 import * as delegate from '../../../packages/cli/src/api/delegate';
-import { http } from '../../../packages/cli/src/lib/api';
-import { stdout } from 'test-console';
+import { http, pretty } from '../../../packages/cli/src/lib/api';
 import MockAdapter from 'axios-mock-adapter';
 
 describe('delegate', () => {
   let mock: MockAdapter;
   const baseUrl = `http://127.0.0.1:4096`;
+  console.log = jest.fn();
 
   beforeEach(() => {
     mock = new MockAdapter(http);
@@ -67,10 +67,8 @@ describe('delegate', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await delegate.getDelegates(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -86,10 +84,8 @@ describe('delegate', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await delegate.getDelegatesCount();
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -111,10 +107,8 @@ describe('delegate', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await delegate.getVoters(username);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -153,10 +147,8 @@ describe('delegate', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await delegate.getDelegateByPublicKey(publicKey);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -194,10 +186,8 @@ describe('delegate', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await delegate.getDelegateByUsername(username);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -235,10 +225,8 @@ describe('delegate', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await delegate.getDelegateByAddress(address);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });

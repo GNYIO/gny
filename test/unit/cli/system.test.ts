@@ -1,11 +1,11 @@
 import * as system from '../../../packages/cli/src/api/system';
-import { http } from '../../../packages/cli/src/lib/api';
-import { stdout } from 'test-console';
+import { http, pretty } from '../../../packages/cli/src/lib/api';
 import MockAdapter from 'axios-mock-adapter';
 
 describe('system', () => {
   let mock: MockAdapter;
   const baseUrl = `http://127.0.0.1:4096`;
+  console.log = jest.fn();
 
   beforeEach(() => {
     mock = new MockAdapter(http);
@@ -33,10 +33,8 @@ describe('system', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await system.getSystemInfo();
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });

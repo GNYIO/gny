@@ -1,11 +1,11 @@
 import * as account from '../../../packages/cli/src/api/account';
-import { http } from '../../../packages/cli/src/lib/api';
-import { stdout } from 'test-console';
+import { http, pretty } from '../../../packages/cli/src/lib/api';
 import MockAdapter from 'axios-mock-adapter';
 
 describe('account', () => {
   let mock: MockAdapter;
   const baseUrl = `http://127.0.0.1:4096`;
+  console.log = jest.fn();
 
   beforeEach(() => {
     mock = new MockAdapter(http);
@@ -47,10 +47,8 @@ describe('account', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await account.openAccount(publicKey);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -76,10 +74,8 @@ describe('account', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await account.getBalance(address);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -118,10 +114,8 @@ describe('account', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await account.getAccountByAddress(address);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -160,10 +154,8 @@ describe('account', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await account.getAccountByUsername(username);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -179,10 +171,8 @@ describe('account', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await account.countAccounts();
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+
       done();
     });
   });
@@ -222,10 +212,9 @@ describe('account', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await account.getAddressCurrencyBalance(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -245,10 +234,9 @@ describe('account', () => {
         data: expected,
       });
 
-      const inspect = stdout.inspect();
       await account.getVotedDelegates(options);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('true')).toBeGreaterThan(0);
+
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
@@ -266,10 +254,8 @@ describe('account', () => {
           data: expected,
         });
 
-      const inspect = stdout.inspect();
       await account.getPublicKey(address);
-      inspect.restore();
-      expect(inspect.output[1].indexOf('false')).toBeGreaterThan(0);
+      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
       done();
     });
   });
