@@ -24,23 +24,23 @@ export async function getAccountByUsername(username: string) {
 
 export async function getAddressCurrencyBalance(options) {
   await Api.get(
-    getBaseUrl + `/api/accounts/${options.address}/${options.currency}`
+    getBaseUrl() + `/api/accounts/${options.address}/${options.currency}`
   );
 }
 
 export async function getVotedDelegates(options: AddressOrUsername) {
-  await Api.get(getBaseUrl + '/api/accounts/getVotes', options);
+  await Api.get(getBaseUrl() + '/api/accounts/getVotes', options);
 }
 
 export async function countAccounts() {
-  await Api.get(getBaseUrl + '/api/accounts/count');
+  await Api.get(getBaseUrl() + '/api/accounts/count');
 }
 
 export async function getPublicKey(address: string) {
   const params = {
     address: address,
   };
-  await Api.get(getBaseUrl + '/api/accounts/getPublicKey', params);
+  await Api.get(getBaseUrl() + '/api/accounts/getPublicKey', params);
 }
 
 export default function account(program: ApiConfig) {
