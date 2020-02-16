@@ -110,24 +110,38 @@ export default class BlocksApi implements IHttpApi {
 
   private getBlocks = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const offset: number = query.offset ? Number(query.offset) : 0;
-    const limit: number = query.limit ? Number(query.limit) : 20;
 
+    query.offset = query.offset ? Number(query.offset) : 0;
+    query.limit = query.limit ? Number(query.limit) : 20;
+
+    // limit and offset required because already set above
     const schema = joi.object().keys({
       limit: joi
         .number()
         .min(0)
-        .max(100),
-      offset: joi.number().min(0),
+        .max(100)
+        .required(),
+      offset: joi
+        .number()
+        .min(0)
+        .required(),
+      orderBy: joi
+        .string()
+        .valid(['height:asc', 'height:desc'])
+        .optional(),
+      transactions: joi.any().optional(),
     });
 
-    const report = joi.validate({ limit, offset }, schema);
+    const report = joi.validate(query, schema);
     if (report.error) {
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    const offset = query.offset;
+    const limit = query.limit;
 
     let minHeight: string;
     let maxHeight: string;
