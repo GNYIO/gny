@@ -118,8 +118,8 @@ export async function unlock(options) {
 
 export async function vote(options) {
   const secret = options.secret;
-  const publicKeys = options.publicKeys;
-  const keyList = publicKeys.split(',').map(function(el) {
+  const usernames = options.usernames;
+  const keyList = usernames.split(',').map(function(el) {
     return el;
   });
   const hash = crypto
@@ -150,9 +150,9 @@ export async function vote(options) {
 
 export async function unvote(options) {
   const secret = options.secret;
-  const publicKeys = options.publicKeys;
+  const usernames = options.usernames;
   const secondSecret = options.secondSecret;
-  const keyList = publicKeys.split(',').map(function(el) {
+  const keyList = usernames.split(',').map(function(el) {
     return el;
   });
   const hash = crypto
@@ -285,7 +285,10 @@ export default function basic(program: ApiConfig) {
     .description('vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .requiredOption('-p, --publicKeys <public key list>', '')
+    .requiredOption(
+      '-u, --usernames <usernames>',
+      'comma separeted usernames. eg. liangpeili,xpgeng,a1300'
+    )
     .action(vote);
 
   program
@@ -293,7 +296,10 @@ export default function basic(program: ApiConfig) {
     .description('cancel vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .requiredOption('-p, --publicKeys <public key list>', '')
+    .requiredOption(
+      '-u, --usernames <usernames>',
+      'comma separeted usernames. eg. liangpeili,xpgeng,a1300'
+    )
     .action(unvote);
 
   program
