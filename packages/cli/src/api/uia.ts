@@ -1,135 +1,64 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 import { TransactionBase } from '@gny/base';
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { KeyPair } from '@gny/interfaces';
+import { getBaseUrl } from '../getBaseUrl';
 
-let globalOptions: ApiConfig;
-
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
-}
-
-function pretty(obj) {
-  return JSON.stringify(obj, null, 2);
-}
-
-function getIssuers(options) {
-  const param = {
+export async function getIssuers(options) {
+  const params = {
     limit: options.limit,
     offest: options.offset,
   };
-  getApi().get('/api/uia/issuers', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/uia/issuers', params);
 }
 
-function isIssuer(address: string) {
-  const param = {
-    address: address,
-  };
-  getApi().get('/api/uia/isIssuer', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+export async function isIssuer(address: string) {
+  await Api.get(getBaseUrl() + `/api/uia/isIssuer/${address}`);
 }
 
-function getIssuer(name: string) {
-  const param = {
+export async function getIssuer(name: string) {
+  const params = {
     name: name,
   };
-  getApi().get('/api/uia/issuers', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/uia/issuers', params);
 }
 
-function getIssuerAssets(name: string) {
-  getApi().get(`/api/uia/issuers/${name}/assets`, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+export async function getIssuerAssets(name: string) {
+  await Api.get(getBaseUrl() + `/api/uia/issuers/${name}/assets`);
 }
 
-function getAssets(options) {
-  const param = {
+export async function getAssets(options) {
+  const params = {
     limit: options.limit,
     offest: options.offset,
   };
-  getApi().get('/api/uia/assets', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/uia/assets', params);
 }
 
-function getAsset(name: string) {
-  const param = {
+export async function getAsset(name: string) {
+  const params = {
     name: name,
   };
-  getApi().get('/api/uia/assets', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/uia/assets', params);
 }
 
-function getBalances(address: string) {
-  const param = {
-    address: address,
+export async function getBalances(options) {
+  const params = {
+    limit: options.limit,
+    offset: options.offset,
   };
-  getApi().get('/api/uia/balances', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+  await Api.get(getBaseUrl() + `/api/uia/balances/${options.address}`, params);
 }
 
-function getBalance(options) {
-  const param = {
-    address: options.address,
-    currency: options.currency,
-  };
-  getApi().get('/api/uia/balances', param, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.account));
-    }
-  });
+export async function getBalance(options) {
+  await Api.get(
+    getBaseUrl() + `/api/uia/balances/${options.address}/${options.currency}`
+  );
 }
 
-function sendAsset(options) {
+export async function sendAsset(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -154,17 +83,10 @@ function sendAsset(options) {
     secondKeypair: secondKeypair,
     args: [options.currency, options.amount, options.recipient],
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
-  });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function registerDelegate(options) {
+export async function registerIssuer(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -181,26 +103,49 @@ function registerDelegate(options) {
     );
   }
   const trs = TransactionBase.create({
-    type: 10,
+    type: 100,
     fee: String(100 * 1e8),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [],
+    args: [options.name, options.desc],
   });
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.transactionId));
-    }
+
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
+}
+
+export async function registerAsset(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+  const trs = TransactionBase.create({
+    type: 101,
+    fee: String(500 * 1e8),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [
+      options.name,
+      options.desc,
+      options.maximum,
+      Number(options.precision),
+    ],
   });
+
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
 export default function uia(program: ApiConfig) {
-  globalOptions = program;
-
   program
     .command('getissuers')
     .description('get issuers')
@@ -236,8 +181,11 @@ export default function uia(program: ApiConfig) {
     .action(getAsset);
 
   program
-    .command('getbalances <address>')
+    .command('getbalances')
     .description('get balances by address')
+    .requiredOption('-a, --address <address>', '')
+    .option('-o, --offset <n>', '')
+    .option('-l, --limit <n>', '')
     .action(getBalances);
 
   program
@@ -259,10 +207,22 @@ export default function uia(program: ApiConfig) {
     .action(sendAsset);
 
   program
-    .command('registerdelegate')
-    .description('register delegate')
+    .command('registerissuer')
+    .description('register issuer')
     .requiredOption('--secret <secret>')
-    .requiredOption('--username <username>')
+    .requiredOption('--name <name>')
+    .requiredOption('-d, --desc <descrption>', '')
     .option('--secondSecret <secret>')
-    .action(registerDelegate);
+    .action(registerIssuer);
+
+  program
+    .command('registerasset')
+    .description('register asset')
+    .requiredOption('--secret <secret>')
+    .requiredOption('--name <name>')
+    .requiredOption('-d, --desc <desc>', '')
+    .requiredOption('-m, --maximum <maximum>', '')
+    .requiredOption('-p, --precision <precision>', '')
+    .option('--secondSecret <secret>')
+    .action(registerAsset);
 }

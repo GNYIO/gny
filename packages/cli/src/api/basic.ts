@@ -1,19 +1,40 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import { Api, ApiConfig } from '../lib/api';
+import api, { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { TransactionBase } from '@gny/base';
 import { KeyPair } from '@gny/interfaces';
+import { getBaseUrl } from '../getBaseUrl';
 
-let globalOptions: ApiConfig;
+export async function setUserName(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
 
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
+  const trs = TransactionBase.create({
+    type: 1,
+    fee: String(5 * 1e8),
+    args: [options.username],
+    keypair: keypair,
+    secondKeypair: secondKeypair,
   });
+
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function setSecondSecret(options) {
+export async function setSecondSecret(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -36,17 +57,10 @@ function setSecondSecret(options) {
     keypair: keypair,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function lock(options) {
+export async function lock(options) {
   const hash = crypto
     .createHash('sha256')
     .update(options.secret, 'utf8')
@@ -69,20 +83,41 @@ function lock(options) {
     message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
-    args: [String(options.height), String(options.amout)],
+    args: [String(options.height), String(options.amount)],
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function vote(options) {
+export async function unlock(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+
+  const trs = TransactionBase.create({
+    type: 6,
+    fee: String(0),
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
+  });
+
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
+}
+
+export async function vote(options) {
   const secret = options.secret;
   const publicKeys = options.publicKeys;
   const keyList = publicKeys.split(',').map(function(el) {
@@ -111,17 +146,10 @@ function vote(options) {
     args: keyList,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function unvote(options) {
+export async function unvote(options) {
   const secret = options.secret;
   const publicKeys = options.publicKeys;
   const secondSecret = options.secondSecret;
@@ -152,66 +180,84 @@ function unvote(options) {
     args: keyList,
   });
 
-  getApi().broadcastTransaction(trs, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(result.transactionId);
-    }
-  });
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
 }
 
-function listDiffVotes(options) {
+export async function registerDelegate(options) {
+  const hash = crypto
+    .createHash('sha256')
+    .update(options.secret, 'utf8')
+    .digest();
+  const keypair = ed.generateKeyPair(hash);
+
+  let secondKeypair: undefined | KeyPair = undefined;
+  if (options.secondSecret) {
+    secondKeypair = ed.generateKeyPair(
+      crypto
+        .createHash('sha256')
+        .update(options.secondSecret, 'utf8')
+        .digest()
+    );
+  }
+  const trs = TransactionBase.create({
+    type: 10,
+    fee: String(100 * 1e8),
+    message: options.message,
+    keypair: keypair,
+    secondKeypair: secondKeypair,
+    args: [],
+  });
+
+  await Api.post(getBaseUrl() + '/peer/transactions', { transaction: trs });
+}
+
+export async function listDiffVotes(options) {
   const params = {
     username: options.username,
     address: options.address,
     publicKey: options.publicKey,
   };
-  getApi().get('/api/delegates/get', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    }
-    const username = result.delegate.username;
-    const params = {
-      address: result.delegate.address,
-      username: result.delegate.username,
-    };
-    getApi().get('/api/accounts/getVotes', params, function(err, result) {
-      if (err) {
-        console.log(err);
-        process.exit(1);
-      }
 
-      const names_a = result.delegates.map(delegate => delegate.username);
-      const a = new Set(names_a);
-      const params = { username: username };
-      getApi().get('/api/delegates/getVoters', params, function(err, result) {
-        if (err) {
-          console.log(err);
-          process.exit(1);
-        }
+  const resultA: any = await Api.get(
+    getBaseUrl() + '/api/delegates/get',
+    params
+  );
+  const usernameA = resultA.delegate.username;
+  const addressA = resultA.delegate.address;
 
-        const names_b = result.accounts.map(account => account.username);
-        const b = new Set(names_b);
-        const diffab = [...a].filter(x => !b.has(x));
-        const diffba = [...b].filter(x => !a.has(x));
-        console.log(
-          "you voted but doesn't vote you: \n\t",
-          JSON.stringify(diffab)
-        );
-        console.log(
-          "\nvoted you but you don't voted: \n\t",
-          JSON.stringify(diffba)
-        );
-      });
-    });
-  });
+  const paramsA = {
+    usename: usernameA,
+    address: addressA,
+  };
+  const votersA: any = await Api.get(
+    getBaseUrl() + '/api/accounts/getVotes',
+    paramsA
+  );
+  const delegatesListA = votersA.delegates.map(delegate => delegate.username);
+  const setA = new Set(delegatesListA);
+
+  const paramsB = {
+    username: usernameA,
+  };
+  const votersB: any = await Api.get('/api/delegates/getVoters', paramsB);
+  const delegatesListB = votersB.accounts.map(account => account.username);
+  const setB = new Set(delegatesListB);
+
+  const diffAB = [...Array.from(setA)].filter(x => !setB.has(x));
+  const diffBA = [...Array.from(setB)].filter(x => !setA.has(x));
+
+  console.log("you voted but doesn't vote you: \n\t", JSON.stringify(diffAB));
+  console.log("\nvoted you but you don't voted: \n\t", JSON.stringify(diffBA));
 }
 
 export default function basic(program: ApiConfig) {
-  globalOptions = program;
+  program
+    .command('setusername')
+    .description('set user name')
+    .requiredOption('-e, --secret <secret>', '')
+    .option('-s, --secondSecret <secret>', '')
+    .requiredOption('-u, --username <username>', '')
+    .action(setUserName);
 
   program
     .command('setsecondsecret')
@@ -230,6 +276,13 @@ export default function basic(program: ApiConfig) {
     .action(lock);
 
   program
+    .command('unlock')
+    .description('unlock account transfer')
+    .requiredOption('-e, --secret <secret>', '')
+    .option('-s, --secondSecret <secret>', '')
+    .action(unlock);
+
+  program
     .command('vote')
     .description('vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
@@ -246,10 +299,16 @@ export default function basic(program: ApiConfig) {
     .action(unvote);
 
   program
+    .command('registerdelegate')
+    .description('register delegate')
+    .requiredOption('--secret <secret>')
+    .option('--secondSecret <secret>')
+    .action(registerDelegate);
+
+  program
     .command('listdiffvotes')
     .description('list the votes by each other')
     .option('-u, --username <username>', '')
-    .option('-p, --publicKey <publicKey>', '')
     .option('-a, --address <address>', '')
     .action(listDiffVotes);
 }
