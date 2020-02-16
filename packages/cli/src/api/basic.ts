@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import api, { ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { TransactionBase } from '@gny/base';
 import { KeyPair } from '@gny/interfaces';
@@ -80,7 +80,6 @@ export async function lock(options) {
   const trs = TransactionBase.create({
     type: 3,
     fee: String(10000000),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
     args: [String(options.height), String(options.amount)],
@@ -202,7 +201,6 @@ export async function registerDelegate(options) {
   const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
     args: [],
