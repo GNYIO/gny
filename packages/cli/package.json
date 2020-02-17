@@ -13,7 +13,6 @@
   "files": [
     "dist"
   ],
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "@gny/base": "1.0.16",
