@@ -6,6 +6,9 @@ import * as isRoot from 'is-root';
 import { BigNumber } from '@gny/utils';
 import * as shellJS from 'shelljs';
 
+const DEFAULT_DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.integration.yml';
+
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
   secret:
@@ -77,16 +80,21 @@ export async function deleteOldDockerImages() {
   console.log('\n');
 }
 
-export async function buildDockerImage() {
+export async function buildDockerImage(
+  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
+) {
   // first stop all running containers
   // then delete image file
   await dockerCompose.buildAll({
     cwd: process.cwd(),
     log: true,
+    config: configFile,
   });
 }
 
-export async function spawnContainer(configFile?: string) {
+export async function spawnContainer(
+  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
+) {
   await dockerCompose.upAll({
     cwd: process.cwd(),
     log: true,
@@ -103,16 +111,20 @@ export async function printActiveContainers() {
   await sleep(1000);
 }
 
-export async function stopAndKillContainer() {
+export async function stopAndKillContainer(
+  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
+) {
   await dockerCompose.kill({
     cwd: process.cwd(),
     log: true,
+    config: configFile,
   });
   // delete volumes with --volumes
   await dockerCompose.down({
     cwd: process.cwd(),
     log: true,
     commandOptions: ['--volumes'],
+    config: configFile,
   });
 }
 

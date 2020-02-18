@@ -1,4 +1,4 @@
-import * as lib from './lib';
+import * as lib from '../integration/lib';
 import axios from 'axios';
 
 describe('blocksApi', () => {

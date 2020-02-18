@@ -32,20 +32,26 @@ const api = [
 const lib = [newGenesisBlock, state, newP2PSecret];
 
 function main() {
-  const defaultHost = process.env.GNY_HOST || '127.0.0.1';
-  const defaultPort = process.env.GNY_PORT || 4096;
+  global.host = process.env.GNY_HOST || '127.0.0.1';
+  global.port = Number(process.env.GNY_PORT || 4096);
+
   program
-    .option(
-      '-H, --host <host>',
-      `Specify the hostname or ip of the node, default: ${defaultHost}`,
-      defaultHost
-    )
-    .option(
-      '-P, --port <port>',
-      `Specify the port of the node, default: ${defaultPort}`,
-      defaultPort
-    )
-    .option('-M, --main', 'Specify the mainnet, default: false');
+    .option('--host <host>', 'host')
+    .on('option:host', host => {
+      if (!host) {
+        console.log('--host is not an valid');
+        process.exit(1);
+      }
+      global.host = host;
+    })
+    .option('--port <port>', 'port')
+    .on('option:port', port => {
+      if (!Number(port)) {
+        console.log('--port is not an valid');
+        process.exit(1);
+      }
+      global.port = Number(port);
+    });
 
   api.forEach(one => one(program as ApiConfig));
   lib.forEach(one => one(program));

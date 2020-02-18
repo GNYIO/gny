@@ -1,5 +1,5 @@
 import * as gnyClient from '@gny/client';
-import * as lib from './lib';
+import * as lib from '../integration/lib';
 import axios from 'axios';
 
 const config = {

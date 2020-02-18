@@ -1,118 +1,51 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import { Api, ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
+import Api from '../lib/api';
 import { BlockBase, TransactionBase } from '@gny/base';
 import { IBlock } from '@gny/interfaces';
+import { getBaseUrl } from '../getBaseUrl';
 
-let globalOptions: ApiConfig;
-
-function getApi() {
-  return new Api({
-    host: globalOptions.host,
-    port: globalOptions.port,
-  });
+export async function getHeight() {
+  await Api.get(getBaseUrl() + '/api/blocks/getHeight');
 }
 
-function pretty(obj: any) {
-  return JSON.stringify(obj, null, 2);
+export async function getMilestone() {
+  await Api.get(getBaseUrl() + '/api/blocks/getMilestone');
 }
 
-function getHeight() {
-  getApi().get('/api/blocks/getHeight', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.height));
-    }
-  });
+export async function getReward() {
+  await Api.get(getBaseUrl() + '/api/blocks/getReward');
 }
 
-function getMilestone() {
-  getApi().get('/api/blocks/getMilestone', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getSupply() {
+  await Api.get(getBaseUrl() + '/api/blocks/getSupply');
 }
 
-function getReward() {
-  getApi().get('/api/blocks/getReward', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+export async function getStatus() {
+  await Api.get(getBaseUrl() + '/api/blocks/getStatus');
 }
 
-function getSupply() {
-  getApi().get('/api/blocks/getSupply', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
-}
-
-function getStatus() {
-  getApi().get('/api/blocks/getStatus', function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.height));
-    }
-  });
-}
-
-function getBlocks(options) {
+export async function getBlocks(options) {
   const params = {
     limit: options.limit,
     orderBy: options.sort,
     offset: options.offset,
   };
-  getApi().get('/api/blocks/', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/blocks', params);
 }
 
-function getBlockById(id: string) {
+export async function getBlockById(id: string) {
   const params = { id: id };
-  getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.block));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/blocks/getBlock', params);
 }
 
-function getBlockByHeight(height: string) {
+export async function getBlockByHeight(height: string) {
   const params = { height: height };
-  getApi().get('/api/blocks/getBlock', params, function(err, result) {
-    if (err) {
-      console.log(err);
-      process.exit(1);
-    } else {
-      console.log(pretty(result.block));
-    }
-  });
+  await Api.get(getBaseUrl() + '/api/blocks/getBlock', params);
 }
 
-function getBlockBytes(options) {
+export function getBlockBytes(options) {
   let block;
   try {
     block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
@@ -123,7 +56,7 @@ function getBlockBytes(options) {
   console.log(BlockBase.getBytes(block, true).toString('hex'));
 }
 
-function getBlockId(options) {
+export function getBlockId(options) {
   let block: IBlock;
   try {
     block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
@@ -134,7 +67,7 @@ function getBlockId(options) {
   console.log(BlockBase.getId(block));
 }
 
-function getBlockPayloadHash(options) {
+export function getBlockPayloadHash(options) {
   let block: IBlock;
   try {
     block = JSON.parse(fs.readFileSync(options.file, 'utf8'));
@@ -150,8 +83,6 @@ function getBlockPayloadHash(options) {
 }
 
 export default function block(program: ApiConfig) {
-  globalOptions = program;
-
   program
     .command('getheight')
     .description('get latest block height')
@@ -190,30 +121,30 @@ export default function block(program: ApiConfig) {
     .action(getBlocks);
 
   program
-    .command('getblockbyid [id]')
+    .command('getblockbyid <id>')
     .description('get block by id')
     .action(getBlockById);
 
   program
-    .command('getblockbyheight [height]')
+    .command('getblockbyheight <height>')
     .description('get block by height')
     .action(getBlockByHeight);
 
   program
     .command('getblockbytes')
     .description('get block bytes')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockBytes);
 
   program
     .command('getblockid')
     .description('get block id')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockId);
 
   program
     .command('getblockpayloadhash')
     .description('get block bytes')
-    .option('-f, --file <file>', 'block file')
+    .requiredOption('-f, --file <file>', 'block file')
     .action(getBlockPayloadHash);
 }
