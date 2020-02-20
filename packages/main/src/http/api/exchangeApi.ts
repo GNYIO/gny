@@ -89,11 +89,7 @@ export default class ExchangeApi implements IHttpApi {
         .min(0)
         .required(),
       args: joi.array().optional(),
-      message: joi
-        .string()
-        .max(256)
-        .regex(new RegExp(/^[a-zA-Z0-9 ]*$/))
-        .optional(),
+      message: joi.transactionMessage(),
     });
     const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
