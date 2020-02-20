@@ -73,8 +73,7 @@ describe('basic', () => {
       const options = {
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        publicKeys:
-          'GTg3YWJ7TKubzfqQmh7Sym5Zgeq2 G4Ta6QoDhDjgHiAALBPWQsDTRcukK',
+        usernames: 'liangpeili,xpgeng',
       };
 
       mock.onPost(baseUrl + '/peer/transactions').reply(200, {
@@ -98,8 +97,7 @@ describe('basic', () => {
       const options = {
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
-        publicKeys:
-          'GTg3YWJ7TKubzfqQmh7Sym5Zgeq2 G4Ta6QoDhDjgHiAALBPWQsDTRcukK',
+        usernames: 'liangpeili,xpgeng',
       };
 
       mock.onPost(baseUrl + '/peer/transactions').reply(200, {

@@ -29,8 +29,9 @@ export async function getStatus() {
 export async function getBlocks(options) {
   const params = {
     limit: options.limit,
-    orderBy: options.sort,
     offset: options.offset,
+    orderBy: options.sort,
+    transactions: options.transactions ? true : undefined,
   };
   await Api.get(getBaseUrl() + '/api/blocks', params);
 }
@@ -111,13 +112,10 @@ export default function block(program: ApiConfig) {
   program
     .command('getblocks')
     .description('get blocks')
-    .option('-o, --offset <n>', '')
-    .option('-l, --limit <n>', '')
-    .option(
-      '-s, --sort <field:mode>',
-      'height:asc, totalAmount:asc, totalFee:asc'
-    )
-    .option('-t, --transactions', 'true, false')
+    .option('-o, --offset <offset>', '')
+    .option('-l, --limit <limit>', '')
+    .option('-s, --sort <height:asc | height:desc>', '')
+    .option('-t, --transactions', '')
     .action(getBlocks);
 
   program

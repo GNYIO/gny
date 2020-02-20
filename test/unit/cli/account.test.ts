@@ -53,33 +53,6 @@ describe('account', () => {
     });
   });
 
-  describe('getbalance', () => {
-    it('should get balance by the address', async done => {
-      const expected = {
-        success: true,
-        count: 1,
-        balances: [
-          {
-            gny: '40000000000000000',
-          },
-        ],
-      };
-      const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-
-      mock
-        .onGet(baseUrl + '/api/accounts/getBalance', {
-          params: { address: address },
-        })
-        .reply(200, {
-          data: expected,
-        });
-
-      await account.getBalance(address);
-      expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
-    });
-  });
-
   describe('getaccountbyaddress', () => {
     it('should get account by the address', async done => {
       const expected = {

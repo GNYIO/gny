@@ -61,9 +61,9 @@ describe('uia', () => {
       const expected = {
         success: true,
       };
-      const username = 'xpgeng';
+      const username = 'ABC';
 
-      mock.onGet(baseUrl + '/api/uia/issuers').reply(200, {
+      mock.onGet(baseUrl + '/api/uia/issuers/ABC').reply(200, {
         data: expected,
       });
 

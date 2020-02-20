@@ -145,7 +145,7 @@ export default function transaction(program: ApiConfig) {
     .action(getTransactions);
 
   program
-    .command('gettransaction <id>')
+    .command('getunconfirmedtransaction <id>')
     .description('get unconfirmed transaction by id')
     .action(getUnconfirmedTransaction);
 

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
-import api, { ApiConfig } from '../lib/api';
+import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { TransactionBase } from '@gny/base';
 import { KeyPair } from '@gny/interfaces';
@@ -80,7 +80,6 @@ export async function lock(options) {
   const trs = TransactionBase.create({
     type: 3,
     fee: String(10000000),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
     args: [String(options.height), String(options.amount)],
@@ -119,8 +118,8 @@ export async function unlock(options) {
 
 export async function vote(options) {
   const secret = options.secret;
-  const publicKeys = options.publicKeys;
-  const keyList = publicKeys.split(',').map(function(el) {
+  const usernames = options.usernames;
+  const keyList = usernames.split(',').map(function(el) {
     return el;
   });
   const hash = crypto
@@ -151,9 +150,9 @@ export async function vote(options) {
 
 export async function unvote(options) {
   const secret = options.secret;
-  const publicKeys = options.publicKeys;
+  const usernames = options.usernames;
   const secondSecret = options.secondSecret;
-  const keyList = publicKeys.split(',').map(function(el) {
+  const keyList = usernames.split(',').map(function(el) {
     return el;
   });
   const hash = crypto
@@ -202,7 +201,6 @@ export async function registerDelegate(options) {
   const trs = TransactionBase.create({
     type: 10,
     fee: String(100 * 1e8),
-    message: options.message,
     keypair: keypair,
     secondKeypair: secondKeypair,
     args: [],
@@ -287,7 +285,10 @@ export default function basic(program: ApiConfig) {
     .description('vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .requiredOption('-p, --publicKeys <public key list>', '')
+    .requiredOption(
+      '-u, --usernames <usernames>',
+      'comma separeted usernames. eg. liangpeili,xpgeng,a1300'
+    )
     .action(vote);
 
   program
@@ -295,7 +296,10 @@ export default function basic(program: ApiConfig) {
     .description('cancel vote for delegates')
     .requiredOption('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
-    .requiredOption('-p, --publicKeys <public key list>', '')
+    .requiredOption(
+      '-u, --usernames <usernames>',
+      'comma separeted usernames. eg. liangpeili,xpgeng,a1300'
+    )
     .action(unvote);
 
   program
