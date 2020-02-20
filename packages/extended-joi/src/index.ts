@@ -21,16 +21,16 @@ interface ExtendedStringSchema extends Joi.StringSchema {
 
 export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
-  emptyString(): this;
+  transactionMessage(): this;
 }
 
-const emptyStringExtension: Joi.Extension = {
+const transactionMessageExtension: Joi.Extension = {
   base: Joi.string()
     .allow('')
     .max(256)
     .regex(/^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)/)
     .optional(),
-  name: 'emptyString',
+  name: 'transactionMessage',
 };
 
 const stringExtensions: Joi.Extension = {
@@ -283,5 +283,5 @@ const stringExtensions: Joi.Extension = {
 
 export const joi: ExtendedJoi = Joi.extend([
   stringExtensions,
-  emptyStringExtension,
+  transactionMessageExtension,
 ]);

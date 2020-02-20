@@ -469,11 +469,11 @@ describe('extendedJoi', () => {
     });
   });
 
-  describe('message', () => {
+  describe('transactionMessage', () => {
     it('should fail with null passed in', () => {
       const VALUE = null;
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error.name).toBe('ValidationError');
@@ -482,7 +482,7 @@ describe('extendedJoi', () => {
     it('should pass with undefined', () => {
       const VALUE = undefined;
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error).toBeNull();
@@ -491,7 +491,7 @@ describe('extendedJoi', () => {
     it('should pass with string with 256 characters', () => {
       const VALUE = 'a'.repeat(256);
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error).toBeNull();
@@ -500,7 +500,7 @@ describe('extendedJoi', () => {
     it('should fail with string of 257 characters', () => {
       const VALUE = 'a'.repeat(257);
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error.name).toBe('ValidationError');
@@ -509,7 +509,7 @@ describe('extendedJoi', () => {
     it('should pass when passed in empty string', () => {
       const VALUE = '';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error).toBeNull();
@@ -518,7 +518,7 @@ describe('extendedJoi', () => {
     it('should fail with single space character', () => {
       const VALUE = ' ';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error.name).toBe('ValidationError');
@@ -527,7 +527,7 @@ describe('extendedJoi', () => {
     it('should pass with single word', () => {
       const VALUE = 'hello';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error).toBeNull();
@@ -536,7 +536,7 @@ describe('extendedJoi', () => {
     it('should pass with sentence', () => {
       const VALUE = 'this is a whole sentence';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error).toBeNull();
@@ -545,7 +545,7 @@ describe('extendedJoi', () => {
     it('should fail with sentence with leading space', () => {
       const VALUE = ' this sentence has a leading space';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error.name).toBe('ValidationError');
@@ -554,7 +554,7 @@ describe('extendedJoi', () => {
     it('should fail with setence with space at the end', () => {
       const VALUE = 'sentence with space at the end ';
 
-      const schema = joi.emptyString();
+      const schema = joi.transactionMessage();
 
       const report = joi.validate(VALUE, schema);
       expect(report.error.name).toBe('ValidationError');
