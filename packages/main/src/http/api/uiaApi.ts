@@ -129,9 +129,14 @@ export default class UiaApi implements IHttpApi {
 
   private getIssuer = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const nameMustBeNameOrAddress = joi.object().keys({
-      name: [joi.string().issuer(), joi.string().address()],
-    });
+    const nameMustBeNameOrAddress = joi
+      .object()
+      .keys({
+        name: joi
+          .alternatives([joi.string().issuer(), joi.string().address()])
+          .required(),
+      })
+      .required();
     const report = joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
       return res.status(422).send({

@@ -54,7 +54,7 @@ export default function exchange(program: ApiConfig) {
     .action(openAccountWithSecret);
 
   program
-    .command('genpublickey <secret>>')
+    .command('genpublickey <secret>')
     .description('generate public key by secret')
     .action(genPublicKey);
 

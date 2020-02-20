@@ -163,12 +163,15 @@ export default class TransactionsApi implements IHttpApi {
     next: Next
   ) => {
     const { query } = req;
-    const typeSchema = joi.object().keys({
-      id: joi
-        .string()
-        .hex()
-        .required(),
-    });
+    const typeSchema = joi
+      .object()
+      .keys({
+        id: joi
+          .string()
+          .hex()
+          .required(),
+      })
+      .required();
     const report = joi.validate(query, typeSchema);
     if (report.error) {
       return res.status(422).send({
@@ -196,8 +199,14 @@ export default class TransactionsApi implements IHttpApi {
   ) => {
     const { query } = req;
     const publicKeyAddress = joi.object().keys({
-      senderPublicKey: joi.string().publicKey(),
-      address: joi.string().address(),
+      senderPublicKey: joi
+        .string()
+        .publicKey()
+        .optional(),
+      address: joi
+        .string()
+        .address()
+        .optional(),
     });
     const report = joi.validate(query, publicKeyAddress);
     if (report.error) {

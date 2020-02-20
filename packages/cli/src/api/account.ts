@@ -7,11 +7,6 @@ export async function openAccount(publicKey: string) {
   await Api.post(getBaseUrl() + '/api/accounts/openAccount', { publicKey });
 }
 
-export async function getBalance(address: string) {
-  const params = { address: address };
-  await Api.get(getBaseUrl() + '/api/accounts/getBalance', params);
-}
-
 export async function getAccountByAddress(address: string) {
   const params = { address: address };
   await Api.get(getBaseUrl() + '/api/accounts/', params);
@@ -48,11 +43,6 @@ export default function account(program: ApiConfig) {
     .command('openaccount <publicKey>')
     .description('open your account and get the infomation by publicKey')
     .action(openAccount);
-
-  program
-    .command('getbalance <address>')
-    .description('get balance by address')
-    .action(getBalance);
 
   program
     .command('getaccountbyaddress <address>')

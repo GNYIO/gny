@@ -19,10 +19,7 @@ export async function isIssuer(address: string) {
 }
 
 export async function getIssuer(name: string) {
-  const params = {
-    name: name,
-  };
-  await Api.get(getBaseUrl() + '/api/uia/issuers', params);
+  await Api.get(getBaseUrl() + `/api/uia/issuers/${name}`);
 }
 
 export async function getIssuerAssets(name: string) {
