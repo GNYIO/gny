@@ -83,12 +83,7 @@ export default class TransactionsApi implements IHttpApi {
         .min(0)
         .max(1000),
       height: [joi.number().min(0), joi.string().positiveOrZeroBigInt()],
-      message: joi
-        .string()
-        .max(256)
-        .alphanum()
-        .allow('')
-        .optional(),
+      message: joi.transactionMessage(),
     });
 
     const report = joi.validate(query, schema);

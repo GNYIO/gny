@@ -3,6 +3,8 @@ import { isAddress } from '@gny/utils';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 
+new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
+
 interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
   secret(): this;
@@ -19,7 +21,17 @@ interface ExtendedStringSchema extends Joi.StringSchema {
 
 export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
+  transactionMessage(): this;
 }
+
+const transactionMessageExtension: Joi.Extension = {
+  base: Joi.string()
+    .allow('')
+    .max(256)
+    .regex(/^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)/)
+    .optional(),
+  name: 'transactionMessage',
+};
 
 const stringExtensions: Joi.Extension = {
   base: Joi.string(),
@@ -269,4 +281,7 @@ const stringExtensions: Joi.Extension = {
   ],
 };
 
-export const joi: ExtendedJoi = Joi.extend(stringExtensions);
+export const joi: ExtendedJoi = Joi.extend([
+  stringExtensions,
+  transactionMessageExtension,
+]);

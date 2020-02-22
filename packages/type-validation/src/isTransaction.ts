@@ -19,12 +19,7 @@ export function isTransaction(transaction: any): transaction is ITransaction {
       .min(0)
       .required(),
     args: joi.array().optional(),
-    message: joi
-      .string()
-      .max(256)
-      .alphanum()
-      .allow('')
-      .optional(),
+    message: joi.transactionMessage(),
     senderId: joi
       .string()
       .address()
