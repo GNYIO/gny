@@ -14,9 +14,14 @@ services:
     build: ../../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/restarted-node/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/restarted-node/ormconfig.node1.json"'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/restarted-node/node1.json" --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db1
+      - GNY_DB_PORT=5432
       - GNY_P2P_SECRET="CAASpwkwggSjAgEAAoIBAQC+tF5VLKOeR4V4AUF5i/Rz0CbrVvorKY/vUq2BBo7QyeYzgYMXZHqzneJfSFci6ZLWkLIsgoXrV/jRcX9CrWNwgE1RLsNxtUiF3IrKegxxchJIECEJhRdl0DYdYTQEq+mcwpMUsrEFi1hGfZvR6Bx1cB7YLyLgbP5PwBNOr0yI5a3E0DkUR0E43Z0LZLsEzVtSAJGugi5OimDnjJo/aPzCbixh+DPKX6BlJk7PJ7arGtMahnIJzfruwIaCRgbqMCXIuD//zrDT2+Nk1iQHhguHMu2gSKxCJBYL56ECs1LDziVxliZLPwmQzEACqXoYUpYtytq9tO/2q8K5vnae2ZGbAgMBAAECggEANM14ORktDIw9Fmcym9b2joKZ5BunFQBjDB7WT51jOchNZwF7LKTznHwgy8UZ617E+4gA7XYOYoVvLX7Bf9LGb8X2on3SO8+4DuhrvXhhrZ+qFC3zF9G0Esq90RCy+IApJPBzDQ4VGbXlcU8iL9KW3qV2xOD4RS+okqhaMDU1ecm0BY/oNbJ23LuUcvsVelLOTxRf9bAEAE3bk2RJzyxtI1U+TuWiQM77vteMvDG5aNqrX8ecPrwoCX11kJgopRcQeI4P7wxaNYNlGa8O+0KJ1SYkJK2HRvTHde5ejp4NQH7IdTXZfzCJ3iPYILQoInn6ZU/lQPAHkqN/5oD6tRfwcQKBgQDmj0XTTeicqEHjGe9+VWjXLlK92s+nhKsziRErNfN0jgJOwzz4A+K2DyXuqq7iAIkT8Pk6jZbCk6XU4SuuAixas1+cJ7gHqL8WTj9rkju5IvO/oK4E2G0Z2Ls1saScFvmml0Mx5Bdb9DKjfX1FE12k94D7DnhypEoneUYtMq9apQKBgQDTv0pESd9+2hqJ6ZBuLwH6eiZvNZPcTjRySDjT+MCNink3fBVdtmM7O4RYhyKqec/KIcAPlWDa/tiux139o7WAUUTE9BpBMiTOQhEVB2z0hdLeurTPeOTbmdL/Q+aCGg1WI0kDST74JdEF5c6aq9J6jB3Dy7dGzMPuHvcu9IzHPwKBgHbsN8wCR5VmhHWrjwjO7UDwt+UN1EZH/Dac4Ko1LdpU1YPi2LPk7S+TKLGugH46YHpUtXkqRzUeC09+xZT/sfkmxI47PoVU2RucSMInr36TNL8HFjuRltTaIdZURt/sSeFP7Gzzhcj8cJI7zD2w+4B32aOllyMq8sThnPz7Q8+xAoGAKCAQr74b9wrXipjTAL4xrshk7iAGA/Jh5+IdurVhr7C05bnCxr5gMYJGwwvgmtN4d8JLheh1sSon337yJbVXGJjN4lCrhP0+kkNcv1Jn6DJP0lspFkO/gom0vSCd1rufGVqYZGIF57oq0OZKb27t9MEGhurcsTLuUfpWNvSqlLsCgYEAv0SypjQjeMBNPPBQvC+tApUfoPXPybUJYPpP04qZ14JF7/O/0qorCFlVP83Il1I67S9aydjBgHEghfIe43Jp0khf17qGvKL0pZ2yLbucPwdEGCPmT2fMIYyTSLN9X5fm8k7h4abrq5+utPQzFRX9hZKqWZbN1Ygpa0oe/3z/rz8="
     ports:
       - '4096:4096'

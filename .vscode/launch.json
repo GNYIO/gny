@@ -10,7 +10,18 @@
       "name": "DEBUG_1",
       "program": "${workspaceFolder}/packages/main/dist/src/app.js",
       "cwd": "${workspaceFolder}",
-      "args": ["--ormConfig", "ormconfig.json"],
+      "args": [
+        "--dbPassword",
+        "postgres",
+        "--dbDatabase",
+        "postgres",
+        "--dbUser",
+        "docker",
+        "--dbHost",
+        "localhost",
+        "--dbPort",
+        "3000"
+      ],
       "env": {
         "DEBUG": "debug"
       },

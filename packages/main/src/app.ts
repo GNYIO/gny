@@ -139,7 +139,7 @@ function main() {
 
   appConfig.dbPort = 3000; // default
   if (program.dbPort || process.env['GNY_DB_PORT']) {
-    appConfig.dbPort = program.dbPort || process.env['GNY_DB_PORT'];
+    appConfig.dbPort = Number(program.dbPort || process.env['GNY_DB_PORT']);
   }
 
   if (program.privateP2PKey || process.env['GNY_P2P_SECRET']) {
