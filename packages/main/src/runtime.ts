@@ -63,7 +63,12 @@ export default async function runtime(options: IOptions) {
   global.app.getContractName = type => global.app.contractTypeMapping[type];
 
   global.app.sdb = new SmartDB(options.logger, {
-    configRaw: options.appConfig.ormConfigRaw,
+    dbPassword: options.appConfig.dbPassword,
+    dbDatabase: options.appConfig.dbDatabase,
+    dbUser: options.appConfig.dbUser,
+    dbHost: options.appConfig.dbHost,
+    dbPort: options.appConfig.dbPort,
+
     cachedBlockCount: 10,
   });
   await global.app.sdb.init();

@@ -22,7 +22,6 @@ function main() {
     .option('--peers [peers...]', 'Peers list')
     .option('--log <level>', 'Log level: log|trace|debug|info|warn|error|fatal')
     .option('--base <dir>', 'Base directory')
-    .option('--ormConfig <file>', 'ormconfig.json file')
     .option(
       '--privateP2PKey <key>',
       'Private P2P Key (base64 encoded) - overrides p2p_key.json file'
@@ -30,16 +29,26 @@ function main() {
     .option('--secret [secret...]', 'comma separated secrets')
     .option('--publicIP <ip>', 'Public IP of own server, default private IP')
     .option('--network <network>', 'Must be: localnet | testnet | mainnet')
+    .option('--dbPassword <password>')
+    .option('--dbDatabase <database>')
+    .option('--dbUser <user>')
+    .option('--dbHost <host>')
+    .option('--dbPort <port>')
     .on('--help', () => {
       console.log(`\nEnvironment Variables:
-  GNY_NETWORK=<network>    Must be: localnet | testnet | mainnet
-  GNY_PORT=<port>          Listening port number
-  GNY_LOG_LEVEL=<level>    log|trace|debug|info|warn|error|fatal
-  GNY_P2P_SECRET=<key>     Private P2P Key (base64 encoded) - overrides p2p_key.json file
-  GNY_SECRET=[secret...]   comma separated secrets
-  GNY_PUBLIC_IP=<ip>       Public IP of own server, default private IP
-  GNY_P2P_PEERS=[peers...] comma separated peers
-  GNY_ADDRESS=<address>    Listening host name or ip
+  GNY_NETWORK=<network>       Must be: localnet | testnet | mainnet
+  GNY_PORT=<port>             Listening port number
+  GNY_LOG_LEVEL=<level>       log|trace|debug|info|warn|error|fatal
+  GNY_P2P_SECRET=<key>        Private P2P Key (base64 encoded) - overrides p2p_key.json file
+  GNY_SECRET=[secret...]      comma separated secrets
+  GNY_PUBLIC_IP=<ip>          Public IP of own server, default private IP
+  GNY_P2P_PEERS=[peers...]    comma separated peers
+  GNY_ADDRESS=<address>       Listening host name or ip
+  GNY_DB_PASSWORD=<password>  db password
+  GNY_DB_DATABASE=<database>  db name
+  GNY_DB_USER=<user>          db user
+  GNY_DB_HOST=<host>          db host
+  GNY_DB_PORT=<port>          db port
       `);
     })
     .parse(process.argv);
@@ -111,16 +120,27 @@ function main() {
   const pathToLogFile = path.join(transpiledDir, 'logs', 'debug.log');
   const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
 
-  // path to ormconfig.json (default)
-  let ormConfigFilePath = path.join(baseDir, 'ormconfig.json');
-  // or custom ormconfig.json path
-  if (program.ormConfig) {
-    ormConfigFilePath = path.join(baseDir, program.ormConfig);
+  if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
+    appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
   }
-  // load ormConfigPath
-  appConfig.ormConfigRaw = fs.readFileSync(ormConfigFilePath, {
-    encoding: 'utf8',
-  });
+
+  if (program.dbDatabase || process.env['GNY_DB_DATABASE']) {
+    appConfig.dbDatabase = program.dbDatabase || process.env['GNY_DB_DATABASE'];
+  }
+
+  if (program.dbUser || process.env['GNY_DB_USER']) {
+    appConfig.dbUser = program.dbUser || process.env['GNY_DB_USER'];
+  }
+
+  appConfig.dbHost = 'localhost'; // default
+  if (program.dbHost || process.env['GNY_DB_HOST']) {
+    appConfig.dbHost = program.dbHost || process.env['GNY_DB_HOST'];
+  }
+
+  appConfig.dbPort = 3000; // default
+  if (program.dbPort || process.env['GNY_DB_PORT']) {
+    appConfig.dbPort = program.dbPort || process.env['GNY_DB_PORT'];
+  }
 
   if (program.privateP2PKey || process.env['GNY_P2P_SECRET']) {
     appConfig.peers.privateP2PKey =
