@@ -69,8 +69,12 @@ export class Basic extends Base {
     return result;
   }
 
-  public async vote(keyList: string[], secret: string, secondSecret?: string) {
-    const trs = basic.vote(keyList, secret, secondSecret);
+  public async vote(
+    usernames: string[],
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = basic.vote(usernames, secret, secondSecret);
     const params = {
       transaction: trs,
     };
@@ -81,11 +85,11 @@ export class Basic extends Base {
   }
 
   public async unvote(
-    keyList: string[],
+    usernames: string[],
     secret: string,
     secondSecret?: string
   ) {
-    const trs = basic.unvote(keyList, secret, secondSecret);
+    const trs = basic.unvote(usernames, secret, secondSecret);
     const params = {
       transaction: trs,
     };
