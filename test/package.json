@@ -1,16 +1,16 @@
 {
   "name": "@gny/test",
   "private": true,
-  "version": "1.0.16",
+  "version": "1.0.18",
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@gny/base": "1.0.16",
-    "@gny/client": "1.0.16",
-    "@gny/ed": "1.0.16",
-    "@gny/extended-joi": "1.0.16",
-    "@gny/interfaces": "1.0.16",
-    "@gny/utils": "1.0.16"
+    "@gny/base": "1.0.18",
+    "@gny/client": "1.0.18",
+    "@gny/ed": "1.0.18",
+    "@gny/extended-joi": "1.0.18",
+    "@gny/interfaces": "1.0.18",
+    "@gny/utils": "1.0.18"
   }
 }
