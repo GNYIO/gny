@@ -569,6 +569,10 @@ export interface Status {
   supply: string;
 }
 
+export interface SimpleAccountsWrapper {
+  delegates: IDelegate[];
+}
+
 export interface AccountsWrapper {
   accounts: AccountWeightViewModel[];
 }
