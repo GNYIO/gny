@@ -50,16 +50,16 @@ export class Basic extends Base {
   public async send(
     recipient: string,
     amount: string,
-    secret: string,
     message?: string,
-    secondeSecret?: string
+    secret: string,
+    secondSecret?: string
   ) {
     const trs = basic.transfer(
       recipient,
       amount,
       message,
       secret,
-      secondeSecret
+      secondSecret
     );
     const params = {
       transaction: trs,
