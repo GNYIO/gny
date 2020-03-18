@@ -41,4 +41,19 @@ export class Uia extends Base {
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
+
+  public async issueAsset(
+    currency: string,
+    amount: string,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = uia.issue(currency, amount, secret, secondSecret);
+    const params = {
+      transaction: trs,
+    };
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
+  }
 }
