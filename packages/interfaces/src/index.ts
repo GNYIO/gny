@@ -577,6 +577,10 @@ export interface AccountsWrapper {
   accounts: AccountWeightViewModel[];
 }
 
+export type DelegateAddressOrUsername =
+  | { username: string }
+  | { address: string };
+
 export interface DelegateWrapper {
   delegate: DelegateViewModel;
 }

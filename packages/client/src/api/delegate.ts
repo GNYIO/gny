@@ -10,6 +10,8 @@ import {
   DelegatesWrapper,
   ForgingError,
   ForgingStatus,
+  SimpleAccountsWrapper,
+  DelegateAddressOrUsername,
 } from '@gny/interfaces';
 export class Delegate extends Base {
   public async count() {
@@ -25,6 +27,15 @@ export class Delegate extends Base {
     const res = await this.get('/api/delegates/getVoters', params);
     const result: ApiResult<AccountsWrapper, ValidationError | ServerError> =
       res.data;
+    return result;
+  }
+
+  public async getOwnVotes(params: DelegateAddressOrUsername) {
+    const res = await this.get('/api/delegates/getOwnVotes', params);
+    const result: ApiResult<
+      SimpleAccountsWrapper,
+      ValidationError | ServerError
+    > = res.data;
     return result;
   }
 

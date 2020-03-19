@@ -159,11 +159,10 @@ export default class DelegatesApi implements IHttpApi {
     const nameSchema = joi
       .object()
       .keys({
-        username: joi
-          .string()
-          .username()
-          .required(),
+        username: joi.string().username(),
+        address: joi.string().address(),
       })
+      .xor('username', 'address')
       .required();
     const report = joi.validate(query, nameSchema);
     if (report.error) {
@@ -174,10 +173,23 @@ export default class DelegatesApi implements IHttpApi {
     }
 
     try {
-      const delegate = await global.app.sdb.get<Delegate>(Delegate, {
-        username: query.username,
-      });
-      if (!delegate) {
+      let account: Account = undefined;
+
+      if (query.username) {
+        account = await global.app.sdb.findOne<Account>(Account, {
+          condition: {
+            username: query.username,
+          },
+        });
+      } else {
+        account = await global.app.sdb.findOne<Account>(Account, {
+          condition: {
+            address: query.address,
+          },
+        });
+      }
+
+      if (!account) {
         const result: ApiResult<SimpleAccountsWrapper> = {
           success: true,
           delegates: [],
@@ -187,7 +199,7 @@ export default class DelegatesApi implements IHttpApi {
 
       const votes = await global.app.sdb.findAll<Vote>(Vote, {
         condition: {
-          voterAddress: delegate.address,
+          voterAddress: account.address,
         },
       });
 

@@ -108,6 +108,66 @@ describe('delegate', () => {
     );
   });
 
+  // todo remove .only
+  describe('/getOwnVotes', () => {
+    it(
+      'should get own votes',
+      async () => {
+        // set username
+        const username = 'xpgeng';
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // lock the account
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // vote
+        const trsVote = gnyClient.basic.vote(
+          ['gny_d1', 'gny_d2', 'gny_d3'],
+          genesisSecret
+        );
+        const transVoteData = {
+          transaction: trsVote,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transVoteData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const response = await delegateApi.getOwnVotes({ username });
+        expect(response.success).toBeTruthy();
+
+        response.success && expect(response.delegates).toHaveLength(3);
+        response.success &&
+          expect(response.delegates[0].username).toEqual('gny_d1');
+        response.success &&
+          expect(response.delegates[0].username).toEqual('gny_d2');
+        response.success &&
+          expect(response.delegates[0].username).toEqual('gny_d3');
+      },
+      lib.oneMinute
+    );
+  });
+
   describe('/getDelegateByUsername', () => {
     it(
       'should get delegate by username',
