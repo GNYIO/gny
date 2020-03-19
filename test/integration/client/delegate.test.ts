@@ -111,7 +111,53 @@ describe('delegate', () => {
   // todo remove .only
   describe('/getOwnVotes', () => {
     it(
-      'should get own votes',
+      'should get own votes by address',
+      async () => {
+        // lock the account
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // vote
+        const trsVote = gnyClient.basic.vote(
+          ['gny_d100', 'gny_d101'],
+          genesisSecret
+        );
+        const transVoteData = {
+          transaction: trsVote,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transVoteData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t'; // genesis address
+        const response = await delegateApi.getOwnVotes({ address });
+        expect(response.success).toBeTruthy();
+
+        expect(response.delegates).toHaveLength(2);
+        const gny_d100 = response.delegates.filter(
+          x => x.username === 'gny_d100'
+        );
+        const gny_d101 = response.delegates.filter(
+          x => x.username === 'gny_d101'
+        );
+        expect(gny_d100).not.toBeUndefined();
+        expect(gny_d101).not.toBeUndefined();
+      },
+      lib.oneMinute
+    );
+    it(
+      'should get own votes by username',
       async () => {
         // set username
         const username = 'xpgeng';
@@ -157,12 +203,14 @@ describe('delegate', () => {
         expect(response.success).toBeTruthy();
 
         response.success && expect(response.delegates).toHaveLength(3);
-        response.success &&
-          expect(response.delegates[0].username).toEqual('gny_d1');
-        response.success &&
-          expect(response.delegates[0].username).toEqual('gny_d2');
-        response.success &&
-          expect(response.delegates[0].username).toEqual('gny_d3');
+
+        const gny_d1 = response.delegates.filter(x => x.username === 'gny_d1');
+        const gny_d2 = response.delegates.filter(x => x.username === 'gny_d2');
+        const gny_d3 = response.delegates.filter(x => x.username === 'gny_d3');
+
+        expect(gny_d1).not.toBeUndefined();
+        expect(gny_d2).not.toBeUndefined();
+        expect(gny_d3).not.toBeUndefined();
       },
       lib.oneMinute
     );
