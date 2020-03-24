@@ -108,6 +108,114 @@ describe('delegate', () => {
     );
   });
 
+  // todo remove .only
+  describe('/getOwnVotes', () => {
+    it(
+      'should get own votes by address',
+      async () => {
+        // lock the account
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // vote
+        const trsVote = gnyClient.basic.vote(
+          ['gny_d100', 'gny_d101'],
+          genesisSecret
+        );
+        const transVoteData = {
+          transaction: trsVote,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transVoteData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t'; // genesis address
+        const response = await delegateApi.getOwnVotes({ address });
+        expect(response.success).toBeTruthy();
+
+        expect(response.delegates).toHaveLength(2);
+        const gny_d100 = response.delegates.filter(
+          x => x.username === 'gny_d100'
+        );
+        const gny_d101 = response.delegates.filter(
+          x => x.username === 'gny_d101'
+        );
+        expect(gny_d100).not.toBeUndefined();
+        expect(gny_d101).not.toBeUndefined();
+      },
+      lib.oneMinute
+    );
+    it(
+      'should get own votes by username',
+      async () => {
+        // set username
+        const username = 'xpgeng';
+        const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
+        const nameTransData = {
+          transaction: nameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // lock the account
+        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // vote
+        const trsVote = gnyClient.basic.vote(
+          ['gny_d1', 'gny_d2', 'gny_d3'],
+          genesisSecret
+        );
+        const transVoteData = {
+          transaction: trsVote,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transVoteData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const response = await delegateApi.getOwnVotes({ username });
+        expect(response.success).toBeTruthy();
+
+        response.success && expect(response.delegates).toHaveLength(3);
+
+        const gny_d1 = response.delegates.filter(x => x.username === 'gny_d1');
+        const gny_d2 = response.delegates.filter(x => x.username === 'gny_d2');
+        const gny_d3 = response.delegates.filter(x => x.username === 'gny_d3');
+
+        expect(gny_d1).not.toBeUndefined();
+        expect(gny_d2).not.toBeUndefined();
+        expect(gny_d3).not.toBeUndefined();
+      },
+      lib.oneMinute
+    );
+  });
+
   describe('/getDelegateByUsername', () => {
     it(
       'should get delegate by username',

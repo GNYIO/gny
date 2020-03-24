@@ -13,6 +13,8 @@ import {
   DelegateWrapper,
   DelegatesWrapper,
   ForgingStatus,
+  AccountViewModel,
+  SimpleAccountsWrapper,
 } from '@gny/interfaces';
 import { BlockReward } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -45,6 +47,7 @@ export default class DelegatesApi implements IHttpApi {
 
     router.get('/count', this.count);
     router.get('/getVoters', this.getVoters);
+    router.get('/getOwnVotes', this.getOwnVotes);
     router.get('/get', this.getDelegate);
     router.get('/', this.getDelegates);
     router.post('/forging/enable', this.forgingEnable);
@@ -85,12 +88,15 @@ export default class DelegatesApi implements IHttpApi {
 
   private getVoters = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const nameSchema = joi.object().keys({
-      username: joi
-        .string()
-        .username()
-        .required(),
-    });
+    const nameSchema = joi
+      .object()
+      .keys({
+        username: joi
+          .string()
+          .username()
+          .required(),
+      })
+      .required();
     const report = joi.validate(query, nameSchema);
     if (report.error) {
       return res.status(422).send({
@@ -142,6 +148,79 @@ export default class DelegatesApi implements IHttpApi {
         accounts: accountsViewModel,
       };
       return res.json(result);
+    } catch (e) {
+      this.library.logger.error('Failed to find voters', e);
+      return next('Server error');
+    }
+  };
+
+  private getOwnVotes = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    const nameSchema = joi
+      .object()
+      .keys({
+        username: joi.string().username(),
+        address: joi.string().address(),
+      })
+      .xor('username', 'address')
+      .required();
+    const report = joi.validate(query, nameSchema);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    try {
+      let account: Account = undefined;
+
+      if (query.username) {
+        account = await global.app.sdb.findOne<Account>(Account, {
+          condition: {
+            username: query.username,
+          },
+        });
+      } else {
+        account = await global.app.sdb.findOne<Account>(Account, {
+          condition: {
+            address: query.address,
+          },
+        });
+      }
+
+      if (!account) {
+        const result: ApiResult<SimpleAccountsWrapper> = {
+          success: true,
+          delegates: [],
+        };
+        return res.json(result);
+      }
+
+      const votes = await global.app.sdb.findAll<Vote>(Vote, {
+        condition: {
+          voterAddress: account.address,
+        },
+      });
+
+      if (!votes || !votes.length) {
+        const result: ApiResult<SimpleAccountsWrapper> = {
+          success: true,
+          delegates: [],
+        };
+        return res.json(result);
+      }
+
+      const voteResult = votes.map(x => x.delegate);
+
+      const delegates: DelegateViewModel[] = await Delegates.getDelegates();
+      const result = delegates.filter(x => voteResult.includes(x.username));
+
+      const resultPretty: ApiResult<SimpleAccountsWrapper> = {
+        success: true,
+        delegates: result,
+      };
+      return res.json(resultPretty);
     } catch (e) {
       this.library.logger.error('Failed to find voters', e);
       return next('Server error');

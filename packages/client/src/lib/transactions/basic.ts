@@ -75,7 +75,7 @@ function vote(keyList: string[], secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 4,
     fee: String(0.1 * 1e8),
-    args: keyList,
+    args: [keyList.join(',')],
     secret: secret,
     secondSecret: secondSecret,
   });
@@ -85,7 +85,7 @@ function unvote(keyList: string[], secret: string, secondSecret?: string) {
   return transaction.createTransactionEx({
     type: 5,
     fee: String(0.1 * 1e8),
-    args: keyList,
+    args: [keyList.join(',')],
     secret: secret,
     secondSecret: secondSecret,
   });

@@ -118,60 +118,76 @@ describe('account', () => {
   });
 
   describe('/vote', () => {
+    async function vote(keyList: string[], secret: string) {
+      // lock the account
+      await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
+      await lib.onNewBlock();
+
+      // vote
+      const response = await basicApi.vote(keyList, secret);
+      expect(response).toHaveProperty('transactionId');
+    }
+
     it(
       'should vote by key list',
       async () => {
-        const keyList = ['xpgeng'];
-        const secret = genesisSecret;
+        const keyList = ['gny_d1'];
 
-        // set username
-        const username = 'xpgeng';
-        await basicApi.setUserName(username, genesisSecret);
-        await lib.onNewBlock();
+        await vote(keyList, genesisSecret);
+      },
+      lib.oneMinute
+    );
 
-        // lock the account
-        await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
-        await lib.onNewBlock();
+    it(
+      'should be able to vote for two or more delegates',
+      async () => {
+        // vote for 2 delegates
+        const keyList = ['gny_d100', 'gny_d101'];
 
-        // register delegate
-        await basicApi.registerDelegate(genesisSecret);
-        await lib.onNewBlock();
-
-        // vote
-        const response = await basicApi.vote(keyList, secret);
-        expect(response).toHaveProperty('transactionId');
+        await vote(keyList, genesisSecret);
       },
       lib.oneMinute
     );
   });
 
   describe('/unvote', () => {
+    async function voteThenUnvote(keyList: string[], secret) {
+      // set username
+      const username = 'xpgeng';
+      await basicApi.setUserName(username, genesisSecret);
+      await lib.onNewBlock();
+
+      // lock the account
+      await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
+      await lib.onNewBlock();
+
+      // register delegate
+      await basicApi.registerDelegate(genesisSecret);
+      await lib.onNewBlock();
+
+      // vote
+      await basicApi.vote(keyList, secret);
+      await lib.onNewBlock();
+
+      // unvote
+      const response = await basicApi.unvote(keyList, secret);
+      expect(response).toHaveProperty('transactionId');
+    }
+
     it(
       'should unvote by key list',
       async () => {
-        const keyList = ['xpgeng'];
-        const secret = genesisSecret;
+        const keyList = ['gny_d1'];
+        await voteThenUnvote(keyList, genesisSecret);
+      },
+      lib.oneMinute
+    );
 
-        // set username
-        const username = 'xpgeng';
-        await basicApi.setUserName(username, genesisSecret);
-        await lib.onNewBlock();
-
-        // lock the account
-        await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
-        await lib.onNewBlock();
-
-        // register delegate
-        await basicApi.registerDelegate(genesisSecret);
-        await lib.onNewBlock();
-
-        // vote
-        await basicApi.vote(keyList, secret);
-        await lib.onNewBlock();
-
-        // unvote
-        const response = await basicApi.unvote(keyList, secret);
-        expect(response).toHaveProperty('transactionId');
+    it(
+      'should be able to unvote multiple delegates',
+      async () => {
+        const keyList = ['gny_d100', 'gny_d101'];
+        await voteThenUnvote(keyList, genesisSecret);
       },
       lib.oneMinute
     );
