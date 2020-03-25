@@ -98,4 +98,14 @@ export class Basic extends Base {
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
+
+  public async setSecondPassphrase(secret: string, secondSecret: string) {
+    const trs = basic.setSecondPassphrase(secret, secondSecret);
+    const params = {
+      transaction: trs,
+    };
+    const res = await this.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
+  }
 }
