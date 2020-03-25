@@ -17,8 +17,13 @@ export class Basic extends Base {
     return result;
   }
 
-  public async lockAccount(height: number, amount: number, secret: string) {
-    const trs = basic.lock(height, amount, secret);
+  public async lockAccount(
+    height: number,
+    amount: number,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = basic.lock(height, amount, secret, secondSecret);
     const params = {
       transaction: trs,
     };
@@ -27,8 +32,8 @@ export class Basic extends Base {
     return result;
   }
 
-  public async unlockAccount(secret: string) {
-    const trs = basic.unlock(secret);
+  public async unlockAccount(secret: string, secondSecret?: string) {
+    const trs = basic.unlock(secret, secondSecret);
     const params = {
       transaction: trs,
     };
@@ -37,8 +42,8 @@ export class Basic extends Base {
     return result;
   }
 
-  public async registerDelegate(secret: string) {
-    const trs = basic.registerDelegate(secret);
+  public async registerDelegate(secret: string, secondSecret?: string) {
+    const trs = basic.registerDelegate(secret, secondSecret);
     const params = {
       transaction: trs,
     };
