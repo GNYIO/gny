@@ -8,7 +8,7 @@ const config = {
 };
 
 export class Base {
-  protected constructor(protected readonly connection: Connection) {}
+  public constructor(protected readonly connection: Connection) {}
 
   protected async get(url: string, params?: any) {
     const { data, headers, status } = await axios.get(
