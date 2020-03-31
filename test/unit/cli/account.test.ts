@@ -24,6 +24,7 @@ describe('account', () => {
           balance: '40000000000000000',
           secondPublicKey: null,
           lockHeight: '0',
+          lockAmount: '0',
           isDelegate: 0,
           username: null,
           publicKey:
