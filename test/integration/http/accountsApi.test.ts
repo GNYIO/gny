@@ -357,7 +357,7 @@ describe('accountsApi', () => {
     );
   });
 
-  describe.only('/openAccount', () => {
+  describe('/openAccount', () => {
     it(
       'account that is not in db',
       async () => {
