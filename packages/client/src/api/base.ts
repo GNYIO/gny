@@ -8,9 +8,9 @@ const config = {
 };
 
 export class Base {
-  public constructor(protected readonly connection: Connection) {}
+  protected constructor(protected readonly connection: Connection) {}
 
-  public async get(url: string, params?: any) {
+  protected async get(url: string, params?: any) {
     const { data, headers, status } = await axios.get(
       this.connection.baseUrl + url,
       { params: params }
@@ -22,7 +22,7 @@ export class Base {
     };
   }
 
-  public async post(url: string, params?: any) {
+  protected async post(url: string, params?: any) {
     const { data, headers, status } = await axios.post(
       this.connection.baseUrl + url,
       params,
@@ -35,7 +35,7 @@ export class Base {
     };
   }
 
-  public async put(url: string, params?: any) {
+  protected async put(url: string, params?: any) {
     const { data, headers, status } = await axios.put(
       this.connection.baseUrl + url,
       params
