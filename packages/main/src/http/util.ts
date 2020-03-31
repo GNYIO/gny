@@ -89,8 +89,9 @@ export async function getAccount(address: string) {
       accountData = {
         address: address,
         balance: String(0),
-        secondPublicKey: '',
+        secondPublicKey: null,
         lockHeight: String(0),
+        lockAmount: String(0),
         isDelegate: 0,
         username: null,
         publicKey: null,
@@ -101,6 +102,7 @@ export async function getAccount(address: string) {
         balance: account.gny,
         secondPublicKey: account.secondPublicKey,
         lockHeight: account.lockHeight || String(0),
+        lockAmount: account.lockAmount || String(0),
         isDelegate: account.isDelegate,
         username: account.username,
         publicKey: account.publicKey,

@@ -291,6 +291,7 @@ export type AccountViewModel = Pick<
   | 'publicKey'
   | 'secondPublicKey'
   | 'lockHeight'
+  | 'lockAmount'
   | 'isDelegate'
   | 'username'
 > & { balance: string };
