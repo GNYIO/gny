@@ -1,8 +1,14 @@
 import { Base } from '../api/base';
-import { uia } from '../';
+import { uia, Connection } from '../';
 import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
 
-export class Uia extends Base {
+export class Uia {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async registerIssuer(
     name: string,
     desc: string,
@@ -13,7 +19,7 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -37,7 +43,7 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -52,7 +58,7 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -76,7 +82,7 @@ export class Uia extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }

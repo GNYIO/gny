@@ -1,19 +1,10 @@
 import { Base } from './base';
 import {
   UnconfirmedTransaction,
-  ApiResult,
-  NewBlockWrapper,
-  NewBlockError,
-  CommonBlockResult,
-  BlocksWrapper,
-  CommonBlockError,
-  ParamsError,
   TransactionIdWrapper,
-  UnconfirmedTransactionsWrapper,
-  HeightWrapper,
   P2PApiResult,
-  ApiSuccess,
 } from '@gny/interfaces';
+import { Connection } from '../connection';
 
 interface Keypair {
   publicKey: string;
@@ -25,12 +16,18 @@ interface Votes {
   signatures: Keypair[];
 }
 
-export class Transport extends Base {
+export class Transport {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async sendTransaction(transaction: UnconfirmedTransaction) {
     const params = {
       transaction: transaction,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: P2PApiResult<TransactionIdWrapper> = res.data;
     return result;
   }

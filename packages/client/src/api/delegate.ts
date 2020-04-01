@@ -13,9 +13,17 @@ import {
   SimpleAccountsWrapper,
   DelegateAddressOrUsername,
 } from '@gny/interfaces';
-export class Delegate extends Base {
+import { Connection } from '../connection';
+
+export class Delegate {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async count() {
-    const res = await this.get('/api/delegates/count');
+    const res = await this.base.get('/api/delegates/count');
     const result: ApiResult<CountWrapper, DelegateResponseError> = res.data;
     return result;
   }
@@ -24,14 +32,14 @@ export class Delegate extends Base {
     const params = {
       username: username,
     };
-    const res = await this.get('/api/delegates/getVoters', params);
+    const res = await this.base.get('/api/delegates/getVoters', params);
     const result: ApiResult<AccountsWrapper, ValidationError | ServerError> =
       res.data;
     return result;
   }
 
   public async getOwnVotes(params: DelegateAddressOrUsername) {
-    const res = await this.get('/api/delegates/getOwnVotes', params);
+    const res = await this.base.get('/api/delegates/getOwnVotes', params);
     const result: ApiResult<
       SimpleAccountsWrapper,
       ValidationError | ServerError
@@ -43,7 +51,7 @@ export class Delegate extends Base {
     const params = {
       publicKey: publicKey,
     };
-    const res = await this.get('/api/delegates/get', params);
+    const res = await this.base.get('/api/delegates/get', params);
     const result: ApiResult<
       DelegateWrapper,
       ValidationError | DelegateResponseError
@@ -55,7 +63,7 @@ export class Delegate extends Base {
     const params = {
       username: username,
     };
-    const res = await this.get('/api/delegates/get', params);
+    const res = await this.base.get('/api/delegates/get', params);
     const result: ApiResult<
       DelegateWrapper,
       ValidationError | DelegateResponseError
@@ -67,7 +75,7 @@ export class Delegate extends Base {
     const params = {
       address: address,
     };
-    const res = await this.get('/api/delegates/get', params);
+    const res = await this.base.get('/api/delegates/get', params);
     const result: ApiResult<
       DelegateWrapper,
       ValidationError | DelegateResponseError
@@ -80,7 +88,7 @@ export class Delegate extends Base {
       offset: offset,
       limit: limit,
     };
-    const res = await this.get('/api/delegates', params);
+    const res = await this.base.get('/api/delegates', params);
     const result: ApiResult<
       DelegatesWrapper,
       ValidationError | DelegateResponseError
@@ -93,7 +101,7 @@ export class Delegate extends Base {
       secret: secret,
       pulicKey: pulicKey,
     };
-    const res = await this.get('/api/delegates/forging/enable', params);
+    const res = await this.base.get('/api/delegates/forging/enable', params);
     const result: ApiResult<any, ValidationError | ForgingError> = res.data;
     return result;
   }
@@ -103,7 +111,7 @@ export class Delegate extends Base {
       secret: secret,
       pulicKey: pulicKey,
     };
-    const res = await this.get('/api/delegates/forging/disable', params);
+    const res = await this.base.get('/api/delegates/forging/disable', params);
     const result: ApiResult<any, ValidationError | ForgingError> = res.data;
     return result;
   }
@@ -112,7 +120,7 @@ export class Delegate extends Base {
     const params = {
       publicKey: publicKey,
     };
-    const res = await this.get('/api/delegates/forging/status', params);
+    const res = await this.base.get('/api/delegates/forging/status', params);
     const result: ApiResult<ForgingStatus, ValidationError | ForgingError> =
       res.data;
     return result;

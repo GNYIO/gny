@@ -12,13 +12,20 @@ import {
   SupplyWrapper,
   Status,
 } from '@gny/interfaces';
+import { Connection } from '../connection';
 
-export class Block extends Base {
+export class Block {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async getBlockById(id: string) {
     const params = {
       id: id,
     };
-    const res = await this.get('/api/blocks/getBlock', params);
+    const res = await this.base.get('/api/blocks/getBlock', params);
     const result: ApiResult<
       BlockWrapper,
       ServerError | BlockError | ValidationError
@@ -30,7 +37,7 @@ export class Block extends Base {
     const params = {
       height: height,
     };
-    const res = await this.get('/api/blocks/getBlock', params);
+    const res = await this.base.get('/api/blocks/getBlock', params);
     const result: ApiResult<
       BlockWrapper,
       ServerError | BlockError | ValidationError
@@ -50,38 +57,38 @@ export class Block extends Base {
       orderBy: orderBy,
       transactions: transactions,
     };
-    const res = await this.get('/api/blocks', params);
+    const res = await this.base.get('/api/blocks', params);
     // TODO: add error type
     const result: ApiResult<BlocksWrapper> = res.data;
     return result;
   }
 
   public async getHeight() {
-    const res = await this.get('/api/blocks/getHeight');
+    const res = await this.base.get('/api/blocks/getHeight');
     const result: ApiResult<HeightWrapper> = res.data;
     return result;
   }
 
   public async getMilestone() {
-    const res = await this.get('/api/blocks/getMilestone');
+    const res = await this.base.get('/api/blocks/getMilestone');
     const result: ApiResult<MilestoneWrapper> = res.data;
     return result;
   }
 
   public async getReward() {
-    const res = await this.get('/api/blocks/getReward');
+    const res = await this.base.get('/api/blocks/getReward');
     const result: ApiResult<RewardWrappper> = res.data;
     return result;
   }
 
   public async getSupply() {
-    const res = await this.get('/api/blocks/getSupply');
+    const res = await this.base.get('/api/blocks/getSupply');
     const result: ApiResult<SupplyWrapper> = res.data;
     return result;
   }
 
   public async getStatus() {
-    const res = await this.get('/api/blocks/getStatus');
+    const res = await this.base.get('/api/blocks/getStatus');
     const result: ApiResult<Status> = res.data;
     return result;
   }
