@@ -1,13 +1,13 @@
 {
   "name": "@gny/test",
   "private": true,
-  "version": "1.0.24",
+  "version": "1.0.25",
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@gny/base": "1.0.23",
-    "@gny/client": "1.0.24",
+    "@gny/client": "1.0.25",
     "@gny/ed": "1.0.23",
     "@gny/extended-joi": "1.0.23",
     "@gny/interfaces": "1.0.23",
