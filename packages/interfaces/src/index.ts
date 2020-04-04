@@ -152,7 +152,6 @@ export interface IConfig {
   logLevel: ILogLevel;
   pidFile: string;
   publicIp?: string;
-  ormConfigRaw: string;
   ssl: {
     enabled: boolean;
     options: {
@@ -162,6 +161,11 @@ export interface IConfig {
       cert: string;
     };
   };
+  dbPassword: string;
+  dbDatabase: string;
+  dbUser: string;
+  dbHost: string;
+  dbPort: number;
 }
 
 export interface KeyPairsIndexer {

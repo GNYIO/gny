@@ -24,6 +24,7 @@ import {
 } from './searchTypes';
 import { RequireAtLeastOne } from 'type-fest';
 import { Transaction } from './entity/Transaction';
+import { SmartDBOptions } from './sharedInterfaces';
 
 export * from './entity/Account';
 export * from './entity/Asset';
@@ -52,12 +53,6 @@ export type RHooks = {
   hook: RollbackBlockHook;
 };
 
-export interface SmartDBOptions {
-  cachedBlockCount?: number;
-  checkModifier?: boolean;
-  configRaw: string;
-}
-
 export class SmartDB extends EventEmitter {
   private options: SmartDBOptions;
   private originalLogger: ILogger;
@@ -77,10 +72,9 @@ export class SmartDB extends EventEmitter {
     this.originalLogger = logger;
     LogManager.setLogger(logger);
 
-    this.options = options || {
-      cachedBlockCount: 10,
-      configRaw: options.configRaw,
-    };
+    this.options = options;
+    this.options.cachedBlockCount = this.options.cachedBlockCount || 10;
+
     this.commitBlockHooks = [];
     this.rollbackBlockHooks = [];
 
@@ -95,10 +89,7 @@ export class SmartDB extends EventEmitter {
   }
 
   async init() {
-    this.connection = await loadConfig(
-      this.originalLogger,
-      this.options.configRaw
-    );
+    this.connection = await loadConfig(this.originalLogger, this.options);
 
     this.schemas = createMetaSchema();
 

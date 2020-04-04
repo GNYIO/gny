@@ -14,9 +14,14 @@ services:
     build: ../../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node1.json" --publicIP $$(./getIP.sh node1) --ormConfig "config/e2e/unconfirmed-trs/ormconfig.node1.json"'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node1.json" --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db1
+      - GNY_DB_PORT=5432
       - GNY_P2P_SECRET="CAASqAkwggSkAgEAAoIBAQC6jaefmTfV4Qs3PHyxgwob/bXN1+V0kQl9hfXQBGHjDIX5iwTsvYvcQ0pveHBNjPhYu2Kzk4sKdhfxabvrWXMbmXTSVGdKQ0tTWFFkEj8uC5ynab6eWXz9m5Ldmoauq8BW9ceYY2QjfccGsWR0N3Bab2xmJuR3P+D2swqzZAvv8XQsxQ3g4a/ashfZ8hGUirmO15k1qDNmW8rNOrxt4NGzenI10AB024CeiCYk+Eiol3RVgLwGh/R2Vz+RyGdOJfWRsTHokKNE9NJ4r8KSKQbJjY/aWC041VtlTeSP8fbN4jB+nAn5aY9Hpm2qPd+c7N2vcuCNk3XCliW7vwadVvbXAgMBAAECggEBAJQQumpCAb8PzwcYSx/ZEb0FsbafFM9gDlhCasefstGyruNRI6eDCe7YucufnALxUGuczsoY4NJ8yKQjd7NkW6gcNEx8ET8wCiksf+0dTmgNb1iw5UppXHstb3PTofIg/5gFm1WoDWLeAYmeYkybc+FTboXleI/tc3BayrN3RMI7VUwqkPe4o/dKxC53q5YLQwwTwjUjQsvab1Kk1qQQA6eBNjGmpgV7mCx+8nfFLXOPBU+sRMU7UZmq4qZmikq84OsXOn5xtRUG81anCUUZaLqbqCaF3NQZpTCKMDlt2j16vBw/nKnoAQ8ej9/cJ/uz4vFI8KZ9nk4MI8Zf2k7gpYECgYEA8w2OavzmuX0WiGkdMyo8zO3jZNiHJNg2Asjy3+tlEaJdVSZdbKabhWqpS/bMwGsih0PkIrzK4N5XXhZXxmiFpOhILnzPMqa1lHPvx34/cDYodj6g2pLI5dwvNI5gQcmQzguSMfMA7rQLyC23ACNqn1+4qgpyhALk7xGmHgoNbTUCgYEAxH2hHRduqPWrpYXMUJtULd9JVhoC7+2FevCS8DsbkIvulifz6uqrPlUQ3EX9/eu8nnzayRQxCMf4+CeIAyoZXhaCvElItNtfaGUpV4seg/jgKjZ1tjZHFBPzS5aklnydpCrFhy+RwcWb6UssWzkdnSx4SzmW4XhMQOOQNC1CMVsCgYBEo7Nwq3NNNvJCG81PQcJh7Vymgi/IS/cU2kMc0ZF9ZWkOPwNrR7Hr/69H8K7qOFdL8/RdiwuQbbomrBCly6bSZ3bbCgxJtaLaBdPVduXbfq/2lMFAeOubXo9GPF8atR3b0pC64nGE9/vL0H054Mafs5ynCMRGW7rjeQx8t0ILcQKBgBCCyf4K0Qarlh/TjWaclsdAAwaUKvkESXoaKw66uMc9qu+9Lbbovzj+pusLiptCqtfaf/vzkWc+foJDuB8j83u/gn7V3aEs6eh4z6+Ghirqx9NkPiHwj6p1PrV0VCI9GHYKDg0dBy90LnS9F14W/5EMgpM3pKEPncC6Hozz3KMPAoGBAJLrjkPkFVZkGxr9IqWh7XwN/6Pd6uPnWMFdTAqb78iMLZ+yRsQ8psDCQazLcojhSQqiPSFhA7jhB/M1/d04ehXXL5JfrI0mnLZJs9uN11AZHmcLGrhULDR1TtS6RRxgZXVSy/rDAJulQvXOO7x7Xe0zdJDExRO9hfx7kcerhemD"
     ports:
       - '4096:4096'
@@ -38,9 +43,14 @@ services:
     build: ../../..
     container_name: 'node2'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node2.json" --publicIP $$(./getIP.sh node2) --ormConfig "config/e2e/unconfirmed-trs/ormconfig.node2.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmZw8aeATXEhXSJVPqhnFgXDYyRdrf7Kgt2PgLsUtdfpru"'
+    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node2.json" --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmZw8aeATXEhXSJVPqhnFgXDYyRdrf7Kgt2PgLsUtdfpru"'
     environment:
       - NODE_ENV=production
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db2
+      - GNY_DB_PORT=5432
       - GNY_P2P_SECRET="CAASqQkwggSlAgEAAoIBAQDOZYjukuZ2FRv1XmvidZFTfN4KE2YsCdhtyd4MZ4DFyfxNA9ZwUqz03pxQPrDyShq8RT9/UwK/3H6cRiwsWRWZyF0Hc/dRfSOnSTmDgjCOMIbO6b3mQte4Vo97fn1aU+6r8lVrSfcqsEq5RMpIwvtdTW/ly8FYKIqW1rj58UpJQytb1nTR3dketVKiIACHGJrzmrBzOr8zCDWxZ080osUmTgBw7sKQuB7Kz6me7vdT0evT3n2ly4+NEnpvndN7VFqBoN8bCM+eD/ySYw8+fa4MqMFVy+4sgNP978gXzUeyFEcGBP9iwc6TNXXjFjwSes9K4gTHgIKAgJHxDlNvUMnzAgMBAAECggEBAKZZlYzb312q09bmnENwiInmqTsruXyjDsomGo6a2WIQ0wXroujy6a2OwiO283zEl1nI4k2nxR6IA4/GyxGPV2aT487++4W1O4g371/8DVB88hpQsBqnIyDSu2BIaZXk8geqEIihm9HPNtquA++zH09q+1YV7CY2vsSmGX5xqHL0eKhAWofHAOMEbEkCdl/dqm6bvShnsxrsmNRSql7qpxS0a4z+6+mgMhFMUysSxJoLlxkSZOQdyOqcRd21FYewOpOjD1DW0DodEoM8LgH/zLIPbNqvoEwVaofkyKTrZ/Am62iZuwWoY98lT01qVhEbAsmF6wG2wOypQS/KGI7g6RkCgYEA/1NlHyTM8FrZrVvBPakcB2SGkhYXZYxRg9UwMWfbw3LT6xc5FI2xcJMqAY/gsJEcMCaPg9geVekGo7LQGNATZMyDBnDNQ2t39qGcFwh79PG1zesEWP3Pi/EdlhkPQbFi0epU7mi1oC6raavkDC/e17gxe0pQKstJTyMelAiAx0cCgYEAzvEQGCrxbrbQfMPoKz7v3MjBsv4UEkXgQ89Q8zXcPUro9PQ67TQT3Byj4p4qS8IfXjP8sis4vO1iKJYVsJCjO25C/ZdktsejePtVovHSSpINdkEVFYkBMEG/sYEtbBj64A84w+ojoZLLPc6SAEtx2xoLsYJCboTDkwn6qRGc1fUCgYEAohzGKNcJ1FYqvbpzYH4eEMeP9fNW2aAVJZpXphbmXxtqWGr/UACDOBIIasN6i0EnX58sIi83W57AG3HuVMLQfYCodI9slLEIkyybWbiGU8iggWUF9qb4f0cRXPr+R9yj/NpHILSVFWZsaYS9H8vJNrh5mmldqz41hqyqvp0DfwMCgYADj9KfF94f8bWU8CpG1EZ8nlf3JLhjuCAsCp1yEjNAOtHXpXx+KK9O0o9fjylbNHQlwu9Ogb/wQIW3/R1SdKrakwNEKh7ppnYB1xGaRF9COVFR/7zFKh6DHh6Wh4qomaV3xctMU/NZDJXC8pNAvguvobshywQpss9K8JkH3+27IQKBgQCTHW9jPF22X8TrW5pT6IWO5wSvli6iIoK01DSOkitjQ5DTbnPyRthKIWdv9GCDsX1qK1ICU6ZW9QhmeG5NekSQIg1e3yzUCPb8nv0NdmL0NrPZQYepIJsRD8/3+awjQpx1YVvT32V9put2dcivihf/YxYyyefu/g8LXV4NScYcYQ=="
     ports:
       - '4098:4096'
@@ -62,9 +72,14 @@ services:
     build: ../../..
     container_name: 'node3'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node3.json" --publicIP $$(./getIP.sh node3) --ormConfig "config/e2e/unconfirmed-trs/ormconfig.node3.json" --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmZw8aeATXEhXSJVPqhnFgXDYyRdrf7Kgt2PgLsUtdfpru"'
+    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node3.json" --publicIP $$(./getIP.sh node3) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmZw8aeATXEhXSJVPqhnFgXDYyRdrf7Kgt2PgLsUtdfpru"'
     environment:
       - NODE_ENV=production
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db3
+      - GNY_DB_PORT=5432
       - GNY_P2P_SECRET="CAASqAkwggSkAgEAAoIBAQDLrMfA/HfgrYFrHQl3ID5Z/t3grlLrnb8jBk7ia5iAQn+H6c5kg8zuTDhIRxRqQDmvXSNEPP6unT57Dd/t8niwe+XBs4kFLDD05FfJ0Ox7dUftyE26DjuXpmq9V8n9m/9AW07VB3lNKWIU4OzyTtLDYd+06/dLxxxtzecctVVqusCr6/+wAsb3jhH4YCoTShA4cPbLMgRLO1PDYzvzBpRJERueXTIRBDFGb29biN1sEUaHttyKxdOdJFMVJ46pu+k8DnGkSY7zFUTv2n/7gpz5MfGFiBOP9e0If+C+5SOfVwnsba86CXQs0xvO9NPfu2dAqS2UtvdhDVrniqcKpQuTAgMBAAECggEAPAbhHGSMJCCeuuXk60IKflWaKOTXtW9ZbMYoK50QZgSzN2hWFtOtazH1iH/CaYoiNifaA/uCCA554qR1Mdi7bzAkx9DU+jxK9XHy2Z0EhWJMX60gE0ysjYZTgRhFhMQcF2iRtEEuo+olaQfdbZCDl2faGaVNzfyRyV7c1V4wHXMD5WJ6RekbiRHXt7X2ydNY27IDzhiJ9vTj65moLfbjmYnL4xARZz35b0YoxGO4VXJShP84XBWMcWenT9AX4nK2/YhN0ZPoXkkfBNxVApG4MLn/XXMKtswfSJtPE3vE84yhVq5Yg4Z1t58k03lgJlRQdRFU1Q8X21tlgTw448kcYQKBgQD2ljq+uGHrulIQVaDms/VweZu7P/XWB/TeMOew2bG0PHGPjIfCdgBVP2+x4ZGZhffXMdBAhtimoqOvg3nCyY3Cn/eE/ku9T8wEClkX5SGt2K0IrEwGb8+cWlS/2a3Rrh8SUjw1p/Cp7Z3cEmZzBSTnvSqkWn8GSjs+kvtifEgyEQKBgQDTczGtAiI45wn5vgcowuERKK4/AG9oCx7D7EwEgpfuxM7fEVgMJM+1oJq3z0nQgfvMrcqLzT3szbPve0LXToLuNf2QoLhURCSQAnKM9hGxIeUlMBh2VmnbMAyfQuJAH+5bM5ykyyRls42RPXmCI3BNlLoquLp7IuRInduK6G+/YwKBgQCxDvorjBWzv9vBItsgDMQF+SwbbjfFcX0gNhmHYSk6c9RO8OdieHyQubYoEgIMLKfjez8/thPGwy2pj0xU04jY4ShH9JjJ3IxvskZ64+ok/FpyydTlIk/+wtXr1A/9aXuiGi5lkKs8OQSKyyOJH356b9g4n0pqZ87WhY/ADeGBIQKBgQDARn2jfs8zwxOVH7FO5XbXrZBVBcZIa+Q78IFnkIErw5cBzLmtwUOHO1W1Uy8iBTC8/EO0QJvQ23SFjiZHtsLkbf/3Jc64AYbl1PPpLlEEK3g9CrET2pxDjjvMDnvCJ8cM86+7QmYEfPN8YNQ+/I7AXT+0XWplUmMXjUP32kjTVQKBgGiMP9uNi5bRv9xM9MbaTkP91sAeBem57yNCp4gy3ELxfjBkn8QaDypsd3ksgmkko0ircBKdM6+eEvxKfSkunnzG313vuaxsrhi+DItpkkq6hyQql2E2rf6ia2qxgjR9x1pRE+SzYhNpPY0BWOb27fYTNleEPen4EKzdC4oc+SZn"
     ports:
       - '4100:4096'
