@@ -2,7 +2,7 @@ import { Base } from './base';
 import {
   UnconfirmedTransaction,
   TransactionIdWrapper,
-  P2PApiResult,
+  ApiResult,
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
@@ -28,7 +28,7 @@ export class Transport {
       transaction: transaction,
     };
     const res = await this.base.post('/peer/transactions', params);
-    const result: P2PApiResult<TransactionIdWrapper> = res.data;
+    const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 }
