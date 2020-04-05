@@ -248,7 +248,7 @@ export default class TransportApi implements IHttpApi {
       });
     }
 
-    let result: P2PApiResult<BlocksWrapper>;
+    let result: P2PApiResult<BlocksWrapper, null>;
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
@@ -298,11 +298,12 @@ export default class TransportApi implements IHttpApi {
           `Receive invalid transaction ${unconfirmedTrs.id}`,
           err
         );
-        const errMsg = err.message ? err.message : err.toString();
+        const errMsg: string = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
         this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs);
-        const result: P2PApiResult<TransactionIdWrapper> = {
+        const result: ApiResult<TransactionIdWrapper> = {
+          success: true,
           transactionId: unconfirmedTrs.id,
         };
         return res.status(200).json(result);
@@ -366,7 +367,7 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
-    const result: P2PApiResult<UnconfirmedTransactionsWrapper> = {
+    const result: P2PApiResult<UnconfirmedTransactionsWrapper, null> = {
       transactions: StateHelper.GetUnconfirmedTransactionList(),
     };
     return res.json(result);
@@ -375,7 +376,7 @@ export default class TransportApi implements IHttpApi {
   // POST
   private getHeight = (req: Request, res: Response) => {
     const lastBlock = StateHelper.getState().lastBlock;
-    const result: P2PApiResult<HeightWrapper> = {
+    const result: P2PApiResult<HeightWrapper, null> = {
       height: lastBlock.height,
     };
     return res.json(result);

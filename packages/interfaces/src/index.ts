@@ -291,6 +291,7 @@ export type AccountViewModel = Pick<
   | 'publicKey'
   | 'secondPublicKey'
   | 'lockHeight'
+  | 'lockAmount'
   | 'isDelegate'
   | 'username'
 > & { balance: string };
@@ -469,7 +470,7 @@ export interface ApiSuccess {
 }
 
 export type ApiResult<K, T = string> = (K & ApiSuccess) | ApiError<T>;
-export type P2PApiResult<K> = K;
+export type P2PApiResult<K, T = string> = K | ApiError<T>;
 
 export type OffsetAndLimitError =
   | 'child "offset" fails because ["offset" must be a number]'

@@ -5,6 +5,7 @@ import {
   ValidationError,
   AmountWrapper,
 } from '@gny/interfaces';
+import { Connection } from '../connection';
 
 interface Query {
   ownerId?: string;
@@ -14,7 +15,13 @@ interface Query {
   limit?: string | number;
   offset?: string | number;
 }
-export class Transfer extends Base {
+export class Transfer {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async getRoot(query: Partial<Query>) {
     const params = {
       ownerId: query.ownerId,
@@ -22,7 +29,7 @@ export class Transfer extends Base {
       limit: query.limit,
       offset: query.offset,
     };
-    const res = await this.get('/api/transfers', params);
+    const res = await this.base.get('/api/transfers', params);
     const result: ApiResult<TransfersWrapper, ValidationError> = res.data;
     return result;
   }
@@ -32,7 +39,7 @@ export class Transfer extends Base {
       startTimestamp,
       endTimestamp,
     };
-    const res = await this.get('/api/transfers/amount', params);
+    const res = await this.base.get('/api/transfers/amount', params);
     const result: ApiResult<AmountWrapper, ValidationError> = res.data;
     return result;
   }

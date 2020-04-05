@@ -9,6 +9,7 @@ import {
   UnconfirmedTransaction,
   UnconfirmedTransactionsWrapper,
 } from '@gny/interfaces';
+import { Connection } from '../connection';
 
 interface Query {
   limit?: number;
@@ -21,7 +22,13 @@ interface Query {
   height?: number | string;
   message?: string;
 }
-export class Transaction extends Base {
+export class Transaction {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async getTransactions(query: Query) {
     const params = {
       limit: query.limit,
@@ -34,7 +41,7 @@ export class Transaction extends Base {
       height: query.height,
       message: query.message,
     };
-    const res = await this.get('/api/transactions/', params);
+    const res = await this.base.get('/api/transactions/', params);
     const result: ApiResult<
       TransactionsWrapper,
       ValidationError | ServerError
@@ -46,7 +53,10 @@ export class Transaction extends Base {
     const params = {
       id: id,
     };
-    const res = await this.get('/api/transactions/unconfirmed/get', params);
+    const res = await this.base.get(
+      '/api/transactions/unconfirmed/get',
+      params
+    );
     const result: ApiResult<
       UnconfirmedTransactionWrapper,
       ValidationError | TransactionError
@@ -62,7 +72,7 @@ export class Transaction extends Base {
       senderPublicKey: senderPublicKey,
       address: address,
     };
-    const res = await this.get('/api/transactions/unconfirmed', params);
+    const res = await this.base.get('/api/transactions/unconfirmed', params);
     const result: ApiResult<UnconfirmedTransactionsWrapper, ValidationError> =
       res.data;
     return result;
@@ -72,7 +82,7 @@ export class Transaction extends Base {
     const params = {
       transactions: transactions,
     };
-    const res = await this.put('/api/transactions/batch', params);
+    const res = await this.base.put('/api/transactions/batch', params);
     const result: ApiResult<
       TransactionsWrapper,
       ValidationError | TransactionError

@@ -1,8 +1,14 @@
 import { Base } from '../api/base';
-import { basic } from '../';
+import { basic, Connection } from '../';
 import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
 
-export class Basic extends Base {
+export class Basic {
+  private base: Base;
+
+  constructor(connection: Connection) {
+    this.base = new Base(connection);
+  }
+
   public async setUserName(
     username: string,
     secret: string,
@@ -12,37 +18,42 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 
-  public async lockAccount(height: number, amount: number, secret: string) {
-    const trs = basic.lock(height, amount, secret);
+  public async lockAccount(
+    height: number,
+    amount: number,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = basic.lock(height, amount, secret, secondSecret);
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 
-  public async unlockAccount(secret: string) {
-    const trs = basic.unlock(secret);
+  public async unlockAccount(secret: string, secondSecret?: string) {
+    const trs = basic.unlock(secret, secondSecret);
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
 
-  public async registerDelegate(secret: string) {
-    const trs = basic.registerDelegate(secret);
+  public async registerDelegate(secret: string, secondSecret?: string) {
+    const trs = basic.registerDelegate(secret, secondSecret);
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -64,7 +75,7 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -75,7 +86,7 @@ export class Basic extends Base {
       transaction: trs,
     };
 
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
@@ -89,7 +100,17 @@ export class Basic extends Base {
     const params = {
       transaction: trs,
     };
-    const res = await this.post('/peer/transactions', params);
+    const res = await this.base.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
+  }
+
+  public async setSecondPassphrase(secret: string, secondSecret: string) {
+    const trs = basic.setSecondPassphrase(secret, secondSecret);
+    const params = {
+      transaction: trs,
+    };
+    const res = await this.base.post('/peer/transactions', params);
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }

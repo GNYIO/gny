@@ -356,4 +356,88 @@ describe('accountsApi', () => {
       lib.oneMinute
     );
   });
+
+  describe('/openAccount', () => {
+    it(
+      'account that is not in db',
+      async () => {
+        const params = {
+          publicKey:
+            '94ae6c8ae05ee1e8d98f445ab9c335290f8826cd6759f01739687e25081482f6',
+        };
+        const result = await axios.post(
+          'http://localhost:4096/api/accounts/openAccount',
+          params
+        );
+
+        const expected = {
+          address: 'G2Jp8u24gU9mpmTgU4fkUUUbMywNF',
+          balance: '0',
+          secondPublicKey: null,
+          lockHeight: '0',
+          lockAmount: '0',
+          isDelegate: 0,
+          username: null,
+          publicKey:
+            '94ae6c8ae05ee1e8d98f445ab9c335290f8826cd6759f01739687e25081482f6',
+        };
+
+        expect(result.data.account).toEqual(expected);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'existing account',
+      async () => {
+        const recipient = {
+          address: 'G2mPyVeWDoVbx2sy6Aunzo6z5udjw',
+          secret:
+            'soap season put entire seek silk stairs toward cruel kit seven menu',
+          publicKey:
+            '49201c745ff83fe2f7bbe86cf5da0742ad21e1b027fb0e6ef75a09777d7c75db',
+        };
+
+        const trs = gnyClient.basic.transfer(
+          recipient.address,
+          String(200 * 1e8),
+          null,
+          genesisSecret
+        );
+        const nameTransData = {
+          transaction: trs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          nameTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        const params = {
+          publicKey: recipient.publicKey,
+        };
+        const result = await axios.post(
+          'http://localhost:4096/api/accounts/openAccount',
+          params
+        );
+        console.log(`result: ${JSON.stringify(result.data, null, 2)}`);
+
+        const expected = {
+          address: 'G2mPyVeWDoVbx2sy6Aunzo6z5udjw',
+          balance: '20000000000',
+          secondPublicKey: null,
+          lockHeight: '0',
+          lockAmount: '0',
+          isDelegate: 0,
+          username: null,
+          publicKey:
+            '49201c745ff83fe2f7bbe86cf5da0742ad21e1b027fb0e6ef75a09777d7c75db',
+        };
+
+        expect(result.data.account).toEqual(expected);
+      },
+      lib.oneMinute
+    );
+  });
 });
