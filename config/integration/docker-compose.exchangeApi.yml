@@ -14,7 +14,7 @@ services:
     build: ../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 1; done; node packages/main/dist/src/app --ormConfig "ormconfig.integration.json"'
+    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 1; done; node packages/main/dist/src/app'
     environment:
       - EXCHANGE_API=true # this activates the /api/exchange endpoints
       - NODE_ENV=production
