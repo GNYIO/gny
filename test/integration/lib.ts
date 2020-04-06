@@ -132,7 +132,7 @@ export async function spawnPostgres() {
   await dockerCompose.upAll({
     cwd: process.cwd(),
     log: true,
-    config: 'docker-compose.postgres.yml',
+    config: 'config/integration/docker-compose.postgres.yml',
   });
   await sleep(10 * 1000);
 }
@@ -141,7 +141,7 @@ export async function stopAndKillPostgres() {
   await dockerCompose.down({
     cwd: process.cwd(),
     log: true,
-    config: 'docker-compose.postgres.yml',
+    config: 'config/integration/docker-compose.postgres.yml',
   });
   await sleep(10 * 1000);
 }
