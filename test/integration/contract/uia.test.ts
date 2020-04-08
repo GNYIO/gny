@@ -1108,14 +1108,6 @@ describe('uia', () => {
           success: false,
           error: 'Error: Invalid recipient',
         });
-
-        await lib.onNewBlock();
-
-        // after transfering
-        const afterTransfer = await axios.get(
-          'http://localhost:4096/api/uia/balances/' + recipient
-        );
-        expect(afterTransfer.data.balances).toHaveLength(0);
       },
       lib.oneMinute
     );

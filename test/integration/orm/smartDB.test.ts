@@ -17,17 +17,14 @@ import {
   createBlock,
   logger,
 } from './smartDB.test.helpers';
+import { credentials } from './databaseCredentials';
 
 describe('integration - SmartDB', () => {
   let sut: SmartDB;
-  let configRaw: string;
 
   beforeAll(done => {
     (async () => {
       await lib.stopAndKillPostgres();
-      configRaw = fs.readFileSync('ormconfig.postgres.json', {
-        encoding: 'utf8',
-      });
       await lib.sleep(500);
 
       done();
@@ -39,10 +36,7 @@ describe('integration - SmartDB', () => {
       // stopping is safety in case a test before fails
       await lib.stopAndKillPostgres();
       await lib.spawnPostgres();
-      sut = new SmartDB(logger, {
-        cachedBlockCount: 10,
-        configRaw: configRaw,
-      });
+      sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();

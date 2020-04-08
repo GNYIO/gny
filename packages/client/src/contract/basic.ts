@@ -24,8 +24,8 @@ export class Basic {
   }
 
   public async lockAccount(
-    height: number,
-    amount: number,
+    height: string,
+    amount: string,
     secret: string,
     secondSecret?: string
   ) {

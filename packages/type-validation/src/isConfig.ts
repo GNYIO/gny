@@ -67,7 +67,14 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .string()
         .networkType()
         .required(),
-      ormConfigRaw: joi.string().required(),
+      dbPassword: joi.string().required(),
+      dbDatabase: joi.string().required(),
+      dbUser: joi.string().required(),
+      dbHost: joi.string().required(),
+      dbPort: joi
+        .number()
+        .port()
+        .required(),
     })
     .required();
 

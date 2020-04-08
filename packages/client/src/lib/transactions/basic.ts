@@ -47,8 +47,8 @@ function setSecondPassphrase(secret: string, secondSecret: string) {
 }
 
 function lock(
-  height: number,
-  amount: number,
+  height: string,
+  amount: string,
   secret: string,
   secondSecret?: string
 ) {

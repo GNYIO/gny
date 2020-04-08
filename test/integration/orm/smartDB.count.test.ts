@@ -1,5 +1,4 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/src/entity/Account';
 import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
@@ -7,17 +6,14 @@ import { Delegate } from '../../../packages/database-postgres/src/entity/Delegat
 import { Condition } from '../../../packages/database-postgres/src/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { credentials } from './databaseCredentials';
 
 describe('smartDB.count', () => {
   let sut: SmartDB;
-  let configRaw: string;
 
   beforeAll(done => {
     (async () => {
       await lib.stopAndKillPostgres();
-      configRaw = fs.readFileSync('ormconfig.postgres.json', {
-        encoding: 'utf8',
-      });
       await lib.sleep(500);
 
       done();
@@ -29,10 +25,7 @@ describe('smartDB.count', () => {
       // stopping is safety in case a test before fails
       await lib.stopAndKillPostgres();
       await lib.spawnPostgres();
-      sut = new SmartDB(logger, {
-        cachedBlockCount: 10,
-        configRaw: configRaw,
-      });
+      sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();

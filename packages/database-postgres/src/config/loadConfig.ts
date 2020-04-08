@@ -17,11 +17,22 @@ import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
 import { Mldata } from '../entity/Mldata';
 import { Prediction } from '../entity/Prediction';
+import { SmartDBOptions } from '../sharedInterfaces';
 
-export async function loadConfig(logger: ILogger, optionsRaw: string) {
-  const options: PostgresConnectionOptions = JSON.parse(
-    optionsRaw
-  ) as PostgresConnectionOptions;
+export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
+  const options: PostgresConnectionOptions = {
+    type: 'postgres',
+
+    host: input.dbHost,
+    port: input.dbPort,
+    username: input.dbUser,
+    password: input.dbPassword,
+    database: input.dbDatabase,
+
+    synchronize: true,
+    dropSchema: false,
+    logging: false,
+  };
 
   Object.assign(options, {
     entities: [
