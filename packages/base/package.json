@@ -1,6 +1,6 @@
 {
   "name": "@gny/base",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -15,11 +15,11 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/ed": "1.0.26",
-    "@gny/extended-joi": "1.0.26",
-    "@gny/interfaces": "1.0.26",
-    "@gny/type-validation": "1.0.26",
-    "@gny/utils": "1.0.26",
+    "@gny/ed": "1.0.27",
+    "@gny/extended-joi": "1.0.27",
+    "@gny/interfaces": "1.0.27",
+    "@gny/type-validation": "1.0.27",
+    "@gny/utils": "1.0.27",
     "@types/bytebuffer": "^5.0.39",
     "@types/ip": "0.0.32",
     "bignumber.js": "^8.1.1",

@@ -1,7 +1,7 @@
 {
   "name": "@gny/p2p",
   "private": true,
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -15,7 +15,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.26",
+    "@gny/interfaces": "1.0.27",
     "@nodeutils/defaults-deep": "^1.1.0",
     "@polkadot/ts": "git+https://github.com/a1300/ts.git",
     "@types/node": "^10.14.18",
