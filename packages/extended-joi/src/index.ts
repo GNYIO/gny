@@ -28,7 +28,7 @@ const transactionMessageExtension: Joi.Extension = {
   base: Joi.string()
     .allow('')
     .max(256)
-    .regex(/^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)/)
+    .regex(/^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)|(^[a-zA-Z0-9]$)/)
     .optional(),
   name: 'transactionMessage',
 };

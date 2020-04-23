@@ -27,10 +27,10 @@ export function isAddress(address: string) {
       return false;
     }
 
-    const checkLength = bs58.decode(address.slice(1));
-    if (checkLength.length !== 20) {
-      return false;
-    }
+    // const checkLength = bs58.decode(address.slice(1));
+    // if (checkLength.length !== 20) {
+    //   return false;
+    // }
   } catch (err) {
     return false;
   }
