@@ -4,7 +4,10 @@ import {
   KeyPair,
   ProcessBlockOptions,
 } from '../../../packages/interfaces';
-import { IState } from '../../../packages/main/src/globalInterfaces';
+import {
+  IState,
+  IStateSuccess,
+} from '../../../packages/main/src/globalInterfaces';
 import { BlockBase } from '../../../packages/base/src/blockBase';
 import { TransactionBase } from '../../../packages/base/src/transactionBase';
 import { Block as BlockModel } from '../../../packages/database-postgres/src/entity/Block';
@@ -127,8 +130,11 @@ describe('core/blocks', () => {
       };
 
       const expectedState = {
-        lastBlock: genesisBlock as IBlock,
-      } as IState;
+        success: true,
+        state: {
+          lastBlock: genesisBlock as IBlock,
+        },
+      } as IStateSuccess;
       const processBlockMock = jest
         .fn()
         .mockImplementation(() => Promise.resolve(expectedState));
