@@ -184,12 +184,13 @@ export default class Delegates implements ICoreModule {
               broadcast: true,
               votes: localVotes,
             };
-            state = await Blocks.processBlock(
+            const stateResult = await Blocks.processBlock(
               newState,
               newBlock,
               options,
               delegateList
             );
+            state = stateResult.state;
           }
 
           // set new state after successful finished

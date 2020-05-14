@@ -17,7 +17,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
@@ -40,6 +40,8 @@ import { Transaction } from '@gny/database-postgres';
 import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
+
+const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const blockReward = new BlockReward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -88,6 +90,12 @@ export default class Blocks implements ICoreModule {
     try {
       ret = await Peer.request('commonBlock', params, peer);
     } catch (err) {
+      global.app.logger.info(
+        `Peer.request('commonBlock'): ${err &&
+          err.response &&
+          err.response.data &&
+          err.response.data.error}`
+      );
       throw new Error('commonBlock could not be requested');
     }
 
@@ -293,6 +301,7 @@ export default class Blocks implements ICoreModule {
     if (!StateHelper.ModulesAreLoaded())
       throw new Error('Blockchain is loading');
 
+    let success = true;
     try {
       // check block fields
       block = Blocks.CheckBlockEffect(block, options);
@@ -310,10 +319,15 @@ export default class Blocks implements ICoreModule {
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
       global.app.logger.error('save block error: ', error);
+      success = false;
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
     }
-    return state;
+    const result: IStateSuccess = {
+      success: success,
+      state,
+    };
+    return result;
   };
 
   public static saveBlockTransactions = async (block: IBlock) => {
@@ -471,6 +485,10 @@ export default class Blocks implements ICoreModule {
     let count = 0;
     let lastCommonBlockId = id;
 
+    global.app.logger.info(
+      `start to sync 30 * 200 blocks. From peer: ${peer.host}:${peer.port -
+        1}, last commonBlock: ${id}`
+    );
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
@@ -505,27 +523,44 @@ export default class Blocks implements ICoreModule {
               block.height
             );
             const options: ProcessBlockOptions = {};
-            state = await Blocks.processBlock(
+
+            const stateResult = await Blocks.processBlock(
               state,
               block,
               options,
               activeDelegates
             );
-
-            lastCommonBlockId = block.id;
-            global.app.logger.info(
-              `Block ${block.id} loaded from ${address} at`,
-              block.height
-            );
-
+            state = stateResult.state;
             StateHelper.setState(state); // important
+
+            if (stateResult.success) {
+              lastCommonBlockId = block.id;
+              global.app.logger.info(
+                `Block ${block.id} loaded from ${address} at`,
+                block.height
+              );
+            } else {
+              global.app.logger.info(
+                `Error during sync of Block ${
+                  block.id
+                } loaded from ${address} at ${block.height}`
+              );
+              global.app.logger.info('sleep for 10seconds');
+              await snooze(10 * 1000);
+              loaded = true; // prepare exiting pWhilst loop
+              break; // exit for loop
+            }
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
           global.app.logger.error('Failed to process synced block', e);
+          loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
       }
+    );
+    global.app.logger.info(
+      `stop syncing from peer ${peer.host}:${peer.port - 1}`
     );
   };
 
@@ -644,12 +679,13 @@ export default class Blocks implements ICoreModule {
             block.height
           );
           const options: ProcessBlockOptions = { votes, broadcast: true };
-          state = await Blocks.processBlock(
+          const stateResult = await Blocks.processBlock(
             state,
             block,
             options,
             delegateList
           );
+          state = stateResult.state;
           // TODO: save state?
         } catch (e) {
           global.app.logger.error('Failed to process received block', e);
@@ -826,12 +862,13 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             pendingBlock.height
           );
-          state = await Blocks.processBlock(
+          const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,
             options,
             delegateList
           );
+          state = stateResult.state;
 
           StateHelper.setState(state); // important
         } catch (err) {
@@ -854,7 +891,7 @@ export default class Blocks implements ICoreModule {
       block: IBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
-    ) => Promise<IState>,
+    ) => Promise<IStateSuccess>,
     getBlocksByHeight: GetBlocksByHeight
   ) => {
     let state = StateHelper.copyState(old);
@@ -864,7 +901,13 @@ export default class Blocks implements ICoreModule {
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
-      state = await processBlock(state, genesisBlock, options, delegateList);
+      const stateResult = await processBlock(
+        state,
+        genesisBlock,
+        options,
+        delegateList
+      );
+      state = stateResult.state;
     } else {
       const block = await getBlocksByHeight(
         new BigNumber(numberOfBlocksInDb).minus(1).toFixed()

@@ -17,6 +17,11 @@ import { EventEmitter } from 'events';
 import BalanceManager from './smartdb/balance-manager';
 import * as LRU from 'lru-cache';
 
+export interface IStateSuccess {
+  success: boolean;
+  state: IState;
+}
+
 export interface IState {
   votesKeySet: ISimpleCache<boolean>;
   pendingBlock: IBlock;
