@@ -363,4 +363,15 @@ export class BlocksHelper {
     }
     return true;
   }
+
+  public static differenceBetween2Sets = function(
+    setA: Set<string>,
+    setB: Set<string>
+  ) {
+    const _difference = new Set<string>(setA);
+    for (const elem of setB) {
+      _difference.delete(elem);
+    }
+    return _difference;
+  };
 }

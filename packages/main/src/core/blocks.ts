@@ -27,7 +27,7 @@ import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
 } from './BlocksHelper';
-import { Block } from '@gny/database-postgres';
+import { Block, Variable } from '@gny/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
@@ -475,8 +475,62 @@ export default class Blocks implements ICoreModule {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
+      await Blocks.saveStatistics(block.height);
+
       await Delegates.updateBookkeeper();
     }
+  };
+
+  public static saveStatistics = async (height: string) => {
+    // before (delegates for the past 101 blocks)
+    const delegatesBeforeRaw = await global.app.sdb.get<Variable>(Variable, {
+      key: 'round_bookkeeper',
+    });
+    const delegatesBefore = JSON.parse(delegatesBeforeRaw.value) as string[];
+
+    const before: string[] = [];
+    for (let i = 0; i < delegatesBefore.length; ++i) {
+      const one = await global.app.sdb.get<Delegate>(Delegate, {
+        publicKey: delegatesBefore[i],
+      });
+      before.push(one.username);
+    }
+    global.app.logger.info(`before: ${JSON.stringify(before)} `);
+
+    // after (delegates for the next 101 blocks)
+    const afterRaw = await global.app.sdb.getAll<Delegate>(Delegate);
+    const after = afterRaw
+      .sort(Delegates.compare)
+      .map(x => x.username)
+      .slice(0, 101);
+    global.app.logger.info(`after: ${JSON.stringify(after)} `);
+
+    const newDelegates = Array.from(
+      BlocksHelper.differenceBetween2Sets(new Set(after), new Set(before))
+    );
+    const oldDelegates = Array.from(
+      BlocksHelper.differenceBetween2Sets(new Set(before), new Set(after))
+    );
+
+    global.app.logger.info(
+      `height: ${height}, newDelegates: ${JSON.stringify(newDelegates)}`
+    );
+    global.app.logger.info(
+      `height: ${height}, oldDelegates: ${JSON.stringify(oldDelegates)}`
+    );
+
+    await global.app.sdb.createOrLoad<Variable>(Variable, {
+      key: `delegates_change_${height}`,
+      value: JSON.stringify({
+        newDelegates: newDelegates,
+        oldDelegates: oldDelegates,
+      }),
+    });
+
+    await global.app.sdb.createOrLoad<Variable>(Variable, {
+      key: `delegates_before_height_${height}`,
+      value: JSON.stringify(before),
+    });
   };
 
   public static loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
