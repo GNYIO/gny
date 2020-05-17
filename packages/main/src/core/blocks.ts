@@ -40,6 +40,7 @@ import { Transaction } from '@gny/database-postgres';
 import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
+import { slots } from '@gny/utils';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -197,6 +198,12 @@ export default class Blocks implements ICoreModule {
     }
   };
 
+  /**
+   * applyBlock() applies all transactions of a block
+   * This will not run if the block is created by yourself, because
+   * the transactions already got exected by the time they reached the
+   * node.
+   */
   public static applyBlock = async (state: IState, block: IBlock) => {
     global.app.logger.trace('enter applyblock');
 
@@ -387,6 +394,8 @@ export default class Blocks implements ICoreModule {
       String(roundNumber)
     );
 
+    await Blocks.saveSlotStatistics(block);
+
     if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
 
     global.app.logger.debug(
@@ -475,13 +484,35 @@ export default class Blocks implements ICoreModule {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
-      await Blocks.saveStatistics(block.height);
+      await Blocks.saveStatistics(block.height, block);
 
       await Delegates.updateBookkeeper();
     }
   };
 
-  public static saveStatistics = async (height: string) => {
+  public static saveSlotStatistics = async (block: IBlock) => {
+    const delegates = await Delegates.generateDelegateList(block.height);
+
+    // save block slot number
+    const currentSlot = slots.getSlotNumber(block.timestamp);
+    const delegateKey = delegates[currentSlot % 101];
+    await global.app.sdb.createOrLoad<Variable>(Variable, {
+      key: `delegate_slot_number_${block.height}`,
+      value: JSON.stringify(
+        {
+          currentSlot: currentSlot,
+          blockTimestamp: block.timestamp,
+          delegatePosition: currentSlot % 101,
+          delegateBlock: block.delegate,
+          currentDelegate: delegateKey,
+        },
+        null,
+        2
+      ),
+    });
+  };
+
+  public static saveStatistics = async (height: string, block: IBlock) => {
     // before (delegates for the past 101 blocks)
     const delegatesBeforeRaw = await global.app.sdb.get<Variable>(Variable, {
       key: 'round_bookkeeper',
