@@ -241,11 +241,9 @@ export default class Blocks implements ICoreModule {
     options: ProcessBlockOptions,
     delegateList: string[]
   ) {
-    if (!options.local) {
-      Blocks.verifyBlock(state, block, options, delegateList);
-      if (!new BigNumber(block.height).isEqualTo(0)) {
-        Delegates.validateBlockSlot(block, delegateList);
-      }
+    Blocks.verifyBlock(state, block, options, delegateList);
+    if (!new BigNumber(block.height).isEqualTo(0)) {
+      Delegates.validateBlockSlot(block, delegateList);
     }
   }
 
