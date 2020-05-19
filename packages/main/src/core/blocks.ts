@@ -1022,7 +1022,17 @@ export default class Blocks implements ICoreModule {
 
           // refactor, reunite
           StateHelper.SetBlockchainReady(true);
-          global.library.bus.message('onBlockchainReady');
+
+          if (global.Config.nodeAction === 'forging') {
+            global.library.bus.message('onBlockchainReady');
+          }
+
+          if (
+            typeof global.Config.nodeAction == 'string' &&
+            global.Config.nodeAction.startsWith('rollback')
+          ) {
+            global.library.bus.message('onBlockchainRollback');
+          }
 
           return cb();
         } catch (err) {
@@ -1037,5 +1047,39 @@ export default class Blocks implements ICoreModule {
         }
       }
     );
+  };
+
+  public static onBlockchainRollback = async () => {
+    global.app.logger.info(`executed onBlockchainRollback`);
+    const replace = global.Config.nodeAction;
+    const rollbackHeight = replace.split(':')[1];
+
+    const lastBlock = global.app.sdb.lastBlock;
+    global.app.logger.info(`currentHeight: "${lastBlock.height}"`);
+
+    if (new BigNumber(lastBlock.height).isLessThanOrEqualTo(rollbackHeight)) {
+      throw new Error(
+        `can not rollback to "${rollbackHeight}". Current height is: "${
+          lastBlock.height
+        }"`
+      );
+    }
+
+    let tempHeight = Number(lastBlock.height);
+    const targetHeight = Number(rollbackHeight);
+
+    while (tempHeight > targetHeight) {
+      if (tempHeight - 100 < targetHeight) {
+        tempHeight = targetHeight;
+      } else {
+        tempHeight = tempHeight - 100;
+      }
+
+      global.app.logger.info(`rollback to "${tempHeight}"`);
+      await global.app.sdb.rollbackBlock(String(tempHeight));
+    }
+
+    global.app.logger.info(`successfully rolled back to ${rollbackHeight}`);
+    process.exit(0);
   };
 }
