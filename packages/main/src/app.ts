@@ -169,7 +169,6 @@ function main() {
   // action: default "forging"
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
-  console.log(`nodeAction: ${appConfig.nodeAction}`);
 
   // asign config to global variable
   global.Config = appConfig;

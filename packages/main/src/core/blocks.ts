@@ -1065,14 +1065,15 @@ export default class Blocks implements ICoreModule {
       );
     }
 
-    let tempHeight = Number(lastBlock.height);
-    const targetHeight = Number(rollbackHeight);
+    // split into chunks of 100 blocks
+    let tempHeight = new BigNumber(lastBlock.height);
+    const targetHeight = new BigNumber(rollbackHeight);
 
-    while (tempHeight > targetHeight) {
-      if (tempHeight - 100 < targetHeight) {
+    while (tempHeight.isGreaterThan(targetHeight)) {
+      if (tempHeight.minus(100).isLessThan(targetHeight)) {
         tempHeight = targetHeight;
       } else {
-        tempHeight = tempHeight - 100;
+        tempHeight = tempHeight.minus(100);
       }
 
       global.app.logger.info(`rollback to "${tempHeight}"`);
