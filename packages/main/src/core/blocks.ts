@@ -494,6 +494,15 @@ export default class Blocks implements ICoreModule {
     // save block slot number
     const currentSlot = slots.getSlotNumber(block.timestamp);
     const delegateKey = delegates[currentSlot % 101];
+
+    const delegateNamesShuffled: string[] = [];
+    for (let i = 0; i < delegates.length; ++i) {
+      const one = await global.app.sdb.get<Delegate>(Delegate, {
+        publicKey: delegates[i],
+      });
+      delegateNamesShuffled.push(one.username);
+    }
+
     await global.app.sdb.createOrLoad<Variable>(Variable, {
       key: `delegate_slot_number_${block.height}`,
       value: JSON.stringify(
@@ -503,6 +512,7 @@ export default class Blocks implements ICoreModule {
           delegatePosition: currentSlot % 101,
           delegateBlock: block.delegate,
           currentDelegate: delegateKey,
+          delegateListShuffled: delegateNamesShuffled,
         },
         null,
         2
