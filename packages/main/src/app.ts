@@ -122,8 +122,7 @@ function main() {
   // loglevel, default info
   appConfig.logLevel = program.log || process.env['GNY_LOG_LEVEL'] || 'info';
 
-  const pathToLogFile = path.join(transpiledDir, 'logs', 'debug.log');
-  const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
+  const logger = createLogger(LogLevel[appConfig.logLevel]);
 
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
     appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
