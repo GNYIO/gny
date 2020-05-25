@@ -12,6 +12,7 @@ import { Round } from './entity/Round';
 import { Transaction } from './entity/Transaction';
 import { Transfer } from './entity/Transfer';
 import { Variable } from './entity/Variable';
+import { Info } from './entity/Info';
 import { Vote } from './entity/Vote';
 import { BlockHistory } from './entity/BlockHistory';
 import { Mldata } from './entity/Mldata';
@@ -80,6 +81,7 @@ export function createMetaSchema() {
   const transaction = transform(Transaction);
   const transfer = transform(Transfer);
   const variable = transform(Variable);
+  const info = transform(Info);
   const vote = transform(Vote);
   const blockHistory = transform(BlockHistory);
   const mldata = transform(Mldata);
@@ -95,6 +97,7 @@ export function createMetaSchema() {
   result.set('Transaction', transaction);
   result.set('Transfer', transfer);
   result.set('Variable', variable);
+  result.set('Info', info);
   result.set('Vote', vote);
   result.set('BlockHistory', blockHistory);
   result.set('Mldata', mldata);

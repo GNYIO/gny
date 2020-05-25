@@ -27,7 +27,7 @@ import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
 } from './BlocksHelper';
-import { Block, Variable } from '@gny/database-postgres';
+import { Block, Variable, Info } from '@gny/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
@@ -503,7 +503,7 @@ export default class Blocks implements ICoreModule {
       delegateNamesShuffled.push(one.username);
     }
 
-    await global.app.sdb.createOrLoad<Variable>(Variable, {
+    await global.app.sdb.createOrLoad<Info>(Info, {
       key: `delegate_slot_number_${block.height}`,
       value: JSON.stringify(
         {
@@ -558,7 +558,7 @@ export default class Blocks implements ICoreModule {
       `height: ${height}, oldDelegates: ${JSON.stringify(oldDelegates)}`
     );
 
-    await global.app.sdb.createOrLoad<Variable>(Variable, {
+    await global.app.sdb.createOrLoad<Info>(Info, {
       key: `delegates_change_${height}`,
       value: JSON.stringify({
         newDelegates: newDelegates,
@@ -566,7 +566,7 @@ export default class Blocks implements ICoreModule {
       }),
     });
 
-    await global.app.sdb.createOrLoad<Variable>(Variable, {
+    await global.app.sdb.createOrLoad<Info>(Info, {
       key: `delegates_before_height_${height}`,
       value: JSON.stringify(before),
     });
