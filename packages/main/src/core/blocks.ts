@@ -534,7 +534,7 @@ export default class Blocks implements ICoreModule {
       });
       before.push(one.username);
     }
-    global.app.logger.info(`before: ${JSON.stringify(before)} `);
+    global.app.logger.trace(`before: ${JSON.stringify(before)} `);
 
     // after (delegates for the next 101 blocks)
     const afterRaw = await global.app.sdb.getAll<Delegate>(Delegate);
@@ -542,7 +542,7 @@ export default class Blocks implements ICoreModule {
       .sort(Delegates.compare)
       .map(x => x.username)
       .slice(0, 101);
-    global.app.logger.info(`after: ${JSON.stringify(after)} `);
+    global.app.logger.trace(`after: ${JSON.stringify(after)}`);
 
     const newDelegates = Array.from(
       BlocksHelper.differenceBetween2Sets(new Set(after), new Set(before))
