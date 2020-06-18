@@ -75,6 +75,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .number()
         .port()
         .required(),
+      nodeAction: joi
+        .string()
+        .regex(new RegExp(/^forging|rollback:[1-9][0-9]*$/))
+        .required(),
     })
     .required();
 

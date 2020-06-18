@@ -13,6 +13,7 @@ import { Round } from '../entity/Round';
 import { Transaction } from '../entity/Transaction';
 import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
+import { Info } from '../entity/Info';
 import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
 import { Mldata } from '../entity/Mldata';
@@ -46,6 +47,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Transaction,
       Transfer,
       Variable,
+      Info,
       Vote,
       BlockHistory,
       Mldata,

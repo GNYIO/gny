@@ -144,6 +144,8 @@ export default class Delegates implements ICoreModule {
     global.library.sequence.add(async done => {
       let state = StateHelper.getState();
 
+      let error = false;
+
       try {
         const myTime = currentBlockData.time;
         const isCurrentSlot =
@@ -184,12 +186,24 @@ export default class Delegates implements ICoreModule {
               broadcast: true,
               votes: localVotes,
             };
-            state = await Blocks.processBlock(
+            const stateResult = await Blocks.processBlock(
               newState,
               newBlock,
               options,
               delegateList
             );
+            state = stateResult.state;
+
+            if (stateResult.success === false) {
+              global.app.logger.warn(
+                `newBlock(height: ${newBlock.height}), ${JSON.stringify(
+                  newBlock,
+                  null,
+                  2
+                )}`
+              );
+              error = true;
+            }
           }
 
           // set new state after successful finished
@@ -199,6 +213,9 @@ export default class Delegates implements ICoreModule {
         global.library.logger.error('Failed generate block within slot:', e);
         return;
       } finally {
+        if (error) {
+          throw new Error('error occured during Blocks.processBlock()');
+        }
         return done();
       }
     });

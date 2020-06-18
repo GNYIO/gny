@@ -29,6 +29,10 @@ function main() {
     .option('--secret [secret...]', 'comma separated secrets')
     .option('--publicIP <ip>', 'Public IP of own server, default private IP')
     .option('--network <network>', 'Must be: localnet | testnet | mainnet')
+    .option(
+      '--nodeAction <action>',
+      'Must be: forging | rollback:height, default forging'
+    )
     .option('--dbPassword <password>')
     .option('--dbDatabase <database>')
     .option('--dbUser <user>')
@@ -44,6 +48,7 @@ function main() {
   GNY_PUBLIC_IP=<ip>          Public IP of own server, default private IP
   GNY_P2P_PEERS=[peers...]    comma separated peers
   GNY_ADDRESS=<address>       Listening host name or ip
+  GNY_NODE_ACTION=<action>         Must be: forging | rollback:height, default forging
   GNY_DB_PASSWORD=<password>  db password
   GNY_DB_DATABASE=<database>  db name
   GNY_DB_USER=<user>          db user
@@ -117,8 +122,7 @@ function main() {
   // loglevel, default info
   appConfig.logLevel = program.log || process.env['GNY_LOG_LEVEL'] || 'info';
 
-  const pathToLogFile = path.join(transpiledDir, 'logs', 'debug.log');
-  const logger = createLogger(pathToLogFile, LogLevel[appConfig.logLevel]);
+  const logger = createLogger(LogLevel[appConfig.logLevel]);
 
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
     appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
@@ -160,6 +164,10 @@ function main() {
   } else {
     appConfig.publicIp = ip.address();
   }
+
+  // action: default "forging"
+  appConfig.nodeAction =
+    program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
 
   // asign config to global variable
   global.Config = appConfig;

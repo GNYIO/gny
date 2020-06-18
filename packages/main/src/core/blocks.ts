@@ -17,7 +17,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
@@ -27,7 +27,7 @@ import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
 } from './BlocksHelper';
-import { Block } from '@gny/database-postgres';
+import { Block, Variable, Info } from '@gny/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
 import Transactions from './transactions';
@@ -40,6 +40,9 @@ import { Transaction } from '@gny/database-postgres';
 import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
+import { slots } from '@gny/utils';
+
+const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const blockReward = new BlockReward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
@@ -88,6 +91,12 @@ export default class Blocks implements ICoreModule {
     try {
       ret = await Peer.request('commonBlock', params, peer);
     } catch (err) {
+      global.app.logger.info(
+        `Peer.request('commonBlock'): ${err &&
+          err.response &&
+          err.response.data &&
+          err.response.data.error}`
+      );
       throw new Error('commonBlock could not be requested');
     }
 
@@ -189,6 +198,12 @@ export default class Blocks implements ICoreModule {
     }
   };
 
+  /**
+   * applyBlock() applies all transactions of a block
+   * This will not run if the block is created by yourself, because
+   * the transactions already got exected by the time they reached the
+   * node.
+   */
   public static applyBlock = async (state: IState, block: IBlock) => {
     global.app.logger.trace('enter applyblock');
 
@@ -226,11 +241,9 @@ export default class Blocks implements ICoreModule {
     options: ProcessBlockOptions,
     delegateList: string[]
   ) {
-    if (!options.local) {
-      Blocks.verifyBlock(state, block, options, delegateList);
-      if (!new BigNumber(block.height).isEqualTo(0)) {
-        Delegates.validateBlockSlot(block, delegateList);
-      }
+    Blocks.verifyBlock(state, block, options, delegateList);
+    if (!new BigNumber(block.height).isEqualTo(0)) {
+      Delegates.validateBlockSlot(block, delegateList);
     }
   }
 
@@ -293,6 +306,7 @@ export default class Blocks implements ICoreModule {
     if (!StateHelper.ModulesAreLoaded())
       throw new Error('Blockchain is loading');
 
+    let success = true;
     try {
       // check block fields
       block = Blocks.CheckBlockEffect(block, options);
@@ -310,10 +324,15 @@ export default class Blocks implements ICoreModule {
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
       global.app.logger.error('save block error: ', error);
+      success = false;
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
     }
-    return state;
+    const result: IStateSuccess = {
+      success: success,
+      state,
+    };
+    return result;
   };
 
   public static saveBlockTransactions = async (block: IBlock) => {
@@ -372,6 +391,8 @@ export default class Blocks implements ICoreModule {
       },
       String(roundNumber)
     );
+
+    await Blocks.saveSlotStatistics(block);
 
     if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
 
@@ -461,8 +482,94 @@ export default class Blocks implements ICoreModule {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
+      await Blocks.saveStatistics(block.height, block);
+
       await Delegates.updateBookkeeper();
     }
+  };
+
+  public static saveSlotStatistics = async (block: IBlock) => {
+    const delegates = await Delegates.generateDelegateList(block.height);
+
+    // save block slot number
+    const currentSlot = slots.getSlotNumber(block.timestamp);
+    const delegateKey = delegates[currentSlot % 101];
+
+    const delegateNamesShuffled: string[] = [];
+    for (let i = 0; i < delegates.length; ++i) {
+      const one = await global.app.sdb.get<Delegate>(Delegate, {
+        publicKey: delegates[i],
+      });
+      delegateNamesShuffled.push(one.username);
+    }
+
+    await global.app.sdb.createOrLoad<Info>(Info, {
+      key: `delegate_slot_number_${block.height}`,
+      value: JSON.stringify(
+        {
+          currentSlot: currentSlot,
+          blockTimestamp: block.timestamp,
+          delegatePosition: currentSlot % 101,
+          delegateBlock: block.delegate,
+          currentDelegate: delegateKey,
+          delegateListShuffled: delegateNamesShuffled,
+        },
+        null,
+        2
+      ),
+    });
+  };
+
+  public static saveStatistics = async (height: string, block: IBlock) => {
+    // before (delegates for the past 101 blocks)
+    const delegatesBeforeRaw = await global.app.sdb.get<Variable>(Variable, {
+      key: 'round_bookkeeper',
+    });
+    const delegatesBefore = JSON.parse(delegatesBeforeRaw.value) as string[];
+
+    const before: string[] = [];
+    for (let i = 0; i < delegatesBefore.length; ++i) {
+      const one = await global.app.sdb.get<Delegate>(Delegate, {
+        publicKey: delegatesBefore[i],
+      });
+      before.push(one.username);
+    }
+    global.app.logger.trace(`before: ${JSON.stringify(before)} `);
+
+    // after (delegates for the next 101 blocks)
+    const afterRaw = await global.app.sdb.getAll<Delegate>(Delegate);
+    const after = afterRaw
+      .sort(Delegates.compare)
+      .map(x => x.username)
+      .slice(0, 101);
+    global.app.logger.trace(`after: ${JSON.stringify(after)}`);
+
+    const newDelegates = Array.from(
+      BlocksHelper.differenceBetween2Sets(new Set(after), new Set(before))
+    );
+    const oldDelegates = Array.from(
+      BlocksHelper.differenceBetween2Sets(new Set(before), new Set(after))
+    );
+
+    global.app.logger.info(
+      `height: ${height}, newDelegates: ${JSON.stringify(newDelegates)}`
+    );
+    global.app.logger.info(
+      `height: ${height}, oldDelegates: ${JSON.stringify(oldDelegates)}`
+    );
+
+    await global.app.sdb.createOrLoad<Info>(Info, {
+      key: `delegates_change_${height}`,
+      value: JSON.stringify({
+        newDelegates: newDelegates,
+        oldDelegates: oldDelegates,
+      }),
+    });
+
+    await global.app.sdb.createOrLoad<Info>(Info, {
+      key: `delegates_before_height_${height}`,
+      value: JSON.stringify(before),
+    });
   };
 
   public static loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
@@ -471,6 +578,10 @@ export default class Blocks implements ICoreModule {
     let count = 0;
     let lastCommonBlockId = id;
 
+    global.app.logger.info(
+      `start to sync 30 * 200 blocks. From peer: ${peer.host}:${peer.port -
+        1}, last commonBlock: ${id}`
+    );
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
@@ -505,27 +616,44 @@ export default class Blocks implements ICoreModule {
               block.height
             );
             const options: ProcessBlockOptions = {};
-            state = await Blocks.processBlock(
+
+            const stateResult = await Blocks.processBlock(
               state,
               block,
               options,
               activeDelegates
             );
-
-            lastCommonBlockId = block.id;
-            global.app.logger.info(
-              `Block ${block.id} loaded from ${address} at`,
-              block.height
-            );
-
+            state = stateResult.state;
             StateHelper.setState(state); // important
+
+            if (stateResult.success) {
+              lastCommonBlockId = block.id;
+              global.app.logger.info(
+                `Block ${block.id} loaded from ${address} at`,
+                block.height
+              );
+            } else {
+              global.app.logger.info(
+                `Error during sync of Block ${
+                  block.id
+                } loaded from ${address} at ${block.height}`
+              );
+              global.app.logger.info('sleep for 10seconds');
+              await snooze(10 * 1000);
+              loaded = true; // prepare exiting pWhilst loop
+              break; // exit for loop
+            }
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
           global.app.logger.error('Failed to process synced block', e);
+          loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
       }
+    );
+    global.app.logger.info(
+      `stop syncing from peer ${peer.host}:${peer.port - 1}`
     );
   };
 
@@ -644,12 +772,13 @@ export default class Blocks implements ICoreModule {
             block.height
           );
           const options: ProcessBlockOptions = { votes, broadcast: true };
-          state = await Blocks.processBlock(
+          const stateResult = await Blocks.processBlock(
             state,
             block,
             options,
             delegateList
           );
+          state = stateResult.state;
           // TODO: save state?
         } catch (e) {
           global.app.logger.error('Failed to process received block', e);
@@ -826,12 +955,13 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             pendingBlock.height
           );
-          state = await Blocks.processBlock(
+          const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,
             options,
             delegateList
           );
+          state = stateResult.state;
 
           StateHelper.setState(state); // important
         } catch (err) {
@@ -854,7 +984,7 @@ export default class Blocks implements ICoreModule {
       block: IBlock,
       options: ProcessBlockOptions,
       delegateList: string[]
-    ) => Promise<IState>,
+    ) => Promise<IStateSuccess>,
     getBlocksByHeight: GetBlocksByHeight
   ) => {
     let state = StateHelper.copyState(old);
@@ -864,7 +994,13 @@ export default class Blocks implements ICoreModule {
 
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
-      state = await processBlock(state, genesisBlock, options, delegateList);
+      const stateResult = await processBlock(
+        state,
+        genesisBlock,
+        options,
+        delegateList
+      );
+      state = stateResult.state;
     } else {
       const block = await getBlocksByHeight(
         new BigNumber(numberOfBlocksInDb).minus(1).toFixed()
@@ -896,7 +1032,17 @@ export default class Blocks implements ICoreModule {
 
           // refactor, reunite
           StateHelper.SetBlockchainReady(true);
-          global.library.bus.message('onBlockchainReady');
+
+          if (global.Config.nodeAction === 'forging') {
+            global.library.bus.message('onBlockchainReady');
+          }
+
+          if (
+            typeof global.Config.nodeAction == 'string' &&
+            global.Config.nodeAction.startsWith('rollback')
+          ) {
+            global.library.bus.message('onBlockchainRollback');
+          }
 
           return cb();
         } catch (err) {
@@ -911,5 +1057,40 @@ export default class Blocks implements ICoreModule {
         }
       }
     );
+  };
+
+  public static onBlockchainRollback = async () => {
+    global.app.logger.info(`executed onBlockchainRollback`);
+    const replace = global.Config.nodeAction;
+    const rollbackHeight = replace.split(':')[1];
+
+    const lastBlock = global.app.sdb.lastBlock;
+    global.app.logger.info(`currentHeight: "${lastBlock.height}"`);
+
+    if (new BigNumber(lastBlock.height).isLessThanOrEqualTo(rollbackHeight)) {
+      throw new Error(
+        `can not rollback to "${rollbackHeight}". Current height is: "${
+          lastBlock.height
+        }"`
+      );
+    }
+
+    // split into chunks of 100 blocks
+    let tempHeight = new BigNumber(lastBlock.height);
+    const targetHeight = new BigNumber(rollbackHeight);
+
+    while (tempHeight.isGreaterThan(targetHeight)) {
+      if (tempHeight.minus(100).isLessThan(targetHeight)) {
+        tempHeight = targetHeight;
+      } else {
+        tempHeight = tempHeight.minus(100);
+      }
+
+      global.app.logger.info(`rollback to "${tempHeight}"`);
+      await global.app.sdb.rollbackBlock(String(tempHeight));
+    }
+
+    global.app.logger.info(`successfully rolled back to ${rollbackHeight}`);
+    process.exit(0);
   };
 }

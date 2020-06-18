@@ -59,7 +59,8 @@ export type MethodActions =
   | 'onNewPropose'
   | 'onReceiveBlock'
   | 'onReceivePropose'
-  | 'onReceiveTransaction';
+  | 'onReceiveTransaction'
+  | 'onBlockchainRollback';
 
 export interface ICoreModule {
   cleanup?: (cb: any) => void;
@@ -166,6 +167,7 @@ export interface IConfig {
   dbUser: string;
   dbHost: string;
   dbPort: number;
+  nodeAction: string;
 }
 
 export interface KeyPairsIndexer {
