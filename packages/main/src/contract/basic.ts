@@ -247,7 +247,7 @@ export default {
 
     sender.isLocked = 0;
     sender.lockHeight = String(0);
-    sender.gny += sender.lockAmount;
+    sender.gny = new BigNumber(sender.gny).plus(sender.lockAmount).toFixed();
     sender.lockAmount = String(0);
     await global.app.sdb.update<Account>(Account, sender, {
       address: senderId,
