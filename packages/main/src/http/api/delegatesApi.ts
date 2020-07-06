@@ -16,15 +16,17 @@ import {
   AccountViewModel,
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
-import { BlockReward } from '@gny/utils';
+import { BlockReward, LimitCache } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
+import { Block } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
 import { BigNumber } from 'bignumber.js';
+import { Condition } from '@gny/database-postgres/dist/searchTypes';
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;
@@ -50,6 +52,7 @@ export default class DelegatesApi implements IHttpApi {
     router.get('/getOwnVotes', this.getOwnVotes);
     router.get('/get', this.getDelegate);
     router.get('/', this.getDelegates);
+    router.get('/ownProducedBlocks', this.ownProducedBlocks);
     router.post('/forging/enable', this.forgingEnable);
     router.post('/forging/disable', this.forgingDisable);
     router.get('/forging/status', this.forgingStatus);
@@ -310,6 +313,72 @@ export default class DelegatesApi implements IHttpApi {
       delegates: delegates.slice(offset, offset + limit),
     };
     return res.json(result);
+  };
+
+  private ownProducedBlocks = async (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
+    const { query } = req;
+
+    const publicKeyOrNameOrAddress = joi
+      .object()
+      .keys({
+        publicKey: joi.string().publicKey(),
+        username: joi.string().username(),
+        address: joi.string().address(),
+        limit: joi
+          .number()
+          .min(0)
+          .max(100),
+        offset: joi.number().min(0),
+      })
+      .xor('publicKey', 'username', 'address')
+      .required();
+    const report = joi.validate(query, publicKeyOrNameOrAddress);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const delegates: DelegateViewModel[] = await Delegates.getDelegates();
+    if (!delegates) {
+      return next('no delegates');
+    }
+
+    const delegate = delegates.find(one => {
+      if (query.publicKey) {
+        return one.publicKey === query.publicKey;
+      }
+      if (query.address) {
+        return one.address === query.address;
+      }
+      if (query.username) {
+        return one.username === query.username;
+      }
+
+      return false;
+    });
+    if (!delegate) {
+      return next('delegate not found');
+    }
+
+    const blocks = await global.app.sdb.findAll<Block>(Block, {
+      limit: query.limit || 100,
+      offset: query.offset || 0,
+      condition: {
+        delegate: delegate.publicKey,
+      },
+    });
+
+    return res.json({
+      success: true,
+      delegate: delegate,
+      blocks: blocks,
+    });
   };
 
   private forgingEnable = async (req: Request, res: Response, next: Next) => {
