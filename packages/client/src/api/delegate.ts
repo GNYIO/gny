@@ -7,6 +7,8 @@ import {
   ValidationError,
   ServerError,
   DelegateWrapper,
+  DelegateOwnProducedBlocks,
+  OwnProducedBlocksQuery,
   DelegatesWrapper,
   ForgingError,
   ForgingStatus,
@@ -80,6 +82,13 @@ export class Delegate {
       DelegateWrapper,
       ValidationError | DelegateResponseError
     > = res.data;
+    return result;
+  }
+
+  public async ownProducedBlocks(params: OwnProducedBlocksQuery) {
+    const res = await this.base.get('/api/delegates/ownProducedBlocks', params);
+    const result: ApiResult<DelegateOwnProducedBlocks, ValidationError> =
+      res.data;
     return result;
   }
 
