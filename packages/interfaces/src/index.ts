@@ -592,6 +592,34 @@ export interface DelegateWrapper {
   delegate: DelegateViewModel;
 }
 
+export interface OffsetOrLimit {
+  offset?: number;
+  limit?: number;
+}
+
+export interface PublicKeyInterface {
+  publicKey: string;
+}
+
+export interface UsernameInterface {
+  username: string;
+}
+
+export interface AddressInterface {
+  address: string;
+}
+
+export type OwnProducedBlocksQuery =
+  | OffsetOrLimit
+  | (OffsetOrLimit & PublicKeyInterface)
+  | (OffsetOrLimit & UsernameInterface)
+  | (OffsetOrLimit & AddressInterface);
+
+export interface DelegateOwnProducedBlocks {
+  delegate: DelegateViewModel;
+  blocks: IBlock[];
+}
+
 export interface DelegatesWrapper {
   totalCount?: number;
   delegates: DelegateViewModel[];
