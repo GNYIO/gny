@@ -65,7 +65,11 @@ describe('delegate', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -108,13 +112,16 @@ describe('delegate', () => {
     );
   });
 
-  // todo remove .only
   describe('/getOwnVotes', () => {
     it(
       'should get own votes by address',
       async () => {
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -173,7 +180,11 @@ describe('delegate', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -279,6 +290,28 @@ describe('delegate', () => {
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
+    );
+  });
+
+  describe('/ownProducedBlocks', () => {
+    it(
+      'get own Produced Blocks',
+      async () => {
+        await lib.sleep(20 * 1000);
+
+        const blocks = [];
+        for (let i = 1; i < 102; ++i) {
+          const delegate = `gny_d${i}`;
+          console.log(`delegate: ${delegate}`);
+          const response = await delegateApi.ownProducedBlocks({
+            username: delegate,
+          });
+          blocks.push(...response.blocks);
+        }
+
+        expect(blocks.length).toBeGreaterThan(2);
+      },
+      lib.oneMinute * 2
     );
   });
 });

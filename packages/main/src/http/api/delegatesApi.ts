@@ -372,6 +372,9 @@ export default class DelegatesApi implements IHttpApi {
       condition: {
         delegate: delegate.publicKey,
       },
+      sort: {
+        height: 1,
+      },
     });
 
     return res.json({
