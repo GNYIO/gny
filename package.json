@@ -70,7 +70,6 @@
     "docker-compose": "^0.17.5",
     "fs-extra": "^8.1.0",
     "is-root": "^2.0.0",
-    "jaeger-client": "^3.18.0",
     "lodash": "^4.17.19",
     "opentracing": "^0.14.4",
     "peer-info": "^0.15.1",

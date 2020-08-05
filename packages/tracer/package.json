@@ -1,0 +1,20 @@
+{
+  "name": "@gny/tracer",
+  "version": "1.0.0",
+  "description": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "@gny/interfaces": "1.0.29",
+    "jaeger-client": "^3.18.0"
+  }
+}
