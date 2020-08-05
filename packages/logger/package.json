@@ -15,6 +15,9 @@
   "types": "dist/index",
   "dependencies": {
     "@gny/interfaces": "1.0.29",
-    "tracer": "^0.9.8"
+    "mongodb": "^3.3.3",
+    "tracer": "^0.9.8",
+    "winston": "^3.3.3",
+    "winston-mongodb": "^5.0.1"
   }
 }
