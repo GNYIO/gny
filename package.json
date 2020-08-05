@@ -71,7 +71,6 @@
     "fs-extra": "^8.1.0",
     "is-root": "^2.0.0",
     "lodash": "^4.17.19",
-    "opentracing": "^0.14.4",
     "peer-info": "^0.15.1",
     "shelljs": "=0.8.3",
     "ts-node": "=7.0.1",

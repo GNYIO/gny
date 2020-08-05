@@ -18,6 +18,7 @@
     "packages/utils",
     "packages/web-base",
     "packages/web-ed",
+    "packages/tracer",
     "test"
   ],
   "npmClient": "npm"
