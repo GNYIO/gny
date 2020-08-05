@@ -41,7 +41,7 @@ const logger = winstonCreateLogger({
       level: 'silly',
       db: uri,
       collection: 'logging',
-      storeHost: true,
+      storeHost: false,
       tryReconnect: true,
       decolorize: true,
       leaveConnectionOpen: false,
