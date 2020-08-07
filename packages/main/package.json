@@ -27,6 +27,7 @@
     "@gny/transaction-pool": "1.0.29",
     "@gny/type-validation": "1.0.29",
     "@gny/utils": "1.0.29",
+    "@gny/tracer": "1.0.29",
     "@types/bip39": "^2.4.2",
     "@types/body-parser": "^1.17.0",
     "@types/compression": "0.0.36",

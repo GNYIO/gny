@@ -47,6 +47,7 @@ export interface IScope {
   bus: IMessageBus;
   modules: Modules;
   coreApi: CoreApi;
+  tracer: ITracer;
 }
 
 export type MethodActions =

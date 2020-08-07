@@ -2,6 +2,7 @@ import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gny/logger';
+import { initTracer } from '@gny/tracer';
 
 import Application from './index';
 import * as packageJson from '../package.json';
@@ -124,6 +125,12 @@ function main() {
 
   const logger = createLogger(LogLevel[appConfig.logLevel]);
 
+  // tracer
+  const tracer = initTracer(
+    process.env['GNY_ADDRESS'],
+    process.env['GNY_TRACER']
+  );
+
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
     appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
   }
@@ -176,6 +183,7 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
+    tracer,
   };
 
   const application = new Application(options);
