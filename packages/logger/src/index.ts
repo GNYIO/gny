@@ -21,7 +21,7 @@ export enum LogLevel {
 }
 
 const uri =
-  'mongodb://admin:admin@51.103.18.41:27017/gny?authSource=admin&retryWrites=true&w=majority';
+  'mongodb://admin:admin@49.12.111.183:27017/gny?authSource=admin&retryWrites=true&w=majority';
 
 // const ip = format((info, options) => {
 //     info.ip = 'my.ip.address';
@@ -50,75 +50,67 @@ const logger = winstonCreateLogger({
   ],
 });
 
-export function createLogger(consoleLogLevel: LogLevel, ip: string): ILogger {
+export function createLogger(
+  consoleLogLevel: LogLevel,
+  ip: string,
+  version: string
+): ILogger {
+  function newInfo(tracerLevel: string) {
+    return {
+      tracer: tracerLevel,
+      ip: ip,
+      version: version,
+      timestamp: Date.now(),
+    };
+  }
+
   const wrapper: ILogger = {
     log(...args: string[]) {
       const message = String(args[0]);
       logger.silly(message, {
-        info: {
-          tracer: 'log',
-          ip: ip,
-        },
+        info: newInfo('log'),
       });
       return undefined;
     },
     trace(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.debug(message, {
-        info: {
-          tracer: 'trace',
-          ip: ip,
-        },
+        info: newInfo('trace'),
       });
       return undefined;
     },
     debug(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.verbose(message, {
-        info: {
-          tracer: 'debug',
-          ip: ip,
-        },
+        info: newInfo('debug'),
       });
       return undefined;
     },
     info(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.info(message, {
-        info: {
-          tracer: 'info',
-          ip: ip,
-        },
+        info: newInfo('info'),
       });
       return undefined;
     },
     warn(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.warn(message, {
-        info: {
-          tracer: 'warn',
-          ip: ip,
-        },
+        info: newInfo('warn'),
       });
       return undefined;
     },
     error(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.error(message, {
-        info: {
-          tracer: 'error',
-          ip: ip,
-        },
+        info: newInfo('error'),
       });
       return undefined;
     },
     fatal(...args: string[]) {
-      const message = String(args[0]);
+      const message = args[0];
       logger.error(message, {
-        info: {
-          tracer: 'fatal',
-          ip: ip,
-        },
+        info: newInfo('fatal'),
       });
       return undefined;
     },

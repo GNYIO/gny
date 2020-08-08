@@ -163,7 +163,11 @@ function main() {
     appConfig.publicIp = ip.address();
   }
 
-  const logger = createLogger(LogLevel[appConfig.logLevel], appConfig.publicIp);
+  const logger = createLogger(
+    LogLevel[appConfig.logLevel],
+    appConfig.publicIp,
+    appConfig.version
+  );
 
   // action: default "forging"
   appConfig.nodeAction =
