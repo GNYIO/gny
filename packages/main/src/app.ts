@@ -166,7 +166,8 @@ function main() {
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
     appConfig.publicIp,
-    appConfig.version
+    appConfig.version,
+    appConfig.netVersion
   );
 
   // action: default "forging"

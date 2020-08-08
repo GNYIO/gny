@@ -20,16 +20,25 @@ export enum LogLevel {
   fatal = 6,
 }
 
-const uri =
-  'mongodb://admin:admin@49.12.111.183:27017/gny?authSource=admin&retryWrites=true&w=majority';
-
-// const ip = format((info, options) => {
-//     info.ip = 'my.ip.address';
-//     info.multiaddrs = '/ipv4/test3';
-//     return info;
-// });
+const ip = process.env['GNY_LOG_IP'] || '49.12.111.183';
+const uri = `mongodb://admin:admin@${ip}:27017/gny?authSource=admin&retryWrites=true&w=majority`;
 
 const test = combine(errors({ stack: true }), timestamp(), json());
+
+const winstonTransport = new winstonMongoDb.MongoDB({
+  level: 'silly',
+  db: uri,
+  collection: 'logging',
+  storeHost: false,
+  tryReconnect: true,
+  decolorize: true,
+  leaveConnectionOpen: false,
+  metaKey: 'info',
+});
+winstonTransport.on('error', err => {
+  console.log('error occurred');
+  throw err;
+});
 
 const logger = winstonCreateLogger({
   format: test,
@@ -37,30 +46,23 @@ const logger = winstonCreateLogger({
     new transports.Console({
       level: 'silly',
     }),
-    new winstonMongoDb.MongoDB({
-      level: 'silly',
-      db: uri,
-      collection: 'logging',
-      storeHost: false,
-      tryReconnect: true,
-      decolorize: true,
-      leaveConnectionOpen: false,
-      metaKey: 'info',
-    }),
+    winstonTransport,
   ],
 });
 
 export function createLogger(
   consoleLogLevel: LogLevel,
   ip: string,
-  version: string
+  version: string,
+  network: string
 ): ILogger {
-  function newInfo(tracerLevel: string) {
+  function newMetaObject(tracerLevel: string) {
     return {
       tracer: tracerLevel,
       ip: ip,
       version: version,
       timestamp: Date.now(),
+      network: network,
     };
   }
 
@@ -68,49 +70,49 @@ export function createLogger(
     log(...args: string[]) {
       const message = String(args[0]);
       logger.silly(message, {
-        info: newInfo('log'),
+        info: newMetaObject('log'),
       });
       return undefined;
     },
     trace(...args: string[]) {
       const message = args[0];
       logger.debug(message, {
-        info: newInfo('trace'),
+        info: newMetaObject('trace'),
       });
       return undefined;
     },
     debug(...args: string[]) {
       const message = args[0];
       logger.verbose(message, {
-        info: newInfo('debug'),
+        info: newMetaObject('debug'),
       });
       return undefined;
     },
     info(...args: string[]) {
       const message = args[0];
       logger.info(message, {
-        info: newInfo('info'),
+        info: newMetaObject('info'),
       });
       return undefined;
     },
     warn(...args: string[]) {
       const message = args[0];
       logger.warn(message, {
-        info: newInfo('warn'),
+        info: newMetaObject('warn'),
       });
       return undefined;
     },
     error(...args: string[]) {
       const message = args[0];
       logger.error(message, {
-        info: newInfo('error'),
+        info: newMetaObject('error'),
       });
       return undefined;
     },
     fatal(...args: string[]) {
       const message = args[0];
       logger.error(message, {
-        info: newInfo('fatal'),
+        info: newMetaObject('fatal'),
       });
       return undefined;
     },
