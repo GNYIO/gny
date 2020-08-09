@@ -52,6 +52,8 @@ COPY packages/web-base/package-lock.json ./packages/web-base/package-lock.json
 RUN true
 COPY packages/machine-learning/package-lock.json ./packages/machine-learning/package-lock.json
 RUN true
+COPY packages/tracer/package-lock.json ./packages/tracer/package-lock.json
+RUN true
 
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
@@ -89,6 +91,8 @@ RUN true
 COPY packages/web-base/package.json ./packages/web-base/package.json
 RUN true
 COPY packages/machine-learning/package.json ./packages/machine-learning/package.json
+RUN true
+COPY packages/tracer/package.json ./packages/tracer/package.json
 RUN true
 
 # install all depdencies for packages/*
