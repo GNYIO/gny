@@ -2,7 +2,7 @@ import * as jaegerClient from 'jaeger-client';
 
 const initJaegerTracer = jaegerClient.initTracer;
 
-export function initTracer(serviceName: string) {
+export function initTracer(serviceName: string, collectorEndpoint: string) {
   const config = {
     serviceName: serviceName,
     sampler: {
@@ -11,7 +11,7 @@ export function initTracer(serviceName: string) {
     },
     reporter: {
       logSpans: true,
-      collectorEndpoint: 'http://127.0.0.1:14268/api/traces',
+      collectorEndpoint: collectorEndpoint,
     },
   };
   const options = {

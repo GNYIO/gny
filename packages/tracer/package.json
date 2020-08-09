@@ -1,6 +1,6 @@
 {
   "name": "@gny/tracer",
-  "version": "1.0.0",
+  "version": "1.0.29",
   "description": "",
   "files": [
     "dist"
@@ -15,6 +15,7 @@
   "author": "",
   "dependencies": {
     "@gny/interfaces": "1.0.29",
-    "jaeger-client": "^3.18.0"
+    "jaeger-client": "^3.18.0",
+    "opentracing": "^0.14.4"
   }
 }
