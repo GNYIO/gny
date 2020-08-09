@@ -91,6 +91,17 @@ export default class Blocks implements ICoreModule {
     try {
       ret = await Peer.request('commonBlock', params, peer);
     } catch (err) {
+      const span = global.app.tracer.startSpan('getCommonBlock');
+      span.setTag('error', true);
+      span.log({
+        event: 'error',
+        value: `Peer.request('commonBlock'): ${err &&
+          err.response &&
+          err.response.data &&
+          err.response.data.error}`,
+      });
+      span.finish();
+
       global.app.logger.info(
         `Peer.request('commonBlock'): ${err &&
           err.response &&
@@ -323,6 +334,14 @@ export default class Blocks implements ICoreModule {
 
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
+      const span = global.app.tracer.startSpan('processBlock');
+      span.setTag('error', true);
+      span.log({
+        event: 'error',
+        value: `save block error: ${error}`,
+      });
+      span.finish();
+
       global.app.logger.error('save block error: ', error);
       success = false;
     } finally {
@@ -646,6 +665,14 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
+          const span = global.app.tracer.startSpan('loadBlocksFromPeer');
+          span.setTag('error', true);
+          span.log({
+            event: 'error',
+            value: `Failed to process synced block ${e}`,
+          });
+          span.finish();
+
           global.app.logger.error('Failed to process synced block', e);
           loaded = true; // prepare exiting pWhilst loop
           throw e;
@@ -781,6 +808,14 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
+          const span = global.app.tracer.startSpan('onReceiveBlock');
+          span.setTag('error', true);
+          span.log({
+            event: 'error',
+            value: `Failed to process received block ${e}`,
+          });
+          span.finish();
+
           global.app.logger.error('Failed to process received block', e);
         } finally {
           // delete already executed transactions
@@ -794,6 +829,16 @@ export default class Blocks implements ICoreModule {
               redoTransactions
             );
           } catch (e) {
+            const span = global.app.tracer.startSpan(
+              'processUnconfirmedTransactionsAsync'
+            );
+            span.setTag('error', true);
+            span.log({
+              event: 'error',
+              value: `Failed to redo unconfirmed transactions ${e}`,
+            });
+            span.finish();
+
             global.app.logger.error(
               'Failed to redo unconfirmed transactions',
               e
@@ -888,6 +933,14 @@ export default class Blocks implements ICoreModule {
         ],
         (err: any) => {
           if (err) {
+            const span = global.app.tracer.startSpan('onReceivePropose');
+            span.setTag('error', true);
+            span.log({
+              event: 'error',
+              value: `onReceivePropose error: ${err}`,
+            });
+            span.finish();
+
             global.app.logger.error(`onReceivePropose error: ${err}`);
           }
           global.app.logger.debug('onReceivePropose finished');
@@ -965,6 +1018,14 @@ export default class Blocks implements ICoreModule {
 
           StateHelper.setState(state); // important
         } catch (err) {
+          const span = global.app.tracer.startSpan('onReceiveVotes');
+          span.setTag('error', true);
+          span.log({
+            event: 'error',
+            value: `Failed to process confirmed block: ${err}`,
+          });
+          span.finish();
+
           global.app.logger.error(`Failed to process confirmed block: ${err}`);
         }
         return cb();
@@ -1046,6 +1107,14 @@ export default class Blocks implements ICoreModule {
 
           return cb();
         } catch (err) {
+          const span = global.app.tracer.startSpan('onBind');
+          span.setTag('error', true);
+          span.log({
+            event: 'error',
+            value: `Failed to prepare local blockchain ${err}`,
+          });
+          span.finish();
+
           global.app.logger.error('Failed to prepare local blockchain', err);
           return cb('Failed to prepare local blockchain');
         }
