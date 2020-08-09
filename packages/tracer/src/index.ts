@@ -15,6 +15,9 @@ export function initTracer(serviceName: string, collectorEndpoint: string) {
     },
   };
   const options = {
+    tags: {
+      version: '1.0.29',
+    },
     logger: {
       info(msg: string) {
         console.log('INFO ', msg);
