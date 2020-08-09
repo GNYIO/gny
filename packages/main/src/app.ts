@@ -127,8 +127,8 @@ function main() {
 
   // tracer
   const tracer = initTracer(
-    process.env['GNY_ADDRESS'],
-    process.env['GNY_TRACER']
+    appConfig.address,
+    'http://127.0.0.1:14268/api/traces'
   );
 
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
