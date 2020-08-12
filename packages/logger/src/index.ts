@@ -20,8 +20,8 @@ export enum LogLevel {
   fatal = 6,
 }
 
-const ip = process.env['GNY_LOG_IP'] || '49.12.111.183';
-const uri = `mongodb://admin:admin@${ip}:27017/gny?authSource=admin&retryWrites=true&w=majority`;
+const ip = process.env['GNY_LOG_IP'] || '135.181.46.217';
+const uri = `mongodb://myuser:pass1@${ip}:27017/gny?authSource=gny&retryWrites=true&w=majority`;
 
 const test = combine(errors({ stack: true }), timestamp(), json());
 
