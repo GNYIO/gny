@@ -18,6 +18,7 @@ services:
     environment:
       - EXCHANGE_API=true # this activates the /api/exchange endpoints
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres

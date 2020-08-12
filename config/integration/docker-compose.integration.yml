@@ -17,6 +17,7 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_LOG_LEVEL=info
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
