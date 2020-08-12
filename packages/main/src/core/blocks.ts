@@ -583,83 +583,77 @@ export default class Blocks implements ICoreModule {
         1}, last commonBlock: ${id}`
     );
 
-    // catch when syncing fails
-    try {
-      await pWhilst(
-        () => !loaded && count < 30,
-        async () => {
-          count++;
-          const limit = 200;
-          const params = {
-            limit,
-            lastBlockId: lastCommonBlockId,
-          };
-          let body;
-          try {
-            body = await Peer.request('blocks', params, peer);
-          } catch (err) {
-            throw new Error(`Failed to request remote peer: ${err}`);
-          }
-          if (!body) {
-            throw new Error('Invalid response for blocks request');
-          }
-          const blocks = body.blocks as IBlock[];
-          if (!Array.isArray(blocks) || blocks.length === 0) {
-            loaded = true;
-          }
-          const num = Array.isArray(blocks) ? blocks.length : 0;
-          const address = `${peer.host}:${peer.port - 1}`;
-          // refactor
-          global.app.logger.info(`Loading ${num} blocks from ${address}`);
-          try {
-            for (const block of blocks) {
-              let state = StateHelper.getState();
+    await pWhilst(
+      () => !loaded && count < 30,
+      async () => {
+        count++;
+        const limit = 200;
+        const params = {
+          limit,
+          lastBlockId: lastCommonBlockId,
+        };
+        let body;
+        try {
+          body = await Peer.request('blocks', params, peer);
+        } catch (err) {
+          throw new Error(`Failed to request remote peer: ${err}`);
+        }
+        if (!body) {
+          throw new Error('Invalid response for blocks request');
+        }
+        const blocks = body.blocks as IBlock[];
+        if (!Array.isArray(blocks) || blocks.length === 0) {
+          loaded = true;
+        }
+        const num = Array.isArray(blocks) ? blocks.length : 0;
+        const address = `${peer.host}:${peer.port - 1}`;
+        // refactor
+        global.app.logger.info(`Loading ${num} blocks from ${address}`);
+        try {
+          for (const block of blocks) {
+            let state = StateHelper.getState();
 
-              const activeDelegates = await Delegates.generateDelegateList(
+            const activeDelegates = await Delegates.generateDelegateList(
+              block.height
+            );
+            const options: ProcessBlockOptions = {};
+
+            const stateResult = await Blocks.processBlock(
+              state,
+              block,
+              options,
+              activeDelegates
+            );
+            state = stateResult.state;
+            StateHelper.setState(state); // important
+
+            if (stateResult.success) {
+              lastCommonBlockId = block.id;
+              global.app.logger.info(
+                `Block ${block.id} loaded from ${address} at`,
                 block.height
               );
-              const options: ProcessBlockOptions = {};
-
-              const stateResult = await Blocks.processBlock(
-                state,
-                block,
-                options,
-                activeDelegates
+            } else {
+              global.app.logger.info(
+                `Error during sync of Block ${
+                  block.id
+                } loaded from ${address} at ${block.height}`
               );
-              state = stateResult.state;
-              StateHelper.setState(state); // important
-
-              if (stateResult.success) {
-                lastCommonBlockId = block.id;
-                global.app.logger.info(
-                  `Block ${block.id} loaded from ${address} at`,
-                  block.height
-                );
-              } else {
-                global.app.logger.info(
-                  `Error during sync of Block ${
-                    block.id
-                  } loaded from ${address} at ${block.height}`
-                );
-                global.app.logger.info('sleep for 10seconds');
-                await snooze(10 * 1000);
-                loaded = true; // prepare exiting pWhilst loop
-                break; // exit for loop
-              }
+              global.app.logger.info('sleep for 10seconds');
+              await snooze(10 * 1000);
+              loaded = true; // prepare exiting pWhilst loop
+              break; // exit for loop
             }
-          } catch (e) {
-            // Is it necessary to call the sdb.rollbackBlock()
-            global.app.logger.error('Failed to process synced block', e);
-            loaded = true; // prepare exiting pWhilst loop
-            throw e;
           }
+        } catch (e) {
+          // Is it necessary to call the sdb.rollbackBlock()
+          global.app.logger.error('Failed to process synced block', e);
+          loaded = true; // prepare exiting pWhilst loop
+          throw e;
         }
-      );
-    } catch (err) {
-      global.app.logger.error(
-        `p-whilst, error while syncing from peer ${peer.host}:${peer.port - 1}`
-      );
-    }
+      }
+    );
+
     global.app.logger.info(
       `stop syncing from peer ${peer.host}:${peer.port - 1}`
     );
