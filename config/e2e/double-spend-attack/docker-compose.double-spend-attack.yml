@@ -17,6 +17,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/double-spend-attack/node1.json" --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -46,6 +47,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/double-spend-attack/node2.json" --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmQbVdde9AeXSP3FoLyVNd3Fi3BjCe2tFyJV43bNWEBYSA"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres

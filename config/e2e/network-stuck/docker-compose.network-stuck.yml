@@ -27,6 +27,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node1.json" --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -60,6 +61,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node2.json" --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -93,6 +95,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node3.json" --publicIP $$(./getIP.sh node3) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -126,6 +129,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node4.json" --publicIP $$(./getIP.sh node4) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres

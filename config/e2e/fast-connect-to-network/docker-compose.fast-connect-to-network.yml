@@ -17,6 +17,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node1.json" --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -46,6 +47,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node2.json" --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -75,6 +77,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node3.json" --publicIP $$(./getIP.sh node3) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -104,6 +107,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node4.json" --publicIP $$(./getIP.sh node4) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -133,6 +137,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node5.json" --publicIP $$(./getIP.sh node5) --peers "/ip4/$$(./getIP.sh node4)/tcp/4097/ipfs/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU"' # connect to node4
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres

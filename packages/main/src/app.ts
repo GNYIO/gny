@@ -122,8 +122,6 @@ function main() {
   // loglevel, default info
   appConfig.logLevel = program.log || process.env['GNY_LOG_LEVEL'] || 'info';
 
-  const logger = createLogger(LogLevel[appConfig.logLevel]);
-
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
     appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
   }
@@ -164,6 +162,13 @@ function main() {
   } else {
     appConfig.publicIp = ip.address();
   }
+
+  const logger = createLogger(
+    LogLevel[appConfig.logLevel],
+    appConfig.publicIp,
+    appConfig.version,
+    appConfig.netVersion
+  );
 
   // action: default "forging"
   appConfig.nodeAction =
