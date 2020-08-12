@@ -19,7 +19,6 @@ export enum LogLevel {
   fatal = 6,
 }
 
-
 function orchestrateWinstonLogger() {
   const winstonFormat = combine(errors({ stack: true }), timestamp(), json());
 
@@ -27,7 +26,6 @@ function orchestrateWinstonLogger() {
 
   const disableMongoLogging = Boolean(process.env['GNY_MONGO_LOGGING_DISABLE']);
   if (disableMongoLogging === false) {
-
     const mongoIp = process.env['GNY_MONGO_LOGGING_IP'] || '135.181.46.217';
     const mongoAuth = process.env['GNY_MONGO_LOGGING_AUTH'] || 'myuser:pass1';
     const mongoPort = process.env['GNY_MONGO_LOGGING_PORT'] || 27017;
@@ -56,7 +54,7 @@ function orchestrateWinstonLogger() {
         winstonTransport,
       ],
     });
-    } else {
+  } else {
     logger = winstonCreateLogger({
       format: winstonFormat,
       transports: [
@@ -72,8 +70,12 @@ function orchestrateWinstonLogger() {
   return logger;
 }
 
-
-function newMetaObject(tracerLevel: string, ip: string, version: string, network: string) {
+function newMetaObject(
+  tracerLevel: string,
+  ip: string,
+  version: string,
+  network: string
+) {
   return {
     tracer: tracerLevel,
     ip: ip,
@@ -89,7 +91,6 @@ export function createLogger(
   version: string,
   network: string
 ): ILogger {
-
   const logger = orchestrateWinstonLogger();
 
   const wrapper: ILogger = {
