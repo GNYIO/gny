@@ -32,6 +32,13 @@ export default class Loader implements ICoreModule {
     try {
       commonBlock = await Blocks.getCommonBlock(peer, newestLastBlock.height);
     } catch (err) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to get common block: ${err}`,
+      });
+      span.finish();
+
       global.library.logger.error('Failed to get common block:', err);
       throw err;
     }
@@ -55,6 +62,13 @@ export default class Loader implements ICoreModule {
     );
 
     if (LoaderHelper.IsLongFork(toRemove)) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `long fork with peer ${peerStr}`,
+      });
+      span.finish();
+
       global.library.logger.error(`long fork with peer ${peerStr}`);
       throw new Error(`long fork with peer ${peerStr}`);
     }
@@ -76,6 +90,13 @@ export default class Loader implements ICoreModule {
         await global.app.sdb.rollbackBlock(newestLastBlock.height);
       }
     } catch (e) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to rollback block ${e}`,
+      });
+      span.finish();
+
       global.library.logger.error('Failed to rollback block', e);
       throw e;
     }
@@ -122,9 +143,16 @@ export default class Loader implements ICoreModule {
           await Loader.findUpdate(lastBlock, peer);
           return;
         } catch (err) {
+          const span = global.app.tracer.startSpan('loadBlocks');
+          span.setTag('error', true);
+          span.log({
+            value: `error while calling loader.findUpdate() ${err.message}`,
+          });
+          span.finish();
+
           global.library.logger.error(
             'error while calling loader.findUpdate()',
-            err.messag
+            err.message
           );
           throw err;
         }
@@ -250,6 +278,13 @@ export default class Loader implements ICoreModule {
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
       } catch (err) {
+        const span = global.app.tracer.startSpan('syncBlocksFromPeer');
+        span.setTag('error', true);
+        span.log({
+          value: 'error while sdb.rollbackBlock()',
+        });
+        span.finish();
+
         global.library.logger.error('error while sdb.rollbackBlock()');
 
         // reset

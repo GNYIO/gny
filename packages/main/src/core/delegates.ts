@@ -210,6 +210,13 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
+        const span = global.app.tracer.startSpan('loop');
+        span.setTag('error', true);
+        span.log({
+          value: `Failed generate block within slot: ${e}`,
+        });
+        span.finish();
+
         global.library.logger.error('Failed generate block within slot:', e);
         return;
       } finally {
@@ -262,6 +269,13 @@ export default class Delegates implements ICoreModule {
         }
       }
     } catch (e) {
+      const span = global.app.tracer.startSpan('loadMyDelegates');
+      span.setTag('error', true);
+      span.log({
+        value: e,
+      });
+      span.finish();
+
       global.library.logger.error(e);
     }
 
@@ -323,6 +337,13 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
+      const span = global.app.tracer.startSpan('generateDelegateList');
+      span.setTag('error', true);
+      span.log({
+        value: `error while generating DelgateList ${e}`,
+      });
+      span.finish();
+
       global.app.logger.error('error while generating DelgateList', e);
       return;
     }

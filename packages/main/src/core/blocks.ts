@@ -94,7 +94,6 @@ export default class Blocks implements ICoreModule {
       const span = global.app.tracer.startSpan('getCommonBlock');
       span.setTag('error', true);
       span.log({
-        event: 'error',
         value: `Peer.request('commonBlock'): ${err &&
           err.response &&
           err.response.data &&
@@ -337,7 +336,6 @@ export default class Blocks implements ICoreModule {
       const span = global.app.tracer.startSpan('processBlock');
       span.setTag('error', true);
       span.log({
-        event: 'error',
         value: `save block error: ${error}`,
       });
       span.finish();
@@ -668,7 +666,6 @@ export default class Blocks implements ICoreModule {
           const span = global.app.tracer.startSpan('loadBlocksFromPeer');
           span.setTag('error', true);
           span.log({
-            event: 'error',
             value: `Failed to process synced block ${e}`,
           });
           span.finish();
@@ -811,7 +808,6 @@ export default class Blocks implements ICoreModule {
           const span = global.app.tracer.startSpan('onReceiveBlock');
           span.setTag('error', true);
           span.log({
-            event: 'error',
             value: `Failed to process received block ${e}`,
           });
           span.finish();
@@ -834,7 +830,6 @@ export default class Blocks implements ICoreModule {
             );
             span.setTag('error', true);
             span.log({
-              event: 'error',
               value: `Failed to redo unconfirmed transactions ${e}`,
             });
             span.finish();
@@ -936,7 +931,6 @@ export default class Blocks implements ICoreModule {
             const span = global.app.tracer.startSpan('onReceivePropose');
             span.setTag('error', true);
             span.log({
-              event: 'error',
               value: `onReceivePropose error: ${err}`,
             });
             span.finish();
@@ -1021,7 +1015,6 @@ export default class Blocks implements ICoreModule {
           const span = global.app.tracer.startSpan('onReceiveVotes');
           span.setTag('error', true);
           span.log({
-            event: 'error',
             value: `Failed to process confirmed block: ${err}`,
           });
           span.finish();
@@ -1110,7 +1103,6 @@ export default class Blocks implements ICoreModule {
           const span = global.app.tracer.startSpan('onBind');
           span.setTag('error', true);
           span.log({
-            event: 'error',
             value: `Failed to prepare local blockchain ${err}`,
           });
           span.finish();
@@ -1121,6 +1113,13 @@ export default class Blocks implements ICoreModule {
       },
       err => {
         if (err) {
+          const span = global.app.tracer.startSpan('onBind');
+          span.setTag('error', true);
+          span.log({
+            value: err.message,
+          });
+          span.finish();
+
           global.app.logger.error(err.message);
           process.exit(0);
         }

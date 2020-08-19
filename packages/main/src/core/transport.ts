@@ -51,6 +51,13 @@ export default class Transport implements ICoreModule {
           .toString('base64'),
       };
     } catch (err) {
+      const span = global.app.tracer.startSpan('onUnconfirmedTransaction');
+      span.setTag('error', true);
+      span.log({
+        value: 'could not encode blockVotes',
+      });
+      span.finish();
+
       global.library.logger.error('could not encode blockVotes');
       return;
     }
@@ -119,11 +126,25 @@ export default class Transport implements ICoreModule {
       const params = { id: newBlockMsg.id };
       result = await Peer.request('newBlock', params, peer);
     } catch (err) {
+      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to get latest block data ${err.message}`,
+      });
+      span.finish();
+
       global.library.logger.error('Failed to get latest block data', err);
       return;
     }
 
     if (!result || !result.block || !result.votes) {
+      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
+      span.setTag('error', true);
+      span.log({
+        value: `Invalid block data ${result}`,
+      });
+      span.finish();
+
       global.library.logger.error('Invalid block data', result);
       return;
     }
@@ -148,6 +169,13 @@ export default class Transport implements ICoreModule {
       StateHelper.SetBlockToLatestBlockCache(block.id, result); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
+      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
+      span.setTag('error', true);
+      span.log({
+        value: `normalize block or votes object error: ${e.toString()}`,
+      });
+      span.finish();
+
       global.library.logger.error(
         `normalize block or votes object error: ${e.toString()}`,
         result
@@ -202,6 +230,14 @@ export default class Transport implements ICoreModule {
         unconfirmedTrs
       );
     } catch (e) {
+      const span = global.app.tracer.startSpan('receivePeer_Transaction');
+      span.setTag('error', true);
+      span.log({
+        message: message,
+        value: e.toString(),
+      });
+      span.finish();
+
       global.library.logger.error('Received transaction parse error', {
         message,
         error: e.toString(),
@@ -222,6 +258,13 @@ export default class Transport implements ICoreModule {
       const result = await Peer.request('votes', { votes }, contact);
     } catch (err) {
       // refactor
+      const span = global.app.tracer.startSpan('receivePeer_Transaction');
+      span.setTag('error', true);
+      span.log({
+        value: `send votes error ${err.toString()}`,
+      });
+      span.finish();
+
       global.app.logger.error('send votes error', err);
     }
   };
