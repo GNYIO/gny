@@ -258,7 +258,7 @@ export default class Transport implements ICoreModule {
       const result = await Peer.request('votes', { votes }, contact);
     } catch (err) {
       // refactor
-      const span = global.app.tracer.startSpan('receivePeer_Transaction');
+      const span = global.app.tracer.startSpan('sendVotes');
       span.setTag('error', true);
       span.log({
         value: `send votes error ${err.toString()}`,
