@@ -1,8 +1,14 @@
 import * as jaegerClient from 'jaeger-client';
+import { ILogger } from '@gny/interfaces';
 
 const initJaegerTracer = jaegerClient.initTracer;
 
-export function initTracer(serviceName: string, collectorEndpoint: string) {
+export function initTracer(
+  serviceName: string,
+  collectorEndpoint: string,
+  version: string,
+  logger: ILogger
+) {
   const config = {
     serviceName: serviceName,
     sampler: {
@@ -16,16 +22,9 @@ export function initTracer(serviceName: string, collectorEndpoint: string) {
   };
   const options = {
     tags: {
-      version: '1.0.29',
+      version: version,
     },
-    logger: {
-      info(msg: string) {
-        console.log('INFO ', msg);
-      },
-      error(msg: string) {
-        console.log('ERROR', msg);
-      },
-    },
+    logger: logger,
   };
   return initJaegerTracer(config, options);
 }
