@@ -123,7 +123,7 @@ export default class Delegates implements ICoreModule {
       keyPairs
     );
     if (error) {
-      global.library.logger.trace(error);
+      // global.library.logger.trace(error);
       return;
     }
 

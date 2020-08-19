@@ -123,16 +123,6 @@ function main() {
   // loglevel, default info
   appConfig.logLevel = program.log || process.env['GNY_LOG_LEVEL'] || 'info';
 
-  const logger = createLogger(LogLevel[appConfig.logLevel]);
-
-  // tracer
-  const tracer = initTracer(
-    appConfig.address,
-    'http://127.0.0.1:14268/api/traces',
-    version,
-    logger
-  );
-
   if (program.dbPassword || process.env['GNY_DB_PASSWORD']) {
     appConfig.dbPassword = program.dbPassword || process.env['GNY_DB_PASSWORD'];
   }
@@ -173,6 +163,21 @@ function main() {
   } else {
     appConfig.publicIp = ip.address();
   }
+
+  const logger = createLogger(
+    LogLevel[appConfig.logLevel],
+    appConfig.publicIp,
+    appConfig.version,
+    appConfig.netVersion
+  );
+
+  // tracer
+  const tracer = initTracer(
+    appConfig.address,
+    'http://127.0.0.1:14268/api/traces',
+    version,
+    logger
+  );
 
   // action: default "forging"
   appConfig.nodeAction =

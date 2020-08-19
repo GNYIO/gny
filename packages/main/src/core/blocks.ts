@@ -599,6 +599,7 @@ export default class Blocks implements ICoreModule {
       `start to sync 30 * 200 blocks. From peer: ${peer.host}:${peer.port -
         1}, last commonBlock: ${id}`
     );
+
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
@@ -676,6 +677,7 @@ export default class Blocks implements ICoreModule {
         }
       }
     );
+
     global.app.logger.info(
       `stop syncing from peer ${peer.host}:${peer.port - 1}`
     );

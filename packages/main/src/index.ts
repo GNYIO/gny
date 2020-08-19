@@ -62,16 +62,15 @@ export default class Application {
 
     process.on('uncaughtException', err => {
       // handle the error safely
-      scope.logger.fatal('uncaughtException', {
-        message: err.message,
-        stack: err.stack,
-      });
+      scope.logger.fatal('uncaughtException');
+      scope.logger.fatal(err);
       process.emit('cleanup');
     });
 
     process.on('unhandledRejection', err => {
       // handle the error safely
-      scope.logger.error('unhandledRejection', err);
+      scope.logger.error('unhandledRejection');
+      scope.logger.error(err);
       process.emit('cleanup');
     });
 
@@ -82,7 +81,8 @@ export default class Application {
     try {
       await initRuntime(options);
     } catch (e) {
-      scope.logger.error('init runtime error: ', e);
+      scope.logger.error('init runtime error');
+      scope.logger.error(e);
       process.exit(1);
       return;
     }

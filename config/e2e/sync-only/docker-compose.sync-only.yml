@@ -17,6 +17,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-only/forger.json" --publicIP $$(./getIP.sh forger)'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -46,6 +47,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/sync-only/syncer.json" --publicIP $$(./getIP.sh syncer) --peers "/ip4/$$(./getIP.sh forger)/tcp/4097/ipfs/QmY27AWmLSG3eEVFXqsH3wioLbmDstAhjzEV9TJTQLwhxC"'
     environment:
       - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
