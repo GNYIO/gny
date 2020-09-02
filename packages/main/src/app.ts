@@ -167,7 +167,8 @@ function main() {
     LogLevel[appConfig.logLevel],
     appConfig.publicIp,
     appConfig.version,
-    appConfig.netVersion
+    appConfig.netVersion,
+    appConfig.forging.secret
   );
 
   // action: default "forging"
