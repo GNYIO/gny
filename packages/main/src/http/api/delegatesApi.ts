@@ -70,7 +70,9 @@ export default class DelegatesApi implements IHttpApi {
     this.library.network.app.use('/api/delegates', router);
     this.library.network.app.use((err, req, res, next) => {
       if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
+      this.library.logger.error(req.url);
+      this.library.logger.error(err);
+
       return res.status(500).send({ success: false, error: err.toString() });
     });
   };
@@ -84,7 +86,9 @@ export default class DelegatesApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      this.library.logger.error('Error in counting delegates', e);
+      this.library.logger.error('Error in counting delegates');
+      this.library.logger.error(e);
+
       return next('Failed to count delegates');
     }
   };
@@ -152,7 +156,9 @@ export default class DelegatesApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      this.library.logger.error('Failed to find voters', e);
+      this.library.logger.error('Failed to find voters');
+      this.library.logger.error(e);
+
       return next('Server error');
     }
   };
@@ -225,7 +231,9 @@ export default class DelegatesApi implements IHttpApi {
       };
       return res.json(resultPretty);
     } catch (e) {
-      this.library.logger.error('Failed to find voters', e);
+      this.library.logger.error('Failed to find voters');
+      this.library.logger.error(e);
+
       return next('Server error');
     }
   };

@@ -50,7 +50,9 @@ export default class TransactionsApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        this.library.logger.error(req.url, err.toString());
+        this.library.logger.error(req.url);
+        this.library.logger.error(err);
+
         return res.status(500).json({ success: false, error: err.toString() });
       }
     );
@@ -152,7 +154,8 @@ export default class TransactionsApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      global.app.logger.error('Failed to get transactions', e);
+      global.app.logger.error('Failed to get transactions');
+      global.app.logger.error(e);
       return next('Server Error');
     }
   };

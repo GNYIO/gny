@@ -210,7 +210,8 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
-        global.library.logger.error('Failed generate block within slot:', e);
+        global.library.logger.error('Failed generate block within slot:');
+        global.library.logger.error(e);
         return;
       } finally {
         if (error) {
@@ -323,7 +324,8 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
-      global.app.logger.error('error while generating DelgateList', e);
+      global.app.logger.error('error while generating DelgateList');
+      global.app.logger.error(e);
       return;
     }
   };

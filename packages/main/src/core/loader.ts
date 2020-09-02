@@ -32,7 +32,8 @@ export default class Loader implements ICoreModule {
     try {
       commonBlock = await Blocks.getCommonBlock(peer, newestLastBlock.height);
     } catch (err) {
-      global.library.logger.error('Failed to get common block:', err);
+      global.library.logger.error('Failed to get common block:');
+      global.library.logger.error(err);
       throw err;
     }
 
@@ -76,7 +77,8 @@ export default class Loader implements ICoreModule {
         await global.app.sdb.rollbackBlock(newestLastBlock.height);
       }
     } catch (e) {
-      global.library.logger.error('Failed to rollback block', e);
+      global.library.logger.error('Failed to rollback block');
+      global.library.logger.error(e);
       throw e;
     }
     global.library.logger.debug(`Loading blocks from peer ${peerStr}`);
@@ -123,8 +125,7 @@ export default class Loader implements ICoreModule {
           return;
         } catch (err) {
           global.library.logger.error(
-            'error while calling loader.findUpdate()',
-            err.messag
+            `error while calling loader.findUpdate(): ${err.message}`
           );
           throw err;
         }

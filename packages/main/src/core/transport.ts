@@ -119,12 +119,15 @@ export default class Transport implements ICoreModule {
       const params = { id: newBlockMsg.id };
       result = await Peer.request('newBlock', params, peer);
     } catch (err) {
-      global.library.logger.error('Failed to get latest block data', err);
+      global.library.logger.error('Failed to get latest block data');
+      global.library.logger.error(err);
       return;
     }
 
     if (!result || !result.block || !result.votes) {
-      global.library.logger.error('Invalid block data', result);
+      global.library.logger.error(
+        `Invalid block data ${JSON.stringify(result, null, 2)}`
+      );
       return;
     }
 
@@ -149,9 +152,13 @@ export default class Transport implements ICoreModule {
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
       global.library.logger.error(
-        `normalize block or votes object error: ${e.toString()}`,
-        result
+        `normalize block or votes object error: ${JSON.stringify(
+          result,
+          null,
+          2
+        )}`
       );
+      global.library.logger.error(e);
     }
 
     global.library.bus.message(
@@ -202,10 +209,11 @@ export default class Transport implements ICoreModule {
         unconfirmedTrs
       );
     } catch (e) {
-      global.library.logger.error('Received transaction parse error', {
-        message,
-        error: e.toString(),
-      });
+      global.library.logger.error(
+        `Received transaction parse error: ${JSON.stringify(message, null, 2)}`
+      );
+      global.library.logger.error(e);
+
       return;
     }
 
@@ -222,7 +230,8 @@ export default class Transport implements ICoreModule {
       const result = await Peer.request('votes', { votes }, contact);
     } catch (err) {
       // refactor
-      global.app.logger.error('send votes error', err);
+      global.app.logger.error('send votes error');
+      global.app.logger.error(err);
     }
   };
 }

@@ -43,7 +43,9 @@ export default class PeerApi implements IHttpApi {
     this.library.network.app.use('/api/peers', router);
     this.library.network.app.use((err, req, res, next) => {
       if (!err) return next();
-      this.library.logger.error(req.url, err.toString());
+      this.library.logger.error(req.url);
+      this.library.logger.error(err);
+
       return res.status(500).send({ success: false, error: err.toString() });
     });
   };

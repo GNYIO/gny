@@ -158,7 +158,8 @@ export default class Peer implements ICoreModule {
         global.library.bus.message('onPeerReady');
       })
       .catch(err => {
-        global.library.logger.error('Failed to init dht', err);
+        global.library.logger.error('Failed to init dht');
+        global.library.logger.error(err);
       });
   };
 

@@ -216,7 +216,8 @@ export default class Blocks implements ICoreModule {
         await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       }
     } catch (e) {
-      global.app.logger.error(`Failed to apply block ${e}`);
+      global.app.logger.error('Failed to apply block');
+      global.app.logger.error(e);
       throw new Error(`Failed to apply block: ${e}`);
     }
   };
@@ -228,7 +229,10 @@ export default class Blocks implements ICoreModule {
         // this validates the block and its transactions
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
-        global.app.logger.error(`Failed to normalize block: ${e}`, block);
+        global.app.logger.error(
+          `Failed to normalize block ${JSON.stringify(block, null, 2)}`
+        );
+        global.app.logger.error(e);
         throw e;
       }
     }
@@ -323,7 +327,8 @@ export default class Blocks implements ICoreModule {
 
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
-      global.app.logger.error('save block error: ', error);
+      global.app.logger.error('save block error:');
+      global.app.logger.error(error);
       success = false;
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
@@ -647,7 +652,8 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          global.app.logger.error('Failed to process synced block', e);
+          global.app.logger.error('Failed to process synced block');
+          global.app.logger.error(e);
           loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
@@ -783,7 +789,8 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
-          global.app.logger.error('Failed to process received block', e);
+          global.app.logger.error('Failed to process received block');
+          global.app.logger.error(e);
         } finally {
           // delete already executed transactions
           for (const t of block.transactions) {
@@ -796,10 +803,8 @@ export default class Blocks implements ICoreModule {
               redoTransactions
             );
           } catch (e) {
-            global.app.logger.error(
-              'Failed to redo unconfirmed transactions',
-              e
-            );
+            global.app.logger.error('Failed to redo unconfirmed transactions');
+            global.app.logger.error(e);
             // TODO: rollback?
           }
 
@@ -890,7 +895,8 @@ export default class Blocks implements ICoreModule {
         ],
         (err: any) => {
           if (err) {
-            global.app.logger.error(`onReceivePropose error: ${err}`);
+            global.app.logger.error('onReceivePropose error');
+            global.app.logger.error(err);
           }
           global.app.logger.debug('onReceivePropose finished');
           cb();
@@ -967,7 +973,8 @@ export default class Blocks implements ICoreModule {
 
           StateHelper.setState(state); // important
         } catch (err) {
-          global.app.logger.error(`Failed to process confirmed block: ${err}`);
+          global.app.logger.error('Failed to process confirmed block:');
+          global.app.logger.error(err);
         }
         return cb();
       } else {
@@ -1048,7 +1055,8 @@ export default class Blocks implements ICoreModule {
 
           return cb();
         } catch (err) {
-          global.app.logger.error('Failed to prepare local blockchain', err);
+          global.app.logger.error('Failed to prepare local blockchain');
+          global.app.logger.error(err);
           return cb('Failed to prepare local blockchain');
         }
       },

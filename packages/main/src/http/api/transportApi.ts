@@ -102,7 +102,9 @@ export default class TransportApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next) => {
         if (!err) return next();
-        this.library.logger.error(req.url, err.toString());
+        this.library.logger.error(req.url);
+        this.library.logger.error(err);
+
         return res.status(500).json({ success: false, error: err.toString() });
       }
     );
@@ -210,7 +212,9 @@ export default class TransportApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      global.app.logger.error(`Failed to find common block: ${e}`);
+      global.app.logger.error('Failed to find common block:');
+      global.app.logger.error(e);
+
       return next('Failed to find common block');
     }
   };
@@ -266,9 +270,10 @@ export default class TransportApi implements IHttpApi {
       return res.json(result);
     } catch (e) {
       global.app.logger.error(
-        '/peer/blocks (POST), Failed to get blocks with transactions',
-        e
+        '/peer/blocks (POST), Failed to get blocks with transactions'
       );
+      global.app.logger.error(e);
+
       result = {
         blocks: [] as IBlock[],
       };
@@ -284,11 +289,19 @@ export default class TransportApi implements IHttpApi {
         req.body.transaction
       );
     } catch (e) {
-      this.library.logger.error('Received transaction parse error', {
-        raw: req.body,
-        trs: unconfirmedTrs,
-        error: e.toString(),
-      });
+      this.library.logger.error('Received transaction parse error');
+      this.library.logger.error(
+        `detail: ${JSON.stringify(
+          {
+            raw: req.body,
+            trs: unconfirmedTrs,
+            error: e.toString(),
+          },
+          null,
+          2
+        )}`
+      );
+
       return next('Invalid transaction body');
     }
 
