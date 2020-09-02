@@ -342,8 +342,7 @@ export default class Blocks implements ICoreModule {
 
   public static saveBlockTransactions = async (block: IBlock) => {
     global.app.logger.trace(
-      'Blocks#saveBlockTransactions height',
-      block.height
+      `Blocks#saveBlockTransactions height: ${block.height}`
     );
 
     for (let trs of block.transactions) {
@@ -409,7 +408,7 @@ export default class Blocks implements ICoreModule {
     if (!delegates || !delegates.length) {
       throw new Error('no delegates');
     }
-    global.app.logger.debug('delegate length', delegates.length);
+    global.app.logger.debug(`delegate length: ${delegates.length}`);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       new BigNumber(block.height).minus(100).toFixed(),
@@ -635,8 +634,7 @@ export default class Blocks implements ICoreModule {
             if (stateResult.success) {
               lastCommonBlockId = block.id;
               global.app.logger.info(
-                `Block ${block.id} loaded from ${address} at`,
-                block.height
+                `Block ${block.id} loaded from ${address} at ${block.height}`
               );
             } else {
               global.app.logger.info(
@@ -911,9 +909,9 @@ export default class Blocks implements ICoreModule {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`,
-          err
+          `Receive invalid transaction ${unconfirmedTrs.id}`
         );
+        global.app.logger.warn(err);
       } else {
         // TODO: are peer-transactions not broadcasted to all other peers also?
         // library.bus.message('onUnconfirmedTransaction', transaction, true)
@@ -1057,6 +1055,7 @@ export default class Blocks implements ICoreModule {
         } catch (err) {
           global.app.logger.error('Failed to prepare local blockchain');
           global.app.logger.error(err);
+
           return cb('Failed to prepare local blockchain');
         }
       },

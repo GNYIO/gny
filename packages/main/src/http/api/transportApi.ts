@@ -308,9 +308,10 @@ export default class TransportApi implements IHttpApi {
     const finished = err => {
       if (err) {
         this.library.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`,
-          err
+          `Receive invalid transaction ${unconfirmedTrs.id}`
         );
+        this.library.logger.warn(err);
+
         const errMsg: string = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {

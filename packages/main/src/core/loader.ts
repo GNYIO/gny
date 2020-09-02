@@ -70,8 +70,11 @@ export default class Loader implements ICoreModule {
         StateHelper.setState(state);
 
         global.library.logger.debug(
-          'set new last block',
-          global.app.sdb.lastBlock
+          `set new last block: ${JSON.stringify(
+            global.app.sdb.lastBlock,
+            null,
+            2
+          )}`
         );
       } else {
         await global.app.sdb.rollbackBlock(newestLastBlock.height);
@@ -187,8 +190,7 @@ export default class Loader implements ICoreModule {
           global.library.logger.info(
             `Transaction ${
               transactions[i] ? transactions[i].id : 'null'
-            } is not valid, ban 60 min`,
-            peerStr
+            } is not valid, ban 60 min, peer: ${peerStr}`
           );
           return cb('received transaction not valid');
         }
@@ -285,7 +287,8 @@ export default class Loader implements ICoreModule {
       if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) return;
       Loader.loadUnconfirmedTransactions(err => {
         if (err) {
-          global.library.logger.warn('loadUnconfirmedTransactions timer:', err);
+          global.library.logger.warn('loadUnconfirmedTransactions timer:');
+          global.library.logger.warn(err);
         }
       });
     });
