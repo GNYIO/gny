@@ -6,7 +6,7 @@ import {
   transports,
   Logger,
 } from 'winston';
-const { combine, timestamp, json, errors } = format;
+const { combine, timestamp, json, errors, colorize, align, printf } = format;
 import * as winstonMongoDb from 'winston-mongodb';
 import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
@@ -38,6 +38,13 @@ export enum LogLevel {
 function orchestrateWinstonLogger() {
   const winstonFormat = combine(errors({ stack: true }), timestamp(), json());
 
+  const consoleFormat = combine(
+    colorize(),
+    timestamp(),
+    align(),
+    printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+  );
+
   let logger: Logger = null;
 
   const disableMongoLogging = Boolean(process.env['GNY_MONGO_LOGGING_DISABLE']);
@@ -49,7 +56,7 @@ function orchestrateWinstonLogger() {
     const uri = `mongodb://${mongoAuth}@${mongoIp}:${mongoPort}/gny?authSource=${mongoAuthDb}&retryWrites=true&w=majority`;
     console.log(`uri: ${uri}`);
 
-    const winstonTransport = new winstonMongoDb.MongoDB({
+    const mongoDBTransport = new winstonMongoDb.MongoDB({
       level: 'silly',
       db: uri,
       collection: 'logging',
@@ -67,7 +74,7 @@ function orchestrateWinstonLogger() {
         new transports.Console({
           level: 'silly',
         }),
-        winstonTransport,
+        mongoDBTransport,
       ],
     });
   } else {
@@ -75,6 +82,7 @@ function orchestrateWinstonLogger() {
       format: winstonFormat,
       transports: [
         new transports.Console({
+          format: consoleFormat,
           level: 'silly',
         }),
       ],
