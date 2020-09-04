@@ -42,7 +42,13 @@ function orchestrateWinstonLogger() {
     colorize(),
     timestamp(),
     align(),
-    printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+    errors({ stack: true }),
+    printf(
+      info =>
+        `${info.timestamp} ${info.level}: ${info.message}${
+          info.stack ? '\nstack: ' + info.stack : ''
+        }`
+    )
   );
 
   let logger: Logger = null;
