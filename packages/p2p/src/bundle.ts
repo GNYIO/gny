@@ -117,9 +117,11 @@ export class Bundle extends libp2p {
     if (allConnectedPeers.length > 0) {
       const index = Math.floor(Math.random() * allConnectedPeers.length);
       const result = allConnectedPeers[index];
-      this.logger.info(`allConnectedPeers: ${JSON.stringify(result, null, 2)}`);
       this.logger.info(
-        `[P2P] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
+        `[p2p] allConnectedPeers: ${JSON.stringify(result, null, 2)}`
+      );
+      this.logger.info(
+        `[p2p] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
           result.simple
         )}`
       );
@@ -129,12 +131,16 @@ export class Bundle extends libp2p {
   }
 
   subscribeCustom(topic: string, handler: P2PSubscribeHandler) {
+    this.logger.info(`[p2p] subscribe to topic "${topic}"`);
+
     const filterBroadcastsEventHandler = (message: P2PMessage) => {
       const id = PeerId.createFromB58String(message.from);
       this.peerRouting.findPeer(id, {}, (err, result: PeerInfo) => {
         // find peer in routing table that broadcasted message
         if (err) {
-          this.logger.warn('could not find peer that broadcasted message');
+          this.logger.warn(
+            '[p2p] could not find peer that broadcasted message'
+          );
           return;
         }
 
@@ -149,7 +155,7 @@ export class Bundle extends libp2p {
         this.dial(result, erro => {
           // dial to peer that broadcasted message
           if (erro) {
-            this.logger.warn(`could not dial peer ${id}`);
+            this.logger.warn(`[p2p] could not dial peer ${id}`);
             return;
           }
           return finish(result);

@@ -2,7 +2,6 @@ import * as Multiaddr from 'multiaddr';
 import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
-const ip = require('ip');
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
@@ -49,7 +48,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         const multiAddrs: any = Multiaddr(message.data.toString());
 
         logger.info(
-          `message.from: ${
+          `[p2p] message.from: ${
             message.from
           } === self: ${bundle.peerInfo.id.toB58String()}`
         );
@@ -75,17 +74,19 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   };
 
   const stopCallback = function() {
-    logger.info(`stopped node: ${getB58String(bundle.peerInfo)}`);
+    logger.info(`[p2p] stopped node: ${getB58String(bundle.peerInfo)}`);
   };
 
   const errorCallback = function(err: Error) {
-    logger.error(`Error: ${err} for node: ${getB58String(bundle.peerInfo)}`);
+    logger.error(
+      `[p2p] Error: ${err} for node: ${getB58String(bundle.peerInfo)}`
+    );
     if (
       err &&
       typeof err.message === 'string' &&
       err.message.includes('EADDRINUSE')
     ) {
-      logger.warn('port is already in use, shutting down...');
+      logger.warn('[p2p] port is already in use, shutting down...');
       throw err;
     }
   };
@@ -142,7 +143,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
 
   const peerDisconnectCallback = function(peer) {
     logger.info(
-      `node ${getB58String(
+      `[p2p] node ${getB58String(
         bundle.peerInfo
       )} got disconnected from ${getB58String(peer)}`
     );
@@ -162,7 +163,7 @@ export function printOwnPeerInfo(bundle: Bundle, logger: ILogger) {
     adr => (addresses += `\t${adr.toString()}\n`)
   );
   bundle.logger.info(
-    `\n[P2P] started node: ${bundle.peerInfo.id.toB58String()}\n${addresses}`
+    `[p2p] started node: ${bundle.peerInfo.id.toB58String()}\n${addresses}`
   );
 }
 
