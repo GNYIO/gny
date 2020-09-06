@@ -14,7 +14,7 @@ services:
     build: ../../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --publicIP $$(./getIP.sh node1)'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --publicIP $$(./getIP.sh node1)'
     environment:
       - NODE_ENV=production
       - GNY_MONGO_LOGGING_DISABLE=true
@@ -45,7 +45,7 @@ services:
     build: ../../..
     container_name: 'node2'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmUhjJ2EF76PVcRxWcijf336T6cwYnXsrtqQ3nEy5jeAM8"'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmUhjJ2EF76PVcRxWcijf336T6cwYnXsrtqQ3nEy5jeAM8"'
     environment:
       - NODE_ENV=production
       - GNY_MONGO_LOGGING_DISABLE=true
