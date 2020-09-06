@@ -10,6 +10,7 @@ import {
   BlockAndVotes,
   ICoreModule,
   UnconfirmedTransaction,
+  BlockIdWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -18,6 +19,8 @@ import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
+import { Bundle, sendNewBlockQuery } from '@gny/p2p';
+import * as PeerId from 'peer-id';
 
 export default class Transport implements ICoreModule {
   // subscribe to peer events
@@ -116,10 +119,25 @@ export default class Transport implements ICoreModule {
 
     let result: BlockAndVotes;
     try {
-      const params = { id: newBlockMsg.id };
-      result = await Peer.request('newBlock', params, peer);
+      const params: BlockIdWrapper = { id: newBlockMsg.id };
+
+      const bundle: Bundle = Peer.p2p;
+
+      const id = PeerId.createFromB58String(message.from);
+
+      const peerInfo = await bundle.findPeerAsync(id);
+      global.library.logger.info(
+        `[p2p] peerInfo after findPeerAsync: ${JSON.stringify(peerInfo)}`
+      );
+
+      result = await sendNewBlockQuery(
+        peerInfo,
+        params,
+        bundle,
+        global.library.logger
+      );
     } catch (err) {
-      global.library.logger.error('Failed to get latest block data');
+      global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
       return;
     }

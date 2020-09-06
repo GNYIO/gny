@@ -1,7 +1,16 @@
 import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
+import {
+  PeerNode,
+  ILogger,
+  P2PMessage,
+  ApiResult,
+  NewBlockWrapper,
+  BlockIdWrapper,
+  BlockAndVotes,
+} from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
+import * as pull from 'pull-stream';
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
@@ -30,6 +39,84 @@ export function extractIpAndPort(peerInfo): PeerNode {
 export function getB58String(peerInfo: PeerInfo) {
   const b58String = peerInfo.id.toB58String();
   return b58String;
+}
+
+export function sendNewBlockQuery(
+  peerInfo: PeerInfo,
+  newBlockIdQuery: BlockIdWrapper,
+  bundle: Bundle,
+  logger: ILogger
+) {
+  return new Promise((resolve, reject) => {
+    logger.info(
+      `[p2p] dialing protocol "/v1/newBlock" for "${peerInfo.id.toB58String()}"`
+    );
+    bundle.dialProtocol(peerInfo, '/v1/newBlock', function(
+      err: Error,
+      conn: LibP2pConnection
+    ) {
+      if (err) {
+        logger.info(`[p2p] dialProtocol "/v1/newBlock" failed for peer ...`);
+        logger.err(err);
+
+        return reject(new Error('failed for peer'));
+      }
+
+      const data = global.library.protobuf.encodeNewBlockIdQuery(
+        newBlockIdQuery
+      );
+
+      pull(
+        pull.values([data]),
+        conn,
+        pull.collect((err: Error, data: Buffer[]) => {
+          const dataParsed: BlockAndVotes = JSON.parse(data[0].toString());
+          logger.info(`[p2p] collect ${JSON.stringify(dataParsed)}`);
+
+          // TODO: transform data -> BlockIdResult
+          resolve(dataParsed);
+        })
+      );
+    });
+  });
+}
+
+export function attachCommunications(
+  bundle: Bundle,
+  logger: ILogger,
+  StateHelper
+) {
+  bundle.handle('/v1/newBlock', function(
+    protocol: string,
+    conn: LibP2pConnection
+  ) {
+    pull(
+      conn,
+      // pull.collect((err, values: Buffer[]) => {
+      //   logger.log(`[p2p] received buffer: ${JSON.stringify(values)}`);
+      // }),
+      pull.asyncMap(async (data, cb) => {
+        const body = global.library.protobuf.decodeNewBlockIdQuery(data);
+        console.log(`[p2p] body: ${JSON.stringify(body, null, 2)}`);
+
+        const newBlock = await StateHelper.GetBlockFromLatestBlockCache(
+          body.id
+        );
+        if (!newBlock) {
+          return cb(new Error('New block not found'));
+        }
+
+        const result: ApiResult<NewBlockWrapper> = {
+          success: true,
+          block: newBlock.block,
+          votes: newBlock.votes,
+        };
+
+        return cb(null, JSON.stringify(result));
+      }),
+      conn
+    );
+  });
 }
 
 export function attachEventHandlers(bundle: Bundle, logger: ILogger) {

@@ -193,4 +193,16 @@ export class Bundle extends libp2p {
     };
     return result;
   }
+
+  findPeerAsync(id: PeerId): Promise<PeerInfo> {
+    return new Promise((resolve, reject) => {
+      this.peerRouting.findPeer(id, {}, (err, result: PeerInfo) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(result);
+      });
+    });
+  }
 }

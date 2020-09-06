@@ -600,6 +600,9 @@ export default class Blocks implements ICoreModule {
         try {
           body = await Peer.request('blocks', params, peer);
         } catch (err) {
+          global.library.logger.error(
+            JSON.stringify(err.response ? err.response.data : err.message)
+          );
           throw new Error(`Failed to request remote peer: ${err}`);
         }
         if (!body) {

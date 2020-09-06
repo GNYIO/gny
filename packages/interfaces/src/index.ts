@@ -425,6 +425,10 @@ export interface P2PMessage {
 
 export type P2PSubscribeHandler = (message: P2PMessage) => void;
 
+export interface BlockIdWrapper {
+  id: string;
+}
+
 export interface BlockPropose {
   address: string;
   generatorPublicKey: string;

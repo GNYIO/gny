@@ -6,8 +6,10 @@ import {
   createFromPrivKey,
   Bundle,
   attachEventHandlers,
+  attachCommunications,
 } from '@gny/p2p';
 import { PeerNode, ICoreModule, SimplePeerId } from '@gny/interfaces';
+import { StateHelper } from './StateHelper';
 
 export default class Peer implements ICoreModule {
   public static p2p: Bundle;
@@ -49,6 +51,9 @@ export default class Peer implements ICoreModule {
     } catch (err) {
       global.library.logger.error(
         `Failed to request remote peer: ${err.message}`
+      );
+      global.library.logger.error(
+        JSON.stringify(err.response ? err.response.data : err.message)
       );
       throw err;
     }
@@ -109,6 +114,7 @@ export default class Peer implements ICoreModule {
 
     Peer.p2p = new Bundle(config, global.app.logger);
     attachEventHandlers(Peer.p2p, global.app.logger);
+    attachCommunications(Peer.p2p, global.app.logger, StateHelper);
 
     Peer.p2p
       .start()
