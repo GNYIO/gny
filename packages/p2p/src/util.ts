@@ -71,9 +71,7 @@ export function sendNewBlockQuery(
         conn,
         pull.collect((err: Error, data: Buffer[]) => {
           const dataParsed: BlockAndVotes = JSON.parse(data[0].toString());
-          logger.info(`[p2p] collect ${JSON.stringify(dataParsed)}`);
 
-          // TODO: transform data -> BlockIdResult
           resolve(dataParsed);
         })
       );
@@ -97,7 +95,6 @@ export function attachCommunications(
       // }),
       pull.asyncMap(async (data, cb) => {
         const body = global.library.protobuf.decodeNewBlockIdQuery(data);
-        console.log(`[p2p] body: ${JSON.stringify(body, null, 2)}`);
 
         const newBlock = await StateHelper.GetBlockFromLatestBlockCache(
           body.id

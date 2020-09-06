@@ -821,8 +821,15 @@ export default class Blocks implements ICoreModule {
   };
 
   public static onReceivePropose = (propose: BlockPropose) => {
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
-      // TODO access state
+    const isSyncing = StateHelper.IsSyncing();
+    const modulesAreLoaded = StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || !modulesAreLoaded) {
+      global.library.logger.info(
+        `[p2p] ignore onReceivePropose from "${
+          propose.address
+        }" (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`
+      );
       return;
     }
 
@@ -920,6 +927,8 @@ export default class Blocks implements ICoreModule {
         // library.bus.message('onUnconfirmedTransaction', transaction, true)
       }
     };
+
+    global.library.logger.info(`[p2p] onReceiveTransaction`);
 
     global.library.sequence.add(cb => {
       if (StateHelper.IsSyncing()) {

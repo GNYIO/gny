@@ -11,6 +11,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
+  PeerInfoWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -19,8 +20,13 @@ import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import { Bundle, sendNewBlockQuery } from '@gny/p2p';
+import {
+  Bundle,
+  sendNewBlockQuery,
+  getMultiAddrsThatIsNotLocalAddress,
+} from '@gny/p2p';
 import * as PeerId from 'peer-id';
+import * as PeerInfo from 'peer-info';
 
 export default class Transport implements ICoreModule {
   // subscribe to peer events
@@ -115,8 +121,7 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const peer = message.peerInfo;
-
+    let peerInfo: PeerInfo;
     let result: BlockAndVotes;
     try {
       const params: BlockIdWrapper = { id: newBlockMsg.id };
@@ -125,11 +130,7 @@ export default class Transport implements ICoreModule {
 
       const id = PeerId.createFromB58String(message.from);
 
-      const peerInfo = await bundle.findPeerAsync(id);
-      global.library.logger.info(
-        `[p2p] peerInfo after findPeerAsync: ${JSON.stringify(peerInfo)}`
-      );
-
+      peerInfo = await bundle.findPeerAsync(id);
       result = await sendNewBlockQuery(
         peerInfo,
         params,
@@ -158,6 +159,12 @@ export default class Transport implements ICoreModule {
       );
       block = BlockBase.normalizeBlock(block);
       votes = ConsensusBase.normalizeVotes(votes);
+
+      global.library.logger.info(
+        `[p2p] got "${
+          votes.signatures.length
+        }" BlockVotes from peer ${getMultiAddrsThatIsNotLocalAddress(peerInfo)}`
+      );
 
       // validate the received Block and NewBlockMessage against each other
       // a malicious Peer could send a wrong block
@@ -204,6 +211,11 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    global.library.logger.info(
+      `[p2p] onReceivePropose from "${message.peerInfo.host}${
+        message.peerInfo.port
+      }" for block ${propose.id}, height: ${propose.height}`
+    );
     global.library.bus.message('onReceivePropose', propose);
   };
 
@@ -235,6 +247,11 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    global.library.logger.info(
+      `[p2p] received from "${message.peerInfo.host}:${
+        message.peerInfo.port
+      }" transactionId: ${unconfirmedTrs.id}`
+    );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
   };
 

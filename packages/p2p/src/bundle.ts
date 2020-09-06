@@ -67,9 +67,7 @@ export class Bundle extends libp2p {
           kBucketSize: 20,
           enabled: true,
           randomWalk: {
-            enabled: true,
-            interval: 300 * 1000,
-            timeout: 10 * 1000,
+            enabled: false,
           },
         },
         pubsub: {
@@ -117,9 +115,6 @@ export class Bundle extends libp2p {
     if (allConnectedPeers.length > 0) {
       const index = Math.floor(Math.random() * allConnectedPeers.length);
       const result = allConnectedPeers[index];
-      this.logger.info(
-        `[p2p] allConnectedPeers: ${JSON.stringify(result, null, 2)}`
-      );
       this.logger.info(
         `[p2p] getConnectedRandomNode: ${result.id.id}; ${JSON.stringify(
           result.simple
