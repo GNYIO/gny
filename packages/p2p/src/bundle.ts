@@ -37,6 +37,7 @@ export class Bundle extends libp2p {
 
     const defaults: Partial<LibP2POptions> = {
       switch: {
+        dialTimeout: 100, // number of ms a dial to a peer should be allowed to run. Defaults to 30 seconds (30 * 1000)
         denyTTL: 1,
         denyAttempts: Infinity,
       },
