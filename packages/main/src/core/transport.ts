@@ -24,6 +24,7 @@ import {
   Bundle,
   sendNewBlockQuery,
   getMultiAddrsThatIsNotLocalAddress,
+  V1_NEW_BLOCK_PROTOCOL,
 } from '@gny/p2p';
 import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
@@ -131,11 +132,10 @@ export default class Transport implements ICoreModule {
       const id = PeerId.createFromB58String(message.from);
 
       peerInfo = await bundle.findPeerAsync(id);
-      const PROTOCOL = '/v1/newBlock';
 
       const resultRaw = await bundle.requestLibp2p(
         peerInfo,
-        PROTOCOL,
+        V1_NEW_BLOCK_PROTOCOL,
         JSON.stringify(params)
       );
       result = JSON.parse(resultRaw.toString());

@@ -11,6 +11,7 @@ import {
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
 import * as pull from 'pull-stream';
+import { V1_NEW_BLOCK_PROTOCOL } from './protocols';
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
@@ -46,16 +47,13 @@ export function attachCommunications(
   logger: ILogger,
   StateHelper
 ) {
-  bundle.handle('/v1/newBlock', function(
+  bundle.handle(V1_NEW_BLOCK_PROTOCOL, function(
     protocol: string,
     conn: LibP2pConnection
   ) {
     pull(
       conn,
       pull.asyncMap(async (data, cb) => {
-        logger.info(
-          `[p2p] asyncMap() ${typeof data}, isBuffer: ${Buffer.isBuffer(data)}`
-        );
         const body = JSON.parse(Buffer.from(data).toString());
 
         const newBlock = await StateHelper.GetBlockFromLatestBlockCache(
