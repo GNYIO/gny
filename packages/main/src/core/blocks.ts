@@ -171,15 +171,27 @@ export default class Blocks implements ICoreModule {
         throw new Error('Votes height is not correct');
       }
       if (block.id !== votes.id) {
+        global.library.logger.info(
+          `block(${block.height}) id: ${block.id} does not match votes(${
+            votes.height
+          }) id: ${votes.id}`
+        );
         throw new Error('Votes id is not correct');
       }
       if (!votes.signatures) {
         throw new Error('Votes signature is not correct');
       }
       if (!ConsensusBase.hasEnoughVotesRemote(votes)) {
+        global.app.logger.info(
+          `[votes] remote votes ("${votes.signatures.length}") are not enough!`
+        );
         throw new Error('Not enough remote votes');
       }
       Blocks.verifyBlockVotes(votes, delegateList);
+
+      global.app.logger.info(
+        `[votes] all in all we got "${votes.signatures.length}" votes`
+      );
     }
   };
 
@@ -688,9 +700,19 @@ export default class Blocks implements ICoreModule {
       throw new Error('not enough active delegates');
     }
 
+    global.library.logger.info(
+      `[votes] create local block ${newBlock.id}, h: ${newBlock.height}`
+    );
+
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
     if (ConsensusBase.hasEnoughVotes(localVotes)) {
+      global.library.logger.info(
+        `[votes] we got enough local votes ("${
+          localVotes.signatures.length
+        }") to produce block ${newBlock.id}, h: ${newBlock.height}`
+      );
+
       return {
         // important
         state,
@@ -698,6 +720,14 @@ export default class Blocks implements ICoreModule {
         votes: localVotes,
       };
     }
+
+    global.library.logger.info(
+      `[votes] only "${
+        localVotes.signatures.length
+      }" votes, not enough. Creating Block Propose for block ${
+        newBlock.id
+      }, h: ${newBlock.height}`
+    );
 
     /*
       not enough votes, so create a block propose and send it to all peers
@@ -780,7 +810,14 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             block.height
           );
+
           const options: ProcessBlockOptions = { votes, broadcast: true };
+          global.library.logger.info(
+            `[p2p] onReceiveBlock processBlock() block: ${block.id}, h: ${
+              block.height
+            }, options: ${options.votes.id} h: ${options.votes.height}`
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             block,
@@ -890,6 +927,13 @@ export default class Blocks implements ICoreModule {
           async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = ConsensusBase.createVotes(activeKeypairs, propose);
+              global.library.logger.info(
+                `created "${
+                  votes.signatures.length
+                }" votes for propose of block: ${propose.id}, h: ${
+                  propose.height
+                }`
+              );
 
               await Transport.sendVotes(votes, propose.address);
 
@@ -956,6 +1000,7 @@ export default class Blocks implements ICoreModule {
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
 
+      global.library.logger.info(`[p2p] add remote votes`);
       state = ConsensusHelper.addPendingVotes(state, votes);
 
       const totalVotes = state.pendingVotes;
@@ -973,6 +1018,15 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             pendingBlock.height
           );
+
+          global.library.logger.info(
+            `[p2p] onReceiveVotes!!! processBlock() block: ${
+              pendingBlock.id
+            }, h: ${pendingBlock.height}, options: ${options.votes.id} h: ${
+              options.votes.height
+            }`
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,

@@ -346,7 +346,7 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private votes = (req: Request, res: Response, next: Next) => {
-    const votes = req.body.votes;
+    const votes: ManyVotes = req.body.votes;
     const schema = joi.object().keys({
       height: joi
         .string()
@@ -375,7 +375,12 @@ export default class TransportApi implements IHttpApi {
       });
     }
 
-    this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
+    this.library.logger.info(
+      `[p2p] received "${votes.signatures.length}" votes for block: ${
+        votes.id
+      }, h: ${votes.height}`
+    );
+    this.library.bus.message('onReceiveVotes', votes);
     res.json({});
   };
 

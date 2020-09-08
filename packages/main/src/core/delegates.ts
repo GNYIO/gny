@@ -186,6 +186,12 @@ export default class Delegates implements ICoreModule {
               broadcast: true,
               votes: localVotes,
             };
+            global.library.logger.info(
+              `[p2p] loop() processBlock() block: ${newBlock.id}, h: ${
+                newBlock.height
+              }, options: ${options.votes.id} h: ${options.votes.height}`
+            );
+
             const stateResult = await Blocks.processBlock(
               newState,
               newBlock,

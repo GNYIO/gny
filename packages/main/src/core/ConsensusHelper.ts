@@ -11,13 +11,27 @@ export class ConsensusHelper {
     const votes = copyObject(oldVotes);
 
     const pendingBlock = state.pendingBlock;
-    if (
-      !pendingBlock ||
-      pendingBlock.height !== votes.height ||
-      pendingBlock.id !== votes.id
-    ) {
+
+    if (!pendingBlock) {
+      global.library.logger.info(
+        `[votes][addPendingVotes] no pendingBlock, so we don't add votes`
+      );
       return state;
     }
+    if (pendingBlock.height !== votes.height || pendingBlock.id !== votes.id) {
+      global.library.logger.info(
+        `[votes][addPendingVotes] pendingBlock(${pendingBlock.height}) id: ${
+          pendingBlock.id
+        }, does not match votes(${votes.height}) id: ${votes.id}`
+      );
+      return state;
+    }
+
+    global.library.logger.info(
+      `[votes][addPendingVotes] we currently have "${
+        state.pendingVotes ? state.pendingVotes.signatures.length : 0
+      }" pending Votes for block ${pendingBlock.id}, h: ${pendingBlock.height}`
+    );
     for (let i = 0; i < votes.signatures.length; ++i) {
       const item = votes.signatures[i];
       const votesKeySet = state.votesKeySet;
@@ -38,6 +52,11 @@ export class ConsensusHelper {
         state.pendingVotes.signatures.push(item);
       }
     }
+    global.library.logger.info(
+      `[votes][addPendingVotes] after adding votes this node has now "${
+        state.pendingVotes ? state.pendingVotes.signatures.length : 0
+      }" votes for block ${pendingBlock.id}, h: ${pendingBlock.height}`
+    );
     return state;
   }
 

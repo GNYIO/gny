@@ -63,7 +63,7 @@ export default class Peer implements ICoreModule {
     const randomNode = Peer.p2p.getConnectedRandomNode();
     if (!randomNode) throw new Error('no contact');
     global.library.logger.debug(
-      `select random contract: ${JSON.stringify(randomNode, null, 2)}`
+      `select random contract: ${JSON.stringify(randomNode)}`
     );
     try {
       const result = await Peer.request(method, params, randomNode, 4000);
