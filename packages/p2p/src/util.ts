@@ -41,44 +41,6 @@ export function getB58String(peerInfo: PeerInfo) {
   return b58String;
 }
 
-export function sendNewBlockQuery(
-  peerInfo: PeerInfo,
-  newBlockIdQuery: BlockIdWrapper,
-  bundle: Bundle,
-  logger: ILogger
-) {
-  return new Promise((resolve, reject) => {
-    logger.info(
-      `[p2p] dialing protocol "/v1/newBlock" for "${peerInfo.id.toB58String()}"`
-    );
-    bundle.dialProtocol(peerInfo, '/v1/newBlock', function(
-      err: Error,
-      conn: LibP2pConnection
-    ) {
-      if (err) {
-        logger.info(`[p2p] dialProtocol "/v1/newBlock" failed for peer ...`);
-        logger.err(err);
-
-        return reject(new Error('failed for peer'));
-      }
-
-      const data = global.library.protobuf.encodeNewBlockIdQuery(
-        newBlockIdQuery
-      );
-
-      pull(
-        pull.values([data]),
-        conn,
-        pull.collect((err: Error, data: Buffer[]) => {
-          const dataParsed: BlockAndVotes = JSON.parse(data[0].toString());
-
-          resolve(dataParsed);
-        })
-      );
-    });
-  });
-}
-
 export function attachCommunications(
   bundle: Bundle,
   logger: ILogger,
@@ -90,11 +52,11 @@ export function attachCommunications(
   ) {
     pull(
       conn,
-      // pull.collect((err, values: Buffer[]) => {
-      //   logger.log(`[p2p] received buffer: ${JSON.stringify(values)}`);
-      // }),
       pull.asyncMap(async (data, cb) => {
-        const body = global.library.protobuf.decodeNewBlockIdQuery(data);
+        logger.info(
+          `[p2p] asyncMap() ${typeof data}, isBuffer: ${Buffer.isBuffer(data)}`
+        );
+        const body = JSON.parse(Buffer.from(data).toString());
 
         const newBlock = await StateHelper.GetBlockFromLatestBlockCache(
           body.id

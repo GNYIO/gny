@@ -1,11 +1,13 @@
 import * as libp2p from 'libp2p';
-import { extractIpAndPort } from './util';
+import { extractIpAndPort, attachCommunications } from './util';
 import {
   ILogger,
   P2PMessage,
   P2PSubscribeHandler,
   SimplePeerInfo,
   PeerInfoWrapper,
+  ApiResult,
+  NewBlockWrapper,
 } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -19,6 +21,7 @@ import * as PeerId from 'peer-id';
 import { Options as LibP2POptions } from 'libp2p';
 export { Options as LibP2POptions } from 'libp2p';
 import { cloneDeep } from 'lodash';
+import * as pull from 'pull-stream';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
@@ -198,6 +201,54 @@ export class Bundle extends libp2p {
 
         return resolve(result);
       });
+    });
+  }
+
+  async requestLibp2p(
+    peerInfo: PeerInfo,
+    protocol: string,
+    data: string
+  ): Promise<Buffer> {
+    this.logger.info(
+      `[p2p] dialing protocol "${protocol}" from ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+    );
+
+    return new Promise((resolve, reject) => {
+      this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
+        if (err) {
+          this.logger.error(
+            `[p2p] failed dialing protocol "${protocol}" to "${peerInfo.id.toB58String()}`
+          );
+          this.logger.error(err);
+          return reject(err);
+        }
+
+        pull(
+          pull.values([data]),
+          conn,
+          pull.collect((err: Error, returnedData: Buffer[]) => {
+            if (err) {
+              this.logger.error(
+                `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+              );
+              return reject(err);
+            }
+
+            return resolve(returnedData[0]);
+          })
+        );
+      });
+    });
+  }
+
+  private attachProtocol(
+    protocol: string,
+    func: (err: Error, cb) => Promise<void>
+  ) {
+    this.logger.info(`[p2p] attach protocol "${protocol}"`);
+
+    this.handle(protocol, function(protocol: string, conn) {
+      pull(conn, pull.asyncMap(func), conn);
     });
   }
 }
