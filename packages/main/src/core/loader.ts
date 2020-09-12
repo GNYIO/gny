@@ -273,18 +273,11 @@ export default class Loader implements ICoreModule {
 
   // Events
   public static onPeerReady = () => {
-    const nextSync = () => {
-      const lastBlock = StateHelper.getState().lastBlock;
-      const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-      if (slots.getNextSlot() - lastSlot >= 3) {
-        Loader.startSyncBlocks(lastBlock);
-      }
-      setTimeout(nextSync, TIMEOUT * 1000);
-    };
-    setImmediate(nextSync);
-
     setImmediate(() => {
-      if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) return;
+      if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
+        return;
+      }
+
       Loader.loadUnconfirmedTransactions(err => {
         if (err) {
           global.library.logger.warn('loadUnconfirmedTransactions timer:');

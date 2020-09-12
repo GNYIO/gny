@@ -781,8 +781,15 @@ export default class Blocks implements ICoreModule {
         state,
         block
       );
+      // TODO: rename LongFork, this is wrong
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         global.library.logger.warn('Receive new block header from long fork');
+        global.library.logger.info(
+          `[syncing] received block h: ${block.height} from "${peer.host}:${
+            peer.port
+          }". seem that we are not up to date. Start syncing from a random peer`
+        );
+        Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
