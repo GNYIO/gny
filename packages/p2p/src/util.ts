@@ -47,32 +47,21 @@ export function attachCommunications(
   logger: ILogger,
   StateHelper
 ) {
-  bundle.handle(V1_NEW_BLOCK_PROTOCOL, function(
-    protocol: string,
-    conn: LibP2pConnection
-  ) {
-    pull(
-      conn,
-      pull.asyncMap(async (data, cb) => {
-        const body = JSON.parse(Buffer.from(data).toString());
+  bundle.attachProtocol(V1_NEW_BLOCK_PROTOCOL, async (data: Buffer, cb) => {
+    const body = JSON.parse(Buffer.from(data).toString());
 
-        const newBlock = await StateHelper.GetBlockFromLatestBlockCache(
-          body.id
-        );
-        if (!newBlock) {
-          return cb(new Error('New block not found'));
-        }
+    const newBlock = await StateHelper.GetBlockFromLatestBlockCache(body.id);
+    if (!newBlock) {
+      return cb(new Error('New block not found'));
+    }
 
-        const result: ApiResult<NewBlockWrapper> = {
-          success: true,
-          block: newBlock.block,
-          votes: newBlock.votes,
-        };
+    const result: ApiResult<NewBlockWrapper> = {
+      success: true,
+      block: newBlock.block,
+      votes: newBlock.votes,
+    };
 
-        return cb(null, JSON.stringify(result));
-      }),
-      conn
-    );
+    return cb(null, JSON.stringify(result));
   });
 }
 
@@ -193,12 +182,30 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     );
   };
 
+  const connectionStartCallback = function(peer) {
+    logger.info(
+      `[p2p] node ${getB58String(
+        bundle.peerInfo
+      )} started connection with ${getB58String(peer)}`
+    );
+  };
+
+  const connectionEndCallback = function(peer) {
+    logger.info(
+      `[p2p] node ${getB58String(
+        bundle.peerInfo
+      )} ended connection with ${getB58String(peer)}`
+    );
+  };
+
   bundle.on('start', startCallback);
   bundle.on('stop', stopCallback);
   bundle.on('error', errorCallback);
   bundle.on('peer:discovery', peerDiscoveryCallback);
   bundle.on('peer:connect', peerConnectedCallback);
   bundle.on('peer:disconnect', peerDisconnectCallback);
+  bundle.on('connection:start', connectionStartCallback);
+  bundle.on('connection:end', connectionEndCallback);
 }
 
 export function printOwnPeerInfo(bundle: Bundle, logger: ILogger) {

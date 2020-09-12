@@ -244,7 +244,7 @@ export class Bundle extends libp2p {
 
   private attachProtocol(
     protocol: string,
-    func: (err: Error, cb) => Promise<void>
+    func: (data: Buffer, cb) => Promise<void>
   ) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
