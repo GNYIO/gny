@@ -145,76 +145,6 @@ export default class Loader implements ICoreModule {
     return undefined;
   }
 
-  // next
-  private static loadUnconfirmedTransactions = cb => {
-    (async () => {
-      let result;
-      try {
-        result = await Peer.randomRequestAsync(
-          'getUnconfirmedTransactions',
-          {}
-        );
-      } catch (err) {
-        return cb(err.message);
-      }
-
-      const data = result.data;
-      const peer = result.node as PeerNode;
-
-      const schema = joi.object().keys({
-        // Todo: better schema
-        transactions: joi
-          .array()
-          .unique()
-          .required(),
-      });
-      const report = joi.validate(data, schema);
-      if (report.error) {
-        return cb(report.error.message);
-      }
-
-      if (!isPeerNode(peer)) {
-        return cb('validation of peer failed');
-      }
-
-      const transactions = data.transactions as Array<UnconfirmedTransaction>;
-      const peerStr = `${peer.host}:${peer.port - 1}`;
-
-      for (let i = 0; i < transactions.length; i++) {
-        try {
-          transactions[i] = TransactionBase.normalizeUnconfirmedTransaction(
-            transactions[i]
-          );
-        } catch (e) {
-          // TODO: check/correct statement below
-          global.library.logger.info(
-            `Transaction ${
-              transactions[i] ? transactions[i].id : 'null'
-            } is not valid, ban 60 min, peer: ${peerStr}`
-          );
-          return cb('received transaction not valid');
-        }
-      }
-
-      const trs: Array<UnconfirmedTransaction> = [];
-      for (let i = 0; i < transactions.length; ++i) {
-        const one = transactions[i];
-        if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {
-          trs.push(one);
-        }
-      }
-      global.library.logger.info(
-        `Loading ${
-          transactions.length
-        } unconfirmed transaction from peer ${peerStr}`
-      );
-      return global.library.sequence.add(done => {
-        const state = StateHelper.getState();
-        Transactions.processUnconfirmedTransactions(state, trs, done);
-      }, cb);
-    })();
-  };
-
   // Public methods
   public static startSyncBlocks = (lastBlock: IBlock) => {
     global.library.logger.debug('startSyncBlocks enter');
@@ -268,22 +198,6 @@ export default class Loader implements ICoreModule {
         global.library.logger.debug('syncBlocksFromPeer end');
         cb();
       }
-    });
-  };
-
-  // Events
-  public static onPeerReady = () => {
-    setImmediate(() => {
-      if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
-        return;
-      }
-
-      Loader.loadUnconfirmedTransactions(err => {
-        if (err) {
-          global.library.logger.warn('loadUnconfirmedTransactions timer:');
-          global.library.logger.warn(err);
-        }
-      });
     });
   };
 }
