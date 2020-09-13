@@ -42,28 +42,14 @@ export function getB58String(peerInfo: PeerInfo) {
   return b58String;
 }
 
-export function attachCommunications(
-  bundle: Bundle,
-  logger: ILogger,
-  StateHelper
-) {
-  bundle.attachProtocol(V1_NEW_BLOCK_PROTOCOL, async (data: Buffer, cb) => {
-    const body = JSON.parse(Buffer.from(data).toString());
-
-    const newBlock = await StateHelper.GetBlockFromLatestBlockCache(body.id);
-    if (!newBlock) {
-      return cb(new Error('New block not found'));
-    }
-
-    const result: ApiResult<NewBlockWrapper> = {
-      success: true,
-      block: newBlock.block,
-      votes: newBlock.votes,
-    };
-
-    return cb(null, JSON.stringify(result));
-  });
-}
+export type AsyncMapFuncCallback = (
+  err: Error,
+  result?: String | Buffer
+) => void;
+export type AsyncMapFuncType = (
+  data: Buffer,
+  cb: AsyncMapFuncCallback
+) => Promise<void>;
 
 export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   const startCallback = function() {

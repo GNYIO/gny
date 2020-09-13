@@ -83,7 +83,6 @@ export default class TransportApi implements IHttpApi {
       return next();
     });
 
-    router.post('/newBlock', this.newBlock);
     router.post('/commonBlock', this.commonBlock);
     router.post('/blocks', this.blocks);
     router.post('/transactions', this.transactions);
@@ -108,42 +107,6 @@ export default class TransportApi implements IHttpApi {
         return res.status(500).json({ success: false, error: err.toString() });
       }
     );
-  };
-
-  // POST
-  public newBlock = (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    if (!body.id) {
-      return res.status(422).send({
-        success: false,
-        error: 'Invalid params',
-      });
-    }
-    // validate id
-    const schema = joi.object().keys({
-      id: joi
-        .string()
-        .hex()
-        .required(),
-    });
-    const report = joi.validate(body, schema);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: 'validation failed',
-      });
-    }
-
-    const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
-    if (!newBlock) {
-      return next('New block not found');
-    }
-    const result: ApiResult<NewBlockWrapper> = {
-      success: true,
-      block: newBlock.block,
-      votes: newBlock.votes,
-    };
-    return res.json(result);
   };
 
   // POST

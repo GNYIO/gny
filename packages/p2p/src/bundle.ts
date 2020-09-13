@@ -1,5 +1,5 @@
 import * as libp2p from 'libp2p';
-import { extractIpAndPort, attachCommunications } from './util';
+import { extractIpAndPort, AsyncMapFuncType } from './util';
 import {
   ILogger,
   P2PMessage,
@@ -266,10 +266,7 @@ export class Bundle extends libp2p {
     return result;
   }
 
-  private attachProtocol(
-    protocol: string,
-    func: (data: Buffer, cb) => Promise<void>
-  ) {
+  attachProtocol(protocol: string, func: AsyncMapFuncType) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
     this.handle(protocol, function(protocol: string, conn) {
