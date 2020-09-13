@@ -8,6 +8,8 @@ import {
   PeerInfoWrapper,
   ApiResult,
   NewBlockWrapper,
+  BlockAndVotes,
+  BlockIdWrapper,
 } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -22,6 +24,7 @@ import { Options as LibP2POptions } from 'libp2p';
 export { Options as LibP2POptions } from 'libp2p';
 import { cloneDeep } from 'lodash';
 import * as pull from 'pull-stream';
+import { V1_NEW_BLOCK_PROTOCOL } from './protocols';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
@@ -193,7 +196,12 @@ export class Bundle extends libp2p {
     return result;
   }
 
-  findPeerAsync(id: PeerId): Promise<PeerInfo> {
+  public findPeerInfoInDHT(
+    p2pMessage: Pick<P2PMessage, 'from'>
+  ): Promise<PeerInfo> {
+    const { from } = p2pMessage;
+    const id = PeerId.createFromB58String(from);
+
     return new Promise((resolve, reject) => {
       this.peerRouting.findPeer(id, {}, (err, result: PeerInfo) => {
         if (err) {
@@ -205,7 +213,7 @@ export class Bundle extends libp2p {
     });
   }
 
-  async requestLibp2p(
+  private async requestLibp2p(
     peerInfo: PeerInfo,
     protocol: string,
     data: string
@@ -240,6 +248,22 @@ export class Bundle extends libp2p {
         );
       });
     });
+  }
+
+  public async requestFullBlockAfterReceivedBlockHeader(
+    peerInfo: PeerInfo,
+    blockIdWrapper: BlockIdWrapper
+  ): Promise<BlockAndVotes> {
+    const data = JSON.stringify(blockIdWrapper);
+
+    const resultRaw = await this.requestLibp2p(
+      peerInfo,
+      V1_NEW_BLOCK_PROTOCOL,
+      data
+    );
+    const result: BlockAndVotes = JSON.parse(resultRaw.toString());
+
+    return result;
   }
 
   private attachProtocol(

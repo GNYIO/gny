@@ -129,16 +129,12 @@ export default class Transport implements ICoreModule {
 
       const bundle: Bundle = Peer.p2p;
 
-      const id = PeerId.createFromB58String(message.from);
+      peerInfo = await bundle.findPeerInfoInDHT(message);
 
-      peerInfo = await bundle.findPeerAsync(id);
-
-      const resultRaw = await bundle.requestLibp2p(
+      result = await bundle.requestFullBlockAfterReceivedBlockHeader(
         peerInfo,
-        V1_NEW_BLOCK_PROTOCOL,
-        JSON.stringify(params)
+        params
       );
-      result = JSON.parse(resultRaw.toString());
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
