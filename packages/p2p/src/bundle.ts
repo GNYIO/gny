@@ -213,7 +213,7 @@ export class Bundle extends libp2p {
     });
   }
 
-  private async requestLibp2p(
+  public async directRequest(
     peerInfo: PeerInfo,
     protocol: string,
     data: string
@@ -250,23 +250,7 @@ export class Bundle extends libp2p {
     });
   }
 
-  public async requestFullBlockAfterReceivedBlockHeader(
-    peerInfo: PeerInfo,
-    blockIdWrapper: BlockIdWrapper
-  ): Promise<BlockAndVotes> {
-    const data = JSON.stringify(blockIdWrapper);
-
-    const resultRaw = await this.requestLibp2p(
-      peerInfo,
-      V1_NEW_BLOCK_PROTOCOL,
-      data
-    );
-    const result: BlockAndVotes = JSON.parse(resultRaw.toString());
-
-    return result;
-  }
-
-  attachProtocol(protocol: string, func: AsyncMapFuncType) {
+  public directResponse(protocol: string, func: AsyncMapFuncType) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
     this.handle(protocol, function(protocol: string, conn) {

@@ -131,10 +131,7 @@ export default class Transport implements ICoreModule {
 
       peerInfo = await bundle.findPeerInfoInDHT(message);
 
-      result = await bundle.requestFullBlockAfterReceivedBlockHeader(
-        peerInfo,
-        params
-      );
+      result = await bundle.requestBlockAndVotes(peerInfo, params);
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);

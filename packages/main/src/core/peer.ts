@@ -17,8 +17,7 @@ import {
   ApiResult,
   NewBlockWrapper,
 } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
-import { StateHelper } from './StateHelper';
+import { attachDirectP2PCommunication } from './PeerHelper';
 
 export default class Peer implements ICoreModule {
   public static p2p: Bundle;
@@ -123,39 +122,7 @@ export default class Peer implements ICoreModule {
 
     Peer.p2p = new Bundle(config, global.app.logger);
     attachEventHandlers(Peer.p2p, global.app.logger);
-
-    // (V1_NEW_BLOCK_PROTOCOL)
-    // /VERSION/newBlock
-    const handleV1NewBlockFunc: AsyncMapFuncType = async (data: Buffer, cb) => {
-      const body = JSON.parse(Buffer.from(data).toString());
-
-      // validate id
-      const schema = joi.object().keys({
-        id: joi
-          .string()
-          .hex()
-          .required(),
-      });
-      const report = joi.validate(body, schema);
-      if (report.error) {
-        return cb(new Error('validation failed'));
-      }
-
-      // no need for await
-      const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
-      if (!newBlock) {
-        return cb(new Error('New block not found'));
-      }
-
-      const result: ApiResult<NewBlockWrapper> = {
-        success: true,
-        block: newBlock.block,
-        votes: newBlock.votes,
-      };
-
-      return cb(null, JSON.stringify(result));
-    };
-    Peer.p2p.attachProtocol(V1_NEW_BLOCK_PROTOCOL, handleV1NewBlockFunc);
+    attachDirectP2PCommunication(Peer.p2p);
 
     Peer.p2p
       .start()
