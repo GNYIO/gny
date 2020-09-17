@@ -110,13 +110,8 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
     }
   };
 
-  const peerDiscoveryCallback = function(peer: PeerInfo) {
-    const allConnectedPeers = bundle.getAllConnectedPeers().map(x => x.id.id);
-    // stop dialing peer if he is in the peerBook and we have an active connection
-    if (
-      bundle.peerBook.has(peer) &&
-      allConnectedPeers.includes(peer.id.toB58String())
-    ) {
+  const peerDiscoveryCallback = async function(peer: PeerInfo) {
+    if (bundle.peerBook.has(peer)) {
       return;
     }
 
