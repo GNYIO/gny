@@ -71,7 +71,7 @@ export default class Peer implements ICoreModule {
     const randomNode = Peer.p2p.getConnectedRandomNode();
     if (!randomNode) throw new Error('no contact');
     global.library.logger.debug(
-      `select random contract: ${JSON.stringify(randomNode)}`
+      `[p2p] select random contract: ${JSON.stringify(randomNode)}`
     );
     try {
       const result = await Peer.request(method, params, randomNode, 4000);
@@ -124,16 +124,20 @@ export default class Peer implements ICoreModule {
     attachEventHandlers(Peer.p2p, global.app.logger);
     attachDirectP2PCommunication(Peer.p2p);
 
+    global.library.logger.info('[p2p] starting libp2p bundle');
+
     Peer.p2p
       .start()
       .then(() => {
+        global.library.logger.info('[p2p] libp2p started');
+
         global.library.logger.error(
-          `publicIp is: ${global.library.config.publicIp}`
+          `[p2p] publicIp is: ${global.library.config.publicIp}`
         );
 
         // issue #255
         global.library.logger.log(
-          `multiaddrs before: ${JSON.stringify(
+          `[p2p] multiaddrs before: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2
@@ -142,7 +146,7 @@ export default class Peer implements ICoreModule {
         const length = Peer.p2p.peerInfo.multiaddrs.toArray().length;
         for (let i = 0; i < length; ++i) {
           console.log(
-            `multi-for-loop ${i}: current: ${
+            `[p2p] multi-for-loop ${i}: current: ${
               Peer.p2p.peerInfo.multiaddrs.toArray()[0]
             }`
           );
@@ -151,7 +155,7 @@ export default class Peer implements ICoreModule {
           );
         }
         console.log(
-          `multiaddrs after: ${JSON.stringify(
+          `[p2p] multiaddrs after: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2
@@ -164,7 +168,7 @@ export default class Peer implements ICoreModule {
         Peer.p2p.peerInfo.multiaddrs.add(multi2);
 
         console.log(
-          `multiaddrs after upgrade: ${JSON.stringify(
+          `[p2p] multiaddrs after upgrade: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2

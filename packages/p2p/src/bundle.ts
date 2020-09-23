@@ -1,5 +1,5 @@
 import * as libp2p from 'libp2p';
-import { extractIpAndPort, AsyncMapFuncType } from './util';
+import { extractIpAndPort, AsyncMapFuncType, getB58String } from './util';
 import {
   ILogger,
   P2PMessage,
@@ -153,15 +153,6 @@ export class Bundle extends libp2p {
           };
           handler(extendedMsg);
         };
-
-        this.dial(result, erro => {
-          // dial to peer that broadcasted message
-          if (erro) {
-            this.logger.warn(`[p2p] could not dial peer ${id}`);
-            return;
-          }
-          return finish(result);
-        });
       });
     };
 
@@ -223,6 +214,11 @@ export class Bundle extends libp2p {
     );
 
     return new Promise((resolve, reject) => {
+      this.logger.info(
+        `[p2p] start to dial protocol "${protocol}" -> peer ${getB58String(
+          peerInfo
+        )}`
+      );
       this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
         if (err) {
           this.logger.error(

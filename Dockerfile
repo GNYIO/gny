@@ -7,7 +7,8 @@ RUN apt-get update && \
     build-essential \
     curl ntp wget git libssl-dev openssl \
     make gcc g++ autoconf automake \
-    python build-essential
+    python build-essential \
+    vim
 
 
 

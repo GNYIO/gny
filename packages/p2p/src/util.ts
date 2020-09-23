@@ -111,24 +111,13 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   };
 
   const peerDiscoveryCallback = async function(peer: PeerInfo) {
-    if (bundle.peerBook.has(peer)) {
-      return;
+    try {
+      logger.info(`[p2p] going to DIALED peer: ${getB58String(peer)}`);
+      await bundle.dial(peer);
+      logger.info(`[p2p] successfully DIALED peer: ${getB58String(peer)}`);
+    } catch (err) {
+      logger.info(`[p2p] DIAL failed for peer: ${getB58String(peer)}`);
     }
-
-    logger.info(
-      `[p2p] node ${getB58String(bundle.peerInfo)} has ${getB58String(
-        peer
-      )} not in peerBook. dialing peer now.`
-    );
-    bundle.dial(peer, (err: Error) => {
-      if (err) {
-        logger.info(
-          `[p2p] dialing from ${getB58String(
-            bundle.peerInfo
-          )} to ${getB58String(peer)} failed. Error: ${err}`
-        );
-      }
-    });
   };
 
   const peerConnectedCallback = function(peer: PeerInfo) {
