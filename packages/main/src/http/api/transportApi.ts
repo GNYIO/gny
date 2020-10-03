@@ -309,41 +309,6 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private votes = (req: Request, res: Response, next: Next) => {
-    const votes: ManyVotes = req.body.votes;
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      id: joi
-        .string()
-        .length(64)
-        .required(),
-      signatures: joi
-        .array()
-        .items({
-          publicKey: joi
-            .string()
-            .publicKey()
-            .required(),
-          signature: joi.string().required(),
-        })
-        .required(),
-    });
-    const report = joi.validate(votes, schema);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    this.library.logger.info(
-      `[p2p] received "${votes.signatures.length}" votes for block: ${
-        votes.id
-      }, h: ${votes.height}`
-    );
-    this.library.bus.message('onReceiveVotes', votes);
     res.json({});
   };
 

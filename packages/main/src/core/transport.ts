@@ -211,7 +211,7 @@ export default class Transport implements ICoreModule {
         message.peerInfo.port
       }" for block ${propose.id}, height: ${propose.height}`
     );
-    global.library.bus.message('onReceivePropose', propose);
+    global.library.bus.message('onReceivePropose', propose, message);
   };
 
   // peerEvent
@@ -248,20 +248,5 @@ export default class Transport implements ICoreModule {
       }" transactionId: ${unconfirmedTrs.id}`
     );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
-  };
-
-  public static sendVotes = async (votes: ManyVotes, address: string) => {
-    const parts = address.split(':');
-    const contact: PeerNode = {
-      host: parts[0],
-      port: Number(parts[1]),
-    };
-    try {
-      const result = await Peer.request('votes', { votes }, contact);
-    } catch (err) {
-      // refactor
-      global.app.logger.error('send votes error');
-      global.app.logger.error(err);
-    }
   };
 }

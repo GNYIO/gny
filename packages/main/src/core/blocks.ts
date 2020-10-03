@@ -16,6 +16,7 @@ import {
   IRound,
   ICoreModule,
   UnconfirmedTransaction,
+  P2PMessage,
 } from '@gny/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -864,7 +865,10 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onReceivePropose = (propose: BlockPropose) => {
+  public static onReceivePropose = (
+    propose: BlockPropose,
+    message: P2PMessage
+  ) => {
     const isSyncing = StateHelper.IsSyncing();
     const modulesAreLoaded = StateHelper.ModulesAreLoaded();
 
@@ -942,8 +946,13 @@ export default class Blocks implements ICoreModule {
                 }`
               );
 
-              await Transport.sendVotes(votes, propose.address);
+              const bundle: Bundle = Peer.p2p;
 
+              const peerInfo = await bundle.findPeerInfoInDHT(message);
+              await bundle.pushVotesToPeer(peerInfo, votes);
+
+              // can this stop|halt the whole node?
+              // no try/catch
               state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
             }
 

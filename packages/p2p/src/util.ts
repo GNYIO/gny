@@ -51,6 +51,8 @@ export type AsyncMapFuncType = (
   cb: AsyncMapFuncCallback
 ) => Promise<void>;
 
+export type SimplePushTypeCallback = (err: Error, values: Buffer[]) => void;
+
 export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   const startCallback = function() {
     logger.info(`[p2p] start callback: ${getB58String(bundle.peerInfo)}`);

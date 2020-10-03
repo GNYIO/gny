@@ -1,5 +1,10 @@
 import * as libp2p from 'libp2p';
-import { extractIpAndPort, AsyncMapFuncType, getB58String } from './util';
+import {
+  extractIpAndPort,
+  AsyncMapFuncType,
+  getB58String,
+  SimplePushTypeCallback,
+} from './util';
 import {
   ILogger,
   P2PMessage,
@@ -246,11 +251,30 @@ export class Bundle extends libp2p {
     });
   }
 
+  // no duplex (only onedirectional)
+  public async pushOnly(peerInfo: PeerInfo, protocol: string, data: string) {
+    this.logger.info(
+      `[p2p] dialing protocol "${protocol}" from ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+    );
+
+    return new Promise((resolve, reject) => {
+      this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
+        pull(pull.values([data]), conn);
+      });
+    });
+  }
+
   public directResponse(protocol: string, func: AsyncMapFuncType) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
     this.handle(protocol, function(protocol: string, conn) {
       pull(conn, pull.asyncMap(func), conn);
+    });
+  }
+
+  public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
+    this.handle(protocol, function(protocol: string, conn) {
+      pull(conn, pull.default.collect(cb));
     });
   }
 }
