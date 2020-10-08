@@ -91,8 +91,6 @@ function V1_VOTES_HANDLER(bundle: Bundle) {
       return;
     }
 
-    console.log(`received VOTES,yeeeessss ${JSON.stringify(values, null, 2)}`);
-
     const votes: ManyVotes = JSON.parse(Buffer.from(values[0]).toString());
 
     const schema = joi.object().keys({

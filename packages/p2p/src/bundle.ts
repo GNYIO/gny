@@ -28,7 +28,7 @@ import * as PeerId from 'peer-id';
 import { Options as LibP2POptions } from 'libp2p';
 export { Options as LibP2POptions } from 'libp2p';
 import { cloneDeep } from 'lodash';
-import * as pull from 'pull-stream';
+const pull = require('pull-stream');
 import { V1_NEW_BLOCK_PROTOCOL } from './protocols';
 
 export class Bundle extends libp2p {
@@ -67,7 +67,7 @@ export class Bundle extends libp2p {
         peerDiscovery: {
           autoDial: false,
           bootstrap: {
-            interval: 1000,
+            interval: 3000,
             enabled: true,
             list: [],
           },
@@ -158,6 +158,8 @@ export class Bundle extends libp2p {
           };
           handler(extendedMsg);
         };
+
+        finish(result);
       });
     };
 
@@ -254,13 +256,26 @@ export class Bundle extends libp2p {
   // no duplex (only onedirectional)
   public async pushOnly(peerInfo: PeerInfo, protocol: string, data: string) {
     this.logger.info(
-      `[p2p] dialing protocol "${protocol}" from ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+      `[p2p] pushOnly "${protocol}" from ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
     );
 
     return new Promise((resolve, reject) => {
-      this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
-        pull(pull.values([data]), conn);
-      });
+      try {
+        this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
+          if (err) {
+            this.logger.error(`[p2p] pushOnly did not work: ${err.message}`);
+            this.logger.error(err);
+            return;
+          }
+
+          pull(pull.values([data]), conn);
+          resolve();
+        });
+      } catch (err) {
+        this.logger.error(err.message);
+        this.logger.error(err);
+        reject(err);
+      }
     });
   }
 
@@ -274,7 +289,12 @@ export class Bundle extends libp2p {
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
     this.handle(protocol, function(protocol: string, conn) {
-      pull(conn, pull.default.collect(cb));
+      try {
+        pull(conn, pull.collect(cb));
+      } catch (err) {
+        this.logger.error(`[p2p] handlePushOnly error: ${err.message}`);
+        this.logger.error(err);
+      }
     });
   }
 }

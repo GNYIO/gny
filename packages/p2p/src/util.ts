@@ -82,13 +82,6 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         ) {
           return;
         }
-        bundle.dial(multiAddrs, err => {
-          if (err) {
-            logger.info(
-              `[p2p] Error: (${err}) while dialing new member ${multiAddrs}`
-            );
-          }
-        });
       },
       () => {}
     );
@@ -114,7 +107,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
 
   const peerDiscoveryCallback = async function(peer: PeerInfo) {
     try {
-      logger.info(`[p2p] going to DIALED peer: ${getB58String(peer)}`);
+      logger.info(`[p2p] going to DIAL peer: ${getB58String(peer)}`);
       await bundle.dial(peer);
       logger.info(`[p2p] successfully DIALED peer: ${getB58String(peer)}`);
     } catch (err) {
@@ -128,22 +121,6 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         bundle.peerInfo
       )} connected with ${getB58String(peer)}`
     );
-    if (!bundle.peerBook.has(peer)) {
-      logger.warn(
-        `[p2p] node ${getB58String(
-          bundle.peerInfo
-        )} connected with peer ${getB58String(
-          peer
-        )}. BUT they are not connected!`
-      );
-      // dial to peer
-    }
-
-    const multiaddr = getMultiAddrsThatIsNotLocalAddress(peer);
-    logger.info(
-      `[p2p] after "peer:connect" we let other peers know of new member: ${multiaddr}`
-    );
-    bundle.pubsub.publish('newMember', Buffer.from(multiaddr.toString()));
   };
 
   const peerDisconnectCallback = function(peer) {

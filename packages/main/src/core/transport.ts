@@ -91,6 +91,8 @@ export default class Transport implements ICoreModule {
 
   // broadcast to peers Propose
   public static onNewPropose = async (propose: BlockPropose) => {
+    global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
+
     let encodedBlockPropose: Buffer;
     try {
       encodedBlockPropose = global.library.protobuf.encodeBlockPropose(propose);
@@ -191,6 +193,7 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Propose = (message: P2PMessage) => {
+    global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
       propose = global.library.protobuf.decodeBlockPropose(message.data);
