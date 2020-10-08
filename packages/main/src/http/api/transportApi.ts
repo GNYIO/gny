@@ -86,7 +86,6 @@ export default class TransportApi implements IHttpApi {
     router.post('/commonBlock', this.commonBlock);
     router.post('/blocks', this.blocks);
     router.post('/transactions', this.transactions);
-    router.post('/votes', this.votes);
     router.post('/getUnconfirmedTransactions', this.getUnconfirmedTransactions);
     router.post('/getHeight', this.getHeight);
 
@@ -305,11 +304,6 @@ export default class TransportApi implements IHttpApi {
       undefined,
       finished
     );
-  };
-
-  // POST
-  private votes = (req: Request, res: Response, next: Next) => {
-    res.json({});
   };
 
   // POST
