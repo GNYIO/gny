@@ -18,6 +18,9 @@ import {
   NewBlockWrapper,
 } from '@gny/interfaces';
 import { attachDirectP2PCommunication } from './PeerHelper';
+import Transport from './transport';
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
   public static p2p: Bundle;
@@ -174,8 +177,22 @@ export default class Peer implements ICoreModule {
             2
           )}\n\n`
         );
+      })
+      .then(async () => {
+        // subscribe to pubsub topics
+        Peer.p2p.subscribeCustom(
+          'newBlockHeader',
+          Transport.receivePeer_NewBlockHeader
+        );
+        Peer.p2p.subscribeCustom('propose', Transport.receivePeer_Propose);
+        Peer.p2p.subscribeCustom(
+          'transaction',
+          Transport.receivePeer_Transaction
+        );
+        Peer.p2p.subscribeCustom('hello', Transport.receivePeer_Hello);
 
-        global.library.bus.message('onPeerReady');
+        global.library.logger.info(`[p2p] sleep for 10 seconds`);
+        return await sleep(10 * 1000);
       })
       .catch(err => {
         global.library.logger.error('Failed to init dht');

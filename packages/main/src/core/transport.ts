@@ -30,16 +30,6 @@ import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
 
 export default class Transport implements ICoreModule {
-  // subscribe to peer events
-  public static onPeerReady = () => {
-    Peer.p2p.subscribeCustom(
-      'newBlockHeader',
-      Transport.receivePeer_NewBlockHeader
-    );
-    Peer.p2p.subscribeCustom('propose', Transport.receivePeer_Propose);
-    Peer.p2p.subscribeCustom('transaction', Transport.receivePeer_Transaction);
-  };
-
   // broadcast to peers Transaction
   public static onUnconfirmedTransaction = async (
     transaction: UnconfirmedTransaction
@@ -251,5 +241,27 @@ export default class Transport implements ICoreModule {
       }" transactionId: ${unconfirmedTrs.id}`
     );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
+  };
+
+  public static receivePeer_Hello = async (message: P2PMessage) => {
+    try {
+      global.library.logger.info(
+        `[p2p] received "hello" from "${message.from}"`
+      );
+      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
+      global.library.logger.info(
+        `[p2p] "hello" from ${peerInfo.id.toB58String()}`
+      );
+
+      await Peer.p2p.dial(peerInfo);
+      global.library.logger.info(
+        `[p2p] afer "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
+      );
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] received "hello" error: ${err.message}`
+      );
+      global.library.logger.error(err);
+    }
   };
 }

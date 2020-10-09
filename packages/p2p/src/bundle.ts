@@ -67,7 +67,7 @@ export class Bundle extends libp2p {
         peerDiscovery: {
           autoDial: false,
           bootstrap: {
-            interval: 3000,
+            interval: 5000,
             enabled: true,
             list: [],
           },
@@ -92,6 +92,13 @@ export class Bundle extends libp2p {
     super(finalConfig);
 
     this.logger = logger;
+  }
+
+  public async broadcastHelloAsync() {
+    if (!this.isStarted()) {
+      return;
+    }
+    await this.pubsub.publish('hello', Buffer.from('hello'));
   }
 
   public async broadcastProposeAsync(data: Buffer) {
