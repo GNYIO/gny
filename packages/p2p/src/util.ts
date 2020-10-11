@@ -107,17 +107,13 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
 
   const peerDiscoveryCallback = async function(peer: PeerInfo) {
     try {
-      logger.info(`[p2p] going to DIAL peer: ${getB58String(peer)}`);
       await bundle.dial(peer);
-      logger.info(`[p2p] successfully DIALED peer: ${getB58String(peer)}`);
     } catch (err) {
       logger.info(`[p2p] DIAL failed for peer: ${getB58String(peer)}`);
     }
 
-    // say "hello" to every in the network
-    logger.info(`[p2p] say "hello" to all peers`);
+    // say "hello" to every peer in the network
     await bundle.broadcastHelloAsync();
-    logger.info(`[p2p] said hello to all peers`);
   };
 
   const peerConnectedCallback = function(peer: PeerInfo) {

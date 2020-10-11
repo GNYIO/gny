@@ -245,13 +245,7 @@ export default class Transport implements ICoreModule {
 
   public static receivePeer_Hello = async (message: P2PMessage) => {
     try {
-      global.library.logger.info(
-        `[p2p] received "hello" from "${message.from}"`
-      );
       const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
-      global.library.logger.info(
-        `[p2p] "hello" from ${peerInfo.id.toB58String()}`
-      );
 
       await Peer.p2p.dial(peerInfo);
       global.library.logger.info(
