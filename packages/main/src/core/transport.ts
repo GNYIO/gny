@@ -24,7 +24,6 @@ import {
   Bundle,
   sendNewBlockQuery,
   getMultiAddrsThatIsNotLocalAddress,
-  V1_NEW_BLOCK_PROTOCOL,
 } from '@gny/p2p';
 import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';

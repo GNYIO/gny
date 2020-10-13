@@ -29,7 +29,12 @@ import { Options as LibP2POptions } from 'libp2p';
 export { Options as LibP2POptions } from 'libp2p';
 import { cloneDeep } from 'lodash';
 const pull = require('pull-stream');
-import { V1_NEW_BLOCK_PROTOCOL } from './protocols';
+import {
+  V1_BROADCAST_NEW_BLOCK_HEADER,
+  V1_BROADCAST_TRANSACTION,
+  V1_BROADCAST_PROPOSE,
+  V1_BROADCAST_HELLO,
+} from './protocols';
 
 export class Bundle extends libp2p {
   public logger: ILogger;
@@ -98,28 +103,28 @@ export class Bundle extends libp2p {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish('hello', Buffer.from('hello'));
+    await this.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
   }
 
   public async broadcastProposeAsync(data: Buffer) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish('propose', data);
+    await this.pubsub.publish(V1_BROADCAST_PROPOSE, data);
   }
 
   public async broadcastTransactionAsync(data: Buffer) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish('transaction', data);
+    await this.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
   }
 
   public async broadcastNewBlockHeaderAsync(data: Buffer) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish('newBlockHeader', data);
+    await this.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
   }
 
   public async broadcastAsync(topic: string, data: Buffer): Promise<void> {

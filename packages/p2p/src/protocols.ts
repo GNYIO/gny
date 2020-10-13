@@ -1,3 +1,6 @@
 export const V1_NEW_BLOCK_PROTOCOL = '/v1/newBlock';
 export const V1_VOTES = '/v1/votes';
-export const V1_HELLO = '/v1/hello';
+export const V1_BROADCAST_NEW_BLOCK_HEADER = '/v1/broadcast/newBlockHeader';
+export const V1_BROADCAST_TRANSACTION = '/v1/broadcast/transaction';
+export const V1_BROADCAST_PROPOSE = '/v1/broadcast/propose';
+export const V1_BROADCAST_HELLO = '/v1/broadcast/hello';

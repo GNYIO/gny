@@ -6,9 +6,10 @@ import {
   createFromPrivKey,
   Bundle,
   attachEventHandlers,
-  attachCommunications,
-  V1_NEW_BLOCK_PROTOCOL,
-  AsyncMapFuncType,
+  V1_BROADCAST_NEW_BLOCK_HEADER,
+  V1_BROADCAST_TRANSACTION,
+  V1_BROADCAST_PROPOSE,
+  V1_BROADCAST_HELLO,
 } from '@gny/p2p';
 import {
   PeerNode,
@@ -181,15 +182,21 @@ export default class Peer implements ICoreModule {
       .then(async () => {
         // subscribe to pubsub topics
         Peer.p2p.subscribeCustom(
-          'newBlockHeader',
+          V1_BROADCAST_NEW_BLOCK_HEADER,
           Transport.receivePeer_NewBlockHeader
         );
-        Peer.p2p.subscribeCustom('propose', Transport.receivePeer_Propose);
         Peer.p2p.subscribeCustom(
-          'transaction',
+          V1_BROADCAST_PROPOSE,
+          Transport.receivePeer_Propose
+        );
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_TRANSACTION,
           Transport.receivePeer_Transaction
         );
-        Peer.p2p.subscribeCustom('hello', Transport.receivePeer_Hello);
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_HELLO,
+          Transport.receivePeer_Hello
+        );
 
         global.library.logger.info(`[p2p] sleep for 10 seconds`);
         return await sleep(10 * 1000);

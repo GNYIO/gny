@@ -10,8 +10,6 @@ import {
 } from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
-import * as pull from 'pull-stream';
-import { V1_NEW_BLOCK_PROTOCOL } from './protocols';
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
