@@ -220,9 +220,10 @@ export default class Delegates implements ICoreModule {
         global.library.logger.error(e);
         return;
       } finally {
-        if (error) {
-          throw new Error('error occured during Blocks.processBlock()');
-        }
+        // do not crash
+        // if (error) {
+        //   throw new Error('error occured during Blocks.processBlock()');
+        // }
         return done();
       }
     });

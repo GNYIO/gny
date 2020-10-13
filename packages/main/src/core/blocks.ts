@@ -124,6 +124,12 @@ export default class Blocks implements ICoreModule {
 
     global.app.logger.debug(`verifyBlock, id: ${block.id}, h: ${block.height}`);
 
+    if (
+      !new BigNumber(state.lastBlock.height).plus(1).isEqualTo(block.height)
+    ) {
+      throw new Error('New block is not lastBlock.height +1');
+    }
+
     if (!block.prevBlockId && !new BigNumber(block.height).isEqualTo(0)) {
       throw new Error('Previous block should not be null');
     }
