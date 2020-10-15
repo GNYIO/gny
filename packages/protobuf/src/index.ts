@@ -7,6 +7,8 @@ import {
   ITransaction,
   IProtobuf,
   UnconfirmedTransaction,
+  BlockIdWrapper,
+  NewBlockWrapper,
 } from '@gny/interfaces';
 
 export class Protobuf implements IProtobuf {
@@ -75,6 +77,26 @@ export class Protobuf implements IProtobuf {
 
   decodeNewBlockMessage(data: Buffer): NewBlockMessage {
     const obj = this.schema.NewBlockMessage.decode(data);
+    return obj;
+  }
+
+  encodeNewBlockIdQuery(msg): Buffer {
+    const obj = _.cloneDeep(msg);
+    return this.schema.NewBlockIdQuery.encode(obj);
+  }
+
+  decodeNewBlockIdQuery(data: Buffer): BlockIdWrapper {
+    const obj = this.schema.NewBlockIdQuery.decode(data);
+    return obj;
+  }
+
+  encodeNewBlockResult(msg): Buffer {
+    const obj = _.cloneDeep(msg);
+    return this.schema.NewBlockResult.encode(obj);
+  }
+
+  decodeNewBlockResult(data: Buffer): NewBlockWrapper {
+    const obj = this.schema.NewBlockResult.decode(data);
     return obj;
   }
 }

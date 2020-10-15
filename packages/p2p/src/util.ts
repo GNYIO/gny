@@ -1,8 +1,15 @@
 import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
+import {
+  PeerNode,
+  ILogger,
+  P2PMessage,
+  ApiResult,
+  NewBlockWrapper,
+  BlockIdWrapper,
+  BlockAndVotes,
+} from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
-const ip = require('ip');
 
 export function extractIpAndPort(peerInfo): PeerNode {
   let result: PeerNode = undefined;
@@ -33,6 +40,17 @@ export function getB58String(peerInfo: PeerInfo) {
   return b58String;
 }
 
+export type AsyncMapFuncCallback = (
+  err: Error,
+  result?: String | Buffer
+) => void;
+export type AsyncMapFuncType = (
+  data: Buffer,
+  cb: AsyncMapFuncCallback
+) => Promise<void>;
+
+export type SimplePushTypeCallback = (err: Error, values: Buffer[]) => void;
+
 export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   const startCallback = function() {
     logger.info(`[p2p] start callback: ${getB58String(bundle.peerInfo)}`);
@@ -49,7 +67,7 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         const multiAddrs: any = Multiaddr(message.data.toString());
 
         logger.info(
-          `message.from: ${
+          `[p2p] message.from: ${
             message.from
           } === self: ${bundle.peerInfo.id.toB58String()}`
         );
@@ -62,58 +80,38 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         ) {
           return;
         }
-        bundle.dial(multiAddrs, err => {
-          if (err) {
-            logger.info(
-              `[p2p] Error: (${err}) while dialing new member ${multiAddrs}`
-            );
-          }
-        });
       },
       () => {}
     );
   };
 
   const stopCallback = function() {
-    logger.info(`stopped node: ${getB58String(bundle.peerInfo)}`);
+    logger.info(`[p2p] stopped node: ${getB58String(bundle.peerInfo)}`);
   };
 
   const errorCallback = function(err: Error) {
-    logger.error(`Error: ${err} for node: ${getB58String(bundle.peerInfo)}`);
+    logger.error(
+      `[p2p] Error: ${err} for node: ${getB58String(bundle.peerInfo)}`
+    );
     if (
       err &&
       typeof err.message === 'string' &&
       err.message.includes('EADDRINUSE')
     ) {
-      logger.warn('port is already in use, shutting down...');
+      logger.warn('[p2p] port is already in use, shutting down...');
       throw err;
     }
   };
 
-  const peerDiscoveryCallback = function(peer: PeerInfo) {
-    const allConnectedPeers = bundle.getAllConnectedPeers().map(x => x.id.id);
-    // stop dialing peer if he is in the peerBook and we have an active connection
-    if (
-      bundle.peerBook.has(peer) &&
-      allConnectedPeers.includes(peer.id.toB58String())
-    ) {
-      return;
+  const peerDiscoveryCallback = async function(peer: PeerInfo) {
+    try {
+      await bundle.dial(peer);
+    } catch (err) {
+      logger.info(`[p2p] DIAL failed for peer: ${getB58String(peer)}`);
     }
 
-    logger.info(
-      `[p2p] node ${getB58String(bundle.peerInfo)} has ${getB58String(
-        peer
-      )} not in peerBook. dialing peer now.`
-    );
-    bundle.dial(peer, (err: Error) => {
-      if (err) {
-        logger.info(
-          `[p2p] dialing from ${getB58String(
-            bundle.peerInfo
-          )} to ${getB58String(peer)} failed. Error: ${err}`
-        );
-      }
-    });
+    // say "hello" to every peer in the network
+    await bundle.broadcastHelloAsync();
   };
 
   const peerConnectedCallback = function(peer: PeerInfo) {
@@ -122,29 +120,29 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
         bundle.peerInfo
       )} connected with ${getB58String(peer)}`
     );
-    if (!bundle.peerBook.has(peer)) {
-      logger.warn(
-        `[p2p] node ${getB58String(
-          bundle.peerInfo
-        )} connected with peer ${getB58String(
-          peer
-        )}. BUT they are not connected!`
-      );
-      // dial to peer
-    }
-
-    const multiaddr = getMultiAddrsThatIsNotLocalAddress(peer);
-    logger.info(
-      `[p2p] after "peer:connect" we let other peers know of new member: ${multiaddr}`
-    );
-    bundle.pubsub.publish('newMember', Buffer.from(multiaddr.toString()));
   };
 
   const peerDisconnectCallback = function(peer) {
     logger.info(
-      `node ${getB58String(
+      `[p2p] node ${getB58String(
         bundle.peerInfo
       )} got disconnected from ${getB58String(peer)}`
+    );
+  };
+
+  const connectionStartCallback = function(peer) {
+    logger.info(
+      `[p2p] node ${getB58String(
+        bundle.peerInfo
+      )} started connection with ${getB58String(peer)}`
+    );
+  };
+
+  const connectionEndCallback = function(peer) {
+    logger.info(
+      `[p2p] node ${getB58String(
+        bundle.peerInfo
+      )} ended connection with ${getB58String(peer)}`
     );
   };
 
@@ -154,6 +152,8 @@ export function attachEventHandlers(bundle: Bundle, logger: ILogger) {
   bundle.on('peer:discovery', peerDiscoveryCallback);
   bundle.on('peer:connect', peerConnectedCallback);
   bundle.on('peer:disconnect', peerDisconnectCallback);
+  bundle.on('connection:start', connectionStartCallback);
+  bundle.on('connection:end', connectionEndCallback);
 }
 
 export function printOwnPeerInfo(bundle: Bundle, logger: ILogger) {
@@ -162,7 +162,7 @@ export function printOwnPeerInfo(bundle: Bundle, logger: ILogger) {
     adr => (addresses += `\t${adr.toString()}\n`)
   );
   bundle.logger.info(
-    `\n[P2P] started node: ${bundle.peerInfo.id.toB58String()}\n${addresses}`
+    `[p2p] started node: ${bundle.peerInfo.id.toB58String()}\n${addresses}`
   );
 }
 

@@ -83,11 +83,9 @@ export default class TransportApi implements IHttpApi {
       return next();
     });
 
-    router.post('/newBlock', this.newBlock);
     router.post('/commonBlock', this.commonBlock);
     router.post('/blocks', this.blocks);
     router.post('/transactions', this.transactions);
-    router.post('/votes', this.votes);
     router.post('/getUnconfirmedTransactions', this.getUnconfirmedTransactions);
     router.post('/getHeight', this.getHeight);
 
@@ -102,46 +100,12 @@ export default class TransportApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next) => {
         if (!err) return next();
-        this.library.logger.error(req.url, err.toString());
+        this.library.logger.error(req.url);
+        this.library.logger.error(err);
+
         return res.status(500).json({ success: false, error: err.toString() });
       }
     );
-  };
-
-  // POST
-  public newBlock = (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    if (!body.id) {
-      return res.status(422).send({
-        success: false,
-        error: 'Invalid params',
-      });
-    }
-    // validate id
-    const schema = joi.object().keys({
-      id: joi
-        .string()
-        .hex()
-        .required(),
-    });
-    const report = joi.validate(body, schema);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: 'validation failed',
-      });
-    }
-
-    const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
-    if (!newBlock) {
-      return next('New block not found');
-    }
-    const result: ApiResult<NewBlockWrapper> = {
-      success: true,
-      block: newBlock.block,
-      votes: newBlock.votes,
-    };
-    return res.json(result);
   };
 
   // POST
@@ -210,7 +174,9 @@ export default class TransportApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      global.app.logger.error(`Failed to find common block: ${e}`);
+      global.app.logger.error('Failed to find common block:');
+      global.app.logger.error(e);
+
       return next('Failed to find common block');
     }
   };
@@ -266,9 +232,10 @@ export default class TransportApi implements IHttpApi {
       return res.json(result);
     } catch (e) {
       global.app.logger.error(
-        '/peer/blocks (POST), Failed to get blocks with transactions',
-        e
+        '/peer/blocks (POST), Failed to get blocks with transactions'
       );
+      global.app.logger.error(e);
+
       result = {
         blocks: [] as IBlock[],
       };
@@ -284,20 +251,29 @@ export default class TransportApi implements IHttpApi {
         req.body.transaction
       );
     } catch (e) {
-      this.library.logger.error('Received transaction parse error', {
-        raw: req.body,
-        trs: unconfirmedTrs,
-        error: e.toString(),
-      });
+      this.library.logger.error('Received transaction parse error');
+      this.library.logger.error(
+        `detail: ${JSON.stringify(
+          {
+            raw: req.body,
+            trs: unconfirmedTrs,
+            error: e.toString(),
+          },
+          null,
+          2
+        )}`
+      );
+
       return next('Invalid transaction body');
     }
 
     const finished = err => {
       if (err) {
         this.library.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`,
-          err
+          `Receive invalid transaction ${unconfirmedTrs.id}`
         );
+        this.library.logger.warn(err);
+
         const errMsg: string = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
@@ -328,41 +304,6 @@ export default class TransportApi implements IHttpApi {
       undefined,
       finished
     );
-  };
-
-  // POST
-  private votes = (req: Request, res: Response, next: Next) => {
-    const votes = req.body.votes;
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      id: joi
-        .string()
-        .length(64)
-        .required(),
-      signatures: joi
-        .array()
-        .items({
-          publicKey: joi
-            .string()
-            .publicKey()
-            .required(),
-          signature: joi.string().required(),
-        })
-        .required(),
-    });
-    const report = joi.validate(votes, schema);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    this.library.bus.message('onReceiveVotes', req.body.votes as ManyVotes);
-    res.json({});
   };
 
   // POST

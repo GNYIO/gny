@@ -1,0 +1,76 @@
+version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  db1:
+    image: "postgres:9.6.12"
+    container_name: 'db1'
+    restart: always
+    expose: # only internal
+      - '5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
+  node1:
+    build: ../../..
+    container_name: 'node1'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-to-stuck-network/node1.json" --publicIP $$(./getIP.sh node1)'
+    environment:
+      - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db1
+      - GNY_DB_PORT=5432
+      - GNY_P2P_SECRET="CAASpwkwggSjAgEAAoIBAQC1R3oOGgrtqgnQHmGIsCq0SVvhaIkbE5NQyVhdQgvGZz2E2F7tNmW1lp+/b5Dh2naHtpQpq1+mCiMaXEOB7Nv0frPuNdr3AjB1vpHcSH2u6PI6EHrHxuPk3cvwaIWGoIKw55GZ6NQs7D0KnRPivS9iHqiHICHLy1WZT3XdnmEvOyUpZWlu41GDlkpJITqJLGmP821rXy7KGPfTRsLpyehtFxw55xpiQnvaYTG5jBYa07YniCJFoABdrCTI+vpn/LOZuKi2CtmRwK2vdEZnQLTB1gsPqOCTrPTqekLlEf8mu2+zE1xhFGH126zokyKkqxE7eilJRdMG3J9kDnLB9HNjAgMBAAECggEAKJzXVPJzsVQvd59e1Ys2PgbTXVgYo2bK0cYSFG6YCb6Wcz0wYy+VMM4Kgw6BJIBXnscCQaWhu6a4v46dFy4UBx4dvIf3QvCMH8zui6337mhE4EpR35EI/HzOVFFuXL94GB8BKTyW0Guqr0aKrnkY9QAOXJuPxsMKrdq1+s0hU72pNNK92RJroL/48yP7HnHTr2Khy/4ymyrsjXs2BDWBiPwCgKPqstip5c2SEN5ESU5kvrGuO14G1/p8q70jlvLpUkxNrbhl1tfUUUNAs8SeazD0bR6iySoicgPwrL/OcwH00lOs09nK2YQWWCoqT5QajlKc0KDwMPBz4DcmkeP3ZQKBgQDmGyR/2f4WHuxqY/Dtm4DE+Yt5MwyA95tMeVolAmUf2hE+sSC5J9TOrc5DAOaWtUI5HtjJK670RtAj2ch9ZrewQ5fjp2TSTVvruHi0voy8QBJuDV3opGB67PTvvVV6tjODncjGigM1vcp0BbqfbTamNDWvPDlGf1897iR8wYYybwKBgQDJrb0w93smSwONP3sT6jXe/lW7AKRfUfr53bCuelmsNODA7+QlN/azFd1OjsuBPCWIxEJ/hSY7MRplEFQSju9Pzk0yRjBPYIpmCsMlyKg3PnJuOAmRmWlowKMi9+Jm1kLlq6ytDilwlEBEJ2cg5G+hL13g0lapobFybmzAAuE4TQKBgDBKnfxfCZ4m20Lwuo2DRyEPph/HgOZIEMWZ6js+J27p2xinH9D79QNzIoiZVctnOwC14pVFn7AQdHoxqIv41LAfX28doGEqbxInYt2759lSMQv7riu247CorjbqK1hXiLQklxBjwoyyyhxTX3k5+HAlIOcn4nVTIe/jXLD6BGntAoGBAIK2ZGSUQfDztX2aoz6pEflRhmcJZ3+QNsYzdQvgqLYAH5ts38VvnCk+Bo2f5y3/uaQG78KOndTHYoAWMSdGFLz4zPfEnhMUUx8H4qtefggwJSJil3ESqUsHb7R+TPKx8/G/bs9K2njo3S5PC3w6Ek+5z3KjYR/YeJXeFAXu1+IRAoGAUDAkyVBYfOrzFlx49+MK7vDb4btMS7zBGAPbgvwiarnb/RsyXcMNN6SYEjUUUlHHtsBtOX6LSFhvgMTriAm5JWMKVzstFVg27HKl8oHCr4Nb3QkVzw04wPfPy9YKIU7hESRKSC+3n0KAmnZ1evA2EJMCOXWTG1bLK3gajcDmVso="
+    ports:
+      - '4096:4096'
+      - '4097:4097'
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3
+
+  db2:
+    image: "postgres:9.6.12"
+    container_name: 'db2'
+    restart: always
+    expose: # only internal
+      - '5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.4
+  node2:
+    build: ../../..
+    container_name: 'node2'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 15s; node packages/main/dist/src/app --config "config/e2e/sync-to-stuck-network/node2.json" --publicIP $$(./getIP.sh node2) --peers "/ip4/$$(./getIP.sh node1)/tcp/4097/ipfs/QmcnNLqAtJPMfHkxMsfYQ2o7oPbEaXQXJDbguNgjYHPRyt"'
+    environment:
+      - NODE_ENV=production
+      - GNY_MONGO_LOGGING_DISABLE=true
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db2
+      - GNY_DB_PORT=5432
+      - GNY_P2P_SECRET="CAASqAkwggSkAgEAAoIBAQDFlAhd9KCAcQuVhZThZ34XLWEtP71XPR4kWFsqzusiVMIPbVMi9K2W0hLo7v5gf9jZ85llXNi2n5A/vud6qeWZhIk24umvECGyhRMKJVPONsnsnZcWuIQT7KRBs3xqZ1OTXWgG3Oz93QN4jaO05r57sZ106bIXbff+E65vAjfbWvtGp8PpK20YFnrRQ+IOHD9Ez9ijNHW2jdGA6qeAQbDnuF4zo0QCP0sFJQ76S5G/6zMPVioHG8bpI6b3f2Jsh8dkogxB6B2lJ973bHXOBhd0EYyKb+x7qskD7z3ec4T7Ega0XwBesN05XK7/0SK5b/x7ahbOKNpJi2nC009kJo+XAgMBAAECggEAQfmYgac6ISmecKNWf54LYLnqhS2PkB38fq5yYu0NXz1mP7iF1lpVzNMBNX74ukh2pPDO/CXwx6qohGC+8xrgbE7xcr56wdZlKjN9lBm6zlVFQBmvZgrfL7gJcVb56J3wLnk2T3RePrcafZruW23hlXRN28hdi61Q7iqsSK048antobtO8/Ho2z+sSRumPtMghgUALKRqGd2V8ziJ8wyE/cbrBb4J39J6hceVpqwp4QbrpXduvQwn8rW/bnnx2EfGPjNzyQ3K0EdUnpse+QbsRDRT1LYIKzQ9OoT6zhOghB7HOhNTIvAamTugRPeYddmFU/1/Ai6mLlS+ewzJ43P3QQKBgQDi+y9EbTiRZJ95cR9JcLl3IHfwo/egCwWO1cnxUeTKG+CTPgQ0sKPvGtWD9zlUSskJPkXFfV19LFGmofQJhbwJq/Ur9/gL9a1QEA36Bg3cQ7YkhEKsZIlli2FsWKVf9g8B25Vl37GdV56X/atquzlVAbmEmb5+YhbXkm2nT4bHfwKBgQDe1oarAndRRrax6c5pm0OgNv7hwSM1DXjSN6mQqJoa8VMUsjpqEua2vGIIV4KI614wmNSjAAAE92JgfU00GMw57ndqjcSZx5kyU4JC1VR9gO0d5KbaWYYUjApdHWIqK2+5jFiWEjbSF3sQ3yX7lz9d/nPwrpII1ieinZJhABuD6QKBgQDHdgJAeFZodesqNf1PdS6V/8NGhWBalLTqovZWCSgrbzn3Sl05zCwTNxqAYCVR7HIjnESF2rfoAqUx8EnagFoQibrmS37/S4Jkw+b0WpOdhyctichpY+PVhxkys+eHn1vqvwLXRi733IJygCk9no8wI1barpxWxW3bPEL97wW6kwKBgQCPUH852pMsZYM4Nzu2ddHvZ49TV+ixxSFQadYXIChEbbJWHC4vbEqPeea+oLFmJ6HjNVeEIYrhpszRa6TMfapTE8gfcl/f2xvu3wBmxVbahKF7WUPqKCtwaYR80FoC7v6i4d1TXxF82vceKbX+8g4iAHVGdK+dGUZScm7jDbOkiQKBgBMhlrexE0y5bss7Y130hX1o9KsQhvSQVvHxS4BqknOLOvhZVfL2wAtXI3iz88w8E6Hwo66PaAeDbZrE1vm10mBXrzVVmfS78sPoqO/Kb4In4886XZJBcFt0BDYchrLLXzQWRHs9AlttFXPHCMxnSS8oongXut4EWqPDU9Eer1VP"
+    ports:
+      - '4098:4096'
+      - '4099:4097'
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.5

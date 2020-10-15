@@ -186,6 +186,12 @@ export default class Delegates implements ICoreModule {
               broadcast: true,
               votes: localVotes,
             };
+            global.library.logger.info(
+              `[p2p] loop() processBlock() block: ${newBlock.id}, h: ${
+                newBlock.height
+              }, options: ${options.votes.id} h: ${options.votes.height}`
+            );
+
             const stateResult = await Blocks.processBlock(
               newState,
               newBlock,
@@ -210,12 +216,14 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
-        global.library.logger.error('Failed generate block within slot:', e);
+        global.library.logger.error('Failed generate block within slot:');
+        global.library.logger.error(e);
         return;
       } finally {
-        if (error) {
-          throw new Error('error occured during Blocks.processBlock()');
-        }
+        // do not crash
+        // if (error) {
+        //   throw new Error('error occured during Blocks.processBlock()');
+        // }
         return done();
       }
     });
@@ -323,7 +331,8 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
-      global.app.logger.error('error while generating DelgateList', e);
+      global.app.logger.error('error while generating DelgateList');
+      global.app.logger.error(e);
       return;
     }
   };

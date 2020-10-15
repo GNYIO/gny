@@ -56,7 +56,9 @@ export default class ExchangeApi implements IHttpApi {
       this.library.network.app.use(
         (err: string, req: Request, res: Response, next: Next) => {
           if (!err) return next();
-          this.library.logger.error(req.url, err.toString());
+          this.library.logger.error(req.url);
+          this.library.logger.error(err);
+
           return res
             .status(500)
             .json({ success: false, error: err.toString() });
@@ -94,8 +96,7 @@ export default class ExchangeApi implements IHttpApi {
     const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
       this.library.logger.warn(
-        'Failed to validate query params',
-        report.error.message
+        `Failed to validate query params: ${report.error.message}`
       );
       return setImmediate(next, 'Invalid transaction body');
     }
@@ -149,10 +150,8 @@ export default class ExchangeApi implements IHttpApi {
             };
             callback(null, result);
           } catch (e) {
-            this.library.logger.warn(
-              'Failed to process unsigned transaction',
-              e
-            );
+            this.library.logger.warn('Failed to process unsigned transaction');
+            this.library.logger.warn(e);
             callback('Server Error');
           }
         })();

@@ -32,7 +32,8 @@ export default class Loader implements ICoreModule {
     try {
       commonBlock = await Blocks.getCommonBlock(peer, newestLastBlock.height);
     } catch (err) {
-      global.library.logger.error('Failed to get common block:', err);
+      global.library.logger.error('Failed to get common block:');
+      global.library.logger.error(err);
       throw err;
     }
 
@@ -69,14 +70,18 @@ export default class Loader implements ICoreModule {
         StateHelper.setState(state);
 
         global.library.logger.debug(
-          'set new last block',
-          global.app.sdb.lastBlock
+          `set new last block: ${JSON.stringify(
+            global.app.sdb.lastBlock,
+            null,
+            2
+          )}`
         );
       } else {
         await global.app.sdb.rollbackBlock(newestLastBlock.height);
       }
     } catch (e) {
-      global.library.logger.error('Failed to rollback block', e);
+      global.library.logger.error('Failed to rollback block');
+      global.library.logger.error(e);
       throw e;
     }
     global.library.logger.debug(`Loading blocks from peer ${peerStr}`);
@@ -123,8 +128,7 @@ export default class Loader implements ICoreModule {
           return;
         } catch (err) {
           global.library.logger.error(
-            'error while calling loader.findUpdate()',
-            err.messag
+            `error while calling loader.findUpdate(): ${err.message}`
           );
           throw err;
         }
@@ -140,77 +144,6 @@ export default class Loader implements ICoreModule {
     }
     return undefined;
   }
-
-  // next
-  private static loadUnconfirmedTransactions = cb => {
-    (async () => {
-      let result;
-      try {
-        result = await Peer.randomRequestAsync(
-          'getUnconfirmedTransactions',
-          {}
-        );
-      } catch (err) {
-        return cb(err.message);
-      }
-
-      const data = result.data;
-      const peer = result.node as PeerNode;
-
-      const schema = joi.object().keys({
-        // Todo: better schema
-        transactions: joi
-          .array()
-          .unique()
-          .required(),
-      });
-      const report = joi.validate(data, schema);
-      if (report.error) {
-        return cb(report.error.message);
-      }
-
-      if (!isPeerNode(peer)) {
-        return cb('validation of peer failed');
-      }
-
-      const transactions = data.transactions as Array<UnconfirmedTransaction>;
-      const peerStr = `${peer.host}:${peer.port - 1}`;
-
-      for (let i = 0; i < transactions.length; i++) {
-        try {
-          transactions[i] = TransactionBase.normalizeUnconfirmedTransaction(
-            transactions[i]
-          );
-        } catch (e) {
-          // TODO: check/correct statement below
-          global.library.logger.info(
-            `Transaction ${
-              transactions[i] ? transactions[i].id : 'null'
-            } is not valid, ban 60 min`,
-            peerStr
-          );
-          return cb('received transaction not valid');
-        }
-      }
-
-      const trs: Array<UnconfirmedTransaction> = [];
-      for (let i = 0; i < transactions.length; ++i) {
-        const one = transactions[i];
-        if (!StateHelper.TrsAlreadyInUnconfirmedPool(one.id)) {
-          trs.push(one);
-        }
-      }
-      global.library.logger.info(
-        `Loading ${
-          transactions.length
-        } unconfirmed transaction from peer ${peerStr}`
-      );
-      return global.library.sequence.add(done => {
-        const state = StateHelper.getState();
-        Transactions.processUnconfirmedTransactions(state, trs, done);
-      }, cb);
-    })();
-  };
 
   // Public methods
   public static startSyncBlocks = (lastBlock: IBlock) => {
@@ -265,28 +198,6 @@ export default class Loader implements ICoreModule {
         global.library.logger.debug('syncBlocksFromPeer end');
         cb();
       }
-    });
-  };
-
-  // Events
-  public static onPeerReady = () => {
-    const nextSync = () => {
-      const lastBlock = StateHelper.getState().lastBlock;
-      const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
-      if (slots.getNextSlot() - lastSlot >= 3) {
-        Loader.startSyncBlocks(lastBlock);
-      }
-      setTimeout(nextSync, TIMEOUT * 1000);
-    };
-    setImmediate(nextSync);
-
-    setImmediate(() => {
-      if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) return;
-      Loader.loadUnconfirmedTransactions(err => {
-        if (err) {
-          global.library.logger.warn('loadUnconfirmedTransactions timer:', err);
-        }
-      });
     });
   };
 }

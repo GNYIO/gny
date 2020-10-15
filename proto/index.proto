@@ -68,3 +68,34 @@ message BlockVoteSignature {
   required bytes publicKey = 1;
   required bytes signature = 2;
 }
+
+
+// ---------------------------- (new) -----------------------------------
+
+message NewBlockIdQuery {
+  required string id  = 1;
+}
+
+message BlockWithoutTransactions {
+  required string id = 1;
+  required string height = 2;
+  required int32 version = 3;
+  required int32 timestamp = 4;
+  required int32 count = 5; // optional?
+  required string fees = 6;
+  required string reward = 7;
+  required string payloadHash = 8;
+  required string delegate = 9;
+  required string signature = 10;
+
+  optional int32 _version_ = 11;
+  optional string prevBlockId = 12;
+}
+
+message NewBlockResult {
+  required bool success = 1;
+
+  optional string error = 2;
+  optional BlockWithoutTransactions block = 3;
+  optional string votes = 4;
+}

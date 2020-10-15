@@ -75,7 +75,9 @@ export default class AccountsApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        this.library.logger.error(req.url, err);
+        this.library.logger.error(req.url);
+        this.library.logger.error(err);
+
         return res.status(500).json({
           success: false,
           error: err.toString(),
@@ -375,7 +377,8 @@ export default class AccountsApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      this.library.logger.error('get voted delegates error', e);
+      this.library.logger.error('get voted delegates error');
+      this.library.logger.error(e);
       return next('Server error');
     }
   };

@@ -41,7 +41,8 @@ export default class Application {
         await global.app.sdb.close();
         scope.logger.info('Clean up successfully.');
       } catch (e) {
-        scope.logger.error(`Error while cleaning up: ${e}`);
+        scope.logger.error('Error while cleaning up:');
+        scope.logger.error(e);
       }
 
       process.exit(1);

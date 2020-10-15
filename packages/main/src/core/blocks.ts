@@ -16,6 +16,7 @@ import {
   IRound,
   ICoreModule,
   UnconfirmedTransaction,
+  P2PMessage,
 } from '@gny/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -123,6 +124,12 @@ export default class Blocks implements ICoreModule {
 
     global.app.logger.debug(`verifyBlock, id: ${block.id}, h: ${block.height}`);
 
+    if (
+      !new BigNumber(state.lastBlock.height).plus(1).isEqualTo(block.height)
+    ) {
+      throw new Error('New block is not lastBlock.height +1');
+    }
+
     if (!block.prevBlockId && !new BigNumber(block.height).isEqualTo(0)) {
       throw new Error('Previous block should not be null');
     }
@@ -171,15 +178,27 @@ export default class Blocks implements ICoreModule {
         throw new Error('Votes height is not correct');
       }
       if (block.id !== votes.id) {
+        global.library.logger.info(
+          `block(${block.height}) id: ${block.id} does not match votes(${
+            votes.height
+          }) id: ${votes.id}`
+        );
         throw new Error('Votes id is not correct');
       }
       if (!votes.signatures) {
         throw new Error('Votes signature is not correct');
       }
       if (!ConsensusBase.hasEnoughVotesRemote(votes)) {
+        global.app.logger.info(
+          `[votes] remote votes ("${votes.signatures.length}") are not enough!`
+        );
         throw new Error('Not enough remote votes');
       }
       Blocks.verifyBlockVotes(votes, delegateList);
+
+      global.app.logger.info(
+        `[votes] all in all we got "${votes.signatures.length}" votes`
+      );
     }
   };
 
@@ -216,7 +235,8 @@ export default class Blocks implements ICoreModule {
         await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
       }
     } catch (e) {
-      global.app.logger.error(`Failed to apply block ${e}`);
+      global.app.logger.error('Failed to apply block');
+      global.app.logger.error(e);
       throw new Error(`Failed to apply block: ${e}`);
     }
   };
@@ -228,7 +248,10 @@ export default class Blocks implements ICoreModule {
         // this validates the block and its transactions
         block = BlockBase.normalizeBlock(block);
       } catch (e) {
-        global.app.logger.error(`Failed to normalize block: ${e}`, block);
+        global.app.logger.error(
+          `Failed to normalize block ${JSON.stringify(block, null, 2)}`
+        );
+        global.app.logger.error(e);
         throw e;
       }
     }
@@ -323,7 +346,8 @@ export default class Blocks implements ICoreModule {
 
       Blocks.ProcessBlockFireEvents(block, options);
     } catch (error) {
-      global.app.logger.error('save block error: ', error);
+      global.app.logger.error('save block error:');
+      global.app.logger.error(error);
       success = false;
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
@@ -337,8 +361,7 @@ export default class Blocks implements ICoreModule {
 
   public static saveBlockTransactions = async (block: IBlock) => {
     global.app.logger.trace(
-      'Blocks#saveBlockTransactions height',
-      block.height
+      `Blocks#saveBlockTransactions height: ${block.height}`
     );
 
     for (let trs of block.transactions) {
@@ -404,7 +427,7 @@ export default class Blocks implements ICoreModule {
     if (!delegates || !delegates.length) {
       throw new Error('no delegates');
     }
-    global.app.logger.debug('delegate length', delegates.length);
+    global.app.logger.debug(`delegate length: ${delegates.length}`);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       new BigNumber(block.height).minus(100).toFixed(),
@@ -596,6 +619,9 @@ export default class Blocks implements ICoreModule {
         try {
           body = await Peer.request('blocks', params, peer);
         } catch (err) {
+          global.library.logger.error(
+            JSON.stringify(err.response ? err.response.data : err.message)
+          );
           throw new Error(`Failed to request remote peer: ${err}`);
         }
         if (!body) {
@@ -630,8 +656,7 @@ export default class Blocks implements ICoreModule {
             if (stateResult.success) {
               lastCommonBlockId = block.id;
               global.app.logger.info(
-                `Block ${block.id} loaded from ${address} at`,
-                block.height
+                `Block ${block.id} loaded from ${address} at ${block.height}`
               );
             } else {
               global.app.logger.info(
@@ -647,7 +672,8 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          global.app.logger.error('Failed to process synced block', e);
+          global.app.logger.error('Failed to process synced block');
+          global.app.logger.error(e);
           loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
@@ -681,9 +707,19 @@ export default class Blocks implements ICoreModule {
       throw new Error('not enough active delegates');
     }
 
+    global.library.logger.info(
+      `[votes] create local block ${newBlock.id}, h: ${newBlock.height}`
+    );
+
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
     if (ConsensusBase.hasEnoughVotes(localVotes)) {
+      global.library.logger.info(
+        `[votes] we got enough local votes ("${
+          localVotes.signatures.length
+        }") to produce block ${newBlock.id}, h: ${newBlock.height}`
+      );
+
       return {
         // important
         state,
@@ -691,6 +727,14 @@ export default class Blocks implements ICoreModule {
         votes: localVotes,
       };
     }
+
+    global.library.logger.info(
+      `[votes] only "${
+        localVotes.signatures.length
+      }" votes, not enough. Creating Block Propose for block ${
+        newBlock.id
+      }, h: ${newBlock.height}`
+    );
 
     /*
       not enough votes, so create a block propose and send it to all peers
@@ -744,8 +788,15 @@ export default class Blocks implements ICoreModule {
         state,
         block
       );
+      // TODO: rename LongFork, this is wrong
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         global.library.logger.warn('Receive new block header from long fork');
+        global.library.logger.info(
+          `[syncing] received block h: ${block.height} from "${peer.host}:${
+            peer.port
+          }". seem that we are not up to date. Start syncing from a random peer`
+        );
+        Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
@@ -773,7 +824,14 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             block.height
           );
+
           const options: ProcessBlockOptions = { votes, broadcast: true };
+          global.library.logger.info(
+            `[p2p] onReceiveBlock processBlock() block: ${block.id}, h: ${
+              block.height
+            }, options: ${options.votes.id} h: ${options.votes.height}`
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             block,
@@ -783,7 +841,8 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
-          global.app.logger.error('Failed to process received block', e);
+          global.app.logger.error('Failed to process received block');
+          global.app.logger.error(e);
         } finally {
           // delete already executed transactions
           for (const t of block.transactions) {
@@ -796,10 +855,8 @@ export default class Blocks implements ICoreModule {
               redoTransactions
             );
           } catch (e) {
-            global.app.logger.error(
-              'Failed to redo unconfirmed transactions',
-              e
-            );
+            global.app.logger.error('Failed to redo unconfirmed transactions');
+            global.app.logger.error(e);
             // TODO: rollback?
           }
 
@@ -814,9 +871,19 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onReceivePropose = (propose: BlockPropose) => {
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
-      // TODO access state
+  public static onReceivePropose = (
+    propose: BlockPropose,
+    message: P2PMessage
+  ) => {
+    const isSyncing = StateHelper.IsSyncing();
+    const modulesAreLoaded = StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || !modulesAreLoaded) {
+      global.library.logger.info(
+        `[p2p] ignore onReceivePropose from "${
+          propose.address
+        }" (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`
+      );
       return;
     }
 
@@ -877,9 +944,21 @@ export default class Blocks implements ICoreModule {
           async (activeKeypairs: KeyPair[], next: Next) => {
             if (activeKeypairs && activeKeypairs.length > 0) {
               const votes = ConsensusBase.createVotes(activeKeypairs, propose);
+              global.library.logger.info(
+                `created "${
+                  votes.signatures.length
+                }" votes for propose of block: ${propose.id}, h: ${
+                  propose.height
+                }`
+              );
 
-              await Transport.sendVotes(votes, propose.address);
+              const bundle: Bundle = Peer.p2p;
 
+              const peerInfo = await bundle.findPeerInfoInDHT(message);
+              await bundle.pushVotesToPeer(peerInfo, votes);
+
+              // can this stop|halt the whole node?
+              // no try/catch
               state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
             }
 
@@ -890,7 +969,8 @@ export default class Blocks implements ICoreModule {
         ],
         (err: any) => {
           if (err) {
-            global.app.logger.error(`onReceivePropose error: ${err}`);
+            global.app.logger.error('onReceivePropose error');
+            global.app.logger.error(err);
           }
           global.app.logger.debug('onReceivePropose finished');
           cb();
@@ -905,14 +985,16 @@ export default class Blocks implements ICoreModule {
     const finishCallback = err => {
       if (err) {
         global.app.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`,
-          err
+          `Receive invalid transaction ${unconfirmedTrs.id}`
         );
+        global.app.logger.warn(err);
       } else {
         // TODO: are peer-transactions not broadcasted to all other peers also?
         // library.bus.message('onUnconfirmedTransaction', transaction, true)
       }
     };
+
+    global.library.logger.info(`[p2p] onReceiveTransaction`);
 
     global.library.sequence.add(cb => {
       if (StateHelper.IsSyncing()) {
@@ -940,6 +1022,7 @@ export default class Blocks implements ICoreModule {
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
 
+      global.library.logger.info(`[p2p] add remote votes`);
       state = ConsensusHelper.addPendingVotes(state, votes);
 
       const totalVotes = state.pendingVotes;
@@ -957,6 +1040,15 @@ export default class Blocks implements ICoreModule {
           const delegateList = await Delegates.generateDelegateList(
             pendingBlock.height
           );
+
+          global.library.logger.info(
+            `[p2p] onReceiveVotes!!! processBlock() block: ${
+              pendingBlock.id
+            }, h: ${pendingBlock.height}, options: ${options.votes.id} h: ${
+              options.votes.height
+            }`
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,
@@ -967,7 +1059,8 @@ export default class Blocks implements ICoreModule {
 
           StateHelper.setState(state); // important
         } catch (err) {
-          global.app.logger.error(`Failed to process confirmed block: ${err}`);
+          global.app.logger.error('Failed to process confirmed block:');
+          global.app.logger.error(err);
         }
         return cb();
       } else {
@@ -1048,7 +1141,9 @@ export default class Blocks implements ICoreModule {
 
           return cb();
         } catch (err) {
-          global.app.logger.error('Failed to prepare local blockchain', err);
+          global.app.logger.error('Failed to prepare local blockchain');
+          global.app.logger.error(err);
+
           return cb('Failed to prepare local blockchain');
         }
       },

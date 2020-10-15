@@ -6,8 +6,22 @@ import {
   createFromPrivKey,
   Bundle,
   attachEventHandlers,
+  V1_BROADCAST_NEW_BLOCK_HEADER,
+  V1_BROADCAST_TRANSACTION,
+  V1_BROADCAST_PROPOSE,
+  V1_BROADCAST_HELLO,
 } from '@gny/p2p';
-import { PeerNode, ICoreModule, SimplePeerId } from '@gny/interfaces';
+import {
+  PeerNode,
+  ICoreModule,
+  SimplePeerId,
+  ApiResult,
+  NewBlockWrapper,
+} from '@gny/interfaces';
+import { attachDirectP2PCommunication } from './PeerHelper';
+import Transport from './transport';
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
   public static p2p: Bundle;
@@ -50,6 +64,9 @@ export default class Peer implements ICoreModule {
       global.library.logger.error(
         `Failed to request remote peer: ${err.message}`
       );
+      global.library.logger.error(
+        JSON.stringify(err.response ? err.response.data : err.message)
+      );
       throw err;
     }
   };
@@ -57,7 +74,9 @@ export default class Peer implements ICoreModule {
   public static randomRequestAsync = async (method: string, params: any) => {
     const randomNode = Peer.p2p.getConnectedRandomNode();
     if (!randomNode) throw new Error('no contact');
-    global.library.logger.debug('select random contract', randomNode);
+    global.library.logger.debug(
+      `[p2p] select random contract: ${JSON.stringify(randomNode)}`
+    );
     try {
       const result = await Peer.request(method, params, randomNode, 4000);
       return {
@@ -107,17 +126,22 @@ export default class Peer implements ICoreModule {
 
     Peer.p2p = new Bundle(config, global.app.logger);
     attachEventHandlers(Peer.p2p, global.app.logger);
+    attachDirectP2PCommunication(Peer.p2p);
+
+    global.library.logger.info('[p2p] starting libp2p bundle');
 
     Peer.p2p
       .start()
       .then(() => {
+        global.library.logger.info('[p2p] libp2p started');
+
         global.library.logger.error(
-          `publicIp is: ${global.library.config.publicIp}`
+          `[p2p] publicIp is: ${global.library.config.publicIp}`
         );
 
         // issue #255
         global.library.logger.log(
-          `multiaddrs before: ${JSON.stringify(
+          `[p2p] multiaddrs before: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2
@@ -126,7 +150,7 @@ export default class Peer implements ICoreModule {
         const length = Peer.p2p.peerInfo.multiaddrs.toArray().length;
         for (let i = 0; i < length; ++i) {
           console.log(
-            `multi-for-loop ${i}: current: ${
+            `[p2p] multi-for-loop ${i}: current: ${
               Peer.p2p.peerInfo.multiaddrs.toArray()[0]
             }`
           );
@@ -135,7 +159,7 @@ export default class Peer implements ICoreModule {
           );
         }
         console.log(
-          `multiaddrs after: ${JSON.stringify(
+          `[p2p] multiaddrs after: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2
@@ -148,17 +172,38 @@ export default class Peer implements ICoreModule {
         Peer.p2p.peerInfo.multiaddrs.add(multi2);
 
         console.log(
-          `multiaddrs after upgrade: ${JSON.stringify(
+          `[p2p] multiaddrs after upgrade: ${JSON.stringify(
             Peer.p2p.peerInfo.multiaddrs.toArray(),
             null,
             2
           )}\n\n`
         );
+      })
+      .then(async () => {
+        // subscribe to pubsub topics
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_NEW_BLOCK_HEADER,
+          Transport.receivePeer_NewBlockHeader
+        );
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_PROPOSE,
+          Transport.receivePeer_Propose
+        );
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_TRANSACTION,
+          Transport.receivePeer_Transaction
+        );
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_HELLO,
+          Transport.receivePeer_Hello
+        );
 
-        global.library.bus.message('onPeerReady');
+        global.library.logger.info(`[p2p] sleep for 10 seconds`);
+        return await sleep(10 * 1000);
       })
       .catch(err => {
-        global.library.logger.error('Failed to init dht', err);
+        global.library.logger.error('Failed to init dht');
+        global.library.logger.error(err);
       });
   };
 

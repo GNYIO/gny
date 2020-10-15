@@ -10,6 +10,8 @@ import {
   BlockAndVotes,
   ICoreModule,
   UnconfirmedTransaction,
+  BlockIdWrapper,
+  PeerInfoWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -18,18 +20,15 @@ import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
+import {
+  Bundle,
+  sendNewBlockQuery,
+  getMultiAddrsThatIsNotLocalAddress,
+} from '@gny/p2p';
+import * as PeerId from 'peer-id';
+import * as PeerInfo from 'peer-info';
 
 export default class Transport implements ICoreModule {
-  // subscribe to peer events
-  public static onPeerReady = () => {
-    Peer.p2p.subscribeCustom(
-      'newBlockHeader',
-      Transport.receivePeer_NewBlockHeader
-    );
-    Peer.p2p.subscribeCustom('propose', Transport.receivePeer_Propose);
-    Peer.p2p.subscribeCustom('transaction', Transport.receivePeer_Transaction);
-  };
-
   // broadcast to peers Transaction
   public static onUnconfirmedTransaction = async (
     transaction: UnconfirmedTransaction
@@ -81,6 +80,8 @@ export default class Transport implements ICoreModule {
 
   // broadcast to peers Propose
   public static onNewPropose = async (propose: BlockPropose) => {
+    global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
+
     let encodedBlockPropose: Buffer;
     try {
       encodedBlockPropose = global.library.protobuf.encodeBlockPropose(propose);
@@ -112,19 +113,26 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const peer = message.peerInfo;
-
+    let peerInfo: PeerInfo;
     let result: BlockAndVotes;
     try {
-      const params = { id: newBlockMsg.id };
-      result = await Peer.request('newBlock', params, peer);
+      const params: BlockIdWrapper = { id: newBlockMsg.id };
+
+      const bundle: Bundle = Peer.p2p;
+
+      peerInfo = await bundle.findPeerInfoInDHT(message);
+
+      result = await bundle.requestBlockAndVotes(peerInfo, params);
     } catch (err) {
-      global.library.logger.error('Failed to get latest block data', err);
+      global.library.logger.error('[p2p] Failed to get latest block data');
+      global.library.logger.error(err);
       return;
     }
 
     if (!result || !result.block || !result.votes) {
-      global.library.logger.error('Invalid block data', result);
+      global.library.logger.error(
+        `Invalid block data ${JSON.stringify(result, null, 2)}`
+      );
       return;
     }
 
@@ -138,6 +146,12 @@ export default class Transport implements ICoreModule {
       block = BlockBase.normalizeBlock(block);
       votes = ConsensusBase.normalizeVotes(votes);
 
+      global.library.logger.info(
+        `[p2p] got "${
+          votes.signatures.length
+        }" BlockVotes from peer ${getMultiAddrsThatIsNotLocalAddress(peerInfo)}`
+      );
+
       // validate the received Block and NewBlockMessage against each other
       // a malicious Peer could send a wrong block
       if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
@@ -149,9 +163,13 @@ export default class Transport implements ICoreModule {
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
       global.library.logger.error(
-        `normalize block or votes object error: ${e.toString()}`,
-        result
+        `normalize block or votes object error: ${JSON.stringify(
+          result,
+          null,
+          2
+        )}`
       );
+      global.library.logger.error(e);
     }
 
     global.library.bus.message(
@@ -164,6 +182,7 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Propose = (message: P2PMessage) => {
+    global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
       propose = global.library.protobuf.decodeBlockPropose(message.data);
@@ -179,7 +198,12 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    global.library.bus.message('onReceivePropose', propose);
+    global.library.logger.info(
+      `[p2p] onReceivePropose from "${message.peerInfo.host}${
+        message.peerInfo.port
+      }" for block ${propose.id}, height: ${propose.height}`
+    );
+    global.library.bus.message('onReceivePropose', propose, message);
   };
 
   // peerEvent
@@ -202,27 +226,35 @@ export default class Transport implements ICoreModule {
         unconfirmedTrs
       );
     } catch (e) {
-      global.library.logger.error('Received transaction parse error', {
-        message,
-        error: e.toString(),
-      });
+      global.library.logger.error(
+        `Received transaction parse error: ${JSON.stringify(message, null, 2)}`
+      );
+      global.library.logger.error(e);
+
       return;
     }
 
+    global.library.logger.info(
+      `[p2p] received from "${message.peerInfo.host}:${
+        message.peerInfo.port
+      }" transactionId: ${unconfirmedTrs.id}`
+    );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
   };
 
-  public static sendVotes = async (votes: ManyVotes, address: string) => {
-    const parts = address.split(':');
-    const contact: PeerNode = {
-      host: parts[0],
-      port: Number(parts[1]),
-    };
+  public static receivePeer_Hello = async (message: P2PMessage) => {
     try {
-      const result = await Peer.request('votes', { votes }, contact);
+      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
+
+      await Peer.p2p.dial(peerInfo);
+      global.library.logger.info(
+        `[p2p] afer "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
+      );
     } catch (err) {
-      // refactor
-      global.app.logger.error('send votes error', err);
+      global.library.logger.error(
+        `[p2p] received "hello" error: ${err.message}`
+      );
+      global.library.logger.error(err);
     }
   };
 }

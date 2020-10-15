@@ -292,11 +292,17 @@ export class BlocksHelper {
       slots.getSlotNumber(slots.getEpochTime(currentMilliSeconds)) + 1;
     const lastSlot = slots.getSlotNumber(lastBlock.timestamp);
     if (nextSlot - lastSlot >= 12) {
-      logger.warn('Blockchain is not ready', {
-        getNextSlot: slots.getNextSlot(),
-        lastSlot,
-        lastBlockHeight: lastBlock.height,
-      });
+      logger.warn(
+        `Blockchain is not ready ${JSON.stringify(
+          {
+            getNextSlot: slots.getNextSlot(),
+            lastSlot,
+            lastBlockHeight: lastBlock.height,
+          },
+          null,
+          2
+        )}`
+      );
       return false;
     }
     return true;
