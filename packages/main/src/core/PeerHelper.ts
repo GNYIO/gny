@@ -25,7 +25,10 @@ import {
 } from '@gny/interfaces';
 import * as PeerInfo from 'peer-info';
 import { BlockMessageFitInLineResult } from './BlocksHelper';
-import { isCommonBlockParams, isBlockSyncParams } from '@gny/type-validation';
+import {
+  isCommonBlockParams,
+  isBlocksWrapperParams,
+} from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import { getBlocks as getBlocksFromApi } from '../http/util';
 
@@ -260,7 +263,7 @@ function V1_BLOCKS_HANDLER(bundle: Bundle) {
     const body: BlocksWrapperParams = JSON.parse(Buffer.from(data).toString());
     body.limit = body.limit || 200;
 
-    if (!isBlockSyncParams(body)) {
+    if (!isBlocksWrapperParams(body)) {
       return cb(new Error('blocksync params validation failed'));
     }
 
