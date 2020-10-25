@@ -17,6 +17,8 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   P2PMessage,
+  BlocksWrapper,
+  BlocksWrapperParams,
 } from '@gny/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -42,6 +44,7 @@ import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
+import * as PeerInfo from 'peer-info';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -75,22 +78,17 @@ export default class Blocks implements ICoreModule {
 
   // todo look at core/loader
   public static getCommonBlock = async (
-    peer: PeerNode,
+    peer: PeerInfo,
     lastBlockHeight: string
   ): Promise<IBlock> => {
-    let params: CommonBlockParams;
-    try {
-      params = await Blocks.getIdSequence2(
-        lastBlockHeight,
-        global.app.sdb.getBlocksByHeightRange
-      );
-    } catch (e) {
-      throw e;
-    }
+    const params: CommonBlockParams = await Blocks.getIdSequence2(
+      lastBlockHeight,
+      global.app.sdb.getBlocksByHeightRange
+    );
 
     let ret: CommonBlockResult;
     try {
-      ret = await Peer.request('commonBlock', params, peer);
+      ret = await Peer.p2p.requestCommonBlock(peer, params);
     } catch (err) {
       global.app.logger.info(
         `Peer.request('commonBlock'): ${err &&
@@ -595,15 +593,16 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
+  public static loadBlocksFromPeer = async (peer: PeerInfo, id: string) => {
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
     let lastCommonBlockId = id;
 
     global.app.logger.info(
-      `start to sync 30 * 200 blocks. From peer: ${peer.host}:${peer.port -
-        1}, last commonBlock: ${id}`
+      `start to sync 30 * 200 blocks. From peer: ${JSON.stringify(
+        peer
+      )}, last commonBlock: ${id}`
     );
 
     await pWhilst(
@@ -611,13 +610,14 @@ export default class Blocks implements ICoreModule {
       async () => {
         count++;
         const limit = 200;
-        const params = {
+        const params: BlocksWrapperParams = {
           limit,
           lastBlockId: lastCommonBlockId,
         };
-        let body;
+        let body: BlocksWrapper;
         try {
-          body = await Peer.request('blocks', params, peer);
+          body = await Peer.p2p.requestBlocks(peer, params);
+          // body = await Peer.request('blocks', params, peer);
         } catch (err) {
           global.library.logger.error(
             JSON.stringify(err.response ? err.response.data : err.message)

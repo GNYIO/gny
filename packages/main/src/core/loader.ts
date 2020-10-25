@@ -6,20 +6,18 @@ import {
   ITransaction,
   ICoreModule,
   UnconfirmedTransaction,
+  HeightWrapper,
 } from '@gny/interfaces';
-import { TransactionBase } from '@gny/base';
 import { BlocksHelper } from './BlocksHelper';
-import { isPeerNode } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
-import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
-import { joi } from '@gny/extended-joi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
+import { isHeightWrapper } from '@gny/type-validation';
 
 export default class Loader implements ICoreModule {
-  public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
+  public static async findUpdate(lastBlock: IBlock, peer: PeerInfo) {
     let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
       state,
@@ -90,41 +88,37 @@ export default class Loader implements ICoreModule {
   }
 
   public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
-    let result;
+    const randomNode = Peer.p2p.getConnectedRandomNodePeerInfo();
+    if (!randomNode) {
+      throw new Error('[p2p] no connected node found for loadBlocks()');
+    }
+
+    let result: HeightWrapper;
     try {
-      result = await Peer.randomRequestAsync('getHeight', {});
+      // randomRequestAsync('getHeight', {});
+      result = await Peer.p2p.requestHeight(randomNode);
     } catch (err) {
       throw err;
     }
 
-    const ret = result.data;
-    const peer = result.node;
+    if (!isHeightWrapper(result)) {
+      throw new Error('[p2p] validation failed for heightWrapper');
+    }
 
-    const peerStr = `${peer.host}:${peer.port - 1}`;
-    global.library.logger.info(`Check blockchain on ${peerStr}`);
-
-    // TODO: check if really integer!
-    ret.height = new BigNumber(ret.height).toFixed();
-
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-    });
-    const report = joi.validate(ret, schema);
-    if (report.error) {
+    if (!isHeightWrapper(result)) {
       global.library.logger.info(
-        `Failed to parse blockchain height: ${peerStr}\n${report.error.message}`
+        `Failed to parse blockchain height: ${JSON.stringify(randomNode)}`
       );
       throw new Error('Failed to parse blockchain height');
     }
-    if (new BigNumber(lastBlock.height).lt(ret.height)) {
-      StateHelper.SetBlocksToSync(ret.height);
+
+    if (new BigNumber(lastBlock.height).lt(result.height)) {
+      // TODO
+      StateHelper.SetBlocksToSync(Number(result.height));
 
       if (lastBlock.id !== genesisBlock.id) {
         try {
-          await Loader.findUpdate(lastBlock, peer);
+          await Loader.findUpdate(lastBlock, randomNode);
           return;
         } catch (err) {
           global.library.logger.error(
@@ -135,10 +129,10 @@ export default class Loader implements ICoreModule {
       }
 
       global.library.logger.debug(
-        `Loading blocks from genesis from ${peer.host}:${peer.port - 1}`
+        `Loading blocks from genesis from ${JSON.stringify(randomNode)}`
       );
       return await Blocks.loadBlocksFromPeer(
-        peer,
+        randomNode,
         global.library.genesisBlock.id
       );
     }

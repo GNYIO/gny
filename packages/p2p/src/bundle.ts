@@ -148,6 +148,23 @@ export class Bundle extends libp2p {
     return undefined;
   }
 
+  public getConnectedRandomNodePeerInfo() {
+    const allConnectedPeersPeerInfo = this.getAllConnectedPeersPeerInfo();
+    if (allConnectedPeersPeerInfo.length > 0) {
+      const index = Math.floor(
+        Math.random() * allConnectedPeersPeerInfo.length
+      );
+      const result = allConnectedPeersPeerInfo[index];
+      this.logger.info(
+        `[p2p] allConnectedPeersPeerInfo: ${result.id}; ${JSON.stringify(
+          result
+        )}`
+      );
+      return result;
+    }
+    return undefined;
+  }
+
   subscribeCustom(topic: string, handler: P2PSubscribeHandler) {
     this.logger.info(`[p2p] subscribe to topic "${topic}"`);
 
@@ -195,6 +212,14 @@ export class Bundle extends libp2p {
     });
 
     return result;
+  }
+
+  getAllConnectedPeersPeerInfo(): PeerInfo[] {
+    const copy = cloneDeep(
+      this.peerBook.getAllArray().filter(x => x.isConnected())
+    );
+
+    return copy;
   }
 
   info() {

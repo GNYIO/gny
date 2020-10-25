@@ -555,6 +555,11 @@ export interface BlocksWrapper {
   blocks: IBlock[];
 }
 
+export interface BlocksWrapperParams {
+  limit: number;
+  lastBlockId: string;
+}
+
 export interface HeightWrapper {
   height: string;
 }
