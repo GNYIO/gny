@@ -4,11 +4,10 @@ import * as protocolBuffers from 'protocol-buffers';
 import {
   NewBlockMessage,
   BlockPropose,
-  ITransaction,
   IProtobuf,
   UnconfirmedTransaction,
   BlockIdWrapper,
-  NewBlockWrapper,
+  BlockAndVotes,
 } from '@gny/interfaces';
 
 export class Protobuf implements IProtobuf {
@@ -95,7 +94,7 @@ export class Protobuf implements IProtobuf {
     return this.schema.NewBlockResult.encode(obj);
   }
 
-  decodeNewBlockResult(data: Buffer): NewBlockWrapper {
+  decodeNewBlockResult(data: Buffer): BlockAndVotes {
     const obj = this.schema.NewBlockResult.decode(data);
     return obj;
   }

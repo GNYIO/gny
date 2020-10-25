@@ -7,9 +7,9 @@ import {
 import * as crypto from 'crypto';
 import * as ByteBuffer from 'bytebuffer';
 import * as ed from '@gny/ed';
-import { joi } from '@gny/extended-joi';
 import { copyObject } from './helpers';
 import { TransactionBase } from './transactionBase';
+import { isBlockWithTransactions } from '@gny/type-validation';
 
 export class BlockBase {
   /***
@@ -121,57 +121,8 @@ export class BlockBase {
       }
     }
 
-    const schema = joi.object().keys({
-      id: joi.string(),
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      signature: joi
-        .string()
-        .signature()
-        .required(),
-      delegate: joi
-        .string()
-        .publicKey()
-        .required(),
-      payloadHash: joi
-        .string()
-        .hex()
-        .required(),
-      payloadLength: joi
-        .number()
-        .integer()
-        .min(0),
-      prevBlockId: joi.string(),
-      timestamp: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      transactions: joi.array().required(),
-      version: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      reward: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      fees: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      count: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-    });
-    const report = joi.validate(block, schema);
-    if (report.error) {
-      throw new Error(report.error.message);
+    if (!isBlockWithTransactions(block)) {
+      throw new Error('failed to validate "blockWithTransactions"');
     }
 
     try {

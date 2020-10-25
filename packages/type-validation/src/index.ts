@@ -9,3 +9,5 @@ export * from './isNetworkType';
 export * from './isCommonBlockParams';
 export * from './isHeightWrapper';
 export * from './isBlocksWrapperParams';
+export * from './isBlockAndVotes';
+export * from './isBlockWithTransactions';

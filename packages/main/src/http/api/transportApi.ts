@@ -4,18 +4,11 @@ import * as os from 'os';
 import {
   IScope,
   Next,
-  ManyVotes,
-  ITransaction,
-  IBlock,
   IHttpApi,
   UnconfirmedTransaction,
   ApiResult,
-  NewBlockWrapper,
-  CommonBlockWrapper,
-  BlocksWrapper,
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
-  HeightWrapper,
   P2PApiResult,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';

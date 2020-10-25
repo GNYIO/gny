@@ -11,10 +11,6 @@ import {
   P2PSubscribeHandler,
   SimplePeerInfo,
   PeerInfoWrapper,
-  ApiResult,
-  NewBlockWrapper,
-  BlockAndVotes,
-  BlockIdWrapper,
 } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -271,20 +267,32 @@ export class Bundle extends libp2p {
           return reject(err);
         }
 
-        pull(
-          pull.values([data]),
-          conn,
-          pull.collect((err: Error, returnedData: Buffer[]) => {
-            if (err) {
-              this.logger.error(
-                `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
-              );
-              return reject(err);
-            }
+        try {
+          pull(
+            pull.values([data]),
+            conn,
+            pull.collect((err: Error, returnedData: Buffer[]) => {
+              if (err) {
+                this.logger.error(
+                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+                );
+                return reject(err);
+              }
 
-            return resolve(returnedData[0]);
-          })
-        );
+              const result = returnedData[0];
+              if (!Buffer.isBuffer(result)) {
+                return reject(new Error('returned value is not a Buffer'));
+              }
+
+              return resolve(result);
+            })
+          );
+        } catch (err) {
+          this.logger.error(
+            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+          );
+          return reject(err);
+        }
       });
     });
   }

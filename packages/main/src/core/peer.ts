@@ -11,13 +11,7 @@ import {
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
 } from '@gny/p2p';
-import {
-  PeerNode,
-  ICoreModule,
-  SimplePeerId,
-  ApiResult,
-  NewBlockWrapper,
-} from '@gny/interfaces';
+import { PeerNode, ICoreModule } from '@gny/interfaces';
 import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
 

@@ -11,7 +11,6 @@ import { joi } from '@gny/extended-joi';
 import { StateHelper } from './StateHelper';
 import {
   ApiResult,
-  NewBlockWrapper,
   BlockIdWrapper,
   BlockAndVotes,
   ManyVotes,
@@ -24,10 +23,10 @@ import {
   BlocksWrapperParams,
 } from '@gny/interfaces';
 import * as PeerInfo from 'peer-info';
-import { BlockMessageFitInLineResult } from './BlocksHelper';
 import {
   isCommonBlockParams,
   isBlocksWrapperParams,
+  isBlockAndVotes,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import { getBlocks as getBlocksFromApi } from '../http/util';
@@ -45,7 +44,11 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
       V1_NEW_BLOCK_PROTOCOL,
       data
     );
-    const result: BlockAndVotes = JSON.parse(resultRaw.toString());
+
+    const result = JSON.parse(resultRaw.toString());
+    if (!isBlockAndVotes(result)) {
+      throw new Error('[p2p] validation for requested isBlockPropose failed');
+    }
 
     return result;
   };
@@ -72,8 +75,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
       return cb(new Error('New block not found'));
     }
 
-    const result: ApiResult<NewBlockWrapper> = {
-      success: true,
+    const result: BlockAndVotes = {
       block: newBlock.block,
       votes: newBlock.votes,
     };
