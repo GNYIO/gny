@@ -27,6 +27,7 @@ import {
   isCommonBlockParams,
   isBlocksWrapperParams,
   isBlockAndVotes,
+  isManyVotes,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import { getBlocks as getBlocksFromApi } from '../http/util';
@@ -112,29 +113,10 @@ function V1_VOTES_HANDLER(bundle: Bundle) {
 
     const votes: ManyVotes = JSON.parse(Buffer.from(values[0]).toString());
 
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      id: joi
-        .string()
-        .length(64)
-        .required(),
-      signatures: joi
-        .array()
-        .items({
-          publicKey: joi
-            .string()
-            .publicKey()
-            .required(),
-          signature: joi.string().required(),
-        })
-        .required(),
-    });
-    const report = joi.validate(votes, schema);
-    if (report.error) {
-      console.log(report.error.message);
+    if (!isManyVotes(votes)) {
+      global.library.logger.info(
+        `[p2p] validation for ManyVotes failed: ${JSON.stringify(votes)}`
+      );
       return;
     }
 
