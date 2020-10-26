@@ -942,24 +942,33 @@ export default class Blocks implements ICoreModule {
             next(undefined, activeKeypairs);
           },
           async (activeKeypairs: KeyPair[], next: Next) => {
-            if (activeKeypairs && activeKeypairs.length > 0) {
-              const votes = ConsensusBase.createVotes(activeKeypairs, propose);
-              global.library.logger.info(
-                `created "${
-                  votes.signatures.length
-                }" votes for propose of block: ${propose.id}, h: ${
-                  propose.height
-                }`
+            try {
+              if (activeKeypairs && activeKeypairs.length > 0) {
+                const votes = ConsensusBase.createVotes(
+                  activeKeypairs,
+                  propose
+                );
+                global.library.logger.info(
+                  `created "${
+                    votes.signatures.length
+                  }" votes for propose of block: ${propose.id}, h: ${
+                    propose.height
+                  }`
+                );
+
+                const bundle: Bundle = Peer.p2p;
+
+                const peerInfo = await bundle.findPeerInfoInDHT(message);
+
+                await bundle.pushVotesToPeer(peerInfo, votes);
+
+                state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+              }
+            } catch (err) {
+              global.library.logger.error(
+                `[p2p] failed to create and push VOTES: "${err.message}"`
               );
-
-              const bundle: Bundle = Peer.p2p;
-
-              const peerInfo = await bundle.findPeerInfoInDHT(message);
-              await bundle.pushVotesToPeer(peerInfo, votes);
-
-              // can this stop|halt the whole node?
-              // no try/catch
-              state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+              global.library.logger.error(err);
             }
 
             // important
