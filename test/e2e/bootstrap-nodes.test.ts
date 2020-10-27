@@ -40,7 +40,7 @@ describe('bootstrap-nodes e2e test', () => {
       await lib.waitForApiToBeReadyReady(4100);
 
       // after 10 seconds node3 should have 2 peers
-      await lib.sleep(10 * 1000);
+      await lib.sleep(30 * 1000);
 
       const node1Port = 4096;
       const { data: data1 } = await axios.get(
