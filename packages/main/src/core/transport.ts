@@ -250,9 +250,27 @@ export default class Transport implements ICoreModule {
       global.library.logger.info(
         `[p2p] afer "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
       );
+
+      await Peer.p2p.broadcastHelloBackAsync();
     } catch (err) {
       global.library.logger.error(
         `[p2p] received "hello" error: ${err.message}`
+      );
+      global.library.logger.error(err);
+    }
+  };
+
+  public static receivePeer_HelloBack = async (message: P2PMessage) => {
+    try {
+      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
+
+      await Peer.p2p.dial(peerInfo);
+      global.library.logger.info(
+        `[p2p] afer "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
+      );
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] received "helloBack" error: ${err.message}`
       );
       global.library.logger.error(err);
     }

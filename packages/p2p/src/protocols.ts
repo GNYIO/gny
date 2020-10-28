@@ -8,3 +8,4 @@ export const V1_BROADCAST_NEW_BLOCK_HEADER = '/v1/broadcast/newBlockHeader';
 export const V1_BROADCAST_TRANSACTION = '/v1/broadcast/transaction';
 export const V1_BROADCAST_PROPOSE = '/v1/broadcast/propose';
 export const V1_BROADCAST_HELLO = '/v1/broadcast/hello';
+export const V1_BROADCAST_HELLO_BACK = '/v1/broadcast/helloBack';

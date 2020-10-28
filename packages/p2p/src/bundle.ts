@@ -30,6 +30,7 @@ import {
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
+  V1_BROADCAST_HELLO_BACK,
 } from './protocols';
 
 export class Bundle extends libp2p {
@@ -101,6 +102,15 @@ export class Bundle extends libp2p {
     await this.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
   }
 
+  public async broadcastHelloBackAsync() {
+    if (!this.isStarted()) {
+      return;
+    }
+    await this.pubsub.publish(
+      V1_BROADCAST_HELLO_BACK,
+      Buffer.from('hello back')
+    );
+  }
   public async broadcastProposeAsync(data: Buffer) {
     if (!this.isStarted()) {
       return;
