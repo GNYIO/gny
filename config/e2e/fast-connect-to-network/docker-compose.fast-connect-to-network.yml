@@ -1,4 +1,12 @@
 version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+
 services:
   db1:
     image: "postgres:9.6.12"
@@ -10,6 +18,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
   node1:
     build: ../../..
     container_name: 'node1'
@@ -29,6 +40,9 @@ services:
       - '4097:4097'
     depends_on:
       - db1
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3
 
   db2:
     image: "postgres:9.6.12"
@@ -40,6 +54,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.4
   node2:
     build: ../../..
     container_name: 'node2'
@@ -59,6 +76,9 @@ services:
       - '4099:4097'
     depends_on:
       - db2
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.5
 
   db3:
     image: "postgres:9.6.12"
@@ -70,6 +90,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.6
   node3:
     build: ../../..
     container_name: 'node3'
@@ -89,6 +112,9 @@ services:
       - '4101:4097'
     depends_on:
       - db3
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.7
 
   db4:
     image: "postgres:9.6.12"
@@ -100,6 +126,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.8
   node4:
     build: ../../..
     container_name: 'node4'
@@ -119,6 +148,9 @@ services:
       - '4103:4097'
     depends_on:
       - db4
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.9
 
   db5:
     image: "postgres:9.6.12"
@@ -130,6 +162,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.10
   node5:
     build: ../../..
     container_name: 'node5'
@@ -149,3 +184,6 @@ services:
       - '4105:4097'
     depends_on:
       - db5
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.11
