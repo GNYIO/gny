@@ -19,6 +19,7 @@ import {
   P2PMessage,
   BlocksWrapper,
   BlocksWrapperParams,
+  IBlockWithTransactions,
 } from '@gny/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -45,6 +46,7 @@ import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerInfo from 'peer-info';
+import { getB58String } from '@gny/p2p';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -614,10 +616,9 @@ export default class Blocks implements ICoreModule {
           limit,
           lastBlockId: lastCommonBlockId,
         };
-        let body: BlocksWrapper;
+        let body: IBlockWithTransactions[];
         try {
           body = await Peer.p2p.requestBlocks(peer, params);
-          // body = await Peer.request('blocks', params, peer);
         } catch (err) {
           global.library.logger.error(
             JSON.stringify(err.response ? err.response.data : err.message)
@@ -627,14 +628,15 @@ export default class Blocks implements ICoreModule {
         if (!body) {
           throw new Error('Invalid response for blocks request');
         }
-        const blocks = body.blocks as IBlock[];
+        const blocks = body as IBlockWithTransactions[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
           loaded = true;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
-        const address = `${peer.host}:${peer.port - 1}`;
-        // refactor
-        global.app.logger.info(`Loading ${num} blocks from ${address}`);
+
+        global.app.logger.info(
+          `Loading ${num} blocks from ${getB58String(peer)}`
+        );
         try {
           for (const block of blocks) {
             let state = StateHelper.getState();
@@ -656,13 +658,15 @@ export default class Blocks implements ICoreModule {
             if (stateResult.success) {
               lastCommonBlockId = block.id;
               global.app.logger.info(
-                `Block ${block.id} loaded from ${address} at ${block.height}`
+                `Block ${block.id} loaded from ${getB58String(peer)} at ${
+                  block.height
+                }`
               );
             } else {
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
-                } loaded from ${address} at ${block.height}`
+                } loaded from ${getB58String(peer)} at ${block.height}`
               );
               global.app.logger.info('sleep for 10seconds');
               await snooze(10 * 1000);
@@ -772,10 +776,15 @@ export default class Blocks implements ICoreModule {
 
   // Events
   public static onReceiveBlock = (
-    peer: PeerNode,
+    peerInfo: PeerInfo,
     block: IBlock,
     votes: ManyVotes
   ) => {
+    // remove later
+    global.library.logger.info(
+      `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
+    );
+
     if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
       // TODO access state
       return;
@@ -792,15 +801,18 @@ export default class Blocks implements ICoreModule {
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         global.library.logger.warn('Receive new block header from long fork');
         global.library.logger.info(
-          `[syncing] received block h: ${block.height} from "${peer.host}:${
-            peer.port
-          }". seem that we are not up to date. Start syncing from a random peer`
+          `[syncing] received block h: ${block.height} from "${getB58String(
+            peerInfo
+          )}". seem that we are not up to date. Start syncing from a random peer`
         );
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
-        Loader.syncBlocksFromPeer(peer);
+        global.library.logger.info(
+          `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerInfo}`
+        );
+        Loader.syncBlocksFromPeer(peerInfo);
         return cb();
       }
 

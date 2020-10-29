@@ -172,12 +172,7 @@ export default class Transport implements ICoreModule {
       global.library.logger.error(e);
     }
 
-    global.library.bus.message(
-      'onReceiveBlock',
-      message.peerInfo,
-      block,
-      votes
-    );
+    global.library.bus.message('onReceiveBlock', peerInfo, block, votes);
   };
 
   // peerEvent

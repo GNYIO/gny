@@ -342,6 +342,7 @@ export class Bundle extends libp2p {
   }
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
+    this.logger.info(`[p2p] handle push only "${protocol}"`);
     this.handle(protocol, function(protocol: string, conn) {
       try {
         pull(conn, pull.collect(cb));

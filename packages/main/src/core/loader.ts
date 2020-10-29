@@ -1,13 +1,4 @@
-import { slots } from '@gny/utils';
-import { TIMEOUT } from '@gny/utils';
-import {
-  PeerNode,
-  IBlock,
-  ITransaction,
-  ICoreModule,
-  UnconfirmedTransaction,
-  HeightWrapper,
-} from '@gny/interfaces';
+import { PeerNode, IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
 import { BlocksHelper } from './BlocksHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
@@ -15,6 +6,8 @@ import Peer from './peer';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 import { isHeightWrapper } from '@gny/type-validation';
+import * as PeerInfo from 'peer-info';
+import { getB58String } from '@gny/p2p';
 
 export default class Loader implements ICoreModule {
   public static async findUpdate(lastBlock: IBlock, peer: PeerInfo) {
@@ -23,8 +16,6 @@ export default class Loader implements ICoreModule {
       state,
       lastBlock
     );
-
-    const peerStr = LoaderHelper.ExtractPeerInfosMinusOne(peer);
 
     let commonBlock: IBlock;
     try {
@@ -45,7 +36,9 @@ export default class Loader implements ICoreModule {
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
-      }) with peer ${peerStr}, last block height is ${newestLastBlock.height}`
+      }) with peer ${getB58String(peer)}, last block height is ${
+        newestLastBlock.height
+      }`
     );
 
     const toRemove: string = LoaderHelper.GetBlockDifference(
@@ -54,8 +47,8 @@ export default class Loader implements ICoreModule {
     );
 
     if (LoaderHelper.IsLongFork(toRemove)) {
-      global.library.logger.error(`long fork with peer ${peerStr}`);
-      throw new Error(`long fork with peer ${peerStr}`);
+      global.library.logger.error(`long fork with peer ${getB58String(peer)}`);
+      throw new Error(`long fork with peer ${getB58String(peer)}`);
     }
 
     try {
@@ -82,24 +75,39 @@ export default class Loader implements ICoreModule {
       global.library.logger.error(e);
       throw e;
     }
-    global.library.logger.debug(`Loading blocks from peer ${peerStr}`);
+    global.library.logger.debug(
+      `Loading blocks from peer ${getB58String(peer)}`
+    );
     await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
     return;
   }
 
   public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
-    const randomNode = Peer.p2p.getConnectedRandomNodePeerInfo();
+    const randomNode: PeerInfo = Peer.p2p.getConnectedRandomNodePeerInfo();
     if (!randomNode) {
       throw new Error('[p2p] no connected node found for loadBlocks()');
     }
 
     let result: HeightWrapper;
     try {
-      // randomRequestAsync('getHeight', {});
       result = await Peer.p2p.requestHeight(randomNode);
     } catch (err) {
+      global.library.logger.error(
+        `[syncing] could not requestHeight from peer: ${getB58String(
+          randomNode
+        )}`
+      );
+      global.library.logger.error(err);
       throw err;
     }
+
+    global.library.logger.info(
+      `[syncing] requestHeight: ${JSON.stringify(
+        result,
+        null,
+        2
+      )}, from ${getB58String(randomNode)}`
+    );
 
     if (!isHeightWrapper(result)) {
       throw new Error('[p2p] validation failed for heightWrapper');
@@ -153,7 +161,8 @@ export default class Loader implements ICoreModule {
       try {
         await Loader.loadBlocks(lastBlock, global.library.genesisBlock);
       } catch (err) {
-        global.library.logger.warn('loadBlocks warning:', err.message);
+        global.library.logger.warn('loadBlocks warning:');
+        global.library.logger.warn(err);
       }
       StateHelper.SetIsSyncing(false);
       StateHelper.SetBlocksToSync(0);
@@ -162,7 +171,7 @@ export default class Loader implements ICoreModule {
     });
   };
 
-  public static syncBlocksFromPeer = (peer: PeerNode) => {
+  public static syncBlocksFromPeer = (peer: PeerInfo) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
     if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {

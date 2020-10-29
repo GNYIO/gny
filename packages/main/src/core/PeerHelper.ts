@@ -204,20 +204,20 @@ function V1_COMMON_BLOCK_HANDLER(bundle: Bundle) {
 }
 
 function V1_GET_HEIGH_HANDLER(bundle: Bundle) {
-  const request = async (
-    peerInfo: PeerInfo,
-    params: null
-  ): Promise<HeightWrapper> => {
-    const data = JSON.stringify(params);
+  const request = async (peerInfo: PeerInfo): Promise<HeightWrapper> => {
+    const data = JSON.stringify('no param');
 
     const resultRaw = await bundle.directRequest(peerInfo, V1_GET_HEIGHT, data);
 
-    const result: HeightWrapper = JSON.parse(resultRaw.toString());
+    // todo add validation
+
+    const result: HeightWrapper = JSON.parse(Buffer.from(resultRaw).toString());
     return result;
   };
 
   const response = async (data: Buffer, cb) => {
     // no need for "data" variable
+    const body: string = JSON.parse(Buffer.from(data).toString());
 
     const lastBlock = StateHelper.getState().lastBlock;
     const result: HeightWrapper = {
