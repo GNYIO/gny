@@ -1036,7 +1036,11 @@ export default class Blocks implements ICoreModule {
 
   public static onReceiveVotes = (votes: ManyVotes) => {
     if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
-      // TODO: use state
+      global.library.logger.info(
+        `[p2p] currently syncing ignored received Votes for height: ${
+          votes.height
+        }`
+      );
       return;
     }
 
