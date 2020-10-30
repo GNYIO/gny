@@ -16,15 +16,15 @@ import {
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
-import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
+import {
+  isBlockPropose,
+  isNewBlockMessage,
+  isBlockAndVotes,
+} from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import {
-  Bundle,
-  sendNewBlockQuery,
-  getMultiAddrsThatIsNotLocalAddress,
-} from '@gny/p2p';
+import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
 import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
 
@@ -129,9 +129,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    if (!result || !result.block || !result.votes) {
+    if (!isBlockAndVotes(result)) {
       global.library.logger.error(
-        `Invalid block data ${JSON.stringify(result, null, 2)}`
+        `[p2p] validation failed blockAndVotes: ${JSON.stringify(
+          result,
+          null,
+          2
+        )}`
       );
       return;
     }
