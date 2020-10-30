@@ -29,6 +29,7 @@ import {
   isBlockAndVotes,
   isManyVotes,
   isHeightWrapper,
+  isBlockIdWrapper,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import { getBlocks as getBlocksFromApi } from '../http/util';
@@ -60,14 +61,8 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
     const body = JSON.parse(Buffer.from(data).toString());
 
     // validate id
-    const schema = joi.object().keys({
-      id: joi
-        .string()
-        .hex()
-        .required(),
-    });
-    const report = joi.validate(body, schema);
-    if (report.error) {
+    if (!isBlockIdWrapper(body)) {
+      global.library.logger.info('[p2p] validaion for blockIdWrapper failed');
       return cb(new Error('validation failed'));
     }
 
