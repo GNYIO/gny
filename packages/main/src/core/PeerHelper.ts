@@ -28,6 +28,7 @@ import {
   isBlocksWrapperParams,
   isBlockAndVotes,
   isManyVotes,
+  isHeightWrapper,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import { getBlocks as getBlocksFromApi } from '../http/util';
@@ -208,10 +209,12 @@ function V1_GET_HEIGH_HANDLER(bundle: Bundle) {
     const data = JSON.stringify('no param');
 
     const resultRaw = await bundle.directRequest(peerInfo, V1_GET_HEIGHT, data);
-
-    // todo add validation
-
     const result: HeightWrapper = JSON.parse(Buffer.from(resultRaw).toString());
+
+    if (!isHeightWrapper(result)) {
+      throw new Error('[p2p] validation for isHeightWrapper failed');
+    }
+
     return result;
   };
 

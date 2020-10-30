@@ -109,17 +109,6 @@ export default class Loader implements ICoreModule {
       )}, from ${getB58String(randomNode)}`
     );
 
-    if (!isHeightWrapper(result)) {
-      throw new Error('[p2p] validation failed for heightWrapper');
-    }
-
-    if (!isHeightWrapper(result)) {
-      global.library.logger.info(
-        `Failed to parse blockchain height: ${JSON.stringify(randomNode)}`
-      );
-      throw new Error('Failed to parse blockchain height');
-    }
-
     if (new BigNumber(lastBlock.height).lt(result.height)) {
       // TODO
       StateHelper.SetBlocksToSync(Number(result.height));
