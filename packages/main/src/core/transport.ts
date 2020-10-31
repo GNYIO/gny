@@ -95,7 +95,9 @@ export default class Transport implements ICoreModule {
   // peerEvent
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     if (StateHelper.IsSyncing()) {
-      // TODO access state
+      global.library.logger.info(
+        `[p2p] ignoring broadcasting newBlockHeader because we are syncing`
+      );
       return;
     }
 
@@ -181,6 +183,13 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Propose = (message: P2PMessage) => {
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring propose because we are syncing`
+      );
+      return;
+    }
+
     global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
@@ -207,6 +216,13 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Transaction = (message: P2PMessage) => {
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring transaction because we are syncing`
+      );
+      return;
+    }
+
     let unconfirmedTrs: UnconfirmedTransaction;
     try {
       unconfirmedTrs = global.library.protobuf.decodeUnconfirmedTransaction(
