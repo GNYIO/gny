@@ -283,28 +283,6 @@ export class SmartDB extends EventEmitter {
     this.currentBlock = block;
   }
 
-  private async deleteLastBlock(height: string) {
-    await this.connection.transaction(async transactionalEntityManager => {
-      await transactionalEntityManager
-        .createQueryBuilder()
-        .delete()
-        .from(Block)
-        .where('height = :height', { height })
-        .execute();
-
-      await transactionalEntityManager
-        .createQueryBuilder()
-        .delete()
-        .from(BlockHistory)
-        .where('height = :height', { height })
-        .execute();
-    });
-
-    this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
-      .minus(1)
-      .toFixed();
-  }
-
   public async commitBlock() {
     if (!this.currentBlock) {
       throw new Error('Current block is null');
@@ -362,15 +340,13 @@ export class SmartDB extends EventEmitter {
     );
     this.preRollbackBlock(currentHeight, targetHeight);
     try {
+      // 1. delete entitychange
+      // 2. then delte block and blockhistory
       await this.blockSession.rollbackChanges(targetHeight);
-      for (
-        ;
-        new BigNumber(this.lastBlockHeight).isGreaterThan(targetHeight);
 
-      ) {
-        await this.deleteLastBlock(this.lastBlockHeight);
-        this.cachedBlocks.evitUntil(this.lastBlockHeight);
-      }
+      this._lastBlockHeight = new BigNumber(targetHeight).toFixed();
+      this.cachedBlocks.evitUntil(targetHeight);
+
       await this.ensureLastBlockLoaded();
       this.currentBlock = null;
       this.postRollbackBlock(currentHeight, targetHeight);

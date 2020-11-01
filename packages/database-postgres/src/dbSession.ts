@@ -400,6 +400,9 @@ export class DbSession {
   }
 
   public async rollbackChanges(height: string) {
+    console.log(
+      `rollbackChanges, sessionSerial: ${this.sessionSerial}, height: ${height}`
+    );
     if (new BigNumber(this.sessionSerial).isLessThan(height)) {
       return this.sessionSerial;
     }
@@ -420,9 +423,6 @@ export class DbSession {
         await queryRunner.query(one.query);
       }
 
-      // await this.connection.executeBatch(rollbackSql);
-      await queryRunner.commitTransaction();
-
       this.entityTracker.rejectChanges();
       await this.entityTracker.rollbackChanges(
         new BigNumber(height).plus(1).toFixed()
@@ -436,6 +436,26 @@ export class DbSession {
           this.sessionSerial +
           ')'
       );
+
+      // rollback block
+      await queryRunner.connection
+        .createQueryBuilder()
+        .delete()
+        .from(Block)
+        .where('height > :height', { height })
+        .execute();
+      // rollback blockhistory
+      await queryRunner.connection
+        .createQueryBuilder()
+        .createQueryBuilder()
+        .delete()
+        .from(BlockHistory)
+        .where('height > :height', { height })
+        .execute();
+
+      // commit transaction
+      await queryRunner.commitTransaction();
+
       return this.sessionSerial;
     } catch (err) {
       this.log.error(
