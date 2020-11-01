@@ -386,9 +386,13 @@ describe('SmartDB.rollbackBlock()', () => {
     // rollback
     await sut.rollbackBlock(String(1));
 
-    // now Block and BlockHistory
+    // only block1 and blockhistory1 should be in the database
     // 1
-    // todo check if Block 1 is in postgres
+    const block1InDbAfter = await loadBlock(String(1));
+    expect(block1InDbAfter).toEqual(block1);
+
+    const blockHistory1InDbAfter = await loadBlockHistory(String(1));
+    expect(blockHistory1InDbAfter).toEqual(blockHistory1InDb);
 
     // 2
     const block2InDbAfter = await loadBlock(String(2));
