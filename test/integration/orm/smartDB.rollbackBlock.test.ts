@@ -298,7 +298,7 @@ describe('SmartDB.rollbackBlock()', () => {
     done();
   });
 
-  it.only('rollbackBlock() - delete block and blockHistory on rollback', async done => {
+  it('rollbackBlock() - delete block and blockHistory on rollback', async done => {
     await saveGenesisBlock(sut);
 
     // persist
