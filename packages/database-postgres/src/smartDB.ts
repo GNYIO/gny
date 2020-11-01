@@ -283,41 +283,23 @@ export class SmartDB extends EventEmitter {
     this.currentBlock = block;
   }
 
-  private async appendBlock(block: Block, changes: EntityChanges[]) {
-    await this.connection
-      .createQueryBuilder()
-      .insert()
-      .into(Block)
-      .values([block])
-      .execute();
-    await this.connection
-      .createQueryBuilder()
-      .insert()
-      .into(BlockHistory)
-      .values([
-        {
-          height: block.height,
-          history: JSON.stringify(changes, null, 2),
-        },
-      ])
-      .execute();
-  }
-
   private async deleteLastBlock(height: string) {
-    // if (height !== this.lastBlockHeight) throw new Error("invalid last block height '" + token + "'");
+    await this.connection.transaction(async transactionalEntityManager => {
+      await transactionalEntityManager
+        .createQueryBuilder()
+        .delete()
+        .from(Block)
+        .where('height = :height', { height })
+        .execute();
 
-    await this.connection
-      .createQueryBuilder()
-      .delete()
-      .from(Block)
-      .where('height = :height', { height })
-      .execute();
-    await this.connection
-      .createQueryBuilder()
-      .delete()
-      .from(BlockHistory)
-      .where('height = :height', { height })
-      .execute();
+      await transactionalEntityManager
+        .createQueryBuilder()
+        .delete()
+        .from(BlockHistory)
+        .where('height = :height', { height })
+        .execute();
+    });
+
     this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
       .minus(1)
       .toFixed();
@@ -333,14 +315,17 @@ export class SmartDB extends EventEmitter {
     this.preCommitBlock(this.currentBlock);
     const value = Object.assign({}, this.currentBlock);
     Reflect.deleteProperty(value, 'transactions');
-    // await this.blockDB.appendBlock(value, this.blockSession.getChanges());
-    await this.appendBlock(value, this.blockSession.getChanges());
 
-    this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
-      .plus(1)
-      .toFixed();
     try {
-      await this.blockSession.saveChanges(this.currentBlock.height);
+      this._lastBlockHeight = new BigNumber(this._lastBlockHeight)
+        .plus(1)
+        .toFixed();
+
+      await this.blockSession.saveChanges(
+        value,
+        this.blockSession.getChanges(),
+        this.currentBlock.height
+      );
       this.cachedBlocks.push(this.currentBlock);
       this.currentBlock = null;
       this.postCommitBlock(this.lastBlock);
@@ -352,7 +337,6 @@ export class SmartDB extends EventEmitter {
         'FAILD commitBlock ( height = ' + this.currentBlock.height + ' )',
         err
       );
-      await this.deleteLastBlock(value.height);
 
       throw err;
     }

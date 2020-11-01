@@ -7,12 +7,14 @@ import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import {
   BasicEntityTracker,
   LoadChangesHistoryAction,
+  EntityChanges,
 } from './basicEntityTracker';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
 import { Block } from './entity/Block';
 import { Transaction } from './entity/Transaction';
+import { BlockHistory } from './entity/BlockHistory';
 import * as _ from 'lodash';
 import { BigNumber } from 'bignumber.js';
 
@@ -331,7 +333,11 @@ export class DbSession {
     return false;
   }
 
-  public async saveChanges(height?: string) {
+  public async saveChanges(
+    block: Block,
+    changes: EntityChanges[],
+    height?: string
+  ) {
     const realHeight =
       height ||
       (this.sessionSerial = new BigNumber(this.sessionSerial)
@@ -345,7 +351,30 @@ export class DbSession {
     const queryRunner = await this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
+      // insert Block
+      await queryRunner.connection
+        .createQueryBuilder()
+        .insert()
+        .into(Block)
+        .values([block])
+        .execute();
+
+      // insert BlockHistory
+      await queryRunner.connection
+        .createQueryBuilder()
+        .insert()
+        .into(BlockHistory)
+        .values([
+          {
+            height: block.height,
+            history: JSON.stringify(changes, null, 2),
+          },
+        ])
+        .execute();
+
+      // insert the rest
       for (let i = 0; i < value.length; ++i) {
         const one = value[i];
         // @ts-ignore
