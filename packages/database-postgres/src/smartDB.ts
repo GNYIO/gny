@@ -379,8 +379,11 @@ export class SmartDB extends EventEmitter {
     this.preRollbackBlock(currentHeight, targetHeight);
     try {
       await this.blockSession.rollbackChanges(targetHeight);
-      for (; this.lastBlockHeight > targetHeight; ) {
-        // await this.blockDB.deleteLastBlock(this.lastBlockHeight);
+      for (
+        ;
+        new BigNumber(this.lastBlockHeight).isGreaterThan(targetHeight);
+
+      ) {
         await this.deleteLastBlock(this.lastBlockHeight);
         this.cachedBlocks.evitUntil(this.lastBlockHeight);
       }
