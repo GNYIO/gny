@@ -1,4 +1,7 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import {
+  SmartDB,
+  BlockHistory,
+} from '../../../packages/database-postgres/src/smartDB';
 import { cloneDeep } from 'lodash';
 import * as lib from '../lib';
 import { Block } from '../../../packages/database-postgres/src/entity/Block';
@@ -291,6 +294,129 @@ describe('SmartDB.rollbackBlock()', () => {
       condition: key,
     });
     expect(inDbAfter.producedBlocks).toEqual(String(0));
+
+    done();
+  });
+
+  it.only('rollbackBlock() - delete block and blockHistory on rollback', async done => {
+    await saveGenesisBlock(sut);
+
+    // persist
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    // persist
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+    await sut.commitBlock();
+
+    // persist
+    const block3 = createBlock(String(3));
+    sut.beginBlock(block3);
+    await sut.commitBlock();
+
+    // persist
+    const block4 = createBlock(String(4));
+    sut.beginBlock(block4);
+    await sut.commitBlock();
+
+    // persist
+    const block5 = createBlock(String(5));
+    sut.beginBlock(block5);
+    await sut.commitBlock();
+
+    async function loadBlock(height: string) {
+      const block = await sut.findOne<Block>(Block, {
+        condition: {
+          height,
+        },
+      });
+      if (block === undefined) {
+        return undefined;
+      }
+      block.transactions = [];
+      return block;
+    }
+
+    async function loadBlockHistory(height: string) {
+      const blockHistory = await sut.findOne<BlockHistory>(BlockHistory, {
+        condition: {
+          height,
+        },
+      });
+      return blockHistory;
+    }
+
+    // 1
+    const block1InDb = await loadBlock(String(1));
+    expect(block1InDb).toEqual(block1);
+
+    const blockHistory1InDb = await loadBlockHistory(String(1));
+    expect(blockHistory1InDb).not.toBeUndefined();
+
+    // 2
+    const block2InDb = await loadBlock(String(2));
+    expect(block2InDb).toEqual(block2);
+
+    const blockHistory2InDb = await loadBlockHistory(String(2));
+    expect(blockHistory2InDb).not.toBeUndefined();
+
+    // 3
+    const block3InDb = await loadBlock(String(3));
+    expect(block3InDb).toEqual(block3);
+
+    const blockHistory3InDb = await loadBlockHistory(String(3));
+    expect(blockHistory3InDb).not.toBeUndefined();
+
+    // 4
+    const block4InDb = await loadBlock(String(4));
+    expect(block4InDb).toEqual(block4);
+
+    const blockHistory4InDb = await loadBlockHistory(String(4));
+    expect(blockHistory4InDb).not.toBeUndefined();
+
+    // 5
+    const block5InDb = await loadBlock(String(5));
+    expect(block5InDb).toEqual(block5);
+
+    const blockHistory5InDb = await loadBlockHistory(String(5));
+    expect(blockHistory5InDb).not.toBeUndefined();
+
+    // rollback
+    await sut.rollbackBlock(String(1));
+
+    // now Block and BlockHistory
+    // 1
+    // todo check if Block 1 is in postgres
+
+    // 2
+    const block2InDbAfter = await loadBlock(String(2));
+    expect(block2InDbAfter).toBeUndefined();
+
+    const blockHistory2InDbAfter = await loadBlockHistory(String(2));
+    expect(blockHistory2InDbAfter).toBeUndefined();
+
+    // 3
+    const block3InDbAfter = await loadBlock(String(3));
+    expect(block3InDbAfter).toBeUndefined();
+
+    const blockHistory3InDbAfter = await loadBlockHistory(String(3));
+    expect(blockHistory3InDbAfter).toBeUndefined();
+
+    // 4
+    const block4InDbAfter = await loadBlock(String(4));
+    expect(block4InDbAfter).toBeUndefined();
+
+    const blockHistory4InDbAfter = await loadBlockHistory(String(4));
+    expect(blockHistory4InDbAfter).toBeUndefined();
+
+    // 5
+    const block5InDbAfter = await loadBlock(String(5));
+    expect(block5InDbAfter).toBeUndefined();
+
+    const blockHistory5InDbAfter = await loadBlockHistory(String(5));
+    expect(blockHistory5InDbAfter).toBeUndefined();
 
     done();
   });
