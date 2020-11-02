@@ -422,4 +422,101 @@ describe('SmartDB.rollbackBlock()', () => {
 
     done();
   });
+
+  it.only('rollbackBlock() - check MODIFY with load', async done => {
+    await saveGenesisBlock(sut);
+
+    // create account
+    const account = createAccount('G34VFMsS5TuiMNPnQ2YbczXvQpJE2');
+    const createdAccount = await sut.create<Account>(Account, account);
+
+    // persist change
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    const inCache1 = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache1).toEqual(createdAccount);
+
+    await sut.update<Account>(
+      Account,
+      {
+        gny: String(10),
+      },
+      {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      }
+    );
+
+    // persist change
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+    await sut.commitBlock();
+
+    const inCache2 = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache2).toEqual({
+      ...createdAccount,
+      gny: String(10),
+      _version_: 2,
+    });
+
+    await sut.update<Account>(
+      Account,
+      {
+        isDelegate: 1,
+      },
+      {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      }
+    );
+
+    // persist change
+    const block3 = createBlock(String(3));
+    sut.beginBlock(block3);
+    await sut.commitBlock();
+
+    const inCache3 = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache3).toEqual({
+      ...createdAccount,
+      gny: String(10),
+      isDelegate: 1,
+      _version_: 3,
+    });
+
+    // rollback to height 2, then check cache
+    await sut.rollbackBlock(String(2));
+
+    const inCache2After = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache2After).toEqual({
+      ...createdAccount,
+      gny: String(10),
+      _version_: 2,
+    });
+
+    // rollback to height 1, then check cache
+    await sut.rollbackBlock(String(1));
+
+    const inCache1After = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache1After).toEqual(createdAccount);
+
+    // rollback to height 0, then check cache
+    await sut.rollbackBlock(String(0));
+
+    const inCache0After = await sut.load<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+    expect(inCache0After).toEqual(undefined);
+
+    done();
+  });
 });
