@@ -400,9 +400,6 @@ export class DbSession {
   }
 
   public async rollbackChanges(height: string) {
-    console.log(
-      `rollbackChanges, sessionSerial: ${this.sessionSerial}, height: ${height}`
-    );
     if (new BigNumber(this.sessionSerial).isLessThan(height)) {
       return this.sessionSerial;
     }

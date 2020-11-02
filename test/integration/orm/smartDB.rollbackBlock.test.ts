@@ -110,31 +110,29 @@ describe('SmartDB.rollbackBlock()', () => {
     done();
   }, 5000);
 
-  it.skip('rollbackBlock() - to previous block (but not cached)', async done => {
-    const customSut = new SmartDB(logger, credentials);
-    await customSut.init();
-    await saveGenesisBlock(customSut);
+  it('rollbackBlock() - to previous block (but not cached)', async done => {
+    await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
-    customSut.beginBlock(first);
-    await customSut.commitBlock();
+    sut.beginBlock(first);
+    await sut.commitBlock();
 
     const second = createBlock(String(2));
-    customSut.beginBlock(second);
-    await customSut.commitBlock();
+    sut.beginBlock(second);
+    await sut.commitBlock();
 
     const third = createBlock(String(3));
-    customSut.beginBlock(third);
-    await customSut.commitBlock();
+    sut.beginBlock(third);
+    await sut.commitBlock();
 
     // before
-    expect(customSut.lastBlockHeight).toEqual(String(3));
+    expect(sut.lastBlockHeight).toEqual(String(3));
 
     // act
-    await customSut.rollbackBlock(String(1));
+    await sut.rollbackBlock(String(1));
 
     // after
-    expect(customSut.lastBlockHeight).toEqual(String(1));
+    expect(sut.lastBlockHeight).toEqual(String(1));
 
     done();
   }, 5000);
