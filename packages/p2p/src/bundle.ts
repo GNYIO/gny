@@ -11,10 +11,6 @@ import {
   P2PSubscribeHandler,
   SimplePeerInfo,
   PeerInfoWrapper,
-  ApiResult,
-  NewBlockWrapper,
-  BlockAndVotes,
-  BlockIdWrapper,
 } from '@gny/interfaces';
 const Mplex = require('libp2p-mplex');
 const SECIO = require('libp2p-secio');
@@ -34,6 +30,7 @@ import {
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
+  V1_BROADCAST_HELLO_BACK,
 } from './protocols';
 
 export class Bundle extends libp2p {
@@ -105,6 +102,15 @@ export class Bundle extends libp2p {
     await this.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
   }
 
+  public async broadcastHelloBackAsync() {
+    if (!this.isStarted()) {
+      return;
+    }
+    await this.pubsub.publish(
+      V1_BROADCAST_HELLO_BACK,
+      Buffer.from('hello back')
+    );
+  }
   public async broadcastProposeAsync(data: Buffer) {
     if (!this.isStarted()) {
       return;
@@ -144,6 +150,23 @@ export class Bundle extends libp2p {
         )}`
       );
       return result.simple;
+    }
+    return undefined;
+  }
+
+  public getConnectedRandomNodePeerInfo() {
+    const allConnectedPeersPeerInfo = this.getAllConnectedPeersPeerInfo();
+    if (allConnectedPeersPeerInfo.length > 0) {
+      const index = Math.floor(
+        Math.random() * allConnectedPeersPeerInfo.length
+      );
+      const result = allConnectedPeersPeerInfo[index];
+      this.logger.info(
+        `[p2p] allConnectedPeersPeerInfo: ${result.id}; ${JSON.stringify(
+          result
+        )}`
+      );
+      return result;
     }
     return undefined;
   }
@@ -197,6 +220,14 @@ export class Bundle extends libp2p {
     return result;
   }
 
+  getAllConnectedPeersPeerInfo(): PeerInfo[] {
+    const copy = cloneDeep(
+      this.peerBook.getAllArray().filter(x => x.isConnected())
+    );
+
+    return copy;
+  }
+
   info() {
     const result: Pick<PeerInfoWrapper, 'id' | 'multiaddrs'> = {
       id: this.peerInfo.id.toB58String(),
@@ -246,20 +277,32 @@ export class Bundle extends libp2p {
           return reject(err);
         }
 
-        pull(
-          pull.values([data]),
-          conn,
-          pull.collect((err: Error, returnedData: Buffer[]) => {
-            if (err) {
-              this.logger.error(
-                `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
-              );
-              return reject(err);
-            }
+        try {
+          pull(
+            pull.values([data]),
+            conn,
+            pull.collect((err: Error, returnedData: Buffer[]) => {
+              if (err) {
+                this.logger.error(
+                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+                );
+                return reject(err);
+              }
 
-            return resolve(returnedData[0]);
-          })
-        );
+              const result = returnedData[0];
+              if (!Buffer.isBuffer(result)) {
+                return reject(new Error('returned value is not a Buffer'));
+              }
+
+              return resolve(result);
+            })
+          );
+        } catch (err) {
+          this.logger.error(
+            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+          );
+          return reject(err);
+        }
       });
     });
   }
@@ -299,6 +342,7 @@ export class Bundle extends libp2p {
   }
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
+    this.logger.info(`[p2p] handle push only "${protocol}"`);
     this.handle(protocol, function(protocol: string, conn) {
       try {
         pull(conn, pull.collect(cb));

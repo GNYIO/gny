@@ -5,6 +5,7 @@ import { EventEmitter } from 'events';
 import * as express from 'express';
 import { Server } from 'http';
 import * as SocketIO from 'socket.io';
+import { SetRequired } from 'type-fest';
 
 import BigNumber from 'bignumber.js';
 
@@ -248,6 +249,8 @@ export interface IBlock {
   transactions?: ITransaction[];
 }
 
+export type IBlockWithTransactions = SetRequired<IBlock, 'transactions'>;
+
 export interface IBlockWithoutId {
   height: string;
   version: number;
@@ -439,7 +442,7 @@ export interface BlockPropose {
 }
 
 export interface BlockAndVotes {
-  block: IBlock;
+  block: IBlockWithTransactions;
   votes: string;
 }
 
@@ -553,6 +556,11 @@ export interface BlockWrapper {
 export interface BlocksWrapper {
   count?: string;
   blocks: IBlock[];
+}
+
+export interface BlocksWrapperParams {
+  limit: number;
+  lastBlockId: string;
 }
 
 export interface HeightWrapper {
@@ -701,11 +709,6 @@ export interface TransfersWrapper {
 export interface AmountWrapper {
   count: number;
   strTotalAmount: string;
-}
-
-export interface NewBlockWrapper {
-  block: IBlock;
-  votes: string;
 }
 
 export interface CommonBlockWrapper {

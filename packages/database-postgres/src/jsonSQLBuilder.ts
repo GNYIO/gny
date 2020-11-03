@@ -28,7 +28,7 @@ export type SqlAndParameters = {
 
 export class JsonSqlBuilder {
   private getTableName(key: string) {
-    return lodash.lowerCase(key);
+    return lodash.lowerCase(key).replace(' ', '_');
   }
 
   private getPrimaryKeyCondition(schema: ModelSchema, columnName) {

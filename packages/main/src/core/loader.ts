@@ -1,32 +1,21 @@
-import { slots } from '@gny/utils';
-import { TIMEOUT } from '@gny/utils';
-import {
-  PeerNode,
-  IBlock,
-  ITransaction,
-  ICoreModule,
-  UnconfirmedTransaction,
-} from '@gny/interfaces';
-import { TransactionBase } from '@gny/base';
+import { PeerNode, IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
 import { BlocksHelper } from './BlocksHelper';
-import { isPeerNode } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
-import Transactions from './transactions';
 import Blocks from './blocks';
 import Peer from './peer';
-import { joi } from '@gny/extended-joi';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
+import { isHeightWrapper } from '@gny/type-validation';
+import * as PeerInfo from 'peer-info';
+import { getB58String } from '@gny/p2p';
 
 export default class Loader implements ICoreModule {
-  public static async findUpdate(lastBlock: IBlock, peer: PeerNode) {
+  public static async findUpdate(lastBlock: IBlock, peer: PeerInfo) {
     let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
       state,
       lastBlock
     );
-
-    const peerStr = LoaderHelper.ExtractPeerInfosMinusOne(peer);
 
     let commonBlock: IBlock;
     try {
@@ -47,7 +36,9 @@ export default class Loader implements ICoreModule {
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
-      }) with peer ${peerStr}, last block height is ${newestLastBlock.height}`
+      }) with peer ${getB58String(peer)}, last block height is ${
+        newestLastBlock.height
+      }`
     );
 
     const toRemove: string = LoaderHelper.GetBlockDifference(
@@ -56,8 +47,8 @@ export default class Loader implements ICoreModule {
     );
 
     if (LoaderHelper.IsLongFork(toRemove)) {
-      global.library.logger.error(`long fork with peer ${peerStr}`);
-      throw new Error(`long fork with peer ${peerStr}`);
+      global.library.logger.error(`long fork with peer ${getB58String(peer)}`);
+      throw new Error(`long fork with peer ${getB58String(peer)}`);
     }
 
     try {
@@ -84,47 +75,47 @@ export default class Loader implements ICoreModule {
       global.library.logger.error(e);
       throw e;
     }
-    global.library.logger.debug(`Loading blocks from peer ${peerStr}`);
+    global.library.logger.debug(
+      `Loading blocks from peer ${getB58String(peer)}`
+    );
     await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
     return;
   }
 
   public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
-    let result;
+    const randomNode: PeerInfo = Peer.p2p.getConnectedRandomNodePeerInfo();
+    if (!randomNode) {
+      throw new Error('[p2p] no connected node found for loadBlocks()');
+    }
+
+    let result: HeightWrapper;
     try {
-      result = await Peer.randomRequestAsync('getHeight', {});
+      result = await Peer.p2p.requestHeight(randomNode);
     } catch (err) {
+      global.library.logger.error(
+        `[syncing] could not requestHeight from peer: ${getB58String(
+          randomNode
+        )}`
+      );
+      global.library.logger.error(err);
       throw err;
     }
 
-    const ret = result.data;
-    const peer = result.node;
+    global.library.logger.info(
+      `[syncing] requestHeight: ${JSON.stringify(
+        result,
+        null,
+        2
+      )}, from ${getB58String(randomNode)}`
+    );
 
-    const peerStr = `${peer.host}:${peer.port - 1}`;
-    global.library.logger.info(`Check blockchain on ${peerStr}`);
-
-    // TODO: check if really integer!
-    ret.height = new BigNumber(ret.height).toFixed();
-
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-    });
-    const report = joi.validate(ret, schema);
-    if (report.error) {
-      global.library.logger.info(
-        `Failed to parse blockchain height: ${peerStr}\n${report.error.message}`
-      );
-      throw new Error('Failed to parse blockchain height');
-    }
-    if (new BigNumber(lastBlock.height).lt(ret.height)) {
-      StateHelper.SetBlocksToSync(ret.height);
+    if (new BigNumber(lastBlock.height).lt(result.height)) {
+      // TODO
+      StateHelper.SetBlocksToSync(Number(result.height));
 
       if (lastBlock.id !== genesisBlock.id) {
         try {
-          await Loader.findUpdate(lastBlock, peer);
+          await Loader.findUpdate(lastBlock, randomNode);
           return;
         } catch (err) {
           global.library.logger.error(
@@ -135,10 +126,10 @@ export default class Loader implements ICoreModule {
       }
 
       global.library.logger.debug(
-        `Loading blocks from genesis from ${peer.host}:${peer.port - 1}`
+        `Loading blocks from genesis from ${JSON.stringify(randomNode)}`
       );
       return await Blocks.loadBlocksFromPeer(
-        peer,
+        randomNode,
         global.library.genesisBlock.id
       );
     }
@@ -159,7 +150,8 @@ export default class Loader implements ICoreModule {
       try {
         await Loader.loadBlocks(lastBlock, global.library.genesisBlock);
       } catch (err) {
-        global.library.logger.warn('loadBlocks warning:', err.message);
+        global.library.logger.warn('loadBlocks warning:');
+        global.library.logger.warn(err);
       }
       StateHelper.SetIsSyncing(false);
       StateHelper.SetBlocksToSync(0);
@@ -168,7 +160,7 @@ export default class Loader implements ICoreModule {
     });
   };
 
-  public static syncBlocksFromPeer = (peer: PeerNode) => {
+  public static syncBlocksFromPeer = (peer: PeerInfo) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
     if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {

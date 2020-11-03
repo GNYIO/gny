@@ -7,12 +7,14 @@ import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
 import {
   BasicEntityTracker,
   LoadChangesHistoryAction,
+  EntityChanges,
 } from './basicEntityTracker';
 import { Connection, ObjectLiteral } from 'typeorm';
 import { ModelSchema } from './modelSchema';
 
 import { Block } from './entity/Block';
 import { Transaction } from './entity/Transaction';
+import { BlockHistory } from './entity/BlockHistory';
 import * as _ from 'lodash';
 import { BigNumber } from 'bignumber.js';
 
@@ -331,7 +333,11 @@ export class DbSession {
     return false;
   }
 
-  public async saveChanges(height?: string) {
+  public async saveChanges(
+    block: Block,
+    changes: EntityChanges[],
+    height?: string
+  ) {
     const realHeight =
       height ||
       (this.sessionSerial = new BigNumber(this.sessionSerial)
@@ -345,7 +351,30 @@ export class DbSession {
     const queryRunner = await this.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
     try {
+      // insert Block
+      await queryRunner.connection
+        .createQueryBuilder()
+        .insert()
+        .into(Block)
+        .values([block])
+        .execute();
+
+      // insert BlockHistory
+      await queryRunner.connection
+        .createQueryBuilder()
+        .insert()
+        .into(BlockHistory)
+        .values([
+          {
+            height: block.height,
+            history: JSON.stringify(changes, null, 2),
+          },
+        ])
+        .execute();
+
+      // insert the rest
       for (let i = 0; i < value.length; ++i) {
         const one = value[i];
         // @ts-ignore
@@ -391,9 +420,6 @@ export class DbSession {
         await queryRunner.query(one.query);
       }
 
-      // await this.connection.executeBatch(rollbackSql);
-      await queryRunner.commitTransaction();
-
       this.entityTracker.rejectChanges();
       await this.entityTracker.rollbackChanges(
         new BigNumber(height).plus(1).toFixed()
@@ -407,6 +433,26 @@ export class DbSession {
           this.sessionSerial +
           ')'
       );
+
+      // rollback block
+      await queryRunner.connection
+        .createQueryBuilder()
+        .delete()
+        .from(Block)
+        .where('height > :height', { height })
+        .execute();
+      // rollback blockhistory
+      await queryRunner.connection
+        .createQueryBuilder()
+        .createQueryBuilder()
+        .delete()
+        .from(BlockHistory)
+        .where('height > :height', { height })
+        .execute();
+
+      // commit transaction
+      await queryRunner.commitTransaction();
+
       return this.sessionSerial;
     } catch (err) {
       this.log.error(

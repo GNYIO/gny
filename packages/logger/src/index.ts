@@ -78,6 +78,7 @@ function orchestrateWinstonLogger() {
       format: winstonFormat,
       transports: [
         new transports.Console({
+          format: consoleFormat,
           level: 'silly',
         }),
         mongoDBTransport,

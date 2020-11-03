@@ -1,13 +1,5 @@
 import * as Multiaddr from 'multiaddr';
-import {
-  PeerNode,
-  ILogger,
-  P2PMessage,
-  ApiResult,
-  NewBlockWrapper,
-  BlockIdWrapper,
-  BlockAndVotes,
-} from '@gny/interfaces';
+import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
 import { Bundle } from './bundle';
 import * as PeerInfo from 'peer-info';
 

@@ -16,15 +16,15 @@ import {
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
-import { isBlockPropose, isNewBlockMessage } from '@gny/type-validation';
+import {
+  isBlockPropose,
+  isNewBlockMessage,
+  isBlockAndVotes,
+} from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import {
-  Bundle,
-  sendNewBlockQuery,
-  getMultiAddrsThatIsNotLocalAddress,
-} from '@gny/p2p';
+import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
 import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
 
@@ -95,7 +95,9 @@ export default class Transport implements ICoreModule {
   // peerEvent
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     if (StateHelper.IsSyncing()) {
-      // TODO access state
+      global.library.logger.info(
+        `[p2p] ignoring broadcasting newBlockHeader because we are syncing`
+      );
       return;
     }
 
@@ -129,9 +131,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    if (!result || !result.block || !result.votes) {
+    if (!isBlockAndVotes(result)) {
       global.library.logger.error(
-        `Invalid block data ${JSON.stringify(result, null, 2)}`
+        `[p2p] validation failed blockAndVotes: ${JSON.stringify(
+          result,
+          null,
+          2
+        )}`
       );
       return;
     }
@@ -172,16 +178,18 @@ export default class Transport implements ICoreModule {
       global.library.logger.error(e);
     }
 
-    global.library.bus.message(
-      'onReceiveBlock',
-      message.peerInfo,
-      block,
-      votes
-    );
+    global.library.bus.message('onReceiveBlock', peerInfo, block, votes);
   };
 
   // peerEvent
   public static receivePeer_Propose = (message: P2PMessage) => {
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring propose because we are syncing`
+      );
+      return;
+    }
+
     global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
@@ -208,6 +216,13 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_Transaction = (message: P2PMessage) => {
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring transaction because we are syncing`
+      );
+      return;
+    }
+
     let unconfirmedTrs: UnconfirmedTransaction;
     try {
       unconfirmedTrs = global.library.protobuf.decodeUnconfirmedTransaction(
@@ -250,9 +265,27 @@ export default class Transport implements ICoreModule {
       global.library.logger.info(
         `[p2p] afer "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
       );
+
+      await Peer.p2p.broadcastHelloBackAsync();
     } catch (err) {
       global.library.logger.error(
         `[p2p] received "hello" error: ${err.message}`
+      );
+      global.library.logger.error(err);
+    }
+  };
+
+  public static receivePeer_HelloBack = async (message: P2PMessage) => {
+    try {
+      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
+
+      await Peer.p2p.dial(peerInfo);
+      global.library.logger.info(
+        `[p2p] afer "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
+      );
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] received "helloBack" error: ${err.message}`
       );
       global.library.logger.error(err);
     }

@@ -1,6 +1,6 @@
 {
   "name": "@gny/interfaces",
-  "version": "1.0.31",
+  "version": "1.0.33",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -18,6 +18,7 @@
     "@types/socket.io": "^2.1.2",
     "express": "^4.16.4",
     "socket.io": "^2.2.0",
-    "tracer": "^0.9.9"
+    "tracer": "^0.9.9",
+    "type-fest": "^0.18.0"
   }
 }

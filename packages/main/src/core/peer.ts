@@ -10,14 +10,9 @@ import {
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
+  V1_BROADCAST_HELLO_BACK,
 } from '@gny/p2p';
-import {
-  PeerNode,
-  ICoreModule,
-  SimplePeerId,
-  ApiResult,
-  NewBlockWrapper,
-} from '@gny/interfaces';
+import { PeerNode, ICoreModule } from '@gny/interfaces';
 import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
 
@@ -196,6 +191,10 @@ export default class Peer implements ICoreModule {
         Peer.p2p.subscribeCustom(
           V1_BROADCAST_HELLO,
           Transport.receivePeer_Hello
+        );
+        Peer.p2p.subscribeCustom(
+          V1_BROADCAST_HELLO_BACK,
+          Transport.receivePeer_HelloBack
         );
 
         global.library.logger.info(`[p2p] sleep for 10 seconds`);

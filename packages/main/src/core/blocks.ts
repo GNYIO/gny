@@ -17,6 +17,9 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   P2PMessage,
+  BlocksWrapper,
+  BlocksWrapperParams,
+  IBlockWithTransactions,
 } from '@gny/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces';
 import pWhilst from 'p-whilst';
@@ -42,6 +45,8 @@ import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
+import * as PeerInfo from 'peer-info';
+import { getB58String } from '@gny/p2p';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -75,22 +80,17 @@ export default class Blocks implements ICoreModule {
 
   // todo look at core/loader
   public static getCommonBlock = async (
-    peer: PeerNode,
+    peer: PeerInfo,
     lastBlockHeight: string
   ): Promise<IBlock> => {
-    let params: CommonBlockParams;
-    try {
-      params = await Blocks.getIdSequence2(
-        lastBlockHeight,
-        global.app.sdb.getBlocksByHeightRange
-      );
-    } catch (e) {
-      throw e;
-    }
+    const params: CommonBlockParams = await Blocks.getIdSequence2(
+      lastBlockHeight,
+      global.app.sdb.getBlocksByHeightRange
+    );
 
     let ret: CommonBlockResult;
     try {
-      ret = await Peer.request('commonBlock', params, peer);
+      ret = await Peer.p2p.requestCommonBlock(peer, params);
     } catch (err) {
       global.app.logger.info(
         `Peer.request('commonBlock'): ${err &&
@@ -595,15 +595,16 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static loadBlocksFromPeer = async (peer: PeerNode, id: string) => {
+  public static loadBlocksFromPeer = async (peer: PeerInfo, id: string) => {
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
     let lastCommonBlockId = id;
 
     global.app.logger.info(
-      `start to sync 30 * 200 blocks. From peer: ${peer.host}:${peer.port -
-        1}, last commonBlock: ${id}`
+      `start to sync 30 * 200 blocks. From peer: ${JSON.stringify(
+        peer
+      )}, last commonBlock: ${id}`
     );
 
     await pWhilst(
@@ -611,13 +612,13 @@ export default class Blocks implements ICoreModule {
       async () => {
         count++;
         const limit = 200;
-        const params = {
+        const params: BlocksWrapperParams = {
           limit,
           lastBlockId: lastCommonBlockId,
         };
-        let body;
+        let body: IBlockWithTransactions[];
         try {
-          body = await Peer.request('blocks', params, peer);
+          body = await Peer.p2p.requestBlocks(peer, params);
         } catch (err) {
           global.library.logger.error(
             JSON.stringify(err.response ? err.response.data : err.message)
@@ -627,14 +628,15 @@ export default class Blocks implements ICoreModule {
         if (!body) {
           throw new Error('Invalid response for blocks request');
         }
-        const blocks = body.blocks as IBlock[];
+        const blocks = body as IBlockWithTransactions[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
           loaded = true;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
-        const address = `${peer.host}:${peer.port - 1}`;
-        // refactor
-        global.app.logger.info(`Loading ${num} blocks from ${address}`);
+
+        global.app.logger.info(
+          `Loading ${num} blocks from ${getB58String(peer)}`
+        );
         try {
           for (const block of blocks) {
             let state = StateHelper.getState();
@@ -656,13 +658,15 @@ export default class Blocks implements ICoreModule {
             if (stateResult.success) {
               lastCommonBlockId = block.id;
               global.app.logger.info(
-                `Block ${block.id} loaded from ${address} at ${block.height}`
+                `Block ${block.id} loaded from ${getB58String(peer)} at ${
+                  block.height
+                }`
               );
             } else {
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
-                } loaded from ${address} at ${block.height}`
+                } loaded from ${getB58String(peer)} at ${block.height}`
               );
               global.app.logger.info('sleep for 10seconds');
               await snooze(10 * 1000);
@@ -772,10 +776,15 @@ export default class Blocks implements ICoreModule {
 
   // Events
   public static onReceiveBlock = (
-    peer: PeerNode,
+    peerInfo: PeerInfo,
     block: IBlock,
     votes: ManyVotes
   ) => {
+    // remove later
+    global.library.logger.info(
+      `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
+    );
+
     if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
       // TODO access state
       return;
@@ -792,15 +801,18 @@ export default class Blocks implements ICoreModule {
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         global.library.logger.warn('Receive new block header from long fork');
         global.library.logger.info(
-          `[syncing] received block h: ${block.height} from "${peer.host}:${
-            peer.port
-          }". seem that we are not up to date. Start syncing from a random peer`
+          `[syncing] received block h: ${block.height} from "${getB58String(
+            peerInfo
+          )}". seem that we are not up to date. Start syncing from a random peer`
         );
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
-        Loader.syncBlocksFromPeer(peer);
+        global.library.logger.info(
+          `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerInfo}`
+        );
+        Loader.syncBlocksFromPeer(peerInfo);
         return cb();
       }
 
@@ -942,24 +954,33 @@ export default class Blocks implements ICoreModule {
             next(undefined, activeKeypairs);
           },
           async (activeKeypairs: KeyPair[], next: Next) => {
-            if (activeKeypairs && activeKeypairs.length > 0) {
-              const votes = ConsensusBase.createVotes(activeKeypairs, propose);
-              global.library.logger.info(
-                `created "${
-                  votes.signatures.length
-                }" votes for propose of block: ${propose.id}, h: ${
-                  propose.height
-                }`
+            try {
+              if (activeKeypairs && activeKeypairs.length > 0) {
+                const votes = ConsensusBase.createVotes(
+                  activeKeypairs,
+                  propose
+                );
+                global.library.logger.info(
+                  `created "${
+                    votes.signatures.length
+                  }" votes for propose of block: ${propose.id}, h: ${
+                    propose.height
+                  }`
+                );
+
+                const bundle: Bundle = Peer.p2p;
+
+                const peerInfo = await bundle.findPeerInfoInDHT(message);
+
+                await bundle.pushVotesToPeer(peerInfo, votes);
+
+                state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+              }
+            } catch (err) {
+              global.library.logger.error(
+                `[p2p] failed to create and push VOTES: "${err.message}"`
               );
-
-              const bundle: Bundle = Peer.p2p;
-
-              const peerInfo = await bundle.findPeerInfoInDHT(message);
-              await bundle.pushVotesToPeer(peerInfo, votes);
-
-              // can this stop|halt the whole node?
-              // no try/catch
-              state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+              global.library.logger.error(err);
             }
 
             // important
@@ -1015,7 +1036,11 @@ export default class Blocks implements ICoreModule {
 
   public static onReceiveVotes = (votes: ManyVotes) => {
     if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
-      // TODO: use state
+      global.library.logger.info(
+        `[p2p] currently syncing ignored received Votes for height: ${
+          votes.height
+        }`
+      );
       return;
     }
 
