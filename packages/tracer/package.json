@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@gny/interfaces": "1.0.30",
+    "@gny/interfaces": "1.0.33",
     "jaeger-client": "^3.18.0",
     "opentracing": "^0.14.4"
   }
