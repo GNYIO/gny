@@ -56,6 +56,13 @@ export default class Peer implements ICoreModule {
       }
       return result.data;
     } catch (err) {
+      const span = global.app.tracer.startSpan('request');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to request remote peer: ${err.message}`,
+      });
+      span.finish();
+
       global.library.logger.error(
         `Failed to request remote peer: ${err.message}`
       );
@@ -130,6 +137,13 @@ export default class Peer implements ICoreModule {
       .then(() => {
         global.library.logger.info('[p2p] libp2p started');
 
+        const span = global.app.tracer.startSpan('onBlockchainReady');
+        span.setTag('error', true);
+        span.log({
+          value: `publicIp is: ${global.library.config.publicIp}`,
+        });
+        span.finish();
+
         global.library.logger.error(
           `[p2p] publicIp is: ${global.library.config.publicIp}`
         );
@@ -203,6 +217,13 @@ export default class Peer implements ICoreModule {
       .catch(err => {
         global.library.logger.error('Failed to init dht');
         global.library.logger.error(err);
+
+        const span = global.app.tracer.startSpan('onBlockchainReady');
+        span.setTag('error', true);
+        span.log({
+          value: `Failed to init dht ${err}`,
+        });
+        span.finish();
       });
   };
 

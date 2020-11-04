@@ -59,6 +59,13 @@ export default class BlocksApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
+        const span = this.library.tracer.startSpan('BlocksApi');
+        span.setTag('error', true);
+        span.log({
+          value: `req.url ${err}`,
+        });
+        span.finish();
+
         this.library.logger.error(req.url);
         this.library.logger.error(err);
 
@@ -105,6 +112,13 @@ export default class BlocksApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
+      const span = this.library.tracer.startSpan('BlocksApi.getBlock');
+      span.setTag('error', true);
+      span.log({
+        value: e.message,
+      });
+      span.finish();
+
       this.library.logger.error(e);
       return next('Server error');
     }

@@ -2,6 +2,7 @@ import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gny/logger';
+import { initTracer } from '@gny/tracer';
 
 import Application from './index';
 import * as packageJson from '../package.json';
@@ -171,6 +172,14 @@ function main() {
     appConfig.forging.secret
   );
 
+  // tracer
+  const tracer = initTracer(
+    appConfig.address,
+    'http://127.0.0.1:14268/api/traces',
+    version,
+    logger
+  );
+
   // action: default "forging"
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
@@ -182,6 +191,7 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
+    tracer,
   };
 
   const application = new Application(options);
