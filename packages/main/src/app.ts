@@ -158,11 +158,20 @@ function main() {
     appConfig.forging.secret = userSecret.split(',');
   }
 
-  if (program.publicIP || process.env['GNY_PUBLIC_IP']) {
+  if (program.publicIp || process.env['GNY_PUBLIC_IP']) {
     appConfig.publicIp = program.publicIP || process.env['GNY_PUBLIC_IP'];
   } else {
     appConfig.publicIp = ip.address();
   }
+
+  appConfig.jaegerIP =
+    program.jaegerIP || process.env['GNY_TRACER_HOST'] || 'jaeger';
+  appConfig.jaegerPort =
+    program.jaegerPort || process.env['GNY_TRACER_PORT'] || 14268;
+  appConfig.disableJaeger =
+    program.disableJaeger || process.env['GNY_DISABLE_JAEGER'] || false;
+
+  console.log(`disableJaeger: ${appConfig.disableJaeger}`);
 
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
@@ -174,8 +183,9 @@ function main() {
 
   // tracer
   const tracer = initTracer(
+    appConfig.disableJaeger,
     appConfig.address,
-    'http://127.0.0.1:14268/api/traces',
+    `http://${appConfig.jaegerIP}:${appConfig.jaegerPort}/api/traces`,
     version,
     logger
   );

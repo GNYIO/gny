@@ -4,12 +4,14 @@ import { ILogger } from '@gny/interfaces';
 const initJaegerTracer = jaegerClient.initTracer;
 
 export function initTracer(
+  disable: boolean,
   serviceName: string,
   collectorEndpoint: string,
   version: string,
   logger: ILogger
 ) {
-  const config = {
+  const config: jaegerClient.TracingConfig = {
+    disable: disable,
     serviceName: serviceName,
     sampler: {
       type: 'const',
@@ -20,7 +22,7 @@ export function initTracer(
       collectorEndpoint: collectorEndpoint,
     },
   };
-  const options = {
+  const options: jaegerClient.TracingOptions = {
     tags: {
       version: version,
     },

@@ -172,6 +172,9 @@ export interface IConfig {
   dbHost: string;
   dbPort: number;
   nodeAction: string;
+  jaegerIP: string;
+  jaegerPort: number;
+  disableJaeger: boolean;
 }
 
 export interface KeyPairsIndexer {
