@@ -1,6 +1,6 @@
 {
   "name": "@gny/web-ed",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -14,7 +14,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.33",
+    "@gny/interfaces": "1.0.34",
     "buffer": "^5.4.3",
     "tweetnacl": "^1.0.1"
   }
