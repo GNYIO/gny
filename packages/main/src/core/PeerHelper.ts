@@ -168,7 +168,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle: Bundle) {
       if (!blocks || !blocks.length) {
         return cb(new Error('Blocks not found'));
       }
-      this.library.logger.warn(
+      global.library.logger.warn(
         `blocks-in-transportApi-commonBlock: ${JSON.stringify(blocks)}`
       );
       blocks = blocks.reverse();
