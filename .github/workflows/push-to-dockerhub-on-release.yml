@@ -25,4 +25,4 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         tag_semver: true
         snapshot: true
-        tags: "latest,develop,${{ $jobs.build.steps.getversion.env.latestversion }}"
+        tags: "latest,develop,${{ env.latestversion }}"
