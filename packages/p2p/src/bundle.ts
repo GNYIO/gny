@@ -268,7 +268,7 @@ export class Bundle extends libp2p {
           peerInfo
         )}`
       );
-      this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
+      this.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
         if (err) {
           this.logger.error(
             `[p2p] failed dialing protocol "${protocol}" to "${peerInfo.id.toB58String()}`
@@ -315,7 +315,7 @@ export class Bundle extends libp2p {
 
     return new Promise((resolve, reject) => {
       try {
-        this.dialProtocol(peerInfo, protocol, function(err: Error, conn) {
+        this.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
           if (err) {
             this.logger.error(`[p2p] pushOnly did not work: ${err.message}`);
             this.logger.error(err);
@@ -343,7 +343,7 @@ export class Bundle extends libp2p {
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
     this.logger.info(`[p2p] handle push only "${protocol}"`);
-    this.handle(protocol, function(protocol: string, conn) {
+    this.handle(protocol, (protocol: string, conn) => {
       try {
         pull(conn, pull.collect(cb));
       } catch (err) {

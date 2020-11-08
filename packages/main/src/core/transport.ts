@@ -263,7 +263,7 @@ export default class Transport implements ICoreModule {
 
       await Peer.p2p.dial(peerInfo);
       global.library.logger.info(
-        `[p2p] afer "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
+        `[p2p] after "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
       );
 
       await Peer.p2p.broadcastHelloBackAsync();
@@ -281,7 +281,7 @@ export default class Transport implements ICoreModule {
 
       await Peer.p2p.dial(peerInfo);
       global.library.logger.info(
-        `[p2p] afer "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
+        `[p2p] after "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
       );
     } catch (err) {
       global.library.logger.error(
