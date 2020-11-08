@@ -14,10 +14,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: develop
-    - id: myrelease
-      uses: pozetroninc/github-action-get-latest-release@master
-      with:
-        repository: ${{ github.repository }}
+    - name: getversion
+      run: echo -n -e "latestversion=$(cat lerna.json | grep version | head -1 | awk -F':' '{ print $2 }'   | sed 's/[",]//g' | tr -d '[[:space:]]')" >> $GITHUB_ENV
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
@@ -26,4 +24,4 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         tag_semver: true
         snapshot: true
-        tags: "latest,develop,${{ steps.myrelease.outputs.release }}"
+        tags: "latest,develop,${{ $latestversion }}"
