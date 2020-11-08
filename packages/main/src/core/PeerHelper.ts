@@ -87,17 +87,14 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
 function V1_VOTES_HANDLER(bundle: Bundle) {
   // not duplex
   // async
-  const request = async function(peerInfo: PeerInfo, votes: ManyVotes) {
+  const request = async (peerInfo: PeerInfo, votes: ManyVotes) => {
     const data = JSON.stringify(votes);
     await bundle.pushOnly(peerInfo, V1_VOTES, data);
   };
 
   // not duplex
   // not async
-  const response: SimplePushTypeCallback = function(
-    err: Error,
-    values: Buffer[]
-  ) {
+  const response: SimplePushTypeCallback = (err: Error, values: Buffer[]) => {
     if (err) {
       console.log(
         'received error while handling error from pushVotes (response)'
