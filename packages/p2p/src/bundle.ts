@@ -108,7 +108,7 @@ export class Bundle extends libp2p {
     }
     await this.pubsub.publish(
       V1_BROADCAST_HELLO_BACK,
-      Buffer.from('hello back')
+      Buffer.from('hello back 2')
     );
   }
   public async broadcastProposeAsync(data: Buffer) {
