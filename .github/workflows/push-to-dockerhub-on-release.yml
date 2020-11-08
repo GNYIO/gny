@@ -15,6 +15,7 @@ jobs:
       with:
         ref: develop
     - name: getversion
+      id: getversion
       run: echo -n -e "latestversion=$(cat lerna.json | grep version | head -1 | awk -F':' '{ print $2 }'   | sed 's/[",]//g' | tr -d '[[:space:]]')" >> $GITHUB_ENV
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
@@ -24,4 +25,4 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         tag_semver: true
         snapshot: true
-        tags: "latest,develop,${{ $latestversion }}"
+        tags: "latest,develop,${{ $jobs.build.steps.getversion.env.latestversion }}"
