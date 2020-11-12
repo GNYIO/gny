@@ -130,7 +130,7 @@ export default class Peer implements ICoreModule {
       .then(() => {
         global.library.logger.info('[p2p] libp2p started');
 
-        global.library.logger.error(
+        global.library.logger.info(
           `[p2p] publicIp is: ${global.library.config.publicIp}`
         );
 
