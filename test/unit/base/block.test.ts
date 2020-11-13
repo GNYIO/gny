@@ -157,9 +157,7 @@ describe('Transaction', () => {
       try {
         BlockBase.normalizeBlock(block);
       } catch (e) {
-        expect(e.message).toBe(
-          'child "height" fails because ["height" is not a positive or zero big integer amount]'
-        );
+        expect(e.message).toBe('failed to validate "blockWithTransactions"');
       }
     });
   });
