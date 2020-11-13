@@ -1,4 +1,9 @@
-import { IBlock, ManyVotes, ITransaction } from '../../../packages/interfaces';
+import {
+  IBlock,
+  ManyVotes,
+  ITransaction,
+  ILogger,
+} from '../../../packages/interfaces';
 import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
 import * as ed from '../../../packages/ed';
 import * as crypto from 'crypto';
@@ -43,6 +48,26 @@ function randomKeyPair() {
 }
 
 describe('ConsensusHelper', () => {
+  beforeEach(() => {
+    const logger: ILogger = {
+      log: x => x,
+      trace: x => x,
+      debug: x => x,
+      info: x => x,
+      warn: x => x,
+      error: x => x,
+      fatal: x => x,
+    };
+
+    global.library = {
+      logger,
+    };
+  });
+
+  afterEach(() => {
+    delete global.library;
+  });
+
   describe('addPendingVotes', () => {
     it('addPendingVotes() - returns unchanged state if no pendingBlock is available', done => {
       // preparation
