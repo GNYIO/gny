@@ -20,6 +20,8 @@ import { Mldata } from '../entity/Mldata';
 import { Prediction } from '../entity/Prediction';
 import { SmartDBOptions } from '../sharedInterfaces';
 
+import { InitMigration1605362544330 } from './migrations';
+
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
   const options: PostgresConnectionOptions = {
     type: 'postgres',
@@ -30,9 +32,11 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
     password: input.dbPassword,
     database: input.dbDatabase,
 
-    synchronize: true,
+    synchronize: false,
     dropSchema: false,
     logging: false,
+    migrationsRun: false,
+    migrations: [InitMigration1605362544330],
   };
 
   Object.assign(options, {
@@ -59,6 +63,10 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
   });
   const connection = await createConnection(options);
   logger.info('Initialized smartdb');
+
+  await connection.runMigrations({
+    transaction: true,
+  });
 
   return connection;
 }
