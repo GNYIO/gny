@@ -253,316 +253,276 @@ export class InitMigration1605362544330 implements MigrationInterface {
 
 
       ALTER TABLE ONLY public.asset
-      ADD CONSTRAINT "PK_119b2d1c1bdccc42057c303c44f" PRIMARY KEY (name);
+      ADD CONSTRAINT "asset_name_pkey" PRIMARY KEY (name);
 
 
       --
-      -- Name: transfer PK_2096c4a2cd297c8b674c33fbb79; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: transfer transfer_tid_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.transfer
-          ADD CONSTRAINT "PK_2096c4a2cd297c8b674c33fbb79" PRIMARY KEY (tid);
+          ADD CONSTRAINT "transfer_tid_pkey" PRIMARY KEY (tid);
 
 
       --
-      -- Name: variable PK_450189260452bd3778ccb1ec4f3; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: variable variable_key_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.variable
-          ADD CONSTRAINT "PK_450189260452bd3778ccb1ec4f3" PRIMARY KEY (key);
+          ADD CONSTRAINT "variable_key_pkey" PRIMARY KEY (key);
 
 
       --
-      -- Name: issuer PK_4caba2816d56fda80881f295858; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: issuer issuer_name_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.issuer
-          ADD CONSTRAINT "PK_4caba2816d56fda80881f295858" PRIMARY KEY (name);
+          ADD CONSTRAINT "issuer_name_pkey" PRIMARY KEY (name);
 
 
       --
-      -- Name: prediction PK_4fafe08911cf825f453a3241037; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: prediction prediction_address_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.prediction
-          ADD CONSTRAINT "PK_4fafe08911cf825f453a3241037" PRIMARY KEY (address);
+          ADD CONSTRAINT "prediction_address_pkey" PRIMARY KEY (address);
 
 
       --
-      -- Name: round PK_635f502d0ad0363d8e824e5e5ea; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: round round_round_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.round
-          ADD CONSTRAINT "PK_635f502d0ad0363d8e824e5e5ea" PRIMARY KEY (round);
+          ADD CONSTRAINT "round_round_pkey" PRIMARY KEY (round);
 
 
       --
-      -- Name: info PK_78a6f2f509106f740de892e87f0; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: info info_key_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.info
-          ADD CONSTRAINT "PK_78a6f2f509106f740de892e87f0" PRIMARY KEY (key);
+          ADD CONSTRAINT "info_key_pkey" PRIMARY KEY (key);
 
 
       --
       -- Name: block_history PK_7cc0c3368bffdbd512ad86d161a; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.block_history
-          ADD CONSTRAINT "PK_7cc0c3368bffdbd512ad86d161a" PRIMARY KEY (height);
+          ADD CONSTRAINT "block_history_height_pkey" PRIMARY KEY (height);
 
 
       --
-      -- Name: account PK_83603c168bc00b20544539fbea6; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: account account_address_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.account
-          ADD CONSTRAINT "PK_83603c168bc00b20544539fbea6" PRIMARY KEY (address);
+          ADD CONSTRAINT "account_address_pkey" PRIMARY KEY (address);
 
 
       --
-      -- Name: mldata PK_8586d0c3cbd6c39fe56a7dde57c; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: mldata mldata_address_id_ProductName_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.mldata
-          ADD CONSTRAINT "PK_8586d0c3cbd6c39fe56a7dde57c" PRIMARY KEY (address, id, "ProductName");
+          ADD CONSTRAINT "mldata_address_id_ProductName_pkey" PRIMARY KEY (address, id, "ProductName");
 
 
       --
-      -- Name: transaction PK_89eadb93a89810556e1cbcd6ab9; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: transaction transaction_id_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.transaction
-          ADD CONSTRAINT "PK_89eadb93a89810556e1cbcd6ab9" PRIMARY KEY (id);
+          ADD CONSTRAINT "transaction_id_pkey" PRIMARY KEY (id);
 
 
       --
-      -- Name: balance PK_9445c540e97ae6e4265df7450fe; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: balance balance_address_currency_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.balance
-          ADD CONSTRAINT "PK_9445c540e97ae6e4265df7450fe" PRIMARY KEY (address, currency);
+          ADD CONSTRAINT "balance_address_currency_pkey" PRIMARY KEY (address, currency);
 
 
       --
-      -- Name: block PK_d0925763efb591c2e2ffb267572; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: block block_id_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.block
-          ADD CONSTRAINT "PK_d0925763efb591c2e2ffb267572" PRIMARY KEY (id);
+          ADD CONSTRAINT "block_id_pkey" PRIMARY KEY (id);
 
 
       --
-      -- Name: delegate PK_eaafa33d48c79db2cb9d1ae55b0; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: delegate delegate_address_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.delegate
-          ADD CONSTRAINT "PK_eaafa33d48c79db2cb9d1ae55b0" PRIMARY KEY (address);
+          ADD CONSTRAINT "delegate_address_pkey" PRIMARY KEY (address);
 
 
       --
-      -- Name: vote PK_f91dc59d294ca64ad129516aa7d; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: vote vote_voterAddress_delegate_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.vote
-          ADD CONSTRAINT "PK_f91dc59d294ca64ad129516aa7d" PRIMARY KEY ("voterAddress", delegate);
+          ADD CONSTRAINT "vote_voterAddress_delegate_pkey" PRIMARY KEY ("voterAddress", delegate);
 
 
       --
-      -- Name: delegate UQ_15835fdff2104205606fb86022e; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: delegate delegate_publicKey_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.delegate
-          ADD CONSTRAINT "UQ_15835fdff2104205606fb86022e" UNIQUE ("publicKey");
+          ADD CONSTRAINT "delegate_publicKey_key" UNIQUE ("publicKey");
 
 
       --
-      -- Name: issuer UQ_17fd1469f8b76147413f5c3f8dd; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: issuer issuer_tid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.issuer
-          ADD CONSTRAINT "UQ_17fd1469f8b76147413f5c3f8dd" UNIQUE (tid);
+          ADD CONSTRAINT "issuer_tid_key" UNIQUE (tid);
 
 
       --
-      -- Name: asset UQ_28ddf8add4e74248f36ece7df52; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: asset asset_tid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.asset
-          ADD CONSTRAINT "UQ_28ddf8add4e74248f36ece7df52" UNIQUE (tid);
+          ADD CONSTRAINT "asset_tid_key" UNIQUE (tid);
 
 
       --
-      -- Name: account UQ_41dfcb70af895ddf9a53094515b; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: account account_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.account
-          ADD CONSTRAINT "UQ_41dfcb70af895ddf9a53094515b" UNIQUE (username);
+          ADD CONSTRAINT "account_username_key" UNIQUE (username);
 
 
       --
-      -- Name: delegate UQ_944657166892e70121acc2affab; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: delegate delegate_tid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.delegate
-          ADD CONSTRAINT "UQ_944657166892e70121acc2affab" UNIQUE (tid);
+          ADD CONSTRAINT "delegate_tid_key" UNIQUE (tid);
 
 
       --
-      -- Name: delegate UQ_b5114b7a2bc8f0d2a99c4600619; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: delegate delegate_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.delegate
-          ADD CONSTRAINT "UQ_b5114b7a2bc8f0d2a99c4600619" UNIQUE (username);
+          ADD CONSTRAINT "delegate_username_key" UNIQUE (username);
 
 
       --
-      -- Name: block UQ_bce676e2b005104ccb768495dbb; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: block block_height_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.block
-          ADD CONSTRAINT "UQ_bce676e2b005104ccb768495dbb" UNIQUE (height);
+          ADD CONSTRAINT "block_height_key" UNIQUE (height);
 
 
       --
-      -- Name: issuer UQ_e0ab1d603d280cd6e4e827449ae; Type: CONSTRAINT; Schema: public; Owner: postgres
+      -- Name: issuer issuer_issuerId_key; Type: CONSTRAINT; Schema: public; Owner: postgres
       --
-
       ALTER TABLE ONLY public.issuer
-          ADD CONSTRAINT "UQ_e0ab1d603d280cd6e4e827449ae" UNIQUE ("issuerId");
+          ADD CONSTRAINT "issuer_issuerId_key" UNIQUE ("issuerId");
 
 
       --
-      -- Name: IDX_2534ff92482137297bbb904516; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transfer_height_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_2534ff92482137297bbb904516" ON public.transfer USING btree (height);
-
-
-      --
-      -- Name: IDX_2dffa75d0687591f62ad59b6d0; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_2dffa75d0687591f62ad59b6d0" ON public.prediction USING btree (prediction);
+      CREATE INDEX "transfer_height_idx" ON public.transfer USING btree (height);
 
 
       --
-      -- Name: IDX_4fafe08911cf825f453a324103; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: prediction_prediction_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_4fafe08911cf825f453a324103" ON public.prediction USING btree (address);
-
-
-      --
-      -- Name: IDX_5c67cbcf4960c1a39e5fe25e87; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_5c67cbcf4960c1a39e5fe25e87" ON public.block USING btree ("timestamp");
+      CREATE INDEX "prediction_prediction_idx" ON public.prediction USING btree (prediction);
 
 
       --
-      -- Name: IDX_6a18c33aeed8b1bff59a112854; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: prediction_address_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_6a18c33aeed8b1bff59a112854" ON public.balance USING btree (address);
-
-
-      --
-      -- Name: IDX_6d9eb09fb37a1311682d1becab; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_6d9eb09fb37a1311682d1becab" ON public.transfer USING btree ("recipientId");
+      CREATE INDEX "prediction_address_idx" ON public.prediction USING btree (address);
 
 
       --
-      -- Name: IDX_70ff8b624c3118ac3a4862d22c; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: block_timestamp_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_70ff8b624c3118ac3a4862d22c" ON public.transfer USING btree ("timestamp");
-
-
-      --
-      -- Name: IDX_780bd0b359a2b4576b2e326860; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_780bd0b359a2b4576b2e326860" ON public.transfer USING btree ("senderId");
+      CREATE INDEX "block_timestamp_idx" ON public.block USING btree ("timestamp");
 
 
       --
-      -- Name: IDX_87f2932d4a558d44a2915f849a; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: balance_address_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_87f2932d4a558d44a2915f849a" ON public.transaction USING btree ("timestamp");
-
-
-      --
-      -- Name: IDX_a2149e84ca1fc59b73f2ed05fa; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_a2149e84ca1fc59b73f2ed05fa" ON public.transfer USING btree (currency);
+      CREATE INDEX "balance_address_idx" ON public.balance USING btree (address);
 
 
       --
-      -- Name: IDX_b08d89b57c60050b62d774665f; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transfer_recipientId_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_b08d89b57c60050b62d774665f" ON public.asset USING btree ("timestamp");
-
-
-      --
-      -- Name: IDX_b3d761ec0d43155eedb1b8e805; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_b3d761ec0d43155eedb1b8e805" ON public.asset USING btree (maximum);
+      CREATE INDEX "transfer_recipientId_idx" ON public.transfer USING btree ("recipientId");
 
 
       --
-      -- Name: IDX_bc03a07ccceb7ab56033b28f6c; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transfer_timestamp_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_bc03a07ccceb7ab56033b28f6c" ON public.balance USING btree (currency);
-
-
-      --
-      -- Name: IDX_bf095b76c619d78b5bde675240; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_bf095b76c619d78b5bde675240" ON public.balance USING btree (flag);
+      CREATE INDEX "transfer_timestamp_idx" ON public.transfer USING btree ("timestamp");
 
 
       --
-      -- Name: IDX_cce9f3db01ff7df5db4d337869; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transfer_senderId_idx; Type: INDEX; Schema: public; Owner: postgres
       --
 
-      CREATE INDEX "IDX_cce9f3db01ff7df5db4d337869" ON public.transaction USING btree (type);
-
-
-      --
-      -- Name: IDX_ceb536cf0a612deadf41335ef2; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_ceb536cf0a612deadf41335ef2" ON public.delegate USING btree (votes);
+      CREATE INDEX "transfer_senderId_idx" ON public.transfer USING btree ("senderId");
 
 
       --
-      -- Name: IDX_e157c4f9e492b9ea968e3de2e3; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transaction_timestamp_idx; Type: INDEX; Schema: public; Owner: postgres
       --
-
-      CREATE INDEX "IDX_e157c4f9e492b9ea968e3de2e3" ON public.block USING btree ("prevBlockId");
-
-
-      --
-      -- Name: IDX_eaa8cb83847165386f05e940a3; Type: INDEX; Schema: public; Owner: postgres
-      --
-
-      CREATE INDEX "IDX_eaa8cb83847165386f05e940a3" ON public.transaction USING btree (message);
+      CREATE INDEX "transaction_timestamp_idx" ON public.transaction USING btree ("timestamp");
 
 
       --
-      -- Name: IDX_ed3e32981d7a640be5480effec; Type: INDEX; Schema: public; Owner: postgres
+      -- Name: transfer_currency_idx; Type: INDEX; Schema: public; Owner: postgres
       --
+      CREATE INDEX "transfer_currency_idx" ON public.transfer USING btree (currency);
 
-      CREATE INDEX "IDX_ed3e32981d7a640be5480effec" ON public.transaction USING btree ("senderId");
+
+      --
+      -- Name: asset_timestamp_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "asset_timestamp_idx" ON public.asset USING btree ("timestamp");
+
+
+      --
+      -- Name: asset_maximum_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "asset_maximum_idx" ON public.asset USING btree (maximum);
+
+
+      --
+      -- Name: balance_currency_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "balance_currency_idx" ON public.balance USING btree (currency);
+
+
+      --
+      -- Name: balance_flag_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "balance_flag_idx" ON public.balance USING btree (flag);
+
+
+      --
+      -- Name: transaction_type_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "transaction_type_idx" ON public.transaction USING btree (type);
+
+
+      --
+      -- Name: delegate_votes_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "delegate_votes_idx" ON public.delegate USING btree (votes);
+
+
+      --
+      -- Name: block_prevBlockId_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "block_prevBlockId_idx" ON public.block USING btree ("prevBlockId");
+
+
+      --
+      -- Name: transaction_message_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "transaction_message_idx" ON public.transaction USING btree (message);
+
+
+      --
+      -- Name: transaction_senderId_idx; Type: INDEX; Schema: public; Owner: postgres
+      --
+      CREATE INDEX "transaction_senderId_idx" ON public.transaction USING btree ("senderId");
     `);
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
