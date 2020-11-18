@@ -83,57 +83,62 @@ export default class Loader implements ICoreModule {
   }
 
   public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
-    const randomNode: PeerInfo = Peer.p2p.getConnectedRandomNodePeerInfo();
-    if (!randomNode) {
-      throw new Error('[p2p] no connected node found for loadBlocks()');
+    const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
+    if (allPeerInfos.length === 0) {
+      global.library.logger.info('[p2p] loadBlocks() no connected peers');
+      return;
     }
 
-    let result: HeightWrapper;
-    try {
-      result = await Peer.p2p.requestHeight(randomNode);
-    } catch (err) {
-      global.library.logger.error(
-        `[syncing] could not requestHeight from peer: ${getB58String(
-          randomNode
-        )}`
-      );
-      global.library.logger.error(err);
-      throw err;
-    }
+    const myResult = [];
 
-    global.library.logger.info(
-      `[syncing] requestHeight: ${JSON.stringify(
-        result,
-        null,
-        2
-      )}, from ${getB58String(randomNode)}`
-    );
+    // check
+    for (let i = 0; i < allPeerInfos.length; ++i) {
+      const one = allPeerInfos[i];
 
-    if (new BigNumber(lastBlock.height).lt(result.height)) {
-      // TODO
-      StateHelper.SetBlocksToSync(Number(result.height));
+      try {
+        const height: HeightWrapper = await Peer.p2p.requestHeight(one);
 
-      if (lastBlock.id !== genesisBlock.id) {
-        try {
-          await Loader.findUpdate(lastBlock, randomNode);
-          return;
-        } catch (err) {
-          global.library.logger.error(
-            `error while calling loader.findUpdate(): ${err.message}`
-          );
-          throw err;
-        }
+        myResult.push({
+          peerInfo: one,
+          height: height.height,
+        });
+      } catch (err) {
+        global.library.logger.info(
+          `[p2p] failed to requestHeight() from ${err.message}`
+        );
       }
-
-      global.library.logger.debug(
-        `Loading blocks from genesis from ${JSON.stringify(randomNode)}`
-      );
-      return await Blocks.loadBlocksFromPeer(
-        randomNode,
-        global.library.genesisBlock.id
-      );
     }
-    return undefined;
+
+    if (myResult.length === 0) {
+      global.library.logger.info('[p2p] test');
+      return;
+    }
+
+    const onlyHeights = myResult.map(x => x.height);
+    global.library.logger.info(
+      `[p2p], heights:  ${JSON.stringify(onlyHeights, null, 2)}`
+    );
+    const highest = BigNumber.max(...onlyHeights).toFixed();
+
+    global.library.logger.info(`[p2p] highest ${highest}`);
+
+    if (new BigNumber(lastBlock.height).isGreaterThanOrEqualTo(highest)) {
+      global.library.logger.info(
+        `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
+          lastBlock.height
+        }`
+      );
+      return;
+    }
+
+    const find = myResult.find(x => x.height === highest);
+    global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
+    const highestPeer = find.peerInfo;
+
+    global.library.logger.debug(
+      `Loading blocks from genesis from ${JSON.stringify(highestPeer)}`
+    );
+    return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
   }
 
   // Public methods
