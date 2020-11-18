@@ -73,7 +73,7 @@ describe('sync-later e2e test', () => {
       expect(new BigNumber(height).isGreaterThanOrEqualTo(6)).toEqual(true);
 
       // start service "sync-later"
-      lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['sync-later']);
+      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['sync-later']);
 
       // wait for 20 seconds
       await lib.sleep(20 * 1000);
