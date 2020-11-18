@@ -135,10 +135,23 @@ export default class Loader implements ICoreModule {
     global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
     const highestPeer = find.peerInfo;
 
-    global.library.logger.debug(
-      `Loading blocks from genesis from ${JSON.stringify(highestPeer)}`
-    );
-    return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
+    if (lastBlock.id === genesisBlock.id) {
+      global.library.logger.info(
+        `[p2p] current height is "0", start to sync from peer: ${getB58String(
+          highestPeer
+        )} with height ${find.height}`
+      );
+      return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
+    } else {
+      global.library.logger.info(
+        `[p2p] current height is ${
+          lastBlock.height
+        }, start to sync from peer: ${getB58String(highestPeer)} with height ${
+          find.height
+        }`
+      );
+      return await Blocks.loadBlocksFromPeer(highestPeer, lastBlock.id);
+    }
   }
 
   // Public methods
