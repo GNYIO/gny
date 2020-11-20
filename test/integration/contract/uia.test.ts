@@ -790,6 +790,74 @@ describe('uia', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'maximum of 9000000000000000000 is ok',
+      async () => {
+        await lib.onNewBlock();
+
+        await registerIssuerAsync('liang', 'liang');
+
+        // register once
+        const trs = gnyClient.uia.registerAsset(
+          'BBB',
+          'some description',
+          String('9000000000000000000'),
+          8,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const trsPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(trsPromise).resolves.toMatchObject({
+          data: {
+            success: true,
+            transactionId: expect.any(String),
+          },
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'maximum of 9000000000000000001 will fail',
+      async () => {
+        await lib.onNewBlock();
+
+        await registerIssuerAsync('liang', 'liang');
+
+        // register once
+        const trs = gnyClient.uia.registerAsset(
+          'BBB',
+          'some description',
+          String('9000000000000000001'),
+          8,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const trsPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        return expect(trsPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid amount range',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('issue', () => {

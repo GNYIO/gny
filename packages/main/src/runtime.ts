@@ -36,7 +36,8 @@ export default async function runtime(options: IOptions) {
       } catch (e) {
         return 'Failed to convert';
       }
-      if (bnAmount.lt(1) || bnAmount.gt('1e48')) return 'Invalid amount range';
+      if (bnAmount.lt(1) || bnAmount.gt('9000000000000000000'))
+        return 'Invalid amount range';
       return null;
     },
     name: value => {
