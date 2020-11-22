@@ -40,12 +40,13 @@ describe('network-stuck e2e test', () => {
       // stop node3 and node4 (now network has not enough votes for block generation)
       console.log('stopping: "node3", "node4"');
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
+      await lib.rmP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
 
       // wait for 30 seconds
       await lib.sleep(30 * 1000);
 
       // start node3 and node4
-      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
+      await lib.upP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
 
       // get current height
       const currentHeight = await lib.getHeight(4096);

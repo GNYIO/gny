@@ -175,6 +175,7 @@ export async function printActiveContainers() {
 
 export async function stopAndKillContainer(configFile?: string) {
   await dockerCompose.down({
+    commandOptions: ['--volumes'], // this also deletes the volumes on down
     cwd: process.cwd(),
     log: true,
     config: configFile,
