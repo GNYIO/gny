@@ -22,11 +22,16 @@ export function initTracer(
       collectorEndpoint: collectorEndpoint,
     },
   };
+
   const options: jaegerClient.TracingOptions = {
     tags: {
       version: version,
     },
     logger: logger,
   };
+
+  logger.info(`[p2p] jaeger configuration: ${JSON.stringify(config, null, 2)}`);
+  logger.info(`[p2p] jaeger options: ${JSON.stringify(options, null, 2)}`);
+
   return initJaegerTracer(config, options);
 }

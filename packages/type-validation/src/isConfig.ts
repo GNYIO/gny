@@ -87,6 +87,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .number()
         .port()
         .required(),
+      disableJaeger: joi.boolean().required(),
     })
     .required();
 

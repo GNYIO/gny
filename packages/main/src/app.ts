@@ -170,6 +170,7 @@ function main() {
     program.jaegerPort || process.env['GNY_TRACER_PORT'] || 14268;
   appConfig.disableJaeger =
     program.disableJaeger || process.env['GNY_DISABLE_JAEGER'] || false;
+  appConfig.disableJaeger = JSON.parse(String(appConfig.disableJaeger));
 
   console.log(`disableJaeger: ${appConfig.disableJaeger}`);
 
@@ -184,7 +185,7 @@ function main() {
   // tracer
   const tracer = initTracer(
     appConfig.disableJaeger,
-    appConfig.address,
+    appConfig.publicIp,
     `http://${appConfig.jaegerIP}:${appConfig.jaegerPort}/api/traces`,
     version,
     logger

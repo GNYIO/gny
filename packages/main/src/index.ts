@@ -22,6 +22,8 @@ export default class Application {
   async run() {
     const options = this.options;
 
+    options.tracer.startSpan('startUp').finish();
+
     const scope = await initAlt(options);
     function cb(err, result) {
       if (err) return console.log(err);
@@ -50,18 +52,28 @@ export default class Application {
     });
 
     process.once('SIGTERM', () => {
+      global.app.tracer.startSpan('sigterm');
       process.emit('cleanup');
     });
 
     process.once('exit', () => {
+      global.app.tracer.startSpan('exit');
       scope.logger.info('process exited');
     });
 
     process.once('SIGINT', () => {
+      global.app.tracer.startSpan('sigint');
       process.emit('cleanup');
     });
 
     process.on('uncaughtException', err => {
+      const span = global.app.tracer.startSpan('uncaughtException');
+      span.setTag('error', true);
+      span.log({
+        value: `uncaughtException ${err}`,
+      });
+      span.finish();
+
       // handle the error safely
       scope.logger.fatal('uncaughtException');
       scope.logger.fatal(err);
@@ -69,6 +81,13 @@ export default class Application {
     });
 
     process.on('unhandledRejection', err => {
+      const span = global.app.tracer.startSpan('unhandledRejection');
+      span.setTag('error', true);
+      span.log({
+        value: `unhandledRejection ${err}`,
+      });
+      span.finish();
+
       // handle the error safely
       scope.logger.error('unhandledRejection');
       scope.logger.error(err);
@@ -82,6 +101,13 @@ export default class Application {
     try {
       await initRuntime(options);
     } catch (e) {
+      const span = global.app.tracer.startSpan('init runtime error');
+      span.setTag('error', true);
+      span.log({
+        value: `init runtime error ${e}`,
+      });
+      span.finish();
+
       scope.logger.error('init runtime error');
       scope.logger.error(e);
       process.exit(1);

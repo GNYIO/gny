@@ -1,5 +1,26 @@
 version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+
 services:
+  jaeger:
+    image: "jaegertracing/all-in-one:1.21"
+    container_name: 'jaeger'
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - '16686:16686'
+      - '14268:14268'
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
+
+
   db1:
     image: "postgres:9.6.12"
     container_name: 'db1'
@@ -10,6 +31,11 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    depends_on:
+      - jaeger
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3
   node1:
     build: ../..
     container_name: 'node1'
@@ -18,7 +44,8 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_MONGO_LOGGING_DISABLE=true
-      - GNY_DISABLE_JAEGER=true
+      - GNY_DISABLE_JAEGER=false
+      - GNY_TRACER_HOST=172.20.0.2
       - GNY_LOG_LEVEL=info
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -32,3 +59,7 @@ services:
       - '4097:4097'
     depends_on:
       - db1
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.4
+
