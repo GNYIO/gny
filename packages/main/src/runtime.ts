@@ -23,6 +23,7 @@ export default async function runtime(options: IOptions) {
     contract: {},
     contractTypeMapping: {},
     logger: options.logger,
+    tracer: options.tracer,
   };
   global.app.validators = {
     amount: amount => {

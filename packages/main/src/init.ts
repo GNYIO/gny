@@ -32,6 +32,7 @@ async function init_alt(options: IOptions) {
 
   scope.config = appConfig;
   scope.logger = options.logger;
+  scope.tracer = options.tracer;
   scope.genesisBlock = genesisBlock;
 
   scope.sequence = sequence(options);

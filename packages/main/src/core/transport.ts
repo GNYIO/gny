@@ -50,6 +50,13 @@ export default class Transport implements ICoreModule {
           .toString('base64'),
       };
     } catch (err) {
+      const span = global.app.tracer.startSpan('onUnconfirmedTransaction');
+      span.setTag('error', true);
+      span.log({
+        value: 'could not encode blockVotes',
+      });
+      span.finish();
+
       global.library.logger.error('could not encode blockVotes');
       return;
     }
@@ -139,6 +146,14 @@ export default class Transport implements ICoreModule {
           2
         )}`
       );
+
+      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to failed blockAndVotes`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -168,6 +183,13 @@ export default class Transport implements ICoreModule {
       StateHelper.SetBlockToLatestBlockCache(block.id, result); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
+      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
+      span.setTag('error', true);
+      span.log({
+        value: `normalize block or votes object error: ${e.toString()}`,
+      });
+      span.finish();
+
       global.library.logger.error(
         `normalize block or votes object error: ${JSON.stringify(
           result,
@@ -241,6 +263,14 @@ export default class Transport implements ICoreModule {
         unconfirmedTrs
       );
     } catch (e) {
+      const span = global.app.tracer.startSpan('receivePeer_Transaction');
+      span.setTag('error', true);
+      span.log({
+        message: message,
+        value: e.toString(),
+      });
+      span.finish();
+
       global.library.logger.error(
         `Received transaction parse error: ${JSON.stringify(message, null, 2)}`
       );

@@ -2,6 +2,7 @@ import * as tracer from 'tracer';
 import {
   IScope,
   IConfig,
+  ITracer,
   BlockAndVotes,
   NewBlockMessage,
   ILimitCache,
@@ -73,6 +74,7 @@ export interface IOptions {
   pidFile: string;
   modules?: any;
   library?: Partial<IScope>;
+  tracer: ITracer;
 }
 
 interface IApp {
@@ -87,6 +89,7 @@ interface IApp {
     [name: string]: any;
   };
   logger: ILogger;
+  tracer: ITracer;
 }
 
 declare global {
