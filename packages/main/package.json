@@ -53,6 +53,7 @@
     "method-override": "^2.3.10",
     "nedb": "^1.8.0",
     "p-whilst": "^2.1.0",
+    "peer-id": "^0.14.2",
     "peer-info": "^0.15.1",
     "socket.io": "^2.2.0",
     "tracer": "^0.9.9",

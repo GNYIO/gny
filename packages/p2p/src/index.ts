@@ -1,4 +1,3 @@
-export * from './bundle';
-export * from './createPeerInfo';
+export * from './wrapper';
 export * from './util';
 export * from './protocols';

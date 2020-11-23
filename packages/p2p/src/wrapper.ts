@@ -1,8 +1,6 @@
-import * as libp2p from 'libp2p';
 import {
   extractIpAndPort,
   AsyncMapFuncType,
-  getB58String,
   SimplePushTypeCallback,
 } from './util';
 import {
@@ -12,17 +10,19 @@ import {
   SimplePeerInfo,
   PeerInfoWrapper,
 } from '@gny/interfaces';
-const Mplex = require('libp2p-mplex');
-const SECIO = require('libp2p-secio');
+import { attachEventHandlers } from './util';
+
 const Bootstrap = require('libp2p-bootstrap');
-const GossipSub = require('libp2p-gossipsub');
+import * as Libp2p from 'libp2p';
 const TCP = require('libp2p-tcp');
+const mplex = require('libp2p-mplex');
+const SECIO = require('libp2p-secio');
+const { NOISE } = require('libp2p-noise');
+const Gossipsub = require('libp2p-gossipsub');
 const DHT = require('libp2p-kad-dht');
-const defaultsDeep = require('@nodeutils/defaults-deep');
+
 import * as PeerId from 'peer-id';
 
-import { Options as LibP2POptions } from 'libp2p';
-export { Options as LibP2POptions } from 'libp2p';
 import { cloneDeep } from 'lodash';
 const pull = require('pull-stream');
 import {
@@ -33,48 +33,42 @@ import {
   V1_BROADCAST_HELLO_BACK,
 } from './protocols';
 
-export class Bundle extends libp2p {
+export class Wrapper {
   public logger: ILogger;
-
-  constructor(_options, logger: ILogger) {
-    // input validation
-    if (!Array.isArray(_options.config.peerDiscovery.bootstrap.list))
-      throw new Error('bootstrapNode must be array');
-    if (_options.config.peerDiscovery.bootstrap.list.includes(undefined))
-      throw new Error('no undefined in string[]');
-    if (_options.config.peerDiscovery.bootstrap.list.includes(null))
-      throw new Error('no null in string[]');
-
-    const defaults: Partial<LibP2POptions> = {
-      switch: {
-        denyTTL: 1,
-        denyAttempts: Infinity,
-      },
-      connectionManager: {
-        // this plays into the option autoDial: true
-        // link: https://github.com/libp2p/js-libp2p/blob/master/PEER_DISCOVERY.md
-        maxPeers: 100 * 1000,
-        minPeers: 10 * 1000,
+  public node: Libp2p;
+  async create(
+    ip: string,
+    port: number,
+    peerId,
+    bootstrap: string[],
+    logger: ILogger
+  ) {
+    const options = {
+      peerId: peerId,
+      addresses: {
+        listen: [`/ip4/${ip}/tcp/${port}`],
+        announce: [`/ip4/${ip}/tcp/${port}`],
       },
       modules: {
         transport: [TCP],
-        streamMuxer: [Mplex],
-        connEncryption: [SECIO],
-        peerDiscovery: [Bootstrap],
         dht: DHT,
-        pubsub: GossipSub,
+        pubsub: Gossipsub,
+        streamMuxer: [mplex],
+        connEncryption: [NOISE, SECIO],
       },
       config: {
+        dialer: {
+          maxDialsPerPeer: 1, // do not dial peers
+          dialTimeout: 1000, // ms
+        },
         peerDiscovery: {
           autoDial: false,
-          bootstrap: {
-            interval: 10 * 1000,
-            enabled: true,
-            list: [],
-          },
         },
-        relay: {
-          enabled: false,
+        pubsub: {
+          enabled: true,
+          emitSelf: false,
+          signMessages: true,
+          strictSigning: true,
         },
         dht: {
           kBucketSize: 20,
@@ -83,60 +77,76 @@ export class Bundle extends libp2p {
             enabled: false,
           },
         },
-        pubsub: {
-          enabled: true,
-          emitSelf: false,
+        relay: {
+          enabled: false,
+          hop: {
+            enabled: true,
+            active: true,
+          },
         },
       },
     };
-    const finalConfig = defaultsDeep(_options, defaults);
-    super(finalConfig);
+
+    if (bootstrap.length > 0) {
+      options.modules.peerDiscovery = [Bootstrap];
+      options.config.peerDiscover = {
+        bootstrap: {
+          interval: 10 * 1000,
+          enabled: true,
+          list: bootstrap,
+        },
+      };
+    }
 
     this.logger = logger;
+    this.node = await Libp2p.create(options);
+    attachEventHandlers(this.node, logger);
+
+    return this.node;
   }
 
   public async broadcastHelloAsync() {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
+    await this.node.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
   }
 
   public async broadcastHelloBackAsync() {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(
+    await this.node.pubsub.publish(
       V1_BROADCAST_HELLO_BACK,
       Buffer.from('hello back 2')
     );
   }
   public async broadcastProposeAsync(data: Buffer) {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_PROPOSE, data);
+    await this.node.pubsub.publish(V1_BROADCAST_PROPOSE, data);
   }
 
   public async broadcastTransactionAsync(data: Buffer) {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
+    await this.node.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
   }
 
   public async broadcastNewBlockHeaderAsync(data: Buffer) {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
+    await this.node.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
   }
 
   public async broadcastAsync(topic: string, data: Buffer): Promise<void> {
-    if (!this.isStarted()) {
+    if (!this.node.isStarted()) {
       return;
     }
-    await this.pubsub.publish(topic, data);
+    await this.node.pubsub.publish(topic, data);
   }
 
   public getConnectedRandomNode() {
@@ -197,7 +207,7 @@ export class Bundle extends libp2p {
       });
     };
 
-    this.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
+    this.node.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
   }
 
   getAllConnectedPeers() {
@@ -220,12 +230,37 @@ export class Bundle extends libp2p {
     return result;
   }
 
-  getAllConnectedPeersPeerInfo(): PeerInfo[] {
-    const copy = cloneDeep(
-      this.peerBook.getAllArray().filter(x => x.isConnected())
-    );
+  getAllConnectedPeersPeerInfo() {
+    const connections: string[] = Array.from(this.node.connections.keys());
 
-    return copy;
+    const connectedPeerInfo = this.peer.peerStore.peers.forEach(
+      (result, key) => {
+        const has = connections.find(x => x === key);
+        if (!has) {
+          return;
+        }
+
+        const temp = {
+          id: {
+            id: result.id.toJSON().id,
+            pubKey: result.id.toJSON().pubKey,
+          },
+          multiaddrs: result.addresses.map(
+            x => `${x.multiaddr}/ipfs/${result.id.toJSON().id}`
+          ),
+          simple: {
+            host: result.addresses[
+              result.addresses.length - 1
+            ].multiaddr.nodeAddress().address,
+            port: result.addresses[
+              result.addresses.length - 1
+            ].multiaddr.nodeAddress().port,
+          },
+        };
+        return temp;
+      }
+    );
+    return connectedPeerInfo;
   }
 
   info() {
@@ -254,24 +289,22 @@ export class Bundle extends libp2p {
   }
 
   public async directRequest(
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     protocol: string,
     data: string
   ): Promise<Buffer> {
     this.logger.info(
-      `[p2p] dialing protocol "${protocol}" from ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+      `[p2p] dialing protocol "${protocol}" from ${this.node.peerId.toB58String()} -> ${peerId.toB58String()}`
     );
 
     return new Promise((resolve, reject) => {
       this.logger.info(
-        `[p2p] start to dial protocol "${protocol}" -> peer ${getB58String(
-          peerInfo
-        )}`
+        `[p2p] start to dial protocol "${protocol}" -> peer ${peerId.toB58String()}`
       );
-      this.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
+      this.node.dialProtocol(peerId, protocol, (err: Error, conn) => {
         if (err) {
           this.logger.error(
-            `[p2p] failed dialing protocol "${protocol}" to "${peerInfo.id.toB58String()}`
+            `[p2p] failed dialing protocol "${protocol}" to "${peerId.toB58String()}`
           );
           this.logger.error(err);
           return reject(err);
@@ -284,7 +317,7 @@ export class Bundle extends libp2p {
             pull.collect((err: Error, returnedData: Buffer[]) => {
               if (err) {
                 this.logger.error(
-                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.node.peerId.toB58String()} -> ${this.node.peerId.toB58String()}`
                 );
                 return reject(err);
               }
@@ -299,7 +332,7 @@ export class Bundle extends libp2p {
           );
         } catch (err) {
           this.logger.error(
-            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.peerInfo.id.toB58String()} -> ${peerInfo.id.toB58String()}`
+            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.node.peerId.toB58String()} -> ${peerId.toB58String()}`
           );
           return reject(err);
         }
@@ -315,7 +348,7 @@ export class Bundle extends libp2p {
 
     return new Promise((resolve, reject) => {
       try {
-        this.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
+        this.node.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
           if (err) {
             this.logger.error(`[p2p] pushOnly did not work: ${err.message}`);
             this.logger.error(err);
@@ -336,14 +369,14 @@ export class Bundle extends libp2p {
   public directResponse(protocol: string, func: AsyncMapFuncType) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
-    this.handle(protocol, function(protocol: string, conn) {
+    this.node.handle(protocol, function(protocol: string, conn) {
       pull(conn, pull.asyncMap(func), conn);
     });
   }
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
     this.logger.info(`[p2p] handle push only "${protocol}"`);
-    this.handle(protocol, (protocol: string, conn) => {
+    this.node.handle(protocol, (protocol: string, conn) => {
       try {
         pull(conn, pull.collect(cb));
       } catch (err) {

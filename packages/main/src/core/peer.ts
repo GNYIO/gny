@@ -1,11 +1,7 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
-  createPeerInfoArgs,
-  createFromJSON,
-  createFromPrivKey,
-  Bundle,
-  attachEventHandlers,
+  Wrapper,
   V1_BROADCAST_NEW_BLOCK_HEADER,
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
@@ -15,11 +11,12 @@ import {
 import { PeerNode, ICoreModule } from '@gny/interfaces';
 import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
+import * as PeerId from 'peer-id';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
-  public static p2p: Bundle;
+  public static p2p: Wrapper;
 
   public static getVersion = () => ({
     version: global.library.config.version,
@@ -83,26 +80,19 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static preparePeerInfo = async () => {
+  public static preparePeerId = async () => {
     const buf = Buffer.from(
       global.library.config.peers.privateP2PKey,
       'base64'
     );
-    const peerId = await createFromPrivKey(buf);
+    const peerId = await PeerId.createFromPrivKey(buf);
 
-    const peerInfo = await createPeerInfoArgs(peerId);
-
-    const multi = `/ip4/${global.library.config.address}/tcp/${
-      global.library.config.peerPort
-    }`;
-    peerInfo.multiaddrs.add(multi);
-
-    return peerInfo;
+    return peerId;
   };
 
   // Events
   public static onBlockchainReady = async () => {
-    const peerInfo = await Peer.preparePeerInfo();
+    const peerInfo = await Peer.preparePeerId();
 
     // TODO persist peerBook of node
     const bootstrapNode = global.library.config.peers.bootstrap
@@ -119,8 +109,7 @@ export default class Peer implements ICoreModule {
       },
     };
 
-    Peer.p2p = new Bundle(config, global.app.logger);
-    attachEventHandlers(Peer.p2p, global.app.logger);
+    Peer.p2p = new Wrapper(config, global.app.logger);
     attachDirectP2PCommunication(Peer.p2p);
 
     global.library.logger.info('[p2p] starting libp2p bundle');
