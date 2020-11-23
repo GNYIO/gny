@@ -62,11 +62,17 @@ export function attachEventHandlers(bundle, logger: ILogger) {
   const peerDiscoveryCallback = async function(peer: PeerId) {
     const connectedPeers = Array.from(bundle.connections.keys());
     const result = connectedPeers.find(x => x === peer.toB58String());
-    if (!result) {
+    if (result) {
+      logger.info(
+        `[p2p] (boostrap) already connected to peer: ${peer.toB58String()}`
+      );
+    } else {
       try {
         await bundle.dial(peer);
       } catch (err) {
-        logger.info(`[p2p] DIAL failed for peer: ${getB58String(peer)}`);
+        logger.info(
+          `[p2p] (bootstrap) DIAL failed for peer: ${peer.toB58String()}`
+        );
       }
     }
 

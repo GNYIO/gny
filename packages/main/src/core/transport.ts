@@ -83,7 +83,7 @@ export default class Transport implements ICoreModule {
 
     let encodedBlockPropose: Buffer;
     try {
-      encodedBlockPropose = global.library.protobuf.encodeBlockPropose(propose);
+      encodedBlockPropose = Buffer.from(JSON.stringify(propose));
     } catch (err) {
       global.library.logger.warn('could not encode Propose with protobuf');
       return;

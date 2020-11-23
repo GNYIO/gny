@@ -7,6 +7,7 @@ import {
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
   V1_BROADCAST_HELLO_BACK,
+  attachEventHandlers,
 } from '@gny/p2p';
 import { PeerNode, ICoreModule } from '@gny/interfaces';
 import { attachDirectP2PCommunication } from './PeerHelper';
@@ -104,9 +105,10 @@ export default class Peer implements ICoreModule {
       global.library.config.peerPort,
       peerId,
       bootstrapNode,
-      global.app.logger
+      global.library.logger
     );
     Peer.p2p = wrapper;
+    attachEventHandlers(Peer.p2p, global.library.logger);
     attachDirectP2PCommunication(Peer.p2p);
 
     global.library.logger.info('[p2p] starting libp2p bundle');

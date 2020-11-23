@@ -10,7 +10,6 @@ import {
   SimplePeerInfo,
   PeerInfoWrapper,
 } from '@gny/interfaces';
-import { attachEventHandlers } from './util';
 
 const Bootstrap = require('libp2p-bootstrap');
 import * as Libp2p from 'libp2p';
@@ -56,11 +55,11 @@ export class Wrapper extends Libp2p {
         streamMuxer: [mplex],
         connEncryption: [NOISE, SECIO],
       },
+      dialer: {
+        maxDialsPerPeer: 1, // do not dial peers
+        dialTimeout: 1000, // ms
+      },
       config: {
-        dialer: {
-          maxDialsPerPeer: 1, // do not dial peers
-          dialTimeout: 1000, // ms
-        },
         peerDiscovery: {
           autoDial: false,
         },
@@ -87,19 +86,21 @@ export class Wrapper extends Libp2p {
       },
     };
 
+    logger.info(`[p2p] bootstrap list length: ${bootstrap.length}`);
     if (bootstrap.length > 0) {
       options.modules.peerDiscovery = [Bootstrap];
-      options.config.peerDiscover = {
-        bootstrap: {
-          interval: 10 * 1000,
-          enabled: true,
-          list: bootstrap,
-        },
+      options.config.peerDiscovery.bootstrap = {
+        interval: 10 * 1000,
+        enabled: true,
+        list: bootstrap.map(x => x.replace('ipfs', 'p2p')),
       };
     }
 
     super(options);
     this.logger = logger;
+    this.logger.info(
+      `[p2p] libp2p options ${JSON.stringify(options, null, 2)}`
+    );
   }
 
   public async broadcastHelloAsync() {
@@ -262,8 +263,10 @@ export class Wrapper extends Libp2p {
 
   info() {
     const result: Pick<PeerInfoWrapper, 'id' | 'multiaddrs'> = {
-      id: this.peerInfo.id.toB58String(),
-      multiaddrs: this.peerInfo.multiaddrs.toArray().map(x => x.toString()),
+      id: this.peerId.toB58String(),
+      multiaddrs: this.addressManager
+        .getListenAddrs()
+        .map(x => `${x}/ipfs/${this.peerId.toB58String()}`),
     };
     return result;
   }
