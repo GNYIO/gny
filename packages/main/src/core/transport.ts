@@ -25,7 +25,6 @@ import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
 import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
-import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
 
 export default class Transport implements ICoreModule {

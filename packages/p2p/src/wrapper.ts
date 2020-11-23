@@ -33,10 +33,10 @@ import {
   V1_BROADCAST_HELLO_BACK,
 } from './protocols';
 
-export class Wrapper {
+export class Wrapper extends Libp2p {
   public logger: ILogger;
-  public node: Libp2p;
-  async create(
+
+  constructor(
     ip: string,
     port: number,
     peerId,
@@ -98,55 +98,52 @@ export class Wrapper {
       };
     }
 
+    super(options);
     this.logger = logger;
-    this.node = await Libp2p.create(options);
-    attachEventHandlers(this.node, logger);
-
-    return this.node;
   }
 
   public async broadcastHelloAsync() {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
+    await this.pubsub.publish(V1_BROADCAST_HELLO, Buffer.from('hello'));
   }
 
   public async broadcastHelloBackAsync() {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(
+    await this.pubsub.publish(
       V1_BROADCAST_HELLO_BACK,
       Buffer.from('hello back 2')
     );
   }
   public async broadcastProposeAsync(data: Buffer) {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(V1_BROADCAST_PROPOSE, data);
+    await this.pubsub.publish(V1_BROADCAST_PROPOSE, data);
   }
 
   public async broadcastTransactionAsync(data: Buffer) {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
+    await this.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
   }
 
   public async broadcastNewBlockHeaderAsync(data: Buffer) {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
+    await this.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
   }
 
   public async broadcastAsync(topic: string, data: Buffer): Promise<void> {
-    if (!this.node.isStarted()) {
+    if (!this.isStarted()) {
       return;
     }
-    await this.node.pubsub.publish(topic, data);
+    await this.pubsub.publish(topic, data);
   }
 
   public getConnectedRandomNode() {
@@ -207,7 +204,7 @@ export class Wrapper {
       });
     };
 
-    this.node.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
+    this.pubsub.subscribe(topic, filterBroadcastsEventHandler, () => {});
   }
 
   getAllConnectedPeers() {
@@ -231,7 +228,7 @@ export class Wrapper {
   }
 
   getAllConnectedPeersPeerInfo() {
-    const connections: string[] = Array.from(this.node.connections.keys());
+    const connections: string[] = Array.from(this.connections.keys());
 
     const connectedPeerInfo = this.peer.peerStore.peers.forEach(
       (result, key) => {
@@ -294,14 +291,14 @@ export class Wrapper {
     data: string
   ): Promise<Buffer> {
     this.logger.info(
-      `[p2p] dialing protocol "${protocol}" from ${this.node.peerId.toB58String()} -> ${peerId.toB58String()}`
+      `[p2p] dialing protocol "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
     );
 
     return new Promise((resolve, reject) => {
       this.logger.info(
         `[p2p] start to dial protocol "${protocol}" -> peer ${peerId.toB58String()}`
       );
-      this.node.dialProtocol(peerId, protocol, (err: Error, conn) => {
+      this.dialProtocol(peerId, protocol, (err: Error, conn) => {
         if (err) {
           this.logger.error(
             `[p2p] failed dialing protocol "${protocol}" to "${peerId.toB58String()}`
@@ -317,7 +314,7 @@ export class Wrapper {
             pull.collect((err: Error, returnedData: Buffer[]) => {
               if (err) {
                 this.logger.error(
-                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.node.peerId.toB58String()} -> ${this.node.peerId.toB58String()}`
+                  `[p2p] response from protocol dial "${protocol}" failed. Dialing was ${this.peerId.toB58String()} -> ${this.peerId.toB58String()}`
                 );
                 return reject(err);
               }
@@ -332,7 +329,7 @@ export class Wrapper {
           );
         } catch (err) {
           this.logger.error(
-            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.node.peerId.toB58String()} -> ${peerId.toB58String()}`
+            `[p2p] (catching error) response from protocol dial "${protocol}" failed. Dialing was ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
           );
           return reject(err);
         }
@@ -348,7 +345,7 @@ export class Wrapper {
 
     return new Promise((resolve, reject) => {
       try {
-        this.node.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
+        this.dialProtocol(peerInfo, protocol, (err: Error, conn) => {
           if (err) {
             this.logger.error(`[p2p] pushOnly did not work: ${err.message}`);
             this.logger.error(err);
@@ -369,14 +366,14 @@ export class Wrapper {
   public directResponse(protocol: string, func: AsyncMapFuncType) {
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
-    this.node.handle(protocol, function(protocol: string, conn) {
+    this.handle(protocol, function(protocol: string, conn) {
       pull(conn, pull.asyncMap(func), conn);
     });
   }
 
   public handlePushOnly(protocol: string, cb: SimplePushTypeCallback) {
     this.logger.info(`[p2p] handle push only "${protocol}"`);
-    this.node.handle(protocol, (protocol: string, conn) => {
+    this.handle(protocol, (protocol: string, conn) => {
       try {
         pull(conn, pull.collect(cb));
       } catch (err) {
