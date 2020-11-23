@@ -434,6 +434,10 @@ export interface P2PMessage {
 
 export type P2PSubscribeHandler = (message: P2PMessage) => void;
 
+export type TracerWrapper<T> = {
+  spanId: string;
+  data: T;
+};
 export interface BlockIdWrapper {
   id: string;
 }

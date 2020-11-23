@@ -1,17 +1,15 @@
 import * as _ from 'lodash';
 import {
   ManyVotes,
-  PeerNode,
   NewBlockMessage,
   P2PMessage,
   BlockPropose,
-  ITransaction,
   IBlock,
   BlockAndVotes,
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
-  PeerInfoWrapper,
+  TracerWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -25,7 +23,6 @@ import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
 import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
-import * as PeerId from 'peer-id';
 import * as PeerInfo from 'peer-info';
 
 export default class Transport implements ICoreModule {
@@ -89,14 +86,17 @@ export default class Transport implements ICoreModule {
   public static onNewPropose = async (propose: BlockPropose) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    let encodedBlockPropose: Buffer;
-    try {
-      encodedBlockPropose = global.library.protobuf.encodeBlockPropose(propose);
-    } catch (err) {
-      global.library.logger.warn('could not encode Propose with protobuf');
-      return;
-    }
+    const span = global.app.tracer.startSpan('onNewPropose');
+
+    const full: TracerWrapper<BlockPropose> = {
+      spanId: span.context().toSpanId(),
+      data: propose,
+    };
+    const encodedBlockPropose: Buffer = Buffer.from(JSON.stringify(full));
+
     await Peer.p2p.broadcastProposeAsync(encodedBlockPropose);
+
+    span.finish();
   };
 
   // peerEvent
@@ -125,7 +125,12 @@ export default class Transport implements ICoreModule {
     let peerInfo: PeerInfo;
     let result: BlockAndVotes;
     try {
-      const params: BlockIdWrapper = { id: newBlockMsg.id };
+      const params: TracerWrapper<BlockIdWrapper> = {
+        spanId: string,
+        data: {
+          id: newBlockMsg.id,
+        },
+      };
 
       const bundle: Bundle = Peer.p2p;
 
@@ -213,9 +218,14 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(`received propose from ${message.from}`);
+    let spanId: string;
     let propose: BlockPropose;
     try {
-      propose = global.library.protobuf.decodeBlockPropose(message.data);
+      const full: TracerWrapper<BlockPropose> = JSON.parse(
+        Buffer.from(message.data).toString()
+      );
+      spanId = full.spanId;
+      propose = full.data;
     } catch (e) {
       global.library.logger.warn(
         `could not decode Propose with protobuf from ${message.from}`
@@ -223,8 +233,16 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const span = new global.app.tracer.startSpan('receive BlockPropose', {
+      childOf: spanId,
+      references: [],
+    });
+
     if (!isBlockPropose(propose)) {
       global.library.logger.warn('block propose validation did not work');
+
+      span.log();
+      span.finish();
       return;
     }
 

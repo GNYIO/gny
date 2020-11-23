@@ -7,7 +7,6 @@ import {
   Bundle,
   SimplePushTypeCallback,
 } from '@gny/p2p';
-import { joi } from '@gny/extended-joi';
 import { StateHelper } from './StateHelper';
 import {
   ApiResult,
