@@ -17,7 +17,6 @@
 
     "resolveJsonModule": true,
     "typeRoots": [
-      "node_modules/@polkadot/ts/types/",
       "node_modules/@types"
     ]
   },
