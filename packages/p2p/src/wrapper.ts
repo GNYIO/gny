@@ -231,34 +231,34 @@ export class Wrapper extends Libp2p {
   getAllConnectedPeersPeerInfo() {
     const connections: string[] = Array.from(this.connections.keys());
 
-    const connectedPeerInfo = this.peer.peerStore.peers.forEach(
-      (result, key) => {
-        const has = connections.find(x => x === key);
-        if (!has) {
-          return;
-        }
-
-        const temp = {
-          id: {
-            id: result.id.toJSON().id,
-            pubKey: result.id.toJSON().pubKey,
-          },
-          multiaddrs: result.addresses.map(
-            x => `${x.multiaddr}/ipfs/${result.id.toJSON().id}`
-          ),
-          simple: {
-            host: result.addresses[
-              result.addresses.length - 1
-            ].multiaddr.nodeAddress().address,
-            port: result.addresses[
-              result.addresses.length - 1
-            ].multiaddr.nodeAddress().port,
-          },
-        };
-        return temp;
+    const result = [];
+    for (const [peerIdString, peer] of this.peerStore.peers.entries()) {
+      const has = connections.find(x => x === peerIdString);
+      if (!has) {
+        continue;
       }
-    );
-    return connectedPeerInfo;
+
+      const temp = {
+        id: {
+          id: peerIdString,
+          pubKey: peer.id.toJSON().pubKey,
+        },
+        multiaddrs: peer.addresses
+          .map(x => x.multiaddr.toString())
+          .map(x => x.replace('p2p', 'ipfs')),
+        simple: {
+          host: peer.addresses[
+            peer.addresses.length - 1
+          ].multiaddr.nodeAddress().address,
+          port: peer.addresses[
+            peer.addresses.length - 1
+          ].multiaddr.nodeAddress().port,
+        },
+      };
+      result.push(temp);
+    }
+
+    return result;
   }
 
   info() {
