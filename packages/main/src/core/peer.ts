@@ -1,23 +1,21 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
-  Wrapper,
+  create,
   V1_BROADCAST_NEW_BLOCK_HEADER,
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_HELLO,
   V1_BROADCAST_HELLO_BACK,
-  attachEventHandlers,
 } from '@gny/p2p';
 import { PeerNode, ICoreModule } from '@gny/interfaces';
-import { attachDirectP2PCommunication } from './PeerHelper';
-import Transport from './transport';
 import * as PeerId from 'peer-id';
+const multiaddr = require('multiaddr');
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
-  public static p2p: Wrapper;
+  public static p2p;
 
   public static getVersion = () => ({
     version: global.library.config.version,
@@ -100,67 +98,51 @@ export default class Peer implements ICoreModule {
       ? global.library.config.peers.bootstrap
       : [];
 
-    const wrapper = new Wrapper(
-      global.library.config.publicIp,
-      global.library.config.peerPort,
+    const wrapper = create(
       peerId,
-      bootstrapNode,
-      global.library.logger
+      global.library.config.publicIp,
+      global.library.config.peerPort
     );
     Peer.p2p = wrapper;
-    attachEventHandlers(Peer.p2p, global.library.logger);
-    attachDirectP2PCommunication(Peer.p2p);
+    // attachDirectP2PCommunication(Peer.p2p);
 
-    global.library.logger.info('[p2p] starting libp2p bundle');
+    try {
+      await Peer.p2p.start();
+      global.library.logger.info('[p2p] libp2p started');
 
-    Peer.p2p
-      .start()
-      .then(() => {
-        global.library.logger.info('[p2p] libp2p started');
+      global.library.logger.info(
+        `announceAddresses: ${JSON.stringify(
+          Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
+        )}`
+      );
+      global.library.logger.info(
+        `listenAddresses: ${Peer.p2p.addressManager
+          .getListenAddrs()
+          .map(x => x.toString())}`
+      );
+      global.library.logger.info(
+        `noAnnounceAddresses: ${Peer.p2p.addressManager
+          .getNoAnnounceAddrs()
+          .map(x => x.toString())}`
+      );
 
-        global.library.logger.info(
-          `[p2p] publicIp is: ${global.library.config.publicIp}`
-        );
+      await sleep(2 * 1000);
 
-        // node1.multiaddrs.map(x => `${x}/ipfs/${node1.peerId.toB58String()}
-
-        // issue #255
-        global.library.logger.log(
-          `[p2p] listen address: ${Peer.p2p.addressManager
-            .getListenAddrs()
-            .map(x => `${x}/ipfs/${Peer.p2p.peerId.toB58String()}`)}`
-        );
-      })
-      .then(async () => {
-        // subscribe to pubsub topics
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_NEW_BLOCK_HEADER,
-          Transport.receivePeer_NewBlockHeader
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_PROPOSE,
-          Transport.receivePeer_Propose
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_TRANSACTION,
-          Transport.receivePeer_Transaction
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_HELLO,
-          Transport.receivePeer_Hello
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_HELLO_BACK,
-          Transport.receivePeer_HelloBack
+      console.log(`bootstrapNode: ${JSON.stringify(bootstrapNode, null, 2)}`);
+      if (bootstrapNode.length > 0) {
+        const targetMulti = multiaddr(bootstrapNode[0]);
+        const targetPeerId = PeerId.createFromB58String(
+          targetMulti.getPeerId()
         );
 
-        global.library.logger.info(`[p2p] sleep for 10 seconds`);
-        return await sleep(10 * 1000);
-      })
-      .catch(err => {
-        global.library.logger.error('Failed to init dht');
-        global.library.logger.error(err);
-      });
+        Peer.p2p.peerStore.addressBook.set(targetPeerId, [targetMulti]);
+
+        await Peer.p2p.dial(targetPeerId);
+      }
+    } catch (err) {
+      global.library.logger.error('Failed to init libp2p');
+      global.library.logger.error(err);
+    }
   };
 
   public static cleanup = cb => {
