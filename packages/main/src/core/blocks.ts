@@ -773,7 +773,6 @@ export default class Blocks implements ICoreModule {
     block: IBlock,
     votes: ManyVotes
   ) => {
-    // remove later
     global.library.logger.info(
       `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
     );

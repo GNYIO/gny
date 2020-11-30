@@ -79,13 +79,6 @@ export default class Transport implements ICoreModule {
   public static onNewPropose = async (propose: BlockPropose) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    console.log(
-      `[p2p] converting BlockPropose to Uint8Array: ${JSON.stringify(
-        propose,
-        null,
-        2
-      )}`
-    );
     let encodedBlockPropose: Uint8Array;
     try {
       encodedBlockPropose = uint8ArrayFromString(JSON.stringify(propose));
