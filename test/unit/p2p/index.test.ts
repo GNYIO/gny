@@ -7,10 +7,9 @@ import {
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
 import { Bundle, LibP2POptions } from '../../../packages/p2p/src/bundle';
-import {
-  attachEventHandlers,
-  extractIpAndPort,
-} from '../../../packages/p2p/src/util';
+import { attachEventHandlers } from '../../../packages/p2p/src/util';
+
+function extractIpAndPort() {}
 
 const delay = (x: number): Promise<void> =>
   new Promise(resolve => setInterval(resolve, x));

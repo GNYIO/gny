@@ -125,6 +125,36 @@ class Bundle extends Libp2p {
     });
   }
 
+  async directRequest(peerId, protocol, data) {
+    this.logger.info(
+      `[p2p] dialing protocol "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
+    );
+
+    const { stream } = await this.dialProtocol(peerId, protocol);
+    const result = await pipe(
+      [data],
+      stream,
+      async function test(source) {
+        for await (const msg of source) {
+          return msg;
+        }
+      }
+    );
+    return result;
+  }
+
+  directResponse(protocol, func) {
+    this.logger.info(`[p2p] attach protocol "${protocol}"`);
+
+    this.handle(protocol, ({ stream }) => {
+      pipe(
+        stream,
+        func,
+        stream
+      );
+    });
+  }
+
   async broadcastNewMember(data) {
     if (!this.isStarted()) {
       return;

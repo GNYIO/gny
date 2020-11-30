@@ -1,36 +1,6 @@
-import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger, BufferList } from '@gny/interfaces';
+import { ILogger, BufferList } from '@gny/interfaces';
 import * as PeerInfo from 'peer-info';
 import * as PeerId from 'peer-id';
-
-export function extractIpAndPort(peerInfo): PeerNode {
-  let result: PeerNode = undefined;
-
-  const arr = peerInfo.multiaddrs.toArray();
-  for (let i = 0; i < arr.length; ++i) {
-    const one = arr[i];
-    const multi = Multiaddr(one);
-    // checking if not 127.0.0.1 is a workaround
-    // see https://github.com/libp2p/js-libp2p-floodsub/issues/58
-
-    // issue #255
-    const ipAddress = multi.toString().split('/')[2];
-    if (multi.toString().includes('tcp') && multi.toString().includes('ip4')) {
-      const y = multi.nodeAddress();
-      result = {
-        host: y.address,
-        port: Number(y.port),
-      };
-      break;
-    }
-  }
-  return result;
-}
-
-export function getB58String(peerInfo: PeerInfo) {
-  const b58String = peerInfo.id.toB58String();
-  return b58String;
-}
 
 export type AsyncMapFuncCallback = (
   err: Error,
@@ -82,22 +52,4 @@ export function attachEventHandlers(bundle, logger: ILogger) {
   bundle.on('peer:discovery', peerDiscoveryCallback);
   bundle.connectionManager.on('peer:connect', peerConnectedCallback);
   bundle.connectionManager.on('peer:disconnect', peerDisconnectCallback);
-}
-
-export function getMultiAddrsThatIsNotLocalAddress(peerInfo: PeerInfo) {
-  const result = peerInfo.multiaddrs.toArray().filter(multi => {
-    if (
-      multi.toString().includes('tcp') &&
-      multi.toString().includes('ip4') &&
-      !multi.toString().includes('127.0.0.1')
-    ) {
-      return true;
-    }
-    return false;
-  });
-  if (result.length === 0) {
-    throw new Error('no valid multiaddrs provided');
-  }
-
-  return result[0];
 }

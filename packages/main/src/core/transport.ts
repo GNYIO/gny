@@ -11,7 +11,6 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
-  PeerInfoWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -24,8 +23,7 @@ import {
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import { getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
-import * as PeerInfo from 'peer-info';
+import * as PeerId from 'peer-id';
 const uint8ArrayToString = require('uint8arrays/to-string');
 const uint8ArrayFromString = require('uint8arrays/from-string');
 
@@ -121,16 +119,16 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    let peerInfo: PeerInfo;
+    let peerId: PeerId;
     let result: BlockAndVotes;
     try {
       const params: BlockIdWrapper = { id: newBlockMsg.id };
 
       const bundle = Peer.p2p;
 
-      peerInfo = await bundle.findPeerInfoInDHT(message);
+      peerId = await bundle.findPeerInfoInDHT(message);
 
-      result = await bundle.requestBlockAndVotes(peerInfo, params);
+      result = await bundle.requestBlockAndVotes(peerId, params);
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
@@ -161,7 +159,7 @@ export default class Transport implements ICoreModule {
       global.library.logger.info(
         `[p2p] got "${
           votes.signatures.length
-        }" BlockVotes from peer ${getMultiAddrsThatIsNotLocalAddress(peerInfo)}`
+        }" BlockVotes from peer ${peerId.toB58String()}`
       );
 
       // validate the received Block and NewBlockMessage against each other
@@ -184,7 +182,7 @@ export default class Transport implements ICoreModule {
       global.library.logger.error(e);
     }
 
-    global.library.bus.message('onReceiveBlock', peerInfo, block, votes);
+    global.library.bus.message('onReceiveBlock', peerId, block, votes);
   };
 
   // peerEvent
@@ -269,9 +267,9 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(
-      `[p2p] received from "${message.peerInfo.host}:${
-        message.peerInfo.port
-      }" transactionId: ${unconfirmedTrs.id}`
+      `[p2p] received from "${message.from}" transactionId: ${
+        unconfirmedTrs.id
+      }`
     );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
   };

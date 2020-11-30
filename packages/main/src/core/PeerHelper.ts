@@ -21,7 +21,6 @@ import {
   BlocksWrapperParams,
   BufferList,
 } from '@gny/interfaces';
-import * as PeerInfo from 'peer-info';
 import {
   isCommonBlockParams,
   isBlocksWrapperParams,
@@ -32,6 +31,7 @@ import {
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
+const first = require('it-first');
 
 import { getBlocks as getBlocksFromApi } from '../http/util';
 const uint8ArrayToString = require('uint8arrays/to-string');
@@ -40,13 +40,13 @@ const uint8ArrayFromString = require('uint8arrays/from-string');
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
   const request = async (
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     blockIdWrapper: BlockIdWrapper
   ): Promise<BlockAndVotes> => {
-    const data = JSON.stringify(blockIdWrapper);
+    const data = uint8ArrayFromString(JSON.stringify(blockIdWrapper));
 
     const resultRaw = await bundle.directRequest(
-      peerInfo,
+      peerId,
       V1_NEW_BLOCK_PROTOCOL,
       data
     );
@@ -60,19 +60,24 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   };
 
   // step2: node2 -> node1
-  const response = async (data: Buffer, cb) => {
-    const body = JSON.parse(Buffer.from(data).toString());
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+    const body = JSON.parse(temp.toString());
 
     // validate id
     if (!isBlockIdWrapper(body)) {
       global.library.logger.info('[p2p] validaion for blockIdWrapper failed');
-      return cb(new Error('validation failed'));
+      throw new Error('validation failed');
     }
 
     // no need for await
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
-      return cb(new Error('New block not found'));
+      throw new Error('New block not found');
     }
 
     const result: BlockAndVotes = {
@@ -80,9 +85,8 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       votes: newBlock.votes,
     };
 
-    const converted = uint8ArrayFromString(JSON.stringify(result));
-
-    return cb(null, converted);
+    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    return converted;
   };
 
   bundle.requestBlockAndVotes = request;
@@ -287,7 +291,7 @@ function V1_BLOCKS_HANDLER(bundle) {
 }
 
 export function attachDirectP2PCommunication(bundle) {
-  // V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
+  V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
   // V1_COMMON_BLOCK_HANDLER(bundle);
   // V1_GET_HEIGH_HANDLER(bundle);

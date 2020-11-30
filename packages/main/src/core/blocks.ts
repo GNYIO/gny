@@ -41,8 +41,7 @@ import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
-import * as PeerInfo from 'peer-info';
-import { getB58String } from '@gny/p2p';
+import * as PeerId from 'peer-id';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -76,7 +75,7 @@ export default class Blocks implements ICoreModule {
 
   // todo look at core/loader
   public static getCommonBlock = async (
-    peer: PeerInfo,
+    peer: PeerId,
     lastBlockHeight: string
   ): Promise<IBlock> => {
     const params: CommonBlockParams = await Blocks.getIdSequence2(
@@ -591,16 +590,14 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static loadBlocksFromPeer = async (peer: PeerInfo, id: string) => {
+  public static loadBlocksFromPeer = async (peer: PeerId, id: string) => {
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
     let lastCommonBlockId = id;
 
     global.app.logger.info(
-      `start to sync 30 * 200 blocks. From peer: ${JSON.stringify(
-        peer
-      )}, last commonBlock: ${id}`
+      `start to sync 30 * 200 blocks. From peer: ${peer.toB58String()}, last commonBlock: ${id}`
     );
 
     await pWhilst(
@@ -631,7 +628,7 @@ export default class Blocks implements ICoreModule {
         const num = Array.isArray(blocks) ? blocks.length : 0;
 
         global.app.logger.info(
-          `Loading ${num} blocks from ${getB58String(peer)}`
+          `Loading ${num} blocks from ${peer.toB58String()}`
         );
         try {
           for (const block of blocks) {
@@ -654,7 +651,7 @@ export default class Blocks implements ICoreModule {
             if (stateResult.success) {
               lastCommonBlockId = block.id;
               global.app.logger.info(
-                `Block ${block.id} loaded from ${getB58String(peer)} at ${
+                `Block ${block.id} loaded from ${peer.toB58String()} at ${
                   block.height
                 }`
               );
@@ -662,7 +659,7 @@ export default class Blocks implements ICoreModule {
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
-                } loaded from ${getB58String(peer)} at ${block.height}`
+                } loaded from ${peer.toB58String()} at ${block.height}`
               );
               global.app.logger.info('sleep for 10seconds');
               await snooze(10 * 1000);
@@ -772,7 +769,7 @@ export default class Blocks implements ICoreModule {
 
   // Events
   public static onReceiveBlock = (
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     block: IBlock,
     votes: ManyVotes
   ) => {
@@ -797,18 +794,18 @@ export default class Blocks implements ICoreModule {
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         global.library.logger.warn('Receive new block header from long fork');
         global.library.logger.info(
-          `[syncing] received block h: ${block.height} from "${getB58String(
-            peerInfo
-          )}". seem that we are not up to date. Start syncing from a random peer`
+          `[syncing] received block h: ${
+            block.height
+          } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`
         );
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
         global.library.logger.info(
-          `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerInfo}`
+          `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
         );
-        Loader.syncBlocksFromPeer(peerInfo);
+        Loader.syncBlocksFromPeer(peerId);
         return cb();
       }
 
