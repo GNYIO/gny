@@ -4,20 +4,17 @@ import { generateAddress } from '@gny/utils';
 import { BlockReward } from '@gny/utils';
 import {
   KeyPair,
-  PeerNode,
   ProcessBlockOptions,
   BlockPropose,
   Next,
   IBlock,
   ManyVotes,
-  ITransaction,
   CommonBlockParams,
   CommonBlockResult,
   IRound,
   ICoreModule,
   UnconfirmedTransaction,
   P2PMessage,
-  BlocksWrapper,
   BlocksWrapperParams,
   IBlockWithTransactions,
 } from '@gny/interfaces';
@@ -38,7 +35,6 @@ import Transactions from './transactions';
 import Peer from './peer';
 import Delegates from './delegates';
 import Loader from './loader';
-import Transport from './transport';
 import { BigNumber } from 'bignumber.js';
 import { Transaction } from '@gny/database-postgres';
 import { Round } from '@gny/database-postgres';
@@ -968,11 +964,11 @@ export default class Blocks implements ICoreModule {
                   }`
                 );
 
-                const bundle: Bundle = Peer.p2p;
+                const bundle = Peer.p2p;
 
-                const peerInfo = await bundle.findPeerInfoInDHT(message);
+                const peerId = await bundle.findPeerInfoInDHT(message);
 
-                await bundle.pushVotesToPeer(peerInfo, votes);
+                await bundle.pushVotesToPeer(peerId, votes);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
               }

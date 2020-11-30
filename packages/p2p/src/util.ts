@@ -1,6 +1,5 @@
 import * as Multiaddr from 'multiaddr';
-import { PeerNode, ILogger, P2PMessage } from '@gny/interfaces';
-import { Wrapper } from './wrapper';
+import { PeerNode, ILogger, BufferList } from '@gny/interfaces';
 import * as PeerInfo from 'peer-info';
 import * as PeerId from 'peer-id';
 
@@ -42,7 +41,7 @@ export type AsyncMapFuncType = (
   cb: AsyncMapFuncCallback
 ) => Promise<void>;
 
-export type SimplePushTypeCallback = (err: Error, values: Buffer[]) => void;
+export type SimplePushTypeCallback = (err: Error, values: BufferList) => void;
 
 export function attachEventHandlers(bundle, logger: ILogger) {
   const errorCallback = function(err: Error) {
@@ -60,24 +59,9 @@ export function attachEventHandlers(bundle, logger: ILogger) {
   };
 
   const peerDiscoveryCallback = async function(peer: PeerId) {
-    const connectedPeers = Array.from(bundle.connections.keys());
-    const result = connectedPeers.find(x => x === peer.toB58String());
-    if (result) {
-      logger.info(
-        `[p2p] (boostrap) already connected to peer: ${peer.toB58String()}`
-      );
-    } else {
-      try {
-        await bundle.dial(peer);
-      } catch (err) {
-        logger.info(
-          `[p2p] (bootstrap) DIAL failed for peer: ${peer.toB58String()}`
-        );
-      }
-    }
-
-    // say "hello" to every peer in the network
-    await bundle.broadcastHelloAsync();
+    console.log(
+      `[p2p] "peer:discovery" added peer to peerStor ${peer.toB58String()}`
+    );
   };
 
   const peerConnectedCallback = function(connection) {

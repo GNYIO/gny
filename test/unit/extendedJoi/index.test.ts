@@ -560,4 +560,55 @@ describe('extendedJoi', () => {
       expect(report.error.name).toBe('ValidationError');
     });
   });
+
+  describe('multiaddr', () => {
+    it('should pass with valid multiaddr string', () => {
+      const VALUE =
+        '/ip4/172.20.0.3/tcp/4097/p2p/QmTEfBHjNABsYevH1vXusACzwv9GSBrspc1rqvbkMXv8sN';
+
+      const schema = joi.string().multiaddr();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('should fail for empty string', () => {
+      const VALUE = '';
+
+      const schema = joi.string().multiaddr();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should fail with wrong ip', () => {
+      const VALUE =
+        '/ip6/172.20.0.3/tcp/4097/p2p/QmTEfBHjNABsYevH1vXusACzwv9GSBrspc1rqvbkMXv8sN';
+
+      const schema = joi.string().multiaddr();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should fail with wrong port', () => {
+      const VALUE =
+        '/ip4/172.20.0.3/tcp/100000/p2p/QmTEfBHjNABsYevH1vXusACzwv9GSBrspc1rqvbkMXv8sN';
+
+      const schema = joi.string().multiaddr();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should fail with wrong B58 Id', () => {
+      const VALUE =
+        '/ip4/172.20.0.3/tcp/4097/p2p/QmTEfZZZZZZZZZZZZZZBsYevH1vXusACzwv9GSBrspc1rqvbkMXv8sN';
+
+      const schema = joi.string().multiaddr();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+  });
 });

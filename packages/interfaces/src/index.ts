@@ -417,15 +417,18 @@ export interface NewBlockMessage {
   prevBlockId: string;
 }
 
-export interface P2PMessage {
-  data: Buffer;
-  from: string;
-  seqno: Buffer;
-  topicIDs: string[];
-  peerInfo: PeerNode;
+export interface BufferList {
+  toString(): string;
 }
 
-export type P2PSubscribeHandler = (message: P2PMessage) => void;
+export interface P2PMessage {
+  from: string;
+  data: Uint8Array;
+  seqno: Uint8Array;
+  topicIDs: string[];
+  signature: Uint8Array;
+  key: Uint8Array;
+}
 
 export interface BlockIdWrapper {
   id: string;

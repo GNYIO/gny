@@ -2,6 +2,7 @@ import * as bip39 from 'bip39';
 import { isAddress } from '@gny/utils';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
+import * as CID from 'cids';
 
 new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
 
@@ -17,6 +18,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   ipv4PlusPort(): this;
   positiveOrZeroBigInt(): this;
   networkType(): this;
+  multiaddr(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -48,6 +50,7 @@ const stringExtensions: Joi.Extension = {
     ipv4PlusPort: 'is not a ipv4:port',
     positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
     networkType: 'is not a networkType',
+    multiaddr: 'is not a multiaddr',
   },
   rules: [
     {
@@ -276,6 +279,49 @@ const stringExtensions: Joi.Extension = {
           state,
           options
         );
+      },
+    },
+    {
+      name: 'multiaddr',
+      validate(params, value, state, options) {
+        const test = value.split('/');
+
+        if (test.length !== 7) {
+          return this.createError(
+            'string.multiaddr',
+            { v: value },
+            state,
+            options
+          );
+        }
+
+        const ipRegex = /^((([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])\.){3}([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])|[a-zA-Z0-9]*)$/;
+        const portRegex = /^(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})$/;
+
+        const first = test[0] === '';
+        const second = test[1] === 'ip4';
+        const third = ipRegex.test(test[2]);
+        const fourth = test[3] === 'tcp';
+        const fifth = portRegex.test(test[4]);
+        const sixth = test[5] === 'p2p';
+
+        let seventh = true;
+        try {
+          new CID(test[6]);
+        } catch (err) {
+          seventh = false;
+        }
+
+        if (first && second && third && fourth && fifth && sixth && seventh) {
+          return value;
+        } else {
+          return this.createError(
+            'string.multiaddr',
+            { v: value },
+            state,
+            options
+          );
+        }
       },
     },
   ],

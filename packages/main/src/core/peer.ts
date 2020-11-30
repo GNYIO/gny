@@ -5,12 +5,13 @@ import {
   V1_BROADCAST_NEW_BLOCK_HEADER,
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
-  V1_BROADCAST_HELLO,
-  V1_BROADCAST_HELLO_BACK,
+  V1_BROADCAST_NEW_MEMBER,
 } from '@gny/p2p';
 import { PeerNode, ICoreModule } from '@gny/interfaces';
 import * as PeerId from 'peer-id';
-const multiaddr = require('multiaddr');
+import { attachDirectP2PCommunication } from './PeerHelper';
+import Transport from './transport';
+const uint8ArrayFromString = require('uint8arrays/from-string');
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -101,47 +102,77 @@ export default class Peer implements ICoreModule {
     const wrapper = create(
       peerId,
       global.library.config.publicIp,
-      global.library.config.peerPort
+      global.library.config.peerPort,
+      bootstrapNode,
+      global.library.logger
     );
     Peer.p2p = wrapper;
-    // attachDirectP2PCommunication(Peer.p2p);
+    attachDirectP2PCommunication(Peer.p2p);
 
-    try {
-      await Peer.p2p.start();
-      global.library.logger.info('[p2p] libp2p started');
+    await Peer.p2p.start();
+    global.library.logger.info('[p2p] libp2p started');
 
-      global.library.logger.info(
-        `announceAddresses: ${JSON.stringify(
-          Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
-        )}`
-      );
-      global.library.logger.info(
-        `listenAddresses: ${Peer.p2p.addressManager
-          .getListenAddrs()
-          .map(x => x.toString())}`
-      );
-      global.library.logger.info(
-        `noAnnounceAddresses: ${Peer.p2p.addressManager
-          .getNoAnnounceAddrs()
-          .map(x => x.toString())}`
-      );
+    global.library.logger.info(
+      `announceAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
+      )}`
+    );
+    global.library.logger.info(
+      `listenAddresses: ${Peer.p2p.addressManager
+        .getListenAddrs()
+        .map(x => x.toString())}`
+    );
+    global.library.logger.info(
+      `noAnnounceAddresses: ${Peer.p2p.addressManager
+        .getNoAnnounceAddrs()
+        .map(x => x.toString())}`
+    );
 
-      await sleep(2 * 1000);
+    Peer.p2p.pubsub.on(
+      V1_BROADCAST_NEW_BLOCK_HEADER,
+      Transport.receivePeer_NewBlockHeader
+    );
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_BLOCK_HEADER);
 
-      console.log(`bootstrapNode: ${JSON.stringify(bootstrapNode, null, 2)}`);
-      if (bootstrapNode.length > 0) {
-        const targetMulti = multiaddr(bootstrapNode[0]);
-        const targetPeerId = PeerId.createFromB58String(
-          targetMulti.getPeerId()
-        );
+    Peer.p2p.pubsub.on(V1_BROADCAST_PROPOSE, Transport.receivePeer_Propose);
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_PROPOSE);
 
-        Peer.p2p.peerStore.addressBook.set(targetPeerId, [targetMulti]);
+    Peer.p2p.pubsub.on(
+      V1_BROADCAST_TRANSACTION,
+      Transport.receivePeer_Transaction
+    );
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_TRANSACTION);
 
-        await Peer.p2p.dial(targetPeerId);
-      }
-    } catch (err) {
-      global.library.logger.error('Failed to init libp2p');
-      global.library.logger.error(err);
+    Peer.p2p.pubsub.on(V1_BROADCAST_NEW_MEMBER, Transport.receiveNew_Member);
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_MEMBER);
+
+    await sleep(2 * 1000);
+
+    if (bootstrapNode.length > 0) {
+      Peer.p2p._discovery.get('bootstrap').on('peer', async peer => {
+        // 1. check if have connection
+        // yes, then return
+        // 2. if not, then dial
+        const connection = Peer.p2p.connectionManager.get(peer.id);
+        if (connection) {
+          // do nothing, already connected
+          return;
+        }
+
+        try {
+          await Peer.p2p.dial(peer.id);
+          const data = uint8ArrayFromString(JSON.stringify(peer));
+          await Peer.p2p.broadcastNewMember(data);
+        } catch (err) {
+          global.library.logger.info(
+            `[p2p][bootsrap] failed to dial peer ${JSON.stringify(
+              peer,
+              null,
+              2
+            )}`
+          );
+        }
+      });
     }
   };
 

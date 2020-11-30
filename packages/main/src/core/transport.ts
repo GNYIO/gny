@@ -24,8 +24,10 @@ import {
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
+import { getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
 import * as PeerInfo from 'peer-info';
+const uint8ArrayToString = require('uint8arrays/to-string');
+const uint8ArrayFromString = require('uint8arrays/from-string');
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
@@ -63,11 +65,9 @@ export default class Transport implements ICoreModule {
         prevBlockId: block.prevBlockId,
       } as NewBlockMessage);
 
-    let encodedNewBlockMessage: Buffer;
+    let encodedNewBlockMessage: Uint8Array;
     try {
-      encodedNewBlockMessage = global.library.protobuf.encodeNewBlockMessage(
-        message
-      );
+      encodedNewBlockMessage = uint8ArrayFromString(JSON.stringify(message));
     } catch (err) {
       global.library.logger.warn(
         'could not encode NewBlockMessage with protobuf'
@@ -81,9 +81,16 @@ export default class Transport implements ICoreModule {
   public static onNewPropose = async (propose: BlockPropose) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    let encodedBlockPropose: Buffer;
+    console.log(
+      `[p2p] converting BlockPropose to Uint8Array: ${JSON.stringify(
+        propose,
+        null,
+        2
+      )}`
+    );
+    let encodedBlockPropose: Uint8Array;
     try {
-      encodedBlockPropose = Buffer.from(JSON.stringify(propose));
+      encodedBlockPropose = uint8ArrayFromString(JSON.stringify(propose));
     } catch (err) {
       global.library.logger.warn('could not encode Propose with protobuf');
       return;
@@ -102,7 +109,7 @@ export default class Transport implements ICoreModule {
 
     let newBlockMsg;
     try {
-      newBlockMsg = global.library.protobuf.decodeNewBlockMessage(message.data);
+      newBlockMsg = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
       global.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -119,7 +126,7 @@ export default class Transport implements ICoreModule {
     try {
       const params: BlockIdWrapper = { id: newBlockMsg.id };
 
-      const bundle: Bundle = Peer.p2p;
+      const bundle = Peer.p2p;
 
       peerInfo = await bundle.findPeerInfoInDHT(message);
 
@@ -192,7 +199,7 @@ export default class Transport implements ICoreModule {
     global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
-      propose = global.library.protobuf.decodeBlockPropose(message.data);
+      propose = JSON.parse(uint8ArrayToString(message.data));
     } catch (e) {
       global.library.logger.warn(
         `could not decode Propose with protobuf from ${message.from}`
@@ -206,14 +213,27 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(
-      `[p2p] onReceivePropose from "${message.peerInfo.host}${
-        message.peerInfo.port
-      }" for block ${propose.id}, height: ${propose.height}`
+      `[p2p] onReceivePropose from "${propose.address}" for block ${
+        propose.id
+      }, height: ${propose.height}`
     );
     global.library.bus.message('onReceivePropose', propose, message);
   };
 
   // peerEvent
+  public static receiveNew_Member = async (message: P2PMessage) => {
+    // dial, even when syncing
+
+    const uint = uint8ArrayToString(message.data);
+    const data = JSON.parse(uint);
+    console.log(`[p2p] message, received ${JSON.stringify(data, null, 2)}`);
+
+    // 1. check if peer is in Addressbook
+    // if not, add to AddressBook
+    // 2.check if there is a connection
+    // if not, dial
+  };
+
   public static receivePeer_Transaction = (message: P2PMessage) => {
     if (StateHelper.IsSyncing()) {
       global.library.logger.info(
@@ -254,39 +274,5 @@ export default class Transport implements ICoreModule {
       }" transactionId: ${unconfirmedTrs.id}`
     );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
-  };
-
-  public static receivePeer_Hello = async (message: P2PMessage) => {
-    try {
-      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
-
-      await Peer.p2p.dial(peerInfo);
-      global.library.logger.info(
-        `[p2p] after "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
-      );
-
-      await Peer.p2p.broadcastHelloBackAsync();
-    } catch (err) {
-      global.library.logger.error(
-        `[p2p] received "hello" error: ${err.message}`
-      );
-      global.library.logger.error(err);
-    }
-  };
-
-  public static receivePeer_HelloBack = async (message: P2PMessage) => {
-    try {
-      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
-
-      await Peer.p2p.dial(peerInfo);
-      global.library.logger.info(
-        `[p2p] after "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
-      );
-    } catch (err) {
-      global.library.logger.error(
-        `[p2p] received "helloBack" error: ${err.message}`
-      );
-      global.library.logger.error(err);
-    }
   };
 }
