@@ -104,7 +104,6 @@ function V1_VOTES_HANDLER(bundle) {
   // not duplex
   // not async
   const response: SimplePushTypeCallback = (err: Error, values: BufferList) => {
-    console.log(`got response!!!!!!`);
     if (err) {
       console.log(
         'received error while handling error from pushVotes (response)'

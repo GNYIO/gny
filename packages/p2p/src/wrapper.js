@@ -82,6 +82,13 @@ class Bundle extends Libp2p {
     const targetPeerId = PeerId.createFromB58String(p2pMsg.from);
     const address = this.peerStore.addressBook.get(targetPeerId);
     if (address) {
+      this.logger.info(
+        `[þ2p][findPeerInfoInDHT] peerId: "${targetPeerId.toB58String()}" to addresses: ${JSON.stringify(
+          address,
+          null,
+          2
+        )}`
+      );
       return targetPeerId;
     } else {
       const peer = await this.peerRouting.findPeer(targetPeerId);
