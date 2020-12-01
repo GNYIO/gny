@@ -19,6 +19,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   positiveOrZeroBigInt(): this;
   networkType(): this;
   multiaddr(): this;
+  peerId(): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -51,6 +52,7 @@ const stringExtensions: Joi.Extension = {
     positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
     networkType: 'is not a networkType',
     multiaddr: 'is not a multiaddr',
+    peerId: 'is not a peerId',
   },
   rules: [
     {
@@ -317,6 +319,28 @@ const stringExtensions: Joi.Extension = {
         } else {
           return this.createError(
             'string.multiaddr',
+            { v: value },
+            state,
+            options
+          );
+        }
+      },
+    },
+    {
+      name: 'peerId',
+      validate(params, value, state, options) {
+        let noError = true;
+        try {
+          new CID(value);
+        } catch (err) {
+          noError = false;
+        }
+
+        if (noError) {
+          return value;
+        } else {
+          return this.createError(
+            'string.peerId',
             { v: value },
             state,
             options

@@ -611,4 +611,33 @@ describe('extendedJoi', () => {
       expect(report.error.name).toBe('ValidationError');
     });
   });
+
+  describe('peerId', () => {
+    it('random string is not valid', () => {
+      const VALUE = 'some random string';
+
+      const schema = joi.string().peerId();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('random hex string is not valid', () => {
+      const VALUE = Buffer.from('hello hello').toString('hex');
+
+      const schema = joi.string().peerId();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('valid peerId succeeds', () => {
+      const VALUE = 'Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP';
+
+      const schema = joi.string().peerId();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+  });
 });

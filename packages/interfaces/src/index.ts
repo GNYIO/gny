@@ -430,6 +430,11 @@ export interface P2PMessage {
   key: Uint8Array;
 }
 
+export interface P2PPeerIdAndMultiaddr {
+  peerId: string;
+  multiaddr: string[];
+}
+
 export interface BlockIdWrapper {
   id: string;
 }
