@@ -232,6 +232,9 @@ export default class Transport implements ICoreModule {
     }
 
     // P2PPeerIdAndMultiaddr
+    global.library.logger.info(
+      `[p2p][newMember] newMember: ${JSON.stringify(parsed, null, 2)}`
+    );
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
       return;
     }
@@ -239,8 +242,15 @@ export default class Transport implements ICoreModule {
       `[p2p] received new member, ${JSON.stringify(parsed, null, 2)}`
     );
 
-    const peerId = PeerId.createFromB58String(parsed.peerId);
-    if (peerId.equals(Peer.p2p)) {
+    let peerId = null;
+    try {
+      peerId = PeerId.createFromCID(parsed.peerId);
+    } catch (err) {
+      global.library.logger.info(`[p2p][newMember] error: ${err.message}`);
+      return;
+    }
+
+    if (peerId.equals(Peer.p2p.peerId)) {
       global.library.logger.info(`[p2p] "newMember" is me`);
       return;
     }

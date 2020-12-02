@@ -242,16 +242,22 @@ function V1_BLOCKS_HANDLER(bundle) {
 
     const resultRaw = await bundle.directRequest(peerId, V1_BLOCKS, data);
 
-    const result: HeightWrapper = JSON.parse(resultRaw.toString());
+    const result: IBlock[] = JSON.parse(resultRaw.toString());
     return result;
   };
 
-  const response = async (data: Buffer, cb) => {
-    const body: BlocksWrapperParams = JSON.parse(Buffer.from(data).toString());
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+    const body = JSON.parse(temp.toString());
+
     body.limit = body.limit || 200;
 
     if (!isBlocksWrapperParams(body)) {
-      return cb(new Error('blocksync params validation failed'));
+      throw new Error('blocksync params validation failed');
     }
 
     const blocksLimit: number = body.limit;
@@ -273,15 +279,15 @@ function V1_BLOCKS_HANDLER(bundle) {
         true
       );
 
-      return cb(null, JSON.stringify(blocks));
+      return [uint8ArrayFromString(JSON.stringify(blocks))];
     } catch (e) {
       global.app.logger.error(
-        '/peer/blocks (POST), Failed to get blocks with transactions'
+        '[p2p][requestBlocks] Failed to get blocks with transactions'
       );
       global.app.logger.error(e);
 
       const result: IBlock[] = [];
-      return cb(null, JSON.stringify(result));
+      return [uint8ArrayFromString(JSON.stringify(result))];
     }
   };
 
@@ -294,5 +300,5 @@ export function attachDirectP2PCommunication(bundle) {
   V1_VOTES_HANDLER(bundle);
   // V1_COMMON_BLOCK_HANDLER(bundle);
   // V1_GET_HEIGH_HANDLER(bundle);
-  // V1_BLOCKS_HANDLER(bundle);
+  V1_BLOCKS_HANDLER(bundle);
 }

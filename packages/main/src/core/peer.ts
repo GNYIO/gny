@@ -7,7 +7,7 @@ import {
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_NEW_MEMBER,
 } from '@gny/p2p';
-import { PeerNode, ICoreModule } from '@gny/interfaces';
+import { PeerNode, ICoreModule, P2PPeerIdAndMultiaddr } from '@gny/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
@@ -119,14 +119,14 @@ export default class Peer implements ICoreModule {
       )}`
     );
     global.library.logger.info(
-      `listenAddresses: ${Peer.p2p.addressManager
-        .getListenAddrs()
-        .map(x => x.toString())}`
+      `listenAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getListenAddrs().map(x => x.toString())
+      )}`
     );
     global.library.logger.info(
-      `noAnnounceAddresses: ${Peer.p2p.addressManager
-        .getNoAnnounceAddrs()
-        .map(x => x.toString())}`
+      `noAnnounceAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getNoAnnounceAddrs().map(x => x.toString())
+      )}`
     );
 
     Peer.p2p.pubsub.on(
@@ -219,7 +219,11 @@ export default class Peer implements ICoreModule {
                 2
               )}`
             );
-            const data = uint8ArrayFromString(JSON.stringify(peer));
+            const raw: P2PPeerIdAndMultiaddr = {
+              peerId: peer.toB58String(),
+              multiaddr: [m.toString()],
+            };
+            const data = uint8ArrayFromString(JSON.stringify(raw));
             await Peer.p2p.broadcastNewMember(data);
           } catch (err) {
             global.library.logger.info(

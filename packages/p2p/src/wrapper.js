@@ -47,7 +47,7 @@ class Bundle extends Libp2p {
         },
         dht: {
           kBucketSize: 20,
-          enabled: false,
+          enabled: true,
           randomWalk: {
             enabled: false,
           },
@@ -68,6 +68,14 @@ class Bundle extends Libp2p {
 
   async findPeerInfoInDHT(p2pMsg) {
     const targetPeerId = PeerId.createFromB58String(p2pMsg.from);
+
+    if (targetPeerId.equals(this.peerId)) {
+      this.logger.info(
+        `[p2p][findPeerInfoInDHT] trying to search for own peerId, going to throw`
+      );
+      throw new Error('try to find own peerId in peerRouting');
+    }
+
     const address = this.peerStore.addressBook.get(targetPeerId);
     if (address) {
       this.logger.info(
@@ -79,6 +87,9 @@ class Bundle extends Libp2p {
       );
       return targetPeerId;
     } else {
+      this.logger.info(
+        `[p2p][findPeerInfoInDHT] "${this.peerId.toB58String()}" -> "${targetPeerId.toB58String()}"`
+      );
       const peer = await this.peerRouting.findPeer(targetPeerId);
       return peer.id;
     }
@@ -155,6 +166,7 @@ class Bundle extends Libp2p {
       return;
     }
     await this.pubsub.publish(V1_BROADCAST_NEW_MEMBER, data);
+    this.logger.info(`[p2p][bootstrap] "newMember" announced`);
   }
 
   async broadcastProposeAsync(data) {
