@@ -142,7 +142,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.9
-      - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/ipfs/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
+      - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -180,7 +180,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.11
-      - GNY_P2P_PEERS=/ip4/172.20.0.9/tcp/4097/ipfs/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU
+      - GNY_P2P_PEERS=/ip4/172.20.0.9/tcp/4097/p2p/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
