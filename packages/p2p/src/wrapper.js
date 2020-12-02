@@ -7,6 +7,7 @@ const DHT = require('libp2p-kad-dht');
 const PeerId = require('peer-id');
 const pipe = require('it-pipe');
 const first = require('it-first');
+const multiaddr = require('multiaddr');
 
 const {
   V1_BROADCAST_NEW_BLOCK_HEADER,
@@ -64,6 +65,52 @@ class Bundle extends Libp2p {
 
     super(options);
     this.logger = logger;
+  }
+
+  getAllConnectedPeersPeerInfo() {
+    const connections = Array.from(this.connections.keys());
+    if (connections.length === 0) {
+      return [];
+    }
+
+    const allConnectedPeers = connections.map(x => {
+      const peerId = PeerId.createFromB58String(x);
+      const addresses = this.peerStore.addressBook
+        .get(peerId)
+        .map(x => multiaddr(x.multiaddr))
+        .map(x => x.encapsulate(`/p2p/${peerId.toB58String()}`));
+
+      if (!addresses) {
+        this.logger.info(
+          `[p2p][getAllConnectedPeersPeerInfo] no multiaddrs for peer: ${x}`
+        );
+        return null;
+      }
+
+      return {
+        id: {
+          id: peerId.toB58String(),
+          pubKey: null,
+        },
+        multiaddrs: addresses.map(x => x.toString()),
+        simple: {
+          host: addresses[0].nodeAddress().address,
+          port: addresses[0].nodeAddress().port,
+        },
+      };
+    });
+
+    return allConnectedPeers;
+  }
+
+  info() {
+    const id = this.peerId.toB58String();
+    const multi = this.addressManager.getAnnounceAddrs();
+
+    return {
+      id,
+      multiaddrs: multi.map(x => `${x.toString()}/p2p/${id}`),
+    };
   }
 
   async findPeerInfoInDHT(p2pMsg) {
