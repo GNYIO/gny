@@ -4,7 +4,6 @@ const mplex = require('libp2p-mplex');
 const { NOISE } = require('libp2p-noise');
 const Gossipsub = require('libp2p-gossipsub');
 const DHT = require('libp2p-kad-dht');
-const Bootstrap = require('libp2p-bootstrap');
 const PeerId = require('peer-id');
 const pipe = require('it-pipe');
 const first = require('it-first');
@@ -23,7 +22,7 @@ class Bundle extends Libp2p {
       addresses: {
         listen: [`/ip4/0.0.0.0/tcp/${port}`],
         announce: [`/ip4/${announceIp}/tcp/${port}`],
-        noAnnounce: [`/ip4/0.0.0.0/tcp/${port}`],
+        noAnnounce: [`/ip4/0.0.0.0/tcp/${port}`, `/ip4/127.0.0.1/tcp/${port}`],
       },
       modules: {
         transport: [TCP],
@@ -62,17 +61,6 @@ class Bundle extends Libp2p {
         },
       },
     };
-
-    // this needs to be conditional
-    // otherwise it will throw on an empty bootstrap node list
-    if (bootstrapNode.length > 0) {
-      // add bootstrap
-      options.modules.peerDiscovery = [Bootstrap];
-      options.config.peerDiscovery.bootstrap = {
-        enabled: true,
-        list: bootstrapNode,
-      };
-    }
 
     super(options);
     this.logger = logger;
@@ -205,12 +193,22 @@ function attachEventHandlers(node, name) {
   });
   node.on('peer:discovery', async peer => {
     console.log(`[${name}] peer:discovery peer "${peer.toB58String()}"`);
+    const addresses = node.peerStore.addressBook.get(peer);
+    console.log(
+      `[${name}] peer:discovery addresses "${peer.toB58String()}", "${JSON.stringify(
+        addresses,
+        null,
+        2
+      )}`
+    );
   });
 
   node.connectionManager.on('peer:connect', connection => {
-    console.log(
-      `[${name}] peer:connect peer "${connection.localPeer.toB58String()}`
-    );
+    // console.log(
+    //   `[${name}] peer:connect peer "${connection.localPeer.toB58String()}"`
+    // );
+    // const addresses = node.peerStore.addressBook.get(peer);
+    // console.log(`[${name}] peer:connect addresses "${peer.toB58String()}", "${JSON.stringify(addresses, null, 2)}`);
   });
 
   node.connectionManager.on('peer:disconnect', connection => {

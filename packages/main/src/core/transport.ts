@@ -11,6 +11,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
+  P2PPeerIdAndMultiaddr,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -19,6 +20,7 @@ import {
   isBlockPropose,
   isNewBlockMessage,
   isBlockAndVotes,
+  isP2PPeerIdAndMultiaddr,
 } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
@@ -26,6 +28,7 @@ import { BlocksHelper } from './BlocksHelper';
 import * as PeerId from 'peer-id';
 const uint8ArrayToString = require('uint8arrays/to-string');
 const uint8ArrayFromString = require('uint8arrays/from-string');
+import * as multiaddr from 'multiaddr';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
@@ -214,11 +217,77 @@ export default class Transport implements ICoreModule {
   // peerEvent
   public static receiveNew_Member = async (message: P2PMessage) => {
     // dial, even when syncing
+    global.library.logger.info(
+      `[p2p] received newMember msg from ${message.from}`
+    );
 
-    const uint = uint8ArrayToString(message.data);
-    const data = JSON.parse(uint);
-    console.log(`[p2p] message, received ${JSON.stringify(data, null, 2)}`);
+    let parsed = null;
+    try {
+      parsed = JSON.parse(uint8ArrayToString(message.data));
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] "newMember" event, could not parse data: ${err.message}`
+      );
+      return;
+    }
 
+    // P2PPeerIdAndMultiaddr
+    if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
+      return;
+    }
+    console.log(
+      `[p2p] received new member, ${JSON.stringify(parsed, null, 2)}`
+    );
+
+    const peerId = PeerId.createFromB58String(parsed.peerId);
+    if (peerId.equals(Peer.p2p)) {
+      global.library.logger.info(`[p2p] "newMember" is me`);
+      return;
+    }
+
+    // is in PeerStore
+    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    if (test === undefined) {
+      const multi = parsed.multiaddr.filter(x => {
+        const address = multiaddr(x).nodeAddress().address;
+        if (address === '0.0.0.0' || address === '127.0.0.1') {
+          return false;
+        } else {
+          return true;
+        }
+      });
+      if (multi.length === 0) {
+        global.library.logger.error(
+          `[p2p] "newMember" has no good addresses, will not add to peerStore: ${JSON.stringify(
+            parsed.multiaddr
+          )} `
+        );
+        return;
+      }
+
+      // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
+      Peer.p2p.peerStore.addressBook.set(peerId, parsed.multiaddr);
+      global.library.logger.info(
+        `[p2p] "newMember" added peer "${peerId.toB58String()}" to peerBook`
+      );
+    }
+
+    // has connection
+    const connections = Array.from(Peer.p2p.connections.keys());
+    const inConnection = connections.find(x => x === parsed.peerId);
+    // if not, dial
+    if (!inConnection) {
+      try {
+        await Peer.p2p.dial(peerId);
+      } catch (err) {
+        global.library.logger.info(
+          `[p2p] "newMember" dial failed for "${peerId.toB58String()}"`
+        );
+      }
+    }
+
+    // 0. check if peer is myself
+    // validate peerId and Multiaddresses
     // 1. check if peer is in Addressbook
     // if not, add to AddressBook
     // 2.check if there is a connection
