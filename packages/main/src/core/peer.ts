@@ -149,6 +149,29 @@ export default class Peer implements ICoreModule {
 
     await sleep(2 * 1000);
 
+    setInterval(async () => {
+      // announce every x seconds yourself to the network
+      const m = Peer.p2p.addressManager
+        .getAnnounceAddrs()
+        .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
+        .map(x => x.toString());
+
+      const raw: P2PPeerIdAndMultiaddr = {
+        peerId: Peer.p2p.peerId.toB58String(),
+        multiaddr: m,
+      };
+      console.log(
+        `[p2p] "newMember" announcing myself to network: ${JSON.stringify(
+          raw,
+          null,
+          2
+        )}`
+      );
+
+      const converted = uint8ArrayFromString(JSON.stringify(raw));
+      await Peer.p2p.broadcastNewMember(converted);
+    }, 20 * 1000);
+
     if (bootstrapNode.length > 0) {
       setInterval(async () => {
         if (!Peer.p2p.isStarted()) {
