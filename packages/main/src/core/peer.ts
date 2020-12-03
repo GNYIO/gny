@@ -194,7 +194,7 @@ export default class Peer implements ICoreModule {
             global.library.logger.info(
               `[p2p][bootstrap] already connected to ${peer.toB58String()}`
             );
-            break; // for next remote peer
+            continue; // for next remote peer
           }
 
           try {
@@ -205,7 +205,7 @@ export default class Peer implements ICoreModule {
                 err.message
               }`
             );
-            break; // for next remote peer
+            continue; // for next remote peer
           }
           global.library.logger.info(
             `[p2p][bootsrap] successfully dialed ${peer.toB58String()}`
