@@ -94,7 +94,8 @@ export default class Loader implements ICoreModule {
       const one = allPeerInfos[i];
 
       try {
-        const height: HeightWrapper = await Peer.p2p.requestHeight(one);
+        const onePeerId = PeerId.createFromB58String(one.id.id);
+        const height: HeightWrapper = await Peer.p2p.requestHeight(onePeerId);
 
         myResult.push({
           peerInfo: one,
@@ -132,8 +133,7 @@ export default class Loader implements ICoreModule {
     const find = myResult.find(x => x.height === highest);
     global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
 
-    // test
-    const highestPeer = PeerId.createFromB58String(find.from);
+    const highestPeer = PeerId.createFromB58String(find.peerInfo.id.id);
 
     if (lastBlock.id === genesisBlock.id) {
       global.library.logger.info(

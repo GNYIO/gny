@@ -209,7 +209,7 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     const data = uint8ArrayFromString(JSON.stringify('no param'));
 
     const resultRaw = await bundle.directRequest(peerId, V1_GET_HEIGHT, data);
-    const result: HeightWrapper = JSON.parse(uint8ArrayToString(resultRaw));
+    const result: HeightWrapper = JSON.parse(resultRaw.toString());
 
     if (!isHeightWrapper(result)) {
       throw new Error('[p2p] validation for isHeightWrapper failed');
@@ -218,15 +218,19 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     return result;
   };
 
-  const response = async (data: Uint8Array, cb) => {
-    // no need for "data" variable
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+    }
+    const body = JSON.parse(temp.toString());
 
     const lastBlock = StateHelper.getState().lastBlock;
     const result: HeightWrapper = {
       height: lastBlock.height,
     };
-    const converted = uint8ArrayFromString(JSON.stringify(result));
-    cb(null, converted);
+    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    return converted;
   };
 
   bundle.requestHeight = request;
@@ -299,6 +303,6 @@ export function attachDirectP2PCommunication(bundle) {
   V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
   // V1_COMMON_BLOCK_HANDLER(bundle);
-  // V1_GET_HEIGH_HANDLER(bundle);
+  V1_GET_HEIGH_HANDLER(bundle);
   V1_BLOCKS_HANDLER(bundle);
 }
