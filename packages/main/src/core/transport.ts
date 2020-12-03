@@ -216,6 +216,13 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receiveNew_Member = async (message: P2PMessage) => {
+    // 0. check if peer is myself
+    // validate peerId and Multiaddresses
+    // 1. check if peer is in Addressbook
+    // if not, add to AddressBook
+    // 2.check if there is a connection
+    // if not, dial
+
     // dial, even when syncing
     global.library.logger.info(
       `[p2p] received newMember msg from ${message.from}`
@@ -276,7 +283,10 @@ export default class Transport implements ICoreModule {
       }
 
       // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
-      Peer.p2p.peerStore.addressBook.set(peerId, parsed.multiaddr);
+      Peer.p2p.peerStore.addressBook.set(
+        peerId,
+        parsed.multiaddr.map(x => multiaddr(x))
+      );
       global.library.logger.info(
         `[p2p] "newMember" added peer "${peerId.toB58String()}" to peerBook`
       );
@@ -295,13 +305,6 @@ export default class Transport implements ICoreModule {
         );
       }
     }
-
-    // 0. check if peer is myself
-    // validate peerId and Multiaddresses
-    // 1. check if peer is in Addressbook
-    // if not, add to AddressBook
-    // 2.check if there is a connection
-    // if not, dial
   };
 
   public static receivePeer_Transaction = (message: P2PMessage) => {
