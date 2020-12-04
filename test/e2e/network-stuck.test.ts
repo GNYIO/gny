@@ -42,8 +42,8 @@ describe('network-stuck e2e test', () => {
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
       await lib.rmP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
 
-      // wait for 30 seconds
-      await lib.sleep(30 * 1000);
+      // wait for 1 minute
+      await lib.sleep(lib.oneMinute);
 
       // start node3 and node4
       await lib.upP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
@@ -51,8 +51,8 @@ describe('network-stuck e2e test', () => {
       // get current height
       const currentHeight = await lib.getHeight(4096);
 
-      // sleep for 30 seconds
-      await lib.sleep(30 * 1000);
+      // sleep for 1 minute
+      await lib.sleep(lib.oneMinute);
 
       // get height later
       const heightLater = await lib.getHeight(4096);

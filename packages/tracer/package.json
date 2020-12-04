@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@gny/interfaces": "1.0.43",
+    "@gny/interfaces": "1.0.45",
     "jaeger-client": "^3.18.1"
   }
 }

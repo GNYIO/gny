@@ -1,4 +1,3 @@
-import { createPeerInfo } from '../../../packages/p2p/src/createPeerInfo';
 import {
   ILogger,
   P2PMessage,
@@ -6,11 +5,10 @@ import {
 } from '../../../packages/interfaces';
 import * as PeerInfo from 'peer-info';
 import { sleep } from '../../integration/lib';
-import { Bundle, LibP2POptions } from '../../../packages/p2p/src/bundle';
-import {
-  attachEventHandlers,
-  extractIpAndPort,
-} from '../../../packages/p2p/src/util';
+import { create } from '@gny/p2p';
+
+function extractIpAndPort() {}
+async function createPeerInfo() {}
 
 const delay = (x: number): Promise<void> =>
   new Promise(resolve => setInterval(resolve, x));
@@ -52,8 +50,7 @@ async function createNewBundle(
     },
   };
 
-  const node = new Bundle(config, logger);
-  attachEventHandlers(node, logger);
+  const node = create(config, logger);
 
   return node;
 }

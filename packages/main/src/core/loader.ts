@@ -1,16 +1,14 @@
-import { PeerNode, IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
+import { IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
 import { BlocksHelper } from './BlocksHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import Peer from './peer';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
-import { isHeightWrapper } from '@gny/type-validation';
-import * as PeerInfo from 'peer-info';
-import { getB58String } from '@gny/p2p';
+import * as PeerId from 'peer-id';
 
 export default class Loader implements ICoreModule {
-  public static async findUpdate(lastBlock: IBlock, peer: PeerInfo) {
+  public static async findUpdate(lastBlock: IBlock, peer: PeerId) {
     let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
       state,
@@ -43,7 +41,7 @@ export default class Loader implements ICoreModule {
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
-      }) with peer ${getB58String(peer)}, last block height is ${
+      }) with peer ${peer.toB58String()}, last block height is ${
         newestLastBlock.height
       }`
     );
@@ -57,12 +55,12 @@ export default class Loader implements ICoreModule {
       const span = global.app.tracer.startSpan('findUpdate');
       span.setTag('error', true);
       span.log({
-        value: `long fork with peer ${getB58String(peer)}`,
+        value: `long fork with peer ${peer.toB58String()}`,
       });
       span.finish();
 
-      global.library.logger.error(`long fork with peer ${getB58String(peer)}`);
-      throw new Error(`long fork with peer ${getB58String(peer)}`);
+      global.library.logger.error(`long fork with peer ${peer.toB58String()}`);
+      throw new Error(`long fork with peer ${peer.toB58String()}`);
     }
 
     try {
@@ -97,7 +95,7 @@ export default class Loader implements ICoreModule {
       throw e;
     }
     global.library.logger.debug(
-      `Loading blocks from peer ${getB58String(peer)}`
+      `Loading blocks from peer ${peer.toB58String()}`
     );
     await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
     return;
@@ -117,7 +115,8 @@ export default class Loader implements ICoreModule {
       const one = allPeerInfos[i];
 
       try {
-        const height: HeightWrapper = await Peer.p2p.requestHeight(one);
+        const onePeerId = PeerId.createFromB58String(one.id.id);
+        const height: HeightWrapper = await Peer.p2p.requestHeight(onePeerId);
 
         myResult.push({
           peerInfo: one,
@@ -154,20 +153,21 @@ export default class Loader implements ICoreModule {
 
     const find = myResult.find(x => x.height === highest);
     global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
-    const highestPeer = find.peerInfo;
+
+    const highestPeer = PeerId.createFromB58String(find.peerInfo.id.id);
 
     if (lastBlock.id === genesisBlock.id) {
       global.library.logger.info(
-        `[p2p] current height is "0", start to sync from peer: ${getB58String(
-          highestPeer
-        )} with height ${find.height}`
+        `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
+          find.height
+        }`
       );
       return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
     } else {
       global.library.logger.info(
         `[p2p] current height is ${
           lastBlock.height
-        }, start to sync from peer: ${getB58String(highestPeer)} with height ${
+        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
           find.height
         }`
       );
@@ -199,7 +199,7 @@ export default class Loader implements ICoreModule {
     });
   };
 
-  public static syncBlocksFromPeer = (peer: PeerInfo) => {
+  public static syncBlocksFromPeer = (peer: PeerId) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
     if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {

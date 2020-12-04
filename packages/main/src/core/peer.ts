@@ -1,25 +1,23 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
-  createPeerInfoArgs,
-  createFromJSON,
-  createFromPrivKey,
-  Bundle,
-  attachEventHandlers,
+  create,
   V1_BROADCAST_NEW_BLOCK_HEADER,
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
-  V1_BROADCAST_HELLO,
-  V1_BROADCAST_HELLO_BACK,
+  V1_BROADCAST_NEW_MEMBER,
 } from '@gny/p2p';
-import { PeerNode, ICoreModule } from '@gny/interfaces';
+import { PeerNode, ICoreModule, P2PPeerIdAndMultiaddr } from '@gny/interfaces';
+import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
+const uint8ArrayFromString = require('uint8arrays/from-string');
+import * as multiaddr from 'multiaddr';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
-  public static p2p: Bundle;
+  public static p2p;
 
   public static getVersion = () => ({
     version: global.library.config.version,
@@ -90,134 +88,183 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static preparePeerInfo = async () => {
+  public static preparePeerId = async () => {
     const buf = Buffer.from(
       global.library.config.peers.privateP2PKey,
       'base64'
     );
-    const peerId = await createFromPrivKey(buf);
+    const peerId = await PeerId.createFromPrivKey(buf);
 
-    const peerInfo = await createPeerInfoArgs(peerId);
-
-    const multi = `/ip4/${global.library.config.address}/tcp/${
-      global.library.config.peerPort
-    }`;
-    peerInfo.multiaddrs.add(multi);
-
-    return peerInfo;
+    return peerId;
   };
 
   // Events
   public static onBlockchainReady = async () => {
-    const peerInfo = await Peer.preparePeerInfo();
+    const peerId = await Peer.preparePeerId();
 
     // TODO persist peerBook of node
     const bootstrapNode = global.library.config.peers.bootstrap
       ? global.library.config.peers.bootstrap
       : [];
-    const config = {
-      peerInfo,
-      config: {
-        peerDiscovery: {
-          bootstrap: {
-            list: bootstrapNode,
-          },
-        },
-      },
-    };
 
-    Peer.p2p = new Bundle(config, global.app.logger);
-    attachEventHandlers(Peer.p2p, global.app.logger);
+    const wrapper = create(
+      peerId,
+      global.library.config.publicIp,
+      global.library.config.peerPort,
+      bootstrapNode,
+      global.library.logger
+    );
+    Peer.p2p = wrapper;
     attachDirectP2PCommunication(Peer.p2p);
 
-    global.library.logger.info('[p2p] starting libp2p bundle');
+    await Peer.p2p.start();
+    global.library.logger.info('[p2p] libp2p started');
 
-    Peer.p2p
-      .start()
-      .then(() => {
-        global.library.logger.info('[p2p] libp2p started');
+    global.library.logger.info(
+      `announceAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
+      )}`
+    );
+    global.library.logger.info(
+      `listenAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getListenAddrs().map(x => x.toString())
+      )}`
+    );
+    global.library.logger.info(
+      `noAnnounceAddresses: ${JSON.stringify(
+        Peer.p2p.addressManager.getNoAnnounceAddrs().map(x => x.toString())
+      )}`
+    );
 
-        global.library.logger.info(
-          `[p2p] publicIp is: ${global.library.config.publicIp}`
-        );
+    Peer.p2p.pubsub.on(
+      V1_BROADCAST_NEW_BLOCK_HEADER,
+      Transport.receivePeer_NewBlockHeader
+    );
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_BLOCK_HEADER);
 
-        // issue #255
-        global.library.logger.log(
-          `[p2p] multiaddrs before: ${JSON.stringify(
-            Peer.p2p.peerInfo.multiaddrs.toArray(),
-            null,
-            2
-          )}`
-        );
-        const length = Peer.p2p.peerInfo.multiaddrs.toArray().length;
-        for (let i = 0; i < length; ++i) {
-          console.log(
-            `[p2p] multi-for-loop ${i}: current: ${
-              Peer.p2p.peerInfo.multiaddrs.toArray()[0]
-            }`
-          );
-          Peer.p2p.peerInfo.multiaddrs.delete(
-            Peer.p2p.peerInfo.multiaddrs.toArray()[0]
-          );
+    Peer.p2p.pubsub.on(V1_BROADCAST_PROPOSE, Transport.receivePeer_Propose);
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_PROPOSE);
+
+    Peer.p2p.pubsub.on(
+      V1_BROADCAST_TRANSACTION,
+      Transport.receivePeer_Transaction
+    );
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_TRANSACTION);
+
+    Peer.p2p.pubsub.on(V1_BROADCAST_NEW_MEMBER, Transport.receiveNew_Member);
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_MEMBER);
+
+    await sleep(2 * 1000);
+
+    setInterval(async () => {
+      // announce every x seconds yourself to the network
+      const m = Peer.p2p.addressManager
+        .getAnnounceAddrs()
+        .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
+        .map(x => x.toString());
+
+      const raw: P2PPeerIdAndMultiaddr = {
+        peerId: Peer.p2p.peerId.toB58String(),
+        multiaddr: m,
+      };
+      console.log(
+        `[p2p] "newMember" announcing myself to network: ${JSON.stringify(
+          raw,
+          null,
+          2
+        )}`
+      );
+
+      const converted = uint8ArrayFromString(JSON.stringify(raw));
+      await Peer.p2p.broadcastNewMember(converted);
+    }, 20 * 1000);
+
+    if (bootstrapNode.length > 0) {
+      setInterval(async () => {
+        if (!Peer.p2p.isStarted()) {
+          return;
         }
-        console.log(
-          `[p2p] multiaddrs after: ${JSON.stringify(
-            Peer.p2p.peerInfo.multiaddrs.toArray(),
-            null,
-            2
-          )}\n\n`
-        );
 
-        const multi2 = `/ip4/${global.library.config.publicIp}/tcp/${
-          global.library.config.peerPort
-        }/ipfs/${Peer.p2p.peerInfo.id.toB58String()}`;
-        Peer.p2p.peerInfo.multiaddrs.add(multi2);
+        const multis = bootstrapNode.map(x => multiaddr(x));
 
-        console.log(
-          `[p2p] multiaddrs after upgrade: ${JSON.stringify(
-            Peer.p2p.peerInfo.multiaddrs.toArray(),
-            null,
-            2
-          )}\n\n`
-        );
-      })
-      .then(async () => {
-        // subscribe to pubsub topics
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_NEW_BLOCK_HEADER,
-          Transport.receivePeer_NewBlockHeader
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_PROPOSE,
-          Transport.receivePeer_Propose
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_TRANSACTION,
-          Transport.receivePeer_Transaction
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_HELLO,
-          Transport.receivePeer_Hello
-        );
-        Peer.p2p.subscribeCustom(
-          V1_BROADCAST_HELLO_BACK,
-          Transport.receivePeer_HelloBack
-        );
+        for (let i = 0; i < multis.length; ++i) {
+          global.library.logger.info(
+            `[p2p][bootstrap] ${i + 1}/${multis.length}`
+          );
+          const m = multis[i];
+          const peer = PeerId.createFromB58String(m.getPeerId());
 
-        global.library.logger.info(`[p2p] sleep for 10 seconds`);
-        return await sleep(10 * 1000);
-      })
-      .catch(err => {
-        global.library.logger.error('Failed to init dht');
-        global.library.logger.error(err);
+          // check if there are addresses for this peer saved
+          const addresses = Peer.p2p.peerStore.addressBook.get(peer);
+          if (!addresses) {
+            global.library.logger.info(
+              `[p2p][bootstrap] add address for remote peer "${peer.toB58String()}", ${JSON.stringify(
+                [m],
+                null,
+                2
+              )}`
+            );
+            Peer.p2p.peerStore.addressBook.set(peer, [m]);
+          }
 
-        const span = global.app.tracer.startSpan('onBlockchainReady');
-        span.setTag('error', true);
-        span.log({
-          value: `Failed to init dht ${err}`,
-        });
-        span.finish();
-      });
+          // 0. no need to check if already in peerStore (peer always in peerStore)
+          // 1. check if have connection
+          // yes, then return
+          // 2. if not, then dial
+          const connections = Array.from(Peer.p2p.connections.keys());
+          global.library.logger.info(
+            `[p2p][bootstrap] connections: ${JSON.stringify(
+              connections,
+              null,
+              2
+            )}`
+          );
+          const inConnection = connections.find(x => x === peer.toB58String());
+          if (inConnection) {
+            global.library.logger.info(
+              `[p2p][bootstrap] already connected to ${peer.toB58String()}`
+            );
+            continue; // for next remote peer
+          }
+
+          try {
+            await Peer.p2p.dial(peer);
+          } catch (err) {
+            global.library.logger.info(
+              `[p2p][bootstrap] failed to dial: ${peer.toB58String()}, error: ${
+                err.message
+              }`
+            );
+            continue; // for next remote peer
+          }
+          global.library.logger.info(
+            `[p2p][bootsrap] successfully dialed ${peer.toB58String()}`
+          );
+
+          try {
+            global.library.logger.info(
+              `[p2p][boostrap] announcing "newMember" ${JSON.stringify(
+                peer,
+                null,
+                2
+              )}`
+            );
+            const raw: P2PPeerIdAndMultiaddr = {
+              peerId: peer.toB58String(),
+              multiaddr: [m.toString()],
+            };
+            const data = uint8ArrayFromString(JSON.stringify(raw));
+            await Peer.p2p.broadcastNewMember(data);
+          } catch (err) {
+            global.library.logger.info(
+              `[p2p][bootsrap] failed to announce peer "${peer.id}", error: ${
+                err.message
+              }`
+            );
+          }
+        }
+      }, 5 * 1000);
+    }
   };
 
   public static cleanup = cb => {

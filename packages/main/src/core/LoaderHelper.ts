@@ -22,7 +22,4 @@ export class LoaderHelper {
     }
     return lastBlock;
   }
-  public static ExtractPeerInfosMinusOne(peerNode: PeerNode) {
-    return `${peerNode.host}:${peerNode.port - 1}`;
-  }
 }

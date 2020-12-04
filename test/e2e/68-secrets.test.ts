@@ -27,7 +27,7 @@ describe('68-secrets', () => {
     '68-secrets',
     async done => {
       // wait for the network to create some blocks
-      await lib.sleep(30 * 1000);
+      await lib.sleep(lib.oneMinute);
 
       const before1 = await lib.getHeight(4096);
       const before2 = await lib.getHeight(4096);
@@ -35,7 +35,7 @@ describe('68-secrets', () => {
       expect(new BigNumber(before2).isGreaterThan(1)).toEqual(true);
 
       // wait again
-      await lib.sleep(20 * 1000);
+      await lib.sleep(lib.oneMinute);
 
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
@@ -46,6 +46,6 @@ describe('68-secrets', () => {
 
       done();
     },
-    2 * lib.oneMinute
+    3 * lib.oneMinute
   );
 });
