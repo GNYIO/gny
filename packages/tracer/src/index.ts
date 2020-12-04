@@ -1,7 +1,26 @@
 import * as jaegerClient from 'jaeger-client';
-import { ILogger } from '@gny/interfaces';
+import { JaegerTracer } from 'jaeger-client';
+import { ILogger, SerializedSpanContext } from '@gny/interfaces';
+import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;
+
+export function createSerializedSpanContext(
+  myTracer: JaegerTracer,
+  mySpan: opentracing.Span
+) {
+  const obj: SerializedSpanContext = {};
+  myTracer.inject(mySpan.context(), opentracing.FORMAT_TEXT_MAP, obj);
+  return obj;
+}
+
+export function createSpanContextFromSerializedParentContext(
+  myTracer: JaegerTracer,
+  obj: SerializedSpanContext
+) {
+  const parentSpanContext = myTracer.extract(opentracing.FORMAT_TEXT_MAP, obj);
+  return parentSpanContext;
+}
 
 export function initTracer(
   disable: boolean,

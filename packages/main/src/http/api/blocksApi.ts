@@ -59,7 +59,7 @@ export default class BlocksApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('BlocksApi');
+        const span = global.library.tracer.startSpan('BlocksApi');
         span.setTag('error', true);
         span.log({
           value: `req.url ${err}`,

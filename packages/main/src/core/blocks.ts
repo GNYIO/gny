@@ -90,19 +90,11 @@ export default class Blocks implements ICoreModule {
       const span = global.app.tracer.startSpan('getCommonBlock');
       span.setTag('error', true);
       span.log({
-        value: `Peer.request('commonBlock'): ${err &&
-          err.response &&
-          err.response.data &&
-          err.response.data.error}`,
+        value: `[p2p][commonBlock] error: ${err.message}`,
       });
       span.finish();
 
-      global.app.logger.info(
-        `Peer.request('commonBlock'): ${err &&
-          err.response &&
-          err.response.data &&
-          err.response.data.error}`
-      );
+      global.app.logger.info(`[p2p][commonBlock]  error: ${err.message}`);
       throw new Error('commonBlock could not be requested');
     }
 

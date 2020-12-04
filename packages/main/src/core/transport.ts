@@ -226,7 +226,6 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(`received propose from ${message.from}`);
-    const spanId: string;
     let propose: BlockPropose;
     try {
       // const full: TracerWrapper<BlockPropose> = JSON.parse(
@@ -243,15 +242,12 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const span = new global.app.tracer.startSpan('receive BlockPropose', {
-      childOf: spanId,
-      references: [],
-    });
+    // child off
+    const span = global.app.tracer.startSpan('receive BlockPropose');
 
     if (!isBlockPropose(propose)) {
       global.library.logger.warn('block propose validation did not work');
 
-      span.log();
       span.finish();
       return;
     }
@@ -261,6 +257,9 @@ export default class Transport implements ICoreModule {
         propose.id
       }, height: ${propose.height}`
     );
+
+    // change
+    span.finish();
     global.library.bus.message('onReceivePropose', propose, message);
   };
 

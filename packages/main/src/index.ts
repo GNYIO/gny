@@ -52,17 +52,17 @@ export default class Application {
     });
 
     process.once('SIGTERM', () => {
-      global.app.tracer.startSpan('sigterm');
+      global.app.tracer.startSpan('sigterm').finish();
       process.emit('cleanup');
     });
 
     process.once('exit', () => {
-      global.app.tracer.startSpan('exit');
+      global.app.tracer.startSpan('exit').finish();
       scope.logger.info('process exited');
     });
 
     process.once('SIGINT', () => {
-      global.app.tracer.startSpan('sigint');
+      global.app.tracer.startSpan('sigint').finish();
       process.emit('cleanup');
     });
 
