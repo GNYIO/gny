@@ -13,3 +13,4 @@ export * from './isBlockAndVotes';
 export * from './isBlockWithTransactions';
 export * from './isManyVotes';
 export * from './isBlockIdWrapper';
+export * from './isP2PPeerIdAndMultiaddr';

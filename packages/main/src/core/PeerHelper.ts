@@ -4,10 +4,8 @@ import {
   V1_COMMON_BLOCK,
   V1_GET_HEIGHT,
   V1_BLOCKS,
-  Bundle,
   SimplePushTypeCallback,
 } from '@gny/p2p';
-import { joi } from '@gny/extended-joi';
 import { StateHelper } from './StateHelper';
 import {
   ApiResult,
@@ -21,8 +19,8 @@ import {
   HeightWrapper,
   BlocksWrapper,
   BlocksWrapperParams,
+  BufferList,
 } from '@gny/interfaces';
-import * as PeerInfo from 'peer-info';
 import {
   isCommonBlockParams,
   isBlocksWrapperParams,
@@ -32,18 +30,23 @@ import {
   isBlockIdWrapper,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
-import { getBlocks as getBlocksFromApi } from '../http/util';
+import * as PeerId from 'peer-id';
+const first = require('it-first');
 
-function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
+import { getBlocks as getBlocksFromApi } from '../http/util';
+const uint8ArrayToString = require('uint8arrays/to-string');
+const uint8ArrayFromString = require('uint8arrays/from-string');
+
+function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
   const request = async (
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     blockIdWrapper: BlockIdWrapper
   ): Promise<BlockAndVotes> => {
-    const data = JSON.stringify(blockIdWrapper);
+    const data = uint8ArrayFromString(JSON.stringify(blockIdWrapper));
 
     const resultRaw = await bundle.directRequest(
-      peerInfo,
+      peerId,
       V1_NEW_BLOCK_PROTOCOL,
       data
     );
@@ -57,19 +60,24 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
   };
 
   // step2: node2 -> node1
-  const response = async (data: Buffer, cb) => {
-    const body = JSON.parse(Buffer.from(data).toString());
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+    const body = JSON.parse(temp.toString());
 
     // validate id
     if (!isBlockIdWrapper(body)) {
       global.library.logger.info('[p2p] validaion for blockIdWrapper failed');
-      return cb(new Error('validation failed'));
+      throw new Error('validation failed');
     }
 
     // no need for await
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
-      return cb(new Error('New block not found'));
+      throw new Error('New block not found');
     }
 
     const result: BlockAndVotes = {
@@ -77,24 +85,25 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle: Bundle) {
       votes: newBlock.votes,
     };
 
-    return cb(null, JSON.stringify(result));
+    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    return converted;
   };
 
   bundle.requestBlockAndVotes = request;
   bundle.directResponse(V1_NEW_BLOCK_PROTOCOL, response);
 }
 
-function V1_VOTES_HANDLER(bundle: Bundle) {
+function V1_VOTES_HANDLER(bundle) {
   // not duplex
   // async
-  const request = async (peerInfo: PeerInfo, votes: ManyVotes) => {
-    const data = JSON.stringify(votes);
-    await bundle.pushOnly(peerInfo, V1_VOTES, data);
+  const request = async (peerId: PeerId, votes: ManyVotes) => {
+    const data = uint8ArrayFromString(JSON.stringify(votes));
+    await bundle.pushOnly(peerId, V1_VOTES, data);
   };
 
   // not duplex
   // not async
-  const response: SimplePushTypeCallback = (err: Error, values: Buffer[]) => {
+  const response: SimplePushTypeCallback = (err: Error, values: BufferList) => {
     if (err) {
       console.log(
         'received error while handling error from pushVotes (response)'
@@ -104,7 +113,7 @@ function V1_VOTES_HANDLER(bundle: Bundle) {
       return;
     }
 
-    const votes: ManyVotes = JSON.parse(Buffer.from(values[0]).toString());
+    const votes: ManyVotes = JSON.parse(values.toString());
 
     if (!isManyVotes(votes)) {
       global.library.logger.info(
@@ -126,26 +135,24 @@ function V1_VOTES_HANDLER(bundle: Bundle) {
   bundle.handlePushOnly(V1_VOTES, response);
 }
 
-function V1_COMMON_BLOCK_HANDLER(bundle: Bundle) {
+function V1_COMMON_BLOCK_HANDLER(bundle) {
   // step1: node1 -> node2
   const request = async (
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     commonBlockParams: CommonBlockParams
   ): Promise<CommonBlockResult> => {
-    const data = JSON.stringify(commonBlockParams);
+    const data = uint8ArrayFromString(JSON.stringify(commonBlockParams));
 
-    const resultRaw = await bundle.directRequest(
-      peerInfo,
-      V1_COMMON_BLOCK,
-      data
-    );
-    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
+    const resultRaw = await bundle.directRequest(peerId, V1_COMMON_BLOCK, data);
+    const result: CommonBlockResult = JSON.parse(uint8ArrayToString(resultRaw));
 
     return result;
   };
 
-  const response = async (data: Buffer, cb) => {
-    const body = JSON.parse(Buffer.from(data).toString());
+  const response = async (data: Uint8Array, cb) => {
+    // uint8ArrayToString
+    // uint8ArrayFromString
+    const body = JSON.parse(uint8ArrayToString(data));
 
     if (!isCommonBlockParams(body)) {
       return cb(new Error('validation failed'));
@@ -183,7 +190,8 @@ function V1_COMMON_BLOCK_HANDLER(bundle: Bundle) {
         success: true,
         common: commonBlock,
       };
-      return cb(null, JSON.stringify(result));
+      const converted = uint8ArrayFromString(JSON.stringify(result));
+      return cb(null, converted);
     } catch (e) {
       global.app.logger.error('Failed to find common block:');
       global.app.logger.error(e);
@@ -196,12 +204,12 @@ function V1_COMMON_BLOCK_HANDLER(bundle: Bundle) {
   bundle.directResponse(V1_COMMON_BLOCK, response);
 }
 
-function V1_GET_HEIGH_HANDLER(bundle: Bundle) {
-  const request = async (peerInfo: PeerInfo): Promise<HeightWrapper> => {
-    const data = JSON.stringify('no param');
+function V1_GET_HEIGH_HANDLER(bundle) {
+  const request = async (peerId: PeerId): Promise<HeightWrapper> => {
+    const data = uint8ArrayFromString(JSON.stringify('no param'));
 
-    const resultRaw = await bundle.directRequest(peerInfo, V1_GET_HEIGHT, data);
-    const result: HeightWrapper = JSON.parse(Buffer.from(resultRaw).toString());
+    const resultRaw = await bundle.directRequest(peerId, V1_GET_HEIGHT, data);
+    const result: HeightWrapper = JSON.parse(resultRaw.toString());
 
     if (!isHeightWrapper(result)) {
       throw new Error('[p2p] validation for isHeightWrapper failed');
@@ -210,40 +218,50 @@ function V1_GET_HEIGH_HANDLER(bundle: Bundle) {
     return result;
   };
 
-  const response = async (data: Buffer, cb) => {
-    // no need for "data" variable
-    const body: string = JSON.parse(Buffer.from(data).toString());
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+    }
+    const body = JSON.parse(temp.toString());
 
     const lastBlock = StateHelper.getState().lastBlock;
     const result: HeightWrapper = {
       height: lastBlock.height,
     };
-    cb(null, JSON.stringify(result));
+    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    return converted;
   };
 
   bundle.requestHeight = request;
   bundle.directResponse(V1_GET_HEIGHT, response);
 }
 
-function V1_BLOCKS_HANDLER(bundle: Bundle) {
+function V1_BLOCKS_HANDLER(bundle) {
   const request = async (
-    peerInfo: PeerInfo,
+    peerId: PeerId,
     params: BlocksWrapperParams
   ): Promise<IBlock[]> => {
     const data = JSON.stringify(params);
 
-    const resultRaw = await bundle.directRequest(peerInfo, V1_BLOCKS, data);
+    const resultRaw = await bundle.directRequest(peerId, V1_BLOCKS, data);
 
-    const result: HeightWrapper = JSON.parse(resultRaw.toString());
+    const result: IBlock[] = JSON.parse(resultRaw.toString());
     return result;
   };
 
-  const response = async (data: Buffer, cb) => {
-    const body: BlocksWrapperParams = JSON.parse(Buffer.from(data).toString());
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+    const body = JSON.parse(temp.toString());
+
     body.limit = body.limit || 200;
 
     if (!isBlocksWrapperParams(body)) {
-      return cb(new Error('blocksync params validation failed'));
+      throw new Error('blocksync params validation failed');
     }
 
     const blocksLimit: number = body.limit;
@@ -265,15 +283,15 @@ function V1_BLOCKS_HANDLER(bundle: Bundle) {
         true
       );
 
-      return cb(null, JSON.stringify(blocks));
+      return [uint8ArrayFromString(JSON.stringify(blocks))];
     } catch (e) {
       global.app.logger.error(
-        '/peer/blocks (POST), Failed to get blocks with transactions'
+        '[p2p][requestBlocks] Failed to get blocks with transactions'
       );
       global.app.logger.error(e);
 
       const result: IBlock[] = [];
-      return cb(null, JSON.stringify(result));
+      return [uint8ArrayFromString(JSON.stringify(result))];
     }
   };
 
@@ -281,10 +299,10 @@ function V1_BLOCKS_HANDLER(bundle: Bundle) {
   bundle.directResponse(V1_BLOCKS, response);
 }
 
-export function attachDirectP2PCommunication(bundle: Bundle) {
+export function attachDirectP2PCommunication(bundle) {
   V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
-  V1_COMMON_BLOCK_HANDLER(bundle);
+  // V1_COMMON_BLOCK_HANDLER(bundle);
   V1_GET_HEIGH_HANDLER(bundle);
   V1_BLOCKS_HANDLER(bundle);
 }

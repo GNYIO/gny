@@ -423,7 +423,7 @@ describe('SmartDB.rollbackBlock()', () => {
     done();
   });
 
-  it.only('rollbackBlock() - check MODIFY with load', async done => {
+  it('rollbackBlock() - check MODIFY with load', async done => {
     await saveGenesisBlock(sut);
 
     // create account

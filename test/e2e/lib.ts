@@ -140,6 +140,20 @@ export async function stopP2PContainers(
   await sleep(5000);
 }
 
+export async function rmP2PContainers(configFile: string, services: string[]) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" rm --force ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
+export async function upP2PContainers(configFile: string, services: string[]) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
 export async function restartP2PContainers(
   configFile: string,
   services: string[]
@@ -161,6 +175,7 @@ export async function printActiveContainers() {
 
 export async function stopAndKillContainer(configFile?: string) {
   await dockerCompose.down({
+    commandOptions: ['--volumes'], // this also deletes the volumes on down
     cwd: process.cwd(),
     log: true,
     config: configFile,

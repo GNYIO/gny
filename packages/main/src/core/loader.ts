@@ -1,16 +1,14 @@
-import { PeerNode, IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
+import { IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
 import { BlocksHelper } from './BlocksHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import Peer from './peer';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
-import { isHeightWrapper } from '@gny/type-validation';
-import * as PeerInfo from 'peer-info';
-import { getB58String } from '@gny/p2p';
+import * as PeerId from 'peer-id';
 
 export default class Loader implements ICoreModule {
-  public static async findUpdate(lastBlock: IBlock, peer: PeerInfo) {
+  public static async findUpdate(lastBlock: IBlock, peer: PeerId) {
     let state = StateHelper.getState(); // TODO: refactor
     const newestLastBlock = LoaderHelper.TakeNewesterLastBlock(
       state,
@@ -36,7 +34,7 @@ export default class Loader implements ICoreModule {
     global.library.logger.info(
       `Found common block ${commonBlock.id} (at ${
         commonBlock.height
-      }) with peer ${getB58String(peer)}, last block height is ${
+      }) with peer ${peer.toB58String()}, last block height is ${
         newestLastBlock.height
       }`
     );
@@ -47,8 +45,8 @@ export default class Loader implements ICoreModule {
     );
 
     if (LoaderHelper.IsLongFork(toRemove)) {
-      global.library.logger.error(`long fork with peer ${getB58String(peer)}`);
-      throw new Error(`long fork with peer ${getB58String(peer)}`);
+      global.library.logger.error(`long fork with peer ${peer.toB58String()}`);
+      throw new Error(`long fork with peer ${peer.toB58String()}`);
     }
 
     try {
@@ -76,64 +74,84 @@ export default class Loader implements ICoreModule {
       throw e;
     }
     global.library.logger.debug(
-      `Loading blocks from peer ${getB58String(peer)}`
+      `Loading blocks from peer ${peer.toB58String()}`
     );
     await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
     return;
   }
 
   public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
-    const randomNode: PeerInfo = Peer.p2p.getConnectedRandomNodePeerInfo();
-    if (!randomNode) {
-      throw new Error('[p2p] no connected node found for loadBlocks()');
+    const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
+    if (allPeerInfos.length === 0) {
+      global.library.logger.info('[p2p] loadBlocks() no connected peers');
+      return;
     }
 
-    let result: HeightWrapper;
-    try {
-      result = await Peer.p2p.requestHeight(randomNode);
-    } catch (err) {
-      global.library.logger.error(
-        `[syncing] could not requestHeight from peer: ${getB58String(
-          randomNode
-        )}`
-      );
-      global.library.logger.error(err);
-      throw err;
-    }
+    const myResult = [];
 
-    global.library.logger.info(
-      `[syncing] requestHeight: ${JSON.stringify(
-        result,
-        null,
-        2
-      )}, from ${getB58String(randomNode)}`
-    );
+    // check
+    for (let i = 0; i < allPeerInfos.length; ++i) {
+      const one = allPeerInfos[i];
 
-    if (new BigNumber(lastBlock.height).lt(result.height)) {
-      // TODO
-      StateHelper.SetBlocksToSync(Number(result.height));
+      try {
+        const onePeerId = PeerId.createFromB58String(one.id.id);
+        const height: HeightWrapper = await Peer.p2p.requestHeight(onePeerId);
 
-      if (lastBlock.id !== genesisBlock.id) {
-        try {
-          await Loader.findUpdate(lastBlock, randomNode);
-          return;
-        } catch (err) {
-          global.library.logger.error(
-            `error while calling loader.findUpdate(): ${err.message}`
-          );
-          throw err;
-        }
+        myResult.push({
+          peerInfo: one,
+          height: height.height,
+        });
+      } catch (err) {
+        global.library.logger.info(
+          `[p2p] failed to requestHeight() from ${err.message}`
+        );
       }
-
-      global.library.logger.debug(
-        `Loading blocks from genesis from ${JSON.stringify(randomNode)}`
-      );
-      return await Blocks.loadBlocksFromPeer(
-        randomNode,
-        global.library.genesisBlock.id
-      );
     }
-    return undefined;
+
+    if (myResult.length === 0) {
+      global.library.logger.info('[p2p] test');
+      return;
+    }
+
+    const onlyHeights = myResult.map(x => x.height);
+    global.library.logger.info(
+      `[p2p], heights:  ${JSON.stringify(onlyHeights, null, 2)}`
+    );
+    const highest = BigNumber.max(...onlyHeights).toFixed();
+
+    global.library.logger.info(`[p2p] highest ${highest}`);
+
+    if (new BigNumber(lastBlock.height).isGreaterThanOrEqualTo(highest)) {
+      global.library.logger.info(
+        `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
+          lastBlock.height
+        }`
+      );
+      return;
+    }
+
+    const find = myResult.find(x => x.height === highest);
+    global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
+
+    const highestPeer = PeerId.createFromB58String(find.peerInfo.id.id);
+
+    if (lastBlock.id === genesisBlock.id) {
+      global.library.logger.info(
+        `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
+          find.height
+        }`
+      );
+      return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
+    } else {
+      global.library.logger.info(
+        `[p2p] current height is ${
+          lastBlock.height
+        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
+          find.height
+        }`
+      );
+      return await Blocks.loadBlocksFromPeer(highestPeer, lastBlock.id);
+    }
   }
 
   // Public methods
@@ -160,7 +178,7 @@ export default class Loader implements ICoreModule {
     });
   };
 
-  public static syncBlocksFromPeer = (peer: PeerInfo) => {
+  public static syncBlocksFromPeer = (peer: PeerId) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
     if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {

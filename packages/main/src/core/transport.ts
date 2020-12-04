@@ -11,7 +11,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
-  PeerInfoWrapper,
+  P2PPeerIdAndMultiaddr,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -20,13 +20,15 @@ import {
   isBlockPropose,
   isNewBlockMessage,
   isBlockAndVotes,
+  isP2PPeerIdAndMultiaddr,
 } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
-import { Bundle, getMultiAddrsThatIsNotLocalAddress } from '@gny/p2p';
 import * as PeerId from 'peer-id';
-import * as PeerInfo from 'peer-info';
+const uint8ArrayToString = require('uint8arrays/to-string');
+const uint8ArrayFromString = require('uint8arrays/from-string');
+import * as multiaddr from 'multiaddr';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
@@ -64,11 +66,9 @@ export default class Transport implements ICoreModule {
         prevBlockId: block.prevBlockId,
       } as NewBlockMessage);
 
-    let encodedNewBlockMessage: Buffer;
+    let encodedNewBlockMessage: Uint8Array;
     try {
-      encodedNewBlockMessage = global.library.protobuf.encodeNewBlockMessage(
-        message
-      );
+      encodedNewBlockMessage = uint8ArrayFromString(JSON.stringify(message));
     } catch (err) {
       global.library.logger.warn(
         'could not encode NewBlockMessage with protobuf'
@@ -82,9 +82,9 @@ export default class Transport implements ICoreModule {
   public static onNewPropose = async (propose: BlockPropose) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    let encodedBlockPropose: Buffer;
+    let encodedBlockPropose: Uint8Array;
     try {
-      encodedBlockPropose = global.library.protobuf.encodeBlockPropose(propose);
+      encodedBlockPropose = uint8ArrayFromString(JSON.stringify(propose));
     } catch (err) {
       global.library.logger.warn('could not encode Propose with protobuf');
       return;
@@ -103,7 +103,7 @@ export default class Transport implements ICoreModule {
 
     let newBlockMsg;
     try {
-      newBlockMsg = global.library.protobuf.decodeNewBlockMessage(message.data);
+      newBlockMsg = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
       global.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -115,16 +115,16 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    let peerInfo: PeerInfo;
+    let peerId: PeerId;
     let result: BlockAndVotes;
     try {
       const params: BlockIdWrapper = { id: newBlockMsg.id };
 
-      const bundle: Bundle = Peer.p2p;
+      const bundle = Peer.p2p;
 
-      peerInfo = await bundle.findPeerInfoInDHT(message);
+      peerId = await bundle.findPeerInfoInDHT(message);
 
-      result = await bundle.requestBlockAndVotes(peerInfo, params);
+      result = await bundle.requestBlockAndVotes(peerId, params);
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
@@ -155,7 +155,7 @@ export default class Transport implements ICoreModule {
       global.library.logger.info(
         `[p2p] got "${
           votes.signatures.length
-        }" BlockVotes from peer ${getMultiAddrsThatIsNotLocalAddress(peerInfo)}`
+        }" BlockVotes from peer ${peerId.toB58String()}`
       );
 
       // validate the received Block and NewBlockMessage against each other
@@ -178,7 +178,7 @@ export default class Transport implements ICoreModule {
       global.library.logger.error(e);
     }
 
-    global.library.bus.message('onReceiveBlock', peerInfo, block, votes);
+    global.library.bus.message('onReceiveBlock', peerId, block, votes);
   };
 
   // peerEvent
@@ -193,7 +193,7 @@ export default class Transport implements ICoreModule {
     global.library.logger.info(`received propose from ${message.from}`);
     let propose: BlockPropose;
     try {
-      propose = global.library.protobuf.decodeBlockPropose(message.data);
+      propose = JSON.parse(uint8ArrayToString(message.data));
     } catch (e) {
       global.library.logger.warn(
         `could not decode Propose with protobuf from ${message.from}`
@@ -207,14 +207,106 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(
-      `[p2p] onReceivePropose from "${message.peerInfo.host}${
-        message.peerInfo.port
-      }" for block ${propose.id}, height: ${propose.height}`
+      `[p2p] onReceivePropose from "${propose.address}" for block ${
+        propose.id
+      }, height: ${propose.height}`
     );
     global.library.bus.message('onReceivePropose', propose, message);
   };
 
   // peerEvent
+  public static receiveNew_Member = async (message: P2PMessage) => {
+    // 0. check if peer is myself
+    // validate peerId and Multiaddresses
+    // 1. check if peer is in Addressbook
+    // if not, add to AddressBook
+    // 2.check if there is a connection
+    // if not, dial
+
+    // dial, even when syncing
+    global.library.logger.info(
+      `[p2p] received newMember msg from ${message.from}`
+    );
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(uint8ArrayToString(message.data));
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] "newMember" event, could not parse data: ${err.message}`
+      );
+      return;
+    }
+
+    // P2PPeerIdAndMultiaddr
+    global.library.logger.info(
+      `[p2p][newMember] newMember: ${JSON.stringify(parsed, null, 2)}`
+    );
+    if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
+      return;
+    }
+    console.log(
+      `[p2p] received new member, ${JSON.stringify(parsed, null, 2)}`
+    );
+
+    let peerId = null;
+    try {
+      peerId = PeerId.createFromCID(parsed.peerId);
+    } catch (err) {
+      global.library.logger.info(`[p2p][newMember] error: ${err.message}`);
+      return;
+    }
+
+    if (peerId.equals(Peer.p2p.peerId)) {
+      global.library.logger.info(`[p2p] "newMember" is me`);
+      return;
+    }
+
+    // is in PeerStore
+    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    if (test === undefined) {
+      const multi = parsed.multiaddr.filter(x => {
+        const address = multiaddr(x).nodeAddress().address;
+        if (address === '0.0.0.0' || address === '127.0.0.1') {
+          return false;
+        } else {
+          return true;
+        }
+      });
+      if (multi.length === 0) {
+        global.library.logger.error(
+          `[p2p] "newMember" has no good addresses, will not add to peerStore: ${JSON.stringify(
+            parsed.multiaddr
+          )} `
+        );
+        return;
+      }
+
+      // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
+      Peer.p2p.peerStore.addressBook.set(
+        peerId,
+        parsed.multiaddr.map(x => multiaddr(x))
+      );
+      global.library.logger.info(
+        `[p2p] "newMember" added peer "${peerId.toB58String()}" to peerBook`
+      );
+    }
+
+    // has connection
+    const connections = Array.from(Peer.p2p.connections.keys());
+    const inConnection = connections.find(x => x === parsed.peerId);
+    // if not, dial
+    if (!inConnection) {
+      try {
+        await Peer.p2p.dial(peerId);
+      } catch (err) {
+        global.library.logger.info(
+          `[p2p] "newMember" dial failed for "${peerId.toB58String()}"`
+        );
+      }
+    }
+  };
+
   public static receivePeer_Transaction = (message: P2PMessage) => {
     if (StateHelper.IsSyncing()) {
       global.library.logger.info(
@@ -250,44 +342,10 @@ export default class Transport implements ICoreModule {
     }
 
     global.library.logger.info(
-      `[p2p] received from "${message.peerInfo.host}:${
-        message.peerInfo.port
-      }" transactionId: ${unconfirmedTrs.id}`
+      `[p2p] received from "${message.from}" transactionId: ${
+        unconfirmedTrs.id
+      }`
     );
     global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
-  };
-
-  public static receivePeer_Hello = async (message: P2PMessage) => {
-    try {
-      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
-
-      await Peer.p2p.dial(peerInfo);
-      global.library.logger.info(
-        `[p2p] after "hello", successfully dialed peer ${peerInfo.id.toB58String()}`
-      );
-
-      await Peer.p2p.broadcastHelloBackAsync();
-    } catch (err) {
-      global.library.logger.error(
-        `[p2p] received "hello" error: ${err.message}`
-      );
-      global.library.logger.error(err);
-    }
-  };
-
-  public static receivePeer_HelloBack = async (message: P2PMessage) => {
-    try {
-      const peerInfo = await Peer.p2p.findPeerInfoInDHT(message);
-
-      await Peer.p2p.dial(peerInfo);
-      global.library.logger.info(
-        `[p2p] after "helloBack", successfully dialed peer ${peerInfo.id.toB58String()}`
-      );
-    } catch (err) {
-      global.library.logger.error(
-        `[p2p] received "helloBack" error: ${err.message}`
-      );
-      global.library.logger.error(err);
-    }
   };
 }

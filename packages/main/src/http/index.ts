@@ -160,7 +160,7 @@ export async function composeNetwork(
 
     server.listen(appConfig.port, appConfig.address, err => {
       logger.log(`Server started: ${appConfig.address}:${appConfig.port}`);
-      if (!err) {
+      if (err) {
         logger.log(`Error: ${err}`);
       }
     });

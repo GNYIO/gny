@@ -31,7 +31,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       peers: joi.object().keys({
         bootstrap: joi
           .array()
-          .items(joi.string())
+          .items(joi.string().multiaddr())
           .required(),
         privateP2PKey: joi.string().required(),
       }),

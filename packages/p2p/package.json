@@ -1,7 +1,7 @@
 {
   "name": "@gny/p2p",
   "private": true,
-  "version": "1.0.42",
+  "version": "1.0.45",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -15,20 +15,18 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.42",
-    "@nodeutils/defaults-deep": "^1.1.0",
-    "@polkadot/ts": "git+https://github.com/a1300/ts.git",
-    "@types/node": "^10.14.18",
-    "@types/pull-stream": "^3.6.2",
-    "ip": "^1.1.5",
-    "libp2p": "^0.26.1",
-    "libp2p-bootstrap": "^0.9.7",
-    "libp2p-gossipsub": "0.0.4",
-    "libp2p-kad-dht": "^0.15.3",
-    "libp2p-mdns": "^0.12.3",
-    "libp2p-mplex": "^0.8.5",
-    "libp2p-secio": "^0.11.1",
-    "libp2p-tcp": "^0.13.1",
-    "pull-stream": "^3.6.14"
+    "@gny/interfaces": "1.0.45",
+    "it-first": "^1.0.4",
+    "it-pipe": "^1.1.0",
+    "libp2p": "^0.29.3",
+    "libp2p-bootstrap": "^0.12.1",
+    "libp2p-gossipsub": "^0.6.2",
+    "libp2p-kad-dht": "^0.20.1",
+    "libp2p-mplex": "^0.10.1",
+    "libp2p-noise": "^2.0.1",
+    "libp2p-secio": "^0.13.1",
+    "multiaddr": "^8.1.1",
+    "peer-id": "^0.14.2",
+    "uint8arrays": "^1.1.0"
   }
 }

@@ -51,7 +51,7 @@ export default class PeerApi implements IHttpApi {
   };
 
   private getPeers = (req: Request, res: Response, next: Next) => {
-    const peers = Peer.p2p.getAllConnectedPeers();
+    const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
     const result: ApiResult<PeersWrapper> = {
       success: true,
       peers,

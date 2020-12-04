@@ -1,4 +1,11 @@
 version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
 services:
   db1:
     image: "postgres:9.6.12"
@@ -10,13 +17,17 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
   node1:
     build: ../../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/restarted-node/node1.json" --publicIP $$(./getIP.sh node1)'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/restarted-node/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_PUBLIC_IP=172.20.0.3
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -29,3 +40,6 @@ services:
       - '4097:4097'
     depends_on:
       - db1
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3
