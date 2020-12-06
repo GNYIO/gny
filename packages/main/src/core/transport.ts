@@ -23,6 +23,10 @@ import {
 import { StateHelper } from './StateHelper';
 import Peer from './peer';
 import { BlocksHelper } from './BlocksHelper';
+import {
+  serializedSpanContext,
+  createSpanContextFromSerializedParentContext,
+} from '@gny/tracer';
 
 import * as PeerId from 'peer-id';
 const uint8ArrayToString = require('uint8arrays/to-string');
@@ -42,6 +46,8 @@ export default class Transport implements ICoreModule {
 
   // broadcast to peers NewBlockMessage
   public static onNewBlock = async (block: IBlock, votes: ManyVotes) => {
+    const span = global.app.tracer.startSpan('onNewBlock');
+
     let blockAndVotes: BlockAndVotes = undefined;
     try {
       blockAndVotes = {
@@ -51,7 +57,6 @@ export default class Transport implements ICoreModule {
           .toString('base64'),
       };
     } catch (err) {
-      const span = global.app.tracer.startSpan('onUnconfirmedTransaction');
       span.setTag('error', true);
       span.log({
         value: 'could not encode blockVotes',
@@ -72,16 +77,33 @@ export default class Transport implements ICoreModule {
         prevBlockId: block.prevBlockId,
       } as NewBlockMessage);
 
+    const wrapped: TracerWrapper<NewBlockMessage> = {
+      spanId: createSpanContextFromSerializedParentContext(
+        global.library.tracer,
+        span.context()
+      ),
+      data: message,
+    };
+
     let encodedNewBlockMessage: Uint8Array;
     try {
-      encodedNewBlockMessage = uint8ArrayFromString(JSON.stringify(message));
+      encodedNewBlockMessage = uint8ArrayFromString(JSON.stringify(wrapped));
     } catch (err) {
       global.library.logger.warn(
         'could not encode NewBlockMessage with protobuf'
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: 'could not encode NewBlockMessage with protobuf',
+      });
+      span.finish();
+
       return;
     }
     await Peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
+
+    span.finish();
   };
 
   // broadcast to peers Propose
@@ -90,16 +112,23 @@ export default class Transport implements ICoreModule {
 
     const span = global.app.tracer.startSpan('onNewPropose');
 
-    // const full: TracerWrapper<BlockPropose> = {
-    //   spanId: span.context().toSpanId(),
-    //   data: propose,
-    // };
+    const full: TracerWrapper<BlockPropose> = {
+      spanId: serializedSpanContext(global.app.tracer, span.context()),
+      data: propose,
+    };
 
     let encodedBlockPropose: Uint8Array;
     try {
-      encodedBlockPropose = uint8ArrayFromString(JSON.stringify(propose));
+      encodedBlockPropose = uint8ArrayFromString(JSON.stringify(full));
     } catch (err) {
       global.library.logger.warn('could not encode Propose with protobuf');
+
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to encode block propose: ${err.message}`,
+      });
+      span.finish();
+
       return;
     }
     await Peer.p2p.broadcastProposeAsync(encodedBlockPropose);
@@ -109,16 +138,9 @@ export default class Transport implements ICoreModule {
 
   // peerEvent
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
-    if (StateHelper.IsSyncing()) {
-      global.library.logger.info(
-        `[p2p] ignoring broadcasting newBlockHeader because we are syncing`
-      );
-      return;
-    }
-
-    let newBlockMsg;
+    let wrapper: TracerWrapper<NewBlockMessage>;
     try {
-      newBlockMsg = JSON.parse(uint8ArrayToString(message.data));
+      wrapper = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
       global.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -126,20 +148,50 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    if (!isNewBlockMessage(newBlockMsg)) {
+    const parentSpanContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan('receivePeer_NewBlockHeader', {
+      childOf: parentSpanContext,
+    });
+
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring broadcasting newBlockHeader because we are syncing`
+      );
+
+      span.setTag('error', true);
+      span.log({
+        value:
+          '[p2p] ignoring broadcasting newBlockHeader because we are syncing',
+      });
+      span.finish();
+
       return;
     }
 
-    let peerId: PeerId;
-    let result: BlockAndVotes;
-    try {
-      const params: TracerWrapper<BlockIdWrapper> = {
-        spanId: '',
-        data: {
-          id: newBlockMsg.id,
-        },
-      };
+    const newBlockMsg = wrapper.data;
+    if (!isNewBlockMessage(newBlockMsg)) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p] validation for received NewBlockMessage failed',
+      });
+      span.finish();
 
+      return;
+    }
+
+    const params: TracerWrapper<BlockIdWrapper> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: {
+        id: newBlockMsg.id,
+      },
+    };
+
+    let peerId: PeerId;
+    let result: TracerWrapper<BlockAndVotes>;
+    try {
       const bundle = Peer.p2p;
 
       peerId = await bundle.findPeerInfoInDHT(message);
@@ -148,10 +200,29 @@ export default class Transport implements ICoreModule {
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
+
+      span.setTag('error', true);
+      span.log({
+        value: `[p2p] Failed to get latest block data, err: ${err.message}`,
+      });
+
+      span.finish();
       return;
     }
+    span.finish();
 
-    if (!isBlockAndVotes(result)) {
+    const requestBlockVotesSpanContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      result.spanId
+    );
+    const receiveBlockSpan = global.library.tracer.startSpan(
+      'going to receiveBlock',
+      {
+        childOf: requestBlockVotesSpanContext,
+      }
+    );
+
+    if (!isBlockAndVotes(result.data)) {
       global.library.logger.error(
         `[p2p] validation failed blockAndVotes: ${JSON.stringify(
           result,
@@ -160,12 +231,11 @@ export default class Transport implements ICoreModule {
         )}`
       );
 
-      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
-      span.setTag('error', true);
-      span.log({
+      receiveBlockSpan.setTag('error', true);
+      receiveBlockSpan.log({
         value: `Failed to failed blockAndVotes`,
       });
-      span.finish();
+      receiveBlockSpan.finish();
 
       return;
     }
@@ -173,9 +243,9 @@ export default class Transport implements ICoreModule {
     let block: IBlock;
     let votes: ManyVotes;
     try {
-      block = result.block;
+      block = result.data.block;
       votes = global.library.protobuf.decodeBlockVotes(
-        Buffer.from(result.votes, 'base64')
+        Buffer.from(result.data.votes, 'base64')
       );
       block = BlockBase.normalizeBlock(block);
       votes = ConsensusBase.normalizeVotes(votes);
@@ -193,15 +263,14 @@ export default class Transport implements ICoreModule {
         return;
       }
 
-      StateHelper.SetBlockToLatestBlockCache(block.id, result); // TODO: make side effect more predictable
+      StateHelper.SetBlockToLatestBlockCache(block.id, result.data); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
-      const span = global.app.tracer.startSpan('receivePeer_NewBlockHeader');
-      span.setTag('error', true);
-      span.log({
+      receiveBlockSpan.setTag('error', true);
+      receiveBlockSpan.log({
         value: `normalize block or votes object error: ${e.toString()}`,
       });
-      span.finish();
+      receiveBlockSpan.finish();
 
       global.library.logger.error(
         `normalize block or votes object error: ${JSON.stringify(
@@ -213,28 +282,21 @@ export default class Transport implements ICoreModule {
       global.library.logger.error(e);
     }
 
-    global.library.bus.message('onReceiveBlock', peerId, block, votes);
+    global.library.bus.message(
+      'onReceiveBlock',
+      peerId,
+      block,
+      votes,
+      receiveBlockSpan
+    );
   };
 
   // peerEvent
   public static receivePeer_Propose = (message: P2PMessage) => {
-    if (StateHelper.IsSyncing()) {
-      global.library.logger.info(
-        `[p2p] ignoring propose because we are syncing`
-      );
-      return;
-    }
-
     global.library.logger.info(`received propose from ${message.from}`);
-    let propose: BlockPropose;
+    let wrapper: TracerWrapper<BlockPropose>;
     try {
-      // const full: TracerWrapper<BlockPropose> = JSON.parse(
-      //   Buffer.from(message.data).toString()
-      // );
-      // spanId = full.spanId;
-      // propose = full.data;
-
-      propose = JSON.parse(uint8ArrayToString(message.data));
+      wrapper = JSON.parse(message.data.toString());
     } catch (e) {
       global.library.logger.warn(
         `could not decode Propose with protobuf from ${message.from}`
@@ -242,12 +304,37 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    // child off
-    const span = global.app.tracer.startSpan('receive BlockPropose');
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan('received onNewPropose', {
+      childOf: parentContext,
+    });
 
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring propose because we are syncing`
+      );
+
+      span.setTag('error', true);
+      span.setTag('isSyncing', true);
+      span.log({
+        value: `is currently syncing`,
+      });
+      span.finish();
+
+      return;
+    }
+
+    const propose = wrapper.data;
     if (!isBlockPropose(propose)) {
       global.library.logger.warn('block propose validation did not work');
 
+      span.setTag('error', true);
+      span.log({
+        value: 'propose validation failed',
+      });
       span.finish();
       return;
     }
@@ -258,9 +345,7 @@ export default class Transport implements ICoreModule {
       }, height: ${propose.height}`
     );
 
-    // change
-    span.finish();
-    global.library.bus.message('onReceivePropose', propose, message);
+    global.library.bus.message('onReceivePropose', propose, message, span);
   };
 
   // peerEvent

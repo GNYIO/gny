@@ -20,6 +20,7 @@ import {
   BlocksWrapper,
   BlocksWrapperParams,
   BufferList,
+  TracerWrapper,
 } from '@gny/interfaces';
 import {
   isCommonBlockParams,
@@ -34,6 +35,11 @@ import * as PeerId from 'peer-id';
 const first = require('it-first');
 
 import { getBlocks as getBlocksFromApi } from '../http/util';
+import {
+  ISpan,
+  serializedSpanContext,
+  createSpanContextFromSerializedParentContext,
+} from '@gny/tracer';
 const uint8ArrayToString = require('uint8arrays/to-string');
 const uint8ArrayFromString = require('uint8arrays/from-string');
 
@@ -42,7 +48,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   const request = async (
     peerId: PeerId,
     blockIdWrapper: BlockIdWrapper
-  ): Promise<BlockAndVotes> => {
+  ): Promise<TracerWrapper<BlockAndVotes>> => {
     const data = uint8ArrayFromString(JSON.stringify(blockIdWrapper));
 
     const resultRaw = await bundle.directRequest(
@@ -51,8 +57,11 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       data
     );
 
-    const result = JSON.parse(resultRaw.toString());
-    if (!isBlockAndVotes(result)) {
+    // TracerWrapper<BlockAndVotes>
+    const result: TracerWrapper<BlockAndVotes> = JSON.parse(
+      resultRaw.toString()
+    );
+    if (!isBlockAndVotes(result.data)) {
       throw new Error('[p2p] validation for requested isBlockPropose failed');
     }
 
@@ -66,23 +75,51 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       temp = msg;
       break;
     }
-    const body = JSON.parse(temp.toString());
+    const wrapper: TracerWrapper<BlockIdWrapper> = JSON.parse(temp.toString());
+    const body = wrapper.data;
+
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan(
+      'received request for BlockVotes',
+      {
+        childOf: parentContext,
+      }
+    );
 
     // validate id
     if (!isBlockIdWrapper(body)) {
       global.library.logger.info('[p2p] validaion for blockIdWrapper failed');
+
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p] validaion for blockIdWrapper failed',
+      });
+      span.finish();
+
       throw new Error('validation failed');
     }
 
     // no need for await
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p] New block not found',
+      });
+      span.finish();
+
       throw new Error('New block not found');
     }
 
-    const result: BlockAndVotes = {
-      block: newBlock.block,
-      votes: newBlock.votes,
+    const result: TracerWrapper<BlockAndVotes> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: {
+        block: newBlock.block,
+        votes: newBlock.votes,
+      },
     };
 
     const converted = [uint8ArrayFromString(JSON.stringify(result))];
@@ -96,8 +133,13 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 function V1_VOTES_HANDLER(bundle) {
   // not duplex
   // async
-  const request = async (peerId: PeerId, votes: ManyVotes) => {
-    const data = uint8ArrayFromString(JSON.stringify(votes));
+  const request = async (peerId: PeerId, votes: ManyVotes, span: ISpan) => {
+    const before: TracerWrapper<ManyVotes> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: votes,
+    };
+
+    const data = uint8ArrayFromString(JSON.stringify(before));
     await bundle.pushOnly(peerId, V1_VOTES, data);
   };
 
@@ -113,12 +155,28 @@ function V1_VOTES_HANDLER(bundle) {
       return;
     }
 
-    const votes: ManyVotes = JSON.parse(values.toString());
+    const wrapper: TracerWrapper<ManyVotes> = JSON.parse(values.toString());
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan('receive votes', {
+      childOf: parentContext,
+    });
+
+    const votes: ManyVotes = wrapper.data;
 
     if (!isManyVotes(votes)) {
       global.library.logger.info(
         `[p2p] validation for ManyVotes failed: ${JSON.stringify(votes)}`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p] validation for ManyVotes failed',
+      });
+      span.finish();
+
       return;
     }
 
@@ -128,7 +186,7 @@ function V1_VOTES_HANDLER(bundle) {
       }, h: ${votes.height}`
     );
 
-    global.library.bus.message('onReceiveVotes', votes);
+    global.library.bus.message('onReceiveVotes', votes, span);
   };
 
   bundle.pushVotesToPeer = request;

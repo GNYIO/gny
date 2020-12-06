@@ -5,12 +5,23 @@ import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;
 
-export function createSerializedSpanContext(
-  myTracer: JaegerTracer,
-  mySpan: opentracing.Span
+export interface IKeyValuePair {
+  [key: string]: any;
+}
+
+export interface ISpan {
+  setTag: (key: string, value: any) => this;
+  log: (obj: IKeyValuePair) => this;
+  finish: () => void;
+  context: () => opentracing.SpanContext;
+}
+
+export function serializedSpanContext(
+  myTracer: jaegerClient.JaegerTracer,
+  context: opentracing.SpanContext
 ) {
   const obj: SerializedSpanContext = {};
-  myTracer.inject(mySpan.context(), opentracing.FORMAT_TEXT_MAP, obj);
+  myTracer.inject(context, opentracing.FORMAT_TEXT_MAP, obj);
   return obj;
 }
 

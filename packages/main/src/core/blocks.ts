@@ -42,6 +42,7 @@ import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
+import { ISpan } from '@gny/tracer';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -788,14 +789,25 @@ export default class Blocks implements ICoreModule {
   public static onReceiveBlock = (
     peerId: PeerId,
     block: IBlock,
-    votes: ManyVotes
+    votes: ManyVotes,
+    span: ISpan
   ) => {
     global.library.logger.info(
       `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
     );
 
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || modules) {
       // TODO access state
+
+      span.setTag('error', true);
+      span.log({
+        value: `onReceiveBlock stopping, isSyncing: ${isSyncing}, modules: ${modules}`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -814,6 +826,15 @@ export default class Blocks implements ICoreModule {
             block.height
           } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `Receive new block header from long fork\n[syncing] received block h: ${
+            block.height
+          } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`,
+        });
+        span.finish();
+
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
@@ -821,11 +842,24 @@ export default class Blocks implements ICoreModule {
         global.library.logger.info(
           `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
+        });
+        span.finish();
+
         Loader.syncBlocksFromPeer(peerId);
         return cb();
       }
 
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
+        span.setTag('error', true);
+        span.log({
+          value: `[ſyncing] already received this block`,
+        });
+        span.finish();
+
         return cb();
       }
 
@@ -862,12 +896,10 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
-          const span = global.app.tracer.startSpan('onReceiveBlock');
           span.setTag('error', true);
           span.log({
             value: `Failed to process received block ${e}`,
           });
-          span.finish();
 
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
@@ -883,20 +915,18 @@ export default class Blocks implements ICoreModule {
               redoTransactions
             );
           } catch (e) {
-            const span = global.app.tracer.startSpan(
-              'processUnconfirmedTransactionsAsync'
-            );
             span.setTag('error', true);
             span.log({
               value: `Failed to redo unconfirmed transactions ${e}`,
             });
-            span.finish();
 
             global.app.logger.error('Failed to redo unconfirmed transactions');
             global.app.logger.error(e);
 
             // TODO: rollback?
           }
+
+          span.finish();
 
           // important
           StateHelper.setState(state);
@@ -911,7 +941,8 @@ export default class Blocks implements ICoreModule {
 
   public static onReceivePropose = (
     propose: BlockPropose,
-    message: P2PMessage
+    message: P2PMessage,
+    span: ISpan
   ) => {
     const isSyncing = StateHelper.IsSyncing();
     const modulesAreLoaded = StateHelper.ModulesAreLoaded();
@@ -922,6 +953,13 @@ export default class Blocks implements ICoreModule {
           propose.address
         }" (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: `ignoring onReceivePropose (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -929,11 +967,23 @@ export default class Blocks implements ICoreModule {
       let state = StateHelper.getState();
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
+        span.setTag('error', true);
+        span.log({
+          value: 'already received propose',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
       if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
+        span.setTag('error', true);
+        span.log({
+          value: 'propose matches old one',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
       // TODO: check
@@ -942,12 +992,24 @@ export default class Blocks implements ICoreModule {
         .toFixed();
       if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
         if (new BigNumber(propose.height).isGreaterThan(lastBlockPlus1)) {
+          span.setTag('error', true);
+          span.log({
+            value: 'block is not in line, going to call startSyncBlocks',
+          });
+          span.finish();
+
           Loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
       }
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
         global.app.logger.debug('ignore the frequently propose');
+        span.setTag('error', true);
+        span.log({
+          value: 'ignore the frequently propose',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
 
@@ -998,35 +1060,38 @@ export default class Blocks implements ICoreModule {
 
                 const peerId = await bundle.findPeerInfoInDHT(message);
 
-                await bundle.pushVotesToPeer(peerId, votes);
+                await bundle.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
               }
             } catch (err) {
-              global.library.logger.error(
-                `[p2p] failed to create and push VOTES: "${err.message}"`
-              );
               global.library.logger.error(err);
+
+              // important
+              StateHelper.setState(state);
+              return next(
+                `[p2p] failed to create and push VOTES "${err.message}"`
+              );
             }
 
             // important
             StateHelper.setState(state);
-            setImmediate(next);
+            return next();
           },
         ],
         (err: any) => {
           if (err) {
-            const span = global.app.tracer.startSpan('onReceivePropose');
             span.setTag('error', true);
             span.log({
               value: `onReceivePropose error: ${err}`,
             });
-            span.finish();
 
             global.app.logger.error('onReceivePropose error');
             global.app.logger.error(err);
           }
           global.app.logger.debug('onReceivePropose finished');
+
+          span.finish();
           cb();
         }
       );
@@ -1067,13 +1132,23 @@ export default class Blocks implements ICoreModule {
     }, finishCallback);
   };
 
-  public static onReceiveVotes = (votes: ManyVotes) => {
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
+  public static onReceiveVotes = (votes: ManyVotes, span: ISpan) => {
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || modules) {
       global.library.logger.info(
         `[p2p] currently syncing ignored received Votes for height: ${
           votes.height
         }`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: `onReceiveVotes isSyncing: ${isSyncing}, modules: ${modules}`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -1117,18 +1192,24 @@ export default class Blocks implements ICoreModule {
 
           StateHelper.setState(state); // important
         } catch (err) {
-          const span = global.app.tracer.startSpan('onReceiveVotes');
           span.setTag('error', true);
           span.log({
             value: `Failed to process confirmed block: ${err}`,
           });
-          span.finish();
 
           global.app.logger.error('Failed to process confirmed block:');
           global.app.logger.error(err);
         }
+
+        span.finish();
+
         return cb();
       } else {
+        span.log({
+          value: 'has not enough votes',
+        });
+        span.finish();
+
         StateHelper.setState(state); // important
         return setImmediate(cb);
       }
