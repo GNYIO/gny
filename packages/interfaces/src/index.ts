@@ -442,12 +442,6 @@ export interface P2PPeerIdAndMultiaddr {
   multiaddr: string[];
 }
 
-export type SerializedSpanContext = { 'uber-trace-id': string } | {};
-
-export type TracerWrapper<T> = {
-  spanId: SerializedSpanContext;
-  data: T;
-};
 export interface BlockIdWrapper {
   id: string;
 }

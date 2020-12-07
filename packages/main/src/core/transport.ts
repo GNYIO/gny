@@ -9,7 +9,6 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
-  TracerWrapper,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -26,6 +25,8 @@ import { BlocksHelper } from './BlocksHelper';
 import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
+  TracerWrapper,
+  getSmallBlockHash,
 } from '@gny/tracer';
 
 import * as PeerId from 'peer-id';
@@ -47,6 +48,9 @@ export default class Transport implements ICoreModule {
   // broadcast to peers NewBlockMessage
   public static onNewBlock = async (block: IBlock, votes: ManyVotes) => {
     const span = global.app.tracer.startSpan('onNewBlock');
+    span.setTag('hash', getSmallBlockHash(block));
+    span.setTag('height', block.height);
+    span.setTag('id', block.id);
 
     let blockAndVotes: BlockAndVotes = undefined;
     try {
@@ -78,10 +82,7 @@ export default class Transport implements ICoreModule {
       } as NewBlockMessage);
 
     const wrapped: TracerWrapper<NewBlockMessage> = {
-      spanId: createSpanContextFromSerializedParentContext(
-        global.library.tracer,
-        span.context()
-      ),
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: message,
     };
 
@@ -111,6 +112,13 @@ export default class Transport implements ICoreModule {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
     const span = global.app.tracer.startSpan('onNewPropose');
+    span.setTag('hash', getSmallBlockHash(propose));
+    span.setTag('height', propose.height);
+    span.setTag('id', propose.id);
+
+    span.log({
+      propose,
+    });
 
     const full: TracerWrapper<BlockPropose> = {
       spanId: serializedSpanContext(global.app.tracer, span.context()),
@@ -140,7 +148,7 @@ export default class Transport implements ICoreModule {
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     let wrapper: TracerWrapper<NewBlockMessage>;
     try {
-      wrapper = JSON.parse(uint8ArrayToString(message.data));
+      wrapper = JSON.parse(uint8ArrayToString(message.data)); // not toString() ?
     } catch (err) {
       global.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -181,6 +189,10 @@ export default class Transport implements ICoreModule {
 
       return;
     }
+
+    span.setTag('hash', getSmallBlockHash(newBlockMsg));
+    span.setTag('height', newBlockMsg.height);
+    span.setTag('id', newBlockMsg.id);
 
     const params: TracerWrapper<BlockIdWrapper> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
@@ -263,6 +275,9 @@ export default class Transport implements ICoreModule {
         return;
       }
 
+      span.setTag('height', block.height);
+      span.setTag('id', block.id);
+
       StateHelper.SetBlockToLatestBlockCache(block.id, result.data); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
@@ -308,7 +323,7 @@ export default class Transport implements ICoreModule {
       global.library.tracer,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received onNewPropose', {
+    const span = global.library.tracer.startSpan('received BlockPropose', {
       childOf: parentContext,
     });
 
@@ -338,6 +353,13 @@ export default class Transport implements ICoreModule {
       span.finish();
       return;
     }
+
+    span.setTag('hash', getSmallBlockHash(propose));
+    span.setTag('height', propose.height);
+    span.setTag('id', propose.id);
+    span.log({
+      propose,
+    });
 
     global.library.logger.info(
       `[p2p] onReceivePropose from "${propose.address}" for block ${

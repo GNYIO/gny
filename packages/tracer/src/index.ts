@@ -1,9 +1,33 @@
 import * as jaegerClient from 'jaeger-client';
 import { JaegerTracer } from 'jaeger-client';
-import { ILogger, SerializedSpanContext } from '@gny/interfaces';
+import { ILogger } from '@gny/interfaces';
 import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;
+
+export interface HeightAndId {
+  height: string;
+  id: string;
+}
+export function getSmallBlockHash(heightAndId: HeightAndId) {
+  if (
+    typeof heightAndId === 'object' &&
+    typeof heightAndId.id === 'string' &&
+    typeof heightAndId.height === 'string'
+  ) {
+    return `${heightAndId.height}:${heightAndId.id.substr(0, 7)}`;
+  }
+  return '';
+}
+
+export interface ISerializedSpanContext {
+  'uber-trace-id': string;
+}
+
+export interface TracerWrapper<T> {
+  spanId: ISerializedSpanContext;
+  data: T;
+}
 
 export interface IKeyValuePair {
   [key: string]: any;
@@ -20,14 +44,14 @@ export function serializedSpanContext(
   myTracer: jaegerClient.JaegerTracer,
   context: opentracing.SpanContext
 ) {
-  const obj: SerializedSpanContext = {};
+  const obj: ISerializedSpanContext = {} as ISerializedSpanContext;
   myTracer.inject(context, opentracing.FORMAT_TEXT_MAP, obj);
   return obj;
 }
 
 export function createSpanContextFromSerializedParentContext(
   myTracer: JaegerTracer,
-  obj: SerializedSpanContext
+  obj: ISerializedSpanContext
 ) {
   const parentSpanContext = myTracer.extract(opentracing.FORMAT_TEXT_MAP, obj);
   return parentSpanContext;

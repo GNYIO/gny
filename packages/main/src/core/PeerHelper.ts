@@ -20,7 +20,6 @@ import {
   BlocksWrapper,
   BlocksWrapperParams,
   BufferList,
-  TracerWrapper,
 } from '@gny/interfaces';
 import {
   isCommonBlockParams,
@@ -32,7 +31,7 @@ import {
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
-const first = require('it-first');
+import { TracerWrapper, getSmallBlockHash } from '@gny/tracer';
 
 import { getBlocks as getBlocksFromApi } from '../http/util';
 import {
@@ -179,6 +178,10 @@ function V1_VOTES_HANDLER(bundle) {
 
       return;
     }
+
+    span.setTag('hash', getSmallBlockHash(votes));
+    span.setTag('height', votes.height);
+    span.setTag('id', votes.id);
 
     global.library.logger.info(
       `[p2p] received "${votes.signatures.length}" votes for block: ${
