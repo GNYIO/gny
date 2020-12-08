@@ -22,6 +22,7 @@ import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
 import { Variable } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
+import { getSmallBlockHash } from '@gny/tracer';
 
 const blockReward = new BlockReward();
 
@@ -192,11 +193,19 @@ export default class Delegates implements ICoreModule {
               }, options: ${options.votes.id} h: ${options.votes.height}`
             );
 
+            const span = global.library.tracer.startSpan(
+              'Block.processBlock()'
+            );
+            span.setTag('hash', getSmallBlockHash(newBlock));
+            span.setTag('height', newBlock.height);
+            span.setTag('id', newBlock.id);
+
             const stateResult = await Blocks.processBlock(
               newState,
               newBlock,
               options,
-              delegateList
+              delegateList,
+              span
             );
             state = stateResult.state;
 

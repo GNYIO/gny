@@ -42,7 +42,7 @@ import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
-import { ISpan } from '@gny/tracer';
+import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -309,23 +309,29 @@ export default class Blocks implements ICoreModule {
 
   public static ProcessBlockFireEvents(
     block: IBlock,
-    options: ProcessBlockOptions
+    options: ProcessBlockOptions,
+    span: ISpan
   ) {
     if (options.broadcast && options.local) {
       options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
-      global.library.bus.message('onNewBlock', block, options.votes);
+      global.library.bus.message('onNewBlock', block, options.votes, span);
     }
-    global.library.bus.message('onProcessBlock', block); // TODO is this used?
   }
 
   public static processBlock = async (
     state: IState,
     block: IBlock,
     options: ProcessBlockOptions,
-    delegateList: string[]
+    delegateList: string[],
+    span: ISpan
   ) => {
-    if (!StateHelper.ModulesAreLoaded())
+    if (!StateHelper.ModulesAreLoaded()) {
       throw new Error('Blockchain is loading');
+    }
+
+    span.log({
+      options,
+    });
 
     let success = true;
     try {
@@ -342,15 +348,8 @@ export default class Blocks implements ICoreModule {
 
       state = BlocksHelper.SetLastBlock(state, block);
 
-      Blocks.ProcessBlockFireEvents(block, options);
+      Blocks.ProcessBlockFireEvents(block, options, span);
     } catch (error) {
-      const span = global.app.tracer.startSpan('processBlock');
-      span.setTag('error', true);
-      span.log({
-        value: `save block error: ${error}`,
-      });
-      span.finish();
-
       global.app.logger.error('save block error:');
       global.app.logger.error(error);
 
@@ -650,16 +649,28 @@ export default class Blocks implements ICoreModule {
             );
             const options: ProcessBlockOptions = {};
 
+            const span = global.library.tracer.startSpan(
+              'Block.processBlock()'
+            );
+            span.setTag('syncing', true);
+            span.setTag('hash', getSmallBlockHash(block as IBlock));
+            span.setTag('height', block.height);
+            span.setTag('id', block.id);
+            span.setTag('syncedFrom', peer.toB58String());
+
             const stateResult = await Blocks.processBlock(
               state,
               block,
               options,
-              activeDelegates
+              activeDelegates,
+              span
             );
             state = stateResult.state;
             StateHelper.setState(state); // important
 
             if (stateResult.success) {
+              span.finish();
+
               lastCommonBlockId = block.id;
               global.app.logger.info(
                 `Block ${block.id} loaded from ${peer.toB58String()} at ${
@@ -667,6 +678,9 @@ export default class Blocks implements ICoreModule {
                 }`
               );
             } else {
+              span.setTag('error', true);
+              span.finish();
+
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
@@ -866,7 +880,20 @@ export default class Blocks implements ICoreModule {
       // TODO this should be saved already in case of an error
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
+      span.finish();
+
       if (fitInLineResult === BlockFitsInLine.Success) {
+        // does this work, even
+        const processBlockSpan = global.library.tracer.startSpan(
+          'Block.processBlock()',
+          {
+            childOf: span.context(),
+          }
+        );
+        processBlockSpan.setTag('hash', getSmallBlockHash(block));
+        processBlockSpan.setTag('height', block.height);
+        processBlockSpan.setTag('id', block.id);
+
         const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
@@ -891,19 +918,22 @@ export default class Blocks implements ICoreModule {
             state,
             block,
             options,
-            delegateList
+            delegateList,
+            processBlockSpan
           );
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
-          span.setTag('error', true);
-          span.log({
+          processBlockSpan.setTag('error', true);
+          processBlockSpan.log({
             value: `Failed to process received block ${e}`,
           });
 
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
         } finally {
+          // todo create new span (for transaction)
+
           // delete already executed transactions
           for (const t of block.transactions) {
             pendingTrsMap.delete(t.id);
@@ -926,7 +956,7 @@ export default class Blocks implements ICoreModule {
             // TODO: rollback?
           }
 
-          span.finish();
+          processBlockSpan.finish();
 
           // important
           StateHelper.setState(state);
@@ -1186,7 +1216,8 @@ export default class Blocks implements ICoreModule {
             state,
             pendingBlock,
             options,
-            delegateList
+            delegateList,
+            span
           );
           state = stateResult.state;
 
@@ -1224,7 +1255,8 @@ export default class Blocks implements ICoreModule {
       state: IState,
       block: IBlock,
       options: ProcessBlockOptions,
-      delegateList: string[]
+      delegateList: string[],
+      span: ISpan
     ) => Promise<IStateSuccess>,
     getBlocksByHeight: GetBlocksByHeight
   ) => {
@@ -1233,13 +1265,19 @@ export default class Blocks implements ICoreModule {
     if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
+      const span = global.library.tracer.startSpan('Block.processBlock()');
+      span.setTag('hash', getSmallBlockHash(genesisBlock));
+      span.setTag('height', genesisBlock.height);
+      span.setTag('id', genesisBlock.id);
+
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
       const stateResult = await processBlock(
         state,
         genesisBlock,
         options,
-        delegateList
+        delegateList,
+        span
       );
       state = stateResult.state;
     } else {

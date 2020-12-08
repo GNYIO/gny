@@ -54,6 +54,9 @@ export default class Application {
     process.once('SIGTERM', () => {
       global.app.tracer.startSpan('sigterm').finish();
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     process.once('exit', () => {
@@ -64,6 +67,9 @@ export default class Application {
     process.once('SIGINT', () => {
       global.app.tracer.startSpan('sigint').finish();
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     process.on('uncaughtException', err => {
@@ -78,6 +84,9 @@ export default class Application {
       scope.logger.fatal('uncaughtException');
       scope.logger.fatal(err);
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     process.on('unhandledRejection', err => {
@@ -92,6 +101,9 @@ export default class Application {
       scope.logger.error('unhandledRejection');
       scope.logger.error(err);
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     verifyGenesisBlock(scope.genesisBlock);

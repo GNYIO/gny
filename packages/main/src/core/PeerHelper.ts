@@ -46,9 +46,15 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
   const request = async (
     peerId: PeerId,
-    blockIdWrapper: BlockIdWrapper
+    blockIdWrapper: BlockIdWrapper,
+    span: ISpan
   ): Promise<TracerWrapper<BlockAndVotes>> => {
-    const data = uint8ArrayFromString(JSON.stringify(blockIdWrapper));
+    const raw: TracerWrapper<BlockIdWrapper> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: blockIdWrapper,
+    };
+
+    const data = uint8ArrayFromString(JSON.stringify(raw));
 
     const resultRaw = await bundle.directRequest(
       peerId,
@@ -82,7 +88,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       wrapper.spanId
     );
     const span = global.library.tracer.startSpan(
-      'received request for BlockVotes',
+      'response to BlockVotes request',
       {
         childOf: parentContext,
       }
@@ -101,6 +107,10 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       throw new Error('validation failed');
     }
 
+    span.log({
+      request: body,
+    });
+
     // no need for await
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
@@ -112,6 +122,12 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 
       throw new Error('New block not found');
     }
+
+    span.setTag('hash', getSmallBlockHash(newBlock.block as IBlock));
+    span.setTag('id', newBlock.block.id);
+    span.setTag('height', newBlock.block.height);
+
+    span.finish();
 
     const result: TracerWrapper<BlockAndVotes> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),

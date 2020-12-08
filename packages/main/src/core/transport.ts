@@ -27,6 +27,7 @@ import {
   createSpanContextFromSerializedParentContext,
   TracerWrapper,
   getSmallBlockHash,
+  ISpan,
 } from '@gny/tracer';
 
 import * as PeerId from 'peer-id';
@@ -46,8 +47,14 @@ export default class Transport implements ICoreModule {
   };
 
   // broadcast to peers NewBlockMessage
-  public static onNewBlock = async (block: IBlock, votes: ManyVotes) => {
-    const span = global.app.tracer.startSpan('onNewBlock');
+  public static onNewBlock = async (
+    block: IBlock,
+    votes: ManyVotes,
+    parentSpan: ISpan
+  ) => {
+    const span = global.app.tracer.startSpan('onNewBlock', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('hash', getSmallBlockHash(block));
     span.setTag('height', block.height);
     span.setTag('id', block.id);
@@ -111,7 +118,7 @@ export default class Transport implements ICoreModule {
   public static onNewPropose = async (propose: BlockPropose) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    const span = global.app.tracer.startSpan('onNewPropose');
+    const span = global.app.tracer.startSpan('broadcasting BlockPropose');
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
@@ -156,6 +163,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    global.library.logger.info(
+      `[p2p][receivePeer_NewBlockHeader] wrapper: ${JSON.stringify(
+        wrapper,
+        null,
+        2
+      )}`
+    );
     const parentSpanContext = createSpanContextFromSerializedParentContext(
       global.library.tracer,
       wrapper.spanId
@@ -194,12 +208,10 @@ export default class Transport implements ICoreModule {
     span.setTag('height', newBlockMsg.height);
     span.setTag('id', newBlockMsg.id);
 
-    const params: TracerWrapper<BlockIdWrapper> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: {
-        id: newBlockMsg.id,
-      },
+    const params: BlockIdWrapper = {
+      id: newBlockMsg.id,
     };
+    // spanId: serializedSpanContext(global.library.tracer, span.context()),
 
     let peerId: PeerId;
     let result: TracerWrapper<BlockAndVotes>;
@@ -208,7 +220,7 @@ export default class Transport implements ICoreModule {
 
       peerId = await bundle.findPeerInfoInDHT(message);
 
-      result = await bundle.requestBlockAndVotes(peerId, params);
+      result = await bundle.requestBlockAndVotes(peerId, params, span);
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
@@ -252,6 +264,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    receiveBlockSpan.setTag(
+      'hash',
+      getSmallBlockHash(result.data.block as IBlock)
+    );
+    receiveBlockSpan.setTag('height', result.data.block.height);
+    receiveBlockSpan.setTag('id', result.data.block.id);
+
     let block: IBlock;
     let votes: ManyVotes;
     try {
@@ -272,11 +291,19 @@ export default class Transport implements ICoreModule {
       // a malicious Peer could send a wrong block
       if (!BlocksHelper.IsNewBlockMessageAndBlockTheSame(newBlockMsg, block)) {
         global.app.logger.warn('NewBlockMessage and Block do not');
+
+        receiveBlockSpan.setTag('error', true);
+        receiveBlockSpan.log({
+          value: 'NewBlockMessage and Block do not',
+        });
+        receiveBlockSpan.log({
+          newBlockMsg,
+          block,
+        });
+        receiveBlockSpan.finish();
+
         return;
       }
-
-      span.setTag('height', block.height);
-      span.setTag('id', block.id);
 
       StateHelper.SetBlockToLatestBlockCache(block.id, result.data); // TODO: make side effect more predictable
       StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
@@ -367,7 +394,17 @@ export default class Transport implements ICoreModule {
       }, height: ${propose.height}`
     );
 
-    global.library.bus.message('onReceivePropose', propose, message, span);
+    span.finish();
+    const onReceiveProposeSpan = global.library.tracer.startSpan('push Votes', {
+      childOf: span.context(),
+    });
+
+    global.library.bus.message(
+      'onReceivePropose',
+      propose,
+      message,
+      onReceiveProposeSpan
+    );
   };
 
   // peerEvent
