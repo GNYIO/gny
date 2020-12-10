@@ -8,6 +8,18 @@ networks:
 
 
 services:
+  jaeger:
+    image: "jaegertracing/all-in-one:1.21"
+    container_name: 'jaeger'
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - '16686:16686'
+      - '14268:14268'
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.20
+
   db1:
     image: "postgres:9.6.12"
     container_name: 'db1'
@@ -29,6 +41,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.3
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -66,6 +79,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.5
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
@@ -104,6 +118,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.7
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
@@ -142,6 +157,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.9
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
@@ -180,6 +196,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.11
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.9/tcp/4097/p2p/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
