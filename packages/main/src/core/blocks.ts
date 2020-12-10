@@ -1212,17 +1212,37 @@ export default class Blocks implements ICoreModule {
             }`
           );
 
+          // start span
+          // Blocks.processBlock
+          span.finish();
+
+          const processBlockSpan = global.library.tracer.startSpan(
+            'Block.processBlock()',
+            {
+              childOf: span.context(),
+              tags: {
+                height: pendingBlock.height,
+                id: pendingBlock.id,
+                hash: getSmallBlockHash(pendingBlock),
+              },
+            }
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,
             options,
             delegateList,
-            span
+            processBlockSpan
           );
           state = stateResult.state;
 
+          processBlockSpan.finish();
+
           StateHelper.setState(state); // important
         } catch (err) {
+          span.finish();
+
           span.setTag('error', true);
           span.log({
             value: `Failed to process confirmed block: ${err}`,
@@ -1231,8 +1251,6 @@ export default class Blocks implements ICoreModule {
           global.app.logger.error('Failed to process confirmed block:');
           global.app.logger.error(err);
         }
-
-        span.finish();
 
         return cb();
       } else {
