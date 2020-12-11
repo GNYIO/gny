@@ -62,6 +62,8 @@ export function initTracer(
   serviceName: string,
   collectorEndpoint: string,
   version: string,
+  magic: string,
+  network: string,
   logger: ILogger
 ) {
   const config: jaegerClient.TracingConfig = {
@@ -79,7 +81,9 @@ export function initTracer(
 
   const options: jaegerClient.TracingOptions = {
     tags: {
-      version: version,
+      version,
+      magic,
+      network,
     },
     logger: logger,
   };

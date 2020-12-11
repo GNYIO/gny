@@ -188,6 +188,8 @@ function main() {
     appConfig.publicIp,
     `http://${appConfig.jaegerIP}:${appConfig.jaegerPort}/api/traces`,
     version,
+    appConfig.magic,
+    appConfig.netVersion,
     logger
   );
 
