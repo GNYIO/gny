@@ -14,6 +14,7 @@ const {
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_NEW_MEMBER,
+  V1_BROADCAST_SELF,
 } = require('./protocols');
 
 class Bundle extends Libp2p {
@@ -206,6 +207,14 @@ class Bundle extends Libp2p {
         stream
       );
     });
+  }
+
+  async broadcastSelf(data) {
+    if (!this.isStarted()) {
+      return;
+    }
+    await this.pubsub.publish(V1_BROADCAST_SELF, data);
+    this.logger.info(`[p2p][self] "self" announced`);
   }
 
   async broadcastNewMember(data) {

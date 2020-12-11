@@ -10,3 +10,4 @@ export const V1_BROADCAST_NEW_BLOCK_HEADER = `/${version}/broadcast/newBlockHead
 export const V1_BROADCAST_TRANSACTION = `/${version}/broadcast/transaction`;
 export const V1_BROADCAST_PROPOSE = `/${version}/broadcast/propose`;
 export const V1_BROADCAST_NEW_MEMBER = `/${version}/broadcast/newMember`;
+export const V1_BROADCAST_SELF = `/${version}/broadcast/self`;

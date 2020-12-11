@@ -9,6 +9,7 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
   BlockIdWrapper,
+  P2PPeerIdAndMultiaddr,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -421,9 +422,9 @@ export default class Transport implements ICoreModule {
       `[p2p] received newMember msg from ${message.from}`
     );
 
-    let parsed = null;
+    let raw: TracerWrapper<P2PPeerIdAndMultiaddr> = null;
     try {
-      parsed = JSON.parse(uint8ArrayToString(message.data));
+      raw = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
       global.library.logger.error(
         `[p2p] "newMember" event, could not parse data: ${err.message}`
@@ -431,11 +432,28 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const parsed = raw.data;
+
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw.spanId
+    );
+    const span = global.library.tracer.startSpan('receiveOwnPeer', {
+      childOf: parentContext,
+    });
+    span.setTag('peerId', Peer.p2p.peerId.toB58String());
+
     // P2PPeerIdAndMultiaddr
     global.library.logger.info(
       `[p2p][newMember] newMember: ${JSON.stringify(parsed, null, 2)}`
     );
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
+      span.log({
+        value: 'validation failed',
+      });
+      span.setTag('error', true);
+
+      span.finish();
       return;
     }
     console.log(
@@ -447,11 +465,26 @@ export default class Transport implements ICoreModule {
       peerId = PeerId.createFromCID(parsed.peerId);
     } catch (err) {
       global.library.logger.info(`[p2p][newMember] error: ${err.message}`);
+
+      span.log({
+        value: 'could not createFromCID',
+      });
+
+      span.setTag('error', true);
+      span.finish();
+
       return;
     }
 
     if (peerId.equals(Peer.p2p.peerId)) {
       global.library.logger.info(`[p2p] "newMember" is me`);
+
+      span.log({
+        value: 'newMember is me',
+      });
+      span.setTag('error', true);
+      span.finish();
+
       return;
     }
 
@@ -472,6 +505,15 @@ export default class Transport implements ICoreModule {
             parsed.multiaddr
           )} `
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `[p2p] "newMember" has no good addresses, will not add to peerStore: ${JSON.stringify(
+            parsed.multiaddr
+          )}`,
+        });
+        span.finish();
+
         return;
       }
 
@@ -491,12 +533,179 @@ export default class Transport implements ICoreModule {
     // if not, dial
     if (!inConnection) {
       try {
+        span.log({
+          value: `going to dial "${peerId.toB58String()}"`,
+        });
+
         await Peer.p2p.dial(peerId);
+
+        span.log({
+          value: `successfully dialed: "${peerId.toB58String()}"`,
+        });
       } catch (err) {
         global.library.logger.info(
           `[p2p] "newMember" dial failed for "${peerId.toB58String()}"`
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `"newMember" dial failed for "${peerId.toB58String()}"`,
+        });
       }
+      span.finish();
+    } else {
+      span.log({
+        value: `already connected to: ${peerId.toB58String()}`,
+      });
+      span.finish();
+    }
+  };
+
+  public static receiveSelf = async (message: P2PMessage) => {
+    // 0. check if peer is myself
+    // validate peerId and Multiaddresses
+    // 1. check if peer is in Addressbook
+    // if not, add to AddressBook
+    // 2.check if there is a connection
+    // if not, dial
+
+    // dial, even when syncing
+    global.library.logger.info(`[p2p] received self msg from ${message.from}`);
+
+    let raw: TracerWrapper<P2PPeerIdAndMultiaddr> = null;
+    try {
+      raw = JSON.parse(uint8ArrayToString(message.data));
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] "self" event, could not parse data: ${err.message}`
+      );
+      return;
+    }
+
+    const parsed = raw.data;
+
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw.spanId
+    );
+    const span = global.library.tracer.startSpan('receive self', {
+      childOf: parentContext,
+    });
+    span.setTag('peerId', Peer.p2p.peerId.toB58String());
+
+    // P2PPeerIdAndMultiaddr
+    global.library.logger.info(
+      `[p2p][self] self: ${JSON.stringify(parsed, null, 2)}`
+    );
+    if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
+      span.log({
+        value: 'validation failed',
+      });
+      span.setTag('error', true);
+
+      span.finish();
+      return;
+    }
+    console.log(`[p2p] received self, ${JSON.stringify(parsed, null, 2)}`);
+
+    let peerId = null;
+    try {
+      peerId = PeerId.createFromCID(parsed.peerId);
+    } catch (err) {
+      global.library.logger.info(`[p2p][self] error: ${err.message}`);
+
+      span.log({
+        value: 'could not createFromCID',
+      });
+
+      span.setTag('error', true);
+      span.finish();
+
+      return;
+    }
+
+    if (peerId.equals(Peer.p2p.peerId)) {
+      global.library.logger.info(`[p2p] "self" is me`);
+
+      span.log({
+        value: 'newMember is me',
+      });
+      span.setTag('error', true);
+      span.finish();
+
+      return;
+    }
+
+    // is in PeerStore
+    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    if (test === undefined) {
+      const multi = parsed.multiaddr.filter(x => {
+        const address = multiaddr(x).nodeAddress().address;
+        if (address === '0.0.0.0' || address === '127.0.0.1') {
+          return false;
+        } else {
+          return true;
+        }
+      });
+      if (multi.length === 0) {
+        global.library.logger.error(
+          `[p2p] "self" has no good addresses, will not add to peerStore: ${JSON.stringify(
+            parsed.multiaddr
+          )} `
+        );
+
+        span.setTag('error', true);
+        span.log({
+          value: `[p2p] "self" has no good addresses, will not add to peerStore: ${JSON.stringify(
+            parsed.multiaddr
+          )}`,
+        });
+        span.finish();
+
+        return;
+      }
+
+      // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
+      Peer.p2p.peerStore.addressBook.set(
+        peerId,
+        parsed.multiaddr.map(x => multiaddr(x))
+      );
+      global.library.logger.info(
+        `[p2p] "self" added peer "${peerId.toB58String()}" to peerBook`
+      );
+    }
+
+    // has connection
+    const connections = Array.from(Peer.p2p.connections.keys());
+    const inConnection = connections.find(x => x === parsed.peerId);
+    // if not, dial
+    if (!inConnection) {
+      try {
+        span.log({
+          value: `going to dial "${peerId.toB58String()}"`,
+        });
+
+        await Peer.p2p.dial(peerId);
+
+        span.log({
+          value: `successfully dialed: "${peerId.toB58String()}"`,
+        });
+      } catch (err) {
+        global.library.logger.info(
+          `[p2p] "self" dial failed for "${peerId.toB58String()}"`
+        );
+
+        span.setTag('error', true);
+        span.log({
+          value: `"self" dial failed for "${peerId.toB58String()}"`,
+        });
+      }
+      span.finish();
+    } else {
+      span.log({
+        value: `already connected to: ${peerId.toB58String()}`,
+      });
+      span.finish();
     }
   };
 
