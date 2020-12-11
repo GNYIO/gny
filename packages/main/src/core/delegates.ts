@@ -209,6 +209,8 @@ export default class Delegates implements ICoreModule {
             );
             state = stateResult.state;
 
+            span.finish();
+
             if (stateResult.success === false) {
               global.app.logger.warn(
                 `newBlock(height: ${newBlock.height}), ${JSON.stringify(

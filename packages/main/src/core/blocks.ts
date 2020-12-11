@@ -1212,8 +1212,9 @@ export default class Blocks implements ICoreModule {
             }`
           );
 
-          // start span
-          // Blocks.processBlock
+          span.log({
+            value: 'has enough votes',
+          });
           span.finish();
 
           const processBlockSpan = global.library.tracer.startSpan(
