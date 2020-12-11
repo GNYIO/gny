@@ -72,11 +72,12 @@ export default class Application {
       global.library.tracer.close();
     });
 
-    process.on('uncaughtException', err => {
+    process.on('uncaughtException', (err: Error) => {
       const span = global.app.tracer.startSpan('uncaughtException');
       span.setTag('error', true);
       span.log({
         value: `uncaughtException ${err}`,
+        stack: err.stack,
       });
       span.finish();
 
@@ -89,11 +90,12 @@ export default class Application {
       global.library.tracer.close();
     });
 
-    process.on('unhandledRejection', err => {
+    process.on('unhandledRejection', (err: Error) => {
       const span = global.app.tracer.startSpan('unhandledRejection');
       span.setTag('error', true);
       span.log({
         value: `unhandledRejection ${err}`,
+        stack: err.stack,
       });
       span.finish();
 
