@@ -600,7 +600,18 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static loadBlocksFromPeer = async (peer: PeerId, id: string) => {
+  public static loadBlocksFromPeer = async (
+    peer: PeerId,
+    id: string,
+    parentSpan: ISpan
+  ) => {
+    const span = global.library.tracer.startSpan('load blocks from peer', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('syncing', true);
+    span.setTag('targetPeerId', peer.toB58String());
+    span.setTag('lastCommonBlockId', id);
+
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
@@ -610,29 +621,71 @@ export default class Blocks implements ICoreModule {
       `start to sync 30 * 200 blocks. From peer: ${peer.toB58String()}, last commonBlock: ${id}`
     );
 
+    span.log({
+      value: `start to sync 30 * 200 blocks. From peer: ${peer.toB58String()}, last commonBlock: ${id}`,
+    });
+
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
+        const syncSpan = global.library.tracer.startSpan('sync 200 blocks', {
+          childOf: span.context(),
+        });
+        syncSpan.setTag('syncing', true);
+        syncSpan.log({
+          count,
+        });
+
         count++;
         const limit = 200;
         const params: BlocksWrapperParams = {
           limit,
           lastBlockId: lastCommonBlockId,
         };
+
+        syncSpan.log({
+          params,
+        });
+
         let body: IBlockWithTransactions[];
         try {
-          body = await Peer.p2p.requestBlocks(peer, params);
+          body = await Peer.p2p.requestBlocks(peer, params, syncSpan);
         } catch (err) {
           global.library.logger.error(
-            JSON.stringify(err.response ? err.response.data : err.message)
+            `failed to requestBlocks from "${peer.toB58String()}", error: ${
+              err.message
+            }`
           );
+
+          syncSpan.setTag('error', true);
+          syncSpan.log({
+            value: `failed to requestBlocks from "${peer.toB58String()}", error: ${
+              err.message
+            }`,
+          });
+
+          syncSpan.finish();
+
           throw new Error(`Failed to request remote peer: ${err}`);
         }
+
         if (!body) {
+          syncSpan.setTag('error', true);
+          syncSpan.log({
+            value: 'Invalid response for blocks request',
+          });
+
+          syncSpan.finish();
+
           throw new Error('Invalid response for blocks request');
         }
+
         const blocks = body as IBlockWithTransactions[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
+          syncSpan.log({
+            loaded: true,
+          });
+
           loaded = true;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
@@ -640,36 +693,52 @@ export default class Blocks implements ICoreModule {
         global.app.logger.info(
           `Loading ${num} blocks from ${peer.toB58String()}`
         );
+        syncSpan.log({
+          value: `Loading ${num} blocks from ${peer.toB58String()}`,
+        });
+        syncSpan.finish();
+
+        const multipleBlocksSpan = global.library.tracer.startSpan(
+          'process multiple blocks',
+          {
+            childOf: syncSpan.context(),
+          }
+        );
+        multipleBlocksSpan.setTag('syncing', true);
+
         try {
           for (const block of blocks) {
-            let state = StateHelper.getState();
+            const processBlockSpan = global.library.tracer.startSpan(
+              'Block.processBlock()',
+              {
+                childOf: multipleBlocksSpan.context(),
+              }
+            );
+            processBlockSpan.setTag('syncing', true);
 
+            let state = StateHelper.getState();
             const activeDelegates = await Delegates.generateDelegateList(
               block.height
             );
             const options: ProcessBlockOptions = {};
 
-            const span = global.library.tracer.startSpan(
-              'Block.processBlock()'
-            );
-            span.setTag('syncing', true);
-            span.setTag('hash', getSmallBlockHash(block as IBlock));
-            span.setTag('height', block.height);
-            span.setTag('id', block.id);
-            span.setTag('syncedFrom', peer.toB58String());
+            processBlockSpan.setTag('hash', getSmallBlockHash(block as IBlock));
+            processBlockSpan.setTag('height', block.height);
+            processBlockSpan.setTag('id', block.id);
+            processBlockSpan.setTag('syncingFrom', peer.toB58String());
 
             const stateResult = await Blocks.processBlock(
               state,
               block,
               options,
               activeDelegates,
-              span
+              processBlockSpan
             );
             state = stateResult.state;
             StateHelper.setState(state); // important
 
             if (stateResult.success) {
-              span.finish();
+              processBlockSpan.finish();
 
               lastCommonBlockId = block.id;
               global.app.logger.info(
@@ -678,8 +747,14 @@ export default class Blocks implements ICoreModule {
                 }`
               );
             } else {
-              span.setTag('error', true);
-              span.finish();
+              processBlockSpan.setTag('error', true);
+              processBlockSpan.log({
+                value: `Error during sync of Block ${
+                  block.id
+                } loaded from ${peer.toB58String()} at ${block.height}`,
+              });
+
+              processBlockSpan.finish();
 
               global.app.logger.info(
                 `Error during sync of Block ${
@@ -694,24 +769,29 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          const span = global.app.tracer.startSpan('loadBlocksFromPeer');
-          span.setTag('error', true);
-          span.log({
-            value: `Failed to process synced block ${e}`,
+          processBlockSpan.setTag('error', true);
+          processBlockSpan.log({
+            value: `Failed to process synced block, error: ${err.message}`,
           });
-          span.finish();
+          processBlockSpan.finish();
+
+          multipleBlocksSpan.finish();
 
           global.app.logger.error('Failed to process synced block');
           global.app.logger.error(e);
           loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
+
+        multipleBlocksSpan.finish();
       }
     );
+    global.app.logger.info(`stop syncing from peer "${peer.toB58String()}"`);
 
-    global.app.logger.info(
-      `stop syncing from peer ${peer.host}:${peer.port - 1}`
-    );
+    span.log({
+      value: `stop syncing from peer "${peer.toB58String()}"`,
+    });
+    span.finish();
   };
 
   public static generateBlock = async (

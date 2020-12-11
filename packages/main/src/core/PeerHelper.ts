@@ -282,8 +282,15 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 }
 
 function V1_GET_HEIGH_HANDLER(bundle) {
-  const request = async (peerId: PeerId): Promise<HeightWrapper> => {
-    const data = uint8ArrayFromString(JSON.stringify('no param'));
+  const request = async (
+    peerId: PeerId,
+    span: ISpan
+  ): Promise<HeightWrapper> => {
+    const raw: TracerWrapper<string> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: 'no param',
+    };
+    const data = uint8ArrayFromString(JSON.stringify(raw));
 
     const resultRaw = await bundle.directRequest(peerId, V1_GET_HEIGHT, data);
     const result: HeightWrapper = JSON.parse(resultRaw.toString());
@@ -300,12 +307,27 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     for await (const msg of source) {
       temp = msg;
     }
-    const body = JSON.parse(temp.toString());
+    const body: TracerWrapper<string> = JSON.parse(temp.toString());
+
+    const span = global.library.tracer.startSpan('receive height request', {
+      childOf: createSpanContextFromSerializedParentContext(
+        global.library.tracer,
+        body.spanId
+      ),
+    });
+    span.setTag('syncing', true);
 
     const lastBlock = StateHelper.getState().lastBlock;
     const result: HeightWrapper = {
       height: lastBlock.height,
     };
+
+    span.log({
+      height: lastBlock.height,
+    });
+
+    span.finish();
+
     const converted = [uint8ArrayFromString(JSON.stringify(result))];
     return converted;
   };
@@ -317,9 +339,14 @@ function V1_GET_HEIGH_HANDLER(bundle) {
 function V1_BLOCKS_HANDLER(bundle) {
   const request = async (
     peerId: PeerId,
-    params: BlocksWrapperParams
+    params: BlocksWrapperParams,
+    span: ISpan
   ): Promise<IBlock[]> => {
-    const data = JSON.stringify(params);
+    const raw: TracerWrapper<BlocksWrapperParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: params,
+    };
+    const data = JSON.stringify(raw);
 
     const resultRaw = await bundle.directRequest(peerId, V1_BLOCKS, data);
 
@@ -333,11 +360,27 @@ function V1_BLOCKS_HANDLER(bundle) {
       temp = msg;
       break;
     }
-    const body = JSON.parse(temp.toString());
+    const raw: TracerWrapper<BlocksWrapperParams> = JSON.parse(temp.toString());
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw.spanId
+    );
+    const span = global.library.tracer.startSpan('receive blocks request', {
+      childOf: parentContext,
+    });
+    span.setTag('syncing', true);
+
+    const body = raw.data;
 
     body.limit = body.limit || 200;
 
     if (!isBlocksWrapperParams(body)) {
+      span.setTag('error', true);
+      span.log({
+        value: 'blocksync params validation failed',
+      });
+      span.finish();
+
       throw new Error('blocksync params validation failed');
     }
 
@@ -346,13 +389,26 @@ function V1_BLOCKS_HANDLER(bundle) {
 
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
-      if (!lastBlock) throw new Error(`Last block not found: ${lastBlockId}`);
+      if (!lastBlock) {
+        span.setTag('error', true);
+        span.log({
+          value: `Last block not found: ${lastBlockId}`,
+        });
+        span.finish();
+
+        throw new Error(`Last block not found: ${lastBlockId}`);
+      }
 
       const minHeight = new BigNumber(lastBlock.height).plus(1).toFixed();
       const maxHeight = new BigNumber(minHeight)
         .plus(blocksLimit)
         .minus(1)
         .toFixed();
+
+      span.log({
+        minHeight,
+        maxHeight,
+      });
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
       const blocks: BlocksWrapper = await getBlocksFromApi(
         minHeight,
@@ -360,8 +416,19 @@ function V1_BLOCKS_HANDLER(bundle) {
         true
       );
 
+      span.finish();
+
       return [uint8ArrayFromString(JSON.stringify(blocks))];
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p][requestBlocks] Failed to get blocks with transactions',
+      });
+      span.log({
+        value: `[p2p][requestBlocks] error: ${e.message}`,
+      });
+      span.finish();
+
       global.app.logger.error(
         '[p2p][requestBlocks] Failed to get blocks with transactions'
       );
