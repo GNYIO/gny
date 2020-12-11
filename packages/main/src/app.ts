@@ -165,7 +165,7 @@ function main() {
   }
 
   appConfig.jaegerIP =
-    program.jaegerIP || process.env['GNY_TRACER_HOST'] || 'jaeger';
+    program.jaegerIP || process.env['GNY_TRACER_HOST'] || '135.181.46.217';
   appConfig.jaegerPort =
     program.jaegerPort || process.env['GNY_TRACER_PORT'] || 14268;
   appConfig.disableJaeger =
