@@ -124,6 +124,12 @@ export default class Transport implements ICoreModule {
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
 
+    const totalVotes = StateHelper.getState().pendingVotes;
+
+    span.log({
+      value: 'has not enough votes',
+      pendingVotes: (totalVotes && totalVotes.signatures.length) || 0,
+    });
     span.log({
       propose,
     });
@@ -394,8 +400,8 @@ export default class Transport implements ICoreModule {
         propose.id
       }, height: ${propose.height}`
     );
-
     span.finish();
+
     const onReceiveProposeSpan = global.library.tracer.startSpan('push Votes', {
       childOf: span.context(),
     });

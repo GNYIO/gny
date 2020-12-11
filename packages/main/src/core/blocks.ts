@@ -1054,6 +1054,10 @@ export default class Blocks implements ICoreModule {
     message: P2PMessage,
     span: ISpan
   ) => {
+    span.setTag('height', propose.height);
+    span.setTag('id', propose.id);
+    span.setTag('hash', getSmallBlockHash(propose));
+
     const isSyncing = StateHelper.IsSyncing();
     const modulesAreLoaded = StateHelper.ModulesAreLoaded();
 
@@ -1075,6 +1079,10 @@ export default class Blocks implements ICoreModule {
 
     global.library.sequence.add(cb => {
       let state = StateHelper.getState();
+
+      span.log({
+        value: 'add sequence',
+      });
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
         span.setTag('error', true);
@@ -1132,13 +1140,24 @@ export default class Blocks implements ICoreModule {
               activeDelegates = await Delegates.generateDelegateList(
                 propose.height
               );
+              span.log({
+                value: 'going to validate propose slot',
+              });
+
               Delegates.validateProposeSlot(propose, activeDelegates);
+
+              span.log({
+                value: 'successfully validated propose slot',
+              });
               next();
             } catch (err) {
               next(err.toString());
             }
           },
           async next => {
+            span.log({
+              value: 'going to accept propose',
+            });
             if (ConsensusBase.acceptPropose(propose)) {
               next();
             } else {
@@ -1146,6 +1165,10 @@ export default class Blocks implements ICoreModule {
             }
           },
           async next => {
+            span.log({
+              value: 'get active delegate keypairs',
+            });
+
             const activeKeypairs = Delegates.getActiveDelegateKeypairs(
               activeDelegates
             );
@@ -1153,6 +1176,11 @@ export default class Blocks implements ICoreModule {
           },
           async (activeKeypairs: KeyPair[], next: Next) => {
             try {
+              span.log({
+                value: `I got activeKeypairs: ${activeKeypairs &&
+                  activeKeypairs.length}`,
+              });
+
               if (activeKeypairs && activeKeypairs.length > 0) {
                 const votes = ConsensusBase.createVotes(
                   activeKeypairs,
@@ -1169,6 +1197,11 @@ export default class Blocks implements ICoreModule {
                 const bundle = Peer.p2p;
 
                 const peerId = await bundle.findPeerInfoInDHT(message);
+
+                span.log({
+                  value: `going to push votes to ${peerId.toB58String()}`,
+                  votes,
+                });
 
                 await bundle.pushVotesToPeer(peerId, votes, span);
 
@@ -1294,6 +1327,8 @@ export default class Blocks implements ICoreModule {
 
           span.log({
             value: 'has enough votes',
+            receivedVotes: (votes && votes.signatures.length) || 0,
+            pendingVotes: (totalVotes && totalVotes.signatures.length) || 0,
           });
           span.finish();
 
@@ -1337,6 +1372,8 @@ export default class Blocks implements ICoreModule {
       } else {
         span.log({
           value: 'has not enough votes',
+          receivedVotes: (votes && votes.signatures.length) || 0,
+          pendingVotes: (totalVotes && totalVotes.signatures.length) || 0,
         });
         span.finish();
 
