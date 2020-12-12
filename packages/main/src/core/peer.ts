@@ -139,6 +139,21 @@ export default class Peer implements ICoreModule {
       )}`
     );
 
+    const startUpSpan = global.library.tracer.startSpan('startUp');
+    startUpSpan.setTag('peerId', Peer.p2p.peerId.toB58String());
+    startUpSpan.log({
+      announceAddresses: Peer.p2p.addressManager
+        .getAnnounceAddrs()
+        .map(x => x.toString()),
+      listenAddresses: Peer.p2p.addressManager
+        .getListenAddrs()
+        .map(x => x.toString()),
+      noAnnounceAddresses: Peer.p2p.addressManager
+        .getNoAnnounceAddrs()
+        .map(x => x.toString()),
+    });
+    startUpSpan.finish();
+
     Peer.p2p.pubsub.on(
       V1_BROADCAST_NEW_BLOCK_HEADER,
       Transport.receivePeer_NewBlockHeader

@@ -22,8 +22,6 @@ export default class Application {
   async run() {
     const options = this.options;
 
-    options.tracer.startSpan('startUp').finish();
-
     const scope = await initAlt(options);
     function cb(err, result) {
       if (err) return console.log(err);
