@@ -16,6 +16,9 @@ services:
     ports:
       - '16686:16686'
       - '14268:14268'
+    command: [
+      "--query.max-clock-skew-adjustment=1s"
+    ]
     networks:
       my_net:
         ipv4_address: 172.20.0.2
