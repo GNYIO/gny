@@ -26,6 +26,7 @@ import { BlocksHelper } from './BlocksHelper';
 import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
+  createReferenceFromSerializedParentContext,
   TracerWrapper,
   getSmallBlockHash,
   ISpan,
@@ -177,12 +178,13 @@ export default class Transport implements ICoreModule {
         2
       )}`
     );
-    const parentSpanContext = createSpanContextFromSerializedParentContext(
+
+    const parentReference = createReferenceFromSerializedParentContext(
       global.library.tracer,
       wrapper.spanId
     );
     const span = global.library.tracer.startSpan('receivePeer_NewBlockHeader', {
-      childOf: parentSpanContext,
+      references: [parentReference],
     });
 
     if (StateHelper.IsSyncing()) {
@@ -353,12 +355,12 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const parentContext = createSpanContextFromSerializedParentContext(
+    const parentReference = createReferenceFromSerializedParentContext(
       global.library.tracer,
       wrapper.spanId
     );
     const span = global.library.tracer.startSpan('received BlockPropose', {
-      childOf: parentContext,
+      references: [parentReference],
     });
 
     if (StateHelper.IsSyncing()) {
@@ -440,12 +442,12 @@ export default class Transport implements ICoreModule {
 
     const parsed = raw.data;
 
-    const parentContext = createSpanContextFromSerializedParentContext(
+    const parentReference = createReferenceFromSerializedParentContext(
       global.library.tracer,
       raw.spanId
     );
     const span = global.library.tracer.startSpan('receiveOwnPeer', {
-      childOf: parentContext,
+      references: [parentReference],
     });
     span.setTag('peerId', Peer.p2p.peerId.toB58String());
 
@@ -590,12 +592,12 @@ export default class Transport implements ICoreModule {
 
     const parsed = raw.data;
 
-    const parentContext = createSpanContextFromSerializedParentContext(
+    const parentReference = createReferenceFromSerializedParentContext(
       global.library.tracer,
       raw.spanId
     );
     const span = global.library.tracer.startSpan('receive self', {
-      childOf: parentContext,
+      references: [parentReference],
     });
     span.setTag('peerId', Peer.p2p.peerId.toB58String());
 

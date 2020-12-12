@@ -57,6 +57,21 @@ export function createSpanContextFromSerializedParentContext(
   return parentSpanContext;
 }
 
+export function createReferenceFromSerializedParentContext(
+  myTracer: JaegerTracer,
+  obj: ISerializedSpanContext
+) {
+  const parentSpanContext = myTracer.extract(opentracing.FORMAT_TEXT_MAP, obj);
+  if (parentSpanContext) {
+    const reference = new opentracing.Reference(
+      opentracing.REFERENCE_FOLLOWS_FROM,
+      parentSpanContext
+    );
+    return reference;
+  }
+  throw new Error('this should not happen, where is my jaeger Reference');
+}
+
 export function initTracer(
   disable: boolean,
   serviceName: string,
