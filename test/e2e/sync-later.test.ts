@@ -38,6 +38,7 @@ describe('sync-later e2e test', () => {
       // start individually all containers
       // await lib.printActiveContainers();
       await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
+        'jaeger',
         'db1',
         'db2',
         'forger',

@@ -22,6 +22,7 @@ import Blocks from './blocks';
 import BigNumber from 'bignumber.js';
 import { Variable } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
+import { getSmallBlockHash } from '@gny/tracer';
 
 const blockReward = new BlockReward();
 
@@ -192,13 +193,23 @@ export default class Delegates implements ICoreModule {
               }, options: ${options.votes.id} h: ${options.votes.height}`
             );
 
+            const span = global.library.tracer.startSpan(
+              'Block.processBlock()'
+            );
+            span.setTag('hash', getSmallBlockHash(newBlock));
+            span.setTag('height', newBlock.height);
+            span.setTag('id', newBlock.id);
+
             const stateResult = await Blocks.processBlock(
               newState,
               newBlock,
               options,
-              delegateList
+              delegateList,
+              span
             );
             state = stateResult.state;
+
+            span.finish();
 
             if (stateResult.success === false) {
               global.app.logger.warn(
@@ -216,6 +227,13 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
+        const span = global.app.tracer.startSpan('loop');
+        span.setTag('error', true);
+        span.log({
+          value: `Failed generate block within slot: ${e}`,
+        });
+        span.finish();
+
         global.library.logger.error('Failed generate block within slot:');
         global.library.logger.error(e);
         return;
@@ -270,6 +288,13 @@ export default class Delegates implements ICoreModule {
         }
       }
     } catch (e) {
+      const span = global.app.tracer.startSpan('loadMyDelegates');
+      span.setTag('error', true);
+      span.log({
+        value: e,
+      });
+      span.finish();
+
       global.library.logger.error(e);
     }
 
@@ -331,6 +356,13 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
+      const span = global.app.tracer.startSpan('generateDelegateList');
+      span.setTag('error', true);
+      span.log({
+        value: `error while generating DelgateList ${e}`,
+      });
+      span.finish();
+
       global.app.logger.error('error while generating DelgateList');
       global.app.logger.error(e);
       return;

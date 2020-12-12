@@ -1,4 +1,5 @@
 import * as tracer from 'tracer';
+import * as jaegerClient from 'jaeger-client';
 import { EventEmitter } from 'events';
 
 // IServer import
@@ -47,6 +48,7 @@ export interface IScope {
   bus: IMessageBus;
   modules: Modules;
   coreApi: CoreApi;
+  tracer: ITracer;
 }
 
 export type MethodActions =
@@ -119,6 +121,8 @@ export interface INetwork {
 
 export type ILogger = tracer.Tracer.Logger;
 
+export type ITracer = jaegerClient.JaegerTracer;
+
 type ILogLevel =
   | 'trace'
   | 'debug'
@@ -168,6 +172,9 @@ export interface IConfig {
   dbHost: string;
   dbPort: number;
   nodeAction: string;
+  jaegerIP: string;
+  jaegerPort: number;
+  disableJaeger: boolean;
 }
 
 export interface KeyPairsIndexer {

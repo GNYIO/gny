@@ -7,6 +7,21 @@ networks:
         - subnet: 172.20.0.0/24
 
 services:
+  jaeger:
+    image: "jaegertracing/all-in-one:1.21"
+    container_name: 'jaeger'
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - '16686:16686'
+      - '14268:14268'
+    command: [
+      "--query.max-clock-skew-adjustment=1s"
+    ]
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.20
+
   db1:
     image: "postgres:9.6.12"
     container_name: 'db1'
@@ -28,6 +43,7 @@ services:
     environment:
       - GNY_LOG_LEVEL=log
       - GNY_PUBLIC_IP=172.20.0.3
+      - GNY_TRACER_HOST=172.20.0.20
       - NODE_ENV=production
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
@@ -67,6 +83,7 @@ services:
     environment:
       - GNY_LOG_LEVEL=log
       - GNY_PUBLIC_IP=172.20.0.5
+      - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmRiJZVAhKSd35fhTtodhpDd7ebUG7J8e5s3JowUyuSG5H
       - NODE_ENV=production
       - GNY_MONGO_LOGGING_DISABLE=true

@@ -42,6 +42,7 @@ import { Delegate } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
+import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -87,12 +88,14 @@ export default class Blocks implements ICoreModule {
     try {
       ret = await Peer.p2p.requestCommonBlock(peer, params);
     } catch (err) {
-      global.app.logger.info(
-        `Peer.request('commonBlock'): ${err &&
-          err.response &&
-          err.response.data &&
-          err.response.data.error}`
-      );
+      const span = global.app.tracer.startSpan('getCommonBlock');
+      span.setTag('error', true);
+      span.log({
+        value: `[p2p][commonBlock] error: ${err.message}`,
+      });
+      span.finish();
+
+      global.app.logger.info(`[p2p][commonBlock]  error: ${err.message}`);
       throw new Error('commonBlock could not be requested');
     }
 
@@ -306,23 +309,29 @@ export default class Blocks implements ICoreModule {
 
   public static ProcessBlockFireEvents(
     block: IBlock,
-    options: ProcessBlockOptions
+    options: ProcessBlockOptions,
+    span: ISpan
   ) {
     if (options.broadcast && options.local) {
       options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
-      global.library.bus.message('onNewBlock', block, options.votes);
+      global.library.bus.message('onNewBlock', block, options.votes, span);
     }
-    global.library.bus.message('onProcessBlock', block); // TODO is this used?
   }
 
   public static processBlock = async (
     state: IState,
     block: IBlock,
     options: ProcessBlockOptions,
-    delegateList: string[]
+    delegateList: string[],
+    span: ISpan
   ) => {
-    if (!StateHelper.ModulesAreLoaded())
+    if (!StateHelper.ModulesAreLoaded()) {
       throw new Error('Blockchain is loading');
+    }
+
+    span.log({
+      options,
+    });
 
     let success = true;
     try {
@@ -339,10 +348,11 @@ export default class Blocks implements ICoreModule {
 
       state = BlocksHelper.SetLastBlock(state, block);
 
-      Blocks.ProcessBlockFireEvents(block, options);
+      Blocks.ProcessBlockFireEvents(block, options, span);
     } catch (error) {
       global.app.logger.error('save block error:');
       global.app.logger.error(error);
+
       success = false;
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
@@ -590,7 +600,18 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static loadBlocksFromPeer = async (peer: PeerId, id: string) => {
+  public static loadBlocksFromPeer = async (
+    peer: PeerId,
+    id: string,
+    parentSpan: ISpan
+  ) => {
+    const span = global.library.tracer.startSpan('load blocks from peer', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('syncing', true);
+    span.setTag('targetPeerId', peer.toB58String());
+    span.setTag('lastCommonBlockId', id);
+
     // TODO is this function called within a "Sequence"
     let loaded = false;
     let count = 0;
@@ -600,29 +621,71 @@ export default class Blocks implements ICoreModule {
       `start to sync 30 * 200 blocks. From peer: ${peer.toB58String()}, last commonBlock: ${id}`
     );
 
+    span.log({
+      value: `start to sync 30 * 200 blocks. From peer: ${peer.toB58String()}, last commonBlock: ${id}`,
+    });
+
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
+        const syncSpan = global.library.tracer.startSpan('sync 200 blocks', {
+          childOf: span.context(),
+        });
+        syncSpan.setTag('syncing', true);
+        syncSpan.log({
+          count,
+        });
+
         count++;
         const limit = 200;
         const params: BlocksWrapperParams = {
           limit,
           lastBlockId: lastCommonBlockId,
         };
+
+        syncSpan.log({
+          params,
+        });
+
         let body: IBlockWithTransactions[];
         try {
-          body = await Peer.p2p.requestBlocks(peer, params);
+          body = await Peer.p2p.requestBlocks(peer, params, syncSpan);
         } catch (err) {
           global.library.logger.error(
-            JSON.stringify(err.response ? err.response.data : err.message)
+            `failed to requestBlocks from "${peer.toB58String()}", error: ${
+              err.message
+            }`
           );
+
+          syncSpan.setTag('error', true);
+          syncSpan.log({
+            value: `failed to requestBlocks from "${peer.toB58String()}", error: ${
+              err.message
+            }`,
+          });
+
+          syncSpan.finish();
+
           throw new Error(`Failed to request remote peer: ${err}`);
         }
+
         if (!body) {
+          syncSpan.setTag('error', true);
+          syncSpan.log({
+            value: 'Invalid response for blocks request',
+          });
+
+          syncSpan.finish();
+
           throw new Error('Invalid response for blocks request');
         }
+
         const blocks = body as IBlockWithTransactions[];
         if (!Array.isArray(blocks) || blocks.length === 0) {
+          syncSpan.log({
+            loaded: true,
+          });
+
           loaded = true;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
@@ -630,25 +693,53 @@ export default class Blocks implements ICoreModule {
         global.app.logger.info(
           `Loading ${num} blocks from ${peer.toB58String()}`
         );
+        syncSpan.log({
+          value: `Loading ${num} blocks from ${peer.toB58String()}`,
+        });
+        syncSpan.finish();
+
+        const multipleBlocksSpan = global.library.tracer.startSpan(
+          'process multiple blocks',
+          {
+            childOf: syncSpan.context(),
+          }
+        );
+        multipleBlocksSpan.setTag('syncing', true);
+
         try {
           for (const block of blocks) {
-            let state = StateHelper.getState();
+            const processBlockSpan = global.library.tracer.startSpan(
+              'Block.processBlock()',
+              {
+                childOf: multipleBlocksSpan.context(),
+              }
+            );
+            processBlockSpan.setTag('syncing', true);
 
+            let state = StateHelper.getState();
             const activeDelegates = await Delegates.generateDelegateList(
               block.height
             );
             const options: ProcessBlockOptions = {};
 
+            processBlockSpan.setTag('hash', getSmallBlockHash(block as IBlock));
+            processBlockSpan.setTag('height', block.height);
+            processBlockSpan.setTag('id', block.id);
+            processBlockSpan.setTag('syncingFrom', peer.toB58String());
+
             const stateResult = await Blocks.processBlock(
               state,
               block,
               options,
-              activeDelegates
+              activeDelegates,
+              processBlockSpan
             );
             state = stateResult.state;
             StateHelper.setState(state); // important
 
             if (stateResult.success) {
+              processBlockSpan.finish();
+
               lastCommonBlockId = block.id;
               global.app.logger.info(
                 `Block ${block.id} loaded from ${peer.toB58String()} at ${
@@ -656,6 +747,15 @@ export default class Blocks implements ICoreModule {
                 }`
               );
             } else {
+              processBlockSpan.setTag('error', true);
+              processBlockSpan.log({
+                value: `Error during sync of Block ${
+                  block.id
+                } loaded from ${peer.toB58String()} at ${block.height}`,
+              });
+
+              processBlockSpan.finish();
+
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
@@ -669,17 +769,29 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
+          processBlockSpan.setTag('error', true);
+          processBlockSpan.log({
+            value: `Failed to process synced block, error: ${err.message}`,
+          });
+          processBlockSpan.finish();
+
+          multipleBlocksSpan.finish();
+
           global.app.logger.error('Failed to process synced block');
           global.app.logger.error(e);
           loaded = true; // prepare exiting pWhilst loop
           throw e;
         }
+
+        multipleBlocksSpan.finish();
       }
     );
+    global.app.logger.info(`stop syncing from peer "${peer.toB58String()}"`);
 
-    global.app.logger.info(
-      `stop syncing from peer ${peer.host}:${peer.port - 1}`
-    );
+    span.log({
+      value: `stop syncing from peer "${peer.toB58String()}"`,
+    });
+    span.finish();
   };
 
   public static generateBlock = async (
@@ -771,14 +883,25 @@ export default class Blocks implements ICoreModule {
   public static onReceiveBlock = (
     peerId: PeerId,
     block: IBlock,
-    votes: ManyVotes
+    votes: ManyVotes,
+    span: ISpan
   ) => {
     global.library.logger.info(
       `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
     );
 
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || modules) {
       // TODO access state
+
+      span.setTag('error', true);
+      span.log({
+        value: `onReceiveBlock stopping, isSyncing: ${isSyncing}, modules: ${modules}`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -797,6 +920,15 @@ export default class Blocks implements ICoreModule {
             block.height
           } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `Receive new block header from long fork\n[syncing] received block h: ${
+            block.height
+          } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`,
+        });
+        span.finish();
+
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
@@ -804,18 +936,44 @@ export default class Blocks implements ICoreModule {
         global.library.logger.info(
           `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
         );
+
+        span.setTag('error', true);
+        span.log({
+          value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
+        });
+        span.finish();
+
         Loader.syncBlocksFromPeer(peerId);
         return cb();
       }
 
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
+        span.setTag('error', true);
+        span.log({
+          value: `[ſyncing] already received this block`,
+        });
+        span.finish();
+
         return cb();
       }
 
       // TODO this should be saved already in case of an error
       state = BlocksHelper.MarkBlockAsReceived(state, block);
 
+      span.finish();
+
       if (fitInLineResult === BlockFitsInLine.Success) {
+        // does this work, even
+        const processBlockSpan = global.library.tracer.startSpan(
+          'Block.processBlock()',
+          {
+            childOf: span.context(),
+          }
+        );
+        processBlockSpan.setTag('hash', getSmallBlockHash(block));
+        processBlockSpan.setTag('height', block.height);
+        processBlockSpan.setTag('id', block.id);
+
         const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
@@ -840,14 +998,22 @@ export default class Blocks implements ICoreModule {
             state,
             block,
             options,
-            delegateList
+            delegateList,
+            processBlockSpan
           );
           state = stateResult.state;
           // TODO: save state?
         } catch (e) {
+          processBlockSpan.setTag('error', true);
+          processBlockSpan.log({
+            value: `Failed to process received block ${e}`,
+          });
+
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
         } finally {
+          // todo create new span (for transaction)
+
           // delete already executed transactions
           for (const t of block.transactions) {
             pendingTrsMap.delete(t.id);
@@ -859,10 +1025,18 @@ export default class Blocks implements ICoreModule {
               redoTransactions
             );
           } catch (e) {
+            span.setTag('error', true);
+            span.log({
+              value: `Failed to redo unconfirmed transactions ${e}`,
+            });
+
             global.app.logger.error('Failed to redo unconfirmed transactions');
             global.app.logger.error(e);
+
             // TODO: rollback?
           }
+
+          processBlockSpan.finish();
 
           // important
           StateHelper.setState(state);
@@ -877,8 +1051,13 @@ export default class Blocks implements ICoreModule {
 
   public static onReceivePropose = (
     propose: BlockPropose,
-    message: P2PMessage
+    message: P2PMessage,
+    span: ISpan
   ) => {
+    span.setTag('height', propose.height);
+    span.setTag('id', propose.id);
+    span.setTag('hash', getSmallBlockHash(propose));
+
     const isSyncing = StateHelper.IsSyncing();
     const modulesAreLoaded = StateHelper.ModulesAreLoaded();
 
@@ -888,18 +1067,41 @@ export default class Blocks implements ICoreModule {
           propose.address
         }" (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: `ignoring onReceivePropose (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`,
+      });
+      span.finish();
+
       return;
     }
 
     global.library.sequence.add(cb => {
       let state = StateHelper.getState();
 
+      span.log({
+        value: 'add sequence',
+      });
+
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
+        span.setTag('error', true);
+        span.log({
+          value: 'already received propose',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
       if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
+        span.setTag('error', true);
+        span.log({
+          value: 'propose matches old one',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
       // TODO: check
@@ -908,12 +1110,24 @@ export default class Blocks implements ICoreModule {
         .toFixed();
       if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
         if (new BigNumber(propose.height).isGreaterThan(lastBlockPlus1)) {
+          span.setTag('error', true);
+          span.log({
+            value: 'block is not in line, going to call startSyncBlocks',
+          });
+          span.finish();
+
           Loader.startSyncBlocks(state.lastBlock);
         }
         return setImmediate(cb);
       }
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
         global.app.logger.debug('ignore the frequently propose');
+        span.setTag('error', true);
+        span.log({
+          value: 'ignore the frequently propose',
+        });
+        span.finish();
+
         return setImmediate(cb);
       }
 
@@ -926,13 +1140,24 @@ export default class Blocks implements ICoreModule {
               activeDelegates = await Delegates.generateDelegateList(
                 propose.height
               );
+              span.log({
+                value: 'going to validate propose slot',
+              });
+
               Delegates.validateProposeSlot(propose, activeDelegates);
+
+              span.log({
+                value: 'successfully validated propose slot',
+              });
               next();
             } catch (err) {
               next(err.toString());
             }
           },
           async next => {
+            span.log({
+              value: 'going to accept propose',
+            });
             if (ConsensusBase.acceptPropose(propose)) {
               next();
             } else {
@@ -940,6 +1165,10 @@ export default class Blocks implements ICoreModule {
             }
           },
           async next => {
+            span.log({
+              value: 'get active delegate keypairs',
+            });
+
             const activeKeypairs = Delegates.getActiveDelegateKeypairs(
               activeDelegates
             );
@@ -947,6 +1176,11 @@ export default class Blocks implements ICoreModule {
           },
           async (activeKeypairs: KeyPair[], next: Next) => {
             try {
+              span.log({
+                value: `I got activeKeypairs: ${activeKeypairs &&
+                  activeKeypairs.length}`,
+              });
+
               if (activeKeypairs && activeKeypairs.length > 0) {
                 const votes = ConsensusBase.createVotes(
                   activeKeypairs,
@@ -964,28 +1198,43 @@ export default class Blocks implements ICoreModule {
 
                 const peerId = await bundle.findPeerInfoInDHT(message);
 
-                await bundle.pushVotesToPeer(peerId, votes);
+                span.log({
+                  value: `going to push votes to ${peerId.toB58String()}`,
+                  votes,
+                });
+
+                await bundle.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
               }
             } catch (err) {
-              global.library.logger.error(
-                `[p2p] failed to create and push VOTES: "${err.message}"`
-              );
               global.library.logger.error(err);
+
+              // important
+              StateHelper.setState(state);
+              return next(
+                `[p2p] failed to create and push VOTES "${err.message}"`
+              );
             }
 
             // important
             StateHelper.setState(state);
-            setImmediate(next);
+            return next();
           },
         ],
         (err: any) => {
           if (err) {
+            span.setTag('error', true);
+            span.log({
+              value: `onReceivePropose error: ${err}`,
+            });
+
             global.app.logger.error('onReceivePropose error');
             global.app.logger.error(err);
           }
           global.app.logger.debug('onReceivePropose finished');
+
+          span.finish();
           cb();
         }
       );
@@ -1026,13 +1275,23 @@ export default class Blocks implements ICoreModule {
     }, finishCallback);
   };
 
-  public static onReceiveVotes = (votes: ManyVotes) => {
-    if (StateHelper.IsSyncing() || !StateHelper.ModulesAreLoaded()) {
+  public static onReceiveVotes = (votes: ManyVotes, span: ISpan) => {
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
+
+    if (isSyncing || modules) {
       global.library.logger.info(
         `[p2p] currently syncing ignored received Votes for height: ${
           votes.height
         }`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: `onReceiveVotes isSyncing: ${isSyncing}, modules: ${modules}`,
+      });
+      span.finish();
+
       return;
     }
 
@@ -1066,21 +1325,58 @@ export default class Blocks implements ICoreModule {
             }`
           );
 
+          span.log({
+            value: 'has enough votes',
+            receivedVotes: (votes && votes.signatures.length) || 0,
+            pendingVotes: (totalVotes && totalVotes.signatures.length) || 0,
+          });
+          span.finish();
+
+          const processBlockSpan = global.library.tracer.startSpan(
+            'Block.processBlock()',
+            {
+              childOf: span.context(),
+              tags: {
+                height: pendingBlock.height,
+                id: pendingBlock.id,
+                hash: getSmallBlockHash(pendingBlock),
+              },
+            }
+          );
+
           const stateResult = await Blocks.processBlock(
             state,
             pendingBlock,
             options,
-            delegateList
+            delegateList,
+            processBlockSpan
           );
           state = stateResult.state;
 
+          processBlockSpan.finish();
+
           StateHelper.setState(state); // important
         } catch (err) {
+          span.finish();
+
+          span.setTag('error', true);
+          span.log({
+            value: `Failed to process confirmed block: ${err}`,
+          });
+
           global.app.logger.error('Failed to process confirmed block:');
           global.app.logger.error(err);
         }
+
         return cb();
       } else {
+        span.log({
+          value: 'has not enough votes',
+          receivedVotes: (votes && votes.signatures.length) || 0,
+          pendingVotes: (totalVotes && totalVotes.signatures.length) || 0,
+        });
+        span.finish();
+
         StateHelper.setState(state); // important
         return setImmediate(cb);
       }
@@ -1095,7 +1391,8 @@ export default class Blocks implements ICoreModule {
       state: IState,
       block: IBlock,
       options: ProcessBlockOptions,
-      delegateList: string[]
+      delegateList: string[],
+      span: ISpan
     ) => Promise<IStateSuccess>,
     getBlocksByHeight: GetBlocksByHeight
   ) => {
@@ -1104,13 +1401,19 @@ export default class Blocks implements ICoreModule {
     if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
+      const span = global.library.tracer.startSpan('Block.processBlock()');
+      span.setTag('hash', getSmallBlockHash(genesisBlock));
+      span.setTag('height', genesisBlock.height);
+      span.setTag('id', genesisBlock.id);
+
       const options: ProcessBlockOptions = {};
       const delegateList: string[] = [];
       const stateResult = await processBlock(
         state,
         genesisBlock,
         options,
-        delegateList
+        delegateList,
+        span
       );
       state = stateResult.state;
     } else {
@@ -1158,14 +1461,27 @@ export default class Blocks implements ICoreModule {
 
           return cb();
         } catch (err) {
+          const span = global.app.tracer.startSpan('onBind');
+          span.setTag('error', true);
+          span.log({
+            value: `Failed to prepare local blockchain ${err}`,
+          });
+          span.finish();
+
           global.app.logger.error('Failed to prepare local blockchain');
           global.app.logger.error(err);
-
           return cb('Failed to prepare local blockchain');
         }
       },
       err => {
         if (err) {
+          const span = global.app.tracer.startSpan('onBind');
+          span.setTag('error', true);
+          span.log({
+            value: err.message,
+          });
+          span.finish();
+
           global.app.logger.error(err.message);
           process.exit(0);
         }

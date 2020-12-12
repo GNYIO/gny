@@ -79,6 +79,15 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .string()
         .regex(new RegExp(/^forging|rollback:[1-9][0-9]*$/))
         .required(),
+      jaegerIP: joi
+        .string()
+        .ip()
+        .required(),
+      jaegerPort: joi
+        .number()
+        .port()
+        .required(),
+      disableJaeger: joi.boolean().required(),
     })
     .required();
 

@@ -6,6 +6,7 @@ import Peer from './peer';
 import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
+import { ISpan } from '@gny/tracer';
 
 export default class Loader implements ICoreModule {
   public static async findUpdate(lastBlock: IBlock, peer: PeerId) {
@@ -19,6 +20,13 @@ export default class Loader implements ICoreModule {
     try {
       commonBlock = await Blocks.getCommonBlock(peer, newestLastBlock.height);
     } catch (err) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to get common block: ${err}`,
+      });
+      span.finish();
+
       global.library.logger.error('Failed to get common block:');
       global.library.logger.error(err);
       throw err;
@@ -45,6 +53,13 @@ export default class Loader implements ICoreModule {
     );
 
     if (LoaderHelper.IsLongFork(toRemove)) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `long fork with peer ${peer.toB58String()}`,
+      });
+      span.finish();
+
       global.library.logger.error(`long fork with peer ${peer.toB58String()}`);
       throw new Error(`long fork with peer ${peer.toB58String()}`);
     }
@@ -69,6 +84,13 @@ export default class Loader implements ICoreModule {
         await global.app.sdb.rollbackBlock(newestLastBlock.height);
       }
     } catch (e) {
+      const span = global.app.tracer.startSpan('findUpdate');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to rollback block ${e}`,
+      });
+      span.finish();
+
       global.library.logger.error('Failed to rollback block');
       global.library.logger.error(e);
       throw e;
@@ -76,14 +98,27 @@ export default class Loader implements ICoreModule {
     global.library.logger.debug(
       `Loading blocks from peer ${peer.toB58String()}`
     );
-    await Blocks.loadBlocksFromPeer(peer, commonBlock.id);
+
+    const span = global.library.tracer.startSpan('find update');
+
+    await Blocks.loadBlocksFromPeer(peer, commonBlock.id, span);
     return;
   }
 
-  public static async loadBlocks(lastBlock: IBlock, genesisBlock: IBlock) {
+  public static async loadBlocks(
+    lastBlock: IBlock,
+    genesisBlock: IBlock,
+    parentSpan: ISpan
+  ) {
     const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
+
+      parentSpan.setTag('error', true);
+      parentSpan.log({
+        value: '[p2p] loadBlocks() no connected peers',
+      });
+
       return;
     }
 
@@ -91,11 +126,20 @@ export default class Loader implements ICoreModule {
 
     // check
     for (let i = 0; i < allPeerInfos.length; ++i) {
+      const span = global.library.tracer.startSpan('request height from peer', {
+        childOf: parentSpan.context(),
+      });
+      span.setTag('syncing', true);
+      span.setTag('peerId', Peer.p2p.peerId.toB58String());
+
       const one = allPeerInfos[i];
 
       try {
         const onePeerId = PeerId.createFromB58String(one.id.id);
-        const height: HeightWrapper = await Peer.p2p.requestHeight(onePeerId);
+        const height: HeightWrapper = await Peer.p2p.requestHeight(
+          onePeerId,
+          span
+        );
 
         myResult.push({
           peerInfo: one,
@@ -105,7 +149,16 @@ export default class Loader implements ICoreModule {
         global.library.logger.info(
           `[p2p] failed to requestHeight() from ${err.message}`
         );
+
+        span.log({
+          value: `[p2p] failed to requestHeight() from: "${one.id.id}"`,
+        });
+        span.log({
+          value: `[p2p] failed to requestHeight() error: ${err.message}`,
+        });
+        span.setTag('error', true);
       }
+      span.finish();
     }
 
     if (myResult.length === 0) {
@@ -127,6 +180,15 @@ export default class Loader implements ICoreModule {
           lastBlock.height
         }`
       );
+
+      parentSpan.setTag('error', true);
+      parentSpan.log({
+        value: `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
+          lastBlock.height
+        }`,
+      });
+      parentSpan.finish();
+
       return;
     }
 
@@ -141,7 +203,19 @@ export default class Loader implements ICoreModule {
           find.height
         }`
       );
-      return await Blocks.loadBlocksFromPeer(highestPeer, genesisBlock.id);
+
+      parentSpan.log({
+        value: `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
+          find.height
+        }`,
+      });
+      parentSpan.finish();
+
+      return await Blocks.loadBlocksFromPeer(
+        highestPeer,
+        genesisBlock.id,
+        parentSpan
+      );
     } else {
       global.library.logger.info(
         `[p2p] current height is ${
@@ -150,7 +224,21 @@ export default class Loader implements ICoreModule {
           find.height
         }`
       );
-      return await Blocks.loadBlocksFromPeer(highestPeer, lastBlock.id);
+
+      parentSpan.log({
+        value: `[p2p] current height is ${
+          lastBlock.height
+        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
+          find.height
+        }`,
+      });
+      parentSpan.finish();
+
+      return await Blocks.loadBlocksFromPeer(
+        highestPeer,
+        lastBlock.id,
+        parentSpan
+      );
     }
   }
 
@@ -165,12 +253,26 @@ export default class Loader implements ICoreModule {
       global.library.logger.debug('startSyncBlocks enter sequence');
       StateHelper.SetIsSyncing(true);
 
+      const span = global.library.tracer.startSpan('start sync blocks');
+      span.setTag('syncing', true);
+      span.log({
+        lastBlock,
+      });
+
       try {
-        await Loader.loadBlocks(lastBlock, global.library.genesisBlock);
+        await Loader.loadBlocks(lastBlock, global.library.genesisBlock, span);
       } catch (err) {
         global.library.logger.warn('loadBlocks warning:');
         global.library.logger.warn(err);
+
+        span.setTag('error', true);
+        span.log({
+          value: `loadBlocks error: ${err.message}`,
+        });
       }
+
+      span.finish();
+
       StateHelper.SetIsSyncing(false);
       StateHelper.SetBlocksToSync(0);
       global.library.logger.debug('startSyncBlocks end');
@@ -188,11 +290,21 @@ export default class Loader implements ICoreModule {
     global.library.sequence.add(async cb => {
       global.library.logger.debug('syncBlocksFromPeer enter sequence');
       StateHelper.SetIsSyncing(true);
+
+      const span = global.library.tracer.startSpan('sync blocks from peer');
+      span.setTag('syncing', true);
+
       const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
         await global.app.sdb.rollbackBlock(lastBlock.height);
       } catch (err) {
+        span.setTag('error', true);
+        span.log({
+          value: 'error while sdb.rollbackBlock()',
+        });
+        span.finish();
+
         global.library.logger.error('error while sdb.rollbackBlock()');
 
         // reset
@@ -200,7 +312,9 @@ export default class Loader implements ICoreModule {
         throw err;
       }
       try {
-        await Blocks.loadBlocksFromPeer(peer, lastBlock.id);
+        span.finish();
+
+        await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);
       } catch (err) {
         throw err;
       } finally {

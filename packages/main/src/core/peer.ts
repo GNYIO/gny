@@ -6,6 +6,7 @@ import {
   V1_BROADCAST_TRANSACTION,
   V1_BROADCAST_PROPOSE,
   V1_BROADCAST_NEW_MEMBER,
+  V1_BROADCAST_SELF,
 } from '@gny/p2p';
 import { PeerNode, ICoreModule, P2PPeerIdAndMultiaddr } from '@gny/interfaces';
 import * as PeerId from 'peer-id';
@@ -13,6 +14,8 @@ import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
 const uint8ArrayFromString = require('uint8arrays/from-string');
 import * as multiaddr from 'multiaddr';
+import { TracerWrapper, serializedSpanContext } from '@gny/tracer';
+import { EnvironmentPlugin } from 'webpack';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -54,6 +57,13 @@ export default class Peer implements ICoreModule {
       }
       return result.data;
     } catch (err) {
+      const span = global.app.tracer.startSpan('request');
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to request remote peer: ${err.message}`,
+      });
+      span.finish();
+
       global.library.logger.error(
         `Failed to request remote peer: ${err.message}`
       );
@@ -129,6 +139,21 @@ export default class Peer implements ICoreModule {
       )}`
     );
 
+    const startUpSpan = global.library.tracer.startSpan('startUp');
+    startUpSpan.setTag('peerId', Peer.p2p.peerId.toB58String());
+    startUpSpan.log({
+      announceAddresses: Peer.p2p.addressManager
+        .getAnnounceAddrs()
+        .map(x => x.toString()),
+      listenAddresses: Peer.p2p.addressManager
+        .getListenAddrs()
+        .map(x => x.toString()),
+      noAnnounceAddresses: Peer.p2p.addressManager
+        .getNoAnnounceAddrs()
+        .map(x => x.toString()),
+    });
+    startUpSpan.finish();
+
     Peer.p2p.pubsub.on(
       V1_BROADCAST_NEW_BLOCK_HEADER,
       Transport.receivePeer_NewBlockHeader
@@ -147,6 +172,9 @@ export default class Peer implements ICoreModule {
     Peer.p2p.pubsub.on(V1_BROADCAST_NEW_MEMBER, Transport.receiveNew_Member);
     await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_MEMBER);
 
+    Peer.p2p.pubsub.on(V1_BROADCAST_SELF, Transport.receiveSelf);
+    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_SELF);
+
     await sleep(2 * 1000);
 
     setInterval(async () => {
@@ -156,36 +184,61 @@ export default class Peer implements ICoreModule {
         .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
         .map(x => x.toString());
 
-      const raw: P2PPeerIdAndMultiaddr = {
-        peerId: Peer.p2p.peerId.toB58String(),
-        multiaddr: m,
+      const span = global.library.tracer.startSpan('broadcast self');
+
+      const raw: TracerWrapper<P2PPeerIdAndMultiaddr> = {
+        spanId: serializedSpanContext(global.library.tracer, span.context()),
+        data: {
+          peerId: Peer.p2p.peerId.toB58String(),
+          multiaddr: m,
+        },
       };
       console.log(
         `[p2p] "newMember" announcing myself to network: ${JSON.stringify(
-          raw,
+          raw.data,
           null,
           2
         )}`
       );
 
       const converted = uint8ArrayFromString(JSON.stringify(raw));
-      await Peer.p2p.broadcastNewMember(converted);
+      await Peer.p2p.broadcastSelf(converted);
+
+      span.finish();
     }, 20 * 1000);
 
     if (bootstrapNode.length > 0) {
       setInterval(async () => {
+        const parentSpan = global.library.tracer.startSpan('bootstrap');
+        parentSpan.log({
+          alreadyConnectedWith: Array.from(Peer.p2p.connections.keys()),
+        });
+
         if (!Peer.p2p.isStarted()) {
+          parentSpan.setTag('error', true);
+          parentSpan.log({
+            value: 'p2p is not started',
+          });
+          parentSpan.finish();
           return;
         }
 
         const multis = bootstrapNode.map(x => multiaddr(x));
 
         for (let i = 0; i < multis.length; ++i) {
+          const span = global.library.tracer.startSpan('dial peer', {
+            childOf: parentSpan.context(),
+          });
+
           global.library.logger.info(
             `[p2p][bootstrap] ${i + 1}/${multis.length}`
           );
           const m = multis[i];
           const peer = PeerId.createFromB58String(m.getPeerId());
+
+          span.log({
+            value: `dialing peer: ${peer.toB58String()}`,
+          });
 
           // check if there are addresses for this peer saved
           const addresses = Peer.p2p.peerStore.addressBook.get(peer);
@@ -198,6 +251,12 @@ export default class Peer implements ICoreModule {
               )}`
             );
             Peer.p2p.peerStore.addressBook.set(peer, [m]);
+
+            span.log({
+              value: 'add address to addressBook',
+              peer: peer.toB58String(),
+              multiaddr: m,
+            });
           }
 
           // 0. no need to check if already in peerStore (peer always in peerStore)
@@ -217,17 +276,45 @@ export default class Peer implements ICoreModule {
             global.library.logger.info(
               `[p2p][bootstrap] already connected to ${peer.toB58String()}`
             );
+
+            span.log({
+              value: `already connected to "${peer.toB58String()}"`,
+            });
+            span.log({
+              value: 'going to next peer',
+            });
+            span.finish();
+
             continue; // for next remote peer
           }
 
           try {
+            span.log({
+              value: `dialing peer: "${peer.toB58String()}"`,
+            });
+
             await Peer.p2p.dial(peer);
+
+            span.log({
+              value: `successfully dialed peer: "${peer.toB58String()}"`,
+            });
           } catch (err) {
             global.library.logger.info(
               `[p2p][bootstrap] failed to dial: ${peer.toB58String()}, error: ${
                 err.message
               }`
             );
+
+            span.log({
+              value: `[p2p][bootstrap] failed to dial: ${peer.toB58String()}, error: ${
+                err.message
+              }`,
+            });
+            span.log({
+              value: 'going to next peer',
+            });
+            span.finish();
+
             continue; // for next remote peer
           }
           global.library.logger.info(
@@ -242,9 +329,15 @@ export default class Peer implements ICoreModule {
                 2
               )}`
             );
-            const raw: P2PPeerIdAndMultiaddr = {
-              peerId: peer.toB58String(),
-              multiaddr: [m.toString()],
+            const raw: TracerWrapper<P2PPeerIdAndMultiaddr> = {
+              spanId: serializedSpanContext(
+                global.library.tracer,
+                span.context()
+              ),
+              data: {
+                peerId: peer.toB58String(),
+                multiaddr: [m.toString()],
+              },
             };
             const data = uint8ArrayFromString(JSON.stringify(raw));
             await Peer.p2p.broadcastNewMember(data);
@@ -254,8 +347,18 @@ export default class Peer implements ICoreModule {
                 err.message
               }`
             );
+
+            span.log({
+              value: `[p2p][bootsrap] failed to announce peer "${
+                peer.id
+              }", error: ${err.message}`,
+            });
+            span.setTag('error', true);
+            span.finish();
           }
         }
+
+        parentSpan.finish();
       }, 5 * 1000);
     }
   };

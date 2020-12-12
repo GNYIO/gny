@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import initRuntime from './runtime';
 import initAlt from './init';
-import { IScope, IConfig, ILogger, IBlock } from '@gny/interfaces';
+import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gny/interfaces';
 import { StateHelper } from './core/StateHelper';
 import { verifyGenesisBlock } from './verifyGenesisBlock';
 
@@ -9,6 +9,7 @@ interface LocalOptions {
   appConfig: IConfig;
   genesisBlock: IBlock;
   logger: ILogger;
+  tracer: ITracer;
   library?: Partial<IScope>;
 }
 
@@ -49,29 +50,60 @@ export default class Application {
     });
 
     process.once('SIGTERM', () => {
+      global.app.tracer.startSpan('sigterm').finish();
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     process.once('exit', () => {
+      global.app.tracer.startSpan('exit').finish();
       scope.logger.info('process exited');
     });
 
     process.once('SIGINT', () => {
+      global.app.tracer.startSpan('sigint').finish();
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
-    process.on('uncaughtException', err => {
+    process.on('uncaughtException', (err: Error) => {
+      const span = global.app.tracer.startSpan('uncaughtException');
+      span.setTag('error', true);
+      span.log({
+        value: `uncaughtException ${err}`,
+        stack: err.stack,
+      });
+      span.finish();
+
       // handle the error safely
       scope.logger.fatal('uncaughtException');
       scope.logger.fatal(err);
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
-    process.on('unhandledRejection', err => {
+    process.on('unhandledRejection', (err: Error) => {
+      const span = global.app.tracer.startSpan('unhandledRejection');
+      span.setTag('error', true);
+      span.log({
+        value: `unhandledRejection ${err}`,
+        stack: err.stack,
+      });
+      span.finish();
+
       // handle the error safely
       scope.logger.error('unhandledRejection');
       scope.logger.error(err);
       process.emit('cleanup');
+
+      // important
+      global.library.tracer.close();
     });
 
     verifyGenesisBlock(scope.genesisBlock);
@@ -81,6 +113,13 @@ export default class Application {
     try {
       await initRuntime(options);
     } catch (e) {
+      const span = global.app.tracer.startSpan('init runtime error');
+      span.setTag('error', true);
+      span.log({
+        value: `init runtime error ${e}`,
+      });
+      span.finish();
+
       scope.logger.error('init runtime error');
       scope.logger.error(e);
       process.exit(1);

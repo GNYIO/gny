@@ -1,6 +1,6 @@
 {
   "name": "@gny/interfaces",
-  "version": "1.0.45",
+  "version": "1.0.46",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -15,8 +15,10 @@
   "types": "dist/index",
   "dependencies": {
     "@types/express": "^4.16.0",
+    "@types/jaeger-client": "^3.15.4",
     "@types/socket.io": "^2.1.2",
     "express": "^4.16.4",
+    "jaeger-client": "^3.18.0",
     "socket.io": "^2.2.0",
     "tracer": "^0.9.9",
     "type-fest": "^0.18.0"

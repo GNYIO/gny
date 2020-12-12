@@ -2,6 +2,7 @@ import * as program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gny/logger';
+import { initTracer } from '@gny/tracer';
 
 import Application from './index';
 import * as packageJson from '../package.json';
@@ -157,11 +158,21 @@ function main() {
     appConfig.forging.secret = userSecret.split(',');
   }
 
-  if (program.publicIP || process.env['GNY_PUBLIC_IP']) {
+  if (program.publicIp || process.env['GNY_PUBLIC_IP']) {
     appConfig.publicIp = program.publicIP || process.env['GNY_PUBLIC_IP'];
   } else {
     appConfig.publicIp = ip.address();
   }
+
+  appConfig.jaegerIP =
+    program.jaegerIP || process.env['GNY_TRACER_HOST'] || '135.181.46.217';
+  appConfig.jaegerPort =
+    program.jaegerPort || process.env['GNY_TRACER_PORT'] || 14268;
+  appConfig.disableJaeger =
+    program.disableJaeger || process.env['GNY_DISABLE_JAEGER'] || false;
+  appConfig.disableJaeger = JSON.parse(String(appConfig.disableJaeger));
+
+  console.log(`disableJaeger: ${appConfig.disableJaeger}`);
 
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
@@ -169,6 +180,17 @@ function main() {
     appConfig.version,
     appConfig.netVersion,
     appConfig.forging.secret
+  );
+
+  // tracer
+  const tracer = initTracer(
+    appConfig.disableJaeger,
+    appConfig.publicIp,
+    `http://${appConfig.jaegerIP}:${appConfig.jaegerPort}/api/traces`,
+    version,
+    appConfig.magic,
+    appConfig.netVersion,
+    logger
   );
 
   // action: default "forging"
@@ -182,6 +204,7 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
+    tracer,
   };
 
   const application = new Application(options);
