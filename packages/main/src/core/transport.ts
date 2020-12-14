@@ -40,12 +40,38 @@ import * as multiaddr from 'multiaddr';
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
   public static onUnconfirmedTransaction = async (
-    transaction: UnconfirmedTransaction
+    transaction: UnconfirmedTransaction,
+    parentSpan: ISpan
   ) => {
-    const encodedTransaction = global.library.protobuf.encodeUnconfirmedTransaction(
-      transaction
+    const span = global.library.tracer.startSpan(
+      'broadcast unconfirmed transaction',
+      {
+        childOf: parentSpan.context(),
+      }
     );
+    span.setTag('transactionId', transaction.id);
+    span.setTag('senderId', transaction.senderId);
+    span.log({
+      unconfirmedTransaction: transaction,
+    });
+
+    const obj = _.cloneDeep(transaction);
+    if (typeof obj.signatures !== 'string') {
+      obj.signatures = JSON.stringify(obj.signatures);
+    }
+    if (typeof obj.args !== 'string') {
+      obj.args = JSON.stringify(obj.args);
+    }
+
+    const raw: TracerWrapper<UnconfirmedTransaction> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: obj,
+    };
+
+    const encodedTransaction = uint8ArrayFromString(JSON.stringify(raw));
     await Peer.p2p.broadcastTransactionAsync(encodedTransaction);
+
+    span.finish();
   };
 
   // broadcast to peers NewBlockMessage
@@ -725,11 +751,9 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    let unconfirmedTrs: UnconfirmedTransaction;
+    let wrapper: TracerWrapper<UnconfirmedTransaction>;
     try {
-      unconfirmedTrs = global.library.protobuf.decodeUnconfirmedTransaction(
-        message.data
-      );
+      wrapper = JSON.parse(message.data.toString());
     } catch (e) {
       global.library.logger.warn(
         `could not decode Transaction with protobuf from ${message.from}`
@@ -737,13 +761,21 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const parentReference = createReferenceFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan('received trs broadcast', {
+      references: [parentReference],
+    });
+
+    let unconfirmedTrs = wrapper.data;
     try {
       // normalize and validate
       unconfirmedTrs = TransactionBase.normalizeUnconfirmedTransaction(
         unconfirmedTrs
       );
     } catch (e) {
-      const span = global.app.tracer.startSpan('receivePeer_Transaction');
       span.setTag('error', true);
       span.log({
         message: message,
@@ -759,11 +791,16 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    span.setTag('transactionId', unconfirmedTrs.id);
+    span.setTag('senderId', unconfirmedTrs.senderId);
+
     global.library.logger.info(
       `[p2p] received from "${message.from}" transactionId: ${
         unconfirmedTrs.id
       }`
     );
-    global.library.bus.message('onReceiveTransaction', unconfirmedTrs);
+    global.library.bus.message('onReceiveTransaction', unconfirmedTrs, span);
+
+    span.finish();
   };
 }

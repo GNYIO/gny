@@ -400,6 +400,11 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const span = global.library.tracer.startSpan('applyRound');
+    span.setTag('height', block.height);
+    span.setTag('id', block.id);
+    span.setTag('hash', getSmallBlockHash(block));
+
     const address = generateAddress(block.delegate);
     await global.app.sdb.increase<Delegate>(
       Delegate,
@@ -410,6 +415,11 @@ export default class Blocks implements ICoreModule {
     const transFee = BlocksHelper.getFeesOfAll(block.transactions);
 
     const roundNumber = RoundBase.calculateRound(block.height);
+
+    span.setTag('round', roundNumber);
+    span.log({
+      round: roundNumber,
+    });
 
     // TODO: refactor, this will not go good!
     const { fee, reward } = await Blocks.increaseRoundData(
@@ -422,7 +432,10 @@ export default class Blocks implements ICoreModule {
 
     await Blocks.saveSlotStatistics(block);
 
-    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
+    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) {
+      span.finish();
+      return;
+    }
 
     global.app.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
@@ -438,6 +451,11 @@ export default class Blocks implements ICoreModule {
       new BigNumber(block.height).minus(100).toFixed(),
       new BigNumber(block.height).minus(1).toFixed()
     );
+
+    span.log({
+      forgedBlocks: [...forgedBlocks, block],
+    });
+
     const forgedDelegates: string[] = [
       ...forgedBlocks.map(b => b.delegate),
       block.delegate,
@@ -446,6 +464,16 @@ export default class Blocks implements ICoreModule {
     const missedDelegates = delegates.filter(
       fd => !forgedDelegates.includes(fd)
     );
+
+    span.log({
+      missedDelegates,
+    });
+
+    const allDelegatesBefore = await global.app.sdb.getAll<Delegate>(Delegate);
+    span.log({
+      allDelegatesBefore,
+    });
+
     for (let i = 0; i < missedDelegates.length; ++i) {
       const md = missedDelegates[i];
       const adr = generateAddress(md);
@@ -504,6 +532,11 @@ export default class Blocks implements ICoreModule {
       .minus(actualRewards)
       .toFixed();
 
+    span.log({
+      forgedDelegates,
+      forgedDelegatesCount: forgedDelegates.length,
+    });
+
     for (const fd of forgedDelegates) {
       await updateDelegate(fd, feeAverage, rewardAverage);
     }
@@ -514,6 +547,13 @@ export default class Blocks implements ICoreModule {
 
       await Delegates.updateBookkeeper();
     }
+
+    const allDelegatesAfter = await global.app.sdb.getAll<Delegate>(Delegate);
+    span.log({
+      allDelegatesAfter,
+    });
+
+    span.finish();
   };
 
   public static saveSlotStatistics = async (block: IBlock) => {
@@ -1022,7 +1062,8 @@ export default class Blocks implements ICoreModule {
             const redoTransactions = [...pendingTrsMap.values()];
             await Transactions.processUnconfirmedTransactionsAsync(
               state,
-              redoTransactions
+              redoTransactions,
+              processBlockSpan
             );
           } catch (e) {
             span.setTag('error', true);
@@ -1242,24 +1283,34 @@ export default class Blocks implements ICoreModule {
   };
 
   public static onReceiveTransaction = (
-    unconfirmedTrs: UnconfirmedTransaction
+    unconfirmedTrs: UnconfirmedTransaction,
+    parentSpan: ISpan
   ) => {
-    const finishCallback = err => {
-      if (err) {
-        global.app.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`
-        );
-        global.app.logger.warn(err);
-      } else {
-        // TODO: are peer-transactions not broadcasted to all other peers also?
-        // library.bus.message('onUnconfirmedTransaction', transaction, true)
-      }
-    };
+    const span = global.library.tracer.startSpan('execute transaction', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('transactionId', unconfirmedTrs.id);
+    span.setTag('senderId', unconfirmedTrs.senderId);
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
-    global.library.sequence.add(cb => {
+    global.library.sequence.add(async cb => {
+      span.log({
+        value: 'execute in sequence',
+      });
+
       if (StateHelper.IsSyncing()) {
+        span.setTag('error', true);
+        span.setTag('syncing', true);
+        span.log({
+          value: 'is syncing',
+        });
+        span.log({
+          value: 'not going to execute transaction',
+        });
+
+        span.finish();
+
         // TODO this should access state
         return cb();
       }
@@ -1268,11 +1319,40 @@ export default class Blocks implements ICoreModule {
       if (
         !BlocksHelper.IsBlockchainReady(state, Date.now(), global.app.logger)
       ) {
+        span.setTag('error', true);
+        span.log({
+          value: 'blockchain is not ready',
+        });
+        span.finish();
+
         return cb();
       }
 
-      Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
-    }, finishCallback);
+      try {
+        await Transactions.processUnconfirmedTransactionAsync(
+          state,
+          unconfirmedTrs,
+          span
+        );
+      } catch (err) {
+        span.setTag('error', true);
+        span.log({
+          value: `error while processing unconfirmed transaction: ${
+            err.message
+          }`,
+        });
+        span.finish();
+
+        global.app.logger.warn(
+          `Receive invalid transaction ${unconfirmedTrs.id}`
+        );
+        global.app.logger.warn(err);
+
+        return cb();
+      }
+
+      span.finish();
+    });
   };
 
   public static onReceiveVotes = (votes: ManyVotes, span: ISpan) => {

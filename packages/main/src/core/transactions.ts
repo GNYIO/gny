@@ -12,58 +12,46 @@ import { BigNumber } from 'bignumber.js';
 import { Account } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
 import { isAddress } from '@gny/utils';
+import { ISpan } from '@gny/tracer';
 
 export default class Transactions implements ICoreModule {
-  public static processUnconfirmedTransactions = (
-    state: IState,
-    transactions: Array<UnconfirmedTransaction>,
-    cb
-  ) => {
-    (async () => {
-      try {
-        for (const transaction of transactions) {
-          await Transactions.processUnconfirmedTransactionAsync(
-            state,
-            transaction
-          );
-        }
-        cb(null, transactions);
-      } catch (e) {
-        cb(e.toString(), transactions);
-      }
-    })();
-  };
-
   public static processUnconfirmedTransactionsAsync = async (
     state: IState,
-    transactions: Array<UnconfirmedTransaction>
+    transactions: Array<UnconfirmedTransaction>,
+    parentSpan: ISpan
   ) => {
     for (const transaction of transactions) {
-      await Transactions.processUnconfirmedTransactionAsync(state, transaction);
-    }
-  };
+      const span = global.library.tracer.startSpan(
+        'process multiple transactions',
+        {
+          childOf: parentSpan.context(),
+        }
+      );
+      span.setTag('transactionId', transaction.id);
+      span.setTag('senderId', transaction.senderId);
 
-  public static processUnconfirmedTransaction = (
-    state: IState,
-    transaction: UnconfirmedTransaction,
-    cb
-  ) => {
-    (async () => {
       try {
         await Transactions.processUnconfirmedTransactionAsync(
           state,
-          transaction
+          transaction,
+          span
         );
-        cb(null, transaction);
-      } catch (e) {
-        cb(e.toString(), transaction);
+      } catch (err) {
+        span.setTag('error', true);
+        span.log({
+          value: `error during processing transaction: ${err.message}`,
+        });
+        span.finish();
+
+        throw err;
       }
-    })();
+    }
   };
 
   public static processUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: UnconfirmedTransaction
+    transaction: UnconfirmedTransaction,
+    span: ISpan
   ) => {
     try {
       if (!transaction.id) {
@@ -95,6 +83,11 @@ export default class Transactions implements ICoreModule {
       StateHelper.AddUnconfirmedTransactions(transaction);
       return transaction;
     } catch (e) {
+      // span.setTag('error', true);
+      span.log({
+        value: `error: ${e.message}`,
+      });
+
       StateHelper.AddFailedTrs(transaction.id);
       throw e;
     }
