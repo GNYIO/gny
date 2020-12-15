@@ -221,18 +221,42 @@ export default class Blocks implements ICoreModule {
    * the transactions already got exected by the time they reached the
    * node.
    */
-  public static applyBlock = async (state: IState, block: IBlock) => {
+  public static applyBlock = async (
+    state: IState,
+    block: IBlock,
+    parentSpan: ISpan
+  ) => {
     global.app.logger.trace('enter applyblock');
+
+    const span = global.library.tracer.startSpan('apply block', {
+      childOf: parentSpan.context(),
+    });
 
     try {
       if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
         throw new Error(`Duplicate transaction in block`);
       }
 
+      span.log({
+        transactionsToExecute:
+          (block.transactions && block.transactions.length) || 0,
+      });
       for (const transaction of block.transactions) {
-        await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
+        await Transactions.applyUnconfirmedTransactionAsync(
+          state,
+          transaction,
+          span
+        );
       }
+
+      span.finish();
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to apply block: ${e}`,
+      });
+      span.finish();
+
       global.app.logger.error('Failed to apply block');
       global.app.logger.error(e);
       throw new Error(`Failed to apply block: ${e}`);
@@ -282,19 +306,47 @@ export default class Blocks implements ICoreModule {
   public static async ProcessBlockDbIO(
     state: IState,
     block: IBlock,
-    options: ProcessBlockOptions
+    options: ProcessBlockOptions,
+    parentSpan: ISpan
   ) {
+    const span = global.library.tracer.startSpan('process block db io', {
+      childOf: parentSpan.context(),
+    });
+
+    span.log({
+      value: 'begin block',
+    });
     await global.app.sdb.beginBlock(block);
 
     try {
+      span.log({
+        value: `isLocal: ${!!options.local}`,
+      });
+
       if (!options.local) {
-        await Blocks.applyBlock(state, block);
+        span.log({
+          value: 'going to applyBlock',
+        });
+
+        await Blocks.applyBlock(state, block, span);
+      } else {
+        span.log({
+          value: 'no applyBlock execution',
+        });
       }
 
       await Blocks.saveBlockTransactions(block);
-      await Blocks.applyRound(block);
+      await Blocks.applyRound(block, span);
       await global.app.sdb.commitBlock();
+
+      span.finish();
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: `error during "process block db io", error: ${e}`,
+      });
+      span.finish();
+
       await global.app.sdb.rollbackBlock();
       throw e;
     }
@@ -344,7 +396,7 @@ export default class Blocks implements ICoreModule {
       // Check block against DB
       await Blocks.CheckBlockWithDbAccessIO(block, options);
 
-      await Blocks.ProcessBlockDbIO(state, block, options);
+      await Blocks.ProcessBlockDbIO(state, block, options, span);
 
       state = BlocksHelper.SetLastBlock(state, block);
 
@@ -394,16 +446,24 @@ export default class Blocks implements ICoreModule {
     // removed .load() line
   };
 
-  public static applyRound = async (block: IBlock) => {
-    if (new BigNumber(block.height).isEqualTo(0)) {
-      await Delegates.updateBookkeeper();
-      return;
-    }
+  public static applyRound = async (block: IBlock, parentSpan: ISpan) => {
+    const span = global.library.tracer.startSpan('apply round', {
+      childOf: parentSpan.context(),
+    });
 
-    const span = global.library.tracer.startSpan('applyRound');
     span.setTag('height', block.height);
     span.setTag('id', block.id);
     span.setTag('hash', getSmallBlockHash(block));
+
+    if (new BigNumber(block.height).isEqualTo(0)) {
+      await Delegates.updateBookkeeper();
+
+      span.log({
+        value: 'exiting, its the genesisBlock',
+      });
+      span.finish();
+      return;
+    }
 
     const address = generateAddress(block.delegate);
     await global.app.sdb.increase<Delegate>(
@@ -1495,6 +1555,8 @@ export default class Blocks implements ICoreModule {
         delegateList,
         span
       );
+
+      span.finish();
       state = stateResult.state;
     } else {
       const block = await getBlocksByHeight(

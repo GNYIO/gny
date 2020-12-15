@@ -79,7 +79,11 @@ export default class Transactions implements ICoreModule {
       if (exists) {
         throw new Error('Transaction already confirmed');
       }
-      await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
+      await Transactions.applyUnconfirmedTransactionAsync(
+        state,
+        transaction,
+        span
+      );
       StateHelper.AddUnconfirmedTransactions(transaction);
       return transaction;
     } catch (e) {
@@ -95,8 +99,18 @@ export default class Transactions implements ICoreModule {
 
   public static applyUnconfirmedTransactionAsync = async (
     state: IState,
-    transaction: ITransaction | UnconfirmedTransaction
+    transaction: ITransaction | UnconfirmedTransaction,
+    parentSpan: ISpan
   ) => {
+    const span = global.library.tracer.startSpan(
+      'apply unconfirmed transaction',
+      {
+        childOf: parentSpan.context(),
+      }
+    );
+    span.setTag('transactionId', transaction.id);
+    span.setTag('senderId', transaction.senderId);
+
     const height = state.lastBlock.height;
     const block = {
       height: new BigNumber(height).plus(1).toFixed(),
@@ -104,9 +118,21 @@ export default class Transactions implements ICoreModule {
 
     const senderId = transaction.senderId;
     if (!senderId) {
+      span.setTag('error', true);
+      span.log({
+        value: 'Missing sender address',
+      });
+      span.finish();
+
       throw new Error('Missing sender address');
     }
     if (isAddress(senderId) && !transaction.senderPublicKey) {
+      span.setTag('error', true);
+      span.log({
+        value: 'Sender public key not provided',
+      });
+      span.finish();
+
       throw new Error('Sender public key not provided');
     }
 
@@ -114,8 +140,15 @@ export default class Transactions implements ICoreModule {
       address: senderId,
     });
     if (!sender) {
-      if (new BigNumber(height).isGreaterThan(0))
+      if (new BigNumber(height).isGreaterThan(0)) {
+        span.setTag('error', true);
+        span.log({
+          value: 'Sender account not found',
+        });
+        span.finish();
+
         throw new Error('Sender account not found');
+      }
       sender = await global.app.sdb.create<Account>(Account, {
         address: senderId,
         username: null,
@@ -130,14 +163,33 @@ export default class Transactions implements ICoreModule {
     };
     if (new BigNumber(height).isGreaterThan(0)) {
       const error = await TransactionBase.verify(context);
-      if (error) throw new Error(error);
+      if (error) {
+        span.setTag('error', true);
+        span.log({
+          value: `error during verifying trs context: ${error}`,
+        });
+        span.finish();
+
+        throw new Error(error);
+      }
     }
 
     try {
       global.app.sdb.beginContract();
       await Transactions.apply(context);
       global.app.sdb.commitContract();
+
+      span.finish();
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: `error during applying transaction: ${e}`,
+      });
+      span.log({
+        value: 'going to rollback contract',
+      });
+      span.finish();
+
       global.app.sdb.rollbackContract();
       throw e;
     }
