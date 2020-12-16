@@ -1,4 +1,4 @@
-const version = 'v1.3';
+const version = 'v1.4';
 
 export const V1_NEW_BLOCK_PROTOCOL = `/${version}/newBlock`;
 export const V1_VOTES = `/${version}/votes`;
