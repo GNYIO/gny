@@ -12,14 +12,22 @@ describe('bootstrap-nodes e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'bootstrap-nodes');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
   }, lib.oneMinute);
 
@@ -27,7 +35,8 @@ describe('bootstrap-nodes e2e test', () => {
     'bootstrap-nodes',
     async done => {
       // node1, node2 and node3 have no forging secrets
-      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
+      await lib.upP2PContainers(DOCKER_COMPOSE_P2P, [
+        'jaeger',
         'db1',
         'db2',
         'db3',

@@ -22,5 +22,6 @@ export async function hasXAmountOfPeers(
 ) {
   const { data } = await axios.get(`http://localhost:${port}/api/peers`);
   expect(data.peers).toHaveLength(expectedNumberOfPeers);
+  console.log(`peer [${port}] has ${data.peers.length} peer`);
   return data;
 }

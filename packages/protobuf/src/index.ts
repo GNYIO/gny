@@ -17,16 +17,6 @@ export class Protobuf implements IProtobuf {
     this.schema = schema;
   }
 
-  encodeBlockPropose(propose: BlockPropose): Buffer {
-    const obj = _.cloneDeep(propose);
-    return this.schema.BlockPropose.encode(obj);
-  }
-
-  decodeBlockPropose(data: Buffer): BlockPropose {
-    const obj = this.schema.BlockPropose.decode(data);
-    return obj;
-  }
-
   encodeBlockVotes(obj: any): Buffer {
     for (let i = 0; i < obj.signatures.length; ++i) {
       const signature = obj.signatures[i];

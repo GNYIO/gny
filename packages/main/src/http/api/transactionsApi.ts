@@ -40,7 +40,6 @@ export default class TransactionsApi implements IHttpApi {
     router.get('/', this.getTransactions);
     router.get('/unconfirmed/get', this.getUnconfirmedTransaction);
     router.get('/unconfirmed', this.getUnconfirmedTransactions);
-    router.put('/batch', this.addTransactions);
 
     router.use((req: Request, res: Response) => {
       res.status(500).json({ success: false, error: 'API endpoint not found' });
@@ -240,38 +239,5 @@ export default class TransactionsApi implements IHttpApi {
       transactions: toSend,
     };
     return res.json(result);
-  };
-
-  private addTransactions = (req: Request, res: Response, next: Next) => {
-    if (!req.body || !req.body.transactions) {
-      return next('Invalid params');
-    }
-    const finishedCallback = (err: string, result: any) => {
-      if (err) {
-        return next(err);
-      }
-      const trsResult: ApiResult<TransactionsWrapper> = {
-        success: true,
-        transactions: result,
-      };
-      return res.json(trsResult);
-    };
-
-    const trs = req.body.transactions;
-    try {
-      for (let i = 0; i < trs.length; ++i) {
-        trs[i] = TransactionBase.normalizeTransaction(trs[i]);
-      }
-    } catch (e) {
-      return next(`Invalid transaction body: ${e.toString()}`);
-    }
-    return this.library.sequence.add(
-      callback => {
-        const state = StateHelper.getState();
-        Transactions.processUnconfirmedTransactions(state, trs, callback);
-      },
-      undefined,
-      finishedCallback
-    );
   };
 }

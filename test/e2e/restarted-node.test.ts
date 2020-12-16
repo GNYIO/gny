@@ -41,7 +41,9 @@ describe('restarted node e2e test', () => {
       // restart only the service node1, not the db1 service
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node1']);
       await lib.sleep(10 * 1000);
-      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['node1']);
+      console.log('starting node1 again');
+      await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
+      console.log('node1 started');
       await lib.sleep(10 * 1000);
 
       const after = await axios.get(

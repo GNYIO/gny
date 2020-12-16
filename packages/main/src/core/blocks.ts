@@ -221,18 +221,42 @@ export default class Blocks implements ICoreModule {
    * the transactions already got exected by the time they reached the
    * node.
    */
-  public static applyBlock = async (state: IState, block: IBlock) => {
+  public static applyBlock = async (
+    state: IState,
+    block: IBlock,
+    parentSpan: ISpan
+  ) => {
     global.app.logger.trace('enter applyblock');
+
+    const span = global.library.tracer.startSpan('apply block', {
+      childOf: parentSpan.context(),
+    });
 
     try {
       if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
         throw new Error(`Duplicate transaction in block`);
       }
 
+      span.log({
+        transactionsToExecute:
+          (block.transactions && block.transactions.length) || 0,
+      });
       for (const transaction of block.transactions) {
-        await Transactions.applyUnconfirmedTransactionAsync(state, transaction);
+        await Transactions.applyUnconfirmedTransactionAsync(
+          state,
+          transaction,
+          span
+        );
       }
+
+      span.finish();
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to apply block: ${e}`,
+      });
+      span.finish();
+
       global.app.logger.error('Failed to apply block');
       global.app.logger.error(e);
       throw new Error(`Failed to apply block: ${e}`);
@@ -282,19 +306,47 @@ export default class Blocks implements ICoreModule {
   public static async ProcessBlockDbIO(
     state: IState,
     block: IBlock,
-    options: ProcessBlockOptions
+    options: ProcessBlockOptions,
+    parentSpan: ISpan
   ) {
+    const span = global.library.tracer.startSpan('process block db io', {
+      childOf: parentSpan.context(),
+    });
+
+    span.log({
+      value: 'begin block',
+    });
     await global.app.sdb.beginBlock(block);
 
     try {
+      span.log({
+        value: `isLocal: ${!!options.local}`,
+      });
+
       if (!options.local) {
-        await Blocks.applyBlock(state, block);
+        span.log({
+          value: 'going to applyBlock',
+        });
+
+        await Blocks.applyBlock(state, block, span);
+      } else {
+        span.log({
+          value: 'no applyBlock execution',
+        });
       }
 
       await Blocks.saveBlockTransactions(block);
-      await Blocks.applyRound(block);
+      await Blocks.applyRound(block, span);
       await global.app.sdb.commitBlock();
+
+      span.finish();
     } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        value: `error during "process block db io", error: ${e}`,
+      });
+      span.finish();
+
       await global.app.sdb.rollbackBlock();
       throw e;
     }
@@ -344,7 +396,7 @@ export default class Blocks implements ICoreModule {
       // Check block against DB
       await Blocks.CheckBlockWithDbAccessIO(block, options);
 
-      await Blocks.ProcessBlockDbIO(state, block, options);
+      await Blocks.ProcessBlockDbIO(state, block, options, span);
 
       state = BlocksHelper.SetLastBlock(state, block);
 
@@ -394,9 +446,22 @@ export default class Blocks implements ICoreModule {
     // removed .load() line
   };
 
-  public static applyRound = async (block: IBlock) => {
+  public static applyRound = async (block: IBlock, parentSpan: ISpan) => {
+    const span = global.library.tracer.startSpan('apply round', {
+      childOf: parentSpan.context(),
+    });
+
+    span.setTag('height', block.height);
+    span.setTag('id', block.id);
+    span.setTag('hash', getSmallBlockHash(block));
+
     if (new BigNumber(block.height).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
+
+      span.log({
+        value: 'exiting, its the genesisBlock',
+      });
+      span.finish();
       return;
     }
 
@@ -411,6 +476,11 @@ export default class Blocks implements ICoreModule {
 
     const roundNumber = RoundBase.calculateRound(block.height);
 
+    span.setTag('round', roundNumber);
+    span.log({
+      round: roundNumber,
+    });
+
     // TODO: refactor, this will not go good!
     const { fee, reward } = await Blocks.increaseRoundData(
       {
@@ -422,7 +492,10 @@ export default class Blocks implements ICoreModule {
 
     await Blocks.saveSlotStatistics(block);
 
-    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) return;
+    if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) {
+      span.finish();
+      return;
+    }
 
     global.app.logger.debug(
       `----------------------on round ${roundNumber} end-----------------------`
@@ -438,6 +511,11 @@ export default class Blocks implements ICoreModule {
       new BigNumber(block.height).minus(100).toFixed(),
       new BigNumber(block.height).minus(1).toFixed()
     );
+
+    span.log({
+      forgedBlocks: [...forgedBlocks, block],
+    });
+
     const forgedDelegates: string[] = [
       ...forgedBlocks.map(b => b.delegate),
       block.delegate,
@@ -446,6 +524,16 @@ export default class Blocks implements ICoreModule {
     const missedDelegates = delegates.filter(
       fd => !forgedDelegates.includes(fd)
     );
+
+    span.log({
+      missedDelegates,
+    });
+
+    const allDelegatesBefore = await global.app.sdb.getAll<Delegate>(Delegate);
+    span.log({
+      allDelegatesBefore,
+    });
+
     for (let i = 0; i < missedDelegates.length; ++i) {
       const md = missedDelegates[i];
       const adr = generateAddress(md);
@@ -504,6 +592,11 @@ export default class Blocks implements ICoreModule {
       .minus(actualRewards)
       .toFixed();
 
+    span.log({
+      forgedDelegates,
+      forgedDelegatesCount: forgedDelegates.length,
+    });
+
     for (const fd of forgedDelegates) {
       await updateDelegate(fd, feeAverage, rewardAverage);
     }
@@ -514,6 +607,13 @@ export default class Blocks implements ICoreModule {
 
       await Delegates.updateBookkeeper();
     }
+
+    const allDelegatesAfter = await global.app.sdb.getAll<Delegate>(Delegate);
+    span.log({
+      allDelegatesAfter,
+    });
+
+    span.finish();
   };
 
   public static saveSlotStatistics = async (block: IBlock) => {
@@ -1022,7 +1122,8 @@ export default class Blocks implements ICoreModule {
             const redoTransactions = [...pendingTrsMap.values()];
             await Transactions.processUnconfirmedTransactionsAsync(
               state,
-              redoTransactions
+              redoTransactions,
+              processBlockSpan
             );
           } catch (e) {
             span.setTag('error', true);
@@ -1242,24 +1343,34 @@ export default class Blocks implements ICoreModule {
   };
 
   public static onReceiveTransaction = (
-    unconfirmedTrs: UnconfirmedTransaction
+    unconfirmedTrs: UnconfirmedTransaction,
+    parentSpan: ISpan
   ) => {
-    const finishCallback = err => {
-      if (err) {
-        global.app.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`
-        );
-        global.app.logger.warn(err);
-      } else {
-        // TODO: are peer-transactions not broadcasted to all other peers also?
-        // library.bus.message('onUnconfirmedTransaction', transaction, true)
-      }
-    };
+    const span = global.library.tracer.startSpan('execute transaction', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('transactionId', unconfirmedTrs.id);
+    span.setTag('senderId', unconfirmedTrs.senderId);
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
-    global.library.sequence.add(cb => {
+    global.library.sequence.add(async cb => {
+      span.log({
+        value: 'execute in sequence',
+      });
+
       if (StateHelper.IsSyncing()) {
+        span.setTag('error', true);
+        span.setTag('syncing', true);
+        span.log({
+          value: 'is syncing',
+        });
+        span.log({
+          value: 'not going to execute transaction',
+        });
+
+        span.finish();
+
         // TODO this should access state
         return cb();
       }
@@ -1268,11 +1379,40 @@ export default class Blocks implements ICoreModule {
       if (
         !BlocksHelper.IsBlockchainReady(state, Date.now(), global.app.logger)
       ) {
+        span.setTag('error', true);
+        span.log({
+          value: 'blockchain is not ready',
+        });
+        span.finish();
+
         return cb();
       }
 
-      Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
-    }, finishCallback);
+      try {
+        await Transactions.processUnconfirmedTransactionAsync(
+          state,
+          unconfirmedTrs,
+          span
+        );
+      } catch (err) {
+        span.setTag('error', true);
+        span.log({
+          value: `error while processing unconfirmed transaction: ${
+            err.message
+          }`,
+        });
+        span.finish();
+
+        global.app.logger.warn(
+          `Receive invalid transaction ${unconfirmedTrs.id}`
+        );
+        global.app.logger.warn(err);
+
+        return cb();
+      }
+
+      span.finish();
+    });
   };
 
   public static onReceiveVotes = (votes: ManyVotes, span: ISpan) => {
@@ -1415,6 +1555,8 @@ export default class Blocks implements ICoreModule {
         delegateList,
         span
       );
+
+      span.finish();
       state = stateResult.state;
     } else {
       const block = await getBlocksByHeight(

@@ -72,6 +72,10 @@ export default class ExchangeApi implements IHttpApi {
     res: Response,
     next: Next
   ) => {
+    const span = global.library.tracer.startSpan(
+      'received unsigned transaction'
+    );
+
     const query = req.body;
     const unsigendTransactionSchema = joi.object().keys({
       secret: joi
@@ -98,63 +102,103 @@ export default class ExchangeApi implements IHttpApi {
       this.library.logger.warn(
         `Failed to validate query params: ${report.error.message}`
       );
+
+      span.setTag('error', true);
+      span.log({
+        value: `Failed to validate query params: ${report.error.message}`,
+      });
+      span.log({
+        value: 'Invalid transaction body',
+      });
+      span.finish();
+
       return setImmediate(next, 'Invalid transaction body');
+    }
+
+    let unconfirmedTrs = null;
+    try {
+      const hash = crypto
+        .createHash('sha256')
+        .update(query.secret, 'utf8')
+        .digest();
+      const keypair = ed.generateKeyPair(hash);
+      let secondKeypair: KeyPair = null;
+      if (query.secondSecret) {
+        secondKeypair = ed.generateKeyPair(
+          crypto
+            .createHash('sha256')
+            .update(query.secondSecret, 'utf8')
+            .digest()
+        );
+      }
+      unconfirmedTrs = TransactionBase.create({
+        fee: query.fee,
+        type: query.type,
+        args: query.args || null,
+        message: query.message || null,
+        secondKeypair,
+        keypair,
+      });
+    } catch (err) {
+      span.setTag('error', true);
+      span.log({
+        value: '',
+      });
+
+      span.finish();
+      return setImmediate(next, 'error while signing');
     }
 
     const finishSequence = (err: string, result: any) => {
       if (err) {
+        span.setTag('error', true);
+        span.log({
+          value: `unconfirmed transaction error: ${err}`,
+        });
+
+        span.finish();
         return next(err);
       }
+
+      span.log({
+        result,
+      });
+      span.finish();
+
       res.json(result);
     };
 
     this.library.sequence.add(
-      callback => {
-        (async () => {
+      async cb => {
+        span.log({
+          value: 'start sequence',
+        });
+
+        try {
           const state = StateHelper.getState();
 
-          try {
-            const hash = crypto
-              .createHash('sha256')
-              .update(query.secret, 'utf8')
-              .digest();
-            const keypair = ed.generateKeyPair(hash);
-            let secondKeypair: KeyPair = null;
-            if (query.secondSecret) {
-              secondKeypair = ed.generateKeyPair(
-                crypto
-                  .createHash('sha256')
-                  .update(query.secondSecret, 'utf8')
-                  .digest()
-              );
-            }
-            const unconfirmedTrs = TransactionBase.create({
-              fee: query.fee,
-              type: query.type,
-              args: query.args || null,
-              message: query.message || null,
-              secondKeypair,
-              keypair,
-            });
-            await Transactions.processUnconfirmedTransactionAsync(
-              state,
-              unconfirmedTrs
-            );
-            this.library.bus.message(
-              'onUnconfirmedTransaction',
-              unconfirmedTrs
-            );
-            const result: ApiResult<TransactionIdWrapper> = {
-              success: true,
-              transactionId: unconfirmedTrs.id,
-            };
-            callback(null, result);
-          } catch (e) {
-            this.library.logger.warn('Failed to process unsigned transaction');
-            this.library.logger.warn(e);
-            callback('Server Error');
-          }
-        })();
+          await Transactions.processUnconfirmedTransactionAsync(
+            state,
+            unconfirmedTrs,
+            span
+          );
+
+          this.library.bus.message(
+            'onUnconfirmedTransaction',
+            unconfirmedTrs,
+            span
+          );
+
+          const result: ApiResult<TransactionIdWrapper> = {
+            success: true,
+            transactionId: unconfirmedTrs.id,
+          };
+          return cb(null, result);
+        } catch (e) {
+          this.library.logger.warn('Failed to process unsigned transaction');
+          this.library.logger.warn(e);
+          return cb('Server Error');
+        }
       },
       undefined,
       finishSequence

@@ -16,8 +16,6 @@ declare interface IBase {
 }
 
 export interface IProtobuf {
-  encodeBlockPropose(propose: BlockPropose): Buffer;
-  decodeBlockPropose(data: Buffer): BlockPropose;
   encodeBlockVotes(obj: any): Buffer;
   decodeBlockVotes(data: Buffer): ManyVotes;
   encodeUnconfirmedTransaction(trs: UnconfirmedTransaction): Buffer;

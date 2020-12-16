@@ -97,8 +97,16 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private transactions = (req: Request, res: Response, next: Next) => {
+    const span = global.library.tracer.startSpan(
+      'receive transaction via http'
+    );
+
     let unconfirmedTrs: UnconfirmedTransaction;
     try {
+      span.log({
+        value: 'normalize transaction',
+      });
+
       unconfirmedTrs = TransactionBase.normalizeUnconfirmedTransaction(
         req.body.transaction
       );
@@ -116,20 +124,33 @@ export default class TransportApi implements IHttpApi {
         )}`
       );
 
+      span.setTag('error', true);
+      span.log({
+        value: `Received transaction parse error: ${e.message}`,
+        unconfirmedTrs,
+      });
+      span.finish();
+
       return next('Invalid transaction body');
     }
 
+    span.setTag('transactionId', unconfirmedTrs.id);
+    span.setTag('senderId', unconfirmedTrs.senderId);
+
     const finished = err => {
       if (err) {
-        this.library.logger.warn(
-          `Receive invalid transaction ${unconfirmedTrs.id}`
-        );
-        this.library.logger.warn(err);
+        span.finish();
 
         const errMsg: string = err.message ? err.message : err.toString();
         return next(errMsg);
       } else {
-        this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs);
+        span.finish();
+
+        this.library.bus.message(
+          'onUnconfirmedTransaction',
+          unconfirmedTrs,
+          span
+        );
         const result: ApiResult<TransactionIdWrapper> = {
           success: true,
           transactionId: unconfirmedTrs.id,
@@ -139,7 +160,11 @@ export default class TransportApi implements IHttpApi {
     };
 
     return this.library.sequence.add(
-      cb => {
+      async cb => {
+        span.log({
+          value: 'start sequence',
+        });
+
         const state = StateHelper.getState();
         if (
           !BlocksHelper.IsBlockchainReady(
@@ -148,10 +173,35 @@ export default class TransportApi implements IHttpApi {
             this.library.logger
           )
         ) {
+          span.setTag('error', true);
+          span.log({
+            value: 'Blockchain is not ready',
+          });
+
           return cb('Blockchain is not ready');
         }
 
-        Transactions.processUnconfirmedTransaction(state, unconfirmedTrs, cb);
+        try {
+          await Transactions.processUnconfirmedTransactionAsync(
+            state,
+            unconfirmedTrs,
+            span
+          );
+        } catch (err) {
+          span.setTag('error', true);
+          span.log({
+            value: `error during processing transaction: ${err.message}`,
+          });
+
+          this.library.logger.warn(
+            `Receive invalid transaction ${unconfirmedTrs.id}`
+          );
+          this.library.logger.warn(err);
+
+          return cb(err.message);
+        }
+
+        return cb();
       },
       undefined,
       finished

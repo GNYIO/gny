@@ -13,13 +13,21 @@ describe('68-secrets', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
-  }, lib.oneMinute);
+  }, lib.oneMinute * 1.5);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, '68-secrets');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
   }, lib.oneMinute);
 
@@ -35,7 +43,9 @@ describe('68-secrets', () => {
       expect(new BigNumber(before2).isGreaterThan(1)).toEqual(true);
 
       // wait again
+      console.log(`sleeping for 1 min...`);
       await lib.sleep(lib.oneMinute);
+      console.log(`stopt sleeping.`);
 
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
