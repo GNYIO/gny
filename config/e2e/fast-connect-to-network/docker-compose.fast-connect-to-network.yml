@@ -33,6 +33,8 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    depends_on:
+      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.2
@@ -71,6 +73,8 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    depends_on:
+      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.4
@@ -109,7 +113,9 @@ services:
     environment:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
-     POSTGRES_USER: postgres
+     POSTGRES_USER:
+    depends_on:
+      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.6
@@ -149,6 +155,8 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    depends_on:
+      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.8
@@ -188,6 +196,8 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    depends_on:
+      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.10

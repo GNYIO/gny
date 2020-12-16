@@ -20,15 +20,23 @@ describe('sync-later e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     // create **only** network, volumes and all containers, don't start them
     lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
   }, lib.oneMinute);
 
@@ -36,7 +44,7 @@ describe('sync-later e2e test', () => {
     'sync-later',
     async done => {
       // start individually all containers
-      // await lib.printActiveContainers();
+      console.log('starting "jaeger", "db1", "db2", "forger"');
       await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
         'jaeger',
         'db1',
@@ -44,6 +52,7 @@ describe('sync-later e2e test', () => {
         'forger',
       ]);
       await lib.waitForLoaded(4096);
+      console.log('successfully started "forger"');
 
       // send a transaction, so a transaction also gets synced
       const trs = {
@@ -61,11 +70,13 @@ describe('sync-later e2e test', () => {
         id: '0035632e3fb7c510fa0b7e264e177d6df914ffca9079a5bf6d1e95914d7c5322',
       };
 
+      console.log('sending transaction...');
       const result = await axios.post(
         'http://localhost:4096/peer/transactions',
         { transaction: trs },
         config
       );
+      console.log('finished sending.');
       // sleep for 100 seconds
       await lib.sleep(100 * 1000);
 
@@ -74,7 +85,9 @@ describe('sync-later e2e test', () => {
       expect(new BigNumber(height).isGreaterThanOrEqualTo(6)).toEqual(true);
 
       // start service "sync-later"
-      await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['sync-later']);
+      console.log('starting service "sync-later"');
+      await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4098]);
+      console.log('started "sync-later".');
 
       // wait for 20 seconds
       await lib.sleep(20 * 1000);
@@ -83,7 +96,7 @@ describe('sync-later e2e test', () => {
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
       // now
-      done();
+      return done();
     },
     3 * lib.oneMinute
   );

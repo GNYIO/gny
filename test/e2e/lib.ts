@@ -120,6 +120,16 @@ export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
   await Promise.all(waitForAllContainers);
 }
 
+export async function spawnP2pContainersSingle(
+  configFile: string,
+  services: string[]
+) {
+  shellJS.exec(
+    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
+  );
+  await sleep(5000);
+}
+
 export async function startP2PContainers(
   configFile: string,
   services: string[]
@@ -174,13 +184,11 @@ export async function printActiveContainers() {
 }
 
 export async function stopAndKillContainer(configFile?: string) {
-  await dockerCompose.down({
-    commandOptions: ['--volumes'], // this also deletes the volumes on down
-    cwd: process.cwd(),
-    log: true,
-    config: configFile,
+  const file = configFile ? `--file ${configFile}` : '';
+  shellJS.exec(`docker-compose ${file} down --volumes`, {
+    silent: true,
   });
-  await sleep(10 * 1000);
+  await sleep(20 * 1000);
 }
 
 export function createRandomAddress(): string {
