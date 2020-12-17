@@ -8,6 +8,7 @@ import Application from './index';
 import * as packageJson from '../package.json';
 import { IConfig, IBlock } from '@gny/interfaces';
 import * as ip from 'ip';
+import { P2P_VERSION } from '@gny/p2p';
 
 const version = packageJson.version;
 
@@ -190,6 +191,7 @@ function main() {
     version,
     appConfig.magic,
     appConfig.netVersion,
+    P2P_VERSION,
     logger
   );
 

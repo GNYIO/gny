@@ -79,6 +79,7 @@ export function initTracer(
   version: string,
   magic: string,
   network: string,
+  p2pVersion: string,
   logger: ILogger
 ) {
   const config: jaegerClient.TracingConfig = {
@@ -99,6 +100,7 @@ export function initTracer(
       version,
       magic,
       network,
+      p2pVersion,
     },
     logger: logger,
   };
