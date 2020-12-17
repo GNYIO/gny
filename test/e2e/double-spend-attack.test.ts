@@ -151,15 +151,23 @@ describe('double-spend-attack', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'double-spend-attack');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
-  }, lib.oneMinute);
+  }, lib.oneMinute * 1.5);
 
   it(
     'double-spend-attack',

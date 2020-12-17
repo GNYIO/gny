@@ -1,6 +1,5 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
-import BigNumber from 'bignumber.js';
 import axios from 'axios';
 import * as gnyJS from '@gny/client';
 
@@ -88,13 +87,21 @@ describe('sync-to-stuck-network e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-to-stuck-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
   }, lib.oneMinute);
 

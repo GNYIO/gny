@@ -9,20 +9,29 @@ describe('should connect e2e test', () => {
   beforeAll(async done => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
+
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
     await lib.sleep(10 * 1000);
+
+    console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
+    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'should-connect');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
     done();
-  }, lib.oneMinute);
+  }, lib.oneMinute * 1.5);
 
   it(
     'should connect',
