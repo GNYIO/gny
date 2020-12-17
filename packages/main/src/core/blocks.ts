@@ -381,6 +381,7 @@ export default class Blocks implements ICoreModule {
       throw new Error('Blockchain is loading');
     }
 
+    span.setTag('processBlock', true);
     span.log({
       options,
     });
@@ -404,6 +405,11 @@ export default class Blocks implements ICoreModule {
     } catch (error) {
       global.app.logger.error('save block error:');
       global.app.logger.error(error);
+
+      span.setTag('error', true);
+      span.log({
+        value: `save block error: ${error}`,
+      });
 
       success = false;
     } finally {
@@ -809,7 +815,7 @@ export default class Blocks implements ICoreModule {
         try {
           for (const block of blocks) {
             const processBlockSpan = global.library.tracer.startSpan(
-              'Block.processBlock()',
+              'process block (syncing)',
               {
                 childOf: multipleBlocksSpan.context(),
               }
@@ -1065,7 +1071,7 @@ export default class Blocks implements ICoreModule {
       if (fitInLineResult === BlockFitsInLine.Success) {
         // does this work, even
         const processBlockSpan = global.library.tracer.startSpan(
-          'Block.processBlock()',
+          'process block (on receive block)',
           {
             childOf: span.context(),
           }
@@ -1473,16 +1479,15 @@ export default class Blocks implements ICoreModule {
           span.finish();
 
           const processBlockSpan = global.library.tracer.startSpan(
-            'Block.processBlock()',
+            'process Block (on receive votes)',
             {
               childOf: span.context(),
-              tags: {
-                height: pendingBlock.height,
-                id: pendingBlock.id,
-                hash: getSmallBlockHash(pendingBlock),
-              },
             }
           );
+          processBlockSpan.log({
+            pendingBlock,
+            totalVotes,
+          });
 
           const stateResult = await Blocks.processBlock(
             state,
@@ -1541,7 +1546,7 @@ export default class Blocks implements ICoreModule {
     if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
-      const span = global.library.tracer.startSpan('Block.processBlock()');
+      const span = global.library.tracer.startSpan('process block (genesis)');
       span.setTag('hash', getSmallBlockHash(genesisBlock));
       span.setTag('height', genesisBlock.height);
       span.setTag('id', genesisBlock.id);
