@@ -1,7 +1,7 @@
 {
   "name": "@gny/main",
   "private": true,
-  "version": "1.0.48",
+  "version": "1.0.49",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -22,9 +22,9 @@
     "@gny/interfaces": "1.0.48",
     "@gny/logger": "1.0.48",
     "@gny/machine-learning": "1.0.48",
-    "@gny/p2p": "1.0.48",
+    "@gny/p2p": "1.0.49",
     "@gny/protobuf": "1.0.48",
-    "@gny/tracer": "1.0.48",
+    "@gny/tracer": "1.0.49",
     "@gny/transaction-pool": "1.0.48",
     "@gny/type-validation": "1.0.48",
     "@gny/utils": "1.0.48",
