@@ -12,6 +12,7 @@ import {
   BalancesWrapper,
   BalanceWrapper,
   BalanceError,
+  AssetHoldersWrapper,
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
@@ -92,6 +93,19 @@ export class Uia {
       BalanceWrapper,
       ValidationError | BalanceError | string
     > = res.data;
+    return result;
+  }
+
+  public async getHolders(
+    asset: string,
+    limit: number = 100,
+    offset: number = 0
+  ) {
+    const res = await this.base.get(
+      `/api/uia/holders/${asset}?limit=${limit}&offset=${offset}`
+    );
+    const result: ApiResult<AssetHoldersWrapper, ValidationError | string> =
+      res.data;
     return result;
   }
 }

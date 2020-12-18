@@ -476,7 +476,7 @@ describe('uiaApi', () => {
     );
   });
 
-  describe.only('/holders/:currency', () => {
+  describe('/holders/:currency', () => {
     it(
       'should get asset holders',
       async () => {
@@ -510,7 +510,12 @@ describe('uiaApi', () => {
         await beforeAssetHolderGetRequest();
 
         const { data } = await axios.get(
-          'http://localhost:4096/api/uia/holders/ABC.BBB?offset=1'
+          'http://localhost:4096/api/uia/holders/ABC.BBB',
+          {
+            params: {
+              offset: 1,
+            },
+          }
         );
         console.log(`data: ${JSON.stringify(data, null, 2)}`);
 
@@ -532,7 +537,12 @@ describe('uiaApi', () => {
         await beforeAssetHolderGetRequest();
 
         const { data } = await axios.get(
-          'http://localhost:4096/api/uia/holders/ABC.BBB?limit=1'
+          'http://localhost:4096/api/uia/holders/ABC.BBB',
+          {
+            params: {
+              limit: 1,
+            },
+          }
         );
         console.log(`data: ${JSON.stringify(data, null, 2)}`);
 
