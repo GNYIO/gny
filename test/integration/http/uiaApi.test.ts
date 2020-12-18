@@ -65,6 +65,31 @@ async function beforeUiaTransfer() {
   await lib.onNewBlock();
 }
 
+async function beforeAssetHolderGetRequest() {
+  const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
+
+  // prepare
+  await beforeUiaTransfer();
+
+  // act
+  const transfer = gnyClient.uia.transfer(
+    'ABC.BBB',
+    String(10 * 1e8),
+    recipient,
+    undefined,
+    genesisSecret
+  );
+  const transData = {
+    transaction: transfer,
+  };
+  await axios.post(
+    'http://localhost:4096/peer/transactions',
+    transData,
+    config
+  );
+  await lib.onNewBlock();
+}
+
 describe('uiaApi', () => {
   beforeAll(async done => {
     await lib.deleteOldDockerImages();
@@ -446,6 +471,80 @@ describe('uiaApi', () => {
           'http://localhost:4096/api/uia/balances/' + recipient + '/ABC.BBB'
         );
         expect(data.balance.balance).toBe('1000000000');
+      },
+      lib.oneMinute
+    );
+  });
+
+  describe.only('/holders/:currency', () => {
+    it(
+      'should get asset holders',
+      async () => {
+        await beforeAssetHolderGetRequest();
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/uia/holders/ABC.BBB'
+        );
+        console.log(`data: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(2);
+
+        const first = data.holders[0];
+        expect(first.address).toEqual('GTtysDoaWGKMt9Ax6iuscs1eoHeJ');
+        expect(first.balance).toEqual(String(1000000000));
+        expect(first.currency).toEqual('ABC.BBB');
+
+        const second = data.holders[1];
+        expect(second.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+        expect(second.balance).toEqual(String(0));
+        expect(second.currency).toEqual('ABC.BBB');
+      },
+      2 * lib.oneMinute
+    );
+
+    it(
+      'works with offset 1',
+      async () => {
+        await beforeAssetHolderGetRequest();
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/uia/holders/ABC.BBB?offset=1'
+        );
+        console.log(`data: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(1); // important
+
+        const first = data.holders[0];
+        expect(first.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+        expect(first.balance).toEqual(String(0));
+        expect(first.currency).toEqual('ABC.BBB');
+      },
+      10 * lib.oneMinute
+    );
+
+    it(
+      'works with limit 1',
+      async () => {
+        await beforeAssetHolderGetRequest();
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/uia/holders/ABC.BBB?limit=1'
+        );
+        console.log(`data: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(1); // important
+
+        const first = data.holders[0];
+
+        expect(first.address).toEqual('GTtysDoaWGKMt9Ax6iuscs1eoHeJ');
+        expect(first.balance).toEqual(String(1000000000));
+        expect(first.currency).toEqual('ABC.BBB');
       },
       lib.oneMinute
     );
