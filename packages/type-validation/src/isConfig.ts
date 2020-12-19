@@ -7,10 +7,12 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
     .keys({
       port: joi
         .number()
+        .integer()
         .port()
         .required(),
       peerPort: joi
         .number()
+        .integer()
         .port()
         .required(), // always must be port + 1
       address: joi.string().ip(),
@@ -53,7 +55,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       ssl: joi.object().keys({
         enabled: joi.boolean(),
         options: joi.object().keys({
-          port: joi.number().port(),
+          port: joi
+            .number()
+            .integer()
+            .port(),
           address: joi.string().ip(),
           key: joi.string(),
           cert: joi.string(),
@@ -73,6 +78,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
       dbHost: joi.string().required(),
       dbPort: joi
         .number()
+        .integer()
         .port()
         .required(),
       nodeAction: joi
@@ -85,6 +91,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .required(),
       jaegerPort: joi
         .number()
+        .integer()
         .port()
         .required(),
       disableJaeger: joi.boolean().required(),

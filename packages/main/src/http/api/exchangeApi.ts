@@ -92,6 +92,7 @@ export default class ExchangeApi implements IHttpApi {
         .required(),
       type: joi
         .number()
+        .integer()
         .min(0)
         .required(),
       args: joi.array().optional(),

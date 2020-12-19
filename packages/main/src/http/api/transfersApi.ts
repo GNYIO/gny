@@ -72,9 +72,13 @@ export default class TransfersApi implements IHttpApi {
     const schema = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
       ownerId: joi.string().address(),
       currency: joi.string().asset(),
       senderId: joi.string().address(),

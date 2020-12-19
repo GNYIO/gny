@@ -84,7 +84,13 @@ export default class BlocksApi implements IHttpApi {
       .object()
       .keys({
         id: joi.string().min(1),
-        height: [joi.number().min(0), joi.string().positiveOrZeroBigInt()],
+        height: [
+          joi
+            .number()
+            .integer()
+            .min(0),
+          joi.string().positiveOrZeroBigInt(),
+        ],
       })
       .xor('id', 'height');
     const report = joi.validate(query, idOrHeight);
@@ -134,11 +140,13 @@ export default class BlocksApi implements IHttpApi {
     const schema = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100)
         .required(),
       offset: joi
         .number()
+        .integer()
         .min(0)
         .required(),
       orderBy: joi

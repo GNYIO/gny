@@ -196,9 +196,13 @@ export default class AccountsApi implements IHttpApi {
         .required(),
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
     });
     const report = joi.validate(query, hasAddress);
     if (report.error) {

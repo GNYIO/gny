@@ -11,6 +11,7 @@ export function isPeerNode(peer: any): peer is PeerNode {
         .required(),
       port: joi
         .number()
+        .integer()
         .port()
         .required(),
     })

@@ -300,9 +300,13 @@ export default class DelegatesApi implements IHttpApi {
     const schema = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(101),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
     });
 
     const report = joi.validate({ limit, offset }, schema);
@@ -338,9 +342,13 @@ export default class DelegatesApi implements IHttpApi {
         address: joi.string().address(),
         limit: joi
           .number()
+          .integer()
           .min(0)
           .max(100),
-        offset: joi.number().min(0),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
       })
       .xor('publicKey', 'username', 'address')
       .required();

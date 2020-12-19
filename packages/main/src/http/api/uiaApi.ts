@@ -103,9 +103,13 @@ export default class UiaApi implements IHttpApi {
     const limitOffset = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
     });
     const report = joi.validate(query, limitOffset);
     if (report.error) {
@@ -202,9 +206,13 @@ export default class UiaApi implements IHttpApi {
     const limitOffset = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
     });
     const report = joi.validate(query, limitOffset);
     if (report.error) {
@@ -246,9 +254,13 @@ export default class UiaApi implements IHttpApi {
     const limitOffset = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
     });
     const report = joi.validate(query, limitOffset);
     if (report.error) {

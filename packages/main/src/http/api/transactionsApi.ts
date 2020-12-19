@@ -62,9 +62,13 @@ export default class TransactionsApi implements IHttpApi {
     const schema = joi.object().keys({
       limit: joi
         .number()
+        .integer()
         .min(0)
         .max(100),
-      offset: joi.number().min(0),
+      offset: joi
+        .number()
+        .integer()
+        .min(0),
       id: joi
         .string()
         .min(1)
@@ -83,7 +87,13 @@ export default class TransactionsApi implements IHttpApi {
         .number()
         .min(0)
         .max(1000),
-      height: [joi.number().min(0), joi.string().positiveOrZeroBigInt()],
+      height: [
+        joi
+          .number()
+          .integer()
+          .min(0),
+        joi.string().positiveOrZeroBigInt(),
+      ],
       message: joi.transactionMessage(),
     });
 
