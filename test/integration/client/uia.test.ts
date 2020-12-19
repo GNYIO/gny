@@ -52,6 +52,26 @@ async function beforeUiaTransfer(uiaApi: any) {
   await lib.onNewBlock();
 }
 
+async function transferUiaTo(recipient: string) {
+  // act
+  const transfer = gnyClient.uia.transfer(
+    'ABC.BBB',
+    String(10 * 1e8),
+    recipient,
+    undefined,
+    genesisSecret
+  );
+  const transData = {
+    transaction: transfer,
+  };
+  await axios.post(
+    'http://localhost:4096/peer/transactions',
+    transData,
+    config
+  );
+  await lib.onNewBlock();
+}
+
 describe('uia', () => {
   const connection = new gnyClient.Connection();
   const uiaApi = connection.api.Uia;
@@ -375,6 +395,80 @@ describe('uia', () => {
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
+    );
+  });
+
+  describe('/getHolders', () => {
+    it(
+      'should get balance',
+      async () => {
+        const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
+        await beforeUiaTransfer(contractUiaApi);
+        await transferUiaTo(recipient);
+
+        const data = await uiaApi.getHolders('ABC.BBB');
+        console.log(`result: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(2);
+
+        const first = data.holders[0];
+        expect(first.address).toEqual('GTtysDoaWGKMt9Ax6iuscs1eoHeJ');
+        expect(first.balance).toEqual(String(1000000000));
+        expect(first.currency).toEqual('ABC.BBB');
+
+        const second = data.holders[1];
+        expect(second.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+        expect(second.balance).toEqual(String(0));
+        expect(second.currency).toEqual('ABC.BBB');
+      },
+      1.5 * lib.oneMinute
+    );
+
+    it(
+      'works with offset 1',
+      async () => {
+        const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
+        await beforeUiaTransfer(contractUiaApi);
+        await transferUiaTo(recipient);
+
+        const data = await uiaApi.getHolders('ABC.BBB', 100, 1);
+        console.log(`result: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(1); // important
+
+        const first = data.holders[0];
+        expect(first.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+        expect(first.balance).toEqual(String(0));
+        expect(first.currency).toEqual('ABC.BBB');
+      },
+      1.5 * lib.oneMinute
+    );
+
+    it(
+      'works with limit 1',
+      async () => {
+        const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
+        await beforeUiaTransfer(contractUiaApi);
+        await transferUiaTo(recipient);
+
+        const data = await uiaApi.getHolders('ABC.BBB', 1, 0);
+        console.log(`result: ${JSON.stringify(data, null, 2)}`);
+
+        expect(data.success).toEqual(true);
+        expect(data.count).toEqual(2);
+        expect(data.holders).toHaveLength(1); // important
+
+        const first = data.holders[0];
+
+        expect(first.address).toEqual('GTtysDoaWGKMt9Ax6iuscs1eoHeJ');
+        expect(first.balance).toEqual(String(1000000000));
+        expect(first.currency).toEqual('ABC.BBB');
+      },
+      1.5 * lib.oneMinute
     );
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@gny/web-base",
-  "version": "1.0.48",
+  "version": "1.0.50",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -14,9 +14,9 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.48",
-    "@gny/utils": "1.0.48",
-    "@gny/web-ed": "1.0.48",
+    "@gny/interfaces": "1.0.50",
+    "@gny/utils": "1.0.50",
+    "@gny/web-ed": "1.0.50",
     "@types/bytebuffer": "^5.0.40",
     "buffer": "^5.4.3",
     "bytebuffer": "^5.0.1",

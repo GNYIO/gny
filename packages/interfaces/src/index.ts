@@ -737,6 +737,17 @@ export interface IssuesWrapper {
   issues: IIssuer[];
 }
 
+export interface IAssetHolder {
+  address: String;
+  currency: String;
+  balance: String;
+}
+
+export interface AssetHoldersWrapper {
+  count: number;
+  holders: IAssetHolder[];
+}
+
 export interface IsIssuerWrapper {
   isIssuer: boolean;
   issuerName: string | undefined;

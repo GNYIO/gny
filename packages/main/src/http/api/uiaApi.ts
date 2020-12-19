@@ -14,6 +14,8 @@ import {
   AssetWrapper,
   BalancesWrapper,
   BalanceWrapper,
+  IAssetHolder,
+  AssetHoldersWrapper,
 } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
@@ -47,6 +49,7 @@ export default class UiaApi implements IHttpApi {
     router.get('/assets/:name', this.getAsset);
     router.get('/balances/:address', this.getBalances);
     router.get('/balances/:address/:currency', this.getBalance);
+    router.get('/holders/:currency', this.getAssetHolders);
 
     router.use((req: Request, res: Response) => {
       res.status(500).json({ success: false, error: 'API endpoint not found' });
@@ -393,6 +396,76 @@ export default class UiaApi implements IHttpApi {
       return res.json(result);
     } catch (dbErr) {
       return next(`Failed to get issuers: ${dbErr}`);
+    }
+  };
+
+  public getAssetHolders = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    query.currency = req.params.currency;
+
+    const schema = joi.object().keys({
+      currency: joi
+        .string()
+        .asset()
+        .required(),
+      limit: joi
+        .number()
+        .min(0)
+        .max(100),
+      offset: joi.number().min(0),
+    });
+    const report = joi.validate(query, schema);
+    if (report.error) {
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const currency = query.currency as string;
+
+    try {
+      const dbCurrency = await global.app.sdb.findOne<Asset>(Asset, {
+        condition: {
+          name: currency,
+        },
+      });
+      if (!dbCurrency) {
+        return next('could not find asset');
+      }
+    } catch (err) {
+      return next('error during querying asset');
+    }
+
+    try {
+      const count = await global.app.sdb.count<Balance>(Balance, {
+        currency,
+      });
+      const assetHolders = await global.app.sdb.findAll<Balance>(Balance, {
+        condition: {
+          currency,
+        },
+        limit: Number(query.limit || 100),
+        offset: Number(query.offset || 0),
+        sort: {
+          balance: -1,
+        },
+      });
+      const result: ApiResult<AssetHoldersWrapper> = {
+        success: true,
+        count,
+        holders: assetHolders.map(x => {
+          const result: IAssetHolder = {
+            address: x.address,
+            balance: x.balance,
+            currency: x.currency,
+          };
+          return result;
+        }),
+      };
+      return res.json(result);
+    } catch (dbErr) {
+      return next(`Failed to get Holders: ${dbErr}`);
     }
   };
 }
