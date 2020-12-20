@@ -179,7 +179,7 @@ const stringExtensions: Joi.Extension = {
     {
       name: 'hex',
       params: {
-        bufferLength: Joi.number(),
+        bufferLength: Joi.number().integer(),
       },
       validate(params, value, state, options) {
         let b;

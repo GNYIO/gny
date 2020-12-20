@@ -55,6 +55,7 @@ export function isTransaction(transaction: any): transaction is ITransaction {
         .required(),
       _version_: joi
         .number()
+        .integer()
         .positive()
         .optional(),
     })
