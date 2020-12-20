@@ -2,8 +2,6 @@ import * as lib from './lib';
 import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 import * as gnyClient from '@gny/client';
-import { generateAddress } from '@gny/utils';
-import * as crypto from 'crypto';
 import axios from 'axios';
 import * as _ from 'lodash';
 
