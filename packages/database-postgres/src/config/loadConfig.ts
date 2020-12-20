@@ -13,14 +13,16 @@ import { Round } from '../entity/Round';
 import { Transaction } from '../entity/Transaction';
 import { Transfer } from '../entity/Transfer';
 import { Variable } from '../entity/Variable';
-import { Info } from '../entity/Info';
 import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
 import { Mldata } from '../entity/Mldata';
 import { Prediction } from '../entity/Prediction';
 import { SmartDBOptions } from '../sharedInterfaces';
 
-import { InitMigration1605362544330 } from './migrations';
+import {
+  InitMigration1605362544330,
+  DeleteInfoTable1608475266157,
+} from './migrations';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
   const options: PostgresConnectionOptions = {
@@ -36,7 +38,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
     dropSchema: false,
     logging: false,
     migrationsRun: false,
-    migrations: [InitMigration1605362544330],
+    migrations: [InitMigration1605362544330, DeleteInfoTable1608475266157],
   };
 
   Object.assign(options, {
@@ -51,7 +53,6 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Transaction,
       Transfer,
       Variable,
-      Info,
       Vote,
       BlockHistory,
       Mldata,

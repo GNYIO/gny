@@ -496,7 +496,14 @@ export default class Blocks implements ICoreModule {
       String(roundNumber)
     );
 
-    await Blocks.saveSlotStatistics(block);
+    const statisticsSpan = global.library.tracer.startSpan(
+      'save slot statistics',
+      {
+        childOf: span.context(),
+      }
+    );
+    await Blocks.saveSlotStatistics(block, statisticsSpan);
+    statisticsSpan.finish();
 
     if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) {
       span.finish();
@@ -609,7 +616,14 @@ export default class Blocks implements ICoreModule {
     await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
 
     if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
-      await Blocks.saveStatistics(block.height, block);
+      const saveStatisticsSpan = global.library.tracer.startSpan(
+        'save statistics',
+        {
+          childOf: span.context(),
+        }
+      );
+      await Blocks.saveStatistics(block.height, block, saveStatisticsSpan);
+      saveStatisticsSpan.finish();
 
       await Delegates.updateBookkeeper();
     }
@@ -622,7 +636,7 @@ export default class Blocks implements ICoreModule {
     span.finish();
   };
 
-  public static saveSlotStatistics = async (block: IBlock) => {
+  public static saveSlotStatistics = async (block: IBlock, span: ISpan) => {
     const delegates = await Delegates.generateDelegateList(block.height);
 
     // save block slot number
@@ -637,7 +651,7 @@ export default class Blocks implements ICoreModule {
       delegateNamesShuffled.push(one.username);
     }
 
-    await global.app.sdb.createOrLoad<Info>(Info, {
+    span.log({
       key: `delegate_slot_number_${block.height}`,
       value: JSON.stringify(
         {
@@ -654,7 +668,11 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static saveStatistics = async (height: string, block: IBlock) => {
+  public static saveStatistics = async (
+    height: string,
+    block: IBlock,
+    span: ISpan
+  ) => {
     // before (delegates for the past 101 blocks)
     const delegatesBeforeRaw = await global.app.sdb.get<Variable>(Variable, {
       key: 'round_bookkeeper',
@@ -692,7 +710,7 @@ export default class Blocks implements ICoreModule {
       `height: ${height}, oldDelegates: ${JSON.stringify(oldDelegates)}`
     );
 
-    await global.app.sdb.createOrLoad<Info>(Info, {
+    span.log({
       key: `delegates_change_${height}`,
       value: JSON.stringify({
         newDelegates: newDelegates,
@@ -700,7 +718,7 @@ export default class Blocks implements ICoreModule {
       }),
     });
 
-    await global.app.sdb.createOrLoad<Info>(Info, {
+    span.log({
       key: `delegates_before_height_${height}`,
       value: JSON.stringify(before),
     });

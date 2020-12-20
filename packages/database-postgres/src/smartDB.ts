@@ -37,7 +37,6 @@ export * from './entity/Round';
 export * from './entity/Transaction';
 export * from './entity/Transfer';
 export * from './entity/Variable';
-export * from './entity/Info';
 export * from './entity/Vote';
 export * from './entity/Mldata';
 export * from './entity/Prediction';
