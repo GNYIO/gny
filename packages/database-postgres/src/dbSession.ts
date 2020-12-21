@@ -369,7 +369,7 @@ export class DbSession {
         .values([
           {
             height: block.height,
-            history: JSON.stringify(changes, null, 2),
+            history: JSON.stringify(changes),
           },
         ])
         .execute();

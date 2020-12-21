@@ -527,3 +527,21 @@ export class InitMigration1605362544330 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class DeleteInfoTable1608475266157 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`DROP TABLE info`);
+
+    await queryRunner.query(`
+      update block_history p
+      set history = (
+        select jsonb_agg(value)
+        from block_history ps,
+        jsonb_array_elements(history::jsonb)
+        where ps.height = p.height      -- important! primary key to identify a row
+        and value->>'model' <> 'Info')::varchar
+      returning *;
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
