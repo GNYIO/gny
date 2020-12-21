@@ -133,11 +133,6 @@ export default class Peer implements ICoreModule {
         Peer.p2p.addressManager.getListenAddrs().map(x => x.toString())
       )}`
     );
-    global.library.logger.info(
-      `noAnnounceAddresses: ${JSON.stringify(
-        Peer.p2p.addressManager.getNoAnnounceAddrs().map(x => x.toString())
-      )}`
-    );
 
     const startUpSpan = global.library.tracer.startSpan('startUp');
     startUpSpan.setTag('peerId', Peer.p2p.peerId.toB58String());
@@ -147,9 +142,6 @@ export default class Peer implements ICoreModule {
         .map(x => x.toString()),
       listenAddresses: Peer.p2p.addressManager
         .getListenAddrs()
-        .map(x => x.toString()),
-      noAnnounceAddresses: Peer.p2p.addressManager
-        .getNoAnnounceAddrs()
         .map(x => x.toString()),
     });
     startUpSpan.finish();
