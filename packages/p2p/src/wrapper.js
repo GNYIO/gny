@@ -24,7 +24,6 @@ class Bundle extends Libp2p {
       addresses: {
         listen: [`/ip4/0.0.0.0/tcp/${port}`],
         announce: [`/ip4/${announceIp}/tcp/${port}`],
-        noAnnounce: [`/ip4/0.0.0.0/tcp/${port}`, `/ip4/127.0.0.1/tcp/${port}`],
       },
       modules: {
         transport: [TCP],

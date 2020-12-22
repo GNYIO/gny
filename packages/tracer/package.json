@@ -1,7 +1,7 @@
 {
   "name": "@gny/tracer",
   "private": true,
-  "version": "1.0.52",
+  "version": "1.0.53",
   "description": "",
   "files": [
     "dist"
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@gny/interfaces": "1.0.52",
+    "@gny/interfaces": "1.0.53",
     "jaeger-client": "^3.18.1"
   }
 }
