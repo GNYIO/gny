@@ -165,12 +165,12 @@ export class BlocksHelper {
   }
 
   public static async IsBlockAlreadyInDbIO(block: IBlock) {
-    if (!new BigNumber(block.height).isEqualTo(0)) {
-      const exists = await global.app.sdb.exists<Block>(Block, {
-        id: block.id,
-      });
-      if (exists) throw new Error(`Block already exists: ${block.id}`);
-    }
+    // if (!new BigNumber(block.height).isEqualTo(0)) {
+    const exists = await global.app.sdb.exists<Block>(Block, {
+      id: block.id,
+    });
+    if (exists) throw new Error(`Block already exists: ${block.id}`);
+    // }
   }
 
   public static async AreAnyTransactionsAlreadyInDbIO(

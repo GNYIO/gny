@@ -40,6 +40,10 @@ export default class Loader implements ICoreModule {
 
       try {
         const onePeerId = PeerId.createFromB58String(one.id.id);
+        span.setTag('dialTo', onePeerId.toB58String());
+        span.log({
+          value: `going to dial peer: ${onePeerId.toB58String()}`,
+        });
         const height: HeightWrapper = await Peer.p2p.requestHeight(
           onePeerId,
           span
