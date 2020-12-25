@@ -439,6 +439,33 @@ export default class Blocks implements ICoreModule {
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
     }
+
+    if (
+      typeof global.Config.nodeAction == 'string' &&
+      global.Config.nodeAction.startsWith('stopWithHeight')
+    ) {
+      const stopHeight = global.Config.nodeAction.split(':')[1];
+      const lastHeight = state.lastBlock.height;
+
+      if (new BigNumber(lastHeight).isEqualTo(stopHeight)) {
+        const stopWithHeightSpan = global.library.tracer.startSpan(
+          'stop with height'
+        );
+        stopWithHeightSpan.log({
+          stopHeight,
+          lastHeight,
+        });
+        stopWithHeightSpan.finish();
+
+        global.library.logger.info(
+          `[stopWithHeight] lastHeight: "${lastHeight}" === stopHeight: "${stopHeight}"`
+        );
+        global.library.logger.info(`[stopWithHeight] shutDownInXSeconds...`);
+
+        global.library.bus.message('shutDownInXSeconds');
+      }
+    }
+
     const result: IStateSuccess = {
       success: success,
       state,
@@ -1697,6 +1724,34 @@ export default class Blocks implements ICoreModule {
             global.library.bus.message('onBlockchainRollback');
           }
 
+          if (
+            typeof global.Config.nodeAction == 'string' &&
+            global.Config.nodeAction.startsWith('stopWithHeight')
+          ) {
+            const stopHeight = global.Config.nodeAction.split(':')[1];
+            const lastHeight = state.lastBlock.height;
+            global.library.logger.info(
+              `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
+            );
+
+            if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
+              const span = global.library.tracer.startSpan('stop with height');
+              span.log({
+                stopHeight,
+                lastHeight,
+              });
+              span.finish();
+
+              global.library.logger.error(
+                `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
+              );
+
+              global.process.emit('cleanup');
+            } else {
+              global.library.bus.message('onBlockchainReady');
+            }
+          }
+
           return cb();
         } catch (err) {
           const span = global.app.tracer.startSpan('onBind');
@@ -1725,6 +1780,40 @@ export default class Blocks implements ICoreModule {
         }
       }
     );
+  };
+
+  public static shutDownInXSeconds = async () => {
+    // we need to wait a few seconds after processBlock before shutting down
+    // for other peers to have time to request the new block
+    global.library.logger.info(`[stopWithHeight] setInterval [start]...`);
+
+    setInterval(() => {
+      global.library.logger.info(
+        `[stopWithHeight] setInterval add sequence [start]`
+      );
+
+      global.library.sequence.add(
+        async done => {
+          global.library.logger.info(
+            `[stopWithHeight] sequence now running...`
+          );
+
+          done();
+        },
+        err => {
+          global.library.logger.info(
+            `[stopWithHeight] sequence finished callback().`
+          );
+          process.exit(1);
+        }
+      );
+
+      global.library.logger.info(
+        `[stopWithHeight] setInterval add sequence [end]`
+      );
+    }, 3000);
+
+    global.library.logger.info(`[stopWithHeight] setInterval [end]...`);
   };
 
   public static onBlockchainRollback = async () => {

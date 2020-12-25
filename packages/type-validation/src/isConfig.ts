@@ -83,7 +83,11 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .required(),
       nodeAction: joi
         .string()
-        .regex(new RegExp(/^forging|rollback:[1-9][0-9]*$/))
+        .regex(
+          new RegExp(
+            /^forging|rollback:[1-9][0-9]*|stopWithHeight:[1-9][0-9]*$/
+          )
+        )
         .required(),
       jaegerIP: joi
         .string()

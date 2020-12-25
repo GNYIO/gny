@@ -60,7 +60,8 @@ export type MethodActions =
   | 'onReceiveBlock'
   | 'onReceivePropose'
   | 'onReceiveTransaction'
-  | 'onBlockchainRollback';
+  | 'onBlockchainRollback'
+  | 'shutDownInXSeconds';
 
 export interface ICoreModule {
   cleanup?: (cb: any) => void;
