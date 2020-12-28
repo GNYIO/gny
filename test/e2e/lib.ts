@@ -62,6 +62,29 @@ export async function waitForLoaded(port: number) {
   }
 }
 
+export async function onNetworkDown(port: number) {
+  function isNetworkError(err) {
+    return !!err.isAxiosError && !err.response;
+  }
+
+  let down = false;
+  while (down === false) {
+    try {
+      await getHeight(port);
+
+      console.log(
+        `[${new Date().toLocaleTimeString()}] network on  "${port}" still up...`
+      );
+      await sleep(1000);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        down = true;
+      }
+    }
+  }
+  console.log(`[${new Date().toLocaleTimeString()}] network down "${port}"`);
+}
+
 /**
  * This function finishes when the genesisBlock (height 0) via API can be reached
  * @param port of the node
