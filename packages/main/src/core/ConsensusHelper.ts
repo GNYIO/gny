@@ -55,6 +55,15 @@ export class ConsensusHelper {
     });
     span.finish();
 
+    const votesSpan = global.library.tracer.startSpan('add votes', {
+      childOf: span.context(),
+    });
+    votesSpan.log({
+      count: votes.signatures.length,
+      sum: votes.signatures.length,
+    });
+    votesSpan.finish();
+
     return state;
   }
 
@@ -189,6 +198,8 @@ export class ConsensusHelper {
       }" pending Votes for block ${pendingBlock.id}, h: ${pendingBlock.height}`
     );
 
+    let count = 0;
+
     for (let i = 0; i < votes.signatures.length; ++i) {
       const item = votes.signatures[i];
       const votesKeySet = state.votesKeySet;
@@ -198,15 +209,8 @@ export class ConsensusHelper {
       }
       if (ConsensusBase.verifyVote(votes.height, votes.id, item)) {
         state.votesKeySet[item.publicKey] = true;
-        const pendingVotes = state.pendingVotes;
-        if (!pendingVotes) {
-          state.pendingVotes = {
-            height: votes.height,
-            id: votes.id,
-            signatures: [],
-          };
-        }
         state.pendingVotes.signatures.push(item);
+        ++count;
       }
     }
     global.library.logger.info(
@@ -216,6 +220,16 @@ export class ConsensusHelper {
     );
 
     span.finish();
+
+    const votesSpan = global.library.tracer.startSpan('add votes', {
+      childOf: span.context(),
+    });
+    votesSpan.log({
+      count,
+      sum: state.pendingVotes.signatures.length,
+    });
+    votesSpan.finish();
+
     return state;
   }
 
