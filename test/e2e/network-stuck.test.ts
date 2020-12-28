@@ -74,8 +74,12 @@ describe('network-stuck e2e test', () => {
       await lib.onNewBlock(4096);
       console.log('block 3 finished');
 
+      await lib.sleep(30 * 1000);
+
       // get height later
       // all nodes should have the same height
+      await lib.onNewBlock(4096);
+      await lib.sleep(2000);
       await helpers.allHeightsAreTheSame([4096, 4098, 4100, 4102]);
 
       return done();
