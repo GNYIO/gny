@@ -1013,7 +1013,17 @@ export default class Blocks implements ICoreModule {
       unconfirmedTransactions
     );
 
+    const span = global.library.tracer.startSpan('generate block');
+    span.setTag('height', newBlock.height);
+    span.setTag('hash', getSmallBlockHash(newBlock));
+
     if (BlocksHelper.NotEnoughActiveKeyPairs(activeDelegates)) {
+      span.log({
+        value: 'not enough active delegates',
+      });
+      span.setTag('error', true);
+      span.finish();
+
       throw new Error('not enough active delegates');
     }
 
@@ -1024,6 +1034,13 @@ export default class Blocks implements ICoreModule {
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
     if (ConsensusBase.hasEnoughVotes(localVotes)) {
+      span.log({
+        value: `[votes] we got enough local votes ("${
+          localVotes.signatures.length
+        }") to produce block ${newBlock.id}, h: ${newBlock.height}`,
+      });
+      span.finish();
+
       global.library.logger.info(
         `[votes] we got enough local votes ("${
           localVotes.signatures.length
@@ -1049,13 +1066,6 @@ export default class Blocks implements ICoreModule {
     /*
       not enough votes, so create a block propose and send it to all peers
     */
-    if (!global.Config.publicIp) {
-      throw new Error('No public ip'); // throw or simple return?
-    }
-    if (!global.Config.peerPort) {
-      throw new Error('No peer port'); // throw or simple return?
-    }
-
     const config = global.Config; // global access is bad
     const propose = BlocksHelper.ManageProposeCreation(
       keypair,
@@ -1063,15 +1073,29 @@ export default class Blocks implements ICoreModule {
       config
     );
 
-    state = ConsensusHelper.setPendingBlock(state, newBlock);
+    span.log({
+      ownCreatedPropose: propose,
+    });
+    span.log({
+      ownNewPendingBlock: newBlock,
+    });
 
-    state = ConsensusHelper.addPendingVotes(state, localVotes);
+    state = ConsensusHelper.createPendingBlockAndVotes(
+      state,
+      newBlock,
+      localVotes,
+      span
+    );
 
     state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
+    // so we can no longer process new incoming transactions
+
+    span.setTag('privIsCollectingVotes', true);
     state = ConsensusHelper.CollectingVotes(state);
 
-    global.library.bus.message('onNewPropose', propose);
+    span.finish();
+    global.library.bus.message('onNewPropose', propose, span);
     return {
       // important
       state,
@@ -1151,7 +1175,7 @@ export default class Blocks implements ICoreModule {
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
         span.setTag('error', true);
         span.log({
-          value: `[ſyncing] already received this block`,
+          value: `[syncing] already received this block`,
         });
         span.finish();
 
@@ -1562,8 +1586,60 @@ export default class Blocks implements ICoreModule {
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
 
+      // check if incoming votes aren't stale
+      const lastBlock = StateHelper.getState().lastBlock;
+      if (!new BigNumber(lastBlock.height).plus(1).isEqualTo(votes.height)) {
+        span.log({
+          value: 'incoming votes has different height',
+        });
+        span.log({
+          value: `incoming votes height: ${
+            votes.height
+          } should be one greater than lastBlock: ${
+            lastBlock.height
+          }. This means, that lastBlock is already persisted and the votes are not necessary`,
+        });
+        span.log({
+          incomingVotes: votes,
+        });
+        span.log({
+          lastBlock,
+        });
+        span.finish();
+
+        return cb();
+      }
+
+      // first we need to check if the votes fit in line
+      if (!ConsensusHelper.doIncomingVotesFitInLine(state, votes)) {
+        const errorSpan = global.library.tracer.startSpan(
+          'incoming votes bad',
+          {
+            childOf: span.context(),
+          }
+        );
+        errorSpan.setTag('error', true);
+        errorSpan.log({
+          value: 'incoming votes do not fit in line',
+        });
+        errorSpan.log({
+          pendingBlock: state.pendingBlock,
+        });
+        errorSpan.log({
+          pendingVotes: state.pendingVotes,
+        });
+        errorSpan.log({
+          incomingVotes: votes,
+        });
+        errorSpan.finish();
+
+        span.finish();
+
+        return cb();
+      }
+
       global.library.logger.info(`[p2p] add remote votes`);
-      state = ConsensusHelper.addPendingVotes(state, votes);
+      state = ConsensusHelper.addPendingVotes(state, votes, span);
 
       const totalVotes = state.pendingVotes;
 
