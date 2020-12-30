@@ -389,7 +389,6 @@ export default class Blocks implements ICoreModule {
     span: ISpan
   ) {
     if (options.broadcast && options.local) {
-      options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
       global.library.bus.message('onNewBlock', block, options.votes, span);
     }
   }

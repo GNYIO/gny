@@ -220,6 +220,11 @@ export default class Loader implements ICoreModule {
         throw err;
       }
       try {
+        // remove
+        span.log({
+          lastBlock,
+        });
+
         span.finish();
 
         await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);

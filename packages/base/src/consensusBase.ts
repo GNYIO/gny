@@ -94,7 +94,7 @@ export class ConsensusBase {
   }
 
   public static hasEnoughVotesRemote(votes: ManyVotes) {
-    return votes && votes.signatures && votes.signatures.length >= 6;
+    return ConsensusBase.hasEnoughVotes(votes);
   }
 
   private static calculateProposeHash(propose: BlockPropose) {
