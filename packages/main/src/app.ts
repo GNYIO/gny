@@ -175,8 +175,11 @@ function main() {
 
   console.log(`disableJaeger: ${appConfig.disableJaeger}`);
 
+  appConfig.lokiHost = process.env['GNY_LOKI_HOST']; // || default
+
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
+    appConfig.lokiHost,
     appConfig.publicIp,
     appConfig.version,
     appConfig.netVersion,

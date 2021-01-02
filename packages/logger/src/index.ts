@@ -35,7 +35,7 @@ export enum LogLevel {
   fatal = 6,
 }
 
-function orchestrateWinstonLogger(ip: string) {
+function orchestrateWinstonLogger(lokiHost: string, ip: string) {
   const consoleFormat = combine(
     colorize(),
     timestamp(),
@@ -59,7 +59,7 @@ function orchestrateWinstonLogger(ip: string) {
   );
   logger.add(
     new LokiTransport({
-      host: String(process.env['GNY_LOKI_HOST']),
+      host: lokiHost,
       labels: {
         host: ip,
       },
@@ -79,11 +79,12 @@ function newMetaObject(ip: string, version: string, network: string) {
 
 export function createLogger(
   consoleLogLevel: LogLevel,
+  lokiHost: string,
   ip: string,
   version: string,
   network: string
 ): ILogger {
-  const logger = orchestrateWinstonLogger(ip);
+  const logger = orchestrateWinstonLogger(lokiHost, ip);
 
   const wrapper: ILogger = {
     log(...args: string[]) {

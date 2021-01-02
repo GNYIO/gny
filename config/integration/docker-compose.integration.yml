@@ -8,8 +8,8 @@ networks:
 
 
 services:
-  loki:
-    container_name: loki
+  loki.local:
+    container_name: loki.local
     image: grafana/loki:2.0.0
     ports:
       - "3100:3100"
@@ -29,7 +29,7 @@ services:
       my_net:
         ipv4_address: 172.20.0.21
     depends_on:
-      - loki
+      - loki.local
 
   jaeger:
     image: "jaegertracing/all-in-one:1.21"
@@ -69,7 +69,7 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
     environment:
       - NODE_ENV=production
-      - GNY_LOKI_HOST=http://loki:3100
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DISABLE_JAEGER=false
       - GNY_TRACER_HOST=172.20.0.2
@@ -86,7 +86,7 @@ services:
       - '4097:4097'
     depends_on:
       - db1
-      - loki
+      - loki.local
     networks:
       my_net:
         ipv4_address: 172.20.0.4
