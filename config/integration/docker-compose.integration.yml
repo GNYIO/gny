@@ -8,6 +8,29 @@ networks:
 
 
 services:
+  loki:
+    container_name: loki
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.22
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:7.3.5
+    volumes:
+      - ./datasource.integration.yml:/etc/grafana/provisioning/datasources/datasource.yaml # yaml not yml
+    ports:
+      - "3000:3000"
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.21
+    depends_on:
+      - loki
+
   jaeger:
     image: "jaegertracing/all-in-one:1.21"
     container_name: 'jaeger'
@@ -46,6 +69,7 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki:3100
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DISABLE_JAEGER=false
       - GNY_TRACER_HOST=172.20.0.2
@@ -62,6 +86,7 @@ services:
       - '4097:4097'
     depends_on:
       - db1
+      - loki
     networks:
       my_net:
         ipv4_address: 172.20.0.4
