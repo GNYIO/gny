@@ -18,19 +18,6 @@ services:
       my_net:
         ipv4_address: 172.20.0.22
 
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:7.3.5
-    volumes:
-      - ./datasource.integration.yml:/etc/grafana/provisioning/datasources/datasource.yaml # yaml not yml
-    ports:
-      - "3000:3000"
-    networks:
-      my_net:
-        ipv4_address: 172.20.0.21
-    depends_on:
-      - loki.local
-
   jaeger:
     image: "jaegertracing/all-in-one:1.21"
     container_name: 'jaeger'
