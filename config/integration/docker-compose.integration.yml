@@ -70,7 +70,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DISABLE_JAEGER=false
       - GNY_TRACER_HOST=172.20.0.2
       - GNY_LOG_LEVEL=info
