@@ -13,7 +13,6 @@
       "cwd": "${workspaceFolder}",
       "args": [],
       "env": {
-        "GNY_MONGO_LOGGING_DISABLE": "true",
         "GNY_P2P_PEERS": "/ip4/127.0.0.1/tcp/4097/p2p/QmTEfBHjNABsYevH1vXusACzwv9GSBrspc1rqvbkMXv8sN",
         "GNY_PUBLIC_IP": "127.0.0.1",
         "GNY_DB_PASSWORD": "docker",

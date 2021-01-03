@@ -7,6 +7,16 @@ networks:
         - subnet: 172.20.0.0/24
 
 services:
+  loki.local:
+    container_name: loki.local
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.21
+
   jaeger:
     image: "jaegertracing/all-in-one:1.21"
     container_name: 'jaeger'
@@ -42,9 +52,9 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_TRACER_HOST=172.20.0.20
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -57,6 +67,9 @@ services:
     networks:
       my_net:
         ipv4_address: 172.20.0.3
+    depends_on:
+      - loki.local
+      - db1
 
   db2:
     image: "postgres:9.6.12"
@@ -78,10 +91,10 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node2.json"'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_TRACER_HOST=172.20.0.20
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -94,6 +107,9 @@ services:
     networks:
       my_net:
         ipv4_address: 172.20.0.5
+    depends_on:
+      - loki.local
+      - db2
 
   db3:
     image: "postgres:9.6.12"
@@ -115,10 +131,10 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node3.json"'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_TRACER_HOST=172.20.0.20
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -131,6 +147,9 @@ services:
     networks:
       my_net:
         ipv4_address: 172.20.0.7
+    depends_on:
+      - loki.local
+      - db3
 
   db4:
     image: "postgres:9.6.12"
@@ -152,10 +171,10 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node4.json"'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_TRACER_HOST=172.20.0.20
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -168,3 +187,6 @@ services:
     networks:
       my_net:
         ipv4_address: 172.20.0.9
+    depends_on:
+      - loki.local
+      - db4

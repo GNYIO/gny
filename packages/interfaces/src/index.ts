@@ -173,6 +173,7 @@ export interface IConfig {
   jaegerIP: string;
   jaegerPort: number;
   disableJaeger: boolean;
+  lokiHost: string;
 }
 
 export interface KeyPairsIndexer {
