@@ -1,6 +1,6 @@
 {
   "name": "@gny/logger",
-  "version": "1.0.53",
+  "version": "1.0.54",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -14,12 +14,13 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/ed": "1.0.53",
-    "@gny/interfaces": "1.0.53",
-    "@gny/utils": "1.0.53",
+    "@gny/ed": "1.0.54",
+    "@gny/interfaces": "1.0.54",
+    "@gny/utils": "1.0.54",
     "mongodb": "^3.3.3",
     "tracer": "^0.9.8",
     "winston": "^3.3.3",
+    "winston-loki": "^6.0.0-rc.9",
     "winston-mongodb": "^5.0.1"
   }
 }

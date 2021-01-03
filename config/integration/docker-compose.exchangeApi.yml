@@ -1,5 +1,37 @@
 version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
 services:
+  loki.local:
+    container_name: loki.local
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.21
+
+  jaeger:
+    image: "jaegertracing/all-in-one:1.21"
+    container_name: 'jaeger'
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - '16686:16686'
+      - '14268:14268'
+    command: [
+      "--query.max-clock-skew-adjustment=1s"
+    ]
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.20
+
   db1:
     image: "postgres:9.6.12"
     container_name: 'db1'
@@ -10,6 +42,9 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
   node1:
     build: ../..
     container_name: 'node1'
@@ -18,7 +53,6 @@ services:
     environment:
       - EXCHANGE_API=true # this activates the /api/exchange endpoints
       - NODE_ENV=production
-      - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -30,4 +64,9 @@ services:
       - '4096:4096'
       - '4097:4097'
     depends_on:
+      - jaeger
+      - loki.local
       - db1
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3

@@ -7,6 +7,16 @@ networks:
         - subnet: 172.20.0.0/24
 
 services:
+  loki.local:
+    container_name: loki.local
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.21
+
   jaeger:
     image: "jaegertracing/all-in-one:1.21"
     container_name: 'jaeger'
@@ -43,7 +53,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node1.json"'
     environment:
       - NODE_ENV=production
-      - GNY_MONGO_LOGGING_DISABLE=true
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_TRACER_HOST=172.20.0.20
       - GNY_DB_PASSWORD=docker
@@ -56,6 +66,7 @@ services:
       - '4096:4096'
       - '4097:4097'
     depends_on:
+      - loki.local
       - db1
     networks:
       my_net:
@@ -81,7 +92,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node2.json"'
     environment:
       - NODE_ENV=production
-      - GNY_MONGO_LOGGING_DISABLE=true
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_TRACER_HOST=172.20.0.20
       - GNY_DB_PASSWORD=docker
@@ -94,6 +105,7 @@ services:
       - '4098:4096'
       - '4099:4097'
     depends_on:
+      - loki.local
       - db2
     networks:
       my_net:
@@ -119,7 +131,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/bootstrap-nodes/node3.json"' # connect to node1 and node2
     environment:
       - NODE_ENV=production
-      - GNY_MONGO_LOGGING_DISABLE=true
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_TRACER_HOST=172.20.0.20
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmbRnmzsaLcCV9ADGGGuDq6DgHVEFJwsJtPVizG5fXt8SA,/ip4/172.20.0.5/tcp/4097/p2p/QmWWM1pHXpqq2HKHUECPu5UFV2vVvNp2j3jRaqpUMns95a
@@ -133,6 +145,7 @@ services:
       - '4100:4096'
       - '4101:4097'
     depends_on:
+      - loki.local
       - db3
     networks:
       my_net:

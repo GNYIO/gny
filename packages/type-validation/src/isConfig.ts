@@ -99,6 +99,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .port()
         .required(),
       disableJaeger: joi.boolean().required(),
+      lokiHost: joi
+        .string()
+        .uri()
+        .required(),
     })
     .required();
 
