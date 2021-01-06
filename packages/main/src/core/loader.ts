@@ -1,12 +1,10 @@
 import { IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
-import { BlocksHelper } from './BlocksHelper';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 import Peer from './peer';
-import { LoaderHelper } from './LoaderHelper';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
-import { ISpan } from '@gny/tracer';
+import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocks(
@@ -205,6 +203,20 @@ export default class Loader implements ICoreModule {
       const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
+        const rollbackBlockSpan = global.library.tracer.startSpan(
+          'rollback Block (height)',
+          {
+            childOf: span.context(),
+          }
+        );
+        rollbackBlockSpan.log({
+          lastBlock,
+        });
+        rollbackBlockSpan.setTag('height', lastBlock.height);
+        rollbackBlockSpan.setTag('id', lastBlock.id);
+        rollbackBlockSpan.setTag('hash', getSmallBlockHash(lastBlock));
+        rollbackBlockSpan.finish();
+
         await global.app.sdb.rollbackBlock(lastBlock.height);
       } catch (err) {
         span.setTag('error', true);

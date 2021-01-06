@@ -339,6 +339,15 @@ export default class Blocks implements ICoreModule {
     span.log({
       value: 'begin block',
     });
+
+    const beginBlockSpan = global.library.tracer.startSpan('begin block', {
+      childOf: span.context(),
+    });
+    beginBlockSpan.setTag('hash', getSmallBlockHash(block));
+    beginBlockSpan.setTag('id', block.id);
+    beginBlockSpan.setTag('height', block.height);
+    beginBlockSpan.finish();
+
     await global.app.sdb.beginBlock(block);
 
     try {
@@ -370,6 +379,17 @@ export default class Blocks implements ICoreModule {
         value: `error during "process block db io", error: ${e}`,
       });
       span.finish();
+
+      const rollbackBlockSpan = global.library.tracer.startSpan(
+        'rollback Block',
+        {
+          childOf: span.context(),
+        }
+      );
+      rollbackBlockSpan.setTag('height', block.height);
+      rollbackBlockSpan.setTag('id', block.id);
+      rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
+      rollbackBlockSpan.finish();
 
       await global.app.sdb.rollbackBlock();
       throw e;
@@ -1212,6 +1232,25 @@ export default class Blocks implements ICoreModule {
             pendingTrsMap.set(t.id, t);
           }
           StateHelper.ClearUnconfirmedTransactions();
+
+          const rollbackBlockSpan = global.library.tracer.startSpan(
+            'start span',
+            {
+              childOf: processBlockSpan.context(),
+            }
+          );
+          rollbackBlockSpan.setTag('height', block.height);
+          rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
+          rollbackBlockSpan.setTag('id', block.id);
+          rollbackBlockSpan.log({
+            lastBlock: state.lastBlock,
+          });
+
+          rollbackBlockSpan.log({
+            value: `rollback to ${state.lastBlock.height}`,
+          });
+          rollbackBlockSpan.finish();
+
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
           const delegateList = await Delegates.generateDelegateList(
