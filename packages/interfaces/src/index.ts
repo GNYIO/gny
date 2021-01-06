@@ -60,7 +60,8 @@ export type MethodActions =
   | 'onReceiveBlock'
   | 'onReceivePropose'
   | 'onReceiveTransaction'
-  | 'onBlockchainRollback';
+  | 'onBlockchainRollback'
+  | 'shutDownInXSeconds';
 
 export interface ICoreModule {
   cleanup?: (cb: any) => void;
@@ -170,9 +171,7 @@ export interface IConfig {
   dbHost: string;
   dbPort: number;
   nodeAction: string;
-  jaegerIP: string;
-  jaegerPort: number;
-  disableJaeger: boolean;
+  jaegerHost: string;
   lokiHost: string;
 }
 

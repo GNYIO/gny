@@ -242,11 +242,34 @@ export default class Blocks implements ICoreModule {
           (block.transactions && block.transactions.length) || 0,
       });
       for (const transaction of block.transactions) {
-        await Transactions.applyUnconfirmedTransactionAsync(
-          state,
-          transaction,
-          span
+        const applyBlockTransactionsSpan = global.library.tracer.startSpan(
+          'execute transaction (block)',
+          {
+            childOf: span.context(),
+          }
         );
+
+        try {
+          await Transactions.applyUnconfirmedTransactionAsync(
+            state,
+            transaction,
+            applyBlockTransactionsSpan
+          );
+
+          applyBlockTransactionsSpan.finish();
+          span.finish();
+        } catch (err) {
+          applyBlockTransactionsSpan.setTag('error', true);
+          applyBlockTransactionsSpan.log({
+            value: `error during applyUnconfirmedTransactionAsync: ${
+              err.message
+            }`,
+            stack: err.stack,
+          });
+          applyBlockTransactionsSpan.finish();
+
+          throw err;
+        }
       }
 
       span.finish();
@@ -316,6 +339,15 @@ export default class Blocks implements ICoreModule {
     span.log({
       value: 'begin block',
     });
+
+    const beginBlockSpan = global.library.tracer.startSpan('begin block', {
+      childOf: span.context(),
+    });
+    beginBlockSpan.setTag('hash', getSmallBlockHash(block));
+    beginBlockSpan.setTag('id', block.id);
+    beginBlockSpan.setTag('height', block.height);
+    beginBlockSpan.finish();
+
     await global.app.sdb.beginBlock(block);
 
     try {
@@ -323,6 +355,7 @@ export default class Blocks implements ICoreModule {
         value: `isLocal: ${!!options.local}`,
       });
 
+      // todo should ALWAYS execute (before a rollback)
       if (!options.local) {
         span.log({
           value: 'going to applyBlock',
@@ -335,7 +368,7 @@ export default class Blocks implements ICoreModule {
         });
       }
 
-      await Blocks.saveBlockTransactions(block);
+      await Blocks.saveBlockTransactions(block, span);
       await Blocks.applyRound(block, span);
       await global.app.sdb.commitBlock();
 
@@ -346,6 +379,17 @@ export default class Blocks implements ICoreModule {
         value: `error during "process block db io", error: ${e}`,
       });
       span.finish();
+
+      const rollbackBlockSpan = global.library.tracer.startSpan(
+        'rollback Block',
+        {
+          childOf: span.context(),
+        }
+      );
+      rollbackBlockSpan.setTag('height', block.height);
+      rollbackBlockSpan.setTag('id', block.id);
+      rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
+      rollbackBlockSpan.finish();
 
       await global.app.sdb.rollbackBlock();
       throw e;
@@ -365,7 +409,6 @@ export default class Blocks implements ICoreModule {
     span: ISpan
   ) {
     if (options.broadcast && options.local) {
-      options.votes.signatures = options.votes.signatures.slice(0, 6); // TODO: copy signatures first
       global.library.bus.message('onNewBlock', block, options.votes, span);
     }
   }
@@ -415,6 +458,33 @@ export default class Blocks implements ICoreModule {
     } finally {
       state = Blocks.ProcessBlockCleanupEffect(state);
     }
+
+    if (
+      typeof global.Config.nodeAction == 'string' &&
+      global.Config.nodeAction.startsWith('stopWithHeight')
+    ) {
+      const stopHeight = global.Config.nodeAction.split(':')[1];
+      const lastHeight = state.lastBlock.height;
+
+      if (new BigNumber(lastHeight).isEqualTo(stopHeight)) {
+        const stopWithHeightSpan = global.library.tracer.startSpan(
+          'stop with height'
+        );
+        stopWithHeightSpan.log({
+          stopHeight,
+          lastHeight,
+        });
+        stopWithHeightSpan.finish();
+
+        global.library.logger.info(
+          `[stopWithHeight] lastHeight: "${lastHeight}" === stopHeight: "${stopHeight}"`
+        );
+        global.library.logger.info(`[stopWithHeight] shutDownInXSeconds...`);
+
+        global.library.bus.message('shutDownInXSeconds');
+      }
+    }
+
     const result: IStateSuccess = {
       success: success,
       state,
@@ -422,17 +492,43 @@ export default class Blocks implements ICoreModule {
     return result;
   };
 
-  public static saveBlockTransactions = async (block: IBlock) => {
+  public static saveBlockTransactions = async (
+    block: IBlock,
+    parentSpan: ISpan
+  ) => {
+    const saveBlockTransaction = global.library.tracer.startSpan(
+      'save block transactions',
+      {
+        childOf: parentSpan.context(),
+      }
+    );
+
     global.app.logger.trace(
       `Blocks#saveBlockTransactions height: ${block.height}`
     );
 
     for (let trs of block.transactions) {
+      const span = global.library.tracer.startSpan('transaction', {
+        childOf: saveBlockTransaction.context(),
+      });
+      span.setTag('transactionId', trs.id);
+      span.setTag('height', block.height);
+      span.setTag('id', block.id);
+      span.setTag('hash', getSmallBlockHash(block));
+
       trs = TransactionBase.stringifySignatureAndArgs(trs);
 
+      span.log({
+        transaction: trs,
+      });
+
       await global.app.sdb.create<Transaction>(Transaction, trs);
+
+      span.finish();
     }
     global.app.logger.trace('Blocks#save transactions');
+
+    saveBlockTransaction.finish();
   };
 
   public static increaseRoundData = async (
@@ -936,7 +1032,17 @@ export default class Blocks implements ICoreModule {
       unconfirmedTransactions
     );
 
+    const span = global.library.tracer.startSpan('generate block');
+    span.setTag('height', newBlock.height);
+    span.setTag('hash', getSmallBlockHash(newBlock));
+
     if (BlocksHelper.NotEnoughActiveKeyPairs(activeDelegates)) {
+      span.log({
+        value: 'not enough active delegates',
+      });
+      span.setTag('error', true);
+      span.finish();
+
       throw new Error('not enough active delegates');
     }
 
@@ -947,6 +1053,13 @@ export default class Blocks implements ICoreModule {
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
     if (ConsensusBase.hasEnoughVotes(localVotes)) {
+      span.log({
+        value: `[votes] we got enough local votes ("${
+          localVotes.signatures.length
+        }") to produce block ${newBlock.id}, h: ${newBlock.height}`,
+      });
+      span.finish();
+
       global.library.logger.info(
         `[votes] we got enough local votes ("${
           localVotes.signatures.length
@@ -972,13 +1085,6 @@ export default class Blocks implements ICoreModule {
     /*
       not enough votes, so create a block propose and send it to all peers
     */
-    if (!global.Config.publicIp) {
-      throw new Error('No public ip'); // throw or simple return?
-    }
-    if (!global.Config.peerPort) {
-      throw new Error('No peer port'); // throw or simple return?
-    }
-
     const config = global.Config; // global access is bad
     const propose = BlocksHelper.ManageProposeCreation(
       keypair,
@@ -986,15 +1092,29 @@ export default class Blocks implements ICoreModule {
       config
     );
 
-    state = ConsensusHelper.setPendingBlock(state, newBlock);
+    span.log({
+      ownCreatedPropose: propose,
+    });
+    span.log({
+      ownNewPendingBlock: newBlock,
+    });
 
-    state = ConsensusHelper.addPendingVotes(state, localVotes);
+    state = ConsensusHelper.createPendingBlockAndVotes(
+      state,
+      newBlock,
+      localVotes,
+      span
+    );
 
     state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
+    // so we can no longer process new incoming transactions
+
+    span.setTag('privIsCollectingVotes', true);
     state = ConsensusHelper.CollectingVotes(state);
 
-    global.library.bus.message('onNewPropose', propose);
+    span.finish();
+    global.library.bus.message('onNewPropose', propose, span);
     return {
       // important
       state,
@@ -1074,7 +1194,7 @@ export default class Blocks implements ICoreModule {
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
         span.setTag('error', true);
         span.log({
-          value: `[ſyncing] already received this block`,
+          value: `[syncing] already received this block`,
         });
         span.finish();
 
@@ -1098,13 +1218,39 @@ export default class Blocks implements ICoreModule {
         processBlockSpan.setTag('height', block.height);
         processBlockSpan.setTag('id', block.id);
 
+        // const s = global.library.tracer.startSpan('fit')
+
         const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
         try {
           const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
+
+          processBlockSpan.log({
+            pendingTrs,
+          });
+
           for (const t of pendingTrs) {
             pendingTrsMap.set(t.id, t);
           }
           StateHelper.ClearUnconfirmedTransactions();
+
+          const rollbackBlockSpan = global.library.tracer.startSpan(
+            'start span',
+            {
+              childOf: processBlockSpan.context(),
+            }
+          );
+          rollbackBlockSpan.setTag('height', block.height);
+          rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
+          rollbackBlockSpan.setTag('id', block.id);
+          rollbackBlockSpan.log({
+            lastBlock: state.lastBlock,
+          });
+
+          rollbackBlockSpan.log({
+            value: `rollback to ${state.lastBlock.height}`,
+          });
+          rollbackBlockSpan.finish();
+
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
           const delegateList = await Delegates.generateDelegateList(
@@ -1182,6 +1328,7 @@ export default class Blocks implements ICoreModule {
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
     span.setTag('hash', getSmallBlockHash(propose));
+    span.setTag('proposeHash', propose.hash);
 
     const isSyncing = StateHelper.IsSyncing();
     const modulesAreLoaded = StateHelper.ModulesAreLoaded();
@@ -1210,10 +1357,25 @@ export default class Blocks implements ICoreModule {
       });
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
-        span.setTag('error', true);
-        span.log({
+        const alreadyReceivedSpan = global.library.tracer.startSpan(
+          'already received propose',
+          {
+            childOf: span.context(),
+            tags: {
+              error: true,
+              proposeHash: propose.hash,
+            },
+          }
+        );
+        alreadyReceivedSpan.log({
           value: 'already received propose',
         });
+        alreadyReceivedSpan.log({
+          hash: propose.hash,
+          proposeCache: state.proposeCache,
+        });
+
+        alreadyReceivedSpan.finish();
         span.finish();
 
         return setImmediate(cb);
@@ -1462,8 +1624,60 @@ export default class Blocks implements ICoreModule {
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
 
+      // check if incoming votes aren't stale
+      const lastBlock = StateHelper.getState().lastBlock;
+      if (!new BigNumber(lastBlock.height).plus(1).isEqualTo(votes.height)) {
+        span.log({
+          value: 'incoming votes has different height',
+        });
+        span.log({
+          value: `incoming votes height: ${
+            votes.height
+          } should be one greater than lastBlock: ${
+            lastBlock.height
+          }. This means, that lastBlock is already persisted and the votes are not necessary`,
+        });
+        span.log({
+          incomingVotes: votes,
+        });
+        span.log({
+          lastBlock,
+        });
+        span.finish();
+
+        return cb();
+      }
+
+      // first we need to check if the votes fit in line
+      if (!ConsensusHelper.doIncomingVotesFitInLine(state, votes)) {
+        const errorSpan = global.library.tracer.startSpan(
+          'incoming votes bad',
+          {
+            childOf: span.context(),
+          }
+        );
+        errorSpan.setTag('error', true);
+        errorSpan.log({
+          value: 'incoming votes do not fit in line',
+        });
+        errorSpan.log({
+          pendingBlock: state.pendingBlock,
+        });
+        errorSpan.log({
+          pendingVotes: state.pendingVotes,
+        });
+        errorSpan.log({
+          incomingVotes: votes,
+        });
+        errorSpan.finish();
+
+        span.finish();
+
+        return cb();
+      }
+
       global.library.logger.info(`[p2p] add remote votes`);
-      state = ConsensusHelper.addPendingVotes(state, votes);
+      state = ConsensusHelper.addPendingVotes(state, votes, span);
 
       const totalVotes = state.pendingVotes;
 
@@ -1624,6 +1838,34 @@ export default class Blocks implements ICoreModule {
             global.library.bus.message('onBlockchainRollback');
           }
 
+          if (
+            typeof global.Config.nodeAction == 'string' &&
+            global.Config.nodeAction.startsWith('stopWithHeight')
+          ) {
+            const stopHeight = global.Config.nodeAction.split(':')[1];
+            const lastHeight = state.lastBlock.height;
+            global.library.logger.info(
+              `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
+            );
+
+            if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
+              const span = global.library.tracer.startSpan('stop with height');
+              span.log({
+                stopHeight,
+                lastHeight,
+              });
+              span.finish();
+
+              global.library.logger.error(
+                `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
+              );
+
+              global.process.emit('cleanup');
+            } else {
+              global.library.bus.message('onBlockchainReady');
+            }
+          }
+
           return cb();
         } catch (err) {
           const span = global.app.tracer.startSpan('onBind');
@@ -1652,6 +1894,40 @@ export default class Blocks implements ICoreModule {
         }
       }
     );
+  };
+
+  public static shutDownInXSeconds = async () => {
+    // we need to wait a few seconds after processBlock before shutting down
+    // for other peers to have time to request the new block
+    global.library.logger.info(`[stopWithHeight] setInterval [start]...`);
+
+    setInterval(() => {
+      global.library.logger.info(
+        `[stopWithHeight] setInterval add sequence [start]`
+      );
+
+      global.library.sequence.add(
+        async done => {
+          global.library.logger.info(
+            `[stopWithHeight] sequence now running...`
+          );
+
+          done();
+        },
+        err => {
+          global.library.logger.info(
+            `[stopWithHeight] sequence finished callback().`
+          );
+          process.exit(1);
+        }
+      );
+
+      global.library.logger.info(
+        `[stopWithHeight] setInterval add sequence [end]`
+      );
+    }, 3000);
+
+    global.library.logger.info(`[stopWithHeight] setInterval [end]...`);
   };
 
   public static onBlockchainRollback = async () => {

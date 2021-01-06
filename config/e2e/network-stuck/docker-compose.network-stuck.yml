@@ -17,11 +17,12 @@ services:
       my_net:
         ipv4_address: 172.20.0.21
 
-  jaeger:
-    image: "jaegertracing/all-in-one:1.21"
-    container_name: 'jaeger'
+  jaeger.local:
+    image: jaegertracing/all-in-one:1.21
+    container_name: jaeger.local
     environment:
       - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - JAEGER_DISABLED=true
     ports:
       - '16686:16686'
       - '14268:14268'
@@ -54,7 +55,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -69,6 +70,7 @@ services:
         ipv4_address: 172.20.0.3
     depends_on:
       - loki.local
+      - jaeger.local
       - db1
 
   db2:
@@ -94,7 +96,7 @@ services:
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -109,6 +111,7 @@ services:
         ipv4_address: 172.20.0.5
     depends_on:
       - loki.local
+      - jaeger.local
       - db2
 
   db3:
@@ -134,7 +137,7 @@ services:
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -149,6 +152,7 @@ services:
         ipv4_address: 172.20.0.7
     depends_on:
       - loki.local
+      - jaeger.local
       - db3
 
   db4:
@@ -174,7 +178,7 @@ services:
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -189,4 +193,5 @@ services:
         ipv4_address: 172.20.0.9
     depends_on:
       - loki.local
+      - jaeger.local
       - db4

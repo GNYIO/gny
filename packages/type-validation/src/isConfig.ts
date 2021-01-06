@@ -83,18 +83,16 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .required(),
       nodeAction: joi
         .string()
-        .regex(new RegExp(/^forging|rollback:[1-9][0-9]*$/))
+        .regex(
+          new RegExp(
+            /^forging|rollback:[1-9][0-9]*|stopWithHeight:[1-9][0-9]*$/
+          )
+        )
         .required(),
-      jaegerIP: joi
+      jaegerHost: joi
         .string()
-        .ip()
+        .uri()
         .required(),
-      jaegerPort: joi
-        .number()
-        .integer()
-        .port()
-        .required(),
-      disableJaeger: joi.boolean().required(),
       lokiHost: joi
         .string()
         .uri()

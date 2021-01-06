@@ -165,16 +165,12 @@ function main() {
     appConfig.publicIp = ip.address();
   }
 
-  appConfig.jaegerIP =
-    program.jaegerIP || process.env['GNY_TRACER_HOST'] || '135.181.46.217';
-  appConfig.jaegerPort =
-    program.jaegerPort || process.env['GNY_TRACER_PORT'] || 14268;
-  appConfig.disableJaeger =
-    program.disableJaeger || process.env['GNY_DISABLE_JAEGER'] || false;
-  appConfig.disableJaeger = JSON.parse(String(appConfig.disableJaeger));
-
-  console.log(`disableJaeger: ${appConfig.disableJaeger}`);
-
+  // distributed tracing endpoint
+  appConfig.jaegerHost =
+    program.jaegerHost ||
+    process.env['GNY_JAEGER_HOST'] ||
+    'http://135.181.46.217:14268';
+  // centralized logging endpoint
   appConfig.lokiHost =
     process.env['GNY_LOKI_HOST'] || 'https://testnet.loki.gny.io';
 
@@ -188,9 +184,8 @@ function main() {
 
   // tracer
   const tracer = initTracer(
-    appConfig.disableJaeger,
     appConfig.publicIp,
-    `http://${appConfig.jaegerIP}:${appConfig.jaegerPort}/api/traces`,
+    appConfig.jaegerHost,
     version,
     appConfig.magic,
     appConfig.netVersion,

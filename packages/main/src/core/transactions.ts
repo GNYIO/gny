@@ -111,6 +111,10 @@ export default class Transactions implements ICoreModule {
     span.setTag('transactionId', transaction.id);
     span.setTag('senderId', transaction.senderId);
 
+    span.log({
+      transaction,
+    });
+
     const height = state.lastBlock.height;
     const block = {
       height: new BigNumber(height).plus(1).toFixed(),

@@ -143,13 +143,19 @@ export default class Transport implements ICoreModule {
   };
 
   // broadcast to peers Propose
-  public static onNewPropose = async (propose: BlockPropose) => {
+  public static onNewPropose = async (
+    propose: BlockPropose,
+    parentSpan: ISpan
+  ) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    const span = global.app.tracer.startSpan('broadcasting BlockPropose');
+    const span = global.app.tracer.startSpan('broadcasting BlockPropose', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
+    span.setTag('proposeHash', propose.hash);
 
     const totalVotes = StateHelper.getState().pendingVotes;
 
@@ -389,6 +395,11 @@ export default class Transport implements ICoreModule {
       references: [parentReference],
     });
 
+    const state = StateHelper.getState();
+    span.log({
+      ownLastPropose: state.lastPropose,
+    });
+
     if (StateHelper.IsSyncing()) {
       global.library.logger.info(
         `[p2p] ignoring propose because we are syncing`
@@ -411,6 +422,7 @@ export default class Transport implements ICoreModule {
       span.setTag('error', true);
       span.log({
         value: 'propose validation failed',
+        received: propose,
       });
       span.finish();
       return;
@@ -419,8 +431,9 @@ export default class Transport implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
+    span.setTag('proposeHash', propose.hash);
     span.log({
-      propose,
+      receivedPropose: propose,
     });
 
     global.library.logger.info(

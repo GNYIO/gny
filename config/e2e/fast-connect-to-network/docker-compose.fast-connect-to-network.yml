@@ -18,11 +18,12 @@ services:
       my_net:
         ipv4_address: 172.20.0.21
 
-  jaeger:
-    image: "jaegertracing/all-in-one:1.21"
-    container_name: 'jaeger'
+  jaeger.local:
+    image: jaegertracing/all-in-one:1.21
+    container_name: jaeger.local
     environment:
       - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - JAEGER_DISABLED=true
     ports:
       - '16686:16686'
       - '14268:14268'
@@ -43,8 +44,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.2
@@ -57,7 +56,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -69,6 +68,7 @@ services:
       - '4097:4097'
     depends_on:
       - loki.local
+      - jaeger.local
       - db1
     networks:
       my_net:
@@ -84,8 +84,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.4
@@ -98,7 +96,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -111,6 +109,7 @@ services:
       - '4099:4097'
     depends_on:
       - loki.local
+      - jaeger.local
       - db2
     networks:
       my_net:
@@ -126,8 +125,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER:
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.6
@@ -140,7 +137,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -153,6 +150,7 @@ services:
       - '4101:4097'
     depends_on:
       - loki.local
+      - jaeger.local
       - db3
     networks:
       my_net:
@@ -168,8 +166,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.8
@@ -182,7 +178,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/Qmbv6kQMLmVUkuwp91Q3E5FEryQMR1MV56vNozSkGbtn2B
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -195,6 +191,7 @@ services:
       - '4103:4097'
     depends_on:
       - loki.local
+      - jaeger.local
       - db4
     networks:
       my_net:
@@ -210,8 +207,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.10
@@ -224,7 +219,7 @@ services:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.11
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_P2P_PEERS=/ip4/172.20.0.9/tcp/4097/p2p/QmQotptpNYLj5KwMUAmVTKS2QmcpHmtYRa3EmrGnGsJicU
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
@@ -237,6 +232,7 @@ services:
       - '4105:4097'
     depends_on:
       - loki.local
+      - jaeger.local
       - db5
     networks:
       my_net:
