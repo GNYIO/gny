@@ -171,9 +171,7 @@ export interface IConfig {
   dbHost: string;
   dbPort: number;
   nodeAction: string;
-  jaegerIP: string;
-  jaegerPort: number;
-  disableJaeger: boolean;
+  jaegerHost: string;
   lokiHost: string;
 }
 

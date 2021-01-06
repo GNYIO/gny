@@ -8,11 +8,22 @@ networks:
 
 
 services:
-  jaeger:
-    image: "jaegertracing/all-in-one:1.21"
-    container_name: 'jaeger'
+  loki.local:
+    container_name: loki.local
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.22
+
+  jaeger.local:
+    image: jaegertracing/all-in-one:1.21
+    container_name: jaeger.local
     environment:
       - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - JAEGER_DISABLED=true
     ports:
       - '16686:16686'
       - '14268:14268'
@@ -34,8 +45,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.2
@@ -46,10 +55,11 @@ services:
     command: bash -c 'sleep 5s; node packages/main/dist/src/app  --config="config/e2e/db-the-same/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_NODE_ACTION=stopWithHeight:6
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_MONGO_LOGGING_DISABLE=true
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -60,6 +70,8 @@ services:
       - '4096:4096'
       - '4097:4097'
     depends_on:
+      - loki.local
+      - jaeger.local
       - db1
     networks:
       my_net:
@@ -75,8 +87,6 @@ services:
      POSTGRES_PASSWORD: docker
      POSTGRES_DB: postgres
      POSTGRES_USER: postgres
-    depends_on:
-      - jaeger
     networks:
       my_net:
         ipv4_address: 172.20.0.4
@@ -91,7 +101,7 @@ services:
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmZPGNpKXZpcFNhkoxw6QcnccAptXeqbAgZcPVz13o3zix
       - GNY_MONGO_LOGGING_DISABLE=true
-      - GNY_TRACER_HOST=172.20.0.20
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
       - GNY_DB_DATABASE=postgres
       - GNY_DB_USER=postgres
@@ -102,6 +112,8 @@ services:
       - '4098:4096'
       - '4099:4097'
     depends_on:
+      - loki.local
+      - jaeger.local
       - db2
     networks:
       my_net:

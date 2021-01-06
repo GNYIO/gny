@@ -73,7 +73,6 @@ export function createReferenceFromSerializedParentContext(
 }
 
 export function initTracer(
-  disable: boolean,
   serviceName: string,
   collectorEndpoint: string,
   version: string,
@@ -83,7 +82,7 @@ export function initTracer(
   logger: ILogger
 ) {
   const config: jaegerClient.TracingConfig = {
-    disable: disable,
+    disable: false,
     serviceName: serviceName,
     sampler: {
       type: 'const',

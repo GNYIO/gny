@@ -17,11 +17,12 @@ services:
       my_net:
         ipv4_address: 172.20.0.21
 
-  jaeger:
-    image: "jaegertracing/all-in-one:1.21"
-    container_name: 'jaeger'
+  jaeger.local:
+    image: jaegertracing/all-in-one:1.21
+    container_name: jaeger.local
     environment:
       - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - JAEGER_DISABLED=true
     ports:
       - '16686:16686'
       - '14268:14268'
@@ -64,8 +65,8 @@ services:
       - '4096:4096'
       - '4097:4097'
     depends_on:
-      - jaeger
       - loki.local
+      - jaeger.local
       - db1
     networks:
       my_net:

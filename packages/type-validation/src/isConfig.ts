@@ -89,16 +89,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
           )
         )
         .required(),
-      jaegerIP: joi
+      jaegerHost: joi
         .string()
-        .ip()
+        .uri()
         .required(),
-      jaegerPort: joi
-        .number()
-        .integer()
-        .port()
-        .required(),
-      disableJaeger: joi.boolean().required(),
       lokiHost: joi
         .string()
         .uri()
