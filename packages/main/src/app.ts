@@ -169,7 +169,7 @@ function main() {
   appConfig.jaegerHost =
     program.jaegerHost ||
     process.env['GNY_JAEGER_HOST'] ||
-    'http://135.181.46.217:14268';
+    'http://135.181.46.217:14268/api/traces';
   // centralized logging endpoint
   appConfig.lokiHost =
     process.env['GNY_LOKI_HOST'] || 'https://testnet.loki.gny.io';
