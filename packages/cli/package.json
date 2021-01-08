@@ -1,6 +1,6 @@
 {
   "name": "@gny/cli",
-  "version": "1.0.55",
+  "version": "1.0.56",
   "description": "gny command line tool",
   "main": "dist/index",
   "scripts": {
@@ -15,10 +15,10 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@gny/base": "1.0.55",
-    "@gny/ed": "1.0.55",
-    "@gny/interfaces": "1.0.55",
-    "@gny/utils": "1.0.55",
+    "@gny/base": "1.0.56",
+    "@gny/ed": "1.0.56",
+    "@gny/interfaces": "1.0.56",
+    "@gny/utils": "1.0.56",
     "@types/node": "^12.6.8",
     "assert": "^2.0.0",
     "async": "^3.1.0",
