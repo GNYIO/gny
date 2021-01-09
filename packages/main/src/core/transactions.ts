@@ -85,6 +85,16 @@ export default class Transactions implements ICoreModule {
         span
       );
       StateHelper.AddUnconfirmedTransactions(transaction);
+
+      const addTransactionToPoolspan = global.library.tracer.startSpan(
+        'add trs to pool',
+        {
+          childOf: span.context(),
+        }
+      );
+      addTransactionToPoolspan.setTag('id', transaction.id);
+      addTransactionToPoolspan.finish();
+
       return transaction;
     } catch (e) {
       // span.setTag('error', true);

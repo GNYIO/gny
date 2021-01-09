@@ -231,6 +231,9 @@ export default class Blocks implements ICoreModule {
     const span = global.library.tracer.startSpan('apply block', {
       childOf: parentSpan.context(),
     });
+    span.setTag('id', block.id);
+    span.setTag('hash', getSmallBlockHash(block));
+    span.setTag('height', block.height);
 
     try {
       if (BlocksHelper.AreTransactionsDuplicated(block.transactions)) {
@@ -335,6 +338,9 @@ export default class Blocks implements ICoreModule {
     const span = global.library.tracer.startSpan('process block db io', {
       childOf: parentSpan.context(),
     });
+    span.setTag('hash', getSmallBlockHash(block));
+    span.setTag('id', block.id);
+    span.setTag('height', block.height);
 
     span.log({
       value: 'begin block',
@@ -502,6 +508,9 @@ export default class Blocks implements ICoreModule {
         childOf: parentSpan.context(),
       }
     );
+    saveBlockTransaction.setTag('id', block.id);
+    saveBlockTransaction.setTag('hash', getSmallBlockHash(block));
+    saveBlockTransaction.setTag('height', block.height);
 
     global.app.logger.trace(
       `Blocks#saveBlockTransactions height: ${block.height}`
@@ -1185,6 +1194,10 @@ export default class Blocks implements ICoreModule {
         span.log({
           value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
         });
+        span.log({
+          receivedBlock: block,
+          lastBlock: state.lastBlock,
+        });
         span.finish();
 
         Loader.syncBlocksFromPeer(peerId);
@@ -1234,7 +1247,7 @@ export default class Blocks implements ICoreModule {
           StateHelper.ClearUnconfirmedTransactions();
 
           const rollbackBlockSpan = global.library.tracer.startSpan(
-            'start span',
+            'rollback Block',
             {
               childOf: processBlockSpan.context(),
             }
@@ -1257,6 +1270,7 @@ export default class Blocks implements ICoreModule {
             block.height
           );
 
+          // need to broadcast?
           const options: ProcessBlockOptions = { votes, broadcast: true };
           global.library.logger.info(
             `[p2p] onReceiveBlock processBlock() block: ${block.id}, h: ${
