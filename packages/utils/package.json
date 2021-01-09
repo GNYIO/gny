@@ -1,6 +1,6 @@
 {
   "name": "@gny/utils",
-  "version": "1.0.56",
+  "version": "1.0.58",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist"
@@ -14,7 +14,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.56",
+    "@gny/interfaces": "1.0.58",
     "@types/async": "^1.4.29",
     "@types/bs58": "^3.0.32",
     "@types/lodash": "^4.14.138",
