@@ -16,6 +16,7 @@ export default async function runtime(options: IOptions) {
   StateHelper.InitializeBlockchainReady();
   StateHelper.InitializeLatestBlockCache();
   StateHelper.InitializeBlockHeaderMidCache();
+  StateHelper.SetIsSyncing(false);
 
   global.app = {
     sdb: null,
