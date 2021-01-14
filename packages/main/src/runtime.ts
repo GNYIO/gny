@@ -52,6 +52,14 @@ export default async function runtime(options: IOptions) {
       if (!reghex.test(value)) return 'Invalid public key';
       return null;
     },
+    description: value => {
+      const msg = 'Invalid description';
+      if (value == null || value == undefined) return msg;
+      if (typeof value !== 'string') return msg;
+      const regex = /^([A-Za-z]+ )+[A-Za-z]+$|^[A-Za-z]+$/;
+      if (!regex.test(value)) return msg;
+      return null;
+    },
   };
   global.app.validate = (
     type: string,

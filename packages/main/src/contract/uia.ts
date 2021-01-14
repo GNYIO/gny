@@ -11,8 +11,8 @@ export default {
     if (arguments.length !== 2) return 'Invalid arguments length';
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name';
     if (!desc) return 'No issuer description was provided';
-    const descJson = JSON.stringify(desc);
-    if (descJson.length > 4096) return 'Invalid issuer description';
+    global.app.validate('description', desc);
+    if (desc.length > 4096) return 'Invalid issuer description';
 
     const senderId = this.sender.address;
     await global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
@@ -28,7 +28,7 @@ export default {
       tid: this.trs.id,
       issuerId: senderId,
       name,
-      desc: descJson,
+      desc,
     };
     await global.app.sdb.create<Issuer>(Issuer, issuer);
     return null;
@@ -37,6 +37,7 @@ export default {
   async registerAsset(this: Context, symbol, desc, maximum, precision) {
     if (arguments.length !== 4) return 'Invalid arguments length';
     if (!/^[A-Z]{3,6}$/.test(symbol)) return 'Invalid symbol';
+    global.app.validate('description', desc);
     if (desc.length > 4096) return 'Invalid asset description';
     if (!Number.isInteger(precision) || precision <= 0)
       return 'Precision should be positive integer';

@@ -45,6 +45,7 @@ interface IValidators {
   amount: (amount: string) => string;
   name: (amount: string) => string;
   publickey: (value: string) => string;
+  description: (value: string) => string;
 }
 
 type ValidateFuncs = (
