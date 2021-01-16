@@ -1143,23 +1143,12 @@ export default class Blocks implements ICoreModule {
       `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
     );
 
-    const isSyncing = StateHelper.IsSyncing();
-    const modules = !StateHelper.ModulesAreLoaded();
-
-    if (isSyncing || modules) {
-      // TODO access state
-
-      span.setTag('error', true);
-      span.log({
-        value: `onReceiveBlock stopping, isSyncing: ${isSyncing}, modules: ${modules}`,
-      });
-      span.finish();
-
-      return;
-    }
-
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
+
+      span.log({
+        lastBlock: state.lastBlock,
+      });
 
       const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(
         state,
@@ -1337,37 +1326,26 @@ export default class Blocks implements ICoreModule {
   public static onReceivePropose = (
     propose: BlockPropose,
     message: P2PMessage,
-    span: ISpan
+    parentSpan: ISpan
   ) => {
+    const span = global.library.tracer.startSpan('push Votes', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
-    const isSyncing = StateHelper.IsSyncing();
-    const modulesAreLoaded = StateHelper.ModulesAreLoaded();
-
-    if (isSyncing || !modulesAreLoaded) {
-      global.library.logger.info(
-        `[p2p] ignore onReceivePropose from "${
-          propose.address
-        }" (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`
-      );
-
-      span.setTag('error', true);
-      span.log({
-        value: `ignoring onReceivePropose (isSyncing: ${isSyncing}, modulesAreLoaded: ${modulesAreLoaded})`,
-      });
-      span.finish();
-
-      return;
-    }
 
     global.library.sequence.add(cb => {
       let state = StateHelper.getState();
 
       span.log({
-        value: 'add sequence',
+        value: 'in sequence',
+      });
+      span.log({
+        lastBlock: state.lastBlock,
+        lastPropose: state.lastPropose,
       });
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {

@@ -215,20 +215,26 @@ export default class Transport implements ICoreModule {
       global.library.tracer,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('receivePeer_NewBlockHeader', {
+    const span = global.library.tracer.startSpan('received Block Header', {
       references: [parentReference],
     });
 
-    if (StateHelper.IsSyncing()) {
-      global.library.logger.info(
-        `[p2p] ignoring broadcasting newBlockHeader because we are syncing`
-      );
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
 
-      span.setTag('error', true);
-      span.log({
-        value:
-          '[p2p] ignoring broadcasting newBlockHeader because we are syncing',
+    if (isSyncing || modules) {
+      const isSyncingSpan = global.library.tracer.startSpan('received Block Header (is syncing)', {
+        childOf: span.context(),
       });
+      const state = StateHelper.getState();
+      isSyncingSpan.log({
+        lastBlock: state.lastBlock,
+      });
+      isSyncingSpan.finish();
+
+      global.library.logger.info(
+        `[p2p] ignoring broadcasted newBlockHeader because we are syncing`
+      );
       span.finish();
 
       return;
@@ -391,27 +397,36 @@ export default class Transport implements ICoreModule {
       global.library.tracer,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received BlockPropose', {
+    const span = global.library.tracer.startSpan('received Block Propose', {
       references: [parentReference],
     });
 
     const state = StateHelper.getState();
     span.log({
-      ownLastPropose: state.lastPropose,
+      lastPropose: state.lastPropose,
     });
 
-    if (StateHelper.IsSyncing()) {
+    const isSyncing = StateHelper.IsSyncing();
+    const modules = !StateHelper.ModulesAreLoaded();
+    if (isSyncing || modules) {
       global.library.logger.info(
         `[p2p] ignoring propose because we are syncing`
       );
-
-      span.setTag('error', true);
-      span.setTag('isSyncing', true);
       span.log({
         value: `is currently syncing`,
+        isSyncing,
+        modules,
       });
-      span.finish();
 
+      const isSyncingSpan = global.library.tracer.startSpan('received Block Propose (but syncing)',  {
+        childOf: span.context(),
+      });
+      isSyncingSpan.log({
+        lastBlock: state.lastBlock,
+      });
+      isSyncingSpan.finish();
+
+      span.finish();
       return;
     }
 
@@ -443,15 +458,12 @@ export default class Transport implements ICoreModule {
     );
     span.finish();
 
-    const onReceiveProposeSpan = global.library.tracer.startSpan('push Votes', {
-      childOf: span.context(),
-    });
 
     global.library.bus.message(
       'onReceivePropose',
       propose,
       message,
-      onReceiveProposeSpan
+      span
     );
   };
 
@@ -465,11 +477,8 @@ export default class Transport implements ICoreModule {
     // if not, dial
 
     // dial, even when syncing
-    global.library.logger.info(
-      `[p2p] received newMember msg from ${message.from}`
-    );
 
-    let raw: TracerWrapper<P2PPeerIdAndMultiaddr> = null;
+    let raw: P2PPeerIdAndMultiaddr = null;
     try {
       raw = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
@@ -479,33 +488,12 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const parsed = raw.data;
-
-    const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
-      raw.spanId
-    );
-    const span = global.library.tracer.startSpan('receiveOwnPeer', {
-      references: [parentReference],
-    });
-    span.setTag('peerId', Peer.p2p.peerId.toB58String());
+    const parsed = raw;
 
     // P2PPeerIdAndMultiaddr
-    global.library.logger.info(
-      `[p2p][newMember] newMember: ${JSON.stringify(parsed, null, 2)}`
-    );
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
-      span.log({
-        value: 'validation failed',
-      });
-      span.setTag('error', true);
-
-      span.finish();
       return;
     }
-    console.log(
-      `[p2p] received new member, ${JSON.stringify(parsed, null, 2)}`
-    );
 
     let peerId = null;
     try {
@@ -513,24 +501,11 @@ export default class Transport implements ICoreModule {
     } catch (err) {
       global.library.logger.info(`[p2p][newMember] error: ${err.message}`);
 
-      span.log({
-        value: 'could not createFromCID',
-      });
-
-      span.setTag('error', true);
-      span.finish();
-
       return;
     }
 
     if (peerId.equals(Peer.p2p.peerId)) {
       global.library.logger.info(`[p2p] "newMember" is me`);
-
-      span.log({
-        value: 'newMember is me',
-      });
-      span.setTag('error', true);
-      span.finish();
 
       return;
     }
@@ -619,7 +594,7 @@ export default class Transport implements ICoreModule {
     // dial, even when syncing
     global.library.logger.info(`[p2p] received self msg from ${message.from}`);
 
-    let raw: TracerWrapper<P2PPeerIdAndMultiaddr> = null;
+    let raw: P2PPeerIdAndMultiaddr = null;
     try {
       raw = JSON.parse(uint8ArrayToString(message.data));
     } catch (err) {
@@ -629,28 +604,14 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const parsed = raw.data;
-
-    const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
-      raw.spanId
-    );
-    const span = global.library.tracer.startSpan('receive self', {
-      references: [parentReference],
-    });
-    span.setTag('peerId', Peer.p2p.peerId.toB58String());
+    const parsed = raw;
 
     // P2PPeerIdAndMultiaddr
     global.library.logger.info(
       `[p2p][self] self: ${JSON.stringify(parsed, null, 2)}`
     );
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
-      span.log({
-        value: 'validation failed',
-      });
-      span.setTag('error', true);
-
-      span.finish();
+      global.library.logger.error('[p2p] received broadcast self is not multiaddr');
       return;
     }
     console.log(`[p2p] received self, ${JSON.stringify(parsed, null, 2)}`);
@@ -660,26 +621,11 @@ export default class Transport implements ICoreModule {
       peerId = PeerId.createFromCID(parsed.peerId);
     } catch (err) {
       global.library.logger.info(`[p2p][self] error: ${err.message}`);
-
-      span.log({
-        value: 'could not createFromCID',
-      });
-
-      span.setTag('error', true);
-      span.finish();
-
       return;
     }
 
     if (peerId.equals(Peer.p2p.peerId)) {
       global.library.logger.info(`[p2p] "self" is me`);
-
-      span.log({
-        value: 'newMember is me',
-      });
-      span.setTag('error', true);
-      span.finish();
-
       return;
     }
 
@@ -701,14 +647,6 @@ export default class Transport implements ICoreModule {
           )} `
         );
 
-        span.setTag('error', true);
-        span.log({
-          value: `[p2p] "self" has no good addresses, will not add to peerStore: ${JSON.stringify(
-            parsed.multiaddr
-          )}`,
-        });
-        span.finish();
-
         return;
       }
 
@@ -728,31 +666,12 @@ export default class Transport implements ICoreModule {
     // if not, dial
     if (!inConnection) {
       try {
-        span.log({
-          value: `going to dial "${peerId.toB58String()}"`,
-        });
-
         await Peer.p2p.dial(peerId);
-
-        span.log({
-          value: `successfully dialed: "${peerId.toB58String()}"`,
-        });
       } catch (err) {
         global.library.logger.info(
           `[p2p] "self" dial failed for "${peerId.toB58String()}"`
         );
-
-        span.setTag('error', true);
-        span.log({
-          value: `"self" dial failed for "${peerId.toB58String()}"`,
-        });
       }
-      span.finish();
-    } else {
-      span.log({
-        value: `already connected to: ${peerId.toB58String()}`,
-      });
-      span.finish();
     }
   };
 
