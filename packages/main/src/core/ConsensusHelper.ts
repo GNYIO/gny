@@ -67,6 +67,11 @@ export class ConsensusHelper {
     state.pendingBlock = block;
     state.pendingVotes = votes;
 
+    for (let i = 0; i < votes.signatures.length; ++i) {
+      const item = votes.signatures[i];
+      state.votesKeySet[item.publicKey] = true;
+    }
+
     span.log({
       pendingBlock: state.pendingBlock,
       pendingVotes: state.pendingVotes,
@@ -213,6 +218,16 @@ export class ConsensusHelper {
     });
 
     const pendingBlock = state.pendingBlock;
+    if (!pendingBlock) {
+      span.setTag('error', true);
+      span.log({
+        value: 'no pending block',
+      });
+      span.finish();
+
+      throw new Error('no pending block');
+    }
+
     span.setTag('height', pendingBlock.height);
     span.setTag('hash', getSmallBlockHash(pendingBlock));
 
@@ -221,6 +236,32 @@ export class ConsensusHelper {
         state.pendingVotes ? state.pendingVotes.signatures.length : 0
       }" pending Votes for block ${pendingBlock.id}, h: ${pendingBlock.height}`
     );
+
+    if (pendingBlock.id !== votes.id || pendingBlock.height !== votes.height) {
+      span.setTag('error', true);
+      span.log({
+        value: 'votes and block do not match',
+        pendingBlock,
+        votes,
+      });
+
+      throw new Error('votes and block do not match');
+    }
+
+    const verified = votes.signatures.every(item => {
+      return ConsensusBase.verifyVote(votes.height, votes.id, item);
+    });
+
+    if (verified == false) {
+      span.setTag('error', true);
+      span.log({
+        value: 'not all signatures are valid',
+        pendingBlock,
+        votes,
+      });
+      span.finish();
+      throw new Error('not all signatures are valid');
+    }
 
     let count = 0;
 
