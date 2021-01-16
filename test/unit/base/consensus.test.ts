@@ -214,49 +214,6 @@ describe('Consensus', () => {
     });
   });
 
-  describe('hasEnoughVotesRemote', () => {
-    it('hasEnoughVotesRemote() - succeeds with 6 signatures', done => {
-      // preparation
-      const votes: ManyVotes = {
-        height: 2,
-        id: randomHex(32),
-        signatures: [],
-      };
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-
-      // act
-      const result = ConsensusBase.hasEnoughVotesRemote(votes);
-
-      expect(result).toEqual(true);
-      done();
-    });
-
-    it('hasEnoughVotesRemote() - fail if has only 5 or less signatures', done => {
-      // preparation
-      const votes: ManyVotes = {
-        height: 2,
-        id: randomHex(32),
-        signatures: [],
-      };
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-      votes.signatures.push(createRandomSignature());
-
-      // act
-      const result = ConsensusBase.hasEnoughVotesRemote(votes);
-
-      expect(result).toEqual(false);
-      done();
-    });
-  });
-
   describe('createPropose', () => {
     let block: IBlock;
     let keypair: KeyPair;
