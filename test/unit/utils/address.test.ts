@@ -18,7 +18,7 @@ describe('address', () => {
     });
   });
 
-  describe.skip('isAddress', () => {
+  describe('isAddress', () => {
     it('should return true if it is an address', () => {
       const address = 'GeVw2DVnLMx4ppcTojqNU7rQPvNW';
       expect(isAddress(address)).toBeTruthy;
