@@ -260,7 +260,6 @@ export default class Blocks implements ICoreModule {
           );
 
           applyBlockTransactionsSpan.finish();
-          span.finish();
         } catch (err) {
           applyBlockTransactionsSpan.setTag('error', true);
           applyBlockTransactionsSpan.log({
