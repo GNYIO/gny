@@ -94,6 +94,15 @@ export function initTracer(
     },
   };
 
+  // we don't want our log full or "reporting span" messages
+  const customLogger = {
+    info(msg: string) {
+    },
+    error(msg: string) {
+      logger.error(msg);
+    },
+  }
+
   const options: jaegerClient.TracingOptions = {
     tags: {
       version,
@@ -101,7 +110,7 @@ export function initTracer(
       network,
       p2pVersion,
     },
-    logger: logger,
+    logger: customLogger,
   };
 
   logger.info(`[p2p] jaeger configuration: ${JSON.stringify(config, null, 2)}`);
