@@ -123,7 +123,7 @@ describe('uia', () => {
 
   describe('registerIssuer', () => {
     it(
-      'should regitster an issuer',
+      'registerIssuer - should regitster an issuer',
       async () => {
         const issuerName = 'liang';
 
@@ -167,13 +167,13 @@ describe('uia', () => {
     );
 
     it(
-      'should return the error: Invalid issuer name',
+      'registerIssuer - should return the error: Invalid issuer name',
       async () => {
         const issuerName = '#123abc';
 
         // Before registering
         const beforeRegister = await axios.get(
-          'http://localhost:4096/api/uia/issuers/' + issuerName
+          'http://localhost:4096/api/uia/issuers/'
         );
         expect(beforeRegister.data.issues).toHaveLength(0);
         await lib.onNewBlock();
@@ -203,7 +203,7 @@ describe('uia', () => {
     );
 
     it(
-      'should return the error: No issuer description was provided',
+      'registerIssuer - should return the error: No issuer description was provided',
       async () => {
         const issuerName = 'liang';
 
@@ -236,32 +236,19 @@ describe('uia', () => {
 
         expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: No issuer description was provided',
+          error: 'Error: Invalid description',
         });
       },
       lib.oneMinute
     );
 
     it(
-      'should return the error: Invalid issuer description',
+      'registerIssuer - when the issuer description has leading spaces -> Invalid issuer description',
       async () => {
         const issuerName = 'liang';
 
-        // Before registering
-        const beforeRegisterPromise = axios.get(
-          'http://localhost:4096/api/uia/issuers/' + issuerName
-        );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
-        await lib.onNewBlock();
-
         // Register
-        let description = '';
-        for (let i = 0; i < 4097; i++) {
-          description += String(i);
-        }
+        const description = ' with leading spaces';
         const trs = gnyClient.uia.registerIssuer(
           issuerName,
           description,
@@ -279,14 +266,55 @@ describe('uia', () => {
 
         expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: Invalid issuer description',
+          error: 'Error: Invalid description',
+        });
+      },
+      lib.oneMinute
+    )
+
+    it(
+      'registerIssuer - when issuer description is 4097 chars long -> Invalid issuer description',
+      async () => {
+        const issuerName = 'liang';
+
+        // Before registering
+        const beforeRegisterPromise = axios.get(
+          'http://localhost:4096/api/uia/issuers/' + issuerName
+        );
+        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Issuer not found',
+        });
+        await lib.onNewBlock();
+
+        // Register
+        let description = 'a'.repeat(4097);
+
+        const trs = gnyClient.uia.registerIssuer(
+          issuerName,
+          description,
+          genesisSecret
+        );
+        const transData = {
+          transaction: trs,
+        };
+
+        const issuerPromise = axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData,
+          config
+        );
+
+        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Invalid description',
         });
       },
       lib.oneMinute
     );
 
     it(
-      'should return the error: Issuer name already exists',
+      'registerIssuer - should return the error -> Issuer name already exists',
       async () => {
         const issuerName = 'liang';
 
@@ -348,7 +376,7 @@ describe('uia', () => {
     );
 
     it(
-      'should return the error: Account is already an issuer',
+      'registerIssuer - should return the error: Account is already an issuer',
       async () => {
         const issuerName = 'liang';
 
@@ -412,7 +440,7 @@ describe('uia', () => {
 
   describe('registerAsset', () => {
     it(
-      'should register the asset',
+      'registerAsset - should register the asset',
       async () => {
         const name = 'liang.BBB';
         // Before registering asset
@@ -549,7 +577,7 @@ describe('uia', () => {
 
         expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
-          error: 'Error: Invalid asset description',
+          error: 'Error: Invalid description',
         });
 
         await lib.onNewBlock();
@@ -569,6 +597,8 @@ describe('uia', () => {
     it(
       'should return the error: Precision should be positive integer',
       async () => {
+        await lib.onNewBlock();
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
@@ -615,12 +645,14 @@ describe('uia', () => {
           error: 'Asset not found',
         });
       },
-      lib.oneMinute
+      1.5 * lib.oneMinute
     );
 
     it(
       'should return the error: Invalid asset precision',
       async () => {
+        await lib.onNewBlock();
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(

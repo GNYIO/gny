@@ -10,9 +10,8 @@ export default {
   async registerIssuer(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name';
-    if (!desc) return 'No issuer description was provided';
     global.app.validate('description', desc);
-    if (desc.length > 4096) return 'Invalid issuer description';
+    if (desc.length > 4096) return 'Invalid description';
 
     const senderId = this.sender.address;
     await global.app.sdb.lock(`uia.registerIssuer@${senderId}`);
