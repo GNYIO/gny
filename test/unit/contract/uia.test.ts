@@ -30,6 +30,9 @@ describe('uia', () => {
       sdb: sdb,
       balances: new BalanceManager(sdb),
     };
+
+    // reset blocks
+    jest.resetAllMocks();
     done();
   });
 
@@ -85,13 +88,16 @@ describe('uia', () => {
       done();
     });
 
-    it('should return No issuer description was provided', async done => {
+    it('should return No issuer description was provided', async () => {
       name = 'xpgeng';
       desc = null;
 
-      const transfered = await uia.registerIssuer(name, desc);
-      expect(transfered).toBe('No issuer description was provided');
-      done();
+      global.app.validate.mockImplementation(() => {
+        throw new Error('Invalid description');
+      });
+
+      const promise = uia.registerIssuer(name, desc);
+      return expect(promise).rejects.toThrowError('Invalid description');
     });
 
     it('should return Issuer name already exists', async done => {
