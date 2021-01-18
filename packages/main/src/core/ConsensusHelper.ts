@@ -34,23 +34,46 @@ export class ConsensusHelper {
         'votes.height': votes.height,
       });
       span.finish();
-      throw new Error('note the same - createPendingBlockAndVotes');
+      throw new Error('block and votes not the same');
     }
 
-    // safety first
-    const verified = votes.signatures.filter(item => {
+    if (votes.signatures.length === 0) {
+      span.setTag('error', true);
+      span.log({
+        value: 'no signatures passed in',
+        block,
+        votes,
+      });
+      span.finish();
+      throw new Error('no signatures passed in');
+    }
+
+    const verified = votes.signatures.every(item => {
       return ConsensusBase.verifyVote(votes.height, votes.id, item);
     });
-    votes.signatures = verified;
+
+    if (verified == false) {
+      span.setTag('error', true);
+      span.log({
+        value: 'not all signatures are valid',
+        block,
+        votes,
+      });
+      span.finish();
+      throw new Error('not all signatures are valid');
+    }
 
     // set pendingBlock and pendingVotes
     state.pendingBlock = block;
     state.pendingVotes = votes;
 
+    for (let i = 0; i < votes.signatures.length; ++i) {
+      const item = votes.signatures[i];
+      state.votesKeySet[item.publicKey] = true;
+    }
+
     span.log({
       pendingBlock: state.pendingBlock,
-    });
-    span.log({
       pendingVotes: state.pendingVotes,
     });
     span.finish();
@@ -176,6 +199,12 @@ export class ConsensusHelper {
     return true;
   }
 
+  /**
+   * This function expects that there exists a pendingBlock and pendingVotes
+   * @param oldState
+   * @param oldVotes
+   * @param parentSpan
+   */
   public static addPendingVotes(
     oldState: IState,
     oldVotes: ManyVotes,
@@ -189,6 +218,16 @@ export class ConsensusHelper {
     });
 
     const pendingBlock = state.pendingBlock;
+    if (!pendingBlock) {
+      span.setTag('error', true);
+      span.log({
+        value: 'no pending block',
+      });
+      span.finish();
+
+      throw new Error('no pending block');
+    }
+
     span.setTag('height', pendingBlock.height);
     span.setTag('hash', getSmallBlockHash(pendingBlock));
 
@@ -197,6 +236,32 @@ export class ConsensusHelper {
         state.pendingVotes ? state.pendingVotes.signatures.length : 0
       }" pending Votes for block ${pendingBlock.id}, h: ${pendingBlock.height}`
     );
+
+    if (pendingBlock.id !== votes.id || pendingBlock.height !== votes.height) {
+      span.setTag('error', true);
+      span.log({
+        value: 'votes and block do not match',
+        pendingBlock,
+        votes,
+      });
+
+      throw new Error('votes and block do not match');
+    }
+
+    const verified = votes.signatures.every(item => {
+      return ConsensusBase.verifyVote(votes.height, votes.id, item);
+    });
+
+    if (verified == false) {
+      span.setTag('error', true);
+      span.log({
+        value: 'not all signatures are valid',
+        pendingBlock,
+        votes,
+      });
+      span.finish();
+      throw new Error('not all signatures are valid');
+    }
 
     let count = 0;
 
@@ -230,13 +295,6 @@ export class ConsensusHelper {
     });
     votesSpan.finish();
 
-    return state;
-  }
-
-  public static setPendingBlock(oldState: IState, block: IBlock) {
-    const state = StateHelper.copyState(oldState);
-
-    state.pendingBlock = block; // deepCopy block?
     return state;
   }
 

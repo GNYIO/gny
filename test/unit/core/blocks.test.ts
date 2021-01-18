@@ -18,6 +18,7 @@ import { slots } from '../../../packages/utils/src/slots';
 import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
+import { ISpan } from '../../../packages/tracer/dist';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
@@ -106,15 +107,34 @@ const dummyLogger = {
   fatal: x => x,
 };
 
+function createSpan(): ISpan {
+  const val: ISpan = {
+    context: () => {},
+    finish: () => null,
+    log: () => null,
+    setTag: () => null,
+  };
+  return val;
+}
+
 describe('core/blocks', () => {
   beforeEach(done => {
+
+    const tracer = {
+      startSpan: () => createSpan(),
+    };
+
     global.app = {
       logger: dummyLogger,
     };
+    global.library = {
+      tracer,
+    }
     done();
   });
   afterEach(done => {
     global.app = {};
+    global.library = {};
     done();
   });
 

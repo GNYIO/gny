@@ -142,7 +142,7 @@ export default class TransportApi implements IHttpApi {
         span.finish();
 
         const errMsg: string = err.message ? err.message : err.toString();
-        return next(errMsg);
+        return next(`Error: ${errMsg}`);
       } else {
         span.finish();
 
@@ -166,6 +166,10 @@ export default class TransportApi implements IHttpApi {
         });
 
         const state = StateHelper.getState();
+        span.log({
+          lastBlock: state.lastBlock,
+        });
+
         if (
           !BlocksHelper.IsBlockchainReady(
             state,

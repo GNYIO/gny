@@ -176,79 +176,32 @@ export default class Peer implements ICoreModule {
         .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
         .map(x => x.toString());
 
-      const span = global.library.tracer.startSpan('broadcast self');
-
-      const raw: TracerWrapper<P2PPeerIdAndMultiaddr> = {
-        spanId: serializedSpanContext(global.library.tracer, span.context()),
-        data: {
+      const raw: P2PPeerIdAndMultiaddr = {
           peerId: Peer.p2p.peerId.toB58String(),
           multiaddr: m,
-        },
       };
-      console.log(
-        `[p2p] "newMember" announcing myself to network: ${JSON.stringify(
-          raw.data,
-          null,
-          2
-        )}`
-      );
 
       const converted = uint8ArrayFromString(JSON.stringify(raw));
       await Peer.p2p.broadcastSelf(converted);
-
-      span.finish();
     }, 20 * 1000);
 
     if (bootstrapNode.length > 0) {
       setInterval(async () => {
-        const parentSpan = global.library.tracer.startSpan('bootstrap');
-        parentSpan.log({
-          alreadyConnectedWith: Array.from(Peer.p2p.connections.keys()),
-        });
 
         if (!Peer.p2p.isStarted()) {
-          parentSpan.setTag('error', true);
-          parentSpan.log({
-            value: 'p2p is not started',
-          });
-          parentSpan.finish();
           return;
         }
 
         const multis = bootstrapNode.map(x => multiaddr(x));
 
         for (let i = 0; i < multis.length; ++i) {
-          const span = global.library.tracer.startSpan('dial peer', {
-            childOf: parentSpan.context(),
-          });
-
-          global.library.logger.info(
-            `[p2p][bootstrap] ${i + 1}/${multis.length}`
-          );
           const m = multis[i];
           const peer = PeerId.createFromB58String(m.getPeerId());
-
-          span.log({
-            value: `dialing peer: ${peer.toB58String()}`,
-          });
 
           // check if there are addresses for this peer saved
           const addresses = Peer.p2p.peerStore.addressBook.get(peer);
           if (!addresses) {
-            global.library.logger.info(
-              `[p2p][bootstrap] add address for remote peer "${peer.toB58String()}", ${JSON.stringify(
-                [m],
-                null,
-                2
-              )}`
-            );
             Peer.p2p.peerStore.addressBook.set(peer, [m]);
-
-            span.log({
-              value: 'add address to addressBook',
-              peer: peer.toB58String(),
-              multiaddr: m,
-            });
           }
 
           // 0. no need to check if already in peerStore (peer always in peerStore)
@@ -256,80 +209,21 @@ export default class Peer implements ICoreModule {
           // yes, then return
           // 2. if not, then dial
           const connections = Array.from(Peer.p2p.connections.keys());
-          global.library.logger.info(
-            `[p2p][bootstrap] connections: ${JSON.stringify(
-              connections,
-              null,
-              2
-            )}`
-          );
           const inConnection = connections.find(x => x === peer.toB58String());
           if (inConnection) {
-            global.library.logger.info(
-              `[p2p][bootstrap] already connected to ${peer.toB58String()}`
-            );
-
-            span.log({
-              value: `already connected to "${peer.toB58String()}"`,
-            });
-            span.log({
-              value: 'going to next peer',
-            });
-            span.finish();
-
             continue; // for next remote peer
           }
 
           try {
-            span.log({
-              value: `dialing peer: "${peer.toB58String()}"`,
-            });
-
             await Peer.p2p.dial(peer);
-
-            span.log({
-              value: `successfully dialed peer: "${peer.toB58String()}"`,
-            });
           } catch (err) {
-            global.library.logger.info(
-              `[p2p][bootstrap] failed to dial: ${peer.toB58String()}, error: ${
-                err.message
-              }`
-            );
-
-            span.log({
-              value: `[p2p][bootstrap] failed to dial: ${peer.toB58String()}, error: ${
-                err.message
-              }`,
-            });
-            span.log({
-              value: 'going to next peer',
-            });
-            span.finish();
-
             continue; // for next remote peer
           }
-          global.library.logger.info(
-            `[p2p][bootsrap] successfully dialed ${peer.toB58String()}`
-          );
 
           try {
-            global.library.logger.info(
-              `[p2p][boostrap] announcing "newMember" ${JSON.stringify(
-                peer,
-                null,
-                2
-              )}`
-            );
-            const raw: TracerWrapper<P2PPeerIdAndMultiaddr> = {
-              spanId: serializedSpanContext(
-                global.library.tracer,
-                span.context()
-              ),
-              data: {
-                peerId: peer.toB58String(),
-                multiaddr: [m.toString()],
-              },
+            const raw: P2PPeerIdAndMultiaddr = {
+              peerId: peer.toB58String(),
+              multiaddr: [m.toString()],
             };
             const data = uint8ArrayFromString(JSON.stringify(raw));
             await Peer.p2p.broadcastNewMember(data);
@@ -339,18 +233,9 @@ export default class Peer implements ICoreModule {
                 err.message
               }`
             );
-
-            span.log({
-              value: `[p2p][bootsrap] failed to announce peer "${
-                peer.id
-              }", error: ${err.message}`,
-            });
-            span.setTag('error', true);
-            span.finish();
           }
         }
 
-        parentSpan.finish();
       }, 5 * 1000);
     }
   };

@@ -70,9 +70,10 @@ export async function waitUntilBlock(height: string) {
 
 export async function deleteOldDockerImages() {
   const command =
-    'docker stop $(sudo docker ps --all --quiet); ' +
-    'docker rm $(sudo docker ps --all --quiet); ' +
-    'docker network prune --force';
+    'sudo docker stop $(sudo docker ps --all --quiet); ' +
+    'sudo docker rm $(sudo docker ps --all --quiet); ' +
+    'sudo docker network prune --force' +
+    'sudo docker volume prune --force';
 
   shellJS.exec(command, {
     silent: true,
@@ -87,7 +88,7 @@ export async function buildDockerImage(
   // then delete image file
   await dockerCompose.buildAll({
     cwd: process.cwd(),
-    log: true,
+    log: false,
     config: configFile,
   });
 }
@@ -114,16 +115,10 @@ export async function printActiveContainers() {
 export async function stopAndKillContainer(
   configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
 ) {
-  await dockerCompose.kill({
-    cwd: process.cwd(),
-    log: true,
-    config: configFile,
-  });
-  // delete volumes with --volumes
   await dockerCompose.down({
     cwd: process.cwd(),
     log: true,
-    commandOptions: ['--volumes'],
+    commandOptions: ['--volumes', '--timeout=0'],
     config: configFile,
   });
 }

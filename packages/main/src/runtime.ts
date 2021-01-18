@@ -16,6 +16,7 @@ export default async function runtime(options: IOptions) {
   StateHelper.InitializeBlockchainReady();
   StateHelper.InitializeLatestBlockCache();
   StateHelper.InitializeBlockHeaderMidCache();
+  StateHelper.SetIsSyncing(false);
 
   global.app = {
     sdb: null,
@@ -49,6 +50,14 @@ export default async function runtime(options: IOptions) {
     publickey: value => {
       const reghex = /^[0-9a-fA-F]{64}$/;
       if (!reghex.test(value)) return 'Invalid public key';
+      return null;
+    },
+    description: value => {
+      const msg = 'Invalid description';
+      if (value == null || value == undefined) return msg;
+      if (typeof value !== 'string') return msg;
+      const regex = /^([A-Za-z]+ )+[A-Za-z]+$|^[A-Za-z]+$/;
+      if (!regex.test(value)) return msg;
       return null;
     },
   };
