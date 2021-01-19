@@ -49,6 +49,7 @@ commands:
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+          no_output_timeout: 30m
       - save_cache:
           key: node-10-16-2-integration-cache-{{ checksum "hash.txt" }}-v1
           paths:
@@ -90,6 +91,7 @@ jobs:
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+          no_output_timeout: 30m
       - save_cache:
           key: node-10-16-2-unit-cache-{{ checksum "hash.txt" }}-v1
           paths:
@@ -133,6 +135,7 @@ jobs:
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+          no_output_timeout: 30m
       - save_cache:
           key: node-10-16-2-unit-cache-cli-{{ checksum "hash.txt" }}-v1
           paths:
@@ -249,6 +252,7 @@ jobs:
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+          no_output_timeout: 30m
       - save_cache:
           key: node-10-16-2-end2end-cache-{{ checksum "hash.txt" }}-v1
           paths:
@@ -330,6 +334,7 @@ jobs:
             if [ ! -d node_modules ]; then
               npm ci && npm run lerna:bootstrap # install only if node_modules is not present
             fi
+          no_output_timeout: 30m
       - save_cache:
           key: node-10-16-2-browser-cache-{{ checksum "hash.txt" }}-v1
           paths:
