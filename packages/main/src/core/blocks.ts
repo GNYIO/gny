@@ -984,6 +984,14 @@ export default class Blocks implements ICoreModule {
 
               processBlockSpan.finish();
 
+              const processBlockError = global.library.tracer.startSpan(
+                'processBlock error',
+                {
+                  childOf: processBlockSpan.context(),
+                }
+              );
+              processBlockError.finish();
+
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
@@ -1282,6 +1290,16 @@ export default class Blocks implements ICoreModule {
             processBlockSpan
           );
           state = stateResult.state;
+
+          if (!stateResult.success) {
+            const processBlockError = global.library.tracer.startSpan(
+              'processBlock error',
+              {
+                childOf: processBlockSpan.context(),
+              }
+            );
+            processBlockError.finish();
+          }
           // TODO: save state?
         } catch (e) {
           processBlockSpan.setTag('error', true);
@@ -1728,6 +1746,16 @@ export default class Blocks implements ICoreModule {
           );
           state = stateResult.state;
 
+          if (!stateResult.success) {
+            const processBlockError = global.library.tracer.startSpan(
+              'processBlock error',
+              {
+                childOf: processBlockSpan.context(),
+              }
+            );
+            processBlockError.finish();
+          }
+
           processBlockSpan.finish();
 
           StateHelper.setState(state); // important
@@ -1793,6 +1821,16 @@ export default class Blocks implements ICoreModule {
 
       span.finish();
       state = stateResult.state;
+
+      if (!stateResult.success) {
+        const processBlockError = global.library.tracer.startSpan(
+          'processBlock error',
+          {
+            childOf: span.context(),
+          }
+        );
+        processBlockError.finish();
+      }
     } else {
       const block = await getBlocksByHeight(
         new BigNumber(numberOfBlocksInDb).minus(1).toFixed()
