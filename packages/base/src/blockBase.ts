@@ -10,6 +10,7 @@ import * as ed from '@gny/ed';
 import { copyObject } from './helpers';
 import { TransactionBase } from './transactionBase';
 import { isBlockWithTransactions } from '@gny/type-validation';
+import { BigNumber } from '@gny/utils';
 
 export class BlockBase {
   /***
@@ -129,9 +130,15 @@ export class BlockBase {
       // we know that the "transactions" property is available
       // we validated it with joi
       for (let i = 0; i < block.transactions!.length; i++) {
-        block.transactions![i] = TransactionBase.normalizeTransaction(
-          block.transactions![i]
-        );
+        if (new BigNumber(block.height).isGreaterThan(0)) {
+          block.transactions![i] = TransactionBase.normalizeTransaction(
+            block.transactions![i]
+          );
+        } else {
+          block.transactions![i] = TransactionBase.normalizeGenesisTransaction(
+            block.transactions![i]
+          );
+        }
       }
     } catch (e) {
       throw new Error(e.toString());
