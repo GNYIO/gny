@@ -42,7 +42,8 @@ describe('fast-connect-to-network e2e test', () => {
       // first start all databases
       console.log('starting... "db1", "db2", "db3", "db4", "db5"');
       await lib.spawnP2pContainersSingle(DOCKER_COMPOSE_P2P, [
-        'jaeger',
+        'loki.local',
+        'jaeger.local',
         'db1',
         'db2',
         'db3',
