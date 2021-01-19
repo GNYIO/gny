@@ -182,7 +182,9 @@ export async function rmP2PContainers(configFile: string, services: string[]) {
 
 export async function upP2PContainers(configFile: string, services: string[]) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
+    `sudo docker-compose --file "${configFile}" up --detach ${services.join(
+      ' '
+    )}`
   );
   await sleep(5000);
 }

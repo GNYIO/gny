@@ -4,6 +4,7 @@ export * from './isBlockPropose';
 export * from './isPeerNode';
 export * from './isNewBlockMessage';
 export * from './isTransaction';
+export * from './isGenesisTransaction';
 export * from './isUnconfirmedTransaction';
 export * from './isNetworkType';
 export * from './isCommonBlockParams';

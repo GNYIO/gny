@@ -1,8 +1,10 @@
 import * as bip39 from 'bip39';
-import { isAddress } from '@gny/utils';
+import { isAddress, feeCalculators } from '@gny/utils';
 import * as Joi from 'joi';
 import { BigNumber } from 'bignumber.js';
 import * as CID from 'cids';
+
+const allContractTypes = Object.keys(feeCalculators).map(x => Number(x));
 
 new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
 
@@ -20,6 +22,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   networkType(): this;
   multiaddr(): this;
   peerId(): this;
+  fee(type: number): this;
 }
 
 export interface ExtendedJoi extends Joi.Root {
@@ -53,6 +56,7 @@ const stringExtensions: Joi.Extension = {
     networkType: 'is not a networkType',
     multiaddr: 'is not a multiaddr',
     peerId: 'is not a peerId',
+    fee: 'is not a valid fee',
   },
   rules: [
     {
@@ -342,6 +346,52 @@ const stringExtensions: Joi.Extension = {
           return this.createError(
             'string.peerId',
             { v: value },
+            state,
+            options
+          );
+        }
+      },
+    },
+    {
+      name: 'fee',
+      params: {
+        type: Joi.number().required(),
+      },
+      validate(params, value, state, options) {
+        if (typeof params.type !== 'number') {
+          return this.createError(
+            'string.fee',
+            { v: value, q: '' },
+            state,
+            options
+          );
+        }
+
+        const contract = feeCalculators[params.type];
+        if (!contract) {
+          return this.createError(
+            'string.fee',
+            { v: value, q: '' },
+            state,
+            options
+          );
+        }
+
+        try {
+          if (new BigNumber(contract()).times(1e8).isEqualTo(value)) {
+            return value;
+          } else {
+            return this.createError(
+              'string.fee',
+              { v: value, q: '' },
+              state,
+              options
+            );
+          }
+        } catch (err) {
+          return this.createError(
+            'string.fee',
+            { v: value, q: '' },
             state,
             options
           );

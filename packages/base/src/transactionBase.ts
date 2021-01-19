@@ -8,7 +8,11 @@ import { slots } from '@gny/utils';
 import { feeCalculators } from '@gny/utils';
 import * as addressHelper from '@gny/utils';
 import BigNumber from 'bignumber.js';
-import { isTransaction, isUnconfirmedTransaction } from '@gny/type-validation';
+import {
+  isTransaction,
+  isGenesisTransaction,
+  isUnconfirmedTransaction,
+} from '@gny/type-validation';
 
 export interface CreateTransactionType {
   type: number;
@@ -24,6 +28,16 @@ export class TransactionBase {
     transaction = TransactionBase.cleanTransaction(transaction);
 
     if (isTransaction(transaction)) {
+      return transaction;
+    }
+
+    throw new Error('is not a valid transaction');
+  }
+
+  public static normalizeGenesisTransaction(transaction: ITransaction) {
+    transaction = TransactionBase.cleanTransaction(transaction);
+
+    if (isGenesisTransaction(transaction)) {
       return transaction;
     }
 

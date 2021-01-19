@@ -34,9 +34,11 @@ describe('bootstrap-nodes e2e test', () => {
   it(
     'bootstrap-nodes',
     async done => {
+      console.log(`[${new Date().toLocaleTimeString()}] up...`);
       // node1, node2 and node3 have no forging secrets
       await lib.upP2PContainers(DOCKER_COMPOSE_P2P, [
-        'jaeger',
+        'loki.local',
+        'jaeger.local',
         'db1',
         'db2',
         'db3',
@@ -44,6 +46,7 @@ describe('bootstrap-nodes e2e test', () => {
         'node2',
         'node3',
       ]);
+      console.log(`[${new Date().toLocaleTimeString()}] finished up`);
       await lib.waitForApiToBeReadyReady(4096);
       await lib.waitForApiToBeReadyReady(4098);
       await lib.waitForApiToBeReadyReady(4100);

@@ -212,6 +212,14 @@ export default class Delegates implements ICoreModule {
             span.finish();
 
             if (stateResult.success === false) {
+              const processBlockError = global.library.tracer.startSpan(
+                'processBlock error',
+                {
+                  childOf: span.context(),
+                }
+              );
+              processBlockError.finish();
+
               global.app.logger.warn(
                 `newBlock(height: ${newBlock.height}), ${JSON.stringify(
                   newBlock,

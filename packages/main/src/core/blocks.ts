@@ -984,6 +984,14 @@ export default class Blocks implements ICoreModule {
 
               processBlockSpan.finish();
 
+              const processBlockError = global.library.tracer.startSpan(
+                'processBlock error',
+                {
+                  childOf: processBlockSpan.context(),
+                }
+              );
+              processBlockError.finish();
+
               global.app.logger.info(
                 `Error during sync of Block ${
                   block.id
@@ -1155,6 +1163,13 @@ export default class Blocks implements ICoreModule {
       );
       // TODO: rename LongFork, this is wrong
       if (fitInLineResult === BlockFitsInLine.LongFork) {
+        const longForkSpan = global.library.tracer.startSpan(
+          'received block not in line',
+          {
+            childOf: span.context(),
+          }
+        );
+
         global.library.logger.warn('Receive new block header from long fork');
         global.library.logger.info(
           `[syncing] received block h: ${
@@ -1162,12 +1177,13 @@ export default class Blocks implements ICoreModule {
           } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`
         );
 
-        span.setTag('error', true);
-        span.log({
+        longForkSpan.setTag('warning', true);
+        longForkSpan.log({
           value: `Receive new block header from long fork\n[syncing] received block h: ${
             block.height
           } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`,
         });
+        longForkSpan.finish();
         span.finish();
 
         Loader.startSyncBlocks(state.lastBlock);
@@ -1274,6 +1290,16 @@ export default class Blocks implements ICoreModule {
             processBlockSpan
           );
           state = stateResult.state;
+
+          if (!stateResult.success) {
+            const processBlockError = global.library.tracer.startSpan(
+              'processBlock error',
+              {
+                childOf: processBlockSpan.context(),
+              }
+            );
+            processBlockError.finish();
+          }
           // TODO: save state?
         } catch (e) {
           processBlockSpan.setTag('error', true);
@@ -1334,7 +1360,6 @@ export default class Blocks implements ICoreModule {
     span.setTag('id', propose.id);
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
-
 
     global.library.sequence.add(cb => {
       let state = StateHelper.getState();
@@ -1721,6 +1746,16 @@ export default class Blocks implements ICoreModule {
           );
           state = stateResult.state;
 
+          if (!stateResult.success) {
+            const processBlockError = global.library.tracer.startSpan(
+              'processBlock error',
+              {
+                childOf: processBlockSpan.context(),
+              }
+            );
+            processBlockError.finish();
+          }
+
           processBlockSpan.finish();
 
           StateHelper.setState(state); // important
@@ -1786,6 +1821,16 @@ export default class Blocks implements ICoreModule {
 
       span.finish();
       state = stateResult.state;
+
+      if (!stateResult.success) {
+        const processBlockError = global.library.tracer.startSpan(
+          'processBlock error',
+          {
+            childOf: span.context(),
+          }
+        );
+        processBlockError.finish();
+      }
     } else {
       const block = await getBlocksByHeight(
         new BigNumber(numberOfBlocksInDb).minus(1).toFixed()

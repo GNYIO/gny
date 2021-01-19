@@ -1,14 +1,16 @@
 import { ITransaction } from '@gny/interfaces';
 import { joi } from '@gny/extended-joi';
 
-export function isTransaction(transaction: any): transaction is ITransaction {
+export function isGenesisTransaction(
+  transaction: any
+): transaction is ITransaction {
   // property height is required
   const schema = joi
     .object()
     .keys({
       fee: joi
         .string()
-        .fee(transaction && transaction.type >= 0 ? transaction.type : -1)
+        .positiveOrZeroBigInt() // not fee(), because fee is 0 on genesisBlocks
         .required(),
       type: joi
         .number()

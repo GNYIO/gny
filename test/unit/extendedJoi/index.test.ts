@@ -640,4 +640,105 @@ describe('extendedJoi', () => {
       expect(report.error).toBeNull();
     });
   });
+
+  describe('fee', () => {
+    it('fee - succeeds if ', () => {
+      const VALUE = {
+        type: 0,
+        fee: String(0.1 * 1e8),
+      };
+
+      const schema = joi
+        .object()
+        .keys({
+          type: joi.number().required(),
+          fee: joi
+            .string()
+            .fee(VALUE.type)
+            .required(),
+        })
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('fee - fails if fee for "basic.transfer" (type 0) is higher', () => {
+      const VALUE = {
+        type: 0,
+        fee: String(0.2 * 1e8), // wrong
+      };
+
+      const schema = joi
+        .object()
+        .keys({
+          type: joi.number().required(),
+          fee: joi
+            .string()
+            .fee(VALUE.type)
+            .required(),
+        })
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('fee - fails if fee for "basic.transfer" (type 0) is lower', () => {
+      const VALUE = {
+        type: 0,
+        fee: String(0 * 1e8), // wrong
+      };
+
+      const schema = joi
+        .object()
+        .keys({
+          type: joi.number().required(),
+          fee: joi
+            .string()
+            .fee(VALUE.type)
+            .required(),
+        })
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('fee - fails if fee parameter -1 is passed in', () => {
+      const VALUE = {
+        fee: String(0.1 * 1e8),
+      };
+
+      const schema = joi
+        .object()
+        .keys({
+          type: joi.number(),
+          fee: joi
+            .string()
+            .fee(-1)
+            .required(),
+        })
+        .required();
+
+      const report = joi.validate(VALUE, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('fee - schema compilation fails if "undefined" is fee parameter is passed in', () => {
+      const VALUE = {};
+      return expect(() => {
+        const schema = joi
+          .object()
+          .keys({
+            type: joi.number(),
+            fee: joi
+              .string()
+              .fee(undefined)
+              .required(),
+          })
+          .required();
+      }).toThrowError();
+    });
+  });
 });
