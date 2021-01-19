@@ -8,7 +8,7 @@ export function isTransaction(transaction: any): transaction is ITransaction {
     .keys({
       fee: joi
         .string()
-        .positiveOrZeroBigInt()
+        .fee(transaction && transaction.type >= 0 ? transaction.type : -1)
         .required(),
       type: joi
         .number()

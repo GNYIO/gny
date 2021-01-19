@@ -10,7 +10,7 @@ export function isUnconfirmedTransaction(
     .keys({
       fee: joi
         .string()
-        .positiveOrZeroBigInt()
+        .fee(unconfirmed && unconfirmed.type >= 0 ? unconfirmed.type : -1)
         .required(),
       type: joi
         .number()

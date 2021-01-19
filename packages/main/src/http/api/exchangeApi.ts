@@ -88,7 +88,7 @@ export default class ExchangeApi implements IHttpApi {
         .optional(),
       fee: joi
         .string()
-        .positiveOrZeroBigInt()
+        .fee(query && query.type >= 0 ? query.type : -1)
         .required(),
       type: joi
         .number()

@@ -38,7 +38,7 @@
           "--verbose",
           "--runInBand",
           "--no-cache",
-          "test/unit/core/ConsensusHelper"
+          "test/unit/extendedJoi/index.test.ts"
       ],
       "runtimeArgs": [
           "--nolazy"
