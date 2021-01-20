@@ -1614,6 +1614,7 @@ export default class Blocks implements ICoreModule {
       }
 
       span.finish();
+      return cb();
     });
   };
 
