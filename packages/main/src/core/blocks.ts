@@ -840,7 +840,7 @@ export default class Blocks implements ICoreModule {
     span.setTag('targetPeerId', peer.toB58String());
     span.setTag('lastCommonBlockId', id);
 
-    // TODO is this function called within a "Sequence"
+    // TODO is this function called within a "Sequence"?
     let loaded = false;
     let count = 0;
     let lastCommonBlockId = id;

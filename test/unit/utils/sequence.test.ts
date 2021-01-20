@@ -30,31 +30,6 @@ describe('sequence', () => {
     done();
   });
 
-  it('if task is not resolved within 15 seconds - it throws', async done => {
-    const task = res => {
-      // res() is not getting called
-      setTimeout(() => {
-        res();
-      }, 16500);
-    };
-    const taskMock = jest.fn().mockImplementation(task);
-
-    const callback = (err, result) => {
-      expect(err).toEqual('Worker task timeout');
-      expect(result).toBeUndefined();
-    };
-    const callbackMock = jest.fn().mockImplementation(callback);
-
-    sut.add(taskMock, undefined, callbackMock);
-
-    await timeout(17 * 1000); // wait for execution
-
-    expect(taskMock).toBeCalledTimes(1);
-    expect(callbackMock).toBeCalledTimes(1);
-    expect(callbackMock).toBeCalledWith('Worker task timeout', undefined);
-    done();
-  }, 20000);
-
   it('add(sync) executes second callback if it throws error', async done => {
     const task = done => {
       throw new Error('test');
@@ -68,6 +43,25 @@ describe('sequence', () => {
     await timeout(300);
 
     expect(errMock).toBeCalledTimes(1);
+    done();
+  });
+
+  it('add(sync) passes error to callback', async done => {
+    const task = done => {
+      throw new Error('my error');
+    };
+    const errCallback = err => {
+      expect(typeof err).toEqual('string');
+      expect(err).toEqual('Error: my error');
+    };
+    const errMock = jest.fn().mockImplementation(errCallback);
+
+    sut.add(task, errMock);
+    await timeout(300);
+
+    expect(errMock).toBeCalledTimes(1);
+    expect(errMock).toBeCalledWith('Error: my error', undefined);
+
     done();
   });
 
@@ -257,6 +251,22 @@ describe('sequence', () => {
 
     expect(setResultMock).toBeCalledTimes(1);
     expect(setResultMock).toBeCalledWith('async iffii');
+    done();
+  });
+
+  it('add(sync) executes second callback if it throws error', async done => {
+    const task = done => {
+      throw new Error('test');
+    };
+    const errCallback = err => {
+      // console.log('error callback called');
+    };
+    const errMock = jest.fn().mockImplementation(errCallback);
+
+    sut.add(task, errMock);
+    await timeout(300);
+
+    expect(errMock).toBeCalledTimes(1);
     done();
   });
 });
