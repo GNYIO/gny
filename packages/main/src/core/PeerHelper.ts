@@ -114,11 +114,18 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     // no need for await
     const newBlock = StateHelper.GetBlockFromLatestBlockCache(body.id);
     if (!newBlock) {
-      span.setTag('error', true);
-      span.log({
-        value: '[p2p] New block not found',
-      });
       span.finish();
+
+      const notFoundSpan = global.library.tracer.startSpan(
+        'new block not found',
+        {
+          childOf: span.context(),
+        }
+      );
+      notFoundSpan.log({
+        value: `not found: ${body.id}`,
+      });
+      notFoundSpan.finish();
 
       throw new Error('New block not found');
     }
