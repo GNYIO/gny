@@ -1,6 +1,4 @@
 import { queue } from 'async';
-import { TIMEOUT } from './constants';
-// import { ISequence } from '@gny/interfaces';
 
 function tick(task: any, cb: any) {
   let isCallbacked = false;
@@ -14,11 +12,6 @@ function tick(task: any, cb: any) {
     }
     setImmediate(cb);
   };
-  setTimeout(() => {
-    if (!isCallbacked) {
-      done('Worker task timeout');
-    }
-  }, TIMEOUT * 1000);
   let args = [done];
   if (task.args) {
     args = args.concat(task.args);
