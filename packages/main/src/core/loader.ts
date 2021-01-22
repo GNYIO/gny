@@ -229,7 +229,7 @@ export default class Loader implements ICoreModule {
 
         // reset
         StateHelper.SetIsSyncing(false);
-        throw err;
+        return cb(err);
       }
       try {
         // remove
