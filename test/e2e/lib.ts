@@ -168,14 +168,18 @@ export async function stopP2PContainers(
   services: string[]
 ) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" stop ${services.join(' ')}`
+    `sudo docker-compose --file "${configFile}" stop --timeout=0 ${services.join(
+      ' '
+    )}`
   );
   await sleep(5000);
 }
 
 export async function rmP2PContainers(configFile: string, services: string[]) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" rm --force ${services.join(' ')}`
+    `sudo docker-compose --file "${configFile}" rm --force ${services.join(
+      ' '
+    )}`
   );
   await sleep(5000);
 }
