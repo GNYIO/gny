@@ -109,21 +109,16 @@ describe('sync-to-stuck-network e2e test', () => {
     'sync-to-stuck-network',
     async done => {
       await lib.sleep(30 * 1000);
-      // zwei nodes beide bis höhe 6
-      // stopp node2
 
-      // warte 20 sekunden
-      // dann zu node1 20 secrets hinzufügen
+      // start 3 nodes (25 secrets each)
+      // let the network get some traction (until height e.g. 5)
+      // stop node 3 a few blocks later (only kill node3) -> this node should from block 7
 
-      // noch mal ~6 Blöcke produzieren lassen (alleine nur node1)
-      // dann wieder 20 secrets von node1 entfernen
-
-      // 1min warten
-      // node2 starten und schauen ob node2 auf die gleiche Höhe kommt
-      // await lib.sleep(30 * 1000);
-
-      const forgingEnableEndpoint = '/api/delegates/forging/enable';
-      const forgingDisableEndpoint = '/api/delegates/forging/disable';
+      // test: we have node1 and node2 at height 10
+      //       we have node3 at height 7
+      //       the network isn't producing blocks
+      //       node3 should sync up to height 10 on its own (normally a block starts syncing when he gets a block out of line
+      // goal:   all 3 nodes should be at the same height and start to
 
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
