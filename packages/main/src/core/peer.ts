@@ -14,8 +14,9 @@ import { attachDirectP2PCommunication } from './PeerHelper';
 import Transport from './transport';
 const uint8ArrayFromString = require('uint8arrays/from-string');
 import * as multiaddr from 'multiaddr';
-import { TracerWrapper, serializedSpanContext } from '@gny/tracer';
-import { EnvironmentPlugin } from 'webpack';
+import { StateHelper } from './StateHelper';
+import { BigNumber } from '@gny/utils';
+import Loader from './loader';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -177,17 +178,36 @@ export default class Peer implements ICoreModule {
         .map(x => x.toString());
 
       const raw: P2PPeerIdAndMultiaddr = {
-          peerId: Peer.p2p.peerId.toB58String(),
-          multiaddr: m,
+        peerId: Peer.p2p.peerId.toB58String(),
+        multiaddr: m,
       };
 
       const converted = uint8ArrayFromString(JSON.stringify(raw));
       await Peer.p2p.broadcastSelf(converted);
     }, 20 * 1000);
 
+    // sync to highest node, especially when the whole network is stuck
+    let lastHeight = String(0);
+    setInterval(async () => {
+      const state = StateHelper.getState();
+      const lastBlock = state.lastBlock;
+      const newLastBlock = String(lastBlock.height);
+      console.log(
+        `lastHeight: ${lastHeight}, lastBlockHeight: ${newLastBlock}`
+      );
+
+      if (new BigNumber(lastHeight).isEqualTo(newLastBlock)) {
+        // no new height for x seconds, look if any other node has a higher node
+        global.library.tracer.startSpan('is stuck').finish();
+        Loader.startSyncBlocks(lastBlock);
+      } else {
+        lastHeight = newLastBlock;
+        return;
+      }
+    }, 30 * 1000);
+
     if (bootstrapNode.length > 0) {
       setInterval(async () => {
-
         if (!Peer.p2p.isStarted()) {
           return;
         }
@@ -235,7 +255,6 @@ export default class Peer implements ICoreModule {
             );
           }
         }
-
       }, 5 * 1000);
     }
   };

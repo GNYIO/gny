@@ -60,25 +60,6 @@ const secrets = [
   'pioneer boil auction crystal mimic spike ranch laptop praise card outside misery',
 ];
 
-async function forgingActivateDeactive(
-  port: number,
-  secrets: string[],
-  action: 'enable' | 'disable'
-) {
-  const url = `http://localhost:${port}/api/delegates/forging/${action}`;
-
-  for (let i = 0; i < secrets.length; ++i) {
-    const one = secrets[i];
-
-    const data = {
-      secret: one,
-      publicKey: gnyJS.crypto.getKeys(one).publicKey,
-    };
-    // console.log(`[${action}] for delegate: ${JSON.stringify(data, null, 2)}, url: ${url}`);
-    await axios.post(url, data);
-  }
-}
-
 describe('sync-to-stuck-network e2e test', () => {
   beforeAll(async done => {
     await lib.stopAndRemoveOldContainersAndNetworks();
@@ -89,7 +70,7 @@ describe('sync-to-stuck-network e2e test', () => {
   beforeEach(async done => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
-    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
+    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
@@ -108,50 +89,62 @@ describe('sync-to-stuck-network e2e test', () => {
   it(
     'sync-to-stuck-network',
     async done => {
-      await lib.sleep(30 * 1000);
-      // zwei nodes beide bis höhe 6
-      // stopp node2
-
-      // warte 20 sekunden
-      // dann zu node1 20 secrets hinzufügen
-
-      // noch mal ~6 Blöcke produzieren lassen (alleine nur node1)
-      // dann wieder 20 secrets von node1 entfernen
-
-      // 1min warten
-      // node2 starten und schauen ob node2 auf die gleiche Höhe kommt
-      // await lib.sleep(30 * 1000);
-
-      const forgingEnableEndpoint = '/api/delegates/forging/enable';
-      const forgingDisableEndpoint = '/api/delegates/forging/disable';
-
-      await helpers.allHeightsAreTheSame([4096, 4098]);
-
-      // no more secrets for node2
-      await forgingActivateDeactive(4098, secrets, 'disable');
-      await lib.sleep(10 * 1000);
-
-      const [temp1, temp2] = await helpers.allHeightsAreTheSame([4096, 4098]);
-      console.log(`temp1: ${temp1}, temp2: ${temp2}`);
-
       await lib.sleep(20 * 1000);
-      const [temp3, temp4] = await helpers.allHeightsAreTheSame([4096, 4098]);
 
-      // make sure that the network isn't producing blocks
-      expect(temp1).toEqual(temp3);
-      expect(temp2).toEqual(temp4);
+      // start 3 nodes (25 secrets each)
+      // let the network get some traction (until height e.g. 5)
+      // stop node 3 a few blocks later (only kill node3) -> this node should from block 7
 
-      expect(temp3).toEqual(temp4);
+      // test: we have node1 and node2 at height 10
+      //       we have node3 at height 7
+      //       the network isn't producing blocks
+      //       node3 should sync up to height 10 on its own (normally a block starts syncing when he gets a block out of line
+      // goal:   all 3 nodes should be at the same height and start to
 
-      await forgingActivateDeactive(4096, secrets, 'enable');
-      await lib.sleep(60 * 1000);
+      await lib.onNewBlock(4096);
+      await lib.sleep(500);
+      const [before1, before2, before3] = await helpers.allHeightsAreTheSame([
+        4096,
+        4098,
+        4100,
+      ]);
 
-      const [temp5, temp6] = await helpers.allHeightsAreTheSame([4096, 4098]);
-      console.log(`producing blocks, node1: ${temp5}, node2: ${temp6}`);
-      expect(Number(temp5)).toBeGreaterThan(Number(temp6));
+      // stop and kill services db3 and node3
+      await lib.onNewBlock(4096);
+      await lib.sleep(500);
+      await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['db3', 'node3']);
+      await lib.rmP2PContainers(DOCKER_COMPOSE_P2P, ['db3', 'node3']);
+
+      // make
+      const [stopped1, stopped2] = await helpers.allHeightsAreTheSame([
+        4096,
+        4098,
+      ]);
+      await lib.sleep(15 * 1000);
+      const [stoppedAfter1, stoppedAfter2] = await helpers.allHeightsAreTheSame(
+        [4096, 4098]
+      );
+      expect(stopped1).toEqual(stoppedAfter1);
+      expect(stopped2).toEqual(stoppedAfter2);
+
+      // start services db3 and node3
+      console.log(
+        `[${new Date().toLocaleTimeString()}] starting "db3" and "node3"...`
+      );
+      await lib.upP2PContainers(DOCKER_COMPOSE_P2P, ['db3', 'node3']);
+      await lib.waitForApiToBeReadyReady(4100);
+      console.log(
+        `[${new Date().toLocaleTimeString()}] started "db3" and "node3"!`
+      );
+
+      await lib.sleep(40 * 1000);
+
+      /*const [stoppedAfter1, stoppedAfter2] = */ await helpers.allHeightsAreTheSame(
+        [4096, 4098, 4100]
+      );
 
       return done();
     },
-    lib.oneMinute * 3
+    lib.oneMinute * 7
   );
 });

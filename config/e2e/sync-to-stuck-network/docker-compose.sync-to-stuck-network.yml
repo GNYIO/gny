@@ -90,7 +90,7 @@ services:
     build: ../../..
     container_name: 'node2'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 15s; node packages/main/dist/src/app --config "config/e2e/sync-to-stuck-network/node2.json"'
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-to-stuck-network/node2.json"'
     environment:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
@@ -113,3 +113,44 @@ services:
       - loki.local
       - jaeger.local
       - db2
+
+  db3:
+    image: "postgres:9.6.12"
+    container_name: 'db3'
+    restart: always
+    expose: # only internal
+      - '5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.6
+  node3:
+    build: ../../..
+    container_name: 'node3'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-to-stuck-network/node3.json"'
+    environment:
+      - NODE_ENV=production
+      - GNY_LOKI_HOST=http://loki.local:3100
+      - GNY_PUBLIC_IP=172.20.0.7
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
+      - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmcnNLqAtJPMfHkxMsfYQ2o7oPbEaXQXJDbguNgjYHPRyt
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db3
+      - GNY_DB_PORT=5432
+      - GNY_P2P_SECRET="CAASpgkwggSiAgEAAoIBAQDST4UVjGpgw5WoZHlEazW8TqFTpGmVmjEOLvPS4AcrnwcqaPriQwoTis0cN+/Ybyn0Vy7CMUDfck49pOMhsox42OZMe04Z6f/Rn+A++l6pl+sxV7Qrh77aa8Ja6Lrbxd4KlOLAkHBMgTGYiMzKPwlFz+hbvdNzA45Sey1BElh5KvSgUEenvOKScvKZki3peCkQ4ezO763SKbutyoSGMSnlmSkQFmKcAHFME2X51wRCJLzFw0s6+eoxeOVljx2ug12WKVue0wYVYS7CyO7IYzSzH0QL1FsQ1uS5SgddmKJiuAaSV/iHkMIACDZ9XtWUXbw+9iK/mp45RlrBtoh7hplnAgMBAAECggEAAe0+e+4ZntkNUhV7YUutPWW5YaSnAbT/yiTLKGvq6UNZqt1jze3bwYv8fYXrTgLPEhbEBWY+72dOdKZk1zfIUE9MCBtA57GZhm4SZf/aNG/S0evzdL8u2dfgb1zej4+FAdXmt4xG2Ova/fbMspheEJuIU5CoUyDU/AIwnHJp5ee4c4OE6a4D/d4x5Tm9x00h9m8pqT7U4QIQ3SG6xsMS762Qs7a7llv//RISPsiauRBMHWD3fZIAcAnhVaGkPZyktgLxYKIPJa9s3dYm2lCuQGkPQC+V0l7olGCRckOoaBA/SXEL9XmcDiTSqgUa+BfZoMbt4g0nUXBfF93W/m79lQKBgQDuMcICqR7O6L+twI4SAe8Q2IsGL229owPT3U0j5E1LMIyVLiDrwzrHZth7vWDiFLayQgBpwu/qPYBcGL3TghAYnsTmUNVX+CuFBnu70g9x+UoGvjDdy/A+YJV9I8eZaHNNgjWnBpqYAHUwKGmjV+2rYxAG8WpcazfKhgG6f/CREwKBgQDiCCkdMtwUhssmZVAeVAcmjXvRuyXJuUJfTyk/AqnqIZ6L2zkIYEigO65xyehwMNUNE0yFLnQp/fO50w8DhQzcEerLa2sjpqB3rgePmMgTHfnlsdRTVCIIvKWTYwifqlDIi5UsFvVlMf8sbIG7BKPkeyUuyZRlDskC+18VxMi03QKBgFsLVdbigc4glLN7OFKVvqU3v9v7YPztRFdE7WlcqFanFfUnjpnPI7Z4DyMs/c0skbCNHc9PHZjxLREGu/gObMycUzKdjw5y41+TXNQrtI+h87OkGtWMUCXnkPwmIvL2Q6xKqutO0ORsuF5R9B7lSwkJcmTU/gyZRtf4ZMy+fltVAoGAEEPeEYfTZna8r6qitUv+p7uOqWz6LyXxrMIZibs7VunMauv/kqa7Eyy4RN/upgQdkK9O1ladbVgk7b5OWkZ8wmlXqAO21f3rljEjwiWQYC/MB8dgLA7l1BMfJxf9SuAKqCPDPET6q6mJXzz/qOGQmaRy7Ib88ri5pklIclySxNECgYBlGjAuMO1goLw0BZUml/MNfebtPQ85XO1B8NrqhhrGpKcWybGFFa1qDYTSy9xIuEclTVvRTxVN+eWApAefmotRjrClCcX2HkO9ruylvmjyBbbe0sorxaR5FBUi0LvpijOPTpaQt3t0KyKyEy6yHFiWHoFG2bgxJTL3I4NcZANypg=="
+    ports:
+      - '4100:4096'
+      - '4101:4097'
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.7
+    depends_on:
+      - loki.local
+      - jaeger.local
+      - db3
