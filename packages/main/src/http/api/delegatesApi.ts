@@ -53,14 +53,7 @@ export default class DelegatesApi implements IHttpApi {
     router.get('/get', this.getDelegate);
     router.get('/', this.getDelegates);
     router.get('/ownProducedBlocks', this.ownProducedBlocks);
-    router.post('/forging/enable', this.forgingEnable);
-    router.post('/forging/disable', this.forgingDisable);
     router.get('/forging/status', this.forgingStatus);
-
-    if (process.env.DEBUG) {
-      router.get('/forging/enableAll', this.forgingEnableAll);
-      router.get('/forging/disableAll', this.forgingDisableAll);
-    }
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -400,127 +393,6 @@ export default class DelegatesApi implements IHttpApi {
     });
   };
 
-  private forgingEnable = async (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    const secretAndPublicKey = joi.object().keys({
-      secret: joi
-        .string()
-        .secret()
-        .required(),
-      publicKey: joi.string().publicKey(),
-    });
-    const report = joi.validate(body, secretAndPublicKey);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    const ip = req.connection.remoteAddress;
-
-    if (
-      this.library.config.forging.access.whiteList.length > 0 &&
-      this.library.config.forging.access.whiteList.indexOf(ip) < 0
-    ) {
-      return next('Access denied');
-    }
-
-    const keypair = ed.generateKeyPair(
-      crypto
-        .createHash('sha256')
-        .update(body.secret, 'utf8')
-        .digest()
-    );
-
-    if (body.publicKey) {
-      if (keypair.publicKey.toString('hex') !== body.publicKey) {
-        return next('Invalid passphrase');
-      }
-    }
-
-    const publicKey = keypair.publicKey.toString('hex');
-    if (StateHelper.isPublicKeyInKeyPairs(publicKey)) {
-      return next('Forging is already enabled');
-    }
-
-    const address = generateAddressByPublicKey(publicKey);
-    const accountInfo = await getAccount(address);
-    if (typeof accountInfo === 'string') {
-      return next(accountInfo.toString());
-    }
-
-    if (accountInfo && accountInfo.account.isDelegate) {
-      StateHelper.setKeyPair(publicKey, keypair);
-      this.library.logger.info(
-        `Forging enabled on account: ${accountInfo.account.address}`
-      );
-      return res.json({ success: true });
-    }
-    return next('Delegate not found');
-  };
-
-  private forgingDisable = async (req: Request, res: Response, next: Next) => {
-    const { body } = req;
-    const secretAndPublicKey = joi.object().keys({
-      secret: joi
-        .string()
-        .secret()
-        .required(),
-      publicKey: joi.string().publicKey(),
-    });
-    const report = joi.validate(body, secretAndPublicKey);
-    if (report.error) {
-      return res.status(422).send({
-        success: false,
-        error: report.error.message,
-      });
-    }
-
-    const ip = req.connection.remoteAddress;
-
-    if (
-      this.library.config.forging.access.whiteList.length > 0 &&
-      this.library.config.forging.access.whiteList.indexOf(ip) < 0
-    ) {
-      return next('Access denied');
-    }
-
-    const keypair = ed.generateKeyPair(
-      crypto
-        .createHash('sha256')
-        .update(body.secret, 'utf8')
-        .digest()
-    );
-
-    if (body.publicKey) {
-      if (keypair.publicKey.toString('hex') !== body.publicKey) {
-        return next('Invalid passphrase');
-      }
-    }
-
-    const publicKey = keypair.publicKey.toString('hex');
-    if (!StateHelper.isPublicKeyInKeyPairs(keypair.publicKey.toString('hex'))) {
-      return next('Delegate not found');
-    }
-
-    const address = generateAddressByPublicKey(publicKey);
-    const accountOverview = await getAccount(address);
-
-    if (typeof accountOverview === 'string') {
-      return next(accountOverview.toString());
-    }
-
-    if (accountOverview.account && accountOverview.account.isDelegate) {
-      StateHelper.removeKeyPair(keypair.publicKey.toString('hex'));
-      this.library.logger.info(
-        `Forging disabled on account: ${accountOverview.account.address}`
-      );
-      return res.json({ success: true });
-    }
-    return next('Delegate not found');
-  };
-
   private forgingStatus = (req: Request, res: Response, next: Next) => {
     const { query } = req;
     const needPublicKey = joi.object().keys({
@@ -543,16 +415,5 @@ export default class DelegatesApi implements IHttpApi {
       enabled: isEnabled,
     };
     return res.json(result);
-  };
-
-  // only used in DEBUG
-  private forgingEnableAll = (req: Request, res: Response, next: Next) => {
-    StateHelper.SetForgingEnabled(true);
-    return res.json({ success: true });
-  };
-
-  private forgingDisableAll = (req: Request, res: Response, next: Next) => {
-    StateHelper.SetForgingEnabled(false);
-    return res.json({ success: true });
   };
 }

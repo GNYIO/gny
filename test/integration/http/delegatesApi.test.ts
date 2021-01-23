@@ -207,33 +207,6 @@ describe('delegatesApi', () => {
     );
   });
 
-  describe('/forging/enable', () => {
-    it(
-      'should return the error: Access denied',
-      async () => {
-        const publicKey =
-          '0bcf038e0cb8cb61b72cb06f943afcca62094ad568276426a295ba8f550708a9';
-        const secret =
-          'carpet pudding topple genuine relax rally problem before pill gun nation method';
-
-        const transData = {
-          secret,
-          publicKey,
-        };
-        const enablePromise = axios.post(
-          'http://localhost:4096/api/delegates/forging/enable',
-          transData,
-          config
-        );
-        expect(enablePromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Access denied',
-        });
-      },
-      lib.oneMinute
-    );
-  });
-
   describe('/forging/status', () => {
     it(
       'should get the status',

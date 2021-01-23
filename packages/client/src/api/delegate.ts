@@ -105,26 +105,6 @@ export class Delegate {
     return result;
   }
 
-  public async forgingEnable(secret: string, pulicKey: string) {
-    const params = {
-      secret: secret,
-      pulicKey: pulicKey,
-    };
-    const res = await this.base.get('/api/delegates/forging/enable', params);
-    const result: ApiResult<any, ValidationError | ForgingError> = res.data;
-    return result;
-  }
-
-  public async forgingDisable(secret: string, pulicKey: string) {
-    const params = {
-      secret: secret,
-      pulicKey: pulicKey,
-    };
-    const res = await this.base.get('/api/delegates/forging/disable', params);
-    const result: ApiResult<any, ValidationError | ForgingError> = res.data;
-    return result;
-  }
-
   public async forgingStatus(publicKey: string) {
     const params = {
       publicKey: publicKey,

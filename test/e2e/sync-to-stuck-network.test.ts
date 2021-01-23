@@ -60,25 +60,6 @@ const secrets = [
   'pioneer boil auction crystal mimic spike ranch laptop praise card outside misery',
 ];
 
-async function forgingActivateDeactive(
-  port: number,
-  secrets: string[],
-  action: 'enable' | 'disable'
-) {
-  const url = `http://localhost:${port}/api/delegates/forging/${action}`;
-
-  for (let i = 0; i < secrets.length; ++i) {
-    const one = secrets[i];
-
-    const data = {
-      secret: one,
-      publicKey: gnyJS.crypto.getKeys(one).publicKey,
-    };
-    // console.log(`[${action}] for delegate: ${JSON.stringify(data, null, 2)}, url: ${url}`);
-    await axios.post(url, data);
-  }
-}
-
 describe('sync-to-stuck-network e2e test', () => {
   beforeAll(async done => {
     await lib.stopAndRemoveOldContainersAndNetworks();
