@@ -72,18 +72,22 @@ async function transactionFeesAreTheSame() {
   const delegate1 = await client1.query(cmd2);
   const delegate2 = await client2.query(cmd2);
 
-  // console.log(`--delegate fee sum are the same: "${JSON.stringify(delegate1.rows)}" == "${JSON.stringify(delegate2.rows)}"`)
-  // expect(delegate1.rows).toEqual(delegate2.rows);
+  console.log(
+    `--delegate fee sum are the same: "${JSON.stringify(
+      delegate1.rows
+    )}" == "${JSON.stringify(delegate2.rows)}"`
+  );
+  expect(delegate1.rows).toEqual(delegate2.rows);
 
-  // // check if its coherent for db1
-  // const { transactionfeesum: trsfeesum1 } = trs1.rows[0];
-  // const { delegatefees: delfeessum1 } = delegate1.rows[0];
-  // expect(trsfeesum1).toEqual(delfeessum1);
+  // check if its coherent for db1
+  const { transactionfeesum: trsfeesum1 } = trs1.rows[0];
+  const { delegatefees: delfeessum1 } = delegate1.rows[0];
+  expect(trsfeesum1).toEqual(delfeessum1);
 
-  // // check if  its coherent for db2
-  // const { transactionfeesum: trsfeesum2 } = trs2.rows[0];
-  // const { delegatefees: delfeessum2 } = delegate2.rows[0];
-  // expect(trsfeesum2).toEqual(delfeessum2);
+  // check if  its coherent for db2
+  const { transactionfeesum: trsfeesum2 } = trs2.rows[0];
+  const { delegatefees: delfeessum2 } = delegate2.rows[0];
+  expect(trsfeesum2).toEqual(delfeessum2);
 }
 
 async function compareDelegates() {
@@ -184,6 +188,17 @@ describe('db-the-same', () => {
   beforeEach(async done => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
+    // restore
+    await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
+    await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['db1', 'db2']);
+    await lib.sleep(5000);
+
+    const backupFile =
+      'config/e2e/db-the-same/gny_height_101_25-01-2021_14_28_33.sql';
+    await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile, 'db1');
+    await lib.sleep(5000);
+
+    // start the rest of the containers
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
@@ -248,30 +263,13 @@ describe('db-the-same', () => {
       // stop node1 and node2
       // check db1 and db2. Are they the same??
 
-      await lib.onNewBlock(4096);
-      await lib.onNewBlock(4098);
-
-      const trsCountFirst = await getTrsCount(4096);
-
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-
-      await lib.onNewBlock(4096);
-
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-
-      await lib.onNewBlock(4096);
-
-      const trsCountSecond = await getTrsCount(4096);
-
-      expect(trsCountFirst + 6).toEqual(trsCountSecond);
+      // do not wait for a new block, because they are no blocks being produced
+      await lib.sleep(lib.oneMinute);
 
       console.log(
         `[${new Date().toLocaleTimeString()}] waiting for network to get down...`
       );
+      await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node1', 'node2']);
       await lib.onNetworkDown(4096);
       await lib.onNetworkDown(4098);
       console.log(`[${new Date().toLocaleTimeString()}] network down`);

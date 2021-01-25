@@ -54,6 +54,7 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
     environment:
       - NODE_ENV=production
+      - GNY_NODE_ACTION=stopWithHeight:101
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_DISABLE_JAEGER=false
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
