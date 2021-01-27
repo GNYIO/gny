@@ -19,6 +19,7 @@ import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { ISpan } from '../../../packages/tracer/dist';
+import { SmartDB } from '../../../packages/database-postgres/dist/smartDB';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
@@ -119,7 +120,6 @@ function createSpan(): ISpan {
 
 describe('core/blocks', () => {
   beforeEach(done => {
-
     const tracer = {
       startSpan: () => createSpan(),
     };
@@ -129,7 +129,7 @@ describe('core/blocks', () => {
     };
     global.library = {
       tracer,
-    }
+    };
     done();
   });
   afterEach(done => {
@@ -420,7 +420,16 @@ describe('core/blocks', () => {
 
   it.skip('increaseRoundData', async () => {});
 
-  it.skip('applyRound', async () => {});
+  describe('applyRound', () => {
+    beforeEach(() => {
+      const sdb: SmartDB = {} as SmartDB;
+      global.app.sdb = sdb;
+    });
+
+    afterEach(() => {
+      delete global.app.sdb;
+    });
+  });
 
   it.skip('getBlocks', async () => {});
 
