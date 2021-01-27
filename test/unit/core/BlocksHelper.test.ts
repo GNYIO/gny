@@ -26,12 +26,28 @@ const dummyLogger = {
   fatal: x => x,
 };
 
-function range(start, end) {
+function range(start, end): Array<Number> {
   const result = [];
   for (let i = start; i <= end; ++i) {
     result.push(i);
   }
   return result;
+}
+
+function createDelegateBlocks(
+  start: number,
+  end: number,
+  delegate: string,
+  fees: string = String(0.1 * 1e8),
+  reward: string = String(3 * 1e8)
+) {
+  const blocks: Array<Partial<IBlock>> = range(start, end).map(x => ({
+    height: String(x),
+    delegate,
+    fees,
+    reward,
+  }));
+  return blocks;
 }
 
 function loadGenesisBlock() {
@@ -1065,7 +1081,7 @@ describe('BlocksHelper', () => {
       return expect(result.reward).toEqual(String(101 * 3 * 1e8));
     });
 
-    it('getDelegateRewardsFor101Blocks - if one delegate forged 101 blocks, it gets grouped', () => {
+    it('getGroupedDelegateInfoFor101Blocks - if one delegate forged 101 blocks, it gets grouped', () => {
       const blocks: Array<Partial<IBlock>> = [];
 
       // all blocks got the same
@@ -1092,9 +1108,279 @@ describe('BlocksHelper', () => {
     });
 
     it('getDelegateRewardsFor101Blocks - two delegates forge all 101 blocks', () => {
-      const blocks: Array<Partial<IBlock>> = [];
+      const delegate1 =
+        '1eaecdee15d162694fab942ee7da774c82c87dcf3473c83eb2c3cabda90897fe';
+      const delegate2 =
+        'd351ba5a2eca807eb8da6a069e8a5a39bf9b7c1522815d0e6d24505f2d0f7f4b';
 
-      // range()
+      const range1 = range(1, 50).map(x => ({
+        height: String(x),
+        delegate: delegate1,
+        reward: String(3 * 1e8),
+        fees: String(0.1 * 1e8),
+      }));
+
+      const range2 = range(51, 101).map(x => ({
+        height: String(x),
+        delegate: delegate2,
+        reward: String(2 * 1e8),
+        fees: String(0),
+      }));
+
+      const blocks: Array<Partial<IBlock>> = [...range1, ...range2];
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+
+      const feeSum = new BigNumber(result[delegate1].fee)
+        .plus(result[delegate2].fee)
+        .toFixed();
+      expect(feeSum).toEqual(String(0.1 * 50 * 1e8));
+
+      return expect(result).toEqual({
+        '1eaecdee15d162694fab942ee7da774c82c87dcf3473c83eb2c3cabda90897fe': {
+          fee: String(247524750),
+          reward: String(50 * 3 * 1e8),
+        },
+        d351ba5a2eca807eb8da6a069e8a5a39bf9b7c1522815d0e6d24505f2d0f7f4b: {
+          fee: '252475250',
+          reward: String(51 * 2 * 1e8),
+        },
+      });
     });
+
+    it('getDelegateRewardsFor101Blocks - no fee', () => {
+      const range1 = range(1, 101).map(x => ({
+        height: String(x),
+        delegate:
+          '48cc7a8fec22b0fcbef799d67f3fcce631b144a74983bdeb147487bcd20e0d0d',
+        reward: String(3 * 1e8),
+        fees: String(0),
+      }));
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(range1);
+      return expect(result).toEqual({
+        '48cc7a8fec22b0fcbef799d67f3fcce631b144a74983bdeb147487bcd20e0d0d': {
+          fee: String(0),
+          reward: String(3 * 101 * 1e8),
+        },
+      });
+    });
+
+    it('getGroupedDelegateInfoFor101Blocks - no fee with 5 delegates', () => {
+      const delegate1 =
+        '94fddec969c55a67df77554fc27996549d650a040a398f4caffdab225a47d796';
+      const delegate2 =
+        '0a3f1a6665fe4b63d559045e3764b025706de0c655e6ca7e9a98946f34a8290e';
+      const delegate3 =
+        'f0019715e337581884a55295540d9a3e0f12c1e091b511e8e21e7b78ca58055e';
+      const delegate4 =
+        '4d57438ab55270d1901aba8372aa6901d38c0a062f820ff032a98354ad90fbef';
+      const delegate5 =
+        '68a61b3d45f58f2c22f82f911ea44ba3d62aeb2e04605d9fd0e7f758811d7c83';
+
+      const zeroFee = String(0);
+      const range1 = createDelegateBlocks(
+        1,
+        5,
+        delegate1,
+        zeroFee,
+        String(3 * 1e8)
+      );
+      const range2 = createDelegateBlocks(
+        6,
+        20,
+        delegate2,
+        zeroFee,
+        String(1.5 * 1e8)
+      );
+      const range3 = createDelegateBlocks(
+        21,
+        30,
+        delegate3,
+        zeroFee,
+        String(1 * 1e8)
+      );
+      const range4 = createDelegateBlocks(
+        31,
+        80,
+        delegate4,
+        zeroFee,
+        String(2 * 1e8)
+      );
+      const range5 = createDelegateBlocks(
+        81,
+        101,
+        delegate5,
+        zeroFee,
+        String(1 * 1e8)
+      );
+
+      const blocks = [...range1, ...range2, ...range3, ...range4, ...range5];
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+
+      return expect(result).toEqual({
+        '94fddec969c55a67df77554fc27996549d650a040a398f4caffdab225a47d796': {
+          fee: String(0),
+          reward: String(5 * 3 * 1e8),
+        },
+        '0a3f1a6665fe4b63d559045e3764b025706de0c655e6ca7e9a98946f34a8290e': {
+          fee: String(0),
+          reward: String(15 * 1.5 * 1e8),
+        },
+        f0019715e337581884a55295540d9a3e0f12c1e091b511e8e21e7b78ca58055e: {
+          fee: String(0),
+          reward: String(10 * 1 * 1e8),
+        },
+        '4d57438ab55270d1901aba8372aa6901d38c0a062f820ff032a98354ad90fbef': {
+          fee: String(0),
+          reward: String(50 * 2 * 1e8),
+        },
+        '68a61b3d45f58f2c22f82f911ea44ba3d62aeb2e04605d9fd0e7f758811d7c83': {
+          fee: String(0),
+          reward: String(21 * 1 * 1e8),
+        },
+      });
+    });
+
+    it('getGroupedDelegateInfoFor101Blocks - no reward', () => {
+      const range1 = range(1, 101).map(x => ({
+        height: String(x),
+        delegate:
+          '588d735b15b747b410ce0645654c35aa7353994356915d5292c6c05213376710',
+        reward: String(0),
+        fees: String(0.1 * 1e8),
+      }));
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(range1);
+      return expect(result).toEqual({
+        '588d735b15b747b410ce0645654c35aa7353994356915d5292c6c05213376710': {
+          reward: String(0),
+          fee: String(0.1 * 1e8 * 101),
+        },
+      });
+    });
+
+    it('getGroupedDelegateInfoFor101Blocks - 10 delegates, 9 have the same fee', () => {
+      const delegate1 =
+        '5139bf0aeedf7fa0730cd05d3b34657031c1ea693c377067c08d3c13ff5bbd73';
+      const delegate2 =
+        '7b2d474eab943559ce6e9bbbe2d71d7839bf8b05cc8c45d3a84413e8e7011a77';
+      const delegate3 =
+        'e123deb95501b06d5dc008a03f0dce7dbbef56ef7534eaba1dccc6df197a84f7';
+      const delegate4 =
+        '69b2caefed9925770e7e46a3538808630d9d75afbd22afae66c7b47fc6b9b92d';
+      const delegate5 =
+        'c40cc0b9bbebadc05d9d5a9a4e9584b57653e8b29d4f7672faebceb2db1c25c2';
+      const delegate6 =
+        '3f8c90a361fe0e9259de0fae27707caaabc86cef9b8d853ae046ef3d6f498d81';
+      const delegate7 =
+        '76d6f063e65324da07a257d0598fa7624339aad1ec19a2ff9ad27f7c0442f181';
+      const delegate8 =
+        '6c373fda3f8ee1f7e6537a0738d8142048918bd42278cc77a9dd4e689ea9cec5';
+      const delegate9 =
+        'ab2a41299c75636168ceeda2fbe9c6b65065560b749b205bc10ee7f1a366db85';
+      const delegate10 =
+        'e2e3703efc3b55ea7cc6052809cb12aaeb502c563b510fb7de8b41c67393ece1';
+
+      const fees = String(0.1 * 1e8);
+      const rewards = String(3 * 1e8);
+      const range1 = createDelegateBlocks(1, 10, delegate1, fees, rewards);
+      const range2 = createDelegateBlocks(11, 20, delegate2, fees, rewards);
+      const range3 = createDelegateBlocks(21, 30, delegate3, fees, rewards);
+      const range4 = createDelegateBlocks(31, 40, delegate4, fees, rewards);
+      const range5 = createDelegateBlocks(41, 50, delegate5, fees, rewards);
+      const range6 = createDelegateBlocks(51, 60, delegate6, fees, rewards);
+      const range7 = createDelegateBlocks(61, 70, delegate7, fees, rewards);
+      const range8 = createDelegateBlocks(71, 80, delegate8, fees, rewards);
+      const range9 = createDelegateBlocks(81, 90, delegate9, fees, rewards);
+      const range10 = createDelegateBlocks(91, 101, delegate10, fees, rewards);
+
+      const blocks = [
+        ...range1,
+        ...range2,
+        ...range3,
+        ...range4,
+        ...range5,
+        ...range6,
+        ...range7,
+        ...range8,
+        ...range9,
+        ...range10,
+      ];
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+
+      const feeSum = Object.keys(result)
+        .map(a => result[a].fee)
+        .reduce((acc, curr) => new BigNumber(acc).plus(curr).toFixed());
+      expect(feeSum).toEqual(
+        new BigNumber(101)
+          .times(0.1)
+          .times(1e8)
+          .toFixed()
+      );
+
+      const rewardSum = Object.keys(result)
+        .map(a => result[a].reward)
+        .reduce((acc, curr) => new BigNumber(acc).plus(curr).toFixed());
+      expect(rewardSum).toEqual(
+        new BigNumber(101)
+          .times(3)
+          .times(1e8)
+          .toFixed()
+      );
+
+      // every delegate should have a fee of 1 (times 1e8)
+      // the last delegate should have a fee of 1.1 (times 1e8)
+
+      // every delegate should have a reward of 30 (times 1e8)
+      // the last delegate should have a reward of 33 (times 1e8)
+      return expect(result).toEqual({
+        '5139bf0aeedf7fa0730cd05d3b34657031c1ea693c377067c08d3c13ff5bbd73': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        '7b2d474eab943559ce6e9bbbe2d71d7839bf8b05cc8c45d3a84413e8e7011a77': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        e123deb95501b06d5dc008a03f0dce7dbbef56ef7534eaba1dccc6df197a84f7: {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        '69b2caefed9925770e7e46a3538808630d9d75afbd22afae66c7b47fc6b9b92d': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        c40cc0b9bbebadc05d9d5a9a4e9584b57653e8b29d4f7672faebceb2db1c25c2: {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        '3f8c90a361fe0e9259de0fae27707caaabc86cef9b8d853ae046ef3d6f498d81': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        '76d6f063e65324da07a257d0598fa7624339aad1ec19a2ff9ad27f7c0442f181': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        '6c373fda3f8ee1f7e6537a0738d8142048918bd42278cc77a9dd4e689ea9cec5': {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        ab2a41299c75636168ceeda2fbe9c6b65065560b749b205bc10ee7f1a366db85: {
+          fee: String(1 * 1e8),
+          reward: String(30 * 1e8),
+        },
+        e2e3703efc3b55ea7cc6052809cb12aaeb502c563b510fb7de8b41c67393ece1: {
+          fee: String(new BigNumber(1.1).times(1e8)), // otherwise: 110000000.00000001
+          reward: String(33 * 1e8),
+        },
+      });
+    });
+
+    it.skip('getDelegateRewardsFor101Blocks - 0.1 fee', () => {});
+
+    it.skip('getDelegateRewardsFor101Blocks - 0.1 fee, 101 delegates', () => {});
   });
 });

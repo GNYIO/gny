@@ -15,7 +15,7 @@ const config = {
 };
 
 async function blockCountTheSame() {
-  const cmd = 'select count(*) as blockcount from block;';
+  const cmd = 'select count(*) as blockcount from block where height > 0;';
   const result1 = await client1.query(cmd);
   const result2 = await client2.query(cmd);
 
