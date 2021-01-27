@@ -26,6 +26,14 @@ const dummyLogger = {
   fatal: x => x,
 };
 
+function range(start, end) {
+  const result = [];
+  for (let i = start; i <= end; ++i) {
+    result.push(i);
+  }
+  return result;
+}
+
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
     encoding: 'utf8',
@@ -970,6 +978,123 @@ describe('BlocksHelper', () => {
       expect(result).toEqual(true);
 
       done();
+    });
+
+    it('getRoundInfoForBlocks - throws if null is passed in', () => {
+      const blocks = undefined as Array<IBlock>;
+
+      return expect(() =>
+        BlocksHelper.getRoundInfoForBlocks(blocks)
+      ).toThrowError('wrong amount of blocks');
+    });
+
+    it('getRoundInfoForBlocks - throws if not 101 blocks passed in', () => {
+      const blocks: Array<IBlock> = [];
+
+      return expect(() =>
+        BlocksHelper.getRoundInfoForBlocks(blocks)
+      ).toThrowError('wrong amount of blocks');
+    });
+
+    it('getRoundInfoForBlocks - throws if last block is not modulo 101 == 0', () => {
+      // last block height is 100
+      const blocks = [];
+      for (let i = 0; i < 101; ++i) {
+        const one: Partial<IBlock> = {
+          height: String(i),
+        };
+        blocks.push(one);
+      }
+
+      return expect(() =>
+        BlocksHelper.getRoundInfoForBlocks(blocks)
+      ).toThrowError('modulo not correct');
+    });
+
+    it('getRoundInfoForBlocks - returns round 1', () => {
+      const blocks = [];
+      for (let i = 1; i < 102; ++i) {
+        const one: Partial<IBlock> = {
+          height: String(i),
+          reward: String(3 * 1e8),
+          fees: String(0.1 * 1e8),
+        };
+        blocks.push(one);
+      }
+
+      expect(blocks.length).toEqual(101);
+      const result = BlocksHelper.getRoundInfoForBlocks(blocks);
+      return expect(result.round).toEqual(String(1));
+    });
+
+    it('getRoundInfoForBlocks - return summed up fees', () => {
+      const blocks = [];
+      let feeSum = 0;
+      for (let i = 102; i < 203; ++i) {
+        const fees = (parseInt(Math.random() * 10) / 10) * 1e8;
+        feeSum += fees;
+
+        const one: Partial<IBlock> = {
+          height: String(i),
+          reward: String(2.5 * 1e8),
+          fees: String(fees),
+        };
+        blocks.push(one);
+      }
+
+      const result = BlocksHelper.getRoundInfoForBlocks(blocks);
+      expect(result.round).toEqual(String(2));
+      return expect(result.fee).toEqual(String(feeSum));
+    });
+
+    it('getRoundInfoForBlocks - returned summed up rewards', () => {
+      const blocks = [];
+
+      for (let i = 203; i < 304; ++i) {
+        const reward = String(3 * 1e8);
+        const one: Partial<IBlock> = {
+          height: String(i),
+          reward: reward,
+          fees: String(0.1 * 1e8),
+        };
+        blocks.push(one);
+      }
+
+      const result = BlocksHelper.getRoundInfoForBlocks(blocks);
+      expect(result.round).toEqual(String(3));
+      return expect(result.reward).toEqual(String(101 * 3 * 1e8));
+    });
+
+    it('getDelegateRewardsFor101Blocks - if one delegate forged 101 blocks, it gets grouped', () => {
+      const blocks: Array<Partial<IBlock>> = [];
+
+      // all blocks got the same
+      for (let i = 1; i < 102; ++i) {
+        const one: Partial<IBlock> = {
+          height: String(i),
+          reward: String(3 * 1e8),
+          fees: String(0.1 * 1e8),
+          delegate:
+            'b7a66054a061e5319eaa9fa7a86aca3df57e3f772eb4f8585042abd8246956b3',
+        };
+        blocks.push(one);
+      }
+
+      expect(blocks.length).toEqual(101);
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+      return expect(result).toEqual({
+        b7a66054a061e5319eaa9fa7a86aca3df57e3f772eb4f8585042abd8246956b3: {
+          fee: String(0.1 * 1e8 * 101),
+          reward: String(3 * 1e8 * 101),
+        },
+      });
+    });
+
+    it('getDelegateRewardsFor101Blocks - two delegates forge all 101 blocks', () => {
+      const blocks: Array<Partial<IBlock>> = [];
+
+      // range()
     });
   });
 });
