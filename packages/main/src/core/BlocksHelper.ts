@@ -443,6 +443,7 @@ export class BlocksHelper {
         grouped[r.delegate] = {
           fee: String(0),
           reward: String(0),
+          producedBlocks: 0,
         };
       }
 
@@ -452,10 +453,12 @@ export class BlocksHelper {
       const calculatedReward = new BigNumber(grouped[r.delegate].reward)
         .plus(b.reward)
         .toFixed();
+      const producedBlocks = grouped[r.delegate].producedBlocks + 1;
 
       grouped[r.delegate] = {
         fee: calculatedFee,
         reward: calculatedReward,
+        producedBlocks,
       };
     }
 

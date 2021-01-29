@@ -1103,6 +1103,7 @@ describe('BlocksHelper', () => {
         b7a66054a061e5319eaa9fa7a86aca3df57e3f772eb4f8585042abd8246956b3: {
           fee: String(0.1 * 1e8 * 101),
           reward: String(3 * 1e8 * 101),
+          producedBlocks: 101,
         },
       });
     });
@@ -1140,10 +1141,12 @@ describe('BlocksHelper', () => {
         '1eaecdee15d162694fab942ee7da774c82c87dcf3473c83eb2c3cabda90897fe': {
           fee: String(247524750),
           reward: String(50 * 3 * 1e8),
+          producedBlocks: 50,
         },
         d351ba5a2eca807eb8da6a069e8a5a39bf9b7c1522815d0e6d24505f2d0f7f4b: {
           fee: '252475250',
           reward: String(51 * 2 * 1e8),
+          producedBlocks: 51,
         },
       });
     });
@@ -1162,6 +1165,7 @@ describe('BlocksHelper', () => {
         '48cc7a8fec22b0fcbef799d67f3fcce631b144a74983bdeb147487bcd20e0d0d': {
           fee: String(0),
           reward: String(3 * 101 * 1e8),
+          producedBlocks: 101,
         },
       });
     });
@@ -1222,22 +1226,27 @@ describe('BlocksHelper', () => {
         '94fddec969c55a67df77554fc27996549d650a040a398f4caffdab225a47d796': {
           fee: String(0),
           reward: String(5 * 3 * 1e8),
+          producedBlocks: 5,
         },
         '0a3f1a6665fe4b63d559045e3764b025706de0c655e6ca7e9a98946f34a8290e': {
           fee: String(0),
           reward: String(15 * 1.5 * 1e8),
+          producedBlocks: 15,
         },
         f0019715e337581884a55295540d9a3e0f12c1e091b511e8e21e7b78ca58055e: {
           fee: String(0),
           reward: String(10 * 1 * 1e8),
+          producedBlocks: 10,
         },
         '4d57438ab55270d1901aba8372aa6901d38c0a062f820ff032a98354ad90fbef': {
           fee: String(0),
           reward: String(50 * 2 * 1e8),
+          producedBlocks: 50,
         },
         '68a61b3d45f58f2c22f82f911ea44ba3d62aeb2e04605d9fd0e7f758811d7c83': {
           fee: String(0),
           reward: String(21 * 1 * 1e8),
+          producedBlocks: 21,
         },
       });
     });
@@ -1256,6 +1265,7 @@ describe('BlocksHelper', () => {
         '588d735b15b747b410ce0645654c35aa7353994356915d5292c6c05213376710': {
           reward: String(0),
           fee: String(0.1 * 1e8 * 101),
+          producedBlocks: 101,
         },
       });
     });
@@ -1339,42 +1349,52 @@ describe('BlocksHelper', () => {
         '5139bf0aeedf7fa0730cd05d3b34657031c1ea693c377067c08d3c13ff5bbd73': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         '7b2d474eab943559ce6e9bbbe2d71d7839bf8b05cc8c45d3a84413e8e7011a77': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         e123deb95501b06d5dc008a03f0dce7dbbef56ef7534eaba1dccc6df197a84f7: {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         '69b2caefed9925770e7e46a3538808630d9d75afbd22afae66c7b47fc6b9b92d': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         c40cc0b9bbebadc05d9d5a9a4e9584b57653e8b29d4f7672faebceb2db1c25c2: {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         '3f8c90a361fe0e9259de0fae27707caaabc86cef9b8d853ae046ef3d6f498d81': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         '76d6f063e65324da07a257d0598fa7624339aad1ec19a2ff9ad27f7c0442f181': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         '6c373fda3f8ee1f7e6537a0738d8142048918bd42278cc77a9dd4e689ea9cec5': {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         ab2a41299c75636168ceeda2fbe9c6b65065560b749b205bc10ee7f1a366db85: {
           fee: String(1 * 1e8),
           reward: String(30 * 1e8),
+          producedBlocks: 10,
         },
         e2e3703efc3b55ea7cc6052809cb12aaeb502c563b510fb7de8b41c67393ece1: {
           fee: String(new BigNumber(1.1).times(1e8)), // otherwise: 110000000.00000001
           reward: String(33 * 1e8),
+          producedBlocks: 11,
         },
       });
     });
@@ -1432,14 +1452,17 @@ describe('BlocksHelper', () => {
         c3bf53f4211abd1daa6f01d3bb79684c6d004fb91e24740cd22f4df2e87aa487: {
           fee: String(33 * one101thOfTheFee),
           reward: String(33 * 1 * 1e8),
+          producedBlocks: 33,
         },
         b770ff50da744b08e19d47930579bc8adaed3b1799bb5c473bb76e32a102c97b: {
           fee: String(34 * one101thOfTheFee),
           reward: String(34 * 1 * 1e8),
+          producedBlocks: 34,
         },
         '3f7f6925256b89cdf6e39a4c0ee3342091529dc110a6aa66e778ffdef87f7139': {
           fee: String(34 * one101thOfTheFee + rest),
           reward: String(34 * 1 * 1e8),
+          producedBlocks: 34,
         },
       });
     });
@@ -1461,13 +1484,14 @@ describe('BlocksHelper', () => {
       const one101thOfTheFee = parseInt((0.1 * 1e8) / 101);
       const rest = 0.1 * 1e8 - one101thOfTheFee * 101;
 
-      // act
+      // expect
       const expected = {};
       for (let i = 0; i < blocks.length; ++i) {
         const one = blocks[i];
         expected[one.delegate] = {
           fee: String(one101thOfTheFee),
           reward: String(3 * 1e8),
+          producedBlocks: 1,
         };
       }
       const lastBlockDelegate = blocks[blocks.length - 1].delegate;
@@ -1477,6 +1501,7 @@ describe('BlocksHelper', () => {
         .plus(rest)
         .toFixed();
 
+      // act
       const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
       return expect(result).toEqual(expected);
     });
