@@ -1379,7 +1379,70 @@ describe('BlocksHelper', () => {
       });
     });
 
-    it.skip('getDelegateRewardsFor101Blocks - 0.1 fee', () => {});
+    it('getDelegateRewardsFor101Blocks - 0.1 fee', () => {
+      const delegate1 =
+        'c3bf53f4211abd1daa6f01d3bb79684c6d004fb91e24740cd22f4df2e87aa487';
+      const delegate2 =
+        'b770ff50da744b08e19d47930579bc8adaed3b1799bb5c473bb76e32a102c97b';
+      const delegate3 =
+        '3f7f6925256b89cdf6e39a4c0ee3342091529dc110a6aa66e778ffdef87f7139';
+
+      const zeroFee = String(0);
+      const smallFee = String(0.1 * 1e8); // important
+      const oneReward = String(1 * 1e8);
+
+      const range1 = createDelegateBlocks(1, 33, delegate1, zeroFee, oneReward);
+      const range2 = createDelegateBlocks(
+        34,
+        67,
+        delegate2,
+        zeroFee,
+        oneReward
+      );
+      const range3 = createDelegateBlocks(
+        68,
+        100,
+        delegate3,
+        zeroFee,
+        oneReward
+      );
+      const range4 = createDelegateBlocks(
+        101,
+        101,
+        delegate3,
+        smallFee,
+        oneReward
+      ); // important
+
+      const blocks = [...range1, ...range2, ...range3, ...range4];
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+
+      const parts101 = parseInt((0.1 * 1e8) / 101);
+
+      const feeSum = new BigNumber(result[delegate1].fee)
+        .plus(result[delegate2].fee)
+        .plus(result[delegate3].fee)
+        .toFixed();
+      expect(String(0.1 * 1e8)).toEqual(feeSum);
+
+      const one101thOfTheFee = parseInt((0.1 * 1e8) / 101);
+      const rest = 0.1 * 1e8 - one101thOfTheFee * 101;
+
+      return expect(result).toEqual({
+        c3bf53f4211abd1daa6f01d3bb79684c6d004fb91e24740cd22f4df2e87aa487: {
+          fee: String(33 * one101thOfTheFee),
+          reward: String(33 * 1 * 1e8),
+        },
+        b770ff50da744b08e19d47930579bc8adaed3b1799bb5c473bb76e32a102c97b: {
+          fee: String(34 * one101thOfTheFee),
+          reward: String(34 * 1 * 1e8),
+        },
+        '3f7f6925256b89cdf6e39a4c0ee3342091529dc110a6aa66e778ffdef87f7139': {
+          fee: String(34 * one101thOfTheFee + rest),
+          reward: String(34 * 1 * 1e8),
+        },
+      });
+    });
 
     it.skip('getDelegateRewardsFor101Blocks - 0.1 fee, 101 delegates', () => {});
   });
