@@ -1444,6 +1444,41 @@ describe('BlocksHelper', () => {
       });
     });
 
-    it.skip('getDelegateRewardsFor101Blocks - 0.1 fee, 101 delegates', () => {});
+    it('getDelegateRewardsFor101Blocks - 0.1 fee, 101 delegates', () => {
+      // prepare
+      const blocks: Array<Partial<IBlock>> = [];
+      for (let i = 1; i < 102; ++i) {
+        const del = crypto.randomBytes(32).toString('hex');
+
+        const one = createDelegateBlocks(i, i, del, String(0), String(3 * 1e8));
+        blocks.push(...one);
+      }
+
+      // add 0.1 (times 1e8) fees to first block
+      const one = blocks[0];
+      one.fees = String(0.1 * 1e8);
+
+      const one101thOfTheFee = parseInt((0.1 * 1e8) / 101);
+      const rest = 0.1 * 1e8 - one101thOfTheFee * 101;
+
+      // act
+      const expected = {};
+      for (let i = 0; i < blocks.length; ++i) {
+        const one = blocks[i];
+        expected[one.delegate] = {
+          fee: String(one101thOfTheFee),
+          reward: String(3 * 1e8),
+        };
+      }
+      const lastBlockDelegate = blocks[blocks.length - 1].delegate;
+      expected[lastBlockDelegate].fee = new BigNumber(
+        expected[lastBlockDelegate].fee
+      )
+        .plus(rest)
+        .toFixed();
+
+      const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
+      return expect(result).toEqual(expected);
+    });
   });
 });
