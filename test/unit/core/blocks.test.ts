@@ -420,17 +420,6 @@ describe('core/blocks', () => {
 
   it.skip('increaseRoundData', async () => {});
 
-  describe('applyRound', () => {
-    beforeEach(() => {
-      const sdb: SmartDB = {} as SmartDB;
-      global.app.sdb = sdb;
-    });
-
-    afterEach(() => {
-      delete global.app.sdb;
-    });
-  });
-
   it.skip('getBlocks', async () => {});
 
   it.skip('loadBlocksFromPeer()', async () => {});
