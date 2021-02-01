@@ -251,8 +251,7 @@ describe('db-the-same', () => {
     await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['db1', 'db2']);
     await lib.sleep(5000);
 
-    const backupFile =
-      'config/e2e/db-the-same/gny_height_101_25-01-2021_14_28_33.sql';
+    const backupFile = 'config/e2e/db-the-same/dump_01-02-2021_14_05_58.sql';
     await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile, 'db1');
     await lib.sleep(5000);
 
