@@ -1505,5 +1505,115 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
       return expect(result).toEqual(expected);
     });
+
+    it('delegatesWhoMissedBlock() - returns two delegates that did not forged', () => {
+      const delegate =
+        '5139bf0aeedf7fa0730cd05d3b34657031c1ea693c377067c08d3c13ff5bbd73';
+      const blocks = createDelegateBlocks(1, 101, delegate);
+
+      const delegatesInThisRound = [
+        '5139bf0aeedf7fa0730cd05d3b34657031c1ea693c377067c08d3c13ff5bbd73',
+        '7b2d474eab943559ce6e9bbbe2d71d7839bf8b05cc8c45d3a84413e8e7011a77',
+        'e123deb95501b06d5dc008a03f0dce7dbbef56ef7534eaba1dccc6df197a84f7',
+      ];
+
+      const result = BlocksHelper.delegatesWhoMissedBlock(
+        blocks,
+        delegatesInThisRound
+      );
+
+      expect(result).toEqual([
+        '7b2d474eab943559ce6e9bbbe2d71d7839bf8b05cc8c45d3a84413e8e7011a77',
+        'e123deb95501b06d5dc008a03f0dce7dbbef56ef7534eaba1dccc6df197a84f7',
+      ]);
+    });
+
+    it('delegatesWhoMissedBlock() - when every delegate forged, returns empty array', () => {
+      const delegate1 =
+        '76d6f063e65324da07a257d0598fa7624339aad1ec19a2ff9ad27f7c0442f181';
+      const block1 = createDelegateBlocks(1, 1, delegate1);
+      const delegate2 =
+        'ab2a41299c75636168ceeda2fbe9c6b65065560b749b205bc10ee7f1a366db85';
+      const block2 = createDelegateBlocks(2, 2, delegate2);
+      const delegate3 =
+        'e2e3703efc3b55ea7cc6052809cb12aaeb502c563b510fb7de8b41c67393ece1';
+      const block3 = createDelegateBlocks(3, 3, delegate3);
+
+      const blocks = [...block1, ...block2, ...block3];
+
+      const delegatesInThisRound = [
+        '76d6f063e65324da07a257d0598fa7624339aad1ec19a2ff9ad27f7c0442f181',
+        'ab2a41299c75636168ceeda2fbe9c6b65065560b749b205bc10ee7f1a366db85',
+        'e2e3703efc3b55ea7cc6052809cb12aaeb502c563b510fb7de8b41c67393ece1',
+      ];
+
+      const result = BlocksHelper.delegatesWhoMissedBlock(
+        blocks,
+        delegatesInThisRound
+      );
+      return expect(result).toEqual([]);
+    });
+
+    it('delegatesWhoMissedBlock() - returns 5 delegates that did not forge', () => {
+      const delegate1 =
+        '44060ebf65a308a9acbeb12e0d27255f0d65e9fd8b10420bd2b9c1092f6ac48c';
+      const delegate2 =
+        'c3782459ff5265268717e3f43906d91b9acf9b90afdea2373441ec4e7f14bf44';
+      const delegate3 =
+        '63caa3a9c13e464a0483b5f770a039e1920807aae72d3bcbdf2d0edadfebe033';
+      const delegate4 =
+        '54004b14d562166bc91edfc27a1ed44a3527927610ed702be30183e315185df9';
+      const delegate5 =
+        '616fe44d53231c954f2aa0ce268136ca5412b4c7fbe3eb6165b7e44c44727a4c';
+      const delegate6 =
+        '998742f791ab5217c880d459b45be16b17f1a56b2abc5c4be8f71d89db815e54';
+      const delegate7 =
+        '4b7b941d3ea456d41813cf409d20e410ff747a9728c700089eff1d4a1053a196';
+      const delegate8 =
+        '8be208f621608ef7594616d038bde4cab9b6e63bf9745896d7fa5baac0c10263';
+      const delegaet9 =
+        'fbf93acfbcdd4d1bbf0891d1c68e9e4c64672a1a9284e8422981f6216f4922df';
+      const delegate10 =
+        '232c01e5d768f80569c33301b913e9a6b4fdca264a1ae3dbc8bd2e6080382a8f';
+
+      const block1_20 = createDelegateBlocks(1, 20, delegate1);
+      const block21_40 = createDelegateBlocks(21, 40, delegate2);
+      const block41_60 = createDelegateBlocks(41, 60, delegate3);
+      const block61_80 = createDelegateBlocks(61, 80, delegate4);
+      const block81_101 = createDelegateBlocks(81, 101, delegate5);
+
+      const blocks = [
+        ...block1_20,
+        ...block21_40,
+        ...block41_60,
+        ...block61_80,
+        ...block81_101,
+      ];
+
+      const delegatesInThisRound = [
+        '44060ebf65a308a9acbeb12e0d27255f0d65e9fd8b10420bd2b9c1092f6ac48c',
+        'c3782459ff5265268717e3f43906d91b9acf9b90afdea2373441ec4e7f14bf44',
+        '63caa3a9c13e464a0483b5f770a039e1920807aae72d3bcbdf2d0edadfebe033',
+        '54004b14d562166bc91edfc27a1ed44a3527927610ed702be30183e315185df9',
+        '616fe44d53231c954f2aa0ce268136ca5412b4c7fbe3eb6165b7e44c44727a4c',
+        '998742f791ab5217c880d459b45be16b17f1a56b2abc5c4be8f71d89db815e54',
+        '4b7b941d3ea456d41813cf409d20e410ff747a9728c700089eff1d4a1053a196',
+        '8be208f621608ef7594616d038bde4cab9b6e63bf9745896d7fa5baac0c10263',
+        'fbf93acfbcdd4d1bbf0891d1c68e9e4c64672a1a9284e8422981f6216f4922df',
+        '232c01e5d768f80569c33301b913e9a6b4fdca264a1ae3dbc8bd2e6080382a8f',
+      ];
+
+      const result = BlocksHelper.delegatesWhoMissedBlock(
+        blocks,
+        delegatesInThisRound
+      );
+      return expect(result).toEqual([
+        '998742f791ab5217c880d459b45be16b17f1a56b2abc5c4be8f71d89db815e54',
+        '4b7b941d3ea456d41813cf409d20e410ff747a9728c700089eff1d4a1053a196',
+        '8be208f621608ef7594616d038bde4cab9b6e63bf9745896d7fa5baac0c10263',
+        'fbf93acfbcdd4d1bbf0891d1c68e9e4c64672a1a9284e8422981f6216f4922df',
+        '232c01e5d768f80569c33301b913e9a6b4fdca264a1ae3dbc8bd2e6080382a8f',
+      ]);
+    });
   });
 });
