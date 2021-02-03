@@ -495,6 +495,19 @@ export class BlocksHelper {
   };
 
   public static delegatesWhoMissedBlock = function(
-    blocks: Array<Partial<IBlock>>
-  ) {};
+    blocks: Array<Partial<IBlock>>,
+    delegatesInThisRound: string[]
+  ) {
+    const forgedDelegates = new Set(blocks.map(x => x.delegate));
+
+    const delegatesWhoMissedBlocks = [];
+    for (let i = 0; i < delegatesInThisRound.length; ++i) {
+      const one = delegatesInThisRound[i];
+      if (!forgedDelegates.has(one)) {
+        delegatesWhoMissedBlocks.push(one);
+      }
+    }
+
+    return delegatesWhoMissedBlocks;
+  };
 }
