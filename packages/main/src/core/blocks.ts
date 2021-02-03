@@ -594,7 +594,10 @@ export default class Blocks implements ICoreModule {
     // forgedDelegates
     // missedDelegates
 
-    // const allDelegatesBefore = await global.app.sdb.getAll<Delegate>(Delegate);
+    const delegatesWhoMissedBlock = BlocksHelper.delegatesWhoMissedBlock(
+      forgedBlocks,
+      delegates101
+    );
 
     // create round
     const round = BlocksHelper.getRoundInfoForBlocks(forgedBlocks);
@@ -610,17 +613,18 @@ export default class Blocks implements ICoreModule {
       const address = generateAddress(publicKey);
 
       // update Delegate
-      await global.app.sdb.increase<Delegate>(
-        Delegate,
-        {
-          fees: one.fee,
-          rewards: one.reward,
-          producedBlocks: String(one.producedBlocks),
-        },
-        {
-          address,
-        }
-      );
+      const value = {
+        fees: one.fee,
+        rewards: one.reward,
+        producedBlocks: String(one.producedBlocks),
+      };
+      if (delegatesWhoMissedBlock.includes(publicKey)) {
+        value.missedBlocks = String(1);
+      }
+
+      await global.app.sdb.increase<Delegate>(Delegate, value, {
+        address,
+      });
       // update Account
       await global.app.sdb.increase<Account>(
         Account,
@@ -1759,6 +1763,10 @@ export default class Blocks implements ICoreModule {
 
           // refactor, reunite
           StateHelper.SetBlockchainReady(true);
+
+          if (global.Config.nodeAction === 'loadFromDb') {
+            global.library.bus.message('onLoadFromDb');
+          }
 
           if (global.Config.nodeAction === 'forging') {
             global.library.bus.message('onBlockchainReady');
