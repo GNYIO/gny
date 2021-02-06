@@ -119,7 +119,6 @@ function createSpan(): ISpan {
 
 describe('core/blocks', () => {
   beforeEach(done => {
-
     const tracer = {
       startSpan: () => createSpan(),
     };
@@ -129,7 +128,7 @@ describe('core/blocks', () => {
     };
     global.library = {
       tracer,
-    }
+    };
     done();
   });
   afterEach(done => {
@@ -419,8 +418,6 @@ describe('core/blocks', () => {
   it.skip('saveBlockTransactions', async () => {});
 
   it.skip('increaseRoundData', async () => {});
-
-  it.skip('applyRound', async () => {});
 
   it.skip('getBlocks', async () => {});
 
