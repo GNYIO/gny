@@ -81,9 +81,11 @@ function main() {
   appConfig.baseDir = baseDir;
   appConfig.buildVersion = String(new Date());
 
-  // default network is "localnet"
-  appConfig.netVersion =
-    program.network || process.env['GNY_NETWORK'] || 'localnet';
+  appConfig.netVersion = program.network || process.env['GNY_NETWORK'];
+  if (!appConfig.netVersion) {
+    console.error('GNY_NETWORK is mandatory');
+    process.exit(1);
+  }
 
   // genesisBlock.(localnet | testnet | mainnet).json
   let genesisBlockPath = path.join(
