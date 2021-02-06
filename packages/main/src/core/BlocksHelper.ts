@@ -383,10 +383,6 @@ export class BlocksHelper {
     return _difference;
   };
 
-  // public static getDelegateFeesFor101Blocks = function(
-  //   blocks: Array<Partial<IBlock>>
-  // ) {};
-
   /**
    * Pass in the last 101 blocks at the end of the round
    * The last block must be a manifold of 101
