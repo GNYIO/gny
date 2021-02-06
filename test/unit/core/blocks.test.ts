@@ -19,7 +19,6 @@ import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { ISpan } from '../../../packages/tracer/dist';
-import { SmartDB } from '../../../packages/database-postgres/dist/smartDB';
 
 function loadGenesisBlock() {
   const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
