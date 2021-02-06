@@ -557,32 +557,30 @@ export default class Blocks implements ICoreModule {
   };
 
   public static applyRound = async (block: IBlock, parentSpan: ISpan) => {
-    const span = global.library.tracer.startSpan('apply round', {
-      context: parentSpan.context(),
-    });
-
     // height 0
     if (new BigNumber(block.height).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
 
-      span.finish();
       return;
     }
 
     // return if not multiple of 101
     if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) {
-      span.log({
+      global.app.logger.info({
         value: `exiting, because we round has not finished, modulo ${new BigNumber(
           block.height
         )
           .modulo(101)
           .toFixed()}`,
       });
-      span.finish();
       return;
     }
 
     // block height multiple of 101
+    const span = global.library.tracer.startSpan('apply round', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('height', block.height);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       new BigNumber(block.height).minus(100).toFixed(),
@@ -638,6 +636,9 @@ export default class Blocks implements ICoreModule {
     }
 
     await Delegates.updateBookkeeper();
+
+    span.log(result);
+    span.finish();
   };
 
   public static saveSlotStatistics = async (block: IBlock, span: ISpan) => {
