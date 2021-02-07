@@ -95,6 +95,7 @@ COPY packages/machine-learning/package.json ./packages/machine-learning/package.
 RUN true
 COPY packages/tracer/package.json ./packages/tracer/package.json
 RUN true
+COPY packages/network/package.json ./packages/network/package.json
 
 # install all depdencies for packages/*
 RUN npm run lerna:bootstrap

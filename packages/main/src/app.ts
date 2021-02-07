@@ -9,6 +9,7 @@ import * as packageJson from '../package.json';
 import { IConfig, IBlock } from '@gny/interfaces';
 import * as ip from 'ip';
 import { P2P_VERSION } from '@gny/p2p';
+import { getConfig } from '@gny/network';
 
 const version = packageJson.version;
 
@@ -61,7 +62,6 @@ function main() {
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();
-  const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
 
   // default config.json path
   let appConfigFile = path.join(baseDir, 'config.json');
@@ -82,30 +82,18 @@ function main() {
   appConfig.buildVersion = String(new Date());
 
   appConfig.netVersion = program.network || process.env['GNY_NETWORK'];
-  if (!appConfig.netVersion) {
-    console.error('GNY_NETWORK is mandatory');
-    process.exit(1);
-  }
 
-  // genesisBlock.(localnet | testnet | mainnet).json
-  let genesisBlockPath = path.join(
-    baseDir,
-    `genesisBlock.${appConfig.netVersion}.json`
-  );
-  // or custom genesisBock.json path
+  // either custom genesisBlock or
+  let genesisBlock: IBlock = null;
   if (program.genesisblock) {
-    if (program.network || process.env['GNY_NETWORK']) {
-      console.log(
-        'Error: --network (GNY_NETWORK) and --genesisblock are not allowed'
-      );
-      return;
-    }
-    genesisBlockPath = path.resolve(baseDir, program.genesisblock);
+    genesisBlock = JSON.parse(path.resolve(baseDir, program.genesisblock));
+    // magic must be set in config.json file
+  } else {
+    // genesisBlock.(localnet | testnet | mainnet).json
+    const network = getConfig(appConfig.netVersion);
+    genesisBlock = network.genesisBlock;
+    appConfig.magic = network.hash;
   }
-  // load genesisBlock
-  const genesisBlock: IBlock = JSON.parse(
-    fs.readFileSync(genesisBlockPath, 'utf8')
-  );
 
   // port, default 4096
   appConfig.port = program.port || process.env['GNY_PORT'] || 4096;
