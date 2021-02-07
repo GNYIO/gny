@@ -1,5 +1,7 @@
 import { IBlockWithTransactions } from '@gny/interfaces';
 
+const genesis =
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 const hash: string = '594fe0f3';
 const genesisBlock: IBlockWithTransactions = {
   version: 0,
@@ -2966,4 +2968,5 @@ const genesisBlock: IBlockWithTransactions = {
 export const network = {
   hash,
   genesisBlock,
+  genesis,
 };

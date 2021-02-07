@@ -1,5 +1,7 @@
 import { IBlockWithTransactions } from '@gny/interfaces';
 
+const genesis =
+  'grow pencil ten junk bomb right describe trade rich valid tuna service';
 const hash: string = '594fe0f3';
 const genesisBlock: IBlockWithTransactions = {
   version: 0,
@@ -2965,4 +2967,5 @@ const genesisBlock: IBlockWithTransactions = {
 export const network = {
   hash,
   genesisBlock,
+  genesis,
 };

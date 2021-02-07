@@ -54,6 +54,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -94,6 +95,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node2.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -135,6 +137,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node3.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -176,6 +179,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node4.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -217,6 +221,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/fast-connect-to-network/node5.json"' # connect to node4
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.11
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces

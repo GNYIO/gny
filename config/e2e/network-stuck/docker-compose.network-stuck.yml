@@ -53,6 +53,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -93,6 +94,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node2.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
@@ -134,6 +136,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node3.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
@@ -175,6 +178,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node4.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
