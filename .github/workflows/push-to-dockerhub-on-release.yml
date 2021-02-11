@@ -2,9 +2,8 @@ name: Publish develop branch to DockerHub
 on:
   release:
       types: [published]
-  push:
-    branches:
-      - develop
+      branches:
+        - develop
 
 jobs:
   build:
