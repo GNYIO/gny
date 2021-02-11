@@ -7,6 +7,7 @@ import {
   NewBlockMessage,
   ILogger,
   UnconfirmedTransaction,
+  IRound,
 } from '@gny/interfaces';
 import { IState, ISimpleCache } from '../globalInterfaces';
 import { TransactionBase } from '@gny/base';
@@ -21,6 +22,7 @@ import { StateHelper } from './StateHelper';
 import { BigNumber } from 'bignumber.js';
 import { Block } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
+import { RoundBase } from '@gny/base';
 
 const blockReward = new BlockReward();
 
@@ -379,5 +381,129 @@ export class BlocksHelper {
       _difference.delete(elem);
     }
     return _difference;
+  };
+
+  /**
+   * Pass in the last 101 blocks at the end of the round
+   * The last block must be a manifold of 101
+   *
+   * The fees for the blocks get divided by 101 and the last block gets the remainding
+   * Every delegate that produced a block gets the full reward (no distribution)
+   * The result is then grouped for each delegate
+   */
+  public static getGroupedDelegateInfoFor101Blocks = function(
+    blocks: Array<Partial<IBlock>>
+  ) {
+    if (!blocks || blocks.length !== 101) {
+      throw new Error('wrong amount of blocks');
+    }
+    const lastBlock = blocks[blocks.length - 1];
+    if (!new BigNumber(lastBlock.height).modulo(101).isEqualTo(0)) {
+      throw new Error('modulo not correct');
+    }
+
+    const feesSum = blocks
+      .map(x => x.fees)
+      .reduce((acc, curr) => new BigNumber(acc).plus(curr).toFixed());
+
+    const oneFee = new BigNumber(feesSum).dividedToIntegerBy(101).toFixed();
+
+    const equalDistributedFee = new BigNumber(oneFee).times(101).toFixed();
+    const remainer = new BigNumber(feesSum)
+      .minus(equalDistributedFee)
+      .toFixed();
+
+    interface IResult {
+      delegate: string;
+      fee: string;
+    }
+
+    const result: Array<IResult> = [];
+    for (let i = 0; i < blocks.length; ++i) {
+      const one = blocks[i];
+
+      const r = {
+        delegate: one.delegate,
+        fee: oneFee,
+      };
+      result.push(r);
+    }
+    const lastResult = result[result.length - 1];
+    lastResult.fee = new BigNumber(lastResult.fee).plus(remainer).toFixed();
+
+    const grouped = {};
+    for (let i = 0; i < result.length; ++i) {
+      const b = blocks[i];
+      const r = result[i];
+      if (!grouped[r.delegate]) {
+        grouped[r.delegate] = {
+          fee: String(0),
+          reward: String(0),
+          producedBlocks: 0,
+        };
+      }
+
+      const calculatedFee = new BigNumber(grouped[r.delegate].fee)
+        .plus(r.fee)
+        .toFixed();
+      const calculatedReward = new BigNumber(grouped[r.delegate].reward)
+        .plus(b.reward)
+        .toFixed();
+      const producedBlocks = grouped[r.delegate].producedBlocks + 1;
+
+      grouped[r.delegate] = {
+        fee: calculatedFee,
+        reward: calculatedReward,
+        producedBlocks,
+      };
+    }
+
+    return grouped;
+  };
+
+  public static getRoundInfoForBlocks = function(
+    blocks: Array<Partial<IBlock>>
+  ) {
+    if (!blocks || blocks.length !== 101) {
+      throw new Error('wrong amount of blocks');
+    }
+
+    const lastBlock = blocks[blocks.length - 1];
+    if (!new BigNumber(lastBlock.height).modulo(101).isEqualTo(0)) {
+      throw new Error('modulo not correct');
+    }
+
+    const roundNr = RoundBase.calculateRound(lastBlock.height);
+
+    const fees = blocks
+      .map(x => x.fees)
+      .reduce((acc, current) => new BigNumber(current).plus(acc).toFixed());
+    const rewards = blocks
+      .map(x => x.reward)
+      .reduce((acc, current) => new BigNumber(current).plus(acc).toFixed());
+
+    const round: IRound = {
+      round: String(roundNr),
+      fee: fees,
+      reward: rewards,
+    };
+    return round;
+  };
+
+  public static delegatesWhoMissedBlock = function(
+    blocks: Array<Partial<IBlock>>,
+    delegatesInThisRound: string[]
+  ) {
+    const forgedDelegates = new Set(blocks.map(x => x.delegate));
+
+    const delegatesWhoMissedBlocks = [];
+    for (let i = 0; i < delegatesInThisRound.length; ++i) {
+      const one = delegatesInThisRound[i];
+      if (!forgedDelegates.has(one)) {
+        delegatesWhoMissedBlocks.push(one);
+      }
+    }
+
+    return delegatesWhoMissedBlocks;
   };
 }

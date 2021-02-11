@@ -56,7 +56,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_LOKI_HOST=http://loki.local:3100
-      - GNY_NODE_ACTION=stopWithHeight:6
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_MONGO_LOGGING_DISABLE=true
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -97,7 +96,6 @@ services:
     command: bash -c 'sleep 5s; node packages/main/dist/src/app  --config="config/e2e/db-the-same/node2.json"'
     environment:
       - NODE_ENV=production
-      - GNY_NODE_ACTION=stopWithHeight:6
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmZPGNpKXZpcFNhkoxw6QcnccAptXeqbAgZcPVz13o3zix
       - GNY_MONGO_LOGGING_DISABLE=true

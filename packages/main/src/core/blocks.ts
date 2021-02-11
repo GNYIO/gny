@@ -557,186 +557,87 @@ export default class Blocks implements ICoreModule {
   };
 
   public static applyRound = async (block: IBlock, parentSpan: ISpan) => {
-    const span = global.library.tracer.startSpan('apply round', {
-      childOf: parentSpan.context(),
-    });
-
-    span.setTag('height', block.height);
-    span.setTag('id', block.id);
-    span.setTag('hash', getSmallBlockHash(block));
-
+    // height 0
     if (new BigNumber(block.height).isEqualTo(0)) {
       await Delegates.updateBookkeeper();
 
-      span.log({
-        value: 'exiting, its the genesisBlock',
-      });
-      span.finish();
       return;
     }
 
-    const address = generateAddress(block.delegate);
-    await global.app.sdb.increase<Delegate>(
-      Delegate,
-      { producedBlocks: String(1) },
-      { address }
-    );
-
-    const transFee = BlocksHelper.getFeesOfAll(block.transactions);
-
-    const roundNumber = RoundBase.calculateRound(block.height);
-
-    span.setTag('round', roundNumber);
-    span.log({
-      round: roundNumber,
-    });
-
-    // TODO: refactor, this will not go good!
-    const { fee, reward } = await Blocks.increaseRoundData(
-      {
-        fee: transFee,
-        reward: block.reward,
-      },
-      String(roundNumber)
-    );
-
-    const statisticsSpan = global.library.tracer.startSpan(
-      'save slot statistics',
-      {
-        childOf: span.context(),
-      }
-    );
-    await Blocks.saveSlotStatistics(block, statisticsSpan);
-    statisticsSpan.finish();
-
+    // return if not multiple of 101
     if (!new BigNumber(block.height).modulo(101).isEqualTo(0)) {
-      span.finish();
+      global.app.logger.info({
+        value: `exiting, because we round has not finished, modulo ${new BigNumber(
+          block.height
+        )
+          .modulo(101)
+          .toFixed()}`,
+      });
       return;
     }
 
-    global.app.logger.debug(
-      `----------------------on round ${roundNumber} end-----------------------`
-    );
-
-    const delegates = await Delegates.generateDelegateList(block.height);
-    if (!delegates || !delegates.length) {
-      throw new Error('no delegates');
-    }
-    global.app.logger.debug(`delegate length: ${delegates.length}`);
+    // block height multiple of 101
+    const span = global.library.tracer.startSpan('apply round', {
+      childOf: parentSpan.context(),
+    });
+    span.setTag('height', block.height);
 
     const forgedBlocks = await global.app.sdb.getBlocksByHeightRange(
       new BigNumber(block.height).minus(100).toFixed(),
       new BigNumber(block.height).minus(1).toFixed()
     );
+    forgedBlocks.push(block);
 
-    span.log({
-      forgedBlocks: [...forgedBlocks, block],
-    });
+    const delegates101 = await Delegates.generateDelegateList(block.height);
+    // forgedDelegates
+    // missedDelegates
 
-    const forgedDelegates: string[] = [
-      ...forgedBlocks.map(b => b.delegate),
-      block.delegate,
-    ];
-
-    const missedDelegates = delegates.filter(
-      fd => !forgedDelegates.includes(fd)
+    const delegatesWhoMissedBlock = BlocksHelper.delegatesWhoMissedBlock(
+      forgedBlocks,
+      delegates101
     );
 
-    span.log({
-      missedDelegates,
-    });
+    // create round
+    const round = BlocksHelper.getRoundInfoForBlocks(forgedBlocks);
+    await global.app.sdb.create<Round>(Round, round);
 
-    const allDelegatesBefore = await global.app.sdb.getAll<Delegate>(Delegate);
-    span.log({
-      allDelegatesBefore,
-    });
+    const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(
+      forgedBlocks
+    );
+    const keys = Object.keys(result);
+    for (let i = 0; i < keys.length; ++i) {
+      const publicKey = keys[i];
+      const one = result[publicKey];
+      const address = generateAddress(publicKey);
 
-    for (let i = 0; i < missedDelegates.length; ++i) {
-      const md = missedDelegates[i];
-      const adr = generateAddress(md);
-      await global.app.sdb.increase<Delegate>(
-        Delegate,
-        { missedBlocks: String(1) },
-        { address: adr }
-      );
-    }
+      // update Delegate
+      const value = {
+        fees: one.fee,
+        rewards: one.reward,
+        producedBlocks: String(one.producedBlocks),
+      };
+      if (delegatesWhoMissedBlock.includes(publicKey)) {
+        value.missedBlocks = String(1);
+      }
 
-    async function updateDelegate(
-      publicKey: string,
-      fee: string,
-      reward: string
-    ) {
-      const delegateAdr = generateAddress(publicKey);
-      await global.app.sdb.increase<Delegate>(
-        Delegate,
-        {
-          fees: String(fee),
-          rewards: String(reward),
-        },
-        {
-          address: delegateAdr,
-        }
-      );
-      // TODO should account be all cached?
+      await global.app.sdb.increase<Delegate>(Delegate, value, {
+        address,
+      });
+      // update Account
       await global.app.sdb.increase<Account>(
         Account,
         {
-          gny: new BigNumber(fee).plus(reward).toFixed(),
+          gny: new BigNumber(one.fee).plus(one.reward).toFixed(),
         },
         {
-          address: delegateAdr,
+          address,
         }
       );
     }
 
-    const ratio = 1;
+    await Delegates.updateBookkeeper();
 
-    const actualFees = new BigNumber(fee).times(ratio).toFixed();
-    const feeAverage = new BigNumber(actualFees)
-      .dividedToIntegerBy(delegates.length)
-      .toFixed();
-    const feeRemainder = new BigNumber(feeAverage)
-      .times(delegates.length)
-      .minus(actualFees)
-      .toFixed();
-
-    const actualRewards = new BigNumber(reward).times(ratio).toFixed();
-    const rewardAverage = new BigNumber(actualRewards)
-      .dividedToIntegerBy(delegates.length)
-      .toFixed();
-    const rewardRemainder = new BigNumber(rewardAverage)
-      .times(delegates.length)
-      .minus(actualRewards)
-      .toFixed();
-
-    span.log({
-      forgedDelegates,
-      forgedDelegatesCount: forgedDelegates.length,
-    });
-
-    for (const fd of forgedDelegates) {
-      await updateDelegate(fd, feeAverage, rewardAverage);
-    }
-    await updateDelegate(block.delegate, feeRemainder, rewardRemainder);
-
-    if (new BigNumber(block.height).modulo(101).isEqualTo(0)) {
-      const saveStatisticsSpan = global.library.tracer.startSpan(
-        'save statistics',
-        {
-          childOf: span.context(),
-        }
-      );
-      await Blocks.saveStatistics(block.height, block, saveStatisticsSpan);
-      saveStatisticsSpan.finish();
-
-      await Delegates.updateBookkeeper();
-    }
-
-    const allDelegatesAfter = await global.app.sdb.getAll<Delegate>(Delegate);
-    span.log({
-      allDelegatesAfter,
-    });
-
+    span.log(result);
     span.finish();
   };
 
