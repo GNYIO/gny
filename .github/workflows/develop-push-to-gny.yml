@@ -6,16 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout develop branch
-        uses: actions/checkout@v2
-        with:
-          ref: develop
-      - name: Reset to latest version tag
-        id: resettolatestversion
-        run: git reset --hard $(git describe --tags --abbrev=0)
+        uses: actions/checkout@master
       - name: repo-sync
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-        uses: liangpeili/github-sync-ssh@v4
+        uses: gnyio/github-sync-ssh@v5
         with:
           source_repo: 'git@github.com:GNYIO/gny-experiment.git'
           source_branch: 'develop'
