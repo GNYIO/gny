@@ -5,7 +5,13 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - name: checkout develop branch
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+      - name: Reset to latest version tag
+        id: resettolatestversion
+        run: git reset --hard $(git describe --tags --abbrev=0)
       - name: repo-sync
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
