@@ -389,7 +389,7 @@ describe('BlockReward', () => {
       );
     });
 
-    it('when height == (distance) supply should be "40599568200000000"', () => {
+    it('when height == (distance) supply should be "40392640200000000"', () => {
       const initialSupply = new BigNumber('40000000000000000');
 
       const milestoneZero = new BigNumber(range(1036800, 3000000).length).times(
@@ -397,6 +397,7 @@ describe('BlockReward', () => {
       );
 
       const expected = initialSupply.plus(milestoneZero);
+      expect(expected.toFixed()).toEqual('40392640200000000');
       return expect(blockReward.calculateSupply(3000000)).toEqual(expected);
     });
 
