@@ -21,6 +21,7 @@
     "node": "=10.16.2"
   },
   "dependencies": {
+    "@gny/network": "1.0.63",
     "@gny/interfaces": "1.0.62",
     "@gny/utils": "1.0.62",
     "@gny/web-base": "1.0.62",
