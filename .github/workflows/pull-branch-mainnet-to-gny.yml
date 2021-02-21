@@ -1,0 +1,16 @@
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+jobs:
+  repo-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: repo-sync
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+        uses: liangpeili/github-sync-ssh@v4
+        with:
+          source_repo: 'git@github.com:GNYIO/gny-experiment.git'
+          source_branch: 'mainnet'
+          destination_branch: 'mainnet'
