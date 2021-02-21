@@ -19,13 +19,10 @@ import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
 import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { ISpan } from '../../../packages/tracer/dist';
+import { getConfig } from '@gny/network';
 
 function loadGenesisBlock() {
-  const genesisBlockRaw = fs.readFileSync('genesisBlock.localnet.json', {
-    encoding: 'utf8',
-  });
-  const genesisBlock: IBlock = JSON.parse(genesisBlockRaw);
-  return genesisBlock;
+  return getConfig('localnet').genesisBlock;
 }
 
 function randomHex(length: number) {
