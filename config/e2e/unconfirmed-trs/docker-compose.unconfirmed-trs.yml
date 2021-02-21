@@ -53,6 +53,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://172.20.0.20:14268/api/traces
@@ -93,6 +94,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node2.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_JAEGER_HOST=http://172.20.0.20:14268/api/traces
@@ -134,6 +136,7 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/unconfirmed-trs/node3.json"'
     environment:
       - NODE_ENV=production
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_JAEGER_HOST=http://172.20.0.20:14268/api/traces

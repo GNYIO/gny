@@ -4,6 +4,7 @@ import { BigNumber } from 'bignumber.js';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 import * as _ from 'lodash';
+import { getConfig } from '@gny/network';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/unconfirmed-trs/docker-compose.unconfirmed-trs.yml';
@@ -24,8 +25,7 @@ async function getUnconfirmedTrsCount(port: number) {
 }
 
 function createTransactions(count: number) {
-  const genesisSecret =
-    'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  const genesisSecret = getConfig('localnet').genesis;
   const message = '';
   const amount = 5 * 1e8;
 

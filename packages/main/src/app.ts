@@ -85,8 +85,22 @@ function main() {
 
   // either custom genesisBlock or
   let genesisBlock: IBlock = null;
-  if (program.genesisblock) {
-    genesisBlock = JSON.parse(path.resolve(baseDir, program.genesisblock));
+  if (appConfig.netVersion === 'custom') {
+    if (!process.env['GNY_GENESISBLOCK']) {
+      console.error('GNY_GENESISBLOCK is required for custom genesisBlock');
+      process.exit(1);
+    }
+    if (!process.env['GNY_GENESISBLOCK_MAGIC']) {
+      console.error('GNY_GENESISBLOCK_HASH is required for custom magic');
+    }
+
+    const genesisBlockPath = path.resolve(
+      baseDir,
+      process.env['GNY_GENESISBLOCK']
+    );
+    const value = fs.readFileSync(genesisBlockPath, { encoding: 'utf8' });
+    genesisBlock = JSON.parse(value);
+    appConfig.magic = process.env['GNY_GENESISBLOCK_MAGIC'];
     // magic must be set in config.json file
   } else {
     // genesisBlock.(localnet | testnet | mainnet).json
