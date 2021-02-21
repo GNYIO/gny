@@ -171,12 +171,19 @@ function main() {
 
   // distributed tracing endpoint
   appConfig.jaegerHost =
-    program.jaegerHost ||
-    process.env['GNY_JAEGER_HOST'] ||
-    'http://135.181.46.217:14268/api/traces';
+    process.env['GNY_JAEGER_HOST'] || program.netVersion === 'testnet'
+      ? 'https://testnet.jaeger.gny.io/api/traces'
+      : undefined || program.netVersion === 'mainnet'
+      ? 'https://mainnet.jaeger.gny.io/api/traces'
+      : undefined;
+
   // centralized logging endpoint
   appConfig.lokiHost =
-    process.env['GNY_LOKI_HOST'] || 'https://testnet.loki.gny.io';
+    process.env['GNY_LOKI_HOST'] || program.netVersion === 'testnet'
+      ? 'https://testnet.loki.gny.io'
+      : undefined || program.netVersion === 'mainnet'
+      ? 'https://mainnet.loki.gny.io'
+      : undefined;
 
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
