@@ -1,0 +1,19 @@
+{
+  "name": "@gny/network",
+  "version": "1.0.64",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gny/interfaces": "1.0.64"
+  }
+}

@@ -1,6 +1,7 @@
 import { Api } from './api';
 import { Contract } from './contract';
 import { NetworkType } from '@gny/interfaces';
+import { getConfig } from '@gny/network';
 
 function isIpOrUrl(value: any): value is string {
   const ip = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
@@ -31,6 +32,7 @@ export class Connection {
   port: number;
   network: NetworkType;
   baseUrl: string;
+  hash: string;
 
   constructor(
     host?: string,
@@ -58,6 +60,7 @@ export class Connection {
     if (!isNetworkType(this.network)) {
       throw new Error('networktype not valid');
     }
+    this.hash = getConfig(this.network).hash;
 
     if (!isBoolean(https)) {
       throw new Error('https not valid');

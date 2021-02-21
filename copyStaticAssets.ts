@@ -11,7 +11,6 @@ if (!fs.lstatSync(destinationPath).isDirectory()) {
   throw new Error('provided argument is not a directory');
 }
 
-shell.cp('genesisBlock.localnet.json', destinationPath);
 shell.cp('config.json', destinationPath);
 
 const logDirectory = path.join(destinationPath, 'logs');

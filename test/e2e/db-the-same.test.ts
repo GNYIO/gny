@@ -14,6 +14,202 @@ const config = {
   },
 };
 
+async function blockCountTheSame() {
+  const cmd = 'select count(*) as blockcount from block where height > 0;';
+  const result1 = await client1.query(cmd);
+  const result2 = await client2.query(cmd);
+
+  console.log(
+    `---block count the same: "${JSON.stringify(
+      result1.rows
+    )}" == "${JSON.stringify(result2.rows)}"`
+  );
+
+  expect(result1.rows).toEqual(result2.rows);
+}
+
+async function accountCountTheSame() {
+  const cmd = 'select count(*) as accountcount from account;';
+  const result1 = await client1.query(cmd);
+  const result2 = await client2.query(cmd);
+
+  console.log(
+    `---account count the same: "${JSON.stringify(
+      result1.rows
+    )}" == "${JSON.stringify(result2.rows)}"`
+  );
+
+  expect(result1.rows).toEqual(result2.rows);
+}
+
+async function transactionCountTheSame() {
+  const cmd = 'select count(*) as transactionCount from transaction;';
+  const result1 = await client1.query(cmd);
+  const result2 = await client2.query(cmd);
+
+  console.log(
+    `--transaction count the same: "${JSON.stringify(
+      result1.rows
+    )}" == "${JSON.stringify(result2.rows)}"`
+  );
+
+  expect(result1.rows).toEqual(result2.rows);
+}
+
+async function transactionFeesAreTheSame() {
+  const cmd1 = 'select sum(fee) as transactionfeesum from transaction';
+  const trs1 = await client1.query(cmd1);
+  const trs2 = await client2.query(cmd1);
+
+  console.log(
+    `--transaction fee sum is the same: "${JSON.stringify(
+      trs1.rows
+    )}" == "${JSON.stringify(trs2.rows)}"\n\n`
+  );
+  expect(trs1.rows).toEqual(trs2.rows);
+
+  const cmd2 = 'select sum(fees) as delegatefees from delegate;';
+  const delegate1 = await client1.query(cmd2);
+  const delegate2 = await client2.query(cmd2);
+
+  console.log(
+    `--delegate fee sum are the same: "${JSON.stringify(
+      delegate1.rows
+    )}" == "${JSON.stringify(delegate2.rows)}"`
+  );
+  expect(delegate1.rows).toEqual(delegate2.rows);
+
+  // check if its coherent for db1
+  const { transactionfeesum: trsfeesum1 } = trs1.rows[0];
+  const { delegatefees: delfeessum1 } = delegate1.rows[0];
+  expect(trsfeesum1).toEqual(delfeessum1);
+
+  // check if  its coherent for db2
+  const { transactionfeesum: trsfeesum2 } = trs2.rows[0];
+  const { delegatefees: delfeessum2 } = delegate2.rows[0];
+  expect(trsfeesum2).toEqual(delfeessum2);
+}
+
+async function compareDelegates() {
+  const cmd = `select address, tid, username, "publicKey", votes,
+               "producedBlocks", "missedBlocks", fees, rewards, _version_
+               from delegate
+               order by address asc;`;
+
+  const delegate1 = await client2.query(cmd);
+  const delegate2 = await client2.query(cmd);
+
+  expect(delegate1.rows.length).toEqual(delegate2.rows.length);
+
+  for (let i = 0; i < delegate1.rows.length; ++i) {
+    const one = delegate1.rows[i];
+    const two = delegate2.rows[i];
+
+    console.log(
+      `--delegates are all the same:\n"${JSON.stringify(
+        one,
+        null,
+        2
+      )}" == "${JSON.stringify(two, null, 2)}"`
+    );
+    expect(one).toEqual(two);
+  }
+}
+
+async function compareAccounts() {
+  const cmd = `select address, username, gny, "publicKey", "secondPublicKey",
+               "isDelegate", "isLocked", "lockHeight", "lockAmount", _version_
+               from account
+               order by address asc;`;
+
+  const account1 = await client1.query(cmd);
+  const account2 = await client2.query(cmd);
+
+  expect(account1.rows.length).toEqual(account2.rows.length);
+
+  for (let i = 0; i < account1.rows.length; ++i) {
+    const one = account1.rows[i];
+    const two = account2.rows[i];
+
+    console.log(
+      `--accounts are all the same:\n"${JSON.stringify(
+        one,
+        null,
+        2
+      )}" == "${JSON.stringify(two, null, 2)}"`
+    );
+    expect(one).toEqual(two);
+  }
+}
+
+async function compareProducedBlocks() {
+  const cmd = 'select count(*) as producedblockscount from delegate';
+
+  const delegate1 = await client1.query(cmd);
+  const delegate2 = await client2.query(cmd);
+  console.log(
+    `--producedblocks:\n"${JSON.stringify(
+      delegate1.rows
+    )}" == "${JSON.stringify(delegate2.rows)}"`
+  );
+  expect(delegate1.rows).toEqual(delegate2.rows);
+
+  // block 0 doesn't count
+  const cmd2 = 'select count(*) as blockcount from block where height > 0';
+  const block1 = await client1.query(cmd2);
+  const block2 = await client2.query(cmd2);
+  console.log(
+    `--producedBlocks:\n"${JSON.stringify(block1.rows)}" == "${JSON.stringify(
+      block2.rows
+    )}"`
+  );
+  expect(block1.rows).toEqual(block2.rows);
+
+  // TODO check if delegate has produced as much blocks
+  // like he has stored in column "producedBlocks"
+}
+
+async function checkRound() {
+  const cmd =
+    'select fee, reward, round, _version_ from round where round = 1;';
+  const round1 = await client1.query(cmd);
+  const round2 = await client2.query(cmd);
+  console.log(
+    `--rounds:\n"${JSON.stringify(round1.rows)}" == "${JSON.stringify(
+      round2.rows
+    )}"`
+  );
+  expect(round1.rows).toEqual(round2.rows);
+
+  // rounds are the same
+  const { reward: reward1, fee: fee1 } = round1.rows[0];
+  const { reward: reward2, fee: fee2 } = round2.rows[0];
+
+  const cmd2 = 'select sum(fee) as transactionfeesum from transaction';
+  const transaction1 = await client1.query(cmd2);
+  const transaction2 = await client2.query(cmd2);
+
+  const { transactionfeesum: transfeesum1 } = transaction1.rows[0];
+  const { transactionfeesum: transfeesum2 } = transaction2.rows[0];
+
+  expect(fee1).toEqual(transfeesum1);
+  expect(fee2).toEqual(transfeesum2);
+
+  const cmd3 = 'select sum(rewards) as delegatereward from delegate;';
+  const delegate1 = await client1.query(cmd3);
+  const delegate2 = await client2.query(cmd3);
+  const { delegatereward: delegatereward1 } = delegate1.rows[0];
+  const { delegatereward: delegatereward2 } = delegate2.rows[0];
+
+  expect(reward1).toEqual(delegatereward1);
+  expect(reward2).toEqual(delegatereward2);
+}
+
+// round
+
+const trsFeeSum = `select sum(fee) as fee from transaction;`;
+const delegateFeeSum = `select sum(fees) from delegate`;
+
 const usedAddresses: string[] = [];
 async function genesisAccountSendToRandomAddress(port: number) {
   const account = lib.createRandomAccount();
@@ -36,10 +232,9 @@ async function genesisAccountSendToRandomAddress(port: number) {
   usedAddresses.push(account.address);
 }
 
-async function getTrsCount(port: number) {
-  const { data } = await axios.get(`http://localhost:${port}/api/transactions`);
-  return data.count;
-}
+// postgres connections
+let client1: Client = null;
+let client2: Client = null;
 
 describe('db-the-same', () => {
   beforeAll(async done => {
@@ -51,13 +246,52 @@ describe('db-the-same', () => {
   beforeEach(async done => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
+    // restore
+    await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
+    await lib.startP2PContainers(DOCKER_COMPOSE_P2P, ['db1', 'db2']);
+    await lib.sleep(5000);
+
+    const backupFile = 'config/e2e/db-the-same/dump_01-02-2021_14_05_58.sql';
+    await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile, 'db1');
+    await lib.sleep(5000);
+
+    // start the rest of the containers
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
+
+    // spin up clients
+    client1 = new Client({
+      user: 'postgres',
+      host: '172.20.0.2',
+      database: 'postgres',
+      password: 'docker',
+      port: 5432,
+    });
+    client2 = new Client({
+      user: 'postgres',
+      host: '172.20.0.4',
+      database: 'postgres',
+      password: 'docker',
+      port: 5432,
+    });
+
+    // connect clients
+    await client1.connect();
+    await client2.connect();
+
     done();
   }, lib.oneMinute * 1.5);
 
   afterEach(async done => {
+    // disconnect clients
+    if (client1 !== null) {
+      await client1.end();
+    }
+    if (client2 !== null) {
+      await client2.end();
+    }
+
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
@@ -79,36 +313,37 @@ describe('db-the-same', () => {
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
-      await lib.onNewBlock(4096);
-      await lib.onNewBlock(4098);
+      // both nodes have no secrets (no forging)
+      // restore database for node1 (up to height 101)
+      // let node2 sync up to node2
 
-      const trsCountFirst = await getTrsCount(4096);
+      // stop node1 and node2
+      // check db1 and db2. Are they the same??
 
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-
-      await lib.onNewBlock(4096);
-
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-      await genesisAccountSendToRandomAddress(4096);
-
-      await lib.onNewBlock(4096);
-
-      const trsCountSecond = await getTrsCount(4096);
-
-      expect(trsCountFirst + 6).toEqual(trsCountSecond);
+      // do not wait for a new block, because they are no blocks being produced
+      await lib.sleep(lib.oneMinute);
 
       console.log(
         `[${new Date().toLocaleTimeString()}] waiting for network to get down...`
       );
+      await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node1', 'node2']);
       await lib.onNetworkDown(4096);
       await lib.onNetworkDown(4098);
       console.log(`[${new Date().toLocaleTimeString()}] network down`);
 
+      // check
+      await compareProducedBlocks();
+      await checkRound();
+
+      await blockCountTheSame();
+      await accountCountTheSame();
+      await transactionCountTheSame();
+      await transactionFeesAreTheSame();
+      await compareDelegates();
+      await compareAccounts();
+
       done();
     },
-    4 * lib.oneMinute
+    5 * lib.oneMinute
   );
 });

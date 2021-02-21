@@ -38,7 +38,7 @@
           "--verbose",
           "--runInBand",
           "--no-cache",
-          "test/unit/extendedJoi/index.test.ts"
+          "test/unit/core/BlocksHelper.test.ts"
       ],
       "runtimeArgs": [
           "--nolazy"

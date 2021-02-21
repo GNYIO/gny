@@ -9,6 +9,7 @@ import * as packageJson from '../package.json';
 import { IConfig, IBlock } from '@gny/interfaces';
 import * as ip from 'ip';
 import { P2P_VERSION } from '@gny/p2p';
+import { getConfig } from '@gny/network';
 
 const version = packageJson.version;
 
@@ -61,7 +62,6 @@ function main() {
     .parse(process.argv);
 
   const baseDir = program.base || process.cwd();
-  const transpiledDir = path.join(process.cwd(), 'packages/main/dist/src/');
 
   // default config.json path
   let appConfigFile = path.join(baseDir, 'config.json');
@@ -81,29 +81,33 @@ function main() {
   appConfig.baseDir = baseDir;
   appConfig.buildVersion = String(new Date());
 
-  // default network is "localnet"
-  appConfig.netVersion =
-    program.network || process.env['GNY_NETWORK'] || 'localnet';
+  appConfig.netVersion = program.network || process.env['GNY_NETWORK'];
 
-  // genesisBlock.(localnet | testnet | mainnet).json
-  let genesisBlockPath = path.join(
-    baseDir,
-    `genesisBlock.${appConfig.netVersion}.json`
-  );
-  // or custom genesisBock.json path
-  if (program.genesisblock) {
-    if (program.network || process.env['GNY_NETWORK']) {
-      console.log(
-        'Error: --network (GNY_NETWORK) and --genesisblock are not allowed'
-      );
-      return;
+  // either custom genesisBlock or
+  let genesisBlock: IBlock = null;
+  if (appConfig.netVersion === 'custom') {
+    if (!process.env['GNY_GENESISBLOCK']) {
+      console.error('GNY_GENESISBLOCK is required for custom genesisBlock');
+      process.exit(1);
     }
-    genesisBlockPath = path.resolve(baseDir, program.genesisblock);
+    if (!process.env['GNY_GENESISBLOCK_MAGIC']) {
+      console.error('GNY_GENESISBLOCK_HASH is required for custom magic');
+    }
+
+    const genesisBlockPath = path.resolve(
+      baseDir,
+      process.env['GNY_GENESISBLOCK']
+    );
+    const value = fs.readFileSync(genesisBlockPath, { encoding: 'utf8' });
+    genesisBlock = JSON.parse(value);
+    appConfig.magic = process.env['GNY_GENESISBLOCK_MAGIC'];
+    // magic must be set in config.json file
+  } else {
+    // genesisBlock.(localnet | testnet | mainnet).json
+    const network = getConfig(appConfig.netVersion);
+    genesisBlock = network.genesisBlock;
+    appConfig.magic = network.hash;
   }
-  // load genesisBlock
-  const genesisBlock: IBlock = JSON.parse(
-    fs.readFileSync(genesisBlockPath, 'utf8')
-  );
 
   // port, default 4096
   appConfig.port = program.port || process.env['GNY_PORT'] || 4096;
@@ -167,12 +171,19 @@ function main() {
 
   // distributed tracing endpoint
   appConfig.jaegerHost =
-    program.jaegerHost ||
-    process.env['GNY_JAEGER_HOST'] ||
-    'http://135.181.46.217:14268/api/traces';
+    process.env['GNY_JAEGER_HOST'] || program.netVersion === 'testnet'
+      ? 'https://testnet.jaeger.gny.io/api/traces'
+      : undefined || program.netVersion === 'mainnet'
+      ? 'https://mainnet.jaeger.gny.io/api/traces'
+      : undefined;
+
   // centralized logging endpoint
   appConfig.lokiHost =
-    process.env['GNY_LOKI_HOST'] || 'https://testnet.loki.gny.io';
+    process.env['GNY_LOKI_HOST'] || program.netVersion === 'testnet'
+      ? 'https://testnet.loki.gny.io'
+      : undefined || program.netVersion === 'mainnet'
+      ? 'https://mainnet.loki.gny.io'
+      : undefined;
 
   const logger = createLogger(
     LogLevel[appConfig.logLevel],

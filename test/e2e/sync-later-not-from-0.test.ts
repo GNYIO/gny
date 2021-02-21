@@ -1,13 +1,6 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
 import BigNumber from 'bignumber.js';
-import axios from 'axios';
-
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-later-not-from-0/docker-compose.sync-later-not-from-0.yml';

@@ -130,6 +130,16 @@ export function createP2PContainersOnlyNoStarting(configFile: string) {
   shellJS.exec(`docker-compose --file "${configFile}" up --no-start`);
 }
 
+export function restoreBackup(
+  configFile: string,
+  backupFile: string,
+  dbService: string
+) {
+  shellJS.exec(
+    `cat ${backupFile} | sudo docker exec -i ${dbService} psql -U postgres`
+  );
+}
+
 export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
   // await dockerCompose
   await dockerCompose.upAll({

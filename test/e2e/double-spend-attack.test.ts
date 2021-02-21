@@ -2,6 +2,7 @@ import * as lib from './lib';
 import * as helpers from './helpers';
 import * as gnyJS from '@gny/client';
 import axios from 'axios';
+import { getConfig } from '@gny/network';
 
 interface IsTrsAvailable {
   transactionId: string;
@@ -14,7 +15,7 @@ const DOCKER_COMPOSE_P2P =
 
 const config = {
   headers: {
-    magic: '594fe0f3',
+    magic: getConfig('localnet').hash,
   },
 };
 
@@ -197,7 +198,7 @@ describe('double-spend-attack', () => {
         account_0.address,
         String(1000.1 * 1e8),
         undefined,
-        lib.GENESIS.secret
+        getConfig('localnet').genesis
       );
       const fuelTransaction_0_Data = {
         transaction: fuelTransaction_0,

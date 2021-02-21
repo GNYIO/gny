@@ -21,7 +21,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .ip()
         .required(),
       logLevel: joi.string(),
-      magic: joi.string(),
+      magic: joi.string().required(),
       api: joi.object().keys({
         access: joi.object().keys({
           whiteList: joi

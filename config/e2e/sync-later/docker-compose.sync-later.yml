@@ -53,6 +53,7 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/sync-later/forger.json"'
     environment:
       - GNY_LOG_LEVEL=log
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.3
@@ -95,6 +96,7 @@ services:
     command: bash -c 'node packages/main/dist/src/app --config "config/e2e/sync-later/sync-later.json"'
     environment:
       - GNY_LOG_LEVEL=log
+      - GNY_NETWORK=localnet
       - GNY_LOKI_HOST=http://loki.local:3100
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.5

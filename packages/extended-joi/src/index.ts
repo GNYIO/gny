@@ -274,7 +274,8 @@ const stringExtensions: Joi.Extension = {
         if (
           value === 'localnet' ||
           value === 'testnet' ||
-          value === 'mainnet'
+          value === 'mainnet' ||
+          value === 'custom'
         ) {
           return value;
         }

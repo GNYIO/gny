@@ -1,0 +1,28 @@
+name: Publish mainnet branch to DockerHub
+on:
+  release:
+      types: [published]
+  push:
+    branches:
+      - mainnet
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout mainnet branch
+      uses: actions/checkout@v2
+      with:
+        ref: mainnet
+    - name: getversion
+      id: getversion
+      run: echo -n -e "latestversion=$(cat lerna.json | grep version | head -1 | awk -F':' '{ print $2 }'   | sed 's/[",]//g' | tr -d '[[:space:]]')" >> $GITHUB_ENV
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: gnyio/node
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        tag_semver: true
+        snapshot: true
+        tags: "mainnet,${{ env.latestversion }}-mainnet"

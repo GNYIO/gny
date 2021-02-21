@@ -1,5 +1,5 @@
 {
-  "version": "1.0.63",
+  "version": "1.0.64",
   "packages": [
     "packages/base",
     "packages/cli",
@@ -19,6 +19,7 @@
     "packages/web-base",
     "packages/web-ed",
     "packages/tracer",
+    "packages/network",
     "test"
   ],
   "npmClient": "npm"
