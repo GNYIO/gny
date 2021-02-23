@@ -1,8 +1,7 @@
 name: Publish testnet branch to DockerHub
 on:
   release:
-      types: [published]
-  push:
+    types: [published]
     branches:
       - testnet
 
