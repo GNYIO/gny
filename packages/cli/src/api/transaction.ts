@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
-import { TransactionBase } from '@gny/base';
+import * as webEd from '@gny/web-ed';
+import { TransactionWebBase } from '@gny/web-base';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { ITransaction, KeyPair } from '@gny/interfaces';
@@ -40,18 +40,18 @@ export async function sendMoney(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
+  const keypair = webEd.generateKeyPair(hash);
 
   let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
-    secondKeypair = ed.generateKeyPair(
+    secondKeypair = webEd.generateKeyPair(
       crypto
         .createHash('sha256')
         .update(options.secondSecret, 'utf8')
         .digest()
     );
   }
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 0,
     fee: String(10000000),
     keypair: keypair,
@@ -67,11 +67,11 @@ export async function sendTransactionWithFee(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
+  const keypair = webEd.generateKeyPair(hash);
 
   let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
-    secondKeypair = ed.generateKeyPair(
+    secondKeypair = webEd.generateKeyPair(
       crypto
         .createHash('sha256')
         .update(options.secondSecret, 'utf8')
@@ -79,7 +79,7 @@ export async function sendTransactionWithFee(options) {
     );
   }
 
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: Number(options.type),
     fee: String(options.fee) || String(10000000),
     message: options.message,
@@ -98,7 +98,7 @@ export function getTransactionBytes(options: any) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(TransactionBase.getBytes(trs, true, true).toString('hex'));
+  console.log(TransactionWebBase.getBytes(trs, true, true).toString('hex'));
 }
 
 export function getTransactionId(options) {
@@ -109,12 +109,12 @@ export function getTransactionId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(TransactionBase.getId(trs));
+  console.log(TransactionWebBase.getId(trs));
 }
 
 export function verifyBytes(options) {
   console.log(
-    TransactionBase.verifyBytes(
+    TransactionWebBase.verifyBytes(
       options.bytes,
       options.signature,
       options.publicKey

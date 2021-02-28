@@ -2,7 +2,11 @@ import * as fs from 'fs';
 import * as accountHelper from './account';
 import { generateSecret } from '../helpers';
 import * as crypto from 'crypto';
-import { TransactionBase, BlockBase, CreateTransactionType } from '@gny/base';
+import {
+  TransactionWebBase,
+  BlockWebBase,
+  CreateTransactionType,
+} from '@gny/web-base';
 import {
   UnconfirmedTransaction,
   IBlock,
@@ -43,12 +47,12 @@ function createTransaction(data: CreateTransactionTypeWithTimestamp) {
 
   const intermediate: Omit<ITransaction, 'id' | 'height'> = {
     ...transaction,
-    signatures: [TransactionBase.sign(data.keypair, transaction)],
+    signatures: [TransactionWebBase.sign(data.keypair, transaction)],
     secondSignature: undefined,
   };
 
   if (data.secondKeypair) {
-    intermediate.secondSignature = TransactionBase.sign(
+    intermediate.secondSignature = TransactionWebBase.sign(
       data.secondKeypair,
       intermediate
     );
@@ -56,7 +60,7 @@ function createTransaction(data: CreateTransactionTypeWithTimestamp) {
 
   const final: UnconfirmedTransaction = {
     ...intermediate,
-    id: TransactionBase.getHash(intermediate).toString('hex'),
+    id: TransactionWebBase.getHash(intermediate).toString('hex'),
   };
 
   return final;
@@ -211,7 +215,7 @@ function generateGenesis(
   let bytes;
 
   transactions.forEach(tx => {
-    bytes = TransactionBase.getBytes(tx);
+    bytes = TransactionWebBase.getBytes(tx);
     payloadLength += bytes.length;
     payloadHash.update(bytes);
   });
@@ -239,12 +243,12 @@ function generateGenesis(
 
   const almostFinalBlock: IBlockWithoutId = {
     ...block,
-    signature: BlockBase.sign(block, sender.keypair),
+    signature: BlockWebBase.sign(block, sender.keypair),
   };
 
   const finalBlock: IBlock = {
     ...almostFinalBlock,
-    id: BlockBase.getId(almostFinalBlock),
+    id: BlockWebBase.getId(almostFinalBlock),
   };
 
   return {
@@ -257,7 +261,7 @@ function createDelegates(delegatesFile?: string) {
   const delegates: DelegateAccount[] = [];
 
   if (!delegatesFile) {
-    for (let i = 0; ++i; i < 101) {
+    for (let i = 0; i < 101; ++i) {
       const delegate = accountHelper.account(generateSecret());
 
       const username = 'gny_d' + (i + 1);

@@ -8,6 +8,19 @@
       "outputCapture": "std",
       "type": "node",
       "request": "launch",
+      "name": "cli",
+      "program": "${workspaceFolder}/packages/cli/dist/index.js",
+      "args": [
+        "creategenesis"
+      ],
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ]
+    },
+    {
+      "outputCapture": "std",
+      "type": "node",
+      "request": "launch",
       "name": "DEBUG_1",
       "program": "${workspaceFolder}/packages/main/dist/src/app.js",
       "cwd": "${workspaceFolder}",
