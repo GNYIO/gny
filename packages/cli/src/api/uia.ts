@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
-import { TransactionBase } from '@gny/base';
+import * as webEd from '@gny/web-ed';
+import { TransactionWebBase } from '@gny/web-base';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
 import { KeyPair } from '@gny/interfaces';
@@ -60,11 +60,11 @@ export async function sendAsset(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
+  const keypair = webEd.generateKeyPair(hash);
 
   let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
-    secondKeypair = ed.generateKeyPair(
+    secondKeypair = webEd.generateKeyPair(
       crypto
         .createHash('sha256')
         .update(options.secondSecret, 'utf8')
@@ -72,7 +72,7 @@ export async function sendAsset(options) {
     );
   }
 
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 103,
     fee: String(10000000),
     message: options.message,
@@ -88,18 +88,18 @@ export async function registerIssuer(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
+  const keypair = webEd.generateKeyPair(hash);
 
   let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
-    secondKeypair = ed.generateKeyPair(
+    secondKeypair = webEd.generateKeyPair(
       crypto
         .createHash('sha256')
         .update(options.secondSecret, 'utf8')
         .digest()
     );
   }
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 100,
     fee: String(100 * 1e8),
     keypair: keypair,
@@ -115,18 +115,18 @@ export async function registerAsset(options) {
     .createHash('sha256')
     .update(options.secret, 'utf8')
     .digest();
-  const keypair = ed.generateKeyPair(hash);
+  const keypair = webEd.generateKeyPair(hash);
 
   let secondKeypair: undefined | KeyPair = undefined;
   if (options.secondSecret) {
-    secondKeypair = ed.generateKeyPair(
+    secondKeypair = webEd.generateKeyPair(
       crypto
         .createHash('sha256')
         .update(options.secondSecret, 'utf8')
         .digest()
     );
   }
-  const trs = TransactionBase.create({
+  const trs = TransactionWebBase.create({
     type: 101,
     fee: String(500 * 1e8),
     keypair: keypair,

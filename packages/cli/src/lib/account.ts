@@ -1,4 +1,4 @@
-import * as ed from '@gny/ed';
+import * as webEd from '@gny/web-ed';
 import * as crypto from 'crypto';
 import { generateAddress } from '@gny/utils';
 import { KeyPair } from '@gny/interfaces';
@@ -13,7 +13,7 @@ export function account(secret: string): AccountType {
     .createHash('sha256')
     .update(secret, 'utf8')
     .digest();
-  const kp = ed.generateKeyPair(hash);
+  const kp = webEd.generateKeyPair(hash);
   const address = generateAddress(kp.publicKey.toString('hex'));
 
   return <AccountType>{

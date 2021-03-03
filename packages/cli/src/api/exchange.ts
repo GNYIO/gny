@@ -3,7 +3,7 @@ import { ApiConfig, pretty } from '../lib/api';
 import Api from '../lib/api';
 import { generateSecret } from '../helpers';
 import * as accountHelper from '../lib/account';
-import { generateKeyPair } from '@gny/ed';
+import { generateKeyPair } from '@gny/web-ed';
 import * as crypto from 'crypto';
 import { getBaseUrl } from '../getBaseUrl';
 

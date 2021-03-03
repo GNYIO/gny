@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-import { BlockBase, TransactionBase } from '@gny/base';
+import { BlockWebBase, TransactionWebBase } from '@gny/web-base';
 import { IBlock } from '@gny/interfaces';
 import { getBaseUrl } from '../getBaseUrl';
 
@@ -54,7 +54,7 @@ export function getBlockBytes(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(BlockBase.getBytes(block, true).toString('hex'));
+  console.log(BlockWebBase.getBytes(block, true).toString('hex'));
 }
 
 export function getBlockId(options) {
@@ -65,7 +65,7 @@ export function getBlockId(options) {
     console.log('Invalid transaction format');
     return;
   }
-  console.log(BlockBase.getId(block));
+  console.log(BlockWebBase.getId(block));
 }
 
 export function getBlockPayloadHash(options) {
@@ -78,7 +78,7 @@ export function getBlockPayloadHash(options) {
   }
   const payloadHash = crypto.createHash('sha256');
   for (let i = 0; i < block.transactions.length; ++i) {
-    payloadHash.update(TransactionBase.getBytes(block.transactions[i]));
+    payloadHash.update(TransactionWebBase.getBytes(block.transactions[i]));
   }
   console.log(payloadHash.digest().toString('hex'));
 }
