@@ -1,6 +1,6 @@
 {
   "name": "@gny/cli",
-  "version": "1.0.69",
+  "version": "1.0.70",
   "description": "gny command line tool",
   "main": "dist/index",
   "scripts": {

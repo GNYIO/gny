@@ -1,7 +1,7 @@
 {
   "name": "@gny/main",
   "private": true,
-  "version": "1.0.69",
+  "version": "1.0.70",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -22,7 +22,7 @@
     "@gny/interfaces": "1.0.68",
     "@gny/logger": "1.0.68",
     "@gny/machine-learning": "1.0.68",
-    "@gny/network": "1.0.69",
+    "@gny/network": "1.0.70",
     "@gny/p2p": "1.0.68",
     "@gny/protobuf": "1.0.68",
     "@gny/tracer": "1.0.68",
