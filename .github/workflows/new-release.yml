@@ -32,7 +32,7 @@ jobs:
       - name: set username
         run: npm set username ${{ secrets.NPM_USERNAME }} -g
       - name: set npm email
-        run: npm set email ${{ NPM_EMAIL }} -g
+        run: npm set email ${{ secrets.NPM_EMAIL }} -g
       - name: release new version to github
         run: node_modules/lerna/cli.js version patch --yes --exact
       - name: publish individual lerna packages
