@@ -1,6 +1,11 @@
 name: new release on testnet
 on:
   workflow_dispatch:
+    inputs:
+    logLevel:
+      description: 'Log level'
+      required: true
+      default: 'warning'
 
 jobs:
   new-release-on-testnet:
@@ -20,7 +25,6 @@ jobs:
         run: git remote set-url origin https://a1300:$RELEASE_GITHUB_TOKEN@github.com/gnyio/gny-experiment.git
       - name: publish github release
         run: node_modules/lerna/cli.js version patch --yes --exact
-
       - name: build gny client
         run: node_modules/lerna/cli.js run --scope="@gny/client" web
       - name: set npm token
@@ -29,20 +33,20 @@ jobs:
         run: npm set username $NPM_USERNAME -g
       - name: set npm email
         run: npm set email $NPM_EMAIL -g
-
       - name: release new version to github
         run: node_modules/lerna/cli.js version patch --yes --exact
-      - run: |
-        cd packages/client && npm publish --access=public; cd ../..
-        echo $(pwd)
-        cd packages/web-base && npm publish --access=public; cd ../..
-        cd packages/web-ed && npm publish --access=public; cd ../..
-        cd packages/interfaces && npm publish --access=public; cd ../..
-        cd packages/utils && npm publish --access=public; cd ../..
-        cd packages/network && npm publish --access=public; cd ../..
-        cd packages/cli && npm publish --access=public; cd ../..
-        cd packages/base && npm publish --access=public; cd ../..
-        cd packages/ed && npm publish --access=public; cd ../..
-        cd packages/extended-joi && npm publish --access=public; cd ../..
-        cd packages/logger && npm publish --access=public; cd ../..
-        cd packages/type-validation && npm publish --access=public; cd ../..
+      - name: publish individual lerna packages
+        run: |
+          cd packages/client && npm publish --access=public; cd ../..
+          echo $(pwd)
+          cd packages/web-base && npm publish --access=public; cd ../..
+          cd packages/web-ed && npm publish --access=public; cd ../..
+          cd packages/interfaces && npm publish --access=public; cd ../..
+          cd packages/utils && npm publish --access=public; cd ../..
+          cd packages/network && npm publish --access=public; cd ../..
+          cd packages/cli && npm publish --access=public; cd ../..
+          cd packages/base && npm publish --access=public; cd ../..
+          cd packages/ed && npm publish --access=public; cd ../..
+          cd packages/extended-joi && npm publish --access=public; cd ../..
+          cd packages/logger && npm publish --access=public; cd ../..
+          cd packages/type-validation && npm publish --access=public; cd ../..
