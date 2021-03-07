@@ -605,6 +605,21 @@ export default class Blocks implements ICoreModule {
       forgedBlocks
     );
     const keys = Object.keys(result);
+
+    // missed blocks
+    for (let i = 0; i < delegatesWhoMissedBlock.length; ++i) {
+      const one = delegatesWhoMissedBlock[i];
+
+      const value = {
+        missedBlocks: String(1),
+      };
+
+      await global.app.sdb.increase<Delegate>(Delegate, value, {
+        publicKey: one,
+      });
+    }
+
+    // produced blocks
     for (let i = 0; i < keys.length; ++i) {
       const publicKey = keys[i];
       const one = result[publicKey];
@@ -616,9 +631,6 @@ export default class Blocks implements ICoreModule {
         rewards: one.reward,
         producedBlocks: String(one.producedBlocks),
       };
-      if (delegatesWhoMissedBlock.includes(publicKey)) {
-        value.missedBlocks = String(1);
-      }
 
       await global.app.sdb.increase<Delegate>(Delegate, value, {
         address,
