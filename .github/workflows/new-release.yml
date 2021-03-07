@@ -11,16 +11,16 @@ jobs:
   new-release-on-testnet:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout mainnet branch
+      - name: Checkout testnet branch
         uses: actions/checkout@v2
         with:
           ref: testnet
       - name: install lerna
         run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts && npm run lerna:tsc
       - name: set github username
-        run: git config --global user.name "$RELEASE_GITHUB_USERNAME"
+        run: git config user.name "$RELEASE_GITHUB_USERNAME"
       - name: set github email
-        run: git config --global user.email "$RELEASE_GITHUB_EMAIL"
+        run: git config user.email "$RELEASE_GITHUB_EMAIL"
       - name: set github token
         run: git remote set-url origin https://a1300:$RELEASE_GITHUB_TOKEN@github.com/gnyio/gny-experiment.git
       - name: publish github release
