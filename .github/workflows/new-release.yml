@@ -18,21 +18,21 @@ jobs:
       - name: install lerna
         run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts && npm run lerna:tsc
       - name: set github username
-        run: git config user.name "$RELEASE_GITHUB_USERNAME"
+        run: git config --global user.name "${{ secrets.RELEASE_GITHUB_USERNAME }}"
       - name: set github email
-        run: git config user.email "$RELEASE_GITHUB_EMAIL"
+        run: git config --global user.email "${{ secrets.RELEASE_GITHUB_EMAIL }}"
       - name: set github token
-        run: git remote set-url origin https://a1300:$RELEASE_GITHUB_TOKEN@github.com/gnyio/gny-experiment.git
+        run: git remote set-url origin https://a1300:${{ secrets.RELEASE_GITHUB_TOKEN }}@github.com/gnyio/gny-experiment.git
       - name: publish github release
         run: node_modules/lerna/cli.js version patch --yes --exact
       - name: build gny client
         run: node_modules/lerna/cli.js run --scope="@gny/client" web
       - name: set npm token
-        run: npm set unsafe-perm true -g && npm set //registry.npmjs.org/:_authToken $NPM_TOKEN -g
+        run: npm set unsafe-perm true -g && npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }} -g
       - name: set username
-        run: npm set username $NPM_USERNAME -g
+        run: npm set username ${{ secrets.NPM_USERNAME }} -g
       - name: set npm email
-        run: npm set email $NPM_EMAIL -g
+        run: npm set email ${{ NPM_EMAIL }} -g
       - name: release new version to github
         run: node_modules/lerna/cli.js version patch --yes --exact
       - name: publish individual lerna packages
