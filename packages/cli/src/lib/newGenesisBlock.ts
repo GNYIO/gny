@@ -107,7 +107,7 @@ function appendFileSync(file, obj) {
 }
 
 function genGenesisBlock(options) {
-  let initialAmount = String(100000000 * 1e8);
+  let initialAmount = String(400000000 * 1e8);
   if (options.amount) {
     initialAmount = String(options.amount);
   }

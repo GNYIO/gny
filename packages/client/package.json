@@ -1,6 +1,6 @@
 {
   "name": "@gny/client",
-  "version": "1.0.69",
+  "version": "1.0.70",
   "description": "GNY JavaScript Client Library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@gny/interfaces": "1.0.68",
-    "@gny/network": "1.0.69",
+    "@gny/network": "1.0.70",
     "@gny/utils": "1.0.68",
     "@gny/web-base": "1.0.68",
     "@types/bs58": "^3.0.32",

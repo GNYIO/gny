@@ -1,7 +1,7 @@
 {
   "name": "@gny/p2p",
   "private": true,
-  "version": "1.0.68",
+  "version": "1.0.71",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
