@@ -25,13 +25,15 @@ jobs:
         run: git remote set-url origin https://a1300:${{ secrets.RELEASE_GITHUB_TOKEN }}@github.com/gnyio/gny-experiment.git
       - name: build gny client
         run: node_modules/lerna/cli.js run --scope="@gny/client" web
-      - name: set npm token
-        run: npm set unsafe-perm true -g && npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }} -g
-      - name: set username
-        run: npm set username ${{ secrets.NPM_USERNAME }} -g
-      - name: set npm email
-        run: npm set email ${{ secrets.NPM_EMAIL }} -g
-      - name: new release
+      - name: npm set unsafe-perm
+        run: npm set unsafe-perm true
+      - name: npm set auth token
+        run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+      - name: npm set username
+        run: npm set username ${{ secrets.NPM_USERNAME }}
+      - name: npm set email
+        run: npm set email ${{ secrets.NPM_EMAIL }}
+      - name: new release (no push)
         run: node_modules/lerna/cli.js version patch --yes --exact --no-push
       - name: push release commit
         run: git push origin testnet
