@@ -42,7 +42,6 @@ jobs:
       - name: publish individual lerna packages
         run: |
           cd packages/client && npm publish --access=public; cd ../..
-          echo $(pwd)
           cd packages/web-base && npm publish --access=public; cd ../..
           cd packages/web-ed && npm publish --access=public; cd ../..
           cd packages/interfaces && npm publish --access=public; cd ../..
