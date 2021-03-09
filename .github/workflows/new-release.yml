@@ -38,7 +38,7 @@ jobs:
       - name: push release commit
         run: git push origin testnet --force
       - name: push new tag
-        run: git push origin $(cat lerna.json | grep version | head -1 | awk -F':' '{ print $2 }'   | sed 's/[",]//g' | tr -d '[[:space:]]')
+        run: git push origin "v$(cat lerna.json | grep version | head -1 | awk -F':' '{ print $2 }'   | sed 's/[",]//g' | tr -d '[[:space:]]')"
       - name: publish individual lerna packages
         run: |
           cd packages/client && npm publish --access=public; cd ../..
