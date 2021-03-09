@@ -1,7 +1,7 @@
 {
   "name": "@gny/protobuf",
   "private": true,
-  "version": "1.0.68",
+  "version": "1.0.73",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -16,7 +16,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.68",
+    "@gny/interfaces": "1.0.73",
     "lodash": "^4.17.15",
     "protocol-buffers": "^3.2.1"
   }
