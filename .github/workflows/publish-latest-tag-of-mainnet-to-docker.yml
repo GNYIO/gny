@@ -1,4 +1,4 @@
-name: Publish latest tag of testnet to docker
+name: Publish latest tag of mainnet to docker
 on:
   workflow_dispatch:
     inputs:
@@ -11,10 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-    - name: Checkout testnet branch
+    - name: Checkout mainnet branch
       uses: actions/checkout@v2
       with:
-        ref: testnet
+        ref: mainnet
     - name: revert git to latest version
       run: git reset --hard $(git describe --abbrev=0 --tags)
     - name: getversion
@@ -29,15 +29,15 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: Build and push testnet (amd64) image
+    - name: Build and push mainnet (amd64) image
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: "gnyio/node:testnet,gnyio/node:${{ env.latestversion }}-testnet"
+        tags: "gnyio/node:mainnet,gnyio/node:${{ env.latestversion }}-mainnet"
         platforms: linux/amd64
-    - name: Build and push testnet (ARM) image
+    - name: Build and push mainnet (ARM) image
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: "gnyio/node:testnet-arm,gnyio/node:${{ env.latestversion }}-testnet-arm"
+        tags: "gnyio/node:mainnet-arm,gnyio/node:${{ env.latestversion }}-mainnet-arm"
         platforms: linux/arm64
