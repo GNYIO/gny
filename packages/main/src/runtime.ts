@@ -6,6 +6,9 @@ import loadContracts from './loadContracts';
 import { BigNumber } from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces';
 import { StateHelper } from './core/StateHelper';
+import * as prom from 'prom-client';
+import { Account, Block, Transaction } from '@gny/database-postgres';
+import Peer from './core/peer';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -25,6 +28,49 @@ export default async function runtime(options: IOptions) {
     contractTypeMapping: {},
     logger: options.logger,
     tracer: options.tracer,
+  };
+  global.app.prom = {
+    accounts: new prom.Gauge<string>({
+      name: 'gny_accounts',
+      help: 'the number of accounts',
+      collect: async function getAccounts() {
+        const data = await global.app.sdb.count<Account>(Account, {});
+        this.set(Number.parseInt(data));
+      },
+    }),
+    blocks: new prom.Gauge<string>({
+      name: 'gny_blocks',
+      help: 'the number of blocks',
+      collect: async function getBlocks() {
+        const data = await global.app.sdb.count<Block>(Block, {});
+        this.set(Number.parseInt(data));
+      },
+    }),
+    transactions: new prom.Gauge<string>({
+      name: 'gny_transactions',
+      help: 'the number of blocks',
+      collect: async function getTransactions() {
+        const data = await global.app.sdb.count<Transaction>(Transaction, {});
+        this.set(Number.parseInt(data));
+      },
+    }),
+    syncing: new prom.Gauge<string>({
+      name: 'gny_syncing',
+      help: 'if we are syncing or not, yes if 1, if not then 0',
+      collect: function getSyncingStatus() {
+        const isSyncing = StateHelper.IsSyncing();
+        const data = isSyncing === true ? 1 : 0;
+        this.set(data);
+      },
+    }),
+    peers: new prom.Gauge<string>({
+      name: 'gny_peers_connected',
+      help: 'number of peers we are connected to',
+      collect: function getPeers() {
+        const data = Peer.p2p.getAllConnectedPeersPeerInfo();
+        this.set(data.length);
+      },
+    }),
   };
   global.app.validators = {
     amount: amount => {

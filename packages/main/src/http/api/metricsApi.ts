@@ -9,6 +9,7 @@ import {
   SyncStatus,
 } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { register } from 'prom-client';
 
 export default class MetricsApi implements IHttpApi {
   private library: IScope;
@@ -47,9 +48,10 @@ export default class MetricsApi implements IHttpApi {
     });
   };
 
-  private metrics = (req: Request, res: Response, next: Next) => {
-    return res.json({
-      hello: 'test',
-    });
+  private metrics = async (req: Request, res: Response, next: Next) => {
+    const data = await register.metrics();
+    res.set('Content-Type', register.contentType);
+
+    return res.send(data);
   };
 }
