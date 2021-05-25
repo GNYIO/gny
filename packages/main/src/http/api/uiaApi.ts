@@ -75,6 +75,12 @@ export default class UiaApi implements IHttpApi {
     });
     const report = joi.validate(query, addressValidation);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/isIssuer/:address',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -87,6 +93,12 @@ export default class UiaApi implements IHttpApi {
         },
       });
 
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/isIssuer/:address',
+        statusCode: '200',
+      });
+
       const result: ApiResult<IsIssuerWrapper> = {
         success: true,
         isIssuer: issuer ? true : false,
@@ -94,6 +106,12 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/isIssuer/:address',
+        statusCode: '500',
+      });
+
       return next(`Failed to check for existing Issuer: ${err.message}`);
     }
   };
@@ -113,6 +131,12 @@ export default class UiaApi implements IHttpApi {
     });
     const report = joi.validate(query, limitOffset);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -125,6 +149,13 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers',
+        statusCode: '200',
+      });
+
       const result: ApiResult<IssuesWrapper> = {
         success: true,
         count,
@@ -132,6 +163,12 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers',
+        statusCode: '500',
+      });
+
       return next(`Failed to get issuers: ${dbErr}`);
     }
   };
@@ -148,6 +185,12 @@ export default class UiaApi implements IHttpApi {
       .required();
     const report = joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -168,6 +211,13 @@ export default class UiaApi implements IHttpApi {
           success: true,
           issuer,
         };
+
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/uia/issuers/:name',
+          statusCode: '200',
+        });
+
         return res.json(result);
       } else {
         const issuer = await global.app.sdb.findOne<Issuer>(Issuer, {
@@ -175,7 +225,22 @@ export default class UiaApi implements IHttpApi {
             name: req.params.name,
           },
         });
-        if (!issuer) return next('Issuer not found');
+        if (!issuer) {
+          global.app.prom.requests.inc({
+            method: 'GET',
+            endpoint: '/api/uia/issuers/:name',
+            statusCode: '500',
+          });
+
+          return next('Issuer not found');
+        }
+
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/uia/issuers/:name',
+          statusCode: '200',
+        });
+
         result = {
           success: true,
           issuer,
@@ -183,6 +248,12 @@ export default class UiaApi implements IHttpApi {
         return res.json(result);
       }
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name',
+        statusCode: '500',
+      });
+
       return next(err.toString());
     }
   };
@@ -196,6 +267,12 @@ export default class UiaApi implements IHttpApi {
     });
     const nameReport = joi.validate(req.params, nameSchema);
     if (nameReport.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name/assets',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: nameReport.error.message,
@@ -216,6 +293,12 @@ export default class UiaApi implements IHttpApi {
     });
     const report = joi.validate(query, limitOffset);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name/assets',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -228,6 +311,12 @@ export default class UiaApi implements IHttpApi {
         condition: { name: issuerName },
       });
       if (!issuer) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/uia/issuers/:name/assets',
+          statusCode: '500',
+        });
+
         return next(`Issuer "${issuerName}" not found`);
       }
 
@@ -238,6 +327,13 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name/assets',
+        statusCode: '200',
+      });
+
       const result: ApiResult<AssetsWrapper> = {
         success: true,
         count,
@@ -245,6 +341,12 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/issuers/:name/assets',
+        statusCode: '500',
+      });
+
       return next(`Failed to get assets: ${dbErr}`);
     }
   };

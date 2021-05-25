@@ -100,6 +100,12 @@ export default class ExchangeApi implements IHttpApi {
     });
     const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'PUT',
+        endpoint: '/api/exchange',
+        statusCode: '500',
+      });
+
       this.library.logger.warn(
         `Failed to validate query params: ${report.error.message}`
       );
@@ -141,6 +147,12 @@ export default class ExchangeApi implements IHttpApi {
         keypair,
       });
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'PUT',
+        endpoint: '/api/exchange',
+        statusCode: '500',
+      });
+
       span.setTag('error', true);
       span.log({
         value: '',
@@ -152,6 +164,12 @@ export default class ExchangeApi implements IHttpApi {
 
     const finishSequence = (err: string, result: any) => {
       if (err) {
+        global.app.prom.requests.inc({
+          method: 'PUT',
+          endpoint: '/api/exchange',
+          statusCode: '500',
+        });
+
         span.setTag('error', true);
         span.log({
           value: `unconfirmed transaction error: ${err}`,
@@ -165,6 +183,12 @@ export default class ExchangeApi implements IHttpApi {
         result,
       });
       span.finish();
+
+      global.app.prom.requests.inc({
+        method: 'PUT',
+        endpoint: '/api/exchange',
+        statusCode: '200',
+      });
 
       res.json(result);
     };
@@ -220,6 +244,12 @@ export default class ExchangeApi implements IHttpApi {
     const report = joi.validate(body, secret);
 
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/exchange/openAccount',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -228,8 +258,21 @@ export default class ExchangeApi implements IHttpApi {
 
     const result1 = await this.openAccountWithSecret(body.secret);
     if (typeof result1 === 'string') {
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/exchange/openAccount',
+        statusCode: '500',
+      });
+
       return next(result1);
     }
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/exchange/openAccount',
+      statusCode: '200',
+    });
+
     const result: ApiResult<AccountOpenModel, GetAccountError> = {
       success: true,
       ...result1,
@@ -280,6 +323,13 @@ export default class ExchangeApi implements IHttpApi {
       privateKey: keypair.privateKey.toString('hex'),
       address,
     };
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/exchange/generateAccount',
+      statusCode: '200',
+    });
+
     return res.json(result);
   };
 
@@ -296,6 +346,12 @@ export default class ExchangeApi implements IHttpApi {
       .required();
     const report = joi.validate(body, hasSecret);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/exchange/generatePublicKey',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -311,12 +367,24 @@ export default class ExchangeApi implements IHttpApi {
       );
       const publicKey = kp.publicKey.toString('hex');
 
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/exchange/generatePublicKey',
+        statusCode: '200',
+      });
+
       const result: ApiResult<PulicKeyWrapper, ServerError> = {
         success: true,
         publicKey,
       };
       return res.json(result);
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/exchange/generatePublicKey',
+        statusCode: '500',
+      });
+
       return next('Server error');
     }
   };
