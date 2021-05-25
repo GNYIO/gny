@@ -1,7 +1,7 @@
 {
   "name": "@gny/p2p",
   "private": true,
-  "version": "1.0.80",
+  "version": "1.0.81",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -15,7 +15,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.80",
+    "@gny/interfaces": "1.0.81",
     "it-first": "^1.0.4",
     "it-pipe": "^1.1.0",
     "libp2p": "^0.30.0",
