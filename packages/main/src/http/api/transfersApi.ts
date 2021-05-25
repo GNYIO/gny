@@ -59,8 +59,6 @@ export default class TransfersApi implements IHttpApi {
       { $or: any }
     >;
 
-    // TODO: add validation
-
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
     const limit = Number(req.query.limit) || 10;
@@ -69,24 +67,33 @@ export default class TransfersApi implements IHttpApi {
     req.query.limit = limit;
     req.query.offset = offset;
 
-    const schema = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-      ownerId: joi.string().address(),
-      currency: joi.string().asset(),
-      senderId: joi.string().address(),
-      recipientId: joi.string().address(),
-    });
+    const schema = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
+        ownerId: joi.string().address(),
+        currency: joi.string().asset(),
+        senderId: joi.string().address(),
+        recipientId: joi.string().address(),
+      })
+      .required();
 
     const report = joi.validate(req.query, schema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transfers',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -141,6 +148,13 @@ export default class TransfersApi implements IHttpApi {
         }
       }
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/transfers',
+      statusCode: '200',
+    });
+
     const result: ApiResult<TransfersWrapper> = {
       success: true,
       count,
@@ -191,6 +205,13 @@ export default class TransfersApi implements IHttpApi {
         totalAmount += Number(t.amount);
       }
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/transfers/amount',
+      statusCode: '200',
+    });
+
     const strTotalAmount = String(totalAmount);
     const result: ApiResult<AmountWrapper> = {
       success: true,

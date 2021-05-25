@@ -131,6 +131,12 @@ export default class TransportApi implements IHttpApi {
       });
       span.finish();
 
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/peer/transactions',
+        statusCode: '500',
+      });
+
       return next('Invalid transaction body');
     }
 
@@ -140,6 +146,12 @@ export default class TransportApi implements IHttpApi {
     const finished = err => {
       if (err) {
         span.finish();
+
+        global.app.prom.requests.inc({
+          method: 'POST',
+          endpoint: '/api/peer/transactions',
+          statusCode: '500',
+        });
 
         const errMsg: string = err.message ? err.message : err.toString();
         return next(`Error: ${errMsg}`);
@@ -151,6 +163,13 @@ export default class TransportApi implements IHttpApi {
           unconfirmedTrs,
           span
         );
+
+        global.app.prom.requests.inc({
+          method: 'POST',
+          endpoint: '/api/peer/transactions',
+          statusCode: '200',
+        });
+
         const result: ApiResult<TransactionIdWrapper> = {
           success: true,
           transactionId: unconfirmedTrs.id,
@@ -214,6 +233,12 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/peer/getUnconfirmedTransactions',
+      statusCode: '200',
+    });
+
     const result: P2PApiResult<UnconfirmedTransactionsWrapper, null> = {
       transactions: StateHelper.GetUnconfirmedTransactionList(),
     };

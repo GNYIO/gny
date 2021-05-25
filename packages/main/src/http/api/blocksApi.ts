@@ -95,6 +95,12 @@ export default class BlocksApi implements IHttpApi {
       .xor('id', 'height');
     const report = joi.validate(query, idOrHeight);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks/getBlock',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -110,14 +116,32 @@ export default class BlocksApi implements IHttpApi {
       }
 
       if (!block) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/blocks/getBlock',
+          statusCode: '500',
+        });
+
         return next('Block not found');
       }
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks/getBlock',
+        statusCode: '200',
+      });
       const result: ApiResult<BlockWrapper> = {
         success: true,
         block,
       };
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks/getBlock',
+        statusCode: '500',
+      });
+
       const span = this.library.tracer.startSpan('BlocksApi.getBlock');
       span.setTag('error', true);
       span.log({
@@ -158,6 +182,12 @@ export default class BlocksApi implements IHttpApi {
 
     const report = joi.validate(query, schema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -207,13 +237,32 @@ export default class BlocksApi implements IHttpApi {
         count,
         blocks,
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/blocks',
+        statusCode: '500',
+      });
+
       return next(err.message);
     }
   };
 
   private getHeight = (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/blocks/getHeight',
+      statusCode: '200',
+    });
+
     const height = StateHelper.getState().lastBlock.height;
     const result: ApiResult<HeightWrapper> = {
       success: true,
@@ -223,6 +272,12 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/blocks/getMilestone',
+      statusCode: '200',
+    });
+
     const height = StateHelper.getState().lastBlock.height;
     const milestone = this.blockReward.calculateMilestone(height);
     const result: ApiResult<MilestoneWrapper> = {
@@ -233,6 +288,12 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getReward = (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/blocks/getReward',
+      statusCode: '200',
+    });
+
     const height = StateHelper.getState().lastBlock.height;
     const reward = this.blockReward.calculateReward(height);
     const result: ApiResult<RewardWrappper> = {
@@ -243,6 +304,12 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getSupply = (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/blocks/getSupply',
+      statusCode: '200',
+    });
+
     const height = StateHelper.getState().lastBlock.height;
     const supply = this.blockReward.calculateSupply(height).toFixed();
     const result: ApiResult<SupplyWrapper> = {
@@ -253,6 +320,12 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getStatus = (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/blocks/getStatus',
+      statusCode: '200',
+    });
+
     const height = StateHelper.getState().lastBlock.height;
     const fee = BlockBase.calculateFee();
     const milestone = this.blockReward.calculateMilestone(height);

@@ -9,8 +9,9 @@ import {
   SyncStatus,
 } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { register } from 'prom-client';
 
-export default class LoaderApi implements IHttpApi {
+export default class MetricsApi implements IHttpApi {
   private library: IScope;
 
   constructor(library: IScope) {
@@ -29,8 +30,7 @@ export default class LoaderApi implements IHttpApi {
         .send({ success: false, error: 'Blockchain is loading' });
     });
 
-    router.get('/status', this.status);
-    router.get('/status/sync', this.sync);
+    router.get('/', this.metrics);
 
     router.use((req: Request, res: Response) => {
       return res
@@ -38,7 +38,7 @@ export default class LoaderApi implements IHttpApi {
         .json({ success: false, error: 'API endpoint not found' });
     });
 
-    this.library.network.app.use('/api/loader', router);
+    this.library.network.app.use('/api/metrics', router);
     this.library.network.app.use((err, req, res, next) => {
       if (!err) return next();
       this.library.logger.error(req.url);
@@ -48,39 +48,16 @@ export default class LoaderApi implements IHttpApi {
     });
   };
 
-  private status = (req: Request, res: Response, next: Next) => {
-    const loaded = StateHelper.BlockchainReady(); // TODO: wrap in try/catch
-    const result: ApiResult<LoaderStatus> = {
-      success: true,
-      loaded,
-    };
-
+  private metrics = async (req: Request, res: Response, next: Next) => {
     global.app.prom.requests.inc({
-      method: 'POST',
-      endpoint: '/api/loader/status',
+      method: 'GET',
+      endpoint: '/api/metrics',
       statusCode: '200',
     });
 
-    return res.json(result);
-  };
+    const data = await register.metrics();
+    res.set('Content-Type', register.contentType);
 
-  private sync = (req: Request, res: Response, next: Next) => {
-    const lastBlock = StateHelper.getState().lastBlock;
-    const syncing = StateHelper.IsSyncing();
-    const blocksToSync = StateHelper.GetBlocksToSync();
-
-    global.app.prom.requests.inc({
-      method: 'POST',
-      endpoint: '/api/loader/status/sync',
-      statusCode: '200',
-    });
-
-    const result: ApiResult<SyncStatus> = {
-      success: true,
-      syncing: syncing,
-      blocks: blocksToSync,
-      height: lastBlock.height,
-    };
-    return res.json(result);
+    return res.send(data);
   };
 }

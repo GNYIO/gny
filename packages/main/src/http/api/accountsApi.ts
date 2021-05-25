@@ -108,11 +108,23 @@ export default class AccountsApi implements IHttpApi {
       .xor('address', 'username');
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/accounts',
+      statusCode: '200',
+    });
 
     if (query.username) {
       const account = await getAccountByName(query.username);
@@ -151,11 +163,23 @@ export default class AccountsApi implements IHttpApi {
     const report = joi.validate(body, publicKey);
 
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/accounts/openAccount',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/accounts/openAccount',
+      statusCode: '200',
+    });
 
     const result2 = await this.openAccountWithPublicKey(body.publicKey);
     if (typeof result2 === 'string') {
@@ -206,11 +230,23 @@ export default class AccountsApi implements IHttpApi {
     });
     const report = joi.validate(query, hasAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/getBalance',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/accounts/getBalance',
+      statusCode: '200',
+    });
 
     const accountOverview = await getAccount(query.address);
     if (typeof accountOverview === 'string') {
@@ -292,11 +328,23 @@ export default class AccountsApi implements IHttpApi {
 
     const report = joi.validate(req.params, schema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/:address/:currency',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/accounts/:address/:currency',
+      statusCode: '200',
+    });
 
     const currency = req.params.currency;
     const condition = {
@@ -338,6 +386,12 @@ export default class AccountsApi implements IHttpApi {
       .required();
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/getVotes',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -351,6 +405,12 @@ export default class AccountsApi implements IHttpApi {
           username: query.username,
         });
         if (!account) {
+          global.app.prom.requests.inc({
+            method: 'GET',
+            endpoint: '/api/accounts/:address/:currency',
+            statusCode: '500',
+          });
+
           return next('Account not found');
         }
         addr = account.address;
@@ -363,6 +423,12 @@ export default class AccountsApi implements IHttpApi {
         },
       });
       if (!votes || !votes.length) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/accounts/:address/:currency',
+          statusCode: '200',
+        });
+
         return res.json({ delegates: [] });
       }
       const delegateNames = new Set();
@@ -376,6 +442,13 @@ export default class AccountsApi implements IHttpApi {
           success: true,
           delegates: [] as DelegateViewModel[],
         };
+
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/accounts/:address/:currency',
+          statusCode: '200',
+        });
+
         return res.json(result);
       }
 
@@ -386,8 +459,21 @@ export default class AccountsApi implements IHttpApi {
         success: true,
         delegates: myVotedDelegates,
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/:address/:currency',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/:address/:currency',
+        statusCode: '500',
+      });
+
       const span = this.library.tracer.startSpan(
         'AccountsApi.getVotedDelegates'
       );
@@ -411,8 +497,21 @@ export default class AccountsApi implements IHttpApi {
         success: true,
         count,
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/count',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/count',
+        statusCode: '500',
+      });
+
       return next('Server error');
     }
   };
@@ -431,6 +530,12 @@ export default class AccountsApi implements IHttpApi {
 
     const report = joi.validate(query, isAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/getPublicKey',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -439,15 +544,33 @@ export default class AccountsApi implements IHttpApi {
 
     const accountInfoOrError = await getAccount(query.address);
     if (typeof accountInfoOrError === 'string') {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/getPublicKey',
+        statusCode: '500',
+      });
+
       return next(accountInfoOrError);
     }
     if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/accounts/getPublicKey',
+        statusCode: '500',
+      });
+
       return next('Can not find public key');
     }
     const result: ApiResult<PulicKeyWrapper, GetAccountError> = {
       success: true,
       publicKey: accountInfoOrError.account.publicKey,
     };
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/accounts/getPublicKey',
+      statusCode: '200',
+    });
     return res.json(result);
   };
 }

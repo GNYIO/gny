@@ -93,6 +93,7 @@ export interface CoreApi {
   transfersApi: IHttpApi;
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
+  metricsApi: IHttpApi;
 }
 
 export interface ITransactionPool {

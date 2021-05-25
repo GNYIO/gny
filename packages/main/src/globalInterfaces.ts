@@ -17,6 +17,18 @@ import { SmartDB } from '@gny/database-postgres';
 import { EventEmitter } from 'events';
 import BalanceManager from './smartdb/balance-manager';
 import * as LRU from 'lru-cache';
+import * as Prom from 'prom-client';
+
+export interface IProm {
+  peers: Prom.Gauge<string>;
+  current_block_height: Prom.Gauge<string>;
+  syncing: Prom.Gauge<string>;
+  http_access_total: Prom.Counter<string>;
+  accounts: Prom.Gauge<string>;
+  blocks: Prom.Gauge<string>;
+  transactions: Prom.Gauge<string>;
+  requests: Prom.Counter<string>;
+}
 
 export interface IStateSuccess {
   success: boolean;
@@ -91,6 +103,7 @@ interface IApp {
   };
   logger: ILogger;
   tracer: ITracer;
+  prom: IProm;
 }
 
 declare global {

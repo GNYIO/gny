@@ -77,8 +77,21 @@ export default class DelegatesApi implements IHttpApi {
         success: true,
         count: delegates.length,
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/count',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/count',
+        statusCode: '500',
+      });
+
       this.library.logger.error('Error in counting delegates');
       this.library.logger.error(e);
 
@@ -99,6 +112,12 @@ export default class DelegatesApi implements IHttpApi {
       .required();
     const report = joi.validate(query, nameSchema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getVoters',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -118,7 +137,15 @@ export default class DelegatesApi implements IHttpApi {
         success: true,
         accounts: [] as AccountWeightViewModel[],
       };
-      if (!votes || !votes.length) return res.json({ accounts: [] });
+      if (!votes || !votes.length) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/delegates/getVoters',
+          statusCode: '200',
+        });
+
+        return res.json({ accounts: [] });
+      }
 
       const addresses = votes.map(v => v.voterAddress);
       const accounts =
@@ -143,12 +170,24 @@ export default class DelegatesApi implements IHttpApi {
         return acVM;
       });
 
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getVoters',
+        statusCode: '200',
+      });
+
       result = {
         success: true,
         accounts: accountsViewModel,
       };
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getVoters',
+        statusCode: '500',
+      });
+
       this.library.logger.error('Failed to find voters');
       this.library.logger.error(e);
 
@@ -168,6 +207,12 @@ export default class DelegatesApi implements IHttpApi {
       .required();
     const report = joi.validate(query, nameSchema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getOwnVotes',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -192,6 +237,12 @@ export default class DelegatesApi implements IHttpApi {
       }
 
       if (!account) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/delegates/getOwnVotes',
+          statusCode: '200',
+        });
+
         const result: ApiResult<SimpleAccountsWrapper> = {
           success: true,
           delegates: [],
@@ -206,6 +257,12 @@ export default class DelegatesApi implements IHttpApi {
       });
 
       if (!votes || !votes.length) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/delegates/getOwnVotes',
+          statusCode: '200',
+        });
+
         const result: ApiResult<SimpleAccountsWrapper> = {
           success: true,
           delegates: [],
@@ -218,12 +275,24 @@ export default class DelegatesApi implements IHttpApi {
       const delegates: DelegateViewModel[] = await Delegates.getDelegates();
       const result = delegates.filter(x => voteResult.includes(x.username));
 
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getOwnVotes',
+        statusCode: '200',
+      });
+
       const resultPretty: ApiResult<SimpleAccountsWrapper> = {
         success: true,
         delegates: result,
       };
       return res.json(resultPretty);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/getOwnVotes',
+        statusCode: '500',
+      });
+
       this.library.logger.error('Failed to find voters');
       this.library.logger.error(e);
 
@@ -244,6 +313,12 @@ export default class DelegatesApi implements IHttpApi {
       .required();
     const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/get',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -252,6 +327,12 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/get',
+        statusCode: '200',
+      });
+
       return next('no delegates');
     }
 
@@ -270,12 +351,25 @@ export default class DelegatesApi implements IHttpApi {
     });
 
     if (delegate) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/get',
+        statusCode: '200',
+      });
+
       const result: ApiResult<DelegateWrapper> = {
         success: true,
         delegate,
       };
       return res.json(result);
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/delegates/get',
+      statusCode: '500',
+    });
+
     return next('Can not find delegate');
   };
 
@@ -284,6 +378,12 @@ export default class DelegatesApi implements IHttpApi {
     const offset = Number(query.offset || 0);
     const limit = Number(query.limit || 10);
     if (Number.isNaN(limit) || Number.isNaN(offset)) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: 'Invalid params',
@@ -304,6 +404,12 @@ export default class DelegatesApi implements IHttpApi {
 
     const report = joi.validate({ limit, offset }, schema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -311,7 +417,22 @@ export default class DelegatesApi implements IHttpApi {
     }
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
-    if (!delegates) return next('No delegates found');
+    if (!delegates) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates',
+        statusCode: '500',
+      });
+
+      return next('No delegates found');
+    }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/delegates',
+      statusCode: '200',
+    });
+
     const result: ApiResult<DelegatesWrapper> = {
       success: true,
       totalCount: delegates.length,
@@ -347,6 +468,12 @@ export default class DelegatesApi implements IHttpApi {
       .required();
     const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/ownProducedBlocks',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -355,6 +482,12 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/ownProducedBlocks',
+        statusCode: '500',
+      });
+
       return next('no delegates');
     }
 
@@ -372,6 +505,12 @@ export default class DelegatesApi implements IHttpApi {
       return false;
     });
     if (!delegate) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/ownProducedBlocks',
+        statusCode: '500',
+      });
+
       return next('delegate not found');
     }
 
@@ -384,6 +523,12 @@ export default class DelegatesApi implements IHttpApi {
       sort: {
         height: 1,
       },
+    });
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/delegates/ownProducedBlocks',
+      statusCode: '200',
     });
 
     return res.json({
@@ -403,11 +548,23 @@ export default class DelegatesApi implements IHttpApi {
     });
     const report = joi.validate(query, needPublicKey);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/forging/status',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
       });
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/delegates/forging/status',
+      statusCode: '200',
+    });
 
     const isEnabled = !!StateHelper.isPublicKeyInKeyPairs(query.publicKey);
     const result: ApiResult<ForgingStatus> = {
