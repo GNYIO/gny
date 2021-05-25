@@ -54,6 +54,13 @@ export default class LoaderApi implements IHttpApi {
       success: true,
       loaded,
     };
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/loader/status',
+      statusCode: '200',
+    });
+
     return res.json(result);
   };
 
@@ -61,6 +68,13 @@ export default class LoaderApi implements IHttpApi {
     const lastBlock = StateHelper.getState().lastBlock;
     const syncing = StateHelper.IsSyncing();
     const blocksToSync = StateHelper.GetBlocksToSync();
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/loader/status/sync',
+      statusCode: '200',
+    });
+
     const result: ApiResult<SyncStatus> = {
       success: true,
       syncing: syncing,

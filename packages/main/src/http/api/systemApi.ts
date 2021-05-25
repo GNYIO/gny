@@ -53,8 +53,21 @@ export default class SystemApi implements IHttpApi {
             (slots.getSlotNumber(lastBlock.timestamp) + 1),
         },
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/system',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/system',
+        statusCode: '500',
+      });
+
       return next('Server error');
     }
   };

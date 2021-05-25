@@ -99,6 +99,12 @@ export default class TransactionsApi implements IHttpApi {
 
     const report = joi.validate(query, schema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -134,6 +140,12 @@ export default class TransactionsApi implements IHttpApi {
       if (query.blockId) {
         block = await global.app.sdb.getBlockById(query.blockId);
         if (block === undefined) {
+          global.app.prom.requests.inc({
+            method: 'GET',
+            endpoint: '/api/transactions',
+            statusCode: '200',
+          });
+
           result = {
             success: true,
             count: 0,
@@ -161,8 +173,21 @@ export default class TransactionsApi implements IHttpApi {
         count: count,
         transactions: transactions as ITransaction[],
       };
+
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (e) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions',
+        statusCode: '500',
+      });
+
       global.app.logger.error('Failed to get transactions');
       global.app.logger.error(e);
       return next('Server Error');
@@ -186,6 +211,12 @@ export default class TransactionsApi implements IHttpApi {
       .required();
     const report = joi.validate(query, typeSchema);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/unconfirmed/get',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -199,9 +230,23 @@ export default class TransactionsApi implements IHttpApi {
       success: true,
       transaction: unconfirmedTransaction,
     };
-    return !unconfirmedTransaction
-      ? next('Transaction not found')
-      : res.json(result);
+    if (!unconfirmedTransaction) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/unconfirmed/get',
+        statusCode: '500',
+      });
+
+      return next('Transaction not found');
+    } else {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/unconfirmed/get',
+        statusCode: '200',
+      });
+
+      return res.json(result);
+    }
   };
 
   private getUnconfirmedTransactions = (
@@ -222,6 +267,12 @@ export default class TransactionsApi implements IHttpApi {
     });
     const report = joi.validate(query, publicKeyAddress);
     if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/unconfirmed',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -243,6 +294,12 @@ export default class TransactionsApi implements IHttpApi {
     } else {
       transactions.forEach(t => toSend.push(t));
     }
+
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/transactions/unconfirmed',
+      statusCode: '200',
+    });
 
     const result: ApiResult<TransactionsWrapper> = {
       success: true,

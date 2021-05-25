@@ -27,6 +27,7 @@ export interface IProm {
   accounts: Prom.Gauge<string>;
   blocks: Prom.Gauge<string>;
   transactions: Prom.Gauge<string>;
+  requests: Prom.Counter<string>;
 }
 
 export interface IStateSuccess {

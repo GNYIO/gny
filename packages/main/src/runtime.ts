@@ -71,6 +71,11 @@ export default async function runtime(options: IOptions) {
         this.set(data.length);
       },
     }),
+    requests: new prom.Counter<string>({
+      name: 'gny_requests',
+      help: 'a counter for requests counter',
+      labelNames: ['method', 'endpoint', 'statusCode'],
+    }),
   };
   global.app.validators = {
     amount: amount => {

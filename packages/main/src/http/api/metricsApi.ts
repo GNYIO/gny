@@ -49,6 +49,12 @@ export default class MetricsApi implements IHttpApi {
   };
 
   private metrics = async (req: Request, res: Response, next: Next) => {
+    global.app.prom.requests.inc({
+      method: 'GET',
+      endpoint: '/api/metrics',
+      statusCode: '200',
+    });
+
     const data = await register.metrics();
     res.set('Content-Type', register.contentType);
 
