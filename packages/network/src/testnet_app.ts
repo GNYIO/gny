@@ -1,6 +1,6 @@
 import { IBlockWithTransactions } from '@gny/interfaces';
 
-const hash: string = 'e6a8a4cd';
+const hash: string = '79696f70';
 const genesisBlock: IBlockWithTransactions = {
   version: 0,
   payloadHash:
