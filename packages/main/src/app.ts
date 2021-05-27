@@ -31,7 +31,10 @@ function main() {
     )
     .option('--secret [secret...]', 'comma separated secrets')
     .option('--publicIP <ip>', 'Public IP of own server, default private IP')
-    .option('--network <network>', 'Must be: localnet | testnet | mainnet')
+    .option(
+      '--network <network>',
+      'Must be: localnet | testnet | testnet_app | mainnet'
+    )
     .option(
       '--nodeAction <action>',
       'Must be: forging | rollback:height, default forging'
@@ -43,7 +46,7 @@ function main() {
     .option('--dbPort <port>')
     .on('--help', () => {
       console.log(`\nEnvironment Variables:
-  GNY_NETWORK=<network>       Must be: localnet | testnet | mainnet
+  GNY_NETWORK=<network>       Must be: localnet | testnet | testnet_app | mainnet
   GNY_PORT=<port>             Listening port number
   GNY_LOG_LEVEL=<level>       log|trace|debug|info|warn|error|fatal
   GNY_P2P_SECRET=<key>        Private P2P Key (base64 encoded) - overrides p2p_key.json file
@@ -103,7 +106,7 @@ function main() {
     appConfig.magic = process.env['GNY_GENESISBLOCK_MAGIC'];
     // magic must be set in config.json file
   } else {
-    // genesisBlock.(localnet | testnet | mainnet).json
+    // genesisBlock.(localnet | testnet | testnet_app | mainnet).json
     const network = getConfig(appConfig.netVersion);
     genesisBlock = network.genesisBlock;
     appConfig.magic = network.hash;

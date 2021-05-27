@@ -774,7 +774,12 @@ export interface BalanceWrapper {
 
 // Client
 
-export type NetworkType = 'localnet' | 'testnet' | 'mainnet' | 'custom';
+export type NetworkType =
+  | 'localnet'
+  | 'testnet'
+  | 'testnet_app'
+  | 'mainnet'
+  | 'custom';
 
 export type ResponseError =
   | GetAccountError
