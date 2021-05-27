@@ -16,7 +16,12 @@ function isPort(value: any): value is number {
 }
 
 function isNetworkType(value: any): value is NetworkType {
-  if (value === 'localnet' || value === 'testnet' || value === 'mainnet') {
+  if (
+    value === 'localnet' ||
+    value === 'testnet' ||
+    value === 'testnet_app' ||
+    value === 'mainnet'
+  ) {
     return true;
   }
   return false;
