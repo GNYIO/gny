@@ -1,4 +1,4 @@
-export const P2P_VERSION = 'v2.1';
+export const P2P_VERSION = 'v2.2';
 
 export const V1_NEW_BLOCK_PROTOCOL = `/${P2P_VERSION}/newBlock`;
 export const V1_VOTES = `/${P2P_VERSION}/votes`;
