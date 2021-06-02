@@ -3,6 +3,7 @@ import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next, IHttpApi, ApiResult, SystemInfo } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
+import { P2P_VERSION } from '@gny/p2p';
 
 export default class SystemApi implements IHttpApi {
   private library: IScope;
@@ -52,6 +53,7 @@ export default class SystemApi implements IHttpApi {
             slots.getNextSlot() -
             (slots.getSlotNumber(lastBlock.timestamp) + 1),
         },
+        p2p: P2P_VERSION,
       };
 
       global.app.prom.requests.inc({

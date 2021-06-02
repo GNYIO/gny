@@ -696,6 +696,7 @@ export interface SystemInfo {
     timestamp: number;
     behind: number;
   };
+  p2p: string;
 }
 
 export interface UnconfirmedTransactionWrapper {
