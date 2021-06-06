@@ -10,7 +10,7 @@
     "lerna:removeArtifacts": "lerna run removeArtifacts",
     "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/src/",
     "start": "node packages/main/dist/src/app",
-    "test": "jest --ci --runInBand test/unit",
+    "test:unit": "jest --ci --runInBand test/unit",
     "test:unit:cli": "jest --ci --runInBand test/unit/cli",
     "test:browser": "jest -c jest.config.client.js --ci --runInBand test/browser",
     "test:server": "ts-node test/browser/server.ts",
