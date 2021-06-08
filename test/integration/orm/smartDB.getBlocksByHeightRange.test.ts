@@ -42,7 +42,7 @@ describe('smartDB.getBlocksByHeightRange()', () => {
 
     const first = createBlock(String(1));
     sut.beginBlock(first);
-    sut.commitBlock();
+    await sut.commitBlock();
 
     const blocks = await sut.getBlocksByHeightRange(String(0), String(1), true);
     expect(blocks).toBeTruthy();
