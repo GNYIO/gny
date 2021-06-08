@@ -1,0 +1,63 @@
+name: orm tests
+on: push
+
+
+jobs:
+  orm-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:9.6.12
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: docker
+        ports:
+        - 3456:5432
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '10.16.2'
+    - name: md5sum of all package.json and package-lock.json files
+      run: |
+        # set locale for consistent sort results
+        find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+        cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+
+    - name: restore lerna
+      uses: actions/cache@v2
+      id: cache-node-modules
+      with:
+        key: ${{ runner.os }}-${{ hashFiles('hash.txt') }}
+        path: |
+          node_modules
+          packages/base/node_modules
+          packages/cli/node_modules
+          packages/client/node_modules
+          packages/database-postgres/node_modules
+          packages/ed/node_modules
+          packages/extended-joi/node_modules
+          packages/interfaces/node_modules
+          packages/logger/node_modules
+          packages/main/node_modules
+          packages/p2p/node_modules
+          packages/protobuf/node_modules
+          packages/transaction-pool/node_modules
+          packages/type-validation/node_modules
+          packages/utils/node_modules
+          packages/web-base/node_modules
+          packages/web-ed/node_modules
+          packages/machine-learning/node_modules
+
+    - name: install lerna
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts
+
+    - name: build typescript
+      run: npm run lerna:tsc
+
+    - name: Run orm integration tests
+      run: npm run test:integration:orm
