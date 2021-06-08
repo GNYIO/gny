@@ -43,7 +43,10 @@ jobs:
 
     - name: install lerna
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts && npm run lerna:tsc
+      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts
+
+    - name: build typescript
+      run: npm run lerna:tsc
 
     - name: Run unit tests
       run: npm run test:unit
