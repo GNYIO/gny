@@ -2,9 +2,9 @@ import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
-import * as isRoot from 'is-root';
 import { BigNumber } from '@gny/utils';
 import * as shellJS from 'shelljs';
+import { Client } from 'pg';
 
 const DEFAULT_DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.integration.yml';
@@ -149,8 +149,37 @@ export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
 
-export function exitIfNotRoot() {
-  if (!isRoot()) {
-    process.exit(1);
-  }
+export async function resetDb() {
+  const dropStatements = `
+    DROP TABLE IF EXISTS "account";
+    DROP TABLE IF EXISTS "asset";
+    DROP TABLE IF EXISTS "balance";
+    DROP TABLE IF EXISTS "block";
+    DROP TABLE IF EXISTS "block_history";
+    DROP TABLE IF EXISTS "delegate";
+    DROP TABLE IF EXISTS "issuer";
+    DROP TABLE IF EXISTS "mldata";
+    DROP TABLE IF EXISTS "prediction";
+    DROP TABLE IF EXISTS "round";
+    DROP TABLE IF EXISTS "transaction";
+    DROP TABLE IF EXISTS "transfer";
+    DROP TABLE IF EXISTS "variable";
+    DROP TABLE IF EXISTS "vote";
+
+    DROP TABLE IF EXISTS migrations;
+    DROP SEQUENCE IF EXISTS migrations_id_seq;
+  `;
+
+  const client = new Client({
+    user: 'postgres',
+    host: '127.0.0.1',
+    database: 'postgres',
+    password: 'docker',
+    port: 3456,
+  });
+  await client.connect();
+
+  await client.query(dropStatements);
+
+  await client.end();
 }

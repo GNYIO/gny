@@ -5,7 +5,6 @@ import {
   IBalance,
   IVariable,
 } from '../../../packages/interfaces';
-import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/src/entity/Account';
 import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
@@ -21,20 +20,10 @@ import { credentials } from './databaseCredentials';
 describe('smartDB.createOrLoad()', () => {
   let sut: SmartDB;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.stopAndKillPostgres();
-      await lib.sleep(500);
-
-      done();
-    })();
-  }, lib.oneMinute);
-
   beforeEach(done => {
     (async () => {
-      // stopping is safety in case a test before fails
-      await lib.stopAndKillPostgres();
-      await lib.spawnPostgres();
+      await lib.resetDb();
+
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
@@ -45,10 +34,6 @@ describe('smartDB.createOrLoad()', () => {
   afterEach(done => {
     (async () => {
       await sut.close();
-      await lib.sleep(4 * 1000);
-      await lib.stopAndKillPostgres();
-      await lib.sleep(15 * 1000);
-
       done();
     })();
   }, lib.oneMinute);
