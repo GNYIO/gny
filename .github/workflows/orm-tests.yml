@@ -60,4 +60,4 @@ jobs:
       run: npm run lerna:tsc
 
     - name: Run orm integration tests
-      run: npm run test:integration:orm
+      run: timeout 300 npm run test:integration:orm
