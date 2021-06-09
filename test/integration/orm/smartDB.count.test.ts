@@ -6,28 +6,48 @@ import { Delegate } from '../../../packages/database-postgres/src/entity/Delegat
 import { Condition } from '../../../packages/database-postgres/src/searchTypes';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB.count', () => {
+  const dbName = 'countdb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
+
+  beforeAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      await lib.resetDb();
+      await lib.resetDb(dbName);
 
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
+
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('count() - throws if no condition is passed in', async () => {
     await saveGenesisBlock(sut);

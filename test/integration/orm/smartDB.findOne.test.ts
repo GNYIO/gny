@@ -10,28 +10,48 @@ import {
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB.findOne', () => {
+  const dbName = 'findonedb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
+
+  beforeAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      await lib.resetDb();
+      await lib.resetDb(dbName);
 
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
+
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('findOne() - throws if no params object is provided', async () => {
     await saveGenesisBlock(sut);

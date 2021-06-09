@@ -6,28 +6,48 @@ import { Balance } from '../../../packages/database-postgres/src/entity/Balance'
 import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
 import { Asset } from '../../../packages/database-postgres/src/entity/Asset';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB.get()', () => {
+  const dbName = 'getdb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
+
+  beforeAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      await lib.resetDb();
+      await lib.resetDb(dbName);
 
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
+
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('get() - throws if Model has not memory:true activated', async done => {
     await saveGenesisBlock(sut);

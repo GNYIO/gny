@@ -5,6 +5,7 @@ import { generateAddress } from '@gny/utils';
 import { BigNumber } from '@gny/utils';
 import * as shellJS from 'shelljs';
 import { Client } from 'pg';
+import * as pg from 'pg';
 
 const DEFAULT_DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.integration.yml';
@@ -147,9 +148,42 @@ export function createRandomAddress() {
 }
 export const thirtySeconds = 30 * 1000;
 export const oneMinute = 60 * 1000;
+export const tenSeconds = 10 * 1000;
 export const tenMinutes = 10 * 60 * 1000;
 
-export async function resetDb() {
+export async function createDb(dbName: string) {
+  // bad, better parameterize query
+  const statement = `CREATE DATABASE ${dbName}`;
+  const client = new Client({
+    user: 'postgres',
+    host: '127.0.0.1',
+    password: 'docker',
+    port: 3456,
+  });
+  await client.connect();
+
+  await client.query(statement);
+
+  await client.end();
+}
+
+export async function dropDb(dbName: string) {
+  const dropStatements = `DROP DATABASE IF EXISTS "${dbName}"`;
+
+  const client = new Client({
+    user: 'postgres',
+    host: '127.0.0.1',
+    password: 'docker',
+    port: 3456,
+  });
+  await client.connect();
+
+  await client.query(dropStatements);
+
+  await client.end();
+}
+
+export async function resetDb(dbName: string) {
   const dropStatements = `
     DROP TABLE IF EXISTS "account";
     DROP TABLE IF EXISTS "asset";
@@ -173,7 +207,7 @@ export async function resetDb() {
   const client = new Client({
     user: 'postgres',
     host: '127.0.0.1',
-    database: 'postgres',
+    database: dbName, // important
     password: 'docker',
     port: 3456,
   });

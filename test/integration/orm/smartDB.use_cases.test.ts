@@ -2,28 +2,48 @@ import { Variable } from '../../../packages/database-postgres/src/entity/Variabl
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import * as lib from '../lib';
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB - use cases', () => {
+  const dbName = 'usecasedb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
+
+  beforeAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      await lib.resetDb();
+      await lib.resetDb(dbName);
 
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
+
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
     await saveGenesisBlock(sut);

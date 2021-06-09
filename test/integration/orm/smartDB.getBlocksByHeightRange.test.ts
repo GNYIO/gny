@@ -1,28 +1,48 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import * as lib from '../lib';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB.getBlocksByHeightRange()', () => {
+  const dbName = 'getblocksbyheightrangedb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
+
+  beforeAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      await lib.resetDb();
+      await lib.resetDb(dbName);
 
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
+
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('getBlocksByHeightRange()', async done => {
     await saveGenesisBlock(sut);
