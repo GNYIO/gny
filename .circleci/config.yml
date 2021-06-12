@@ -172,19 +172,6 @@ jobs:
       - run:
           name: test-integration-http
           command: npm run test:integration:http
-  node__10-16-2__integration__orm:
-    machine:
-      enabled: true
-      image: circleci/classic:edge
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run-md5sum-command
-      - run__linux-update-and-install__node-10-16-2__update-npm__command
-      - run__prepare-integration-tests__command
-      - run:
-          name: test-integration-orm
-          command: npm run test:integration:orm
   node__10-16-2__end2end:
     machine:
       enabled: true
@@ -339,10 +326,6 @@ workflows:
             branches:
               only: develop
       - node__10-16-2__integration__http:
-          filters:
-            branches:
-              only: develop
-      - node__10-16-2__integration__orm:
           filters:
             branches:
               only: develop
