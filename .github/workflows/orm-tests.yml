@@ -34,6 +34,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('hash.txt') }}
         path: |
           node_modules
+          test/node_modules
           packages/base/node_modules
           packages/cli/node_modules
           packages/client/node_modules
@@ -42,15 +43,17 @@ jobs:
           packages/extended-joi/node_modules
           packages/interfaces/node_modules
           packages/logger/node_modules
+          packages/machine-learning/node_modules
           packages/main/node_modules
+          packages/network/node_modules
           packages/p2p/node_modules
           packages/protobuf/node_modules
+          packages/tracer/node_modules
           packages/transaction-pool/node_modules
           packages/type-validation/node_modules
           packages/utils/node_modules
           packages/web-base/node_modules
           packages/web-ed/node_modules
-          packages/machine-learning/node_modules
 
     - name: install lerna
       if: steps.cache-node-modules.outputs.cache-hit != 'true'

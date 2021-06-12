@@ -18,7 +18,7 @@
     "test:integration:contract": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract/",
     "test:integration:contract-env": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract-env",
     "test:integration:http": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/http",
-    "test:integration:orm": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/orm",
+    "test:integration:orm": "node_modules/jest/bin/jest.js --ci --verbose --maxWorkers 5 test/integration/orm",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",
     "test:e2e": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e",
     "benchmark": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/benchmark",
