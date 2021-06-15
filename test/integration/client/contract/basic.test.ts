@@ -1,11 +1,11 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../../lib';
+import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumnp';
 
 describe('account', () => {
   const connection = new gnyClient.Connection();
@@ -35,7 +35,7 @@ describe('account', () => {
         async () => {
           const username = 'a1300';
           const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const response = await basicApi.setUserName(username, secret);
           expect(response).toHaveProperty('transactionId');
         },
@@ -50,7 +50,7 @@ describe('account', () => {
           const height = 173000;
           const amount = 30 * 1e8;
           const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const username = 'a1300';
 
           // set username
@@ -70,7 +70,7 @@ describe('account', () => {
       'should get forging status',
       async () => {
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
         const height = 183000;
@@ -96,7 +96,7 @@ describe('account', () => {
       'should get forging status',
       async () => {
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
         const height = 183000;

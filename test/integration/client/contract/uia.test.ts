@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../../lib';
+import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 
 describe('uia', () => {
@@ -32,7 +32,7 @@ describe('uia', () => {
         const name = 'ABC';
         const desc = 'some desc';
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const response = await uiaApi.registerIssuer(name, desc, secret);
         expect(response).toHaveProperty('transactionId');
@@ -50,7 +50,7 @@ describe('uia', () => {
         const maximum = String(10 * 1e8);
         const precision = 8;
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         // register issuer
         await uiaApi.registerIssuer(name, desc, secret);

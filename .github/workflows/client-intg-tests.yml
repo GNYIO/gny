@@ -1,0 +1,11 @@
+
+jobs:
+  orm-tests:
+    runs-on: first-runner
+
+jobs:
+  client-intg-tests:
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run integration tests
+        run: npm run test:integration:client

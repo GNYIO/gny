@@ -1,10 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from './lib';
 import * as gnyClient from '@gny/client';
-import axios from 'axios';
-import BigNumber from 'bignumber.js';
 
 const config = {
   headers: {

@@ -51,7 +51,7 @@
           "--verbose",
           "--runInBand",
           "--no-cache",
-          "test/unit/core/BlocksHelper.test.ts"
+          "test/integration/client/block.test.ts"
       ],
       "runtimeArgs": [
           "--nolazy"

@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 

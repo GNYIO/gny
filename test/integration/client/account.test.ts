@@ -1,12 +1,12 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 const config = {
   headers: {
@@ -96,7 +96,7 @@ describe('account', () => {
       it(
         'should get balance by the address',
         async done => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getBalance(address);
           expect(response.success).toBeTruthy();
           done();
@@ -109,7 +109,7 @@ describe('account', () => {
       it(
         'should get the balance by the address and currency',
         async () => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const currecny = 'AAA.ONE';
 
           await registerIssuerAsync('AAA', 'liang');
@@ -149,8 +149,9 @@ describe('account', () => {
       it(
         'should get the account by address',
         async () => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getAccountByAddress(address);
+          console.log(`response: ${JSON.stringify(response, null, 2)}`);
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -235,7 +236,7 @@ describe('account', () => {
           );
           await lib.onNewBlock();
 
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getVotedDelegates({
             address,
           });
@@ -251,6 +252,7 @@ describe('account', () => {
         async () => {
           const response = await accountApi.countAccounts();
           expect(response.success).toBeTruthy();
+          expect(response.count).toEqual(103);
         },
         lib.oneMinute
       );
