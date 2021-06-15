@@ -1,4 +1,5 @@
-
+name: client integration test
+on: push
 jobs:
   orm-tests:
     runs-on: first-runner
