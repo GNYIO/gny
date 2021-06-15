@@ -6,6 +6,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: run pwd
+      run: pwd
+
     - name: Build docker image
       run: docker-compose ----file config/integration/docker-compose.integration.yml build
 
