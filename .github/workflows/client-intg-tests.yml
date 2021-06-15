@@ -3,8 +3,11 @@ on: [push]
 jobs:
   orm-tests:
     runs-on: first-runner
-    client-intg-tests:
-      steps:
-      - uses: actions/checkout@v2
-      - name: Run integration tests
-        run: npm run test:integration:client
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build docker image
+      run: docker-compose ----file config/integration/docker-compose.integration.yml build
+
+    - name: Run integration tests
+      run: npm run test:integration:client
