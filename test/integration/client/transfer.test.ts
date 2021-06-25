@@ -5,6 +5,17 @@ import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
+const GNY_PORT = 12096;
+const GNY_APP_NAME = 'app9';
+const NETWORK_PREFIX = '172.28';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
+
 const config = {
   headers: {
     magic: '594fe0f3',
@@ -12,26 +23,31 @@ const config = {
 };
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 describe('transfer', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet'
+  );
   const transferApi = connection.api.Transfer;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -56,11 +72,11 @@ describe('transfer', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
         const query = { ownerId: senderId };
         const response = await transferApi.getRoot(query);
         expect(response.success).toBeTruthy();
@@ -73,7 +89,7 @@ describe('transfer', () => {
     it(
       'should get the amount according to an interval of timestamp',
       async () => {
-        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const senderId = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -90,14 +106,14 @@ describe('transfer', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const trsData = await axios.get(
-          'http://localhost:4096/api/transfers?ownerId=' + senderId
+          `http://localhost:${GNY_PORT}/api/transfers?ownerId=${senderId}`
         );
 
         // get the amount

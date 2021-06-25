@@ -3,36 +3,48 @@
  */
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
+import axios from 'axios';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
-const DOCKER_COMPOSE_FILE = 'config/integration/docker-compose.exchangeApi.yml';
-
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
+const GNY_PORT = 7096;
+const GNY_APP_NAME = 'app4';
+const NETWORK_PREFIX = '172.23';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX,
+  true
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
+// EXCHANGE_API=true
 
 describe('exchange', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet',
+    false
+  );
   const exchangeApi = connection.api.Exchange;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
+
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    // use specific docker-compose file where the EXCHANGE_API is active
-    await lib.spawnContainer(DOCKER_COMPOSE_FILE);
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 

@@ -4,34 +4,43 @@
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
+const GNY_PORT = 13096;
+const GNY_APP_NAME = 'app10';
+const NETWORK_PREFIX = '172.29';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 describe('transport', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet'
+  );
   const transportApi = connection.api.Transport;
-  const blockApi = connection.api.Block;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 

@@ -16,13 +16,13 @@ export const GENESIS = {
     'grow pencil ten junk bomb right describe trade rich valid tuna service',
 };
 
-export async function apiGetAsync(endpoint: string) {
-  const result = await axios.get(`http://localhost:4096/api${endpoint}`);
+export async function apiGetAsync(gnyPort: number, endpoint: string) {
+  const result = await axios.get(`http://localhost:${gnyPort}/api${endpoint}`);
   return result.data;
 }
 
-export async function getHeight() {
-  const ret = await apiGetAsync('/blocks/getHeight');
+export async function getHeight(gnyPort: number) {
+  const ret = await apiGetAsync(gnyPort, '/blocks/getHeight');
   return ret.height as string;
 }
 
@@ -30,21 +30,21 @@ export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function onNewBlock() {
-  const firstHeight = await getHeight();
+export async function onNewBlock(gnyPort: number) {
+  const firstHeight = await getHeight(gnyPort);
   let height: string;
   do {
     await sleep(2000);
-    height = await getHeight();
+    height = await getHeight(gnyPort);
   } while (new BigNumber(height).isLessThanOrEqualTo(firstHeight));
   return height;
 }
 
-async function waitForLoaded() {
+async function waitForLoaded(gnyPort: number) {
   let loaded = false;
   while (loaded === false) {
     try {
-      const height = await getHeight();
+      const height = await getHeight(gnyPort);
       if (
         typeof height === 'string' &&
         new BigNumber(height).isGreaterThan(0)
@@ -69,12 +69,8 @@ export async function waitUntilBlock(height: string) {
   }
 }
 
-export async function deleteOldDockerImages() {
-  const command =
-    'docker stop $(docker ps --all --quiet); ' +
-    'docker rm $(docker ps --all --quiet); ' +
-    'docker network prune --force' +
-    'docker volume prune --force';
+export async function stopOldInstances(dockerFile: string, env: string) {
+  const command = `${env} docker-compose --file ${dockerFile} down`;
 
   shellJS.exec(command, {
     silent: true,
@@ -95,33 +91,32 @@ export async function buildDockerImage(
 }
 
 export async function spawnContainer(
-  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
+  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE,
+  env: string,
+  gnyPort: number
 ) {
-  await dockerCompose.upAll({
-    cwd: process.cwd(),
-    log: true,
-    config: configFile,
-  });
-  await waitForLoaded();
-}
+  const command = `${env} docker-compose --file ${configFile} up --detach`;
 
-export async function printActiveContainers() {
-  const result = await dockerCompose.ps({
-    cwd: process.cwd(),
-    log: true,
+  shellJS.exec(command, {
+    silent: false,
   });
-  await sleep(1000);
+  console.log('\n');
+
+  await waitForLoaded(gnyPort);
 }
 
 export async function stopAndKillContainer(
-  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE
+  configFile: string = DEFAULT_DOCKER_COMPOSE_FILE,
+  env: string
 ) {
-  await dockerCompose.down({
-    cwd: process.cwd(),
-    log: true,
-    commandOptions: ['--volumes', '--timeout=0'],
-    config: configFile,
+  const command = `
+    ${env} docker-compose --file ${configFile} down --volumes --timeout=0
+  `;
+
+  shellJS.exec(command, {
+    silent: false,
   });
+  console.log('\n');
 }
 
 export async function spawnPostgres() {
@@ -216,4 +211,28 @@ export async function resetDb(dbName: string) {
   await client.query(dropStatements);
 
   await client.end();
+}
+
+export function createEnvironmentVariables(
+  gnyPort: number,
+  appName: string,
+  networkPrefix: string,
+  exchangeFeature: boolean = false
+) {
+  const env = {
+    COMPOSE_PROJECT_NAME: appName,
+    NETWORK_PREFIX: networkPrefix,
+    LOKI_PORT: Number(gnyPort) + 100,
+    JAEGER_PORT_NR1: Number(gnyPort) + 10000,
+    JAEGER_PORT_NR2: Number(gnyPort) + 12000,
+    GNY_PORT_NR1: Number(gnyPort),
+    GNY_PORT_NR2: Number(gnyPort) + 1,
+    EXCHANGE_FEATURE: exchangeFeature,
+  };
+
+  const arr = Object.keys(env).map(x => {
+    return `${x}=${env[x]}`;
+  });
+
+  return arr.join(' ');
 }

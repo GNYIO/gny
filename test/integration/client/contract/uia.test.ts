@@ -4,24 +4,43 @@
 import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 
+const genesisSecret =
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+const GNY_PORT = 16096;
+const GNY_APP_NAME = 'app13';
+const NETWORK_PREFIX = '172.32';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
+
 describe('uia', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet'
+  );
   const uiaApi = connection.contract.Uia;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -54,7 +73,7 @@ describe('uia', () => {
 
         // register issuer
         await uiaApi.registerIssuer(name, desc, secret);
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.registerAsset(
           name,

@@ -5,6 +5,17 @@ import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
+const GNY_PORT = 11096;
+const GNY_APP_NAME = 'app8';
+const NETWORK_PREFIX = '172.27';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
+
 const config = {
   headers: {
     magic: '594fe0f3',
@@ -12,26 +23,32 @@ const config = {
 };
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 describe('transaction', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet',
+    false
+  );
   const transactionApi = connection.api.Transaction;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -56,11 +73,11 @@ describe('transaction', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
         const query = {
           senderId: senderId,
         };
