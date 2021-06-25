@@ -14,7 +14,7 @@
     "test:browser": "jest -c jest.config.client.js --ci --runInBand test/browser",
     "test:server": "ts-node test/browser/server.ts",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
-    "test:integration:client": "node_modules/jest/bin/jest.js --ci --maxWorkers 4 --verbose test/integration/client",
+    "test:integration:client": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/client",
     "test:integration:contract": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract/",
     "test:integration:contract-env": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract-env",
     "test:integration:http": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/http",
