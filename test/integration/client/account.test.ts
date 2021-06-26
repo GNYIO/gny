@@ -1,12 +1,22 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+const GNY_PORT = 4096;
+const GNY_APP_NAME = 'app1';
+const NETWORK_PREFIX = '172.20';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE = 'config/integration/docker-compose.integration.yml';
 
 const config = {
   headers: {
@@ -25,11 +35,11 @@ async function registerIssuerAsync(
   };
 
   await axios.post(
-    'http://localhost:4096/peer/transactions',
+    `http://localhost:${GNY_PORT}/peer/transactions`,
     issuerTransData,
     config
   );
-  await lib.onNewBlock();
+  await lib.onNewBlock(GNY_PORT);
 }
 
 async function registerAssetAsync(
@@ -50,30 +60,36 @@ async function registerAssetAsync(
     transaction: assetTrs,
   };
   await axios.post(
-    'http://localhost:4096/peer/transactions',
+    `http://localhost:${GNY_PORT}/peer/transactions`,
     assetTransData,
     config
   );
 }
 
 describe('account', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet',
+    false
+  );
   const accountApi = connection.api.Account;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -96,7 +112,7 @@ describe('account', () => {
       it(
         'should get balance by the address',
         async done => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getBalance(address);
           expect(response.success).toBeTruthy();
           done();
@@ -109,7 +125,7 @@ describe('account', () => {
       it(
         'should get the balance by the address and currency',
         async () => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const currecny = 'AAA.ONE';
 
           await registerIssuerAsync('AAA', 'liang');
@@ -117,7 +133,7 @@ describe('account', () => {
           await Promise.all([
             registerAssetAsync('ONE', 'first description', String(10 * 1e8), 8),
           ]);
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           const trs = gnyClient.uia.issue(
             'AAA.ONE',
@@ -129,11 +145,11 @@ describe('account', () => {
           };
 
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             transData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           const response = await accountApi.getAddressCurrencyBalance(
             address,
@@ -149,7 +165,7 @@ describe('account', () => {
       it(
         'should get the account by address',
         async () => {
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getAccountByAddress(address);
           expect(response.success).toBeTruthy();
         },
@@ -168,11 +184,11 @@ describe('account', () => {
             transaction: nameTrs,
           };
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             nameTransData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           const response = await accountApi.getAccountByUsername(username);
           expect(response.success).toBeTruthy();
@@ -192,11 +208,11 @@ describe('account', () => {
             transaction: nameTrs,
           };
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             nameTransData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           // lock the account
           const lockTrs = gnyClient.basic.lock(183000, 30 * 1e8, genesisSecret);
@@ -204,11 +220,11 @@ describe('account', () => {
             transaction: lockTrs,
           };
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             lockTransData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           // register delegate
           const delegateTrs = gnyClient.basic.registerDelegate(genesisSecret);
@@ -216,11 +232,11 @@ describe('account', () => {
             transaction: delegateTrs,
           };
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             delegateTransData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
 
@@ -229,13 +245,13 @@ describe('account', () => {
           };
 
           await axios.post(
-            'http://localhost:4096/peer/transactions',
+            `http://localhost:${GNY_PORT}/peer/transactions`,
             transData,
             config
           );
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
-          const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+          const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getVotedDelegates({
             address,
           });
@@ -251,6 +267,7 @@ describe('account', () => {
         async () => {
           const response = await accountApi.countAccounts();
           expect(response.success).toBeTruthy();
+          expect(response.count).toEqual(103);
         },
         lib.oneMinute
       );

@@ -1,0 +1,75 @@
+name: unit tests
+on: push
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '10.16.2'
+
+    - name: md5sum of all package.json and package-lock.json files
+      run: |
+        # set locale for consistent sort results
+        find -type f \( -name "package-lock.json" -o -name "package.json" \)  -not -path "**/node_modules/*" -not -path "**/dist/*" -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+        cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+
+    - name: restore lerna
+      uses: actions/cache@v2
+      id: cache-node-modules
+      with:
+        key: ${{ runner.os }}-${{ hashFiles('hash.txt') }}
+        path: |
+          node_modules
+          test/node_modules
+          packages/base/node_modules
+          packages/base/dist
+          packages/cli/node_modules
+          packages/cli/dist
+          packages/client/node_modules
+          packages/client/dist
+          packages/database-postgres/node_modules
+          packages/database-postgres/dist
+          packages/ed/node_modules
+          packages/ed/dist
+          packages/extended-joi/node_modules
+          packages/extended-joi/dist
+          packages/interfaces/node_modules
+          packages/interfaces/dist
+          packages/logger/node_modules
+          packages/logger/dist
+          packages/machine-learning/node_modules
+          packages/machine-learning/dist
+          packages/main/node_modules
+          packages/main/dist
+          packages/network/node_modules
+          packages/network/dist
+          packages/p2p/node_modules
+          packages/p2p/dist
+          packages/protobuf/node_modules
+          packages/protobuf/dist
+          packages/tracer/node_modules
+          packages/tracer/dist
+          packages/transaction-pool/node_modules
+          packages/transaction-pool/dist
+          packages/type-validation/node_modules
+          packages/type-validation/dist
+          packages/utils/node_modules
+          packages/utils/dist
+          packages/web-base/node_modules
+          packages/web-base/dist
+          packages/web-ed/node_modules
+          packages/web-ed/dist
+
+    - name: install lerna
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts
+
+    - name: build typescript
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm run lerna:tsc
+
+    - name: Run unit tests
+      run: npm run test:unit

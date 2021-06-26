@@ -2,26 +2,38 @@
  * @jest-environment jsdom
  */
 import { Connection } from '@gny/client';
-import * as lib from '../lib';
+import * as lib from './lib';
+
+const GNY_PORT = 5096;
+const GNY_APP_NAME = 'app2';
+const NETWORK_PREFIX = '172.21';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
 
 describe('block', () => {
-  const connection = new Connection();
+  const connection = new Connection('127.0.0.1', GNY_PORT, 'localnet', false);
   const blockApi = connection.api.Block;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -30,9 +42,9 @@ describe('block', () => {
       'should get the block by height',
       async done => {
         // wait 3 blocks;
-        await lib.onNewBlock();
-        await lib.onNewBlock();
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
 
         const height = String(2);
         const response = await blockApi.getBlockByHeight(height);
@@ -48,9 +60,9 @@ describe('block', () => {
       'should get the block by id',
       async done => {
         // wait 3 blocks;
-        await lib.onNewBlock();
-        await lib.onNewBlock();
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
 
         const height = String(2);
         const blockResponse = await blockApi.getBlockByHeight(height);
@@ -71,9 +83,9 @@ describe('block', () => {
         const limit = '2';
 
         // wait 3 blocks;
-        await lib.onNewBlock();
-        await lib.onNewBlock();
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await blockApi.getBlocks(offset, limit);
         expect(response.success).toBeTruthy();

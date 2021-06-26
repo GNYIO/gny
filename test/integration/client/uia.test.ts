@@ -1,11 +1,22 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../lib';
+import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
 import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
+
+const GNY_PORT = 14096;
+const GNY_APP_NAME = 'app11';
+const NETWORK_PREFIX = '172.30';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
 
 const config = {
   headers: {
@@ -14,7 +25,7 @@ const config = {
 };
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 function randomAddress() {
   return generateAddress(randomBytes(32).toString('hex'));
@@ -27,7 +38,7 @@ async function beforeUiaTransfer(uiaApi: any) {
   const secret = genesisSecret;
 
   await uiaApi.registerIssuer(name, desc, secret);
-  await lib.onNewBlock();
+  await lib.onNewBlock(GNY_PORT);
 
   // prepare registerAsset
   await uiaApi.registerAsset(
@@ -37,7 +48,7 @@ async function beforeUiaTransfer(uiaApi: any) {
     8,
     genesisSecret
   );
-  await lib.onNewBlock();
+  await lib.onNewBlock(GNY_PORT);
 
   // prepare issue
   const issue = gnyClient.uia.issue('ABC.BBB', String(10 * 1e8), genesisSecret);
@@ -45,11 +56,11 @@ async function beforeUiaTransfer(uiaApi: any) {
     transaction: issue,
   };
   await axios.post(
-    'http://localhost:4096/peer/transactions',
+    `http://localhost:${GNY_PORT}/peer/transactions`,
     issueTransData,
     config
   );
-  await lib.onNewBlock();
+  await lib.onNewBlock(GNY_PORT);
 }
 
 async function transferUiaTo(recipient: string) {
@@ -65,32 +76,37 @@ async function transferUiaTo(recipient: string) {
     transaction: transfer,
   };
   await axios.post(
-    'http://localhost:4096/peer/transactions',
+    `http://localhost:${GNY_PORT}/peer/transactions`,
     transData,
     config
   );
-  await lib.onNewBlock();
+  await lib.onNewBlock(GNY_PORT);
 }
 
 describe('uia', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet'
+  );
   const uiaApi = connection.api.Uia;
   const contractUiaApi = connection.contract.Uia;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -112,11 +128,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getIssuers(limit, offset);
         expect(response.success).toBeTruthy();
@@ -130,7 +146,7 @@ describe('uia', () => {
     it(
       'should check if is an issuer',
       async done => {
-        const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
 
         // register issuer
         const trs = gnyClient.uia.registerIssuer(
@@ -143,11 +159,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.isIssuer(address);
         expect(response.success).toBeTruthy();
@@ -174,11 +190,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getIssuer(name);
         expect(response.success).toBeTruthy();
@@ -207,11 +223,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         // register assets
         const assetTrs = gnyClient.uia.registerAsset(
@@ -225,11 +241,11 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getIssuerAssets(name, limit, offset);
         expect(response.success).toBeTruthy();
@@ -253,11 +269,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         // register assets
         const assetTrs = gnyClient.uia.registerAsset(
@@ -271,11 +287,11 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getAssets();
         expect(response.success).toBeTruthy();
@@ -301,11 +317,11 @@ describe('uia', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         // register assets
         const assetTrs = gnyClient.uia.registerAsset(
@@ -319,11 +335,11 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getAsset(name);
         expect(response.success).toBeTruthy();
@@ -352,11 +368,11 @@ describe('uia', () => {
           transaction: transfer,
         };
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getBalances(recipient);
         expect(response.success).toBeTruthy();
@@ -385,11 +401,11 @@ describe('uia', () => {
           transaction: transfer,
         };
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          `http://localhost:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getBalance(recipient, 'ABC.BBB');
         expect(response.success).toBeTruthy();
@@ -407,7 +423,6 @@ describe('uia', () => {
         await transferUiaTo(recipient);
 
         const data = await uiaApi.getHolders('ABC.BBB');
-        console.log(`result: ${JSON.stringify(data, null, 2)}`);
 
         expect(data.success).toEqual(true);
         expect(data.count).toEqual(2);
@@ -419,7 +434,7 @@ describe('uia', () => {
         expect(first.currency).toEqual('ABC.BBB');
 
         const second = data.holders[1];
-        expect(second.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+        expect(second.address).toEqual('G2ofFMDz8GtWq9n65khKit83bWkQr');
         expect(second.balance).toEqual(String(0));
         expect(second.currency).toEqual('ABC.BBB');
       },
@@ -441,7 +456,8 @@ describe('uia', () => {
         expect(data.holders).toHaveLength(1); // important
 
         const first = data.holders[0];
-        expect(first.address).toEqual('G4GDW6G78sgQdSdVAQUXdm5xPS13t');
+
+        expect(first.address).toEqual('G2ofFMDz8GtWq9n65khKit83bWkQr');
         expect(first.balance).toEqual(String(0));
         expect(first.currency).toEqual('ABC.BBB');
       },

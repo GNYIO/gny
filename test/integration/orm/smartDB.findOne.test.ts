@@ -10,42 +10,48 @@ import {
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { credentials } from './databaseCredentials';
+import { credentials as oldCredentials } from './databaseCredentials';
+import { cloneDeep } from 'lodash';
 
 describe('smartDB.findOne', () => {
+  const dbName = 'findonedb';
   let sut: SmartDB;
+  const credentials = cloneDeep(oldCredentials);
+  credentials.dbDatabase = dbName;
 
   beforeAll(done => {
     (async () => {
-      await lib.stopAndKillPostgres();
-      await lib.sleep(500);
-
+      await lib.dropDb(dbName);
+      await lib.createDb(dbName);
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
+
+  afterAll(done => {
+    (async () => {
+      await lib.dropDb(dbName);
+      done();
+    })();
+  }, lib.tenSeconds);
 
   beforeEach(done => {
     (async () => {
-      // stopping is safety in case a test before fails
-      await lib.stopAndKillPostgres();
-      await lib.spawnPostgres();
+      await lib.resetDb(dbName);
+
       sut = new SmartDB(logger, credentials);
       await sut.init();
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   afterEach(done => {
     (async () => {
       await sut.close();
-      await lib.sleep(4 * 1000);
-      await lib.stopAndKillPostgres();
-      await lib.sleep(15 * 1000);
 
       done();
     })();
-  }, lib.oneMinute);
+  }, lib.tenSeconds);
 
   it('findOne() - throws if no params object is provided', async () => {
     await saveGenesisBlock(sut);

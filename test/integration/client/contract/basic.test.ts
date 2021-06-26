@@ -1,30 +1,46 @@
 /**
  * @jest-environment jsdom
  */
-import * as lib from '../../lib';
+import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+const GNY_PORT = 15096;
+const GNY_APP_NAME = 'app12';
+const NETWORK_PREFIX = '172.31';
+const env = lib.createEnvironmentVariables(
+  GNY_PORT,
+  GNY_APP_NAME,
+  NETWORK_PREFIX
+);
+const DOCKER_COMPOSE_FILE =
+  'config/integration/docker-compose.client-integration.yml';
 
 describe('account', () => {
-  const connection = new gnyClient.Connection();
+  const connection = new gnyClient.Connection(
+    '127.0.0.1',
+    GNY_PORT,
+    'localnet'
+  );
   const basicApi = connection.contract.Basic;
 
   beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
+    await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
+    // do not build (this can run parallel)
+    // await lib.buildDockerImage();
 
     done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
-    await lib.spawnContainer();
+    await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
     done();
   }, lib.oneMinute);
 
   afterEach(async done => {
-    await lib.stopAndKillContainer();
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
     done();
   }, lib.oneMinute);
 
@@ -35,7 +51,7 @@ describe('account', () => {
         async () => {
           const username = 'a1300';
           const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const response = await basicApi.setUserName(username, secret);
           expect(response).toHaveProperty('transactionId');
         },
@@ -50,12 +66,12 @@ describe('account', () => {
           const height = 173000;
           const amount = 30 * 1e8;
           const secret =
-            'grow pencil ten junk bomb right describe trade rich valid tuna service';
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const username = 'a1300';
 
           // set username
           await basicApi.setUserName(username, secret);
-          await lib.onNewBlock();
+          await lib.onNewBlock(GNY_PORT);
 
           const response = await basicApi.lockAccount(height, amount, secret);
           expect(response).toHaveProperty('transactionId');
@@ -70,7 +86,7 @@ describe('account', () => {
       'should get forging status',
       async () => {
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
         const height = 183000;
@@ -78,11 +94,11 @@ describe('account', () => {
 
         // set username
         await basicApi.setUserName(username, secret);
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         // lock account
         await basicApi.lockAccount(height, amount, secret);
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await basicApi.registerDelegate(secret);
         expect(response).toHaveProperty('transactionId');
@@ -96,7 +112,7 @@ describe('account', () => {
       'should get forging status',
       async () => {
         const secret =
-          'grow pencil ten junk bomb right describe trade rich valid tuna service';
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
         const height = 183000;
@@ -104,11 +120,11 @@ describe('account', () => {
 
         // set username
         await basicApi.setUserName(username, secret);
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         // lock account
         await basicApi.lockAccount(height, amount, secret);
-        await lib.onNewBlock();
+        await lib.onNewBlock(GNY_PORT);
 
         const response = await basicApi.registerDelegate(secret);
         expect(response).toHaveProperty('transactionId');
@@ -121,7 +137,7 @@ describe('account', () => {
     async function vote(keyList: string[], secret: string) {
       // lock the account
       await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
-      await lib.onNewBlock();
+      await lib.onNewBlock(GNY_PORT);
 
       // vote
       const response = await basicApi.vote(keyList, secret);
@@ -155,19 +171,19 @@ describe('account', () => {
       // set username
       const username = 'xpgeng';
       await basicApi.setUserName(username, genesisSecret);
-      await lib.onNewBlock();
+      await lib.onNewBlock(GNY_PORT);
 
       // lock the account
       await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
-      await lib.onNewBlock();
+      await lib.onNewBlock(GNY_PORT);
 
       // register delegate
       await basicApi.registerDelegate(genesisSecret);
-      await lib.onNewBlock();
+      await lib.onNewBlock(GNY_PORT);
 
       // vote
       await basicApi.vote(keyList, secret);
-      await lib.onNewBlock();
+      await lib.onNewBlock(GNY_PORT);
 
       // unvote
       const response = await basicApi.unvote(keyList, secret);
