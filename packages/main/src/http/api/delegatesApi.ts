@@ -1,5 +1,3 @@
-import * as ed from '@gny/ed';
-import * as crypto from 'crypto';
 import { Request, Response, Router } from 'express';
 import {
   IScope,
@@ -16,9 +14,8 @@ import {
   AccountViewModel,
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
-import { BlockReward, LimitCache } from '@gny/utils';
+import { BlockReward, isAddress } from '@gny/utils';
 import { StateHelper } from '../../../src/core/StateHelper';
-import { generateAddressByPublicKey, getAccount } from '../util';
 import Delegates from '../../../src/core/delegates';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
@@ -26,7 +23,6 @@ import { Delegate } from '@gny/database-postgres';
 import { Block } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
 import { BigNumber } from 'bignumber.js';
-import { Condition } from '@gny/database-postgres/dist/searchTypes';
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;
@@ -54,6 +50,7 @@ export default class DelegatesApi implements IHttpApi {
     router.get('/', this.getDelegates);
     router.get('/ownProducedBlocks', this.ownProducedBlocks);
     router.get('/forging/status', this.forgingStatus);
+    router.get('/search', this.search);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -572,5 +569,75 @@ export default class DelegatesApi implements IHttpApi {
       enabled: isEnabled,
     };
     return res.json(result);
+  };
+
+  private search = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    const rules = joi
+      .object()
+      .keys({
+        searchFor: joi
+          .alternatives(joi.string().address(), joi.partialUsername())
+          .required(),
+        offset: joi
+          .number()
+          .integer()
+          .optional(),
+        limit: joi
+          .number()
+          .integer()
+          .optional(),
+      })
+      .required();
+
+    const report = joi.validate(query, rules);
+    if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/delegates/forging/status',
+        statusCode: '422',
+      });
+
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const offset = query.offset || 0;
+    const limit = query.limit || 200;
+
+    const { searchFor } = query;
+    const delegates = await Delegates.getDelegates();
+
+    if (isAddress(searchFor)) {
+      const result = delegates.filter(value => {
+        if (value.address === searchFor) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+
+      return res.json({
+        success: true,
+        delegates: result,
+      });
+    } else {
+      // is a partial username
+      let result = delegates.filter(value => {
+        if (value.username.includes(searchFor)) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+      result = result.slice(offset, limit);
+
+      return res.json({
+        success: true,
+        delegates: result,
+      });
+    }
   };
 }
