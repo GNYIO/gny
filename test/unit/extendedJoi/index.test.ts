@@ -135,6 +135,68 @@ describe('extendedJoi', () => {
     });
   });
 
+  describe('partialUsername', () => {
+    it('should return a report with error when a partialUsername is empty', () => {
+      const partialUsername = '';
+
+      // no required, otherwise the required() part triggers an error
+      const schema = joi.partialUsername();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report with error when a single space', () => {
+      const partialUsername = ' ';
+
+      // no required, otherwise the required() part triggers an error
+      const schema = joi.partialUsername();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report with error when a dollar sign is passed in', () => {
+      const partialUsername = '$';
+
+      // no required, otherwise the required() part triggers an error
+      const schema = joi.partialUsername();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('should return a report with null error on a single character', () => {
+      const partialUsername = 'f';
+
+      const schema = joi.partialUsername().required();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error).toBeNull();
+      expect(report.value).toBe(partialUsername);
+    });
+
+    it('should return a report with null for a single underscore', () => {
+      const partialUsername = '_';
+
+      const schema = joi.partialUsername().required();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error).toBeNull();
+      expect(report.value).toBe(partialUsername);
+    });
+
+    it('should return a report with null for a single digit', () => {
+      const partialUsername = 1;
+
+      const schema = joi.partialUsername().required();
+
+      const report = joi.validate(partialUsername, schema);
+      expect(report.error).toBeNull();
+      expect(report.value).toBe(partialUsername);
+    });
+  });
+
   describe('issuer', () => {
     it('should return a report with null error', () => {
       const issuer = 'liangpeili';

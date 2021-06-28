@@ -22,6 +22,14 @@ const config = {
   },
 };
 
+function range(start, end): Array<Number> {
+  const result = [];
+  for (let i = start; i <= end; ++i) {
+    result.push(i);
+  }
+  return result;
+}
+
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
@@ -329,6 +337,41 @@ describe('delegate', () => {
         expect(blocks.length).toBeGreaterThan(2);
       },
       lib.oneMinute * 2
+    );
+  });
+
+  describe('/search', () => {
+    it(
+      'return found delegates that matches the search string, result is sorted by highest rank frist',
+      async () => {
+        const noDelegateWithThisName = await delegateApi.search('x');
+        expect(noDelegateWithThisName.delegates).toHaveLength(0);
+
+        const manyResults = await delegateApi.search('1');
+        expect(manyResults.delegates).toHaveLength(21);
+        // delegates are named gny_d1 up to gny_d101
+        const expectedDelegates = range(1, 101)
+          .map(x => String(x))
+          .filter(x => {
+            return x.includes('1');
+          });
+        expect(expectedDelegates.length).toEqual(manyResults.delegates.length);
+
+        function isSortedAscending(arr: number[]) {
+          for (let i = 0; i < arr.length - 1; ++i) {
+            if (arr[i + 1] < arr[i]) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        const delegateRanks = manyResults.delegates.map(x => x.rate);
+        // the returned result should be sorted from
+        // the highest ranked, to the lowest ranked
+        expect(isSortedAscending(delegateRanks)).toEqual(true);
+      },
+      lib.oneMinute
     );
   });
 });

@@ -13,6 +13,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   secret(): this;
   address(): this;
   username(): this;
+  partialUsername(): this;
   issuer(): this;
   asset(): this;
   signature(): this;
@@ -28,6 +29,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
 export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
   transactionMessage(): this;
+  partialUsername(): this;
 }
 
 const transactionMessageExtension: Joi.Extension = {
@@ -37,6 +39,20 @@ const transactionMessageExtension: Joi.Extension = {
     .regex(/^$|(^[a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1}$)|(^[a-zA-Z0-9]$)/)
     .optional(),
   name: 'transactionMessage',
+};
+
+const partialUsernameExtension: Joi.Extension = {
+  base: Joi.alternatives()
+    .try(
+      Joi.string()
+        .regex(/^[a-z0-9_]{1,20}$/)
+        .optional(),
+      Joi.number()
+        .integer()
+        .optional()
+    )
+    .required(),
+  name: 'partialUsername',
 };
 
 const stringExtensions: Joi.Extension = {
@@ -406,4 +422,5 @@ const stringExtensions: Joi.Extension = {
 export const joi: ExtendedJoi = Joi.extend([
   stringExtensions,
   transactionMessageExtension,
+  partialUsernameExtension,
 ]);

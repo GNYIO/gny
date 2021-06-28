@@ -114,4 +114,23 @@ export class Delegate {
       res.data;
     return result;
   }
+
+  public async search(
+    addressOrPartialUsername: string,
+    offset?: number,
+    limit?: number
+  ) {
+    const params = {
+      searchFor: addressOrPartialUsername,
+      offset: offset,
+      limit: limit,
+    };
+
+    const res = await this.base.get('/api/delegates/search', params);
+    const result: ApiResult<
+      DelegatesWrapper,
+      ValidationError | DelegateResponseError
+    > = res.data;
+    return result;
+  }
 }
