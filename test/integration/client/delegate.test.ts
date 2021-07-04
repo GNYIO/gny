@@ -373,5 +373,31 @@ describe('delegate', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'test offset and limit',
+      async () => {
+        const manyResults = await delegateApi.search('1');
+        expect(manyResults.count).toEqual(21);
+        expect(manyResults.delegates).toHaveLength(21);
+
+        const useOffset = await delegateApi.search('1', 20);
+        expect(useOffset.count).toEqual(21);
+        expect(useOffset.delegates).toHaveLength(1);
+        expect(manyResults.delegates[20]).toEqual(useOffset.delegates[0]);
+
+        const atTheStart = await delegateApi.search('1', 0, 5);
+        expect(atTheStart.count).toEqual(21);
+        expect(atTheStart.delegates).toHaveLength(5);
+
+        const inTheMiddle = await delegateApi.search('1', 10, 7);
+        expect(inTheMiddle.count).toEqual(21);
+        expect(inTheMiddle.delegates).toHaveLength(7);
+
+        const otherCount = await delegateApi.search('2');
+        expect(otherCount.count).toEqual(19);
+      },
+      lib.oneMinute
+    );
   });
 });

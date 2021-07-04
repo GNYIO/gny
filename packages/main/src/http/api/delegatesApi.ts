@@ -621,6 +621,7 @@ export default class DelegatesApi implements IHttpApi {
 
       return res.json({
         success: true,
+        count: result.length,
         delegates: result,
       });
     } else {
@@ -632,10 +633,12 @@ export default class DelegatesApi implements IHttpApi {
           return false;
         }
       });
-      result = result.slice(offset, limit);
+      const count = result.length;
+      result = result.slice(offset, offset + limit);
 
       return res.json({
         success: true,
+        count,
         delegates: result,
       });
     }
