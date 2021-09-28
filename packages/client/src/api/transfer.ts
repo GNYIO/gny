@@ -28,6 +28,8 @@ export class Transfer {
       currency: query.currency,
       limit: query.limit,
       offset: query.offset,
+      senderId: query.senderId,
+      recipientId: query.recipientId,
     };
     const res = await this.base.get('/api/transfers', params);
     const result: ApiResult<TransfersWrapper, ValidationError> = res.data;
