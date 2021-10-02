@@ -48,7 +48,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "10.16.2",
+      "runtimeVersion": "14.18.0",
       "request": "launch",
       "name": "Unit Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
@@ -71,7 +71,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "10.16.2",
+      "runtimeVersion": "14.18.0",
       "request": "launch",
       "name": "Integration Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
