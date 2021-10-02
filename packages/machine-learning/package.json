@@ -1,7 +1,7 @@
 {
   "name": "@gny/machine-learning",
   "private": true,
-  "version": "1.0.93",
+  "version": "1.0.94",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
