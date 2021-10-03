@@ -51,7 +51,7 @@
   "license": "MIT",
   "engineStrict": true,
   "engines": {
-    "node": "=14.18.0"
+    "node": "=12.22.6"
   },
   "bugs": {
     "url": "https://github.com/GNYIO/gny-experiment/issues"
@@ -73,7 +73,7 @@
     "lodash": "^4.17.19",
     "peer-info": "^0.15.1",
     "pg": "^8.5.1",
-    "shelljs": "=0.8.3",
+    "shelljs": "=0.8.4",
     "ts-node": "=7.0.1",
     "typescript": "^3.7.4"
   },

@@ -48,7 +48,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "14.18.0",
+      "runtimeVersion": "12.22.6",
       "request": "launch",
       "name": "Unit Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
@@ -63,7 +63,8 @@
       ],
       "console": "internalConsole",
       "env": {
-          "NODE_ENV": "test"
+          "NODE_ENV": "test",
+          "NODE_OPTIONS": "--trace-warnings"
       },
       "skipFiles": [
         "<node_internals>/**/*.js"
@@ -71,7 +72,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "14.18.0",
+      "runtimeVersion": "12.22.6",
       "request": "launch",
       "name": "Integration Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
