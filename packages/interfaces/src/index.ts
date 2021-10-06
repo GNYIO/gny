@@ -114,9 +114,7 @@ export interface INetwork {
   express: typeof express;
   app: express.Application;
   server: Server;
-  io: SocketIO.Server;
   sslServer?: Server;
-  sslio?: SocketIO.Server;
 }
 
 export type ILogger = tracer.Tracer.Logger;

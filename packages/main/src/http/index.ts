@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
-import * as socketio from 'socket.io';
 import * as express from 'express';
 import * as compression from 'compression';
 import * as cors from 'cors';
@@ -27,7 +26,6 @@ export async function composeNetwork(
   logger: ILogger
 ) {
   let sslServer;
-  let sslio;
 
   const expressApp = express();
 
@@ -36,7 +34,6 @@ export async function composeNetwork(
   expressApp.options('*', cors());
 
   const server = http.createServer(expressApp);
-  const io = socketio(server);
 
   if (appConfig.ssl.enabled) {
     const privateKey = fs.readFileSync(appConfig.ssl.options.key);
@@ -50,7 +47,6 @@ export async function composeNetwork(
       },
       expressApp
     );
-    sslio = socketio(sslServer);
   }
 
   {
@@ -170,9 +166,7 @@ export async function composeNetwork(
     express,
     app: expressApp,
     server,
-    io,
     sslServer,
-    sslio,
   };
   return network;
 }
