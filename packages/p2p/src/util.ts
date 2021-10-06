@@ -1,6 +1,4 @@
-import { ILogger, BufferList } from '@gny/interfaces';
-import * as PeerInfo from 'peer-info';
-import * as PeerId from 'peer-id';
+import { BufferList } from '@gny/interfaces';
 
 export type AsyncMapFuncCallback = (
   err: Error,
