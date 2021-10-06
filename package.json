@@ -70,7 +70,7 @@
     "docker-compose": "^0.17.5",
     "fs-extra": "^8.1.0",
     "is-root": "^2.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "peer-info": "^0.15.1",
     "pg": "^8.5.1",
     "shelljs": "=0.8.4",
