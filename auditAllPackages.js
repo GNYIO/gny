@@ -19,7 +19,7 @@ function stripDependencies(packageJson) {
 }
 
 function runNpmAuditInDir(dir) {
-  const result = shellJS.exec('npm audit', {
+  const result = shellJS.exec('npm audit --production', {
     cwd: dir,
   });
   console.log(`\n\npackage: ${dir}\n${result.stdout}`);
