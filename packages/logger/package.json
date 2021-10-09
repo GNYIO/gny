@@ -17,7 +17,7 @@
     "@gny/ed": "1.0.94",
     "@gny/interfaces": "1.0.94",
     "@gny/utils": "1.0.94",
-    "tracer": "^0.9.8",
+    "tracer": "^1.1.5",
     "winston": "^3.3.3",
     "winston-loki": "^6.0.0-rc.9"
   }
