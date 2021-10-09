@@ -31,7 +31,7 @@
     "inquirer": "^6.5.0",
     "peer-info": "^0.15.1",
     "request": "^2.88.0",
-    "shelljs": "^0.8.3",
+    "shelljs": "0.8.4",
     "ts-node": "^8.3.0",
     "valid_url": "^1.1.1"
   },

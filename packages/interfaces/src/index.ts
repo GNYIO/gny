@@ -5,7 +5,6 @@ import { EventEmitter } from 'events';
 // IServer import
 import * as express from 'express';
 import { Server } from 'http';
-import * as SocketIO from 'socket.io';
 import { SetRequired } from 'type-fest';
 
 import BigNumber from 'bignumber.js';
@@ -114,9 +113,7 @@ export interface INetwork {
   express: typeof express;
   app: express.Application;
   server: Server;
-  io: SocketIO.Server;
   sslServer?: Server;
-  sslio?: SocketIO.Server;
 }
 
 export type ILogger = tracer.Tracer.Logger;
@@ -559,7 +556,7 @@ export interface CountWrapper {
   count: number;
 }
 
-export interface PulicKeyWrapper {
+export interface PublicKeyWrapper {
   publicKey: string;
 }
 

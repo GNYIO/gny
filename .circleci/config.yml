@@ -14,7 +14,7 @@ commands:
       - store_artifacts:
           path: ~/repo/hash.txt
   run__linux-update-and-install__node-10-16-2__update-npm__command:
-    description: "updates linux image and installs packages, installes node@10.16.2, updates npm"
+    description: "updates linux image and installs packages, installes node@12.22.6, updates npm"
     steps:
       - run:
           name: update linux dependencies
@@ -23,14 +23,14 @@ commands:
           name: install-linux-dependencies
           command: sudo apt-get install curl ntp wget git libssl-dev openssl make gcc g++ autoconf automake python build-essential libtool -y
       - run:
-          name: load nvm and install node@10.16.2
+          name: load nvm and install node@12.22.6
           command: |
             set +e
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
             export NVM_DIR="/opt/circleci/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v10.16.2
-            nvm alias default v10.16.2
+            nvm install v12.22.6
+            nvm alias default v12.22.6
 
             # Each step uses the same `$BASH_ENV`, so need to modify it
             echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
@@ -206,7 +206,7 @@ jobs:
           command: npm run benchmark
   security__npm-audit:
     docker:
-      - image: circleci/node:10.16.2
+      - image: circleci/node:12.22.6
     working_directory: ~/repo
     steps:
       - checkout

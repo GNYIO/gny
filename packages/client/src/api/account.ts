@@ -16,7 +16,7 @@ import {
   DelegatesWrapper,
   DelegateError,
   CountWrapper,
-  PulicKeyWrapper,
+  PublicKeyWrapper,
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
@@ -90,7 +90,7 @@ export class Account {
       address: address,
     };
     const res = await this.base.get('/api/accounts/getPublicKey', params);
-    const result: ApiResult<PulicKeyWrapper, GetAccountError> = res.data;
+    const result: ApiResult<PublicKeyWrapper, GetAccountError> = res.data;
     return result;
   }
 }

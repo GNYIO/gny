@@ -17,7 +17,7 @@ import {
   IBalanceWrapper,
   DelegatesWrapper,
   CountWrapper,
-  PulicKeyWrapper,
+  PublicKeyWrapper,
 } from '@gny/interfaces';
 import {
   getAccountByName,
@@ -561,7 +561,7 @@ export default class AccountsApi implements IHttpApi {
 
       return next('Can not find public key');
     }
-    const result: ApiResult<PulicKeyWrapper, GetAccountError> = {
+    const result: ApiResult<PublicKeyWrapper, GetAccountError> = {
       success: true,
       publicKey: accountInfoOrError.account.publicKey,
     };

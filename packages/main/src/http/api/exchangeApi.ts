@@ -13,7 +13,7 @@ import {
   GetAccountError,
   AccountGenerateModel,
   ServerError,
-  PulicKeyWrapper,
+  PublicKeyWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
@@ -373,7 +373,7 @@ export default class ExchangeApi implements IHttpApi {
         statusCode: '200',
       });
 
-      const result: ApiResult<PulicKeyWrapper, ServerError> = {
+      const result: ApiResult<PublicKeyWrapper, ServerError> = {
         success: true,
         publicKey,
       };
