@@ -73,7 +73,7 @@
     "peer-info": "^0.15.1",
     "pg": "^8.5.1",
     "shelljs": "=0.8.4",
-    "ts-node": "=7.0.1",
+    "ts-node": "^10.2.1",
     "typescript": "^3.7.4"
   },
   "devDependencies": {
