@@ -556,7 +556,7 @@ export interface CountWrapper {
   count: number;
 }
 
-export interface PulicKeyWrapper {
+export interface PublicKeyWrapper {
   publicKey: string;
 }
 

@@ -1,7 +1,7 @@
 import { joi } from '../../../packages/extended-joi/src/index';
 
 describe('extendedJoi', () => {
-  describe('pulickey', () => {
+  describe('publickey', () => {
     it('should return a report with null error', () => {
       const publicKey =
         '8c9f363ef4e7fcad161f1cfaceff15b557956593f8dcd989139822f7e2abe6f4';

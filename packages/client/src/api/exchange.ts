@@ -5,7 +5,7 @@ import {
   GetAccountError,
   ServerError,
   AccountOpenModel,
-  PulicKeyWrapper,
+  PublicKeyWrapper,
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
@@ -34,7 +34,7 @@ export class Exchange {
     const res = await this.base.post('/api/exchange/generatePublicKey', {
       secret: secret,
     });
-    const result: ApiResult<PulicKeyWrapper, ServerError> = res.data;
+    const result: ApiResult<PublicKeyWrapper, ServerError> = res.data;
     return result;
   }
 }
