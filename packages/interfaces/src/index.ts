@@ -5,7 +5,6 @@ import { EventEmitter } from 'events';
 // IServer import
 import * as express from 'express';
 import { Server } from 'http';
-import * as SocketIO from 'socket.io';
 import { SetRequired } from 'type-fest';
 
 import BigNumber from 'bignumber.js';
