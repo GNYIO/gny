@@ -277,14 +277,10 @@ export default class TransactionsApi implements IHttpApi {
 
     try {
       // is end needed?
-      const [start, end] = TransactionsHelper.reverseTransactions(
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
         count,
         offset,
         limit
-      );
-
-      global.app.logger.warn(
-        `start: ${start}, end: ${end}, offset: ${start}, limit: ${limit}`
       );
 
       const condition = {};
@@ -293,7 +289,7 @@ export default class TransactionsApi implements IHttpApi {
         {
           condition,
           offset: start,
-          limit: limit,
+          limit: difference,
         }
       );
 
@@ -304,6 +300,8 @@ export default class TransactionsApi implements IHttpApi {
 
       const result = {
         success: true,
+        // offset: start,
+        // limit: difference,
         count,
         transactions: transactions as ITransaction[],
       };

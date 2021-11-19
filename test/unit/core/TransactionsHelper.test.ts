@@ -12,13 +12,15 @@ describe('TransactionsHelper', () => {
       // <---
       // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
       // result: [5, 9]
-      const [start, end] = TransactionsHelper.reverseTransactions(
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
         count,
         offset,
         limit
       );
+
       expect(start).toEqual(5);
       expect(end).toEqual(9);
+      expect(difference).toEqual(5);
     });
 
     it('count 10, offset 7, limit 5 - should return [0, 2]', () => {
@@ -29,13 +31,15 @@ describe('TransactionsHelper', () => {
       // <---
       // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
       // [0, 2]
-      const [start, end] = TransactionsHelper.reverseTransactions(
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
         count,
         offset,
         limit
       );
+
       expect(start).toEqual(0);
       expect(end).toEqual(2);
+      expect(difference).toEqual(3);
     });
 
     it('count 10, offset 9, limit 1 - should return [0, 0]', () => {
@@ -46,13 +50,15 @@ describe('TransactionsHelper', () => {
       // <---
       // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
       // [0, 0]
-      const [start, end] = TransactionsHelper.reverseTransactions(
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
         count,
         offset,
         limit
       );
+
       expect(start).toEqual(0);
       expect(end).toEqual(0);
+      expect(difference).toEqual(1);
     });
 
     it('count 10, offset 0, limit 1 - should return [9, 9]', () => {
@@ -65,15 +71,34 @@ describe('TransactionsHelper', () => {
       // <---
       // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
       // [9, 9]
-      const [start, end] = TransactionsHelper.reverseTransactions(
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
         count,
         offset,
         limit
       );
-      console.log(`start: ${start}, end: ${end}`);
 
       expect(start).toEqual(9);
       expect(end).toEqual(9);
+      expect(difference).toEqual(1);
+    });
+
+    it('count 203, offset 202, limit 100 - should return [0, 0]', () => {
+      // limit: 100, offset: 202, count: 203
+      // start: 0, end: 0, offset: 202, limit: 100
+
+      const count = 203;
+      const offset = 202;
+      const limit = 100;
+
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
+        count,
+        offset,
+        limit
+      );
+
+      expect(start).toEqual(0);
+      expect(end).toEqual(0);
+      expect(difference).toEqual(1);
     });
   });
 });
