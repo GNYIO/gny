@@ -705,6 +705,15 @@ export interface TransactionsWrapper {
   transactions: Array<UnconfirmedTransaction | ITransaction>;
 }
 
+export interface TransactionCountWrapper {
+  count: number;
+}
+
+export interface NewestTransactionWrapper {
+  count: number;
+  transactions: Array<ITransaction>;
+}
+
 export interface UnconfirmedTransactionsWrapper {
   transactions: Array<UnconfirmedTransaction>;
 }
