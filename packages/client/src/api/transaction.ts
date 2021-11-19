@@ -2,6 +2,8 @@ import { Base } from './base';
 import {
   ApiResult,
   TransactionsWrapper,
+  TransactionCountWrapper,
+  NewestTransactionWrapper,
   ValidationError,
   ServerError,
   UnconfirmedTransactionWrapper,
@@ -27,6 +29,29 @@ export class Transaction {
 
   constructor(connection: Connection) {
     this.base = new Base(connection);
+  }
+
+  public async getCount() {
+    const res = await this.base.get('/api/transactions/count');
+    const result: ApiResult<
+      TransactionCountWrapper,
+      ValidationError | ServerError
+    > = res.data;
+    return result;
+  }
+
+  public async newestFirst(count: number, offset?: number, limit?: number) {
+    const params = {
+      count: count,
+      offset: offset,
+      limit: limit,
+    };
+    const res = await this.base.get('/api/transactions/newestFirst', params);
+    const result: ApiResult<
+      NewestTransactionWrapper,
+      ValidationError | ServerError
+    > = res.data;
+    return result;
   }
 
   public async getTransactions(query: Query) {

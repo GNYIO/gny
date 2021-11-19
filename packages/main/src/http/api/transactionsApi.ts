@@ -13,11 +13,10 @@ import {
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
 } from '@gny/interfaces';
-import { TransactionBase } from '@gny/base';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Transaction } from '@gny/database-postgres';
-import Transactions from '../../../src/core/transactions';
 import { joi } from '@gny/extended-joi';
+import { TransactionsHelper } from '../../core/TransactionsHelper';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;
@@ -38,6 +37,8 @@ export default class TransactionsApi implements IHttpApi {
     });
 
     router.get('/', this.getTransactions);
+    router.get('/count', this.countTransactions);
+    router.get('/newestFirst', this.newestFirst);
     router.get('/unconfirmed/get', this.getUnconfirmedTransaction);
     router.get('/unconfirmed', this.getUnconfirmedTransactions);
 
@@ -191,6 +192,123 @@ export default class TransactionsApi implements IHttpApi {
       global.app.logger.error('Failed to get transactions');
       global.app.logger.error(e);
       return next('Server Error');
+    }
+  };
+
+  private countTransactions = async (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
+    try {
+      const condition = {};
+      const count = await global.app.sdb.count<Transaction>(
+        Transaction,
+        condition
+      );
+      return res.json({
+        count,
+      });
+    } catch (err) {
+      return next('Server Error');
+    }
+  };
+
+  private newestFirst = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+    const schema = joi
+      .object()
+      .keys({
+        count: joi
+          .number()
+          .integer()
+          .positive()
+          .required(),
+        limit: joi
+          .number()
+          .integer()
+          .positive()
+          .max(100)
+          .optional(),
+        offset: joi
+          .number()
+          .integer()
+          .min(0)
+          .optional(),
+      })
+      .required();
+
+    const report = joi.validate(query, schema);
+    if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/newestFirst',
+        statusCode: '422',
+      });
+
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const limit: number = ((query.limit as unknown) as number) || 100;
+    const offset: number = ((query.offset as unknown) as number) || 0;
+    const count = (query.count as unknown) as number;
+
+    try {
+      const condition = {};
+      const dbCount = await global.app.sdb.count<Transaction>(
+        Transaction,
+        condition
+      );
+
+      if (count > dbCount) {
+        return next(
+          'parameter count is greater than actual number of transactions'
+        );
+      }
+      if (offset > count) {
+        return next('parameter offset is greater than parameter count');
+      }
+    } catch (err) {
+      return next('Server error');
+    }
+
+    try {
+      // is end needed?
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
+        count,
+        offset,
+        limit
+      );
+
+      const condition = {};
+      let transactions = await global.app.sdb.findAll<Transaction>(
+        Transaction,
+        {
+          condition,
+          offset: start,
+          limit: difference,
+        }
+      );
+
+      if (!transactions) {
+        transactions = [];
+      }
+      transactions = transactions.reverse();
+
+      const result = {
+        success: true,
+        // offset: start,
+        // limit: difference,
+        count,
+        transactions: transactions as ITransaction[],
+      };
+
+      return res.json(result);
+    } catch (err) {
+      return next(err.message);
     }
   };
 
