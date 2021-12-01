@@ -43,6 +43,8 @@ async function send() {
     config
   );
   await lib.onNewBlock(GNY_PORT);
+
+  return trs;
 }
 
 const genesisSecret =
@@ -124,8 +126,8 @@ describe('transaction', () => {
       lib.oneMinute
     );
 
-    it.only(
-      'get transaction count from senderId and senderPublicKey',
+    it(
+      'get transaction count (from senderId and senderPublicKey)',
       async done => {
         await send();
         await send();
@@ -141,10 +143,10 @@ describe('transaction', () => {
         expect(responseAddress.count).toEqual(2);
 
         // check publicKey
-        const responsePblicKey = await transactionApi.getCount({
+        const responsePublicKey = await transactionApi.getCount({
           senderPublicKey: publicKey,
         });
-        expect(responsePblicKey.count).toEqual(2);
+        expect(responsePublicKey.count).toEqual(2);
 
         done();
       },
@@ -208,17 +210,61 @@ describe('transaction', () => {
     it(
       'should get only transactions of sender x',
       async () => {
-        // const response = await transactionApi.newestFirst(count, offset, limit);
+        const trs1 = await send();
+        const trs2 = await send();
+        const trs3 = await send();
 
-        const count = 203;
-        const offset = 0;
-        const limit = 10;
+        console.log(`trs1: ${JSON.stringify(trs1, null, 2)}`);
+        console.log(`trs2: ${JSON.stringify(trs2, null, 2)}`);
+        console.log(`trs3: ${JSON.stringify(trs3, null, 2)}`);
 
-        const response = await transactionApi.newestFirst({
-          count,
-          offset,
-          limit,
+        // expect(response.count).toEqual(1);
+        const { publicKey } = gnyClient.crypto.getKeys(genesisSecret);
+        const genesisAddress = gnyClient.crypto.getAddress(publicKey);
+
+        // should be 3 transactions
+        const countByAddress = await transactionApi.getCount({
+          senderId: genesisAddress,
         });
+        expect(countByAddress.count).toEqual(3);
+
+        // newestfirst returns the transactions reversed
+        const getTrsFirst = await transactionApi.newestFirst({
+          senderId: genesisAddress,
+          count: countByAddress.count,
+        });
+        const normalOne = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+        });
+        const normalReverted = normalOne.transactions.reverse();
+        expect(getTrsFirst.transactions).toEqual(normalReverted);
+
+        // get oldest
+        const oldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 0,
+          limit: 1,
+        });
+        expect(oldest.transactions[0].id).toEqual(trs3.id);
+
+        // second oldest
+        const secondOldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 1,
+          limit: 1,
+        });
+        expect(secondOldest.transactions[0].id).toEqual(trs2.id);
+
+        // third oldest
+        const thirdOldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 2,
+          limit: 1,
+        });
+        expect(thirdOldest.transactions[0].id).toEqual(trs1.id);
+
+        // first, second, third
+        // third, second, first         (newestFirst)
       },
       lib.oneMinute
     );
