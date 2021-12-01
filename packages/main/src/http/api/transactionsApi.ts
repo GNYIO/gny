@@ -1,5 +1,3 @@
-import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
@@ -201,7 +199,37 @@ export default class TransactionsApi implements IHttpApi {
     next: Next
   ) => {
     try {
+      const { query } = req;
+      const schema = joi
+        .object()
+        .keys({
+          senderId: joi.string().address(),
+          senderPublicKey: joi.string().publicKey(),
+        })
+        .required();
+
+      const report = joi.validate(query, schema);
+      if (report.error) {
+        global.app.prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/transactions/count',
+          statusCode: '422',
+        });
+
+        return res.status(422).send({
+          success: false,
+          error: report.error.message,
+        });
+      }
+
       const condition = {};
+      if (query.senderId) {
+        condition.senderId = query.senderId;
+      }
+      if (query.senderPublicKey) {
+        condition.senderPublicKey = query.senderPublicKey;
+      }
+
       const count = await global.app.sdb.count<Transaction>(
         Transaction,
         condition
@@ -235,6 +263,8 @@ export default class TransactionsApi implements IHttpApi {
           .integer()
           .min(0)
           .optional(),
+        senderId: joi.string().address(),
+        senderPublicKey: joi.string().publicKey(),
       })
       .required();
 
@@ -256,8 +286,15 @@ export default class TransactionsApi implements IHttpApi {
     const offset: number = ((query.offset as unknown) as number) || 0;
     const count = (query.count as unknown) as number;
 
+    const condition = {};
+    if (query.senderId) {
+      condition.senderId = query.senderId;
+    }
+    if (query.senderPublicKey) {
+      condition.senderPublicKey = query.senderPublicKey;
+    }
+
     try {
-      const condition = {};
       const dbCount = await global.app.sdb.count<Transaction>(
         Transaction,
         condition
@@ -283,7 +320,6 @@ export default class TransactionsApi implements IHttpApi {
         limit
       );
 
-      const condition = {};
       let transactions = await global.app.sdb.findAll<Transaction>(
         Transaction,
         {

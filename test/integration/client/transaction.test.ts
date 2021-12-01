@@ -22,6 +22,31 @@ const config = {
   },
 };
 
+async function send() {
+  const amount = 5 * 1e8;
+  const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
+  const message = '';
+
+  const trs = gnyClient.basic.transfer(
+    recipient,
+    String(amount),
+    message,
+    genesisSecret
+  );
+  const transData = {
+    transaction: trs,
+  };
+
+  await axios.post(
+    `http://localhost:${GNY_PORT}/peer/transactions`,
+    transData,
+    config
+  );
+  await lib.onNewBlock(GNY_PORT);
+
+  return trs;
+}
+
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
@@ -100,6 +125,33 @@ describe('transaction', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'get transaction count (from senderId and senderPublicKey)',
+      async done => {
+        await send();
+        await send();
+
+        // expect(response.count).toEqual(1);
+        const { publicKey } = gnyClient.crypto.getKeys(genesisSecret);
+        const genesisAddress = gnyClient.crypto.getAddress(publicKey);
+
+        // check address
+        const responseAddress = await transactionApi.getCount({
+          senderId: genesisAddress,
+        });
+        expect(responseAddress.count).toEqual(2);
+
+        // check publicKey
+        const responsePublicKey = await transactionApi.getCount({
+          senderPublicKey: publicKey,
+        });
+        expect(responsePublicKey.count).toEqual(2);
+
+        done();
+      },
+      lib.oneMinute
+    );
   });
 
   describe('/newestFirst', () => {
@@ -110,7 +162,11 @@ describe('transaction', () => {
         const offset = 0;
         const limit = 10;
 
-        const response = await transactionApi.newestFirst(count, offset, limit);
+        const response = await transactionApi.newestFirst({
+          count,
+          offset,
+          limit,
+        });
 
         expect(response.count).toEqual(203);
         expect(response.transactions).toHaveLength(10);
@@ -147,6 +203,68 @@ describe('transaction', () => {
         );
 
         done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should get only transactions of sender x',
+      async () => {
+        const trs1 = await send();
+        const trs2 = await send();
+        const trs3 = await send();
+
+        console.log(`trs1: ${JSON.stringify(trs1, null, 2)}`);
+        console.log(`trs2: ${JSON.stringify(trs2, null, 2)}`);
+        console.log(`trs3: ${JSON.stringify(trs3, null, 2)}`);
+
+        // expect(response.count).toEqual(1);
+        const { publicKey } = gnyClient.crypto.getKeys(genesisSecret);
+        const genesisAddress = gnyClient.crypto.getAddress(publicKey);
+
+        // should be 3 transactions
+        const countByAddress = await transactionApi.getCount({
+          senderId: genesisAddress,
+        });
+        expect(countByAddress.count).toEqual(3);
+
+        // newestfirst returns the transactions reversed
+        const getTrsFirst = await transactionApi.newestFirst({
+          senderId: genesisAddress,
+          count: countByAddress.count,
+        });
+        const normalOne = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+        });
+        const normalReverted = normalOne.transactions.reverse();
+        expect(getTrsFirst.transactions).toEqual(normalReverted);
+
+        // get oldest
+        const oldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 0,
+          limit: 1,
+        });
+        expect(oldest.transactions[0].id).toEqual(trs3.id);
+
+        // second oldest
+        const secondOldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 1,
+          limit: 1,
+        });
+        expect(secondOldest.transactions[0].id).toEqual(trs2.id);
+
+        // third oldest
+        const thirdOldest = await transactionApi.getTransactions({
+          senderId: genesisAddress,
+          offset: 2,
+          limit: 1,
+        });
+        expect(thirdOldest.transactions[0].id).toEqual(trs1.id);
+
+        // first, second, third
+        // third, second, first         (newestFirst)
       },
       lib.oneMinute
     );

@@ -100,5 +100,37 @@ describe('TransactionsHelper', () => {
       expect(end).toEqual(0);
       expect(difference).toEqual(1);
     });
+
+    it('count 203, offset 0, limit 1 - should return [202, 202]', () => {
+      const count = 203;
+      const offset = 0;
+      const limit = 1;
+
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
+        count,
+        offset,
+        limit
+      );
+
+      expect(start).toEqual(202);
+      expect(end).toEqual(202);
+      expect(difference).toEqual(1);
+    });
+
+    it('count 203, offset 1, limit 1 - should return [201, 201]', () => {
+      const count = 203;
+      const offset = 1;
+      const limit = 1;
+
+      const [start, end, difference] = TransactionsHelper.reverseTransactions(
+        count,
+        offset,
+        limit
+      );
+
+      expect(start).toEqual(201);
+      expect(end).toEqual(201);
+      expect(difference).toEqual(1);
+    });
   });
 });
