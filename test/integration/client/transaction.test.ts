@@ -22,6 +22,29 @@ const config = {
   },
 };
 
+async function send() {
+  const amount = 5 * 1e8;
+  const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
+  const message = '';
+
+  const trs = gnyClient.basic.transfer(
+    recipient,
+    String(amount),
+    message,
+    genesisSecret
+  );
+  const transData = {
+    transaction: trs,
+  };
+
+  await axios.post(
+    `http://localhost:${GNY_PORT}/peer/transactions`,
+    transData,
+    config
+  );
+  await lib.onNewBlock(GNY_PORT);
+}
+
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
@@ -100,6 +123,33 @@ describe('transaction', () => {
       },
       lib.oneMinute
     );
+
+    it.only(
+      'get transaction count from senderId and senderPublicKey',
+      async done => {
+        await send();
+        await send();
+
+        // expect(response.count).toEqual(1);
+        const { publicKey } = gnyClient.crypto.getKeys(genesisSecret);
+        const genesisAddress = gnyClient.crypto.getAddress(publicKey);
+
+        // check address
+        const responseAddress = await transactionApi.getCount({
+          senderId: genesisAddress,
+        });
+        expect(responseAddress.count).toEqual(2);
+
+        // check publicKey
+        const responsePblicKey = await transactionApi.getCount({
+          senderPublicKey: publicKey,
+        });
+        expect(responsePblicKey.count).toEqual(2);
+
+        done();
+      },
+      lib.oneMinute
+    );
   });
 
   describe('/newestFirst', () => {
@@ -110,7 +160,11 @@ describe('transaction', () => {
         const offset = 0;
         const limit = 10;
 
-        const response = await transactionApi.newestFirst(count, offset, limit);
+        const response = await transactionApi.newestFirst({
+          count,
+          offset,
+          limit,
+        });
 
         expect(response.count).toEqual(203);
         expect(response.transactions).toHaveLength(10);
@@ -147,6 +201,24 @@ describe('transaction', () => {
         );
 
         done();
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should get only transactions of sender x',
+      async () => {
+        // const response = await transactionApi.newestFirst(count, offset, limit);
+
+        const count = 203;
+        const offset = 0;
+        const limit = 10;
+
+        const response = await transactionApi.newestFirst({
+          count,
+          offset,
+          limit,
+        });
       },
       lib.oneMinute
     );

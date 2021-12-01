@@ -24,6 +24,20 @@ interface Query {
   height?: number | string;
   message?: string;
 }
+
+interface CountQuery {
+  senderId?: string;
+  senderPublicKey?: string;
+}
+
+interface NewestFirstQuery {
+  count: number;
+  offset?: number;
+  limit?: number;
+  senderId?: string;
+  senderPublicKey?: string;
+}
+
 export class Transaction {
   private base: Base;
 
@@ -31,8 +45,13 @@ export class Transaction {
     this.base = new Base(connection);
   }
 
-  public async getCount() {
-    const res = await this.base.get('/api/transactions/count');
+  public async getCount(countQuery?: CountQuery) {
+    // const params = {
+    //   senderId: typeof countQuery === "undefined" ? undefined : countQuery.senderId,
+    //   senderPublicKey: typeof countQuery === "undefined" ? undefined : countQuery.senderPublicKey,
+    // };
+
+    const res = await this.base.get('/api/transactions/count', countQuery);
     const result: ApiResult<
       TransactionCountWrapper,
       ValidationError | ServerError
@@ -40,11 +59,13 @@ export class Transaction {
     return result;
   }
 
-  public async newestFirst(count: number, offset?: number, limit?: number) {
+  public async newestFirst(newestFirstQuery: NewestFirstQuery) {
     const params = {
-      count: count,
-      offset: offset,
-      limit: limit,
+      count: newestFirstQuery.count,
+      offset: newestFirstQuery.offset,
+      limit: newestFirstQuery.limit,
+      senderId: newestFirstQuery.senderId,
+      senderPublicKey: newestFirstQuery.senderPublicKey,
     };
     const res = await this.base.get('/api/transactions/newestFirst', params);
     const result: ApiResult<
