@@ -5,6 +5,7 @@ import Peer from './peer';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import { P2P_VERSION } from '@gny/p2p';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocks(
@@ -40,7 +41,7 @@ export default class Loader implements ICoreModule {
         const onePeerId = PeerId.createFromB58String(one.id.id);
         span.setTag('dialTo', onePeerId.toB58String());
         span.log({
-          value: `going to dial peer: ${onePeerId.toB58String()}`,
+          value: `2going to dial peer: ${onePeerId.toB58String()}`,
         });
         const height: HeightWrapper = await Peer.p2p.requestHeight(
           onePeerId,
@@ -52,6 +53,26 @@ export default class Loader implements ICoreModule {
           height: height.height,
         });
       } catch (err) {
+        if (err.message.toString() == 'protocol selection failed') {
+          const protocolSelectionFailedSpan = global.library.tracer.startSpan(
+            'protocol selection failed',
+            {
+              childOf: span.context(),
+            }
+          );
+
+          protocolSelectionFailedSpan.log({
+            value: 'the target does not support the same p2p endpoint',
+          });
+
+          protocolSelectionFailedSpan.setTag('warning', true);
+          protocolSelectionFailedSpan.setTag('syncing', true);
+          // protocolSelectionFailedSpan.setTag('error', true);
+          protocolSelectionFailedSpan.finish();
+        } else {
+          span.setTag('error', true);
+        }
+
         global.library.logger.info(
           `[p2p] failed to requestHeight() from ${err.message}`
         );
@@ -62,7 +83,6 @@ export default class Loader implements ICoreModule {
         span.log({
           value: `[p2p] failed to requestHeight() error: ${err.message}`,
         });
-        span.setTag('error', true);
       }
       span.finish();
     }
