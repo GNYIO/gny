@@ -380,6 +380,24 @@ export default class UiaApi implements IHttpApi {
         limit: query.limit || 100,
         offset: query.offset || 0,
       });
+
+      const issuerNames = assets.map(x => x.issuerId);
+      const issuers = await global.app.sdb.findAll<Issuer>(Issuer, {
+        condition: {
+          issuerId: {
+            $in: issuerNames,
+          },
+        },
+      });
+
+      for (let i = 0; i < assets.length; ++i) {
+        const asset = assets[i];
+        const issuerName = asset.name.split('.')[0];
+
+        const fullIssuer = issuers.find(x => x.name === issuerName);
+        asset.issuer = fullIssuer;
+      }
+
       const result: ApiResult<AssetsWrapper> = {
         success: true,
         count,
