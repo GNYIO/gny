@@ -431,10 +431,22 @@ export default class UiaApi implements IHttpApi {
           name: query.name,
         },
       });
-      if (!assets || assets.length === 0) return next('Asset not found');
+      if (!assets || assets.length === 0) {
+        return next('Asset not found');
+      }
+
+      const first = assets[0];
+
+      const issuer = await global.app.sdb.findAll<Issuer>(Issuer, {
+        condition: {
+          issuerId: first.issuerId,
+        },
+      });
+      first.issuer = issuer;
+
       const result: ApiResult<AssetWrapper> = {
         success: true,
-        asset: assets[0],
+        asset: first,
       };
       return res.json(result);
     } catch (dbErr) {
