@@ -11,7 +11,6 @@ import {
   DelegateWrapper,
   DelegatesWrapper,
   ForgingStatus,
-  AccountViewModel,
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
 import { BlockReward, isAddress } from '@gny/utils';
@@ -166,6 +165,15 @@ export default class DelegatesApi implements IHttpApi {
         };
         return acVM;
       });
+
+      const delegates = await Delegates.getDelegates();
+      for (let i = 0; i < accountsViewModel.length; ++i) {
+        const vm = accountsViewModel[i];
+        if (vm.isDelegate === 1) {
+          const delegate = delegates.find(x => x.address === vm.address);
+          vm.delegate = delegate;
+        }
+      }
 
       global.app.prom.requests.inc({
         method: 'GET',
