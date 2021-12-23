@@ -310,6 +310,7 @@ export type AccountViewModel = Pick<
 export interface AccountWeightViewModel extends IAccount {
   balance: string;
   weightRatio: string;
+  delegate?: DelegateViewModel;
 }
 
 export interface UnconfirmedTransaction {
