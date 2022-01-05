@@ -235,6 +235,7 @@ export default class TransactionsApi implements IHttpApi {
         condition
       );
       return res.json({
+        success: true,
         count,
       });
     } catch (err) {
