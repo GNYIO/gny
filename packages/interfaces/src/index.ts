@@ -375,6 +375,20 @@ export interface IAsset {
   _version_?: number;
 }
 
+// copy of IAsset but plus issuer property
+export interface IAssetWithIssuer {
+  name: string;
+  tid: string;
+  timestamp: number;
+  maximum: string;
+  precision: number;
+  quantity: string;
+  desc: string;
+  issuerId: string;
+  _version_?: number;
+  issuer: IIssuer;
+}
+
 export interface IDelegate {
   address: string;
   tid: string;
@@ -768,7 +782,7 @@ export interface AssetsWrapper {
 }
 
 export interface AssetWrapper {
-  asset: IAsset;
+  asset: IAssetWithIssuer;
 }
 
 export interface BalancesWrapper {

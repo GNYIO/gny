@@ -16,6 +16,7 @@ import {
   BalanceWrapper,
   IAssetHolder,
   AssetHoldersWrapper,
+  IAssetWithIssuer,
 } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
@@ -442,11 +443,17 @@ export default class UiaApi implements IHttpApi {
           issuerId: first.issuerId,
         },
       });
-      first.issuer = issuer;
+
+      const tempIssuer: IIssuer = (issuer as unknown) as IIssuer;
+
+      const asset: IAssetWithIssuer = {
+        ...first,
+        issuer: tempIssuer,
+      };
 
       const result: ApiResult<AssetWrapper> = {
         success: true,
-        asset: first,
+        asset,
       };
       return res.json(result);
     } catch (dbErr) {
