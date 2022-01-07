@@ -444,7 +444,7 @@ export default class UiaApi implements IHttpApi {
         },
       });
 
-      const tempIssuer: IIssuer = (issuer as unknown) as IIssuer;
+      const tempIssuer: IIssuer = (issuer[0] as unknown) as IIssuer;
 
       const asset: IAssetWithIssuer = {
         ...first,
