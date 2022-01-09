@@ -778,7 +778,7 @@ export interface IsIssuerWrapper {
 
 export interface AssetsWrapper {
   count: number;
-  assets: IAsset[];
+  assets: IAssetWithIssuer[];
 }
 
 export interface AssetWrapper {
