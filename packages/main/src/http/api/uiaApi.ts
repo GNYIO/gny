@@ -17,6 +17,7 @@ import {
   IAssetHolder,
   AssetHoldersWrapper,
   IAssetWithIssuer,
+  IAsset,
 } from '@gny/interfaces';
 import { StateHelper } from '../../../src/core/StateHelper';
 import { Issuer } from '@gny/database-postgres';
@@ -260,12 +261,15 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getIssuerAssets = async (req: Request, res: Response, next: Next) => {
-    const nameSchema = joi.object().keys({
-      name: joi
-        .string()
-        .issuer()
-        .required(),
-    });
+    const nameSchema = joi
+      .object()
+      .keys({
+        name: joi
+          .string()
+          .issuer()
+          .required(),
+      })
+      .required();
     const nameReport = joi.validate(req.params, nameSchema);
     if (nameReport.error) {
       global.app.prom.requests.inc({
@@ -323,10 +327,18 @@ export default class UiaApi implements IHttpApi {
 
       const condition = { issuerId: issuer.issuerId };
       const count = await global.app.sdb.count<Asset>(Asset, condition);
-      const assets = await global.app.sdb.findAll<Asset>(Asset, {
+      const assetsQuery = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
         limit: query.limit || 100,
         offset: query.offset || 0,
+      });
+
+      const assets: IAssetWithIssuer[] = assetsQuery.map(x => {
+        const assetWithIssuer: IAssetWithIssuer = {
+          ...x,
+          issuer: issuer,
+        };
+        return assetWithIssuer;
       });
 
       global.app.prom.requests.inc({
@@ -391,18 +403,23 @@ export default class UiaApi implements IHttpApi {
         },
       });
 
-      for (let i = 0; i < assets.length; ++i) {
-        const asset = assets[i];
+      // add issuer property
+      const assetsWithIssuers: IAssetWithIssuer[] = assets.map(x => {
+        const asset: IAsset = x;
         const issuerName = asset.name.split('.')[0];
 
-        const fullIssuer = issuers.find(x => x.name === issuerName);
-        asset.issuer = fullIssuer;
-      }
+        const issuer = issuers.find(x => x.name === issuerName);
+        const temp: IAssetWithIssuer = {
+          ...asset,
+          issuer: issuer,
+        };
+        return temp;
+      });
 
       const result: ApiResult<AssetsWrapper> = {
         success: true,
         count,
-        assets,
+        assets: assetsWithIssuers,
       };
       return res.json(result);
     } catch (dbErr) {
