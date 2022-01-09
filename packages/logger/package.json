@@ -1,6 +1,6 @@
 {
   "name": "@gny/logger",
-  "version": "1.0.103",
+  "version": "1.0.104",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
@@ -14,9 +14,9 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/ed": "1.0.103",
-    "@gny/interfaces": "1.0.103",
-    "@gny/utils": "1.0.103",
+    "@gny/ed": "1.0.104",
+    "@gny/interfaces": "1.0.104",
+    "@gny/utils": "1.0.104",
     "tracer": "^1.1.5",
     "winston": "^3.3.3",
     "winston-loki": "^6.0.2"
