@@ -669,6 +669,11 @@ export interface DelegatesWrapper {
   delegates: DelegateViewModel[];
 }
 
+export interface ExtendedDelegatesWrapper {
+  totalCount?: number;
+  delegates: ExtendedDelegateViewModel[];
+}
+
 export interface DelegateStateWrapper {
   delegate: DelegateViewModel;
   block: IBlock;

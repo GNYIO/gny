@@ -10,7 +10,7 @@ import {
   CountWrapper,
   AccountsWrapper,
   DelegateWrapper,
-  DelegatesWrapper,
+  ExtendedDelegatesWrapper,
   ForgingStatus,
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
@@ -472,7 +472,7 @@ export default class DelegatesApi implements IHttpApi {
     const sliced = delegates.slice(offset, offset + limit);
     const extendedResult = await getDelegateAccount(sliced);
 
-    const result: ApiResult<DelegatesWrapper> = {
+    const result: ApiResult<ExtendedDelegatesWrapper> = {
       success: true,
       totalCount: delegates.length,
       delegates: extendedResult,
