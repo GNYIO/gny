@@ -1,9 +1,6 @@
 import { Base } from './base';
 import {
-  DelegateViewModel,
-  IBalance,
   ApiResult,
-  AccountGenerateModel,
   GetAccountError,
   BalancesModel,
   IBalanceWrapper,

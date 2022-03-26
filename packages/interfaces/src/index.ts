@@ -408,6 +408,13 @@ export interface DelegateViewModel extends IDelegate {
   productivity: string;
 }
 
+export interface ExtendedDelegateViewModel extends DelegateViewModel {
+  gny: string;
+  lockAmount: string;
+  isLocked: number;
+  lockHeight: string;
+}
+
 export interface IRound {
   round: string;
   fee: string;
@@ -660,6 +667,11 @@ export interface DelegateOwnProducedBlocks {
 export interface DelegatesWrapper {
   totalCount?: number;
   delegates: DelegateViewModel[];
+}
+
+export interface ExtendedDelegatesWrapper {
+  totalCount?: number;
+  delegates: ExtendedDelegateViewModel[];
 }
 
 export interface DelegateStateWrapper {

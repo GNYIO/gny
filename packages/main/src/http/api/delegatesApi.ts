@@ -3,13 +3,14 @@ import {
   IScope,
   Next,
   DelegateViewModel,
+  ExtendedDelegateViewModel,
   IHttpApi,
   AccountWeightViewModel,
   ApiResult,
   CountWrapper,
   AccountsWrapper,
   DelegateWrapper,
-  DelegatesWrapper,
+  ExtendedDelegatesWrapper,
   ForgingStatus,
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
@@ -22,6 +23,36 @@ import { Delegate } from '@gny/database-postgres';
 import { Block } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
 import { BigNumber } from 'bignumber.js';
+
+async function getDelegateAccount(
+  sliced: DelegateViewModel[]
+): Promise<ExtendedDelegateViewModel[]> {
+  const addresses = sliced.map(x => x.address);
+  const accounts =
+    (await global.app.sdb.findAll<Account>(Account, {
+      condition: {
+        address: {
+          $in: addresses,
+        },
+      },
+    })) || [];
+
+  const extendedResult: ExtendedDelegateViewModel[] = sliced.map(x => {
+    const account = accounts.find(account => account.address === x.address);
+
+    const one: ExtendedDelegateViewModel = {
+      ...x,
+      gny: account.gny,
+      lockAmount: account.lockAmount,
+      isLocked: account.isLocked,
+      lockHeight: account.lockHeight,
+    };
+
+    return one;
+  });
+
+  return extendedResult;
+}
 
 export default class DelegatesApi implements IHttpApi {
   private library: IScope;
@@ -438,10 +469,13 @@ export default class DelegatesApi implements IHttpApi {
       statusCode: '200',
     });
 
-    const result: ApiResult<DelegatesWrapper> = {
+    const sliced = delegates.slice(offset, offset + limit);
+    const extendedResult = await getDelegateAccount(sliced);
+
+    const result: ApiResult<ExtendedDelegatesWrapper> = {
       success: true,
       totalCount: delegates.length,
-      delegates: delegates.slice(offset, offset + limit),
+      delegates: extendedResult,
     };
     return res.json(result);
   };

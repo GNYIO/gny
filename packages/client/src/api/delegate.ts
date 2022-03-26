@@ -10,6 +10,7 @@ import {
   DelegateOwnProducedBlocks,
   OwnProducedBlocksQuery,
   DelegatesWrapper,
+  ExtendedDelegatesWrapper,
   ForgingError,
   ForgingStatus,
   SimpleAccountsWrapper,
@@ -99,7 +100,7 @@ export class Delegate {
     };
     const res = await this.base.get('/api/delegates', params);
     const result: ApiResult<
-      DelegatesWrapper,
+      ExtendedDelegatesWrapper,
       ValidationError | DelegateResponseError
     > = res.data;
     return result;
