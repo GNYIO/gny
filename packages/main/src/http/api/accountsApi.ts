@@ -18,7 +18,8 @@ import {
   PublicKeyWrapper,
 } from '@gny/interfaces';
 import {
-  getAccountByName,
+  getAccountByUsername,
+  getAccountByAddress,
   generateAddressByPublicKey,
   getAccount,
 } from '../util';
@@ -103,7 +104,9 @@ export default class AccountsApi implements IHttpApi {
         address: joi.string().address(),
         username: joi.string().username(),
       })
-      .xor('address', 'username');
+      .xor('address', 'username')
+      .required();
+
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
       global.app.prom.requests.inc({
@@ -125,7 +128,7 @@ export default class AccountsApi implements IHttpApi {
     });
 
     if (query.username) {
-      const account = await getAccountByName(query.username);
+      const account = await getAccountByUsername(query.username);
       if (typeof account === 'string') {
         return next(account);
       }
@@ -136,11 +139,11 @@ export default class AccountsApi implements IHttpApi {
       return res.json(result1);
     }
 
-    const account = await getAccount(query.address);
+    const account = await getAccountByAddress(query.address);
     if (typeof account === 'string') {
       return next(account);
     }
-    const result2: ApiResult<AccountOpenModel, GetAccountError> = {
+    const result2: ApiResult<IAccount, GetAccountError> = {
       success: true,
       ...account,
     };
