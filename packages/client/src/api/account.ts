@@ -59,7 +59,7 @@ export class Account {
   public async getAccountByAddress(address: string) {
     const params = { address: address };
     const res = await this.base.get('/api/accounts/', params);
-    const result: ApiResult<AccountOpenModel, ServerError> = res.data;
+    const result: ApiResult<IAccount, ServerError> = res.data;
     return result;
   }
 
