@@ -56,10 +56,21 @@ export function generateAddressByPublicKey(publicKey: string) {
 }
 
 // account helper
-export async function getAccountByName(name: string) {
+export async function getAccountByUsername(name: string) {
   try {
     const account = await global.app.sdb.findOne<Account>(Account, {
       condition: { username: name },
+    });
+    return account;
+  } catch (err) {
+    return 'Server Error';
+  }
+}
+
+export async function getAccountByAddress(address: string) {
+  try {
+    const account = await global.app.sdb.findOne<Account>(Account, {
+      condition: { address: address },
     });
     return account;
   } catch (err) {
