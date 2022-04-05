@@ -303,6 +303,36 @@ export default {
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
+    // validate all passed in delegates
+    for (let i = 0; i < delegates.length; ++i) {
+      const one = delegates[i];
+      global.app.validate('name', one);
+    }
+
+    if (
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(this.block.height).isGreaterThan(3130000)) ||
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(this.block.height).isGreaterThan(3500000)) ||
+      (global.Config.netVersion === 'testnet_app' &&
+        new BigNumber(this.block.height).isGreaterThan(2700000)) ||
+      (global.Config.netVersion === 'localnet' &&
+        new BigNumber(this.block.height).isGreaterThan(0))
+    ) {
+      for (let i = 0; i < delegates.length; ++i) {
+        const one = delegates[i];
+
+        const account = await global.app.sdb.findOne<Account>(Account, {
+          condition: {
+            username: one,
+          },
+        });
+        if (new BigNumber(account.lockAmount).isLessThan(187500 * 1e8)) {
+          return 'one of the delegate has not 187500 GNY locked';
+        }
+      }
+    }
+
     const currentVotes = await global.app.sdb.findAll<Vote>(Vote, {
       condition: { voterAddress: senderId },
     });
