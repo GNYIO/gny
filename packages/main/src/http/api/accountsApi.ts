@@ -139,15 +139,34 @@ export default class AccountsApi implements IHttpApi {
       return res.json(result1);
     }
 
-    const account = await getAccountByAddress(query.address);
-    if (typeof account === 'string') {
-      return next(account);
+    if (query.address) {
+      const account = await getAccountByAddress(query.address as string);
+      if (typeof account === 'string') {
+        return next(account);
+      }
+
+      if (
+        account !== null &&
+        account !== undefined &&
+        Object.keys(account).length > 0
+      ) {
+        return res.json(account);
+      }
+
+      const emptyAccount: ApiResult<IAccount, GetAccountError> = {
+        success: true,
+        address: query.address as string,
+        username: null,
+        gny: '',
+        publicKey: null,
+        secondPublicKey: null,
+        isDelegate: 0,
+        isLocked: 0,
+        lockHeight: '0',
+        lockAmount: '0',
+      };
+      return res.json(emptyAccount);
     }
-    const result2: ApiResult<IAccount, GetAccountError> = {
-      success: true,
-      ...account,
-    };
-    return res.json(result2);
   };
 
   private openAccount = async (req: Request, res: Response, next: Next) => {
