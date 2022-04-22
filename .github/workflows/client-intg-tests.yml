@@ -1,7 +1,7 @@
-name: client integration test
+name: client integration tests
 on: [push]
 jobs:
-  orm-tests:
+  client-integration-tests:
     runs-on: first-runner
     steps:
     - uses: actions/checkout@v2
