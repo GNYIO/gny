@@ -1,6 +1,8 @@
 name: orm tests
 on: push
 
+# to run this test locally you need to first spin up a postgres server on port 3456
+# sudo docker run --rm  -p 3456:5432 --env POSTGRES_PASSWORD=docker --env POSTGRES_DB=postgres --env POSTGRES_USER=postgres --detach postgres:9.6.12
 
 jobs:
   orm-tests:
