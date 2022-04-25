@@ -114,6 +114,7 @@ export async function composeNetwork(
         'Access-Control-Allow-Methods',
         'GET, POST, OPTIONS, HEAD, PUT, DELETE'
       );
+      res.setHeader('Cache-Control', 'no-store');
 
       if (req.method === 'OPTIONS') {
         res.sendStatus(200);
