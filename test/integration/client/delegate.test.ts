@@ -33,6 +33,52 @@ function range(start, end): Array<Number> {
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
+async function prepareDelegates(delegates: string[]) {
+  // send 200,000 GNY to every delegate in the list
+  for (let i = 0; i < delegates.length; ++i) {
+    const del = delegates[i];
+    const recipientAddress = gnyClient.crypto.getAddress(
+      gnyClient.crypto.getKeys(del).publicKey
+    );
+    const nameTrs = gnyClient.basic.transfer(
+      recipientAddress,
+      String(200000 * 1e8),
+      undefined,
+      genesisSecret
+    );
+    const nameTransData = {
+      transaction: nameTrs,
+    };
+    await axios.post(
+      `http://localhost:${GNY_PORT}/peer/transactions`,
+      nameTransData,
+      config
+    );
+  }
+  await lib.onNewBlock(GNY_PORT);
+
+  // delegates lock 190,000 GNY
+  for (let i = 0; i < delegates.length; ++i) {
+    const del = delegates[i];
+    const nameTrs = gnyClient.basic.lock(
+      String(1000000),
+      String(190000 * 1e8),
+      del
+    );
+    const nameTransData = {
+      transaction: nameTrs,
+    };
+
+    await axios.post(
+      `http://localhost:${GNY_PORT}/peer/transactions`,
+      nameTransData,
+      config
+    );
+  }
+
+  await lib.onNewBlock(GNY_PORT);
+}
+
 describe('delegate', () => {
   const connection = new gnyClient.Connection(
     '127.0.0.1',
@@ -92,7 +138,7 @@ describe('delegate', () => {
         // lock the account
         const lockTrs = gnyClient.basic.lock(
           String(173000),
-          String(30 * 1e8),
+          String(190000 * 1e8),
           genesisSecret
         );
         const lockTransData = {
@@ -144,7 +190,7 @@ describe('delegate', () => {
         // lock the account
         const lockTrs = gnyClient.basic.lock(
           String(173000),
-          String(30 * 1e8),
+          String(190000 * 1e8),
           genesisSecret
         );
         const lockTransData = {
@@ -157,9 +203,14 @@ describe('delegate', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
+        await prepareDelegates([
+          'change fire praise liar size soon double tissue image drama ribbon winter',
+          'planet wet evil syrup item palm blur walnut dumb tennis deposit wash',
+        ]);
+
         // vote
         const trsVote = gnyClient.basic.vote(
-          ['gny_d100', 'gny_d101'],
+          ['gny_d1', 'gny_d2'],
           genesisSecret
         );
         const transVoteData = {
@@ -186,8 +237,9 @@ describe('delegate', () => {
         expect(gny_d100).not.toBeUndefined();
         expect(gny_d101).not.toBeUndefined();
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
+
     it(
       'should get own votes by username',
       async () => {
@@ -207,7 +259,7 @@ describe('delegate', () => {
         // lock the account
         const lockTrs = gnyClient.basic.lock(
           String(173000),
-          String(30 * 1e8),
+          String(190000 * 1e8),
           genesisSecret
         );
         const lockTransData = {
@@ -220,7 +272,12 @@ describe('delegate', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        // vote
+        await prepareDelegates([
+          'change fire praise liar size soon double tissue image drama ribbon winter',
+          'planet wet evil syrup item palm blur walnut dumb tennis deposit wash',
+          'seek sibling blood thank broken humble perfect liberty agree summer quick lady',
+        ]);
+
         const trsVote = gnyClient.basic.vote(
           ['gny_d1', 'gny_d2', 'gny_d3'],
           genesisSecret
