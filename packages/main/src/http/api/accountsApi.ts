@@ -150,18 +150,18 @@ export default class AccountsApi implements IHttpApi {
         account !== undefined &&
         Object.keys(account).length > 0
       ) {
-        const accountResult: ApiResult<IAccount, ServerError> = {
+        const r: ApiResult<IAccount, ServerError> = {
           success: true,
           ...account,
         };
-        return res.json(accountResult);
+        return res.json(r);
       }
 
       const emptyAccount: ApiResult<IAccount, GetAccountError> = {
         success: true,
         address: query.address as string,
         username: null,
-        gny: '',
+        gny: '0',
         publicKey: null,
         secondPublicKey: null,
         isDelegate: 0,
