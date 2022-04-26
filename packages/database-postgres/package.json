@@ -1,7 +1,7 @@
 {
   "name": "@gny/database-postgres",
   "private": true,
-  "version": "1.0.112",
+  "version": "1.0.113",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist"
@@ -14,7 +14,7 @@
   "main": "dist/smartDB",
   "types": "dist/smartDB",
   "dependencies": {
-    "@gny/interfaces": "1.0.112",
+    "@gny/interfaces": "1.0.113",
     "@types/lodash": "^4.14.175",
     "@types/lru-cache": "^5.1.0",
     "bignumber.js": "^8.1.1",
