@@ -215,7 +215,11 @@ describe('account', () => {
           await lib.onNewBlock(GNY_PORT);
 
           // lock the account
-          const lockTrs = gnyClient.basic.lock(183000, 30 * 1e8, genesisSecret);
+          const lockTrs = gnyClient.basic.lock(
+            String(183000),
+            String(190000 * 1e8),
+            genesisSecret
+          );
           const lockTransData = {
             transaction: lockTrs,
           };

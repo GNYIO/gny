@@ -25,6 +25,9 @@ describe('basic', () => {
       validate: jest.fn((type, value) => null),
       sdb: new SmartDB(logger),
     };
+    global.Config = {
+      netVersion: 'localnet',
+    };
     done();
   });
 
@@ -533,6 +536,7 @@ describe('basic', () => {
   describe('vote', () => {
     let delegates: string;
     let currentVotes;
+    let oneAccount;
 
     beforeEach(done => {
       delegates = 'xpgeng,liangpeili,a1300';
@@ -541,6 +545,9 @@ describe('basic', () => {
         gny: String(100000100),
         isLocked: 1,
       } as IAccount;
+      (basic as any).block = {
+        height: String(10),
+      } as IBlock;
       currentVotes = [
         {
           voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -555,11 +562,17 @@ describe('basic', () => {
           delegate: 'cookie',
         },
       ];
+      oneAccount = {
+        lockAmount: String(200000 * 1e8),
+      };
       done();
     });
     afterEach(done => {
       delegates = undefined;
+      delete (basic as any).sender;
+      delete (basic as any).block;
       currentVotes = undefined;
+      oneAccount = undefined;
 
       done();
     });
@@ -570,6 +583,7 @@ describe('basic', () => {
       global.app.sdb.exists.mockReturnValue(true);
       global.app.sdb.increase.mockReturnValue(null);
       global.app.sdb.create.mockReturnValue(null);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBeNull();
@@ -580,6 +594,7 @@ describe('basic', () => {
       (basic as any).sender.isLocked = 0;
 
       global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Account is not locked');
@@ -602,6 +617,7 @@ describe('basic', () => {
       }
 
       global.app.sdb.lock.mockReturnValue(null);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Voting limit exceeded');
@@ -630,6 +646,7 @@ describe('basic', () => {
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Maximum number of votes exceeded');
@@ -641,16 +658,18 @@ describe('basic', () => {
 
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.findAll.mockReturnValue(currentVotes);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Already voted for delegate: xpgeng');
       done();
     });
 
-    it('should return Voted delegate not exists:: xpgeng', async done => {
+    it('should return Voted delegate not exists: xpgeng', async done => {
       global.app.sdb.lock.mockReturnValue(null);
       global.app.sdb.findAll.mockReturnValue(currentVotes);
       global.app.sdb.exists.mockReturnValue(null);
+      global.app.sdb.findOne.mockReturnValue(oneAccount);
 
       const voted = await basic.vote(delegates);
       expect(voted).toBe('Voted delegate not exists: xpgeng');
