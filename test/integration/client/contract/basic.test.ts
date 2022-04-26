@@ -3,6 +3,7 @@
  */
 import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
+import axios from 'axios';
 
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -17,6 +18,58 @@ const env = lib.createEnvironmentVariables(
 );
 const DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.client-integration.yml';
+
+const config = {
+  headers: {
+    magic: '594fe0f3',
+  },
+};
+
+async function prepareDelegates(delegates: string[]) {
+  // send 200,000 GNY to every delegate in the list
+  for (let i = 0; i < delegates.length; ++i) {
+    const del = delegates[i];
+    const recipientAddress = gnyClient.crypto.getAddress(
+      gnyClient.crypto.getKeys(del).publicKey
+    );
+    const nameTrs = gnyClient.basic.transfer(
+      recipientAddress,
+      String(200000 * 1e8),
+      undefined,
+      genesisSecret
+    );
+    const nameTransData = {
+      transaction: nameTrs,
+    };
+    await axios.post(
+      `http://localhost:${GNY_PORT}/peer/transactions`,
+      nameTransData,
+      config
+    );
+  }
+  await lib.onNewBlock(GNY_PORT);
+
+  // delegates lock 190,000 GNY
+  for (let i = 0; i < delegates.length; ++i) {
+    const del = delegates[i];
+    const nameTrs = gnyClient.basic.lock(
+      String(1000000),
+      String(190000 * 1e8),
+      del
+    );
+    const nameTransData = {
+      transaction: nameTrs,
+    };
+
+    await axios.post(
+      `http://localhost:${GNY_PORT}/peer/transactions`,
+      nameTransData,
+      config
+    );
+  }
+
+  await lib.onNewBlock(GNY_PORT);
+}
 
 describe('account', () => {
   const connection = new gnyClient.Connection(
@@ -147,38 +200,41 @@ describe('account', () => {
     it(
       'should vote by key list',
       async () => {
-        const keyList = ['gny_d1'];
+        await prepareDelegates([
+          'change fire praise liar size soon double tissue image drama ribbon winter',
+        ]);
 
+        const keyList = ['gny_d1'];
         await vote(keyList, genesisSecret);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should be able to vote for two or more delegates',
       async () => {
         // vote for 2 delegates
+        await prepareDelegates([
+          'census make riot edit rib plug hungry lift hockey system push regret',
+          'grab prize sphere pact video submit cook heavy burden faint belt memory',
+        ]);
+
         const keyList = ['gny_d100', 'gny_d101'];
 
         await vote(keyList, genesisSecret);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
   });
 
   describe('/unvote', () => {
     async function voteThenUnvote(keyList: string[], secret) {
-      // set username
-      const username = 'xpgeng';
-      await basicApi.setUserName(username, genesisSecret);
-      await lib.onNewBlock(GNY_PORT);
-
       // lock the account
-      await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
-      await lib.onNewBlock(GNY_PORT);
-
-      // register delegate
-      await basicApi.registerDelegate(genesisSecret);
+      await basicApi.lockAccount(
+        String(173000),
+        String(30 * 1e8),
+        genesisSecret
+      );
       await lib.onNewBlock(GNY_PORT);
 
       // vote
@@ -193,15 +249,26 @@ describe('account', () => {
     it(
       'should unvote by key list',
       async () => {
+        // prepare gny_d1
+        await prepareDelegates([
+          'change fire praise liar size soon double tissue image drama ribbon winter',
+        ]);
+
         const keyList = ['gny_d1'];
         await voteThenUnvote(keyList, genesisSecret);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should be able to unvote multiple delegates',
       async () => {
+        // prepare gny_d100 and gnyd_101
+        await prepareDelegates([
+          'census make riot edit rib plug hungry lift hockey system push regret',
+          'grab prize sphere pact video submit cook heavy burden faint belt memory',
+        ]);
+
         const keyList = ['gny_d100', 'gny_d101'];
         await voteThenUnvote(keyList, genesisSecret);
       },
