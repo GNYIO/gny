@@ -161,7 +161,7 @@ export default class AccountsApi implements IHttpApi {
         success: true,
         address: query.address as string,
         username: null,
-        gny: '',
+        gny: '0',
         publicKey: null,
         secondPublicKey: null,
         isDelegate: 0,
