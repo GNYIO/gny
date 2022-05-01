@@ -91,14 +91,63 @@ describe('accountsApi', () => {
 
   describe('/', () => {
     it(
-      'should get an account',
+      'should get an account by address',
       async () => {
         const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
 
         const { data } = await axios.get(
           'http://localhost:4096/api/accounts?address=' + address
         );
-        expect(data.account.address).toBe(address);
+        expect(data.address).toBe(address);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'should get an account by username',
+      async () => {
+        const username = 'gny_d1';
+
+        const { data } = await axios.get(
+          'http://localhost:4096/api/accounts?username=' + username
+        );
+        expect(data.username).toBe(username);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'return a default address if address not in db (sad path)',
+      async () => {
+        const { data } = await axios.get(
+          'http://localhost:4096/api/accounts?address=' +
+            'GhqtkjpcKRjAvCmmaWCDvzF4C8G7' // random account
+        );
+        expect(data.success).toBe(true);
+        expect(data.address).toBe('GhqtkjpcKRjAvCmmaWCDvzF4C8G7');
+        expect(data.username).toBe(null);
+        expect(data.gny).toBe(String(0));
+        expect(data.publicKey).toBe(null);
+        expect(data.secondPublicKey).toBe(null);
+        expect(data.isDelegate).toBe(0);
+        expect(data.isLocked).toBe(0);
+        expect(data.lockHeight).toBe(String(0));
+        expect(data.lockAmount).toBe(String(0));
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'test sad path for ?username',
+      async () => {
+        const promise = axios.get(
+          'http://localhost:4096/api/accounts?username=' + 'unknownuser'
+        );
+
+        expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'account with this username not found',
+        });
       },
       lib.oneMinute
     );

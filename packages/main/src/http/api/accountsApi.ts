@@ -132,11 +132,20 @@ export default class AccountsApi implements IHttpApi {
       if (typeof account === 'string') {
         return next(account);
       }
-      const result1: ApiResult<IAccount, ServerError> = {
-        success: true,
-        ...account,
-      };
-      return res.json(result1);
+
+      if (
+        account !== null &&
+        account !== undefined &&
+        Object.keys(account).length > 0
+      ) {
+        const result1: ApiResult<IAccount, ServerError> = {
+          success: true,
+          ...account,
+        };
+        return res.json(result1);
+      }
+
+      return next('account with this username not found');
     }
 
     if (query.address) {
