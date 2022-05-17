@@ -33,7 +33,7 @@ export default class Loader implements ICoreModule {
         childOf: parentSpan.context(),
       });
       span.setTag('syncing', true);
-      span.setTag('peerId', Peer.p2p.peerId.toB58String());
+      span.setTag('ownPeerId', Peer.p2p.peerId.toB58String());
 
       const one = allPeerInfos[i];
 
@@ -41,8 +41,15 @@ export default class Loader implements ICoreModule {
         const onePeerId = PeerId.createFromB58String(one.id.id);
         span.setTag('dialTo', onePeerId.toB58String());
         span.log({
-          value: `2going to dial peer: ${onePeerId.toB58String()}`,
+          value: `going to dial peer: ${onePeerId.toB58String()}`,
         });
+
+        const commonBlock = await Blocks.getCommonBlock(
+          onePeerId,
+          String(lastBlock.height),
+          span
+        );
+
         const height: HeightWrapper = await Peer.p2p.requestHeight(
           onePeerId,
           span
@@ -85,6 +92,7 @@ export default class Loader implements ICoreModule {
         });
       }
       span.finish();
+      break;
     }
 
     if (myResult.length === 0) {

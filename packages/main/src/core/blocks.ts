@@ -77,18 +77,32 @@ export default class Blocks implements ICoreModule {
   // todo look at core/loader
   public static getCommonBlock = async (
     peer: PeerId,
-    lastBlockHeight: string
+    lastBlockHeight: string,
+    parentSpan: ISpan
   ): Promise<IBlock> => {
     const params: CommonBlockParams = await Blocks.getIdSequence2(
       lastBlockHeight,
       global.app.sdb.getBlocksByHeightRange
     );
 
+    const span = global.app.tracer.startSpan('getCommonBlock', {
+      childOf: parentSpan.context(),
+    });
+    span.log({
+      theParamsFor: params,
+    });
+
     let ret: CommonBlockResult;
     try {
-      ret = await Peer.p2p.requestCommonBlock(peer, params);
+      ret = await Peer.p2p.requestCommonBlock(peer, params, span);
+      span.log({
+        value: 'requestCommonBlock finished successfully',
+      });
+      span.log({
+        commonBlock: ret,
+      });
+      span.finish();
     } catch (err) {
-      const span = global.app.tracer.startSpan('getCommonBlock');
       span.setTag('error', true);
       span.log({
         value: `[p2p][commonBlock] error: ${err.message}`,
@@ -96,11 +110,10 @@ export default class Blocks implements ICoreModule {
       span.finish();
 
       global.app.logger.info(`[p2p][commonBlock]  error: ${err.message}`);
-      throw new Error('commonBlock could not be requested');
     }
 
     if (!ret.common) {
-      throw new Error('Common block not found');
+      return null;
     }
 
     // TODO: validate commonBlock
