@@ -23,7 +23,6 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
-import { RoundBase } from '@gny/base';
 import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
@@ -43,6 +42,7 @@ import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import { isBlockWithoutTransactions } from '@gny/type-validation';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -92,16 +92,9 @@ export default class Blocks implements ICoreModule {
       theParamsFor: params,
     });
 
-    let ret: CommonBlockResult;
+    let ret: IBlock;
     try {
       ret = await Peer.p2p.requestCommonBlock(peer, params, span);
-      span.log({
-        value: 'requestCommonBlock finished successfully',
-      });
-      span.log({
-        commonBlock: ret,
-      });
-      span.finish();
     } catch (err) {
       span.setTag('error', true);
       span.log({
@@ -109,16 +102,28 @@ export default class Blocks implements ICoreModule {
       });
       span.finish();
 
-      global.app.logger.info(`[p2p][commonBlock]  error: ${err.message}`);
+      global.app.logger.info(`[p2p][commonBlock] error: ${err.message}`);
     }
 
-    if (!ret.common) {
+    if (!isBlockWithoutTransactions(ret)) {
+      span.setTag('error', true);
+      span.log({
+        value: `[p2p][commonBlock] transactions failed`,
+        ret,
+      });
+      span.finish();
       return null;
     }
 
-    // TODO: validate commonBlock
+    span.log({
+      value: 'requestCommonBlock finished successfully',
+    });
+    span.log({
+      commonBlock: ret,
+    });
+    span.finish();
 
-    return ret.common;
+    return ret;
   };
 
   public static verifyBlock = (

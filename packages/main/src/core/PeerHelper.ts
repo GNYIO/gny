@@ -225,7 +225,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     peerId: PeerId,
     commonBlockParams: CommonBlockParams,
     span: ISpan
-  ): Promise<CommonBlockResult> => {
+  ): Promise<IBlock> => {
     const raw: TracerWrapper<CommonBlockParams> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: commonBlockParams,
@@ -234,7 +234,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 
     const resultRaw = await bundle.directRequest(peerId, V1_COMMON_BLOCK, data);
 
-    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
+    const result: IBlock = JSON.parse(resultRaw.toString());
     return result;
   };
 
