@@ -281,13 +281,24 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     try {
       let blocks = await global.app.sdb.getBlocksByHeightRange(min, max);
       if (!blocks || !blocks.length) {
+        span.log({
+          value: `Blocks not found (between ${min} and ${max})`,
+        });
+        span.setTag('error', true);
+        span.finish();
         throw new Error('Blocks not found');
       }
 
-      blocks = blocks.reverse();
+      span.log({
+        value: `found in the db the following values for: min: ${min}, max: ${max} and ids: ${ids.join(
+          ', '
+        )}`,
+      });
       span.log({
         blocks,
       });
+
+      blocks = blocks.reverse();
       let commonBlock: IBlock = null;
       for (const i in ids) {
         if (blocks[i].id === ids[i]) {
@@ -296,14 +307,18 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
         }
       }
 
-      span.log({
-        value: commonBlock,
-      });
-
       if (!commonBlock) {
+        span.log({
+          value: 'Common block not found',
+        });
+        span.finish();
         throw new Error('Common block not found');
       }
 
+      span.log({
+        foundCommonBlock: commonBlock,
+      });
+      span.finish();
       return [uint8ArrayFromString(JSON.stringify(commonBlock))];
     } catch (e) {
       span.setTag('error', true);

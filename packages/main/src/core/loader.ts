@@ -1,11 +1,12 @@
 import { IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
 import { StateHelper } from './StateHelper';
+import { LoaderHelper } from './LoaderHelper';
 import Blocks from './blocks';
 import Peer from './peer';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
-import { P2P_VERSION } from '@gny/p2p';
+import { textSpanContainsPosition } from 'typescript';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocks(
@@ -21,155 +22,114 @@ export default class Loader implements ICoreModule {
       parentSpan.log({
         value: '[p2p] loadBlocks() no connected peers',
       });
+      parentSpan.finish();
 
       return;
     }
 
-    const myResult = [];
+    // randomize peers in allPeerInfos array
+    LoaderHelper.shuffleArray(allPeerInfos);
 
-    // check
-    for (let i = 0; i < allPeerInfos.length; ++i) {
-      const span = global.library.tracer.startSpan('request height from peer', {
+    const firstPeerInfo = allPeerInfos[0];
+    const firstPeerId = PeerId.createFromB58String(firstPeerInfo.id.id);
+
+    // get height from peer
+    const span = global.library.tracer.startSpan('request height from peer', {
+      childOf: parentSpan.context(),
+    });
+    let heightWrapper: HeightWrapper = null;
+    try {
+      span.setTag('syncing', true);
+      span.log({
+        myLastBlock: lastBlock,
+      });
+      span.log({
+        dialTo: firstPeerId.toB58String(),
+      });
+
+      heightWrapper = await Peer.p2p.requestHeight(firstPeerId, span);
+      span.log({
+        value: `target has height: ${heightWrapper.height}`,
+      });
+      global.library.logger.info(
+        `[p2p] got height "${
+          heightWrapper.height
+        }" from ${firstPeerId.toB58String()}`
+      );
+      span.finish();
+    } catch (err) {
+      global.library.logger.info(
+        `[p2p] failed to requestHeight() from ${err.message}`
+      );
+      span.log({
+        value: `[p2p] failed to requestHeight() from ${err.message}`,
+      });
+      span.setTag('error', true);
+      parentSpan.finish();
+      span.finish();
+    }
+
+    if (heightWrapper === null) {
+      return;
+    }
+
+    // if the target has a smaller height then we do, then return
+    if (new BigNumber(heightWrapper.height).lt(lastBlock.height)) {
+      const span = global.library.tracer.startSpan('target smaller height', {
         childOf: parentSpan.context(),
       });
-      span.setTag('syncing', true);
-      span.setTag('ownPeerId', Peer.p2p.peerId.toB58String());
+      span.log({
+        value: `the potential sync target ${firstPeerId.toB58String()} has the height ${
+          heightWrapper.height
+        }, we have the height ${lastBlock.height}`,
+      });
+      global.library.logger.info(
+        `the potential sync target ${firstPeerId.toB58String()} has the height ${
+          heightWrapper.height
+        }, we have the height ${lastBlock.height}`
+      );
 
-      const one = allPeerInfos[i];
-
-      try {
-        const onePeerId = PeerId.createFromB58String(one.id.id);
-        span.setTag('dialTo', onePeerId.toB58String());
-        span.log({
-          value: `going to dial peer: ${onePeerId.toB58String()}`,
-        });
-
-        const commonBlock = await Blocks.getCommonBlock(
-          onePeerId,
-          String(lastBlock.height),
-          span
-        );
-
-        const height: HeightWrapper = await Peer.p2p.requestHeight(
-          onePeerId,
-          span
-        );
-
-        myResult.push({
-          peerInfo: one,
-          height: height.height,
-        });
-      } catch (err) {
-        if (err.message.toString() == 'protocol selection failed') {
-          const protocolSelectionFailedSpan = global.library.tracer.startSpan(
-            'protocol selection failed',
-            {
-              childOf: span.context(),
-            }
-          );
-
-          protocolSelectionFailedSpan.log({
-            value: 'the target does not support the same p2p endpoint',
-          });
-
-          protocolSelectionFailedSpan.setTag('warning', true);
-          protocolSelectionFailedSpan.setTag('syncing', true);
-          // protocolSelectionFailedSpan.setTag('error', true);
-          protocolSelectionFailedSpan.finish();
-        } else {
-          span.setTag('error', true);
-        }
-
-        global.library.logger.info(
-          `[p2p] failed to requestHeight() from ${err.message}`
-        );
-
-        span.log({
-          value: `[p2p] failed to requestHeight() from: "${one.id.id}"`,
-        });
-        span.log({
-          value: `[p2p] failed to requestHeight() error: ${err.message}`,
-        });
-      }
       span.finish();
-      break;
-    }
-
-    if (myResult.length === 0) {
-      global.library.logger.info('[p2p] test');
+      parentSpan.finish();
       return;
     }
 
-    const onlyHeights = myResult.map(x => x.height);
-    global.library.logger.info(
-      `[p2p], heights:  ${JSON.stringify(onlyHeights, null, 2)}`
-    );
-    const highest = BigNumber.max(...onlyHeights).toFixed();
-
-    global.library.logger.info(`[p2p] highest ${highest}`);
-
-    if (new BigNumber(lastBlock.height).isGreaterThanOrEqualTo(highest)) {
-      global.library.logger.info(
-        `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
-          lastBlock.height
-        }`
-      );
-
-      parentSpan.setTag('error', true);
-      parentSpan.log({
-        value: `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
-          lastBlock.height
-        }`,
-      });
-      parentSpan.finish();
-
-      return;
-    }
-
-    const find = myResult.find(x => x.height === highest);
-    global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
-
-    const highestPeer = PeerId.createFromB58String(find.peerInfo.id.id);
-
-    if (lastBlock.id === genesisBlock.id) {
-      global.library.logger.info(
-        `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`
-      );
-
-      parentSpan.log({
-        value: `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`,
-      });
-      parentSpan.finish();
-
-      return await Blocks.loadBlocksFromPeer(
-        highestPeer,
-        genesisBlock.id,
+    // get commonBlock of target
+    let commonBlock: IBlock = null;
+    try {
+      commonBlock = await Blocks.getCommonBlock(
+        firstPeerId,
+        String(lastBlock.height),
         parentSpan
       );
-    } else {
+    } catch (err) {
       global.library.logger.info(
-        `[p2p] current height is ${
-          lastBlock.height
-        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`
+        `[p2p] failed to request commonBlock ${err.message}`
       );
-
-      parentSpan.log({
-        value: `[p2p] current height is ${
-          lastBlock.height
-        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`,
-      });
+      span.setTag('error', true);
+      span.finish();
       parentSpan.finish();
+      return;
+    }
 
+    if (commonBlock == null) {
+      parentSpan.log({
+        value: `no commonBlock with peer ${firstPeerId.toB58String()} found`,
+      });
+
+      parentSpan.finish();
+      return;
+    }
+
+    // log commonBlock
+    parentSpan.log({
+      commonBlock,
+    });
+
+    // commonBlock is lastBlock I have, then start syncing
+    if (new BigNumber(commonBlock.height).isEqualTo(lastBlock.height)) {
       return await Blocks.loadBlocksFromPeer(
-        highestPeer,
+        firstPeerId,
         lastBlock.id,
         parentSpan
       );

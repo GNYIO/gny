@@ -22,4 +22,16 @@ export class LoaderHelper {
     }
     return lastBlock;
   }
+
+  /***
+   * This function shuffles the array
+   * It uses sideeffects. It doesn't return a new array but it shufles
+   * the passed in array
+   */
+  public static shuffleArray<T>(array: Array<T>) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
 }
