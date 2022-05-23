@@ -85,7 +85,7 @@ export default class Blocks implements ICoreModule {
       global.app.sdb.getBlocksByHeightRange
     );
 
-    const span = global.app.tracer.startSpan('getCommonBlock', {
+    const span = global.app.tracer.startSpan('get commonBlock', {
       childOf: parentSpan.context(),
     });
     span.log({
