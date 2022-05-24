@@ -10,8 +10,13 @@ jobs:
       with:
         node-version: '12.22.6'
 
-    - name: npm ci
-      run: npm ci
+    - name: install lerna
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts
+
+    - name: build typescript
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm run lerna:tsc
 
     - name: Docker cache
       uses: satackey/action-docker-layer-caching@v0.0.11
