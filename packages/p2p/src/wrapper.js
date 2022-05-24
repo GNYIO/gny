@@ -9,16 +9,8 @@ const pipe = require('it-pipe');
 const first = require('it-first');
 const multiaddr = require('multiaddr');
 
-const {
-  V1_BROADCAST_NEW_BLOCK_HEADER,
-  V1_BROADCAST_TRANSACTION,
-  V1_BROADCAST_PROPOSE,
-  V1_BROADCAST_NEW_MEMBER,
-  V1_BROADCAST_SELF,
-} = require('./protocols');
-
 class Bundle extends Libp2p {
-  constructor(peerId, announceIp, port, bootstrapNode, logger) {
+  constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
     const options = {
       peerId,
       addresses: {
@@ -65,6 +57,7 @@ class Bundle extends Libp2p {
 
     super(options);
     this.logger = logger;
+    this.p2pConfig = p2pConfig;
   }
 
   getAllConnectedPeersPeerInfo() {
@@ -212,7 +205,7 @@ class Bundle extends Libp2p {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_SELF, data);
+    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_SELF, data);
     this.logger.info(`[p2p][self] "self" announced`);
   }
 
@@ -220,7 +213,7 @@ class Bundle extends Libp2p {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_NEW_MEMBER, data);
+    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_NEW_MEMBER, data);
     this.logger.info(`[p2p][bootstrap] "newMember" announced`);
   }
 
@@ -228,21 +221,24 @@ class Bundle extends Libp2p {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_PROPOSE, data);
+    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_PROPOSE, data);
   }
 
   async broadcastTransactionAsync(data) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_TRANSACTION, data);
+    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_TRANSACTION, data);
   }
 
   async broadcastNewBlockHeaderAsync(data) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(V1_BROADCAST_NEW_BLOCK_HEADER, data);
+    await this.pubsub.publish(
+      this.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
+      data
+    );
   }
 }
 
@@ -285,8 +281,8 @@ function attachEventHandlers(node, name) {
   });
 }
 
-export function create(peerId, ip, port, bootstrapNode, logger) {
-  const node = new Bundle(peerId, ip, port, bootstrapNode, logger);
+export function create(peerId, ip, port, bootstrapNode, logger, p2pConfig) {
+  const node = new Bundle(peerId, ip, port, bootstrapNode, logger, p2pConfig);
   attachEventHandlers(node, ip);
   return node;
 }

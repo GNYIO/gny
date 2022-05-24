@@ -256,7 +256,10 @@ describe('db-the-same', () => {
     await lib.sleep(5000);
 
     // start the rest of the containers
-    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
+    await lib.spawnP2PContainersHeightZeroAllowed(DOCKER_COMPOSE_P2P, [
+      4096,
+      4098,
+    ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
 
