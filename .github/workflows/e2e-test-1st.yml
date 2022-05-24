@@ -1,7 +1,7 @@
 name: e2e-test-1st
 on: [push]
 jobs:
-  client-integration-tests:
+  e2e-test-1st:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -70,6 +70,10 @@ jobs:
     - name: build typescript
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       run: npm run lerna:tsc
+
+    - name: Docker cache
+      uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
 
     - name: Build docker image
       run: docker-compose --file config/integration/docker-compose.integration.yml build
