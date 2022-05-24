@@ -21,4 +21,4 @@ jobs:
       run: docker-compose --file config/integration/docker-compose.integration.yml build
 
     - name: Run integration tests
-      run: npm run node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/68-secrets.test.ts test/e2e/bootstrap-nodes.test.ts test/e2e/db-the-same.test.ts test/e2e/double-spend-attack.test.ts
+      run: npm run test:e2e:1st

@@ -21,6 +21,7 @@
     "test:integration:orm": "node_modules/jest/bin/jest.js --ci --verbose --maxWorkers 5 test/integration/orm",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",
     "test:e2e": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e",
+    "test:e2e:1st": "node_modules/jest/bin/jest.js --ci --runInBand --verbose --ci --runInBand --verbose test/e2e/68-secrets.test.ts test/e2e/bootstrap-nodes.test.ts test/e2e/db-the-same.test.ts test/e2e/double-spend-attack.test.ts",
     "benchmark": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/benchmark",
     "tslint": "tslint --fix --config tslint.json  --project tsconfig.json",
     "tslint-check": "tslint-config-prettier-check ./tslint.json",
