@@ -25,5 +25,5 @@ jobs:
     - name: Build docker image
       run: docker-compose --file config/integration/docker-compose.integration.yml build
 
-    - name: Run e2e-68-secrets
-      run: npm run test:e2e:e2e-68-secrets
+    - name: Run e2e-double-spend-attack
+      run: npm run test:e2e:double-spend-attack

@@ -26,4 +26,4 @@ jobs:
       run: docker-compose --file config/integration/docker-compose.integration.yml build
 
     - name: Run e2e-sync-later-not-from-0
-      run: npm run test:e2e:e2e-sync-later-not-from-0
+      run: npm run test:e2e:sync-later-not-from-0
