@@ -23,7 +23,8 @@ async function getGNYBalance(port: number, account: string) {
   const { data } = await axios.get(
     `http://localhost:${port}/api/accounts?address=${account}`
   );
-  return data.account.balance as string;
+  console.log(`data: ${JSON.stringify(data, null, 2)}`);
+  return data.gny as string;
 }
 
 async function assertBalanceOnNodes(
