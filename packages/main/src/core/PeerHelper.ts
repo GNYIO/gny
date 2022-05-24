@@ -1,11 +1,4 @@
-import {
-  V1_NEW_BLOCK_PROTOCOL,
-  V1_VOTES,
-  V1_COMMON_BLOCK,
-  V1_GET_HEIGHT,
-  V1_BLOCKS,
-  SimplePushTypeCallback,
-} from '@gny/p2p';
+import { SimplePushTypeCallback } from '@gny/p2p';
 import { StateHelper } from './StateHelper';
 import {
   ApiResult,
@@ -58,7 +51,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 
     const resultRaw = await bundle.directRequest(
       peerId,
-      V1_NEW_BLOCK_PROTOCOL,
+      global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
       data
     );
 
@@ -149,7 +142,10 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   };
 
   bundle.requestBlockAndVotes = request;
-  bundle.directResponse(V1_NEW_BLOCK_PROTOCOL, response);
+  bundle.directResponse(
+    global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
+    response
+  );
 }
 
 function V1_VOTES_HANDLER(bundle) {
@@ -162,7 +158,7 @@ function V1_VOTES_HANDLER(bundle) {
     };
 
     const data = uint8ArrayFromString(JSON.stringify(before));
-    await bundle.pushOnly(peerId, V1_VOTES, data);
+    await bundle.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
   };
 
   // not duplex
@@ -216,7 +212,7 @@ function V1_VOTES_HANDLER(bundle) {
   };
 
   bundle.pushVotesToPeer = request;
-  bundle.handlePushOnly(V1_VOTES, response);
+  bundle.handlePushOnly(global.Config.p2pConfig.V1_VOTES, response);
 }
 
 function V1_COMMON_BLOCK_HANDLER(bundle) {
@@ -227,7 +223,11 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
   ): Promise<CommonBlockResult> => {
     const data = uint8ArrayFromString(JSON.stringify(commonBlockParams));
 
-    const resultRaw = await bundle.directRequest(peerId, V1_COMMON_BLOCK, data);
+    const resultRaw = await bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_COMMON_BLOCK,
+      data
+    );
     const result: CommonBlockResult = JSON.parse(uint8ArrayToString(resultRaw));
 
     return result;
@@ -285,7 +285,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
   };
 
   bundle.requestCommonBlock = request;
-  bundle.directResponse(V1_COMMON_BLOCK, response);
+  bundle.directResponse(global.Config.p2pConfig.V1_COMMON_BLOCK, response);
 }
 
 function V1_GET_HEIGH_HANDLER(bundle) {
@@ -299,7 +299,11 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     };
     const data = uint8ArrayFromString(JSON.stringify(raw));
 
-    const resultRaw = await bundle.directRequest(peerId, V1_GET_HEIGHT, data);
+    const resultRaw = await bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_HEIGHT,
+      data
+    );
     const result: HeightWrapper = JSON.parse(resultRaw.toString());
 
     if (!isHeightWrapper(result)) {
@@ -340,7 +344,7 @@ function V1_GET_HEIGH_HANDLER(bundle) {
   };
 
   bundle.requestHeight = request;
-  bundle.directResponse(V1_GET_HEIGHT, response);
+  bundle.directResponse(global.Config.p2pConfig.V1_GET_HEIGHT, response);
 }
 
 function V1_BLOCKS_HANDLER(bundle) {
@@ -355,7 +359,11 @@ function V1_BLOCKS_HANDLER(bundle) {
     };
     const data = JSON.stringify(raw);
 
-    const resultRaw = await bundle.directRequest(peerId, V1_BLOCKS, data);
+    const resultRaw = await bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_BLOCKS,
+      data
+    );
 
     const result: IBlock[] = JSON.parse(resultRaw.toString());
     return result;
@@ -447,7 +455,7 @@ function V1_BLOCKS_HANDLER(bundle) {
   };
 
   bundle.requestBlocks = request;
-  bundle.directResponse(V1_BLOCKS, response);
+  bundle.directResponse(global.Config.p2pConfig.V1_BLOCKS, response);
 }
 
 export function attachDirectP2PCommunication(bundle) {

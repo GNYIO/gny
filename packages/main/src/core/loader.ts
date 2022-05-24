@@ -5,7 +5,6 @@ import Peer from './peer';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
-import { P2P_VERSION } from '@gny/p2p';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocks(
