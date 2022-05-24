@@ -1,0 +1,29 @@
+name: e2e-network-stuck
+on: [push]
+jobs:
+  e2e-network-stuck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '12.22.6'
+
+    - name: install lerna
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts
+
+    - name: build typescript
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm run lerna:tsc
+
+    - name: Docker cache
+      uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
+
+    - name: Build docker image
+      run: docker-compose --file config/integration/docker-compose.integration.yml build
+
+    - name: Run e2e-network-stuck
+      run: npm run test:e2e:e2e-network-stuck
