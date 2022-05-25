@@ -112,8 +112,25 @@ function main() {
     appConfig.magic = network.hash;
   }
 
-  // port, default 4096
-  appConfig.port = program.port || process.env['GNY_PORT'] || 4096;
+  let networkPort = 0;
+  switch (appConfig.netVersion) {
+    case 'mainnet':
+      networkPort = 8192;
+      break;
+    case 'testnet':
+      networkPort = 4096;
+      break;
+    case 'localnet':
+      networkPort = 4096;
+      break;
+    case 'custom':
+      networkPort = 4096;
+      break;
+    default:
+      networkPort = 4096;
+  }
+
+  appConfig.port = process.env['GNY_PORT'] || networkPort;
   appConfig.port = Number(appConfig.port);
 
   // peerPort
