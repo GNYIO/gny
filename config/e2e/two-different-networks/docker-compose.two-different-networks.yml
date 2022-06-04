@@ -53,7 +53,9 @@ services:
     command: bash -c 'sleep 10s; node packages/main/dist/src/app --config "config/e2e/two-different-networks/node1.json"'
     environment:
       - NODE_ENV=production
-      - GNY_NETWORK=localnet # first node is localnet
+      - GNY_NETWORK=custom # first node is another custom genesisBlock
+      - GNY_GENESISBLOCK=config/e2e/two-different-networks/genesisBlock.node1.json
+      - GNY_GENESISBLOCK_MAGIC=aaaaaaaa # different magic
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -94,7 +96,9 @@ services:
     command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/two-different-networks/node2.json"'
     environment:
       - NODE_ENV=production
-      - GNY_NETWORK=testnet # second node is testnet
+      - GNY_NETWORK=custom # second node is another custom genesisBlock
+      - GNY_GENESISBLOCK=config/e2e/two-different-networks/genesisBlock.node2.json
+      - GNY_GENESISBLOCK_MAGIC=bbbbbbbb # different magic
       - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces

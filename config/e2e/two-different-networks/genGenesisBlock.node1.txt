@@ -1,21 +1,15 @@
-
+genesis account:
 {
-  "port": 4096,
-  "address": "0.0.0.0",
-  "publicIp": "0.0.0.0",
-  "logLevel": "debug",
-  "magic": "594fe0f3",
-  "api": {
-    "access": {
-      "whiteList": []
-    }
+  "keypair": {
+    "privateKey": "04162c45cf8a9e5d69a1c9d0d608d81183f3d9da145d50a8a7c60564d327f6509bba373c32afce90537231859d2dda8e00771752e870b960fa1fdc57c7bc3827",
+    "publicKey": "9bba373c32afce90537231859d2dda8e00771752e870b960fa1fdc57c7bc3827"
   },
-  "peers": {
-    "bootstrap": []
-  },
-  "forging": {
-    "secret": [
-      "endorse call hockey anger analyst idle owner repeat trade number confirm box",
+  "address": "G3tiC57AQnPrDLEcg4Lsft4r2wu8P",
+  "secret": "auto reform emerge chimney crush repair budget month proof comic melt explain"
+}
+delegates secrets:
+[
+  "endorse call hockey anger analyst idle owner repeat trade number confirm box",
   "better stove fortune summer dirt sauce whale weapon glance travel swamp manage",
   "inside ready oblige clap omit also interest steel ritual album skin roast",
   "regret cereal tissue keen spray stairs march load melt enroll first absorb",
@@ -82,23 +76,38 @@
   "fossil enact face face forward any negative return nephew dizzy affair magnet",
   "genuine shoe stick frog wise cliff protect wreck donkey wedding soccer curious",
   "aspect ticket there kiss advice glove job arena hospital lottery vacuum humble",
-  "time winner toast armor more link outdoor answer slice biology sister wage"
-
-    ],
-    "access": {
-      "whiteList": [
-        "127.0.0.1",
-        "172.20.0.1"
-      ]
-    }
-  },
-  "ssl": {
-    "enabled": false,
-    "options": {
-      "port": 443,
-      "address": "0.0.0.0",
-      "key": "./ssl/server.key",
-      "cert": "./ssl/server.crt"
-    }
-  }
-}
+  "time winner toast armor more link outdoor answer slice biology sister wage",
+  "agent horn old galaxy target fiction bleak either thumb ski reflect hurt",
+  "torch put grid dinosaur error throw throw moment spring twenty cricket dignity",
+  "cloth absorb sibling snake heavy broken output agent letter quantum electric ghost",
+  "dog permit whisper sauce wolf video trim sheriff leisure remain tourist priority",
+  "mesh garment better electric zebra buzz plate long attend gadget holiday one",
+  "juice lend swift wrist home tribe planet force where local offer pulse",
+  "survey black knee divorce biology fiction certain latin note reduce drift equip",
+  "ridge flat eager village speed review climb glue snake discover visit help",
+  "pistol inspire enough husband fringe exact alley dress clump garbage soda enjoy",
+  "amateur mixture ozone fuel exclude melody limb throw pupil ranch bottom coil",
+  "subject mistake multiply client hollow price orphan way rug voyage auto actual",
+  "note august era snow write rival all grape derive argue expand bridge",
+  "aerobic extend surprise chapter rally reveal satoshi bind frown alone cry either",
+  "surprise skin crew melt staff damage fossil dolphin genre edit tag task",
+  "reason mercy script unfold music area title diesel bundle desk kick hour",
+  "home pill board because square check lazy defy whip ten cross evil",
+  "awake daughter simple stamp autumn mix student purchase knife chicken easily screen",
+  "fluid join frame birth party argue vessel sense noise lucky element order",
+  "issue escape poet rigid impulse venue spice cage slide scrub mechanic inmate",
+  "ethics quarter rose sister network tool pet easily proud flee cabbage raw",
+  "teach kid harbor wood clap problem guide solid motion medal angle evil",
+  "liar avocado whale begin security impose patch rigid spot lonely excite praise",
+  "captain also decade awful post lucky picnic turn roast cook cat stick",
+  "rich explain govern drift midnight equal soon sustain any need search scene",
+  "wash attract hood trim case proof work act game picnic wave oval",
+  "lava cash filter again grab game join gun barely annual street diary",
+  "minimum myself stumble bridge void goose panic similar thank twice decorate play",
+  "end mansion scout cart diamond canvas nominee bike admit know candy fitness",
+  "spoon device enemy climb soon frame arrange silly speed gentle orchard ozone",
+  "sweet prefer unfair citizen heart taste fade leg original glory castle word",
+  "jelly treat aspect citizen task fringe name pole glare improve number panda",
+  "permit ability differ donate exotic claw better strong weather sad atom unknown",
+  "addict lonely fatigue sing matter learn tank shrimp impact catch unable time"
+]
