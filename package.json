@@ -34,6 +34,7 @@
     "test:e2e:sync-later": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-later.test.ts",
     "test:e2e:sync-only": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-only.test.ts",
     "test:e2e:sync-to-stuck-network": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-to-stuck-network.test.ts",
+    "test:e2e:two-different-networks": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/two-different-networks.test.ts",
     "test:e2e:two-genesis-blocks": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/two-genesis-blocks.test.ts",
     "test:e2e:unconfirmed-trs": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/unconfirmed-trs.test.ts",
     "benchmark": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/benchmark",
