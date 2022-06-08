@@ -11,6 +11,7 @@ export function createPeer2PeerHandlers(
     V1_COMMON_BLOCK: `/${network}/${protocol}/commonBlock`,
     V1_GET_HEIGHT: `/${network}/${protocol}/getHeight`,
     V1_BLOCKS: `/${network}/${protocol}/blocks`,
+    V1_HELLO: `/${network}/${protocol}/hello`,
     V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/broadcast/newBlockHeader`,
     V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/broadcast/transaction`,
     V1_BROADCAST_PROPOSE: `/${network}/${protocol}/broadcast/propose`,
