@@ -2,21 +2,23 @@ import { NetworkType, IPeer2PeerHandlers } from '@gny/interfaces';
 
 export function createPeer2PeerHandlers(
   protocol: string,
-  network: NetworkType
+  network: NetworkType,
+  partialGenesisId: string
 ): IPeer2PeerHandlers {
   const peer2peerHandlers: IPeer2PeerHandlers = {
     P2P_VERSION: protocol,
-    V1_NEW_BLOCK_PROTOCOL: `/${network}/${protocol}/newBlock`,
-    V1_VOTES: `/${network}/${protocol}/votes`,
-    V1_COMMON_BLOCK: `/${network}/${protocol}/commonBlock`,
-    V1_GET_HEIGHT: `/${network}/${protocol}/getHeight`,
-    V1_BLOCKS: `/${network}/${protocol}/blocks`,
-    V1_HELLO: `/${network}/${protocol}/hello`,
-    V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/broadcast/newBlockHeader`,
-    V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/broadcast/transaction`,
-    V1_BROADCAST_PROPOSE: `/${network}/${protocol}/broadcast/propose`,
-    V1_BROADCAST_NEW_MEMBER: `/${network}/${protocol}/broadcast/newMember`,
-    V1_BROADCAST_SELF: `/${network}/${protocol}/broadcast/self`,
+    P2P_PARTIAL_GENESIS_ID: partialGenesisId,
+    V1_NEW_BLOCK_PROTOCOL: `/${network}/${protocol}/${partialGenesisId}/newBlock`,
+    V1_VOTES: `/${network}/${protocol}/${partialGenesisId}/votes`,
+    V1_COMMON_BLOCK: `/${network}/${protocol}/${partialGenesisId}/commonBlock`,
+    V1_GET_HEIGHT: `/${network}/${protocol}/${partialGenesisId}/getHeight`,
+    V1_BLOCKS: `/${network}/${protocol}/${partialGenesisId}/blocks`,
+    V1_HELLO: `/${network}/${protocol}/${partialGenesisId}/hello`,
+    V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newBlockHeader`,
+    V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/${partialGenesisId}/broadcast//transaction`,
+    V1_BROADCAST_PROPOSE: `/${network}/${protocol}/${partialGenesisId}/broadcast//propose`,
+    V1_BROADCAST_NEW_MEMBER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newMember`,
+    V1_BROADCAST_SELF: `/${network}/${protocol}/${partialGenesisId}/broadcast/self`,
   };
   return peer2peerHandlers;
 }

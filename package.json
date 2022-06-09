@@ -24,7 +24,6 @@
     "test:e2e:68-secrets": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/68-secrets.test.ts",
     "test:e2e:bootstrap-nodes": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/bootstrap-nodes.test.ts",
     "test:e2e:db-the-same": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/db-the-same.test.ts",
-    "test:e2e:different-networks": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/different-networks.test.ts",
     "test:e2e:double-spend-attack": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/double-spend-attack.test.ts",
     "test:e2e:fast-connect-to-network": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/fast-connect-to-network.test.ts",
     "test:e2e:network-stuck": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-stuck.test.ts",
