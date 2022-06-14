@@ -131,6 +131,7 @@ type ILogLevel =
 
 export interface IPeer2PeerHandlers {
   P2P_VERSION: string;
+  P2P_PARTIAL_GENESIS_ID: string;
   V1_NEW_BLOCK_PROTOCOL: string;
   V1_VOTES: string;
   V1_COMMON_BLOCK: string;

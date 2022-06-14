@@ -31,6 +31,7 @@ export default class PeerApi implements IHttpApi {
     });
 
     router.get('/', this.getPeers);
+    router.get('/connections', this.getConnections);
     router.get('/info', this.info);
     router.get('/version', this.version);
 
@@ -48,6 +49,11 @@ export default class PeerApi implements IHttpApi {
 
       return res.status(500).send({ success: false, error: err.toString() });
     });
+  };
+
+  private getConnections = (req: Request, res: Response, next: Next) => {
+    const peers = Peer.p2p.getAllConnections();
+    return res.json(peers);
   };
 
   private getPeers = (req: Request, res: Response, next: Next) => {

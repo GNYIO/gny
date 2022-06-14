@@ -60,6 +60,17 @@ class Bundle extends Libp2p {
     this.p2pConfig = p2pConfig;
   }
 
+  getAllConnections() {
+    const connections = Array.from(this.connections.values());
+
+    const result = connections.flat().map(x => JSON.parse(JSON.stringify(x)));
+
+    for (let i = 0; i < result.length; ++i) {
+      delete result[i].localPeer;
+    }
+    return result;
+  }
+
   getAllConnectedPeersPeerInfo() {
     const connections = Array.from(this.connections.keys());
     if (connections.length === 0) {
