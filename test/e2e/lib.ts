@@ -62,6 +62,28 @@ export async function waitForLoaded(port: number) {
   }
 }
 
+/**
+ * This function finishes when the height of the node is >= 0
+ * Very similar to function "waitForLoaded"
+ * @param port of the node
+ */
+export async function waitForLoadedHeightZeroAllowed(port: number) {
+  let loaded = false;
+  while (loaded === false) {
+    console.log(`wait for ${port} (${Date.now()})`);
+    try {
+      const height = await getHeight(port);
+      if (
+        typeof height === 'string' &&
+        new BigNumber(height).isGreaterThanOrEqualTo(0)
+      ) {
+        loaded = true;
+      }
+    } catch (err) {}
+    await sleep(1000);
+  }
+}
+
 export async function onNetworkDown(port: number) {
   function isNetworkError(err) {
     return !!err.isAxiosError && !err.response;
@@ -150,6 +172,24 @@ export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
   await sleep(10 * 1000);
 
   const waitForAllContainers = ports.map(x => waitForLoaded(x));
+  await Promise.all(waitForAllContainers);
+}
+
+export async function spawnP2PContainersHeightZeroAllowed(
+  configFile?: string,
+  ports = [4096]
+) {
+  // await dockerCompose
+  await dockerCompose.upAll({
+    cwd: process.cwd(),
+    log: true,
+    config: configFile,
+  });
+  await sleep(10 * 1000);
+
+  const waitForAllContainers = ports.map(x =>
+    waitForLoadedHeightZeroAllowed(x)
+  );
   await Promise.all(waitForAllContainers);
 }
 

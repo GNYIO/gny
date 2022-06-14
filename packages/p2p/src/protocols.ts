@@ -1,13 +1,23 @@
-export const P2P_VERSION = 'v2.5';
+import { NetworkType, IPeer2PeerHandlers } from '@gny/interfaces';
 
-export const V1_NEW_BLOCK_PROTOCOL = `/${P2P_VERSION}/newBlock`;
-export const V1_VOTES = `/${P2P_VERSION}/votes`;
-export const V1_COMMON_BLOCK = `/${P2P_VERSION}/commonBlock`;
-export const V1_GET_HEIGHT = `/${P2P_VERSION}/getHeight`;
-export const V1_BLOCKS = `/${P2P_VERSION}/blocks`;
-
-export const V1_BROADCAST_NEW_BLOCK_HEADER = `/${P2P_VERSION}/broadcast/newBlockHeader`;
-export const V1_BROADCAST_TRANSACTION = `/${P2P_VERSION}/broadcast/transaction`;
-export const V1_BROADCAST_PROPOSE = `/${P2P_VERSION}/broadcast/propose`;
-export const V1_BROADCAST_NEW_MEMBER = `/${P2P_VERSION}/broadcast/newMember`;
-export const V1_BROADCAST_SELF = `/${P2P_VERSION}/broadcast/self`;
+export function createPeer2PeerHandlers(
+  protocol: string,
+  network: NetworkType,
+  partialGenesisId: string
+): IPeer2PeerHandlers {
+  const peer2peerHandlers: IPeer2PeerHandlers = {
+    P2P_VERSION: protocol,
+    P2P_PARTIAL_GENESIS_ID: partialGenesisId,
+    V1_NEW_BLOCK_PROTOCOL: `/${network}/${protocol}/${partialGenesisId}/newBlock`,
+    V1_VOTES: `/${network}/${protocol}/${partialGenesisId}/votes`,
+    V1_COMMON_BLOCK: `/${network}/${protocol}/${partialGenesisId}/commonBlock`,
+    V1_GET_HEIGHT: `/${network}/${protocol}/${partialGenesisId}/getHeight`,
+    V1_BLOCKS: `/${network}/${protocol}/${partialGenesisId}/blocks`,
+    V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newBlockHeader`,
+    V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/${partialGenesisId}/broadcast//transaction`,
+    V1_BROADCAST_PROPOSE: `/${network}/${protocol}/${partialGenesisId}/broadcast//propose`,
+    V1_BROADCAST_NEW_MEMBER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newMember`,
+    V1_BROADCAST_SELF: `/${network}/${protocol}/${partialGenesisId}/broadcast/self`,
+  };
+  return peer2peerHandlers;
+}

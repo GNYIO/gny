@@ -8,8 +8,8 @@ import Application from './index';
 import * as packageJson from '../package.json';
 import { IConfig, IBlock } from '@gny/interfaces';
 import * as ip from 'ip';
-import { P2P_VERSION } from '@gny/p2p';
 import { getConfig } from '@gny/network';
+import { createPeer2PeerHandlers } from '@gny/p2p';
 
 const version = packageJson.version;
 
@@ -112,8 +112,25 @@ function main() {
     appConfig.magic = network.hash;
   }
 
-  // port, default 4096
-  appConfig.port = program.port || process.env['GNY_PORT'] || 4096;
+  let networkPort = 0;
+  switch (appConfig.netVersion) {
+    case 'mainnet':
+      networkPort = 8192;
+      break;
+    case 'testnet':
+      networkPort = 4096;
+      break;
+    case 'localnet':
+      networkPort = 4096;
+      break;
+    case 'custom':
+      networkPort = 4096;
+      break;
+    default:
+      networkPort = 4096;
+  }
+
+  appConfig.port = process.env['GNY_PORT'] || networkPort;
   appConfig.port = Number(appConfig.port);
 
   // peerPort
@@ -200,6 +217,14 @@ function main() {
     appConfig.netVersion
   );
 
+  const p2pConfig = createPeer2PeerHandlers(
+    'v2.6',
+    appConfig.netVersion,
+    genesisBlock.id.slice(0, 8)
+  );
+  appConfig.p2pConfig = p2pConfig;
+  console.log(`[p2p] ${JSON.stringify(p2pConfig, null, 2)}`);
+
   // tracer
   const tracer = initTracer(
     appConfig.publicIp,
@@ -207,7 +232,7 @@ function main() {
     version,
     appConfig.magic,
     appConfig.netVersion,
-    P2P_VERSION,
+    p2pConfig.protocol,
     logger
   );
 

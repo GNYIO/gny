@@ -1,13 +1,6 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
-import {
-  create,
-  V1_BROADCAST_NEW_BLOCK_HEADER,
-  V1_BROADCAST_TRANSACTION,
-  V1_BROADCAST_PROPOSE,
-  V1_BROADCAST_NEW_MEMBER,
-  V1_BROADCAST_SELF,
-} from '@gny/p2p';
+import { create } from '@gny/p2p';
 import { PeerNode, ICoreModule, P2PPeerIdAndMultiaddr } from '@gny/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper';
@@ -116,7 +109,8 @@ export default class Peer implements ICoreModule {
       global.library.config.publicIp,
       global.library.config.peerPort,
       bootstrapNode,
-      global.library.logger
+      global.library.logger,
+      global.Config.p2pConfig
     );
     Peer.p2p = wrapper;
     attachDirectP2PCommunication(Peer.p2p);
@@ -148,25 +142,42 @@ export default class Peer implements ICoreModule {
     startUpSpan.finish();
 
     Peer.p2p.pubsub.on(
-      V1_BROADCAST_NEW_BLOCK_HEADER,
+      global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
       Transport.receivePeer_NewBlockHeader
     );
-    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_BLOCK_HEADER);
-
-    Peer.p2p.pubsub.on(V1_BROADCAST_PROPOSE, Transport.receivePeer_Propose);
-    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_PROPOSE);
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER
+    );
 
     Peer.p2p.pubsub.on(
-      V1_BROADCAST_TRANSACTION,
+      global.Config.p2pConfig.V1_BROADCAST_PROPOSE,
+      Transport.receivePeer_Propose
+    );
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_BROADCAST_PROPOSE
+    );
+
+    Peer.p2p.pubsub.on(
+      global.Config.p2pConfig.V1_BROADCAST_TRANSACTION,
       Transport.receivePeer_Transaction
     );
-    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_TRANSACTION);
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_BROADCAST_TRANSACTION
+    );
 
-    Peer.p2p.pubsub.on(V1_BROADCAST_NEW_MEMBER, Transport.receiveNew_Member);
-    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_NEW_MEMBER);
+    Peer.p2p.pubsub.on(
+      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER,
+      Transport.receiveNew_Member
+    );
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER
+    );
 
-    Peer.p2p.pubsub.on(V1_BROADCAST_SELF, Transport.receiveSelf);
-    await Peer.p2p.pubsub.subscribe(V1_BROADCAST_SELF);
+    Peer.p2p.pubsub.on(
+      global.Config.p2pConfig.V1_BROADCAST_SELF,
+      Transport.receiveSelf
+    );
+    await Peer.p2p.pubsub.subscribe(global.Config.p2pConfig.V1_BROADCAST_SELF);
 
     await sleep(2 * 1000);
 

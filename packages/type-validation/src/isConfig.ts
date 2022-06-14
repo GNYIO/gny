@@ -97,6 +97,26 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .string()
         .uri()
         .required(),
+      p2pConfig: joi
+        .object()
+        .keys({
+          P2P_VERSION: joi
+            .string()
+            .regex(new RegExp(/^v[0-9]+.[0-9]+$/))
+            .required(),
+          P2P_PARTIAL_GENESIS_ID: joi.string().required(),
+          V1_NEW_BLOCK_PROTOCOL: joi.string().required(),
+          V1_VOTES: joi.string().required(),
+          V1_COMMON_BLOCK: joi.string().required(),
+          V1_GET_HEIGHT: joi.string().required(),
+          V1_BLOCKS: joi.string().required(),
+          V1_BROADCAST_NEW_BLOCK_HEADER: joi.string().required(),
+          V1_BROADCAST_TRANSACTION: joi.string().required(),
+          V1_BROADCAST_PROPOSE: joi.string().required(),
+          V1_BROADCAST_NEW_MEMBER: joi.string().required(),
+          V1_BROADCAST_SELF: joi.string().required(),
+        })
+        .required(),
     })
     .required();
 

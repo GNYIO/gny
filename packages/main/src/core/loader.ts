@@ -6,7 +6,6 @@ import Peer from './peer';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
-import { textSpanContainsPosition } from 'typescript';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocks(

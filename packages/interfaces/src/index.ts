@@ -129,6 +129,21 @@ type ILogLevel =
   | 'error'
   | 'fatal';
 
+export interface IPeer2PeerHandlers {
+  P2P_VERSION: string;
+  P2P_PARTIAL_GENESIS_ID: string;
+  V1_NEW_BLOCK_PROTOCOL: string;
+  V1_VOTES: string;
+  V1_COMMON_BLOCK: string;
+  V1_GET_HEIGHT: string;
+  V1_BLOCKS: string;
+  V1_BROADCAST_NEW_BLOCK_HEADER: string;
+  V1_BROADCAST_TRANSACTION: string;
+  V1_BROADCAST_PROPOSE: string;
+  V1_BROADCAST_NEW_MEMBER: string;
+  V1_BROADCAST_SELF: string;
+}
+
 export interface IConfig {
   version: string;
   magic: string;
@@ -171,6 +186,7 @@ export interface IConfig {
   nodeAction: string;
   jaegerHost: string;
   lokiHost: string;
+  p2pConfig: IPeer2PeerHandlers;
 }
 
 export interface KeyPairsIndexer {
