@@ -13,7 +13,6 @@ export function createPeer2PeerHandlers(
     V1_COMMON_BLOCK: `/${network}/${protocol}/${partialGenesisId}/commonBlock`,
     V1_GET_HEIGHT: `/${network}/${protocol}/${partialGenesisId}/getHeight`,
     V1_BLOCKS: `/${network}/${protocol}/${partialGenesisId}/blocks`,
-    V1_HELLO: `/${network}/${protocol}/${partialGenesisId}/hello`,
     V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newBlockHeader`,
     V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/${partialGenesisId}/broadcast//transaction`,
     V1_BROADCAST_PROPOSE: `/${network}/${protocol}/${partialGenesisId}/broadcast//propose`,

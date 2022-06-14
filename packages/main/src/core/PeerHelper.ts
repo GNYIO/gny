@@ -13,7 +13,6 @@ import {
   BlocksWrapper,
   BlocksWrapperParams,
   BufferList,
-  ISerializedSpanContext,
 } from '@gny/interfaces';
 import {
   isCommonBlockParams,
@@ -459,54 +458,10 @@ function V1_BLOCKS_HANDLER(bundle) {
   bundle.directResponse(global.Config.p2pConfig.V1_BLOCKS, response);
 }
 
-function V1_HELLO_HANDLER(bundle) {
-  const request = async (peerId: PeerId, span: ISpan): Promise<boolean> => {
-    const raw: ISerializedSpanContext = serializedSpanContext(
-      global.library.tracer,
-      span.context()
-    );
-
-    const data = JSON.stringify(raw);
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_HELLO,
-      data
-    );
-
-    const result: boolean = JSON.parse(resultRaw.toString());
-    return result;
-  };
-
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = msg;
-      break;
-    }
-
-    const parentSpanRaw: ISerializedSpanContext = JSON.parse(temp.toString());
-    const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
-      parentSpanRaw
-    );
-    const span = global.library.tracer.startSpan('receive hello', {
-      childOf: parentContext,
-    });
-    span.finish();
-
-    return [uint8ArrayFromString(JSON.stringify(true))];
-  };
-
-  bundle.requestHello = request;
-  bundle.directResponse(global.Config.p2pConfig.V1_HELLO, response);
-}
-
 export function attachDirectP2PCommunication(bundle) {
   V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
   // V1_COMMON_BLOCK_HANDLER(bundle);
   V1_GET_HEIGH_HANDLER(bundle);
   V1_BLOCKS_HANDLER(bundle);
-  V1_HELLO_HANDLER(bundle);
 }

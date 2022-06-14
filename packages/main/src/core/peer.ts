@@ -181,6 +181,22 @@ export default class Peer implements ICoreModule {
 
     await sleep(2 * 1000);
 
+    setInterval(async () => {
+      // announce every x seconds yourself to the network
+      const m = Peer.p2p.addressManager
+        .getAnnounceAddrs()
+        .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
+        .map(x => x.toString());
+
+      const raw: P2PPeerIdAndMultiaddr = {
+        peerId: Peer.p2p.peerId.toB58String(),
+        multiaddr: m,
+      };
+
+      const converted = uint8ArrayFromString(JSON.stringify(raw));
+      await Peer.p2p.broadcastSelf(converted);
+    }, 20 * 1000);
+
     // sync to highest node, especially when the whole network is stuck
     let lastHeight = String(0);
     setInterval(async () => {
@@ -207,116 +223,50 @@ export default class Peer implements ICoreModule {
           return;
         }
 
-        const bootstrapSpan = global.library.tracer.startSpan('bootstrap span');
-
-        // go to all bootstrap peers
-        //   1. add peer to addressBook, otherwise we can't dial it
-        //   2. requestHello (check if is on same network)
-        //     if yes
-        //       continue with next peer
-        //     if no
-        //       hangUp on peer
-        //       delete peer from peerStore
-        //
         const multis = bootstrapNode.map(x => multiaddr(x));
-        for (let i = 0; i < multis.length; ++i) {
-          const oneSpan = global.library.tracer.startSpan('bootstrap one', {
-            childOf: bootstrapSpan.context(),
-          });
 
+        for (let i = 0; i < multis.length; ++i) {
           const m = multis[i];
           const peer = PeerId.createFromB58String(m.getPeerId());
 
-          global.library.logger.info(`[p2p] dial ${peer.toB58String()}`);
-          oneSpan.log({
-            dialingPeer: peer.toB58String(),
-          });
-
           // check if there are addresses for this peer saved
-          // otherwise dialing won't work
           const addresses = Peer.p2p.peerStore.addressBook.get(peer);
           if (!addresses) {
             Peer.p2p.peerStore.addressBook.set(peer, [m]);
-            global.library.logger.info('[p2p] add peer to addressBook');
-            oneSpan.log({
-              log1: 'add peer to addressBook',
-            });
           }
 
-          global.library.logger.info(
-            '[p2p] now we check if connection still valid by dialing protocol'
-          );
-          oneSpan.log({
-            log2: 'now we check if connection still valid by dialing protocol',
-          });
+          // 0. no need to check if already in peerStore (peer always in peerStore)
+          // 1. check if have connection
+          // yes, then return
+          // 2. if not, then dial
+          const connections = Array.from(Peer.p2p.connections.keys());
+          const inConnection = connections.find(x => x === peer.toB58String());
+          if (inConnection) {
+            continue; // for next remote peer
+          }
 
-          let success = true;
           try {
-            await Peer.p2p.requestHello(peer, oneSpan);
-            global.library.logger.info('[p2p] successfully dialed peer');
-            oneSpan.log({
-              log3: 'successfully dialed peer',
-            });
+            await Peer.p2p.dial(peer);
           } catch (err) {
-            global.library.logger.error(
-              '[p2p] error while trying to verify peer'
-            );
-            oneSpan.log({
-              errorLog: 'error while trying to verify peer',
-            });
-            global.library.logger.error(`[p2p] err: ${err}`);
-            oneSpan.log({
-              err,
-            });
-            oneSpan.setTag('error', true);
-            success = false;
+            continue; // for next remote peer
           }
 
-          // hangup on Peer
-          if (success === false) {
-            try {
-              global.library.logger.info('[p2p] we are hangingUp on peer...');
-              oneSpan.log({
-                log4: 'we are hangingUp on peer...',
-              });
-              await Peer.p2p.hangUp(peer);
-              global.library.logger.info('[p2p] hangUp worked');
-              oneSpan.log({
-                log5: 'hangUp worked',
-              });
-            } catch (err) {
-              global.library.logger.error('[p2p] hangingUp did not work');
-              oneSpan.log({
-                logErr: 'hangingUp did not work',
-              });
-              global.library.logger.error(`[p2p] err: ${err}`);
-              oneSpan.log({
-                err: err,
-              });
-            }
-
+          try {
+            const raw: P2PPeerIdAndMultiaddr = {
+              peerId: peer.toB58String(),
+              multiaddr: [m.toString()],
+            };
+            const data = uint8ArrayFromString(JSON.stringify(raw));
+            await Peer.p2p.broadcastNewMember(data);
+          } catch (err) {
             global.library.logger.info(
-              '[p2p] going to remove peer from peerStore'
+              `[p2p][bootsrap] failed to announce peer "${peer.id}", error: ${
+                err.message
+              }`
             );
-            oneSpan.log({
-              log5: 'going to remove peer from peerStore',
-            });
-            Peer.p2p.peerStore.delete(peer);
-          } else {
-            global.library.logger.info('[p2p] the peer stays in peerStore');
-            oneSpan.log({
-              log6: 'the peer stays in peerStore',
-            });
           }
-
-          global.library.logger.info(
-            '[p2p] finished bootstrapSpan for one peer'
-          );
-          oneSpan.finish();
         }
-
-        bootstrapSpan.finish();
-      }, 10 * 1000);
+      }, 5 * 1000);
     }
   };
 
