@@ -42,7 +42,6 @@ import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
-import { isBlockWithoutTransactions } from '@gny/type-validation';
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -50,83 +49,6 @@ const blockReward = new BlockReward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks implements ICoreModule {
-  public static async getIdSequence2(
-    height: string,
-    getBlocksByHeightRange: (min: string, max: string) => Promise<Block[]>
-  ) {
-    try {
-      const maxHeight = height;
-      const minHeight = BigNumber.maximum(
-        0,
-        new BigNumber(maxHeight).minus(4).toFixed()
-      ).toFixed();
-      let blocks = await getBlocksByHeightRange(minHeight, maxHeight);
-      blocks = blocks.reverse();
-      const ids = blocks.map(b => b.id);
-      const result: CommonBlockParams = {
-        ids,
-        min: minHeight,
-        max: maxHeight,
-      };
-      return result;
-    } catch (e) {
-      throw new Error('getIdSequence2 failed');
-    }
-  }
-
-  // todo look at core/loader
-  public static getCommonBlock = async (
-    peer: PeerId,
-    lastBlockHeight: string,
-    parentSpan: ISpan
-  ): Promise<IBlock> => {
-    const params: CommonBlockParams = await Blocks.getIdSequence2(
-      lastBlockHeight,
-      global.app.sdb.getBlocksByHeightRange
-    );
-
-    const span = global.app.tracer.startSpan('get commonBlock', {
-      childOf: parentSpan.context(),
-    });
-    span.log({
-      getCommonBlockParams: params,
-    });
-
-    let ret: IBlock;
-    try {
-      ret = await Peer.p2p.requestCommonBlock(peer, params, span);
-    } catch (err) {
-      span.setTag('error', true);
-      span.log({
-        value: `[p2p][commonBlock] error: ${err.message}`,
-      });
-      span.finish();
-
-      global.app.logger.info(`[p2p][commonBlock] error: ${err.message}`);
-      return null;
-    }
-
-    if (!isBlockWithoutTransactions(ret)) {
-      span.setTag('error', true);
-      span.log({
-        value: `[p2p][commonBlock] transactions failed`,
-        ret,
-      });
-      span.finish();
-      return null;
-    }
-
-    span.log({
-      value: 'requestCommonBlock finished successfully',
-    });
-    span.log({
-      commonBlock: ret,
-    });
-    span.finish();
-
-    return ret;
-  };
-
   public static verifyBlock = (
     state: IState,
     block: IBlock,
