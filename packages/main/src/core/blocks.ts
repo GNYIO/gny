@@ -89,7 +89,7 @@ export default class Blocks implements ICoreModule {
       childOf: parentSpan.context(),
     });
     span.log({
-      theParamsFor: params,
+      getCommonBlockParams: params,
     });
 
     let ret: IBlock;
@@ -103,6 +103,7 @@ export default class Blocks implements ICoreModule {
       span.finish();
 
       global.app.logger.info(`[p2p][commonBlock] error: ${err.message}`);
+      return null;
     }
 
     if (!isBlockWithoutTransactions(ret)) {

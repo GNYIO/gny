@@ -268,6 +268,10 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
       throw new Error('commonBlock params validation failed');
     }
 
+    span.log({
+      receivedCommonBlockParams: body,
+    });
+
     // prevent DDOS attack
     const difference = new BigNumber(body.max).minus(body.min).absoluteValue();
     if (difference.isGreaterThanOrEqualTo(10)) {
@@ -346,10 +350,17 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 function V1_GET_HEIGH_HANDLER(bundle) {
   const request = async (
     peerId: PeerId,
-    span: ISpan
+    parentSpan: ISpan
   ): Promise<HeightWrapper> => {
+    const heightSpan = global.library.tracer.startSpan('get height', {
+      childOf: parentSpan.context(),
+    });
+
     const raw: TracerWrapper<string> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(
+        global.library.tracer,
+        heightSpan.context()
+      ),
       data: 'no param',
     };
     const data = uint8ArrayFromString(JSON.stringify(raw));
@@ -362,8 +373,19 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     const result: HeightWrapper = JSON.parse(resultRaw.toString());
 
     if (!isHeightWrapper(result)) {
+      heightSpan.log({
+        log: '[p2p] validation for isHeightWrapper failed',
+        got: result,
+      });
+      heightSpan.setTag('error', true);
+      heightSpan.finish();
       throw new Error('[p2p] validation for isHeightWrapper failed');
     }
+
+    heightSpan.log({
+      result: result,
+    });
+    heightSpan.finish();
 
     return result;
   };

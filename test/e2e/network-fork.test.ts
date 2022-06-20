@@ -74,7 +74,7 @@ describe('network-fork', () => {
     await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile1, 'db1');
 
     const backupFile2 = 'config/e2e/network-fork/dump_height_11_node2.sql';
-    await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile1, 'db2');
+    await lib.restoreBackup(DOCKER_COMPOSE_P2P, backupFile2, 'db2');
 
     // start the rest of the containers
     await lib.spawnP2PContainersHeightZeroAllowed(DOCKER_COMPOSE_P2P, [
@@ -109,6 +109,10 @@ describe('network-fork', () => {
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
+      await lib.sleep(10 * 1000);
+
+      // confirm that node1 is > height 11
+      // confirm that node2 is = height 11
       const height1 = await lib.getHeight(4096);
       const height2 = await lib.getHeight(4098);
       console.log(`height1: ${height1}`);
@@ -116,6 +120,37 @@ describe('network-fork', () => {
 
       expect(new BigNumber(height1).isGreaterThan(11)).toEqual(true);
       expect(new BigNumber(height2).isEqualTo(11)).toEqual(true);
+
+      // check height 10
+      const node1_block10 = await lib.getBlock(4096, String(10));
+      const node2_block10 = await lib.getBlock(4098, String(10));
+
+      console.log(`node1(10): ${JSON.stringify(node1_block10, null, 2)}`);
+      console.log(`node2(10): ${JSON.stringify(node2_block10, null, 2)}`);
+
+      expect(node1_block10).toHaveProperty('id');
+      expect(node2_block10).toHaveProperty('id');
+      // show that block10 are on both nodes the same
+      expect(node1_block10.id).toEqual(node2_block10.id);
+
+      // check height 11
+      const node1_block11 = await lib.getBlock(4096, String(11));
+      const node2_block11 = await lib.getBlock(4098, String(11));
+
+      console.log(`node1(11): ${JSON.stringify(node1_block11, null, 2)}`);
+      console.log(`node2(11): ${JSON.stringify(node2_block11, null, 2)}`);
+
+      expect(node1_block11).toHaveProperty('id');
+      expect(node2_block11).toHaveProperty('id');
+      // show that height 11 are NOT the same on both nodes
+      expect(node1_block11.id).not.toEqual(node2_block11.id);
+
+      // sleep for 1 min
+      await lib.sleep(60 * 1000);
+
+      const height = await lib.getHeight(4098);
+      console.log(`node(4098) has height: ${height}`);
+      expect(new BigNumber(height).isGreaterThan(11)).toEqual(true);
 
       done();
     },

@@ -37,64 +37,76 @@ export default class Loader implements ICoreModule {
       const currentPeerInfo = allPeerInfos[i];
       const currentPeerId = PeerId.createFromB58String(currentPeerInfo.id.id);
 
-      const commonBlockSpan = global.library.tracer.startSpan(
+      // request commonBlock from peer
+      const collectInfoSpan = global.library.tracer.startSpan(
         'get information from peer',
         {
           childOf: parentSpan.context(),
         }
       );
-
-      const heightSpan = global.library.tracer.startSpan('get height', {
-        childOf: parentSpan.context(),
-      });
-
+      let commonBlock: IBlock = null;
       try {
-        const commonBlock = await Blocks.getCommonBlock(
+        commonBlock = await Blocks.getCommonBlock(
           currentPeerId,
           String(lastBlock.height),
-          commonBlockSpan
+          collectInfoSpan
         );
 
         if (commonBlock === null) {
-          commonBlockSpan.setTag('error', true);
-          commonBlockSpan.log({
+          collectInfoSpan.setTag('error', true);
+          collectInfoSpan.log({
             value: 'no common block found',
           });
-          commonBlockSpan.finish();
+          collectInfoSpan.finish();
           continue;
         }
 
-        const heightWrapper: HeightWrapper = await Peer.p2p.requestHeight(
-          currentPeerId,
-          heightSpan
-        );
-        heightSpan.log({
-          value: `received height: ${heightWrapper.height}`,
-        });
-        heightSpan.finish();
-
-        const onePair: PeerIdCommonBlockHeight = {
-          peerId: currentPeerId,
+        collectInfoSpan.log({
           commonBlock: commonBlock,
-          height: heightWrapper.height,
-        };
-        result.push(onePair);
-
-        commonBlockSpan.log(onePair);
-        commonBlockSpan.finish();
+        });
       } catch (err) {
-        commonBlockSpan.setTag('error', true);
-        commonBlockSpan.log({
+        collectInfoSpan.setTag('error', true);
+        collectInfoSpan.log({
+          log: 'error during commonBlock request',
           error: err,
         });
-        commonBlockSpan.finish();
-
-        heightSpan.setTag('error', true);
-        heightSpan.log({
-          error: err,
-        });
-        heightSpan.finish();
+        collectInfoSpan.finish();
+        continue;
       }
+
+      // request height from peer
+      let heightWrapper: HeightWrapper = null;
+      try {
+        heightWrapper = await Peer.p2p.requestHeight(
+          currentPeerId,
+          collectInfoSpan
+        );
+
+        collectInfoSpan.log({
+          gotHeight: heightWrapper,
+        });
+      } catch (err) {
+        collectInfoSpan.log({
+          log: 'error during request of height',
+          err,
+        });
+
+        collectInfoSpan.setTag('error', true);
+        collectInfoSpan.finish();
+        continue;
+      }
+
+      const onePair: PeerIdCommonBlockHeight = {
+        peerId: currentPeerId,
+        commonBlock: commonBlock,
+        height: heightWrapper.height,
+      };
+      result.push(onePair);
+
+      collectInfoSpan.log({
+        added: onePair,
+      });
+      collectInfoSpan.finish();
     }
 
     // filter for peers that have a higher height
@@ -135,6 +147,83 @@ export default class Loader implements ICoreModule {
         highestPeer.peerId,
         lastBlock.id,
         parentSpan
+      );
+    }
+
+    global.library.logger.info(
+      `[p2p] commonBlock minus 1: ${new BigNumber(
+        highestPeer.commonBlock.height
+      ).plus(1)}`
+    );
+    parentSpan.log({
+      minusone: new BigNumber(highestPeer.commonBlock.height)
+        .plus(1)
+        .isEqualTo(lastBlock.height),
+    });
+
+    if (
+      new BigNumber(highestPeer.commonBlock.height)
+        .plus(1)
+        .isEqualTo(lastBlock.height)
+    ) {
+      const revertSpan = global.library.tracer.startSpan('revert block', {
+        childOf: parentSpan.context(),
+      });
+
+      const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
+        'clear unconfirmed transactions',
+        {
+          childOf: revertSpan.context(),
+        }
+      );
+
+      try {
+        StateHelper.ClearUnconfirmedTransactions();
+
+        clearUnconfirmedTrsSpan.finish();
+      } catch (err) {
+        clearUnconfirmedTrsSpan.log({
+          err,
+        });
+        clearUnconfirmedTrsSpan.setTag('error', true);
+        clearUnconfirmedTrsSpan.finish();
+        revertSpan.finish();
+      }
+
+      try {
+        revertSpan.log({
+          log: 'rolling back block...',
+        });
+        revertSpan.log({
+          lastBlock,
+        });
+        // revert
+        const targetBlock = String(highestPeer.commonBlock.height);
+
+        revertSpan.log({
+          log: `the target height is: ${targetBlock}`,
+        });
+        await global.app.sdb.rollbackBlock(targetBlock);
+      } catch (err) {
+        revertSpan.log({
+          err,
+        });
+        revertSpan.setTag('error', true);
+        revertSpan.finish();
+      }
+
+      const lb = StateHelper.getState().lastBlock;
+      revertSpan.log({
+        log: 'successfully rolled back block',
+        lb,
+      });
+
+      revertSpan.finish();
+
+      return await Blocks.loadBlocksFromPeer(
+        highestPeer.peerId,
+        lb.id,
+        revertSpan
       );
     }
   }
@@ -236,7 +325,7 @@ export default class Loader implements ICoreModule {
       } finally {
         StateHelper.SetIsSyncing(false);
         global.library.logger.debug('syncBlocksFromPeer end');
-        cb();
+        return cb();
       }
     });
   };
