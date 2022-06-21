@@ -5,6 +5,7 @@ import {
   KeyPairsIndexer,
   BlockAndVotes,
   UnconfirmedTransaction,
+  IBlock,
 } from '@gny/interfaces';
 import { IState } from '../globalInterfaces';
 import { TransactionPool } from '@gny/transaction-pool';
@@ -35,6 +36,23 @@ export class StateHelper {
 
   public static setState(state: IState) {
     global.state = state;
+  }
+
+  public static stateBeforeRollback(lastBlock: IBlock) {
+    const state: IState = {
+      votesKeySet: {},
+      pendingBlock: undefined,
+      pendingVotes: undefined,
+
+      lastBlock: lastBlock,
+      blockCache: {},
+
+      proposeCache: {},
+      lastPropose: null,
+      privIsCollectingVotes: false,
+      lastVoteTime: undefined,
+    };
+    return state;
   }
 
   /**

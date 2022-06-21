@@ -145,14 +145,16 @@ describe('network-fork', () => {
       // show that height 11 are NOT the same on both nodes
       expect(node1_block11.id).not.toEqual(node2_block11.id);
 
-      // sleep for 1 min
+      // sleep for 60 sec
       await lib.sleep(60 * 1000);
 
       const height = await lib.getHeight(4098);
+      const block = await lib.getBlock(4098, height);
       console.log(`node(4098) has height: ${height}`);
+      console.log(`node2: ${JSON.stringify(block, null, 2)}`);
       expect(new BigNumber(height).isGreaterThan(11)).toEqual(true);
 
-      done();
+      return done();
     },
     5 * lib.oneMinute
   );

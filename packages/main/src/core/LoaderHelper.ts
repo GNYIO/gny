@@ -282,23 +282,34 @@ export class LoaderHelper {
         clearUnconfirmedTrsSpan.setTag('error', true);
         clearUnconfirmedTrsSpan.finish();
         revertSpan.finish();
+        forkSpan.finish();
 
         return;
       }
+
+      const old = StateHelper.getState();
+      let state = StateHelper.copyState(old);
+      state = StateHelper.stateBeforeRollback(state.lastBlock);
 
       try {
         revertSpan.log({
           log: 'rolling back block...',
         });
-        revertSpan.log({
-          lastBlock,
-        });
+
         // revert
-        const targetBlockHeight = String(highestPeer.commonBlock.height);
+        const targetBlockHeight = new BigNumber(lastBlock.height)
+          .minus(1)
+          .toFixed();
 
         revertSpan.log({
-          log: `the target height is: ${targetBlockHeight}`,
+          log: `rolling block back from ${
+            lastBlock.height
+          } to: ${targetBlockHeight}`,
         });
+        revertSpan.log({
+          isSyncing: StateHelper.IsSyncing(),
+        });
+
         await global.app.sdb.rollbackBlock(targetBlockHeight);
       } catch (err) {
         revertSpan.log({
@@ -306,13 +317,17 @@ export class LoaderHelper {
         });
         revertSpan.setTag('error', true);
         revertSpan.finish();
+        forkSpan.finish();
+        return;
       }
 
+      const sdbLastBlock = global.app.sdb.lastBlock;
+      state.lastBlock = sdbLastBlock;
+      StateHelper.setState(state);
+
       // should I call StateHelper.getState() instead ???
-      const lb = global.app.sdb.lastBlock;
       revertSpan.log({
         log: 'successfully rolled back block',
-        lb,
       });
 
       revertSpan.finish();
@@ -326,7 +341,7 @@ export class LoaderHelper {
 
       await Blocks.loadBlocksFromPeer(
         highestPeer.peerId,
-        lb.id,
+        sdbLastBlock.id,
         syncFromPeerSpan
       );
       syncFromPeerSpan.finish();
