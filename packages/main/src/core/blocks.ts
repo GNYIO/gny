@@ -1107,41 +1107,43 @@ export default class Blocks implements ICoreModule {
         processBlockSpan.setTag('height', block.height);
         processBlockSpan.setTag('id', block.id);
 
-        // const s = global.library.tracer.startSpan('fit')
-
-        const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
-        try {
-          const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
-
-          processBlockSpan.log({
-            pendingTrs,
-          });
-
-          for (const t of pendingTrs) {
-            pendingTrsMap.set(t.id, t);
+        const rollbackBlockSpan = global.library.tracer.startSpan(
+          'rollback Block',
+          {
+            childOf: processBlockSpan.context(),
           }
+        );
+        try {
           StateHelper.ClearUnconfirmedTransactions();
 
-          const rollbackBlockSpan = global.library.tracer.startSpan(
-            'rollback Block',
-            {
-              childOf: processBlockSpan.context(),
-            }
-          );
           rollbackBlockSpan.setTag('height', block.height);
           rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
           rollbackBlockSpan.setTag('id', block.id);
+          rollbackBlockSpan.setTag('lastBlockHeight', state.lastBlock.height);
           rollbackBlockSpan.log({
             lastBlock: state.lastBlock,
           });
-
           rollbackBlockSpan.log({
             value: `rollback to ${state.lastBlock.height}`,
           });
-          rollbackBlockSpan.finish();
 
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
+          rollbackBlockSpan.finish();
+        } catch (err) {
+          global.library.logger.error('error during rolling back block');
+          global.library.logger.error(err);
+          rollbackBlockSpan.log({
+            log: 'error during rolling back block',
+          });
+          rollbackBlockSpan.log({ err });
+          rollbackBlockSpan.setTag('error', true);
+          rollbackBlockSpan.finish();
+
+          return cb();
+        }
+
+        try {
           const delegateList = await Delegates.generateDelegateList(
             block.height
           );
@@ -1172,7 +1174,9 @@ export default class Blocks implements ICoreModule {
             );
             processBlockError.finish();
           }
-          // TODO: save state?
+
+          // important
+          StateHelper.setState(state);
         } catch (e) {
           processBlockSpan.setTag('error', true);
           processBlockSpan.log({
@@ -1181,36 +1185,7 @@ export default class Blocks implements ICoreModule {
 
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
-        } finally {
-          // todo create new span (for transaction)
 
-          // delete already executed transactions
-          for (const t of block.transactions) {
-            pendingTrsMap.delete(t.id);
-          }
-          try {
-            const redoTransactions = [...pendingTrsMap.values()];
-            await Transactions.processUnconfirmedTransactionsAsync(
-              state,
-              redoTransactions,
-              processBlockSpan
-            );
-          } catch (e) {
-            span.setTag('error', true);
-            span.log({
-              value: `Failed to redo unconfirmed transactions ${e}`,
-            });
-
-            global.app.logger.error('Failed to redo unconfirmed transactions');
-            global.app.logger.error(e);
-
-            // TODO: rollback?
-          }
-
-          processBlockSpan.finish();
-
-          // important
-          StateHelper.setState(state);
           return cb();
         }
       }
