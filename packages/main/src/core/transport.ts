@@ -261,7 +261,6 @@ export default class Transport implements ICoreModule {
     const params: BlockIdWrapper = {
       id: newBlockMsg.id,
     };
-    // spanId: serializedSpanContext(global.library.tracer, span.context()),
 
     let peerId: PeerId;
     let result: TracerWrapper<BlockAndVotes>;
@@ -321,7 +320,7 @@ export default class Transport implements ICoreModule {
     receiveBlockSpan.setTag('height', result.data.block.height);
     receiveBlockSpan.setTag('id', result.data.block.id);
 
-    let block: IBlock;
+    let block: IBlock = null;
     let votes: ManyVotes;
     try {
       block = result.data.block;
