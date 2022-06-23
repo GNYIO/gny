@@ -1074,10 +1074,17 @@ export default class Blocks implements ICoreModule {
       }
 
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
-        span.setTag('error', true);
-        span.log({
+        const alreadyReceivedBlockSpan = global.library.tracer.startSpan(
+          'already received block',
+          {
+            childOf: span.context(),
+          }
+        );
+        alreadyReceivedBlockSpan.setTag('error', true);
+        alreadyReceivedBlockSpan.log({
           value: `[syncing] already received this block`,
         });
+        alreadyReceivedBlockSpan.finish();
         span.finish();
 
         return cb();
