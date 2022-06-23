@@ -1015,6 +1015,7 @@ export default class Blocks implements ICoreModule {
         state,
         block
       );
+
       // TODO: rename LongFork, this is wrong
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         const longForkSpan = global.library.tracer.startSpan(
@@ -1043,19 +1044,29 @@ export default class Blocks implements ICoreModule {
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
+
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
+        const syncBlocksSpan = global.library.tracer.startSpan(
+          'received block within close range',
+          {
+            childOf: span.context(),
+          }
+        );
         global.library.logger.info(
           `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
         );
-
-        span.setTag('error', true);
-        span.log({
+        syncBlocksSpan.setTag('warning', true);
+        syncBlocksSpan.log({
           value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
         });
-        span.log({
+        syncBlocksSpan.log({
           receivedBlock: block,
+        });
+        syncBlocksSpan.log({
           lastBlock: state.lastBlock,
         });
+
+        syncBlocksSpan.finish();
         span.finish();
 
         Loader.syncBlocksFromPeer(peerId);
