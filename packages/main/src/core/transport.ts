@@ -372,6 +372,8 @@ export default class Transport implements ICoreModule {
         )}`
       );
       global.library.logger.error(e);
+
+      return;
     }
 
     global.library.bus.message(
