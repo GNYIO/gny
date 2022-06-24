@@ -767,8 +767,10 @@ export default class Blocks implements ICoreModule {
           syncSpan.log({
             loaded: true,
           });
+          syncSpan.finish();
 
           loaded = true;
+          return;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
 
