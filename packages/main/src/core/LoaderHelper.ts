@@ -251,26 +251,20 @@ export class LoaderHelper {
     const forkSpan = global.library.tracer.startSpan('investigate fork', {
       childOf: parentSpan.context(),
     });
+    forkSpan.finish();
 
     if (
       new BigNumber(highestPeer.commonBlock.height)
         .plus(1)
         .isEqualTo(lastBlock.height)
     ) {
-      const revertSpan = global.library.tracer.startSpan(
-        'forked 1 block (reverting)',
+      // clear unconfirmed transactions
+      const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
+        'clear unconfirmed transactions',
         {
           childOf: forkSpan.context(),
         }
       );
-
-      const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
-        'clear unconfirmed transactions',
-        {
-          childOf: revertSpan.context(),
-        }
-      );
-
       try {
         StateHelper.ClearUnconfirmedTransactions();
 
@@ -281,72 +275,108 @@ export class LoaderHelper {
         });
         clearUnconfirmedTrsSpan.setTag('error', true);
         clearUnconfirmedTrsSpan.finish();
-        revertSpan.finish();
         forkSpan.finish();
 
         return;
       }
 
-      const old = StateHelper.getState();
-      let state = StateHelper.copyState(old);
-      state = StateHelper.stateBeforeRollback(state.lastBlock);
-
+      // rollback current block (to revert transactions)
+      const revertCurrentBlockSpan = global.library.tracer.startSpan(
+        'rollback current block',
+        {
+          childOf: clearUnconfirmedTrsSpan.context(),
+        }
+      );
       try {
-        revertSpan.log({
-          log: 'rolling back block...',
+        revertCurrentBlockSpan.log({
+          log: 'rolling back current block',
+        });
+        revertCurrentBlockSpan.log({
+          lastBlock,
         });
 
+        await global.app.sdb.rollbackBlock();
+
+        // state management
+        let state = StateHelper.getState();
+        state = StateHelper.stateBeforeRollback(state.lastBlock);
+        state.lastBlock = global.app.sdb.lastBlock;
+        StateHelper.setState(state);
+
+        revertCurrentBlockSpan.finish();
+      } catch (err) {
+        revertCurrentBlockSpan.finish();
+        forkSpan.finish();
+
+        // make sure that the actual lastBlock is set within the StateHelper
+        const state = StateHelper.getState();
+        state.lastBlock = global.app.sdb.lastBlock;
+        StateHelper.setState(state);
+
+        return;
+      }
+
+      // rollback to block minus1
+      const rollbackToMinus1BlockSpan = global.library.tracer.startSpan(
+        'rollback block minus1',
+        {
+          childOf: revertCurrentBlockSpan.context(),
+        }
+      );
+      try {
         // revert
         const targetBlockHeight = new BigNumber(lastBlock.height)
           .minus(1)
           .toFixed();
 
-        revertSpan.log({
+        rollbackToMinus1BlockSpan.log({
           log: `rolling block back from ${
             lastBlock.height
           } to: ${targetBlockHeight}`,
         });
-        revertSpan.log({
+        rollbackToMinus1BlockSpan.log({
           isSyncing: StateHelper.IsSyncing(),
         });
 
         await global.app.sdb.rollbackBlock(targetBlockHeight);
+
+        // state management
+        let state = StateHelper.getState();
+        state = StateHelper.stateBeforeRollback(state.lastBlock); // unnecessary?
+        state.lastBlock = global.app.sdb.lastBlock;
+        StateHelper.setState(state);
+
+        rollbackToMinus1BlockSpan.finish();
       } catch (err) {
-        revertSpan.log({
+        rollbackToMinus1BlockSpan.log({
           err,
         });
-        revertSpan.setTag('error', true);
-        revertSpan.finish();
+        rollbackToMinus1BlockSpan.setTag('error', true);
+        rollbackToMinus1BlockSpan.finish();
         forkSpan.finish();
+
+        // make sure that the actual lastBlock is set within the StateHelper
+        const state = StateHelper.getState();
+        state.lastBlock = global.app.sdb.lastBlock;
+        StateHelper.setState(state);
+
         return;
       }
-
-      const sdbLastBlock = global.app.sdb.lastBlock;
-      state.lastBlock = sdbLastBlock;
-      StateHelper.setState(state);
-
-      // should I call StateHelper.getState() instead ???
-      revertSpan.log({
-        log: 'successfully rolled back block',
-      });
-
-      revertSpan.finish();
 
       const syncFromPeerSpan = global.library.tracer.startSpan(
         'after rollback sync from peer',
         {
-          childOf: revertSpan.context(),
+          childOf: rollbackToMinus1BlockSpan.context(),
         }
       );
+      syncFromPeerSpan.finish();
 
+      const currentBlock = StateHelper.getState().lastBlock;
       await Blocks.loadBlocksFromPeer(
         highestPeer.peerId,
-        sdbLastBlock.id,
+        currentBlock.id,
         syncFromPeerSpan
       );
-      syncFromPeerSpan.finish();
     }
-
-    forkSpan.finish();
   }
 }
