@@ -859,11 +859,11 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          processBlockSpan.setTag('error', true);
-          processBlockSpan.log({
-            value: `Failed to process synced block, error: ${err.message}`,
-          });
-          processBlockSpan.finish();
+          // processBlockSpan.setTag('error', true);
+          // processBlockSpan.log({
+          //   value: `Failed to process synced block, error: ${err.message}`,
+          // });
+          // processBlockSpan.finish();
 
           multipleBlocksSpan.finish();
 
