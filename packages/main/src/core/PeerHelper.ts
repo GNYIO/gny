@@ -482,10 +482,17 @@ function V1_BLOCKS_HANDLER(bundle) {
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) {
-        span.setTag('error', true);
-        span.log({
+        const lastBlockNotFoundSpan = global.library.tracer.startSpan(
+          'block not found',
+          {
+            childOf: span.context(),
+          }
+        );
+        lastBlockNotFoundSpan.setTag('error', true);
+        lastBlockNotFoundSpan.log({
           value: `Last block not found: ${lastBlockId}`,
         });
+        lastBlockNotFoundSpan.finish();
         span.finish();
 
         throw new Error(`Last block not found: ${lastBlockId}`);
@@ -502,7 +509,7 @@ function V1_BLOCKS_HANDLER(bundle) {
         maxHeight,
       });
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
-      const blocks: BlocksWrapper = await getBlocksFromApi(
+      const blocks: IBlock[] = await getBlocksFromApi(
         minHeight,
         maxHeight,
         true
