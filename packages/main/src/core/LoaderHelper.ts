@@ -174,7 +174,9 @@ export class LoaderHelper {
       span.setTag('error', true);
       span.log({
         value: `[p2p][commonBlock] transactions failed`,
-        ret,
+      });
+      span.log({
+        returnValue: ret,
       });
       span.finish();
       return null;
