@@ -1141,6 +1141,7 @@ export default class Blocks implements ICoreModule {
           rollbackBlockSpan.log({ err });
           rollbackBlockSpan.setTag('error', true);
           rollbackBlockSpan.finish();
+          processBlockSpan.finish();
 
           return cb();
         }
@@ -1179,6 +1180,8 @@ export default class Blocks implements ICoreModule {
 
           // important
           StateHelper.setState(state);
+
+          processBlockSpan.finish();
         } catch (e) {
           processBlockSpan.setTag('error', true);
           processBlockSpan.log({
@@ -1187,6 +1190,8 @@ export default class Blocks implements ICoreModule {
 
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
+
+          processBlockSpan.finish();
 
           return cb();
         }
