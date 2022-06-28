@@ -270,6 +270,21 @@ export interface IBlock {
 
 export type IBlockWithTransactions = SetRequired<IBlock, 'transactions'>;
 
+export interface IBlockWithoutTransactions {
+  id: string;
+  height: string;
+  version: number;
+  timestamp: number;
+  prevBlockId?: any;
+  count: number;
+  fees: string;
+  reward: string;
+  payloadHash: string;
+  delegate: string;
+  signature: string;
+  _version_?: number;
+}
+
 export interface IBlockWithoutId {
   height: string;
   version: number;

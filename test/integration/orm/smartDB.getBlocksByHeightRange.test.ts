@@ -245,4 +245,25 @@ describe('smartDB.getBlocksByHeightRange()', () => {
 
     done();
   });
+
+  it('getBlocksByHeightRange() - works also for from: 0, to: 0', async done => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(String(1));
+    sut.beginBlock(first);
+    await sut.commitBlock();
+
+    const second = createBlock(String(2));
+    sut.beginBlock(second);
+    await sut.commitBlock();
+
+    const fromHeight = String(0);
+    const toHeight = String(0);
+
+    const blocks = await sut.getBlocksByHeightRange(fromHeight, toHeight);
+    expect(blocks).toBeTruthy();
+    expect(blocks.length).toEqual(1);
+
+    return done();
+  });
 });

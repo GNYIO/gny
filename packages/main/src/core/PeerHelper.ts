@@ -219,33 +219,63 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
   // step1: node1 -> node2
   const request = async (
     peerId: PeerId,
-    commonBlockParams: CommonBlockParams
-  ): Promise<CommonBlockResult> => {
-    const data = uint8ArrayFromString(JSON.stringify(commonBlockParams));
+    commonBlockParams: CommonBlockParams,
+    span: ISpan
+  ): Promise<IBlock> => {
+    const raw: TracerWrapper<CommonBlockParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: commonBlockParams,
+    };
+    const data = JSON.stringify(raw);
 
     const resultRaw = await bundle.directRequest(
       peerId,
       global.Config.p2pConfig.V1_COMMON_BLOCK,
       data
     );
-    const result: CommonBlockResult = JSON.parse(uint8ArrayToString(resultRaw));
-
+    const result: IBlock = JSON.parse(resultRaw.toString());
     return result;
   };
 
-  const response = async (data: Uint8Array, cb) => {
-    // uint8ArrayToString
-    // uint8ArrayFromString
-    const body = JSON.parse(uint8ArrayToString(data));
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+    const raw: TracerWrapper<CommonBlockParams> = JSON.parse(temp.toString());
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw.spanId
+    );
+    const span = global.library.tracer.startSpan(
+      'receive commonBlock request',
+      {
+        childOf: parentContext,
+      }
+    );
+    span.setTag('syncing', true);
+
+    const body = raw.data;
 
     if (!isCommonBlockParams(body)) {
-      return cb(new Error('validation failed'));
+      span.setTag('error', true);
+      span.log({
+        value: 'commonBlock params validation failed',
+      });
+      span.finish();
+
+      throw new Error('commonBlock params validation failed');
     }
+
+    span.log({
+      receivedCommonBlockParams: body,
+    });
 
     // prevent DDOS attack
     const difference = new BigNumber(body.max).minus(body.min).absoluteValue();
     if (difference.isGreaterThanOrEqualTo(10)) {
-      return cb(new Error('too big min,max'));
+      throw new Error('too big min,max');
     }
 
     const max: string = body.max;
@@ -254,11 +284,23 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     try {
       let blocks = await global.app.sdb.getBlocksByHeightRange(min, max);
       if (!blocks || !blocks.length) {
-        return cb(new Error('Blocks not found'));
+        span.log({
+          value: `Blocks not found (between ${min} and ${max})`,
+        });
+        span.setTag('error', true);
+        span.finish();
+        throw new Error('Blocks not found');
       }
-      global.library.logger.warn(
-        `blocks-in-transportApi-commonBlock: ${JSON.stringify(blocks)}`
-      );
+
+      span.log({
+        value: `found in the db the following values for: min: ${min}, max: ${max} and ids: ${ids.join(
+          ', '
+        )}`,
+      });
+      span.log({
+        blocks,
+      });
+
       blocks = blocks.reverse();
       let commonBlock: IBlock = null;
       for (const i in ids) {
@@ -267,20 +309,37 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
           break;
         }
       }
+
       if (!commonBlock) {
-        return cb(new Error('Common block not found'));
+        span.log({
+          value: 'Common block not found',
+        });
+        span.finish();
+        throw new Error('Common block not found');
       }
-      const result: ApiResult<CommonBlockWrapper> = {
-        success: true,
-        common: commonBlock,
-      };
-      const converted = uint8ArrayFromString(JSON.stringify(result));
-      return cb(null, converted);
+
+      span.log({
+        foundCommonBlock: commonBlock,
+      });
+      span.finish();
+      return [uint8ArrayFromString(JSON.stringify(commonBlock))];
     } catch (e) {
-      global.app.logger.error('Failed to find common block:');
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p][requestCommonBlock] Failed to return commonBlock',
+      });
+      span.log({
+        error: e.message,
+      });
+      span.finish();
+
+      global.app.logger.error(
+        '[p2p][requestCommonBlock] Failed to return commonBlock'
+      );
       global.app.logger.error(e);
 
-      return cb(new Error('Failed to find common block'));
+      const result: IBlock = null;
+      return [uint8ArrayFromString(JSON.stringify(result))];
     }
   };
 
@@ -291,10 +350,17 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 function V1_GET_HEIGH_HANDLER(bundle) {
   const request = async (
     peerId: PeerId,
-    span: ISpan
+    parentSpan: ISpan
   ): Promise<HeightWrapper> => {
+    const heightSpan = global.library.tracer.startSpan('get height', {
+      childOf: parentSpan.context(),
+    });
+
     const raw: TracerWrapper<string> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(
+        global.library.tracer,
+        heightSpan.context()
+      ),
       data: 'no param',
     };
     const data = uint8ArrayFromString(JSON.stringify(raw));
@@ -307,8 +373,19 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     const result: HeightWrapper = JSON.parse(resultRaw.toString());
 
     if (!isHeightWrapper(result)) {
+      heightSpan.log({
+        log: '[p2p] validation for isHeightWrapper failed',
+        got: result,
+      });
+      heightSpan.setTag('error', true);
+      heightSpan.finish();
       throw new Error('[p2p] validation for isHeightWrapper failed');
     }
+
+    heightSpan.log({
+      result: result,
+    });
+    heightSpan.finish();
 
     return result;
   };
@@ -405,10 +482,17 @@ function V1_BLOCKS_HANDLER(bundle) {
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) {
-        span.setTag('error', true);
-        span.log({
+        const lastBlockNotFoundSpan = global.library.tracer.startSpan(
+          'block not found',
+          {
+            childOf: span.context(),
+          }
+        );
+        lastBlockNotFoundSpan.setTag('error', true);
+        lastBlockNotFoundSpan.log({
           value: `Last block not found: ${lastBlockId}`,
         });
+        lastBlockNotFoundSpan.finish();
         span.finish();
 
         throw new Error(`Last block not found: ${lastBlockId}`);
@@ -425,7 +509,7 @@ function V1_BLOCKS_HANDLER(bundle) {
         maxHeight,
       });
       // global.app.sdb.getBlocksByHeightRange(minHeight, maxHeight, true); // better?
-      const blocks: BlocksWrapper = await getBlocksFromApi(
+      const blocks: IBlock[] = await getBlocksFromApi(
         minHeight,
         maxHeight,
         true
@@ -461,7 +545,7 @@ function V1_BLOCKS_HANDLER(bundle) {
 export function attachDirectP2PCommunication(bundle) {
   V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
-  // V1_COMMON_BLOCK_HANDLER(bundle);
+  V1_COMMON_BLOCK_HANDLER(bundle);
   V1_GET_HEIGH_HANDLER(bundle);
   V1_BLOCKS_HANDLER(bundle);
 }

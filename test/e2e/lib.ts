@@ -5,7 +5,7 @@ import { BigNumber } from '@gny/utils';
 import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
 import * as shellJS from 'shelljs';
-import { KeyPair } from '@gny/interfaces';
+import { IBlock, KeyPair } from '@gny/interfaces';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -25,6 +25,16 @@ export async function getHeight(port: number) {
   const url = `http://localhost:${port}/api/blocks/getHeight`;
   const { data } = await axios.get(url);
   return data.height as string;
+}
+
+export async function getBlock(port: number, height: string) {
+  const url = `http://localhost:${port}/api/blocks/getBlock`;
+  const { data } = await axios.get(url, {
+    params: {
+      height: height,
+    },
+  });
+  return data.block as IBlock;
 }
 
 export function sleep(ms: number) {

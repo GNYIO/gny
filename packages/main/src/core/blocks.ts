@@ -23,7 +23,6 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
-import { RoundBase } from '@gny/base';
 import {
   BlocksHelper,
   BlockMessageFitInLineResult as BlockFitsInLine,
@@ -50,64 +49,6 @@ const blockReward = new BlockReward();
 export type GetBlocksByHeight = (height: string) => Promise<IBlock>;
 
 export default class Blocks implements ICoreModule {
-  public static async getIdSequence2(
-    height: string,
-    getBlocksByHeightRange: (min: string, max: string) => Promise<Block[]>
-  ) {
-    try {
-      const maxHeight = height;
-      const minHeight = BigNumber.maximum(
-        0,
-        new BigNumber(maxHeight).minus(4).toFixed()
-      ).toFixed();
-      let blocks = await getBlocksByHeightRange(minHeight, maxHeight);
-      blocks = blocks.reverse();
-      const ids = blocks.map(b => b.id);
-      const result: CommonBlockParams = {
-        ids,
-        min: minHeight,
-        max: maxHeight,
-      };
-      return result;
-    } catch (e) {
-      throw new Error('getIdSequence2 failed');
-    }
-  }
-
-  // todo look at core/loader
-  public static getCommonBlock = async (
-    peer: PeerId,
-    lastBlockHeight: string
-  ): Promise<IBlock> => {
-    const params: CommonBlockParams = await Blocks.getIdSequence2(
-      lastBlockHeight,
-      global.app.sdb.getBlocksByHeightRange
-    );
-
-    let ret: CommonBlockResult;
-    try {
-      ret = await Peer.p2p.requestCommonBlock(peer, params);
-    } catch (err) {
-      const span = global.app.tracer.startSpan('getCommonBlock');
-      span.setTag('error', true);
-      span.log({
-        value: `[p2p][commonBlock] error: ${err.message}`,
-      });
-      span.finish();
-
-      global.app.logger.info(`[p2p][commonBlock]  error: ${err.message}`);
-      throw new Error('commonBlock could not be requested');
-    }
-
-    if (!ret.common) {
-      throw new Error('Common block not found');
-    }
-
-    // TODO: validate commonBlock
-
-    return ret.common;
-  };
-
   public static verifyBlock = (
     state: IState,
     block: IBlock,
@@ -826,8 +767,10 @@ export default class Blocks implements ICoreModule {
           syncSpan.log({
             loaded: true,
           });
+          syncSpan.finish();
 
           loaded = true;
+          return;
         }
         const num = Array.isArray(blocks) ? blocks.length : 0;
 
@@ -918,11 +861,11 @@ export default class Blocks implements ICoreModule {
           }
         } catch (e) {
           // Is it necessary to call the sdb.rollbackBlock()
-          processBlockSpan.setTag('error', true);
-          processBlockSpan.log({
-            value: `Failed to process synced block, error: ${err.message}`,
-          });
-          processBlockSpan.finish();
+          // processBlockSpan.setTag('error', true);
+          // processBlockSpan.log({
+          //   value: `Failed to process synced block, error: ${err.message}`,
+          // });
+          // processBlockSpan.finish();
 
           multipleBlocksSpan.finish();
 
@@ -1074,6 +1017,7 @@ export default class Blocks implements ICoreModule {
         state,
         block
       );
+
       // TODO: rename LongFork, this is wrong
       if (fitInLineResult === BlockFitsInLine.LongFork) {
         const longForkSpan = global.library.tracer.startSpan(
@@ -1102,19 +1046,29 @@ export default class Blocks implements ICoreModule {
         Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
+
       if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
+        const syncBlocksSpan = global.library.tracer.startSpan(
+          'received block within close range',
+          {
+            childOf: span.context(),
+          }
+        );
         global.library.logger.info(
           `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
         );
-
-        span.setTag('error', true);
-        span.log({
+        syncBlocksSpan.setTag('warning', true);
+        syncBlocksSpan.log({
           value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
         });
-        span.log({
+        syncBlocksSpan.log({
           receivedBlock: block,
+        });
+        syncBlocksSpan.log({
           lastBlock: state.lastBlock,
         });
+
+        syncBlocksSpan.finish();
         span.finish();
 
         Loader.syncBlocksFromPeer(peerId);
@@ -1122,10 +1076,17 @@ export default class Blocks implements ICoreModule {
       }
 
       if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
-        span.setTag('error', true);
-        span.log({
+        const alreadyReceivedBlockSpan = global.library.tracer.startSpan(
+          'already received block',
+          {
+            childOf: span.context(),
+          }
+        );
+        alreadyReceivedBlockSpan.setTag('error', true);
+        alreadyReceivedBlockSpan.log({
           value: `[syncing] already received this block`,
         });
+        alreadyReceivedBlockSpan.finish();
         span.finish();
 
         return cb();
@@ -1148,41 +1109,44 @@ export default class Blocks implements ICoreModule {
         processBlockSpan.setTag('height', block.height);
         processBlockSpan.setTag('id', block.id);
 
-        // const s = global.library.tracer.startSpan('fit')
-
-        const pendingTrsMap = new Map<string, UnconfirmedTransaction>();
-        try {
-          const pendingTrs = StateHelper.GetUnconfirmedTransactionList();
-
-          processBlockSpan.log({
-            pendingTrs,
-          });
-
-          for (const t of pendingTrs) {
-            pendingTrsMap.set(t.id, t);
+        const rollbackBlockSpan = global.library.tracer.startSpan(
+          'rollback Block',
+          {
+            childOf: processBlockSpan.context(),
           }
+        );
+        try {
           StateHelper.ClearUnconfirmedTransactions();
 
-          const rollbackBlockSpan = global.library.tracer.startSpan(
-            'rollback Block',
-            {
-              childOf: processBlockSpan.context(),
-            }
-          );
           rollbackBlockSpan.setTag('height', block.height);
           rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
           rollbackBlockSpan.setTag('id', block.id);
+          rollbackBlockSpan.setTag('lastBlockHeight', state.lastBlock.height);
           rollbackBlockSpan.log({
             lastBlock: state.lastBlock,
           });
-
           rollbackBlockSpan.log({
             value: `rollback to ${state.lastBlock.height}`,
           });
-          rollbackBlockSpan.finish();
 
           await global.app.sdb.rollbackBlock(state.lastBlock.height);
 
+          rollbackBlockSpan.finish();
+        } catch (err) {
+          global.library.logger.error('error during rolling back block');
+          global.library.logger.error(err);
+          rollbackBlockSpan.log({
+            log: 'error during rolling back block',
+          });
+          rollbackBlockSpan.log({ err });
+          rollbackBlockSpan.setTag('error', true);
+          rollbackBlockSpan.finish();
+          processBlockSpan.finish();
+
+          return cb();
+        }
+
+        try {
           const delegateList = await Delegates.generateDelegateList(
             block.height
           );
@@ -1213,7 +1177,11 @@ export default class Blocks implements ICoreModule {
             );
             processBlockError.finish();
           }
-          // TODO: save state?
+
+          // important
+          StateHelper.setState(state);
+
+          processBlockSpan.finish();
         } catch (e) {
           processBlockSpan.setTag('error', true);
           processBlockSpan.log({
@@ -1222,36 +1190,9 @@ export default class Blocks implements ICoreModule {
 
           global.app.logger.error('Failed to process received block');
           global.app.logger.error(e);
-        } finally {
-          // todo create new span (for transaction)
-
-          // delete already executed transactions
-          for (const t of block.transactions) {
-            pendingTrsMap.delete(t.id);
-          }
-          try {
-            const redoTransactions = [...pendingTrsMap.values()];
-            await Transactions.processUnconfirmedTransactionsAsync(
-              state,
-              redoTransactions,
-              processBlockSpan
-            );
-          } catch (e) {
-            span.setTag('error', true);
-            span.log({
-              value: `Failed to redo unconfirmed transactions ${e}`,
-            });
-
-            global.app.logger.error('Failed to redo unconfirmed transactions');
-            global.app.logger.error(e);
-
-            // TODO: rollback?
-          }
 
           processBlockSpan.finish();
 
-          // important
-          StateHelper.setState(state);
           return cb();
         }
       }

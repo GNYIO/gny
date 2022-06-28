@@ -1,5 +1,6 @@
-import { IBlock, ICoreModule, HeightWrapper } from '@gny/interfaces';
+import { IBlock, ICoreModule } from '@gny/interfaces';
 import { StateHelper } from './StateHelper';
+import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper';
 import Blocks from './blocks';
 import Peer from './peer';
 import { BigNumber } from 'bignumber.js';
@@ -7,163 +8,62 @@ import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 export default class Loader implements ICoreModule {
-  public static async loadBlocks(
-    lastBlock: IBlock,
-    genesisBlock: IBlock,
-    parentSpan: ISpan
-  ) {
+  public static async loadBlocks(lastBlock: IBlock, parentSpan: ISpan) {
     const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
 
-      parentSpan.setTag('error', true);
-      parentSpan.log({
-        value: '[p2p] loadBlocks() no connected peers',
-      });
-
-      return;
-    }
-
-    const myResult = [];
-
-    // check
-    for (let i = 0; i < allPeerInfos.length; ++i) {
-      const span = global.library.tracer.startSpan('request height from peer', {
-        childOf: parentSpan.context(),
-      });
-      span.setTag('syncing', true);
-      span.setTag('peerId', Peer.p2p.peerId.toB58String());
-
-      const one = allPeerInfos[i];
-
-      try {
-        const onePeerId = PeerId.createFromB58String(one.id.id);
-        span.setTag('dialTo', onePeerId.toB58String());
-        span.log({
-          value: `2going to dial peer: ${onePeerId.toB58String()}`,
-        });
-        const height: HeightWrapper = await Peer.p2p.requestHeight(
-          onePeerId,
-          span
-        );
-
-        myResult.push({
-          peerInfo: one,
-          height: height.height,
-        });
-      } catch (err) {
-        if (err.message.toString() == 'protocol selection failed') {
-          const protocolSelectionFailedSpan = global.library.tracer.startSpan(
-            'protocol selection failed',
-            {
-              childOf: span.context(),
-            }
-          );
-
-          protocolSelectionFailedSpan.log({
-            value: 'the target does not support the same p2p endpoint',
-          });
-
-          protocolSelectionFailedSpan.setTag('warning', true);
-          protocolSelectionFailedSpan.setTag('syncing', true);
-          // protocolSelectionFailedSpan.setTag('error', true);
-          protocolSelectionFailedSpan.finish();
-        } else {
-          span.setTag('error', true);
+      const noPeersSpan = global.library.tracer.startSpan(
+        'no connected peers',
+        {
+          childOf: parentSpan.context(),
         }
-
-        global.library.logger.info(
-          `[p2p] failed to requestHeight() from ${err.message}`
-        );
-
-        span.log({
-          value: `[p2p] failed to requestHeight() from: "${one.id.id}"`,
-        });
-        span.log({
-          value: `[p2p] failed to requestHeight() error: ${err.message}`,
-        });
-      }
-      span.finish();
-    }
-
-    if (myResult.length === 0) {
-      global.library.logger.info('[p2p] test');
+      );
+      noPeersSpan.finish();
       return;
     }
 
-    const onlyHeights = myResult.map(x => x.height);
-    global.library.logger.info(
-      `[p2p], heights:  ${JSON.stringify(onlyHeights, null, 2)}`
-    );
-    const highest = BigNumber.max(...onlyHeights).toFixed();
+    const result: Array<
+      PeerIdCommonBlockHeight
+    > = await LoaderHelper.contactEachPeer(allPeerInfos, lastBlock, parentSpan);
 
-    global.library.logger.info(`[p2p] highest ${highest}`);
-
-    if (new BigNumber(lastBlock.height).isGreaterThanOrEqualTo(highest)) {
-      global.library.logger.info(
-        `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
-          lastBlock.height
-        }`
-      );
-
-      parentSpan.setTag('error', true);
-      parentSpan.log({
-        value: `[p2p] loadBlocks() highest peer ("${highest}") is NOT greater than current height ${
-          lastBlock.height
-        }`,
-      });
+    let filtered: Array<PeerIdCommonBlockHeight> = null;
+    try {
+      filtered = LoaderHelper.filterPeers(result, lastBlock, parentSpan);
+    } catch (err) {
       parentSpan.finish();
-
       return;
     }
 
-    const find = myResult.find(x => x.height === highest);
-    global.library.logger.info(`[p2p] find: ${JSON.stringify(find, null, 2)}`);
+    const highestPeer = filtered[0];
 
-    const highestPeer = PeerId.createFromB58String(find.peerInfo.id.id);
-
-    if (lastBlock.id === genesisBlock.id) {
-      global.library.logger.info(
-        `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`
-      );
-
-      parentSpan.log({
-        value: `[p2p] current height is "0", start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`,
-      });
-      parentSpan.finish();
-
-      return await Blocks.loadBlocksFromPeer(
-        highestPeer,
-        genesisBlock.id,
-        parentSpan
-      );
-    } else {
-      global.library.logger.info(
-        `[p2p] current height is ${
-          lastBlock.height
-        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`
-      );
-
-      parentSpan.log({
-        value: `[p2p] current height is ${
-          lastBlock.height
-        }, start to sync from peer: ${highestPeer.toB58String()} with height ${
-          find.height
-        }`,
-      });
-      parentSpan.finish();
-
-      return await Blocks.loadBlocksFromPeer(
-        highestPeer,
+    // when we are still on the genesis Block
+    // or commonBlock is our latest block
+    if (
+      new BigNumber(lastBlock.height).isEqualTo(0) ||
+      new BigNumber(highestPeer.commonBlock.height).isEqualTo(lastBlock.height)
+    ) {
+      await Blocks.loadBlocksFromPeer(
+        highestPeer.peerId,
         lastBlock.id,
         parentSpan
       );
+      parentSpan.finish();
+      return;
+    }
+
+    try {
+      await LoaderHelper.investigateFork(highestPeer, lastBlock, parentSpan);
+    } catch (err) {
+      parentSpan.log({
+        log: 'error happend during investigation of fork',
+      });
+      parentSpan.log({
+        err,
+      });
+      parentSpan.setTag('error', true);
+      parentSpan.finish();
+      return;
     }
   }
 
@@ -185,7 +85,7 @@ export default class Loader implements ICoreModule {
       });
 
       try {
-        await Loader.loadBlocks(lastBlock, global.library.genesisBlock, span);
+        await Loader.loadBlocks(lastBlock, span);
       } catch (err) {
         global.library.logger.warn('loadBlocks warning:');
         global.library.logger.warn(err);
@@ -264,7 +164,7 @@ export default class Loader implements ICoreModule {
       } finally {
         StateHelper.SetIsSyncing(false);
         global.library.logger.debug('syncBlocksFromPeer end');
-        cb();
+        return cb();
       }
     });
   };
