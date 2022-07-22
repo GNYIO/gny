@@ -26,6 +26,7 @@
     "test:e2e:db-the-same": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/db-the-same.test.ts",
     "test:e2e:double-spend-attack": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/double-spend-attack.test.ts",
     "test:e2e:fast-connect-to-network": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/fast-connect-to-network.test.ts",
+    "test:e2e:network-fork-with-transactions": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-fork-with-transactions.test.ts",
     "test:e2e:network-fork": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-fork.test.ts",
     "test:e2e:network-stuck": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-stuck.test.ts",
     "test:e2e:restarted-node": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/restarted-node.test.ts",
