@@ -158,6 +158,6 @@ describe('unconfirmed-trs e2e test', () => {
 
       return done();
     },
-    3 * lib.oneMinute
+    4 * lib.oneMinute
   );
 });
