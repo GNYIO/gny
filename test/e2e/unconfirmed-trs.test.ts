@@ -126,7 +126,7 @@ describe('unconfirmed-trs e2e test', () => {
 
       await helpers.allHeightsAreTheSame([4096, 4098, 4100]);
       const height = await lib.getHeight(4096);
-      expect(new BigNumber(height).isGreaterThan(2)).toEqual(true);
+      expect(new BigNumber(height).isGreaterThan(1)).toEqual(true);
 
       // 1st try
       await sendRandomTransaction(50);
