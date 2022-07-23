@@ -1,7 +1,7 @@
-name: client integration tests
+name: e2e-network-fork-with-transactions
 on: [push]
 jobs:
-  client-integration-tests:
+  e2e-network-fork-with-transactions:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -25,5 +25,5 @@ jobs:
     - name: Build docker image
       run: docker-compose --file config/integration/docker-compose.integration.yml build
 
-    - name: Run integration tests
-      run: npm run test:integration:client
+    - name: Run e2e-network-fork-with-transactions
+      run: npm run test:e2e:network-fork-with-transactions

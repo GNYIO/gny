@@ -232,7 +232,7 @@ function main() {
     version,
     appConfig.magic,
     appConfig.netVersion,
-    p2pConfig.protocol,
+    p2pConfig.P2P_VERSION,
     logger
   );
 

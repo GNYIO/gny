@@ -1,0 +1,122 @@
+version: '3.3'
+
+networks:
+  my_net:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+
+services:
+  loki.local:
+    container_name: loki.local
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.22
+
+  jaeger.local:
+    image: jaegertracing/all-in-one:1.21
+    container_name: jaeger.local
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - JAEGER_DISABLED=true
+    ports:
+      - '16686:16686'
+      - '14268:14268'
+    command: [
+      "--query.max-clock-skew-adjustment=1s"
+    ]
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.20
+
+
+  db1:
+    image: "postgres:9.6.12"
+    container_name: 'db1'
+    restart: always
+    expose: # only internal
+      - '5432'
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.2
+  node1:
+    build: ../../..
+    container_name: 'node1'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 5s; node packages/main/dist/src/app --config="config/e2e/network-fork-with-transactions/node1.json"'
+    environment:
+      - NODE_ENV=production
+      - GNY_NETWORK=localnet
+      - GNY_LOKI_HOST=http://loki.local:3100
+      - GNY_DISABLE_JAEGER=false
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
+      - GNY_LOG_LEVEL=info
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db1
+      - GNY_DB_PORT=5432
+      - GNY_P2P_SECRET="CAASpwkwggSjAgEAAoIBAQDklkhuvS1NVh3IbkhHTr5aD8thArzRh13y5uC6GYI5vLrjfv1YSzaPgfLgjQOU5lOZgS8aRNkpDwuzJElw+40ViisCZfEen1ZcWbEKywsp5egWYNlfQ3B78Hi7Kx3cqtqrbJ0mvGOVbl52N7L2Uhdkv8ukcSoh0ut2G7u5IzL+mWD8Tfy4q4/ei5uQ7SuNLfXjUmzcVRBqTqblPLlUAwFQ+WYovURwT5u7dAr/NjJJglgwJyNbRjXKWoQPCMav/+AvEhIQnmjejQf2tAxWDYkolZTg/xglTuqtVmnHq19uzAqXdSoRgWxWWhn8VlWYjmCK8otoqdtZ4wNc7nxk7vmPAgMBAAECggEAAJ08EY+oAZ4bSElfPH7SspSiydwJA6QMQio+7ZtmqyE73lktxQ0KDM8Obck6Y98BN3j0BjHW9UHKHtZ4KPuhqGMoncDKWbi2r07IoYVRD808MYf8Ha/5IbfvVqA2RCkrAjgat4IwnqWNSn2POY+hj5nHPp4v5Z3WLZZCwsYj4wye/HkK3c6hkLCx+Dqxv4qzYF0VG7xMy1244/Y1j63k1cOaq5JoyBc7TiEMRZobS/50ppOkW5XIXIwdKtuyJ2o7tVocRe9DiACjCVneKf7rhnhIZoSDQPsLfbErU77+72+tD5fpX5ZkoU1nLZUQ8rpfYKeyihXubeNv768Mmlmx4QKBgQD2Ys4dYgDicuG7k6pKV3NQizmRG04iBdWTkwoCYfgCwNJAvfIYRSsXvU3VcEkBRfg2xPQWRiysCJJihxTuvNPMhcnDTxG3cLToNxV+8zuOU9M2m3QkrwLV5czlY9kAUXsS1epcgVnsbVpQnwul/VdrGdEVl84nCO/0eT89ehf75wKBgQDtga5gILlywwAkX0LiogOvNa5DpOSu6XEfAMqSxt5cnj4MAyJR3VpvpTa+2B/r9LyUAJuPVW6rFLPyw/kqWtif72iQV2CNUpbrUlFZ7YNUd1g2xDOfQTpphX9JIC4Dzxedps2FYqAM5LZDfTf0B22dKAVBxKcAF8fV70uJnsGgGQKBgFbOhPQRPWKLO0DNS+gZW4V7J/MZ/bM6/v6ZhaNFRQ4jRXCN+6fVZtNcXPngL7iFIGibh6v5WW/bLUgNc7CRUsXyNR3c088fpH1UOvyZUdhZbEcHCiqKhqM57bC8Nw5HpucB+ypQYJBODs3s2zvGQHB5jhLfg0B5g6FMvp04UQ7tAoGBAK1myNEWE09eX3QuuL6OWvJI1vo8IVoyxYxFH6EZ4K7uOY67mwr5+VUZ4mZjlKrI/AVyjCCR10LA0sCjo/7wZMggGs+He86yRc15RDvL1N6OY7FYfff/v43bEZtqCy5svGk1p0eDQicntIqBmaBo6/aZiX0C/opq0lO3agcICYXBAoGAcqiBq6ePQpJ/0t8eBUf4r/GimY3zXNOHGbYPiqr1teYY4hERFJHwICTXANdusvV6Vn1f8L0q/9gh1Lfg4KbH0VyWCe4dx+lLj1R8/qdsIc8oZHKpS2KflYOGYDqLp4HdXmF/0OLZ2ya4OPndTxmMPOQ4p7j0lZ60Gutym55qcoI="
+    ports:
+      - '4096:4096'
+      - '4097:4097'
+    depends_on:
+      - loki.local
+      - jaeger.local
+      - db1
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.3
+
+  db2:
+    image: "postgres:9.6.12"
+    container_name: 'db2'
+    restart: always
+    expose:
+      - '5432' # only internal
+    environment:
+     POSTGRES_PASSWORD: docker
+     POSTGRES_DB: postgres
+     POSTGRES_USER: postgres
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.4
+  node2:
+    build: ../../..
+    container_name: 'node2'
+    image: gny-experiment:integration # tags
+    command: bash -c 'sleep 5s; node packages/main/dist/src/app --config="config/e2e/network-fork-with-transactions/node2.json"'
+    environment:
+      - NODE_ENV=production
+      - GNY_NETWORK=localnet
+      - GNY_PUBLIC_IP=172.20.0.5
+      - GNY_LOKI_HOST=http://loki.local:3100
+      - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmXEaBYyxKv8fvXjzyRrYEsi4NSrXngFxG7WwFFNPkJ2L5
+      - GNY_DISABLE_JAEGER=false
+      - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
+      - GNY_LOG_LEVEL=info
+      - GNY_DB_PASSWORD=docker
+      - GNY_DB_DATABASE=postgres
+      - GNY_DB_USER=postgres
+      - GNY_DB_HOST=db2
+      - GNY_DB_PORT=5432
+      - GNY_P2P_SECRET="CAASqAkwggSkAgEAAoIBAQDIOLdDPn6RgthOS4OlSuCpzCiFoi8ZGhY5LBNHbRv4QVn7XYSlmZWa6cLYHDts5pl8d+SFLlgHnoMFqooAGp0PtZabnZo+mtNeATJV5Z9h39aWnIgb5IUCFhEe6iJt1fcL0YDeilyQSDodxzOxaN/YQRKiQDFKYfiFch18ygeaJt/+SZwQMzyECrM/eA5jS8U4JB4sS6L8/7t3UOtJeWY7NagRpSDZ0VFtN889FpXwmuhy0qWF3FH/synEhjhwIQxxWjQ4R/YLdn8TLiCSfD1VPp+5QB+uPbNgCutdSTef3O+JcRfEmSDrUEQeThf4deTt30YQNIrsU6Knj5N9O+E/AgMBAAECggEACL2ZGoFm6xlIMhrP025yYlc8SaEr5y+hWruW195mgy7vK68IdGZBBrM/w0lwOq/ScYGWY04Dn8mGtL+eKKUAyEfIHGED88m0gn0Q4nkUvSQVbRvGQVl3iQDHnI7iE+NsVoK92nk100Kj7trcYdlPNFSa6KRewn2GaOTzbpgvPsZx6johdHqqPS+aXR638p0lDzhNjoDva+NkDg6SumTOBFKAw4npWj5Sj5/PH/cg+y49vc1Bc5EEuWb+P41TVUJpOIP1TPAiSIQwRsUTnPS0msGntc90jYUMrRbN9lxnxiKcxxKoBvEvwnIZcdJeRH9wk/IzD5aYT0bQGedSQr40QQKBgQDkpSW02fsdWyJUdimXoVh+NcfCletmtHTybWoSB3rlBca/UonDEV/rhVq7fSEM5q+pFbRmwaCNFHOeVjqRRX89S/s4rFuSinyehDAGuLljihSbAHRyKDo0pzARQN6FSNCV9YJ1H1u/6VNdtZSo35+vu2e7u0qOFoGG4XirBIN8nwKBgQDgLQXd2fSXE0SS+j6H0YLrtTKAYXMfTtKNfrSUoVTQvo7vXT7mOZLhezPk+O9Gy+PT5TddvgRx7x8BZ7ZSjmydlMGx0zMOtXVJnGID1fl4748Wk3fNphUxwfBSiQL6aXJGR0yUXV5sZ481VjgJ/1yCYhb93kueW1APuC6x4iy3YQKBgQC9G0pAdjmXYhTWvpRP8QZ7/IcnjU+RNpezGoOsPbuLSGfFPcLrL6eh6D3O7AM15GZM9sKqamMbzFqEDtWJ6Wz/iaRSj1t9rES95p7CMG5EwaOhP5MQB+18NvsuifSBUGQUY2Zu8Gy2IYjt7Izzz2EHu3xkbNeRBVRD9qAS8jy+CQKBgEyht2auMflO4dsoZiXBjfKLP1c5eMQUCs/Jp2tDdx3gdjYG9xB2T+p6VjQIkKrv2dK+gV2vLg/QgRXW4TF5dFGt30StgL+fcheWuL6874nSwmQiRwrqokYfGMruATGeyCyUBO6WuEdwYzkFXySzwWjkpR1lVw4sAsNM39F5EnYhAoGBAMxKFGVIBTC6NjKnATH2M1/t+1WombxV21JzMlA26+jYF+bNcPxf5abt65RRvjoJWgRXkm9mXL8O5+Lm/4Zd99F08oH0i82PlHJ9dMcO6cxa6N+fheV/gb4arJDg6M370gCuhtuc2BYr+P74XdPGB510rA0K1KnkkOSJukmioOQK"
+    ports:
+      - '4098:4096'
+      - '4099:4097'
+    depends_on:
+      - loki.local
+      - jaeger.local
+      - db2
+    networks:
+      my_net:
+        ipv4_address: 172.20.0.5

@@ -37,6 +37,16 @@ export async function getBlock(port: number, height: string) {
   return data.block as IBlock;
 }
 
+export async function getAccount(port: number, address: string) {
+  const url = `http://localhost:${port}/api/accounts`;
+  const { data } = await axios.get(url, {
+    params: {
+      address: address,
+    },
+  });
+  return data;
+}
+
 export function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
