@@ -212,12 +212,12 @@ class Bundle extends Libp2p {
     });
   }
 
-  async broadcastSelf(data) {
+  async rendezvousBroadcastsPeers(data) {
     if (!this.isStarted()) {
       return;
     }
-    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_SELF, data);
-    this.logger.info(`[p2p][self] "self" announced`);
+    await this.pubsub.publish(this.p2pConfig.V1_RENDEZVOUS_BROADCAST, data);
+    this.logger.info(`[p2p][rendezvous] announced all my peers to the network`);
   }
 
   async broadcastNewMember(data) {

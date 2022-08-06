@@ -10,6 +10,7 @@ import * as multiaddr from 'multiaddr';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from '@gny/utils';
 import Loader from './loader';
+import { serializedSpanContext } from '@gny/tracer';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -174,28 +175,36 @@ export default class Peer implements ICoreModule {
     );
 
     Peer.p2p.pubsub.on(
-      global.Config.p2pConfig.V1_BROADCAST_SELF,
-      Transport.receiveSelf
+      global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
+      Transport.receivePeers_from_rendezvous_Broadcast
     );
-    await Peer.p2p.pubsub.subscribe(global.Config.p2pConfig.V1_BROADCAST_SELF);
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
+    );
 
     await sleep(2 * 1000);
 
-    setInterval(async () => {
-      // announce every x seconds yourself to the network
-      const m = Peer.p2p.addressManager
-        .getAnnounceAddrs()
-        .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
-        .map(x => x.toString());
+    // only the rondezvous node should announce the peers it has
+    // this replaces the constant announcing yourself to the network
+    // which produces far to many messages
+    if (bootstrapNode.length === 0) {
+      setInterval(async () => {
+        const span = global.library.tracer.startSpan('rendezvous broadcast');
 
-      const raw: P2PPeerIdAndMultiaddr = {
-        peerId: Peer.p2p.peerId.toB58String(),
-        multiaddr: m,
-      };
+        const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
 
-      const converted = uint8ArrayFromString(JSON.stringify(raw));
-      await Peer.p2p.broadcastSelf(converted);
-    }, 20 * 1000);
+        const data = {
+          spanId: serializedSpanContext(global.library.tracer, span.context()),
+          peers: peers,
+        };
+        span.log(data);
+
+        const converted = uint8ArrayFromString(JSON.stringify(data));
+        await Peer.p2p.rendezvousBroadcastsPeers(converted);
+
+        span.finish();
+      }, 30 * 1000);
+    }
 
     // sync to highest node, especially when the whole network is stuck
     let lastHeight = String(0);

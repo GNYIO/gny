@@ -32,7 +32,6 @@ import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
 } from '@gny/tracer';
-const uint8ArrayToString = require('uint8arrays/to-string');
 const uint8ArrayFromString = require('uint8arrays/from-string');
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {

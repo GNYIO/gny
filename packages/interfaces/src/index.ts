@@ -141,7 +141,7 @@ export interface IPeer2PeerHandlers {
   V1_BROADCAST_TRANSACTION: string;
   V1_BROADCAST_PROPOSE: string;
   V1_BROADCAST_NEW_MEMBER: string;
-  V1_BROADCAST_SELF: string;
+  V1_RENDEZVOUS_BROADCAST: string;
 }
 
 export interface IConfig {
