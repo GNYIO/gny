@@ -8,18 +8,18 @@ describe('sync only e2e test', () => {
   beforeAll(async done => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
+    return done();
   }, lib.tenMinutes);
 
   beforeEach(async done => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
-    done();
-  }, lib.oneMinute);
+    return done();
+  }, lib.oneMinute * 1.2);
 
   afterEach(async done => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
+    return done();
   }, lib.oneMinute);
 
   it(
@@ -34,8 +34,8 @@ describe('sync only e2e test', () => {
       expect(new BigNumber(first[0]).isLessThan(second[0])).toEqual(true);
       expect(new BigNumber(first[1]).isLessThan(second[1])).toEqual(true);
 
-      done();
+      return done();
     },
-    2 * lib.oneMinute
+    3 * lib.oneMinute
   );
 });
