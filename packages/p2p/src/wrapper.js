@@ -220,14 +220,6 @@ class Bundle extends Libp2p {
     this.logger.info(`[p2p][rendezvous] announced all my peers to the network`);
   }
 
-  async broadcastNewMember(data) {
-    if (!this.isStarted()) {
-      return;
-    }
-    await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_NEW_MEMBER, data);
-    this.logger.info(`[p2p][bootstrap] "newMember" announced`);
-  }
-
   async broadcastProposeAsync(data) {
     if (!this.isStarted()) {
       return;

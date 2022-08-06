@@ -167,14 +167,6 @@ export default class Peer implements ICoreModule {
     );
 
     Peer.p2p.pubsub.on(
-      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER,
-      Transport.receiveNew_Member
-    );
-    await Peer.p2p.pubsub.subscribe(
-      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER
-    );
-
-    Peer.p2p.pubsub.on(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
       Transport.receivePeers_from_rendezvous_Broadcast
     );
@@ -226,6 +218,8 @@ export default class Peer implements ICoreModule {
       }
     }, 30 * 1000);
 
+    // dial to peers in GNY_P2P_PEERS env variable
+    // normally this is only the rendezvous node
     if (bootstrapNode.length > 0) {
       setInterval(async () => {
         if (!Peer.p2p.isStarted()) {
@@ -258,21 +252,6 @@ export default class Peer implements ICoreModule {
             await Peer.p2p.dial(peer);
           } catch (err) {
             continue; // for next remote peer
-          }
-
-          try {
-            const raw: P2PPeerIdAndMultiaddr = {
-              peerId: peer.toB58String(),
-              multiaddr: [m.toString()],
-            };
-            const data = uint8ArrayFromString(JSON.stringify(raw));
-            await Peer.p2p.broadcastNewMember(data);
-          } catch (err) {
-            global.library.logger.info(
-              `[p2p][bootsrap] failed to announce peer "${peer.id}", error: ${
-                err.message
-              }`
-            );
           }
         }
       }, 5 * 1000);

@@ -16,7 +16,6 @@ export function createPeer2PeerHandlers(
     V1_BROADCAST_NEW_BLOCK_HEADER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newBlockHeader`,
     V1_BROADCAST_TRANSACTION: `/${network}/${protocol}/${partialGenesisId}/broadcast//transaction`,
     V1_BROADCAST_PROPOSE: `/${network}/${protocol}/${partialGenesisId}/broadcast//propose`,
-    V1_BROADCAST_NEW_MEMBER: `/${network}/${protocol}/${partialGenesisId}/broadcast/newMember`,
     V1_RENDEZVOUS_BROADCAST: `/${network}/${protocol}/${partialGenesisId}/broadcast/rendezvous`,
   };
   return peer2peerHandlers;
