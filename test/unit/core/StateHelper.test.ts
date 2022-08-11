@@ -17,7 +17,6 @@ describe('StateHelper', () => {
         pendingVotes: undefined,
 
         lastBlock: undefined,
-        blockCache: {},
 
         proposeCache: {},
         lastPropose: null,

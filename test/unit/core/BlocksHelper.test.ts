@@ -531,47 +531,6 @@ describe('BlocksHelper', () => {
       done();
     });
 
-    it('AlreadyReceivedThisBlock() - returns false if cache is empty', done => {
-      const initialState = StateHelper.getInitialState();
-      const block = createRandomBlock();
-
-      const result = BlocksHelper.AlreadyReceivedThisBlock(initialState, block);
-
-      expect(result).toEqual(false);
-      done();
-    });
-
-    it('AlreadyReceivedThisBlock() - returns true if block was already received', done => {
-      let state = StateHelper.getInitialState();
-      const block = createRandomBlock();
-      state = BlocksHelper.MarkBlockAsReceived(state, block);
-
-      const result = BlocksHelper.AlreadyReceivedThisBlock(state, block);
-
-      expect(result).toEqual(true);
-      done();
-    });
-
-    it('MarkBlockAsReceived() - returns new object reference', done => {
-      const first = StateHelper.getInitialState();
-      const block = createRandomBlock();
-
-      const second = BlocksHelper.MarkBlockAsReceived(first, block);
-
-      expect(first).not.toBe(second);
-      done();
-    });
-
-    it('MarkBlockAsReceived() - sets block in cache', done => {
-      const state = StateHelper.getInitialState();
-      const block = createRandomBlock();
-
-      const result = BlocksHelper.MarkBlockAsReceived(state, block);
-
-      expect(result.blockCache[block.id]).toEqual(true);
-      done();
-    });
-
     it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', done => {
       const state = StateHelper.getInitialState();
       state.lastBlock = loadGenesisBlock();
@@ -787,13 +746,9 @@ describe('BlocksHelper', () => {
       state = BlocksHelper.MarkProposeAsReceived(state, {
         id: 'blockId',
       } as BlockPropose);
-      state = BlocksHelper.MarkBlockAsReceived(state, {
-        id: 'blockId',
-      } as IBlock);
       state.lastVoteTime = 35235234;
 
       // check before
-      expect(Object.keys(state.blockCache).length).toEqual(1);
       expect(Object.keys(state.proposeCache).length).toEqual(1);
       expect(state.lastVoteTime).toEqual(35235234);
       expect(state.privIsCollectingVotes).toEqual(true);
@@ -801,7 +756,6 @@ describe('BlocksHelper', () => {
       // act
       const result = BlocksHelper.ProcessBlockCleanup(state);
 
-      expect(result).toHaveProperty('blockCache', {});
       expect(result).toHaveProperty('proposeCache', {});
       expect(result).toHaveProperty('lastVoteTime', null);
       expect(result).toHaveProperty('privIsCollectingVotes', false);

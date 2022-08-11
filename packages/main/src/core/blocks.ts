@@ -23,10 +23,7 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
-import {
-  BlocksHelper,
-  BlockMessageFitInLineResult as BlockFitsInLine,
-} from './BlocksHelper';
+import { BlocksHelper } from './BlocksHelper';
 import { Block, Variable, Info } from '@gny/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper';
 import { StateHelper } from './StateHelper';
@@ -1002,9 +999,23 @@ export default class Blocks implements ICoreModule {
     votes: ManyVotes,
     span: ISpan
   ) => {
-    global.library.logger.info(
-      `[p2p] onReceiveBlock: ${JSON.stringify(block, null, 2)}`
-    );
+    // check before if block fits in line
+    const state = StateHelper.getState();
+    const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(state, block);
+    if (fitInLineResult === false) {
+      global.library.logger.info(
+        `[p2p] received block does not fit in line. newBlock:
+        ${JSON.stringify(block, null, 2)}.
+        currentBlock: ${JSON.stringify(state.lastBlock, null, 2)}`
+      );
+      span.log({
+        receivedBlock: block,
+      });
+      span.log({
+        lastBlock: state.lastBlock,
+      });
+      span.finish();
+    }
 
     global.library.sequence.add(async cb => {
       let state = StateHelper.getState();
@@ -1012,93 +1023,47 @@ export default class Blocks implements ICoreModule {
       span.log({
         lastBlock: state.lastBlock,
       });
+      span.log({
+        newBlock: block,
+      });
 
       const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(
         state,
         block
       );
 
-      // TODO: rename LongFork, this is wrong
-      if (fitInLineResult === BlockFitsInLine.LongFork) {
+      if (fitInLineResult === false) {
         const longForkSpan = global.library.tracer.startSpan(
-          'received block not in line',
+          'does not fit in line',
           {
             childOf: span.context(),
           }
         );
 
-        global.library.logger.warn('Receive new block header from long fork');
+        global.library.logger.warn(
+          'Receive new block header does not fit in line'
+        );
         global.library.logger.info(
           `[syncing] received block h: ${
             block.height
-          } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`
+          } from "${peerId.toB58String()}".`
         );
 
         longForkSpan.setTag('warning', true);
         longForkSpan.log({
-          value: `Receive new block header from long fork\n[syncing] received block h: ${
+          value: `received block h block h: ${
             block.height
-          } from "${peerId.toB58String()}". seem that we are not up to date. Start syncing from a random peer`,
+          } from "${peerId.toB58String()}".`,
         });
         longForkSpan.finish();
         span.finish();
 
-        Loader.startSyncBlocks(state.lastBlock);
         return cb();
       }
-
-      if (fitInLineResult === BlockFitsInLine.SyncBlocks) {
-        const syncBlocksSpan = global.library.tracer.startSpan(
-          'received block within close range',
-          {
-            childOf: span.context(),
-          }
-        );
-        global.library.logger.info(
-          `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`
-        );
-        syncBlocksSpan.setTag('warning', true);
-        syncBlocksSpan.log({
-          value: `[syncing] BlockFitsInLine.SyncBlocks received, start syncing from ${peerId}`,
-        });
-        syncBlocksSpan.log({
-          receivedBlock: block,
-        });
-        syncBlocksSpan.log({
-          lastBlock: state.lastBlock,
-        });
-
-        syncBlocksSpan.finish();
-        span.finish();
-
-        Loader.syncBlocksFromPeer(peerId);
-        return cb();
-      }
-
-      if (BlocksHelper.AlreadyReceivedThisBlock(state, block)) {
-        const alreadyReceivedBlockSpan = global.library.tracer.startSpan(
-          'already received block',
-          {
-            childOf: span.context(),
-          }
-        );
-        alreadyReceivedBlockSpan.setTag('error', true);
-        alreadyReceivedBlockSpan.log({
-          value: `[syncing] already received this block`,
-        });
-        alreadyReceivedBlockSpan.finish();
-        span.finish();
-
-        return cb();
-      }
-
-      // TODO this should be saved already in case of an error
-      state = BlocksHelper.MarkBlockAsReceived(state, block);
 
       span.finish();
 
-      if (fitInLineResult === BlockFitsInLine.Success) {
-        // does this work, even
+      if (fitInLineResult === true) {
         const processBlockSpan = global.library.tracer.startSpan(
           'process block (on receive block)',
           {
@@ -1115,6 +1080,7 @@ export default class Blocks implements ICoreModule {
             childOf: processBlockSpan.context(),
           }
         );
+
         try {
           StateHelper.ClearUnconfirmedTransactions();
 
@@ -1197,7 +1163,7 @@ export default class Blocks implements ICoreModule {
         }
       }
 
-      // this should never get here
+      // this is important
       return cb();
     });
   };
@@ -1207,6 +1173,8 @@ export default class Blocks implements ICoreModule {
     message: P2PMessage,
     parentSpan: ISpan
   ) => {
+    global.library.logger.info(`[p2p] onReceivePropose ${propose.id}`);
+
     const span = global.library.tracer.startSpan('push Votes', {
       childOf: parentSpan.context(),
     });
@@ -1218,6 +1186,8 @@ export default class Blocks implements ICoreModule {
     global.library.sequence.add(cb => {
       let state = StateHelper.getState();
 
+      global.library.logger.info(`[p2p] onReceivePropose started sequence`);
+
       span.log({
         value: 'in sequence',
       });
@@ -1225,6 +1195,11 @@ export default class Blocks implements ICoreModule {
         lastBlock: state.lastBlock,
         lastPropose: state.lastPropose,
       });
+      global.library.logger.info(
+        `[p2p] onReceivePropose.
+        lastBlock: ${JSON.stringify(state.lastBlock, null, 2)}
+        lastPropose: ${JSON.stringify(state.lastPropose, null, 2)}`
+      );
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
         const alreadyReceivedSpan = global.library.tracer.startSpan(
@@ -1240,6 +1215,9 @@ export default class Blocks implements ICoreModule {
         alreadyReceivedSpan.log({
           value: 'already received propose',
         });
+        global.library.logger.warn(
+          `[p2p] onReceivePropose. already received propose`
+        );
         alreadyReceivedSpan.log({
           hash: propose.hash,
           proposeCache: state.proposeCache,
@@ -1253,6 +1231,9 @@ export default class Blocks implements ICoreModule {
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
       if (BlocksHelper.DoesNewBlockProposeMatchOldOne(state, propose)) {
+        global.library.logger.error(
+          `[p2p] onReceivePropose. propose matches old one`
+        );
         span.setTag('error', true);
         span.log({
           value: 'propose matches old one',
@@ -1271,6 +1252,9 @@ export default class Blocks implements ICoreModule {
           span.log({
             value: 'block is not in line, going to call startSyncBlocks',
           });
+          global.library.logger.info(
+            `[p2p] onReceivePropose. block is not in line, going to call startSyncBlocks`
+          );
           span.finish();
 
           Loader.startSyncBlocks(state.lastBlock);
@@ -1284,6 +1268,10 @@ export default class Blocks implements ICoreModule {
           value: 'ignore the frequently propose',
         });
         span.finish();
+
+        global.library.logger.info(
+          `[p2p] onReceivePropose. ignore the frequently propose`
+        );
 
         return setImmediate(cb);
       }
@@ -1300,6 +1288,9 @@ export default class Blocks implements ICoreModule {
               span.log({
                 value: 'going to validate propose slot',
               });
+              global.library.logger.info(
+                `[p2p] onReceivePropose. going to validate propose slot`
+              );
 
               Delegates.validateProposeSlot(propose, activeDelegates);
 
@@ -1315,6 +1306,9 @@ export default class Blocks implements ICoreModule {
             span.log({
               value: 'going to accept propose',
             });
+            global.library.logger.info(
+              `[p2p] onReceivePropose. going to accept propose`
+            );
             if (ConsensusBase.acceptPropose(propose)) {
               next();
             } else {
@@ -1325,6 +1319,9 @@ export default class Blocks implements ICoreModule {
             span.log({
               value: 'get active delegate keypairs',
             });
+            global.library.logger.info(
+              `[p2p] onReceivePropose. get active delegate keypairs`
+            );
 
             const activeKeypairs = Delegates.getActiveDelegateKeypairs(
               activeDelegates
@@ -1337,6 +1334,10 @@ export default class Blocks implements ICoreModule {
                 value: `I got activeKeypairs: ${activeKeypairs &&
                   activeKeypairs.length}`,
               });
+              global.library.logger.info(
+                `[p2p] onReceivePropose. I got activeKeypairs ${activeKeypairs &&
+                  activeKeypairs.length}`
+              );
 
               if (activeKeypairs && activeKeypairs.length > 0) {
                 const votes = ConsensusBase.createVotes(
@@ -1369,6 +1370,9 @@ export default class Blocks implements ICoreModule {
 
               // important
               StateHelper.setState(state);
+              global.library.logger.error(
+                `[p2p] failed to create and push VOTES "${err.message}"`
+              );
               return next(
                 `[p2p] failed to create and push VOTES "${err.message}"`
               );
@@ -1385,6 +1389,7 @@ export default class Blocks implements ICoreModule {
             span.log({
               value: `onReceivePropose error: ${err}`,
             });
+            global.library.logger.error(`[p2p] onReceivePropose error: ${err}`);
 
             global.app.logger.error('onReceivePropose error');
             global.app.logger.error(err);

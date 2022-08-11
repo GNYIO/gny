@@ -41,7 +41,6 @@ export interface IState {
   pendingVotes: ManyVotes;
 
   lastBlock: IBlock;
-  blockCache: ISimpleCache<boolean>;
 
   proposeCache: ISimpleCache<boolean>;
   lastPropose: BlockPropose;
