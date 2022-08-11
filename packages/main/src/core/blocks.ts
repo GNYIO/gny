@@ -1015,6 +1015,7 @@ export default class Blocks implements ICoreModule {
         lastBlock: state.lastBlock,
       });
       span.finish();
+      return;
     }
 
     global.library.sequence.add(async cb => {
@@ -1027,6 +1028,8 @@ export default class Blocks implements ICoreModule {
         newBlock: block,
       });
 
+      // check needs to be done with a new version of state
+      // state could have changed since
       const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(
         state,
         block
