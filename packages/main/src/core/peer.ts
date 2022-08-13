@@ -96,15 +96,10 @@ export default class Peer implements ICoreModule {
     return peerId;
   };
 
-  // Events
-  public static onBlockchainReady = async () => {
-    const peerId = await Peer.preparePeerId();
-
-    // TODO persist peerBook of node
-    const bootstrapNode = global.library.config.peers.bootstrap
-      ? global.library.config.peers.bootstrap
-      : [];
-
+  public static initializeLibP2P = async (
+    bootstrapNode: string[],
+    peerId: PeerId
+  ) => {
     const wrapper = create(
       peerId,
       global.library.config.publicIp,
@@ -173,89 +168,144 @@ export default class Peer implements ICoreModule {
     await Peer.p2p.pubsub.subscribe(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
     );
+  };
 
-    await sleep(2 * 1000);
+  public static rendezvousBroadcastIfRendezvous = async (
+    bootstrapNode: string[]
+  ) => {
+    async function announce() {
+      const span = global.library.tracer.startSpan('rendezvous broadcast');
+
+      const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
+
+      const data = {
+        spanId: serializedSpanContext(global.library.tracer, span.context()),
+        peers: peers,
+      };
+      span.log(data);
+
+      const converted = uint8ArrayFromString(JSON.stringify(data));
+      await Peer.p2p.rendezvousBroadcastsPeers(converted);
+
+      span.finish();
+    }
 
     // only the rondezvous node should announce the peers it has
     // this replaces the constant announcing yourself to the network
     // which produces far to many messages
+    // no peers === I am rendezvous node
     if (bootstrapNode.length === 0) {
-      setInterval(async () => {
-        const span = global.library.tracer.startSpan('rendezvous broadcast');
-
-        const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
-
-        const data = {
-          spanId: serializedSpanContext(global.library.tracer, span.context()),
-          peers: peers,
-        };
-        span.log(data);
-
-        const converted = uint8ArrayFromString(JSON.stringify(data));
-        await Peer.p2p.rendezvousBroadcastsPeers(converted);
-
-        span.finish();
-      }, 30 * 1000);
+      // execute right away
+      await announce();
+      // execute forever every 10 seconds
+      const tenSeconds = 10 * 1000;
+      setInterval(announce, tenSeconds);
     }
+  };
 
-    // sync to highest node, especially when the whole network is stuck
-    let lastHeight = String(0);
-    setInterval(async () => {
-      const state = StateHelper.getState();
-      const lastBlock = state.lastBlock;
-      const newLastBlock = String(lastBlock.height);
-      console.log(
-        `lastHeight: ${lastHeight}, lastBlockHeight: ${newLastBlock}`
-      );
-
-      if (new BigNumber(lastHeight).isEqualTo(newLastBlock)) {
-        // no new height for x seconds, look if any other node has a higher node
-        global.library.tracer.startSpan('is stuck').finish();
-        Loader.startSyncBlocks(lastBlock);
-      } else {
-        lastHeight = newLastBlock;
-        return;
-      }
-    }, 30 * 1000);
-
+  public static dialRendezvousNodeIfNotNormalNode = async (
+    bootstrapNode: string[]
+  ) => {
     // dial to peers in GNY_P2P_PEERS env variable
     // normally this is only the rendezvous node
-    if (bootstrapNode.length > 0) {
-      setInterval(async () => {
-        if (!Peer.p2p.isStarted()) {
-          return;
+
+    async function dial() {
+      if (!Peer.p2p.isStarted()) {
+        return;
+      }
+
+      const multis = bootstrapNode.map(x => multiaddr(x));
+
+      for (let i = 0; i < multis.length; ++i) {
+        const m = multis[i];
+        const peer = PeerId.createFromB58String(m.getPeerId());
+
+        // check if there are addresses for this peer saved
+        const addresses = Peer.p2p.peerStore.addressBook.get(peer);
+        if (!addresses) {
+          Peer.p2p.peerStore.addressBook.set(peer, [m]);
         }
 
-        const multis = bootstrapNode.map(x => multiaddr(x));
-
-        for (let i = 0; i < multis.length; ++i) {
-          const m = multis[i];
-          const peer = PeerId.createFromB58String(m.getPeerId());
-
-          // check if there are addresses for this peer saved
-          const addresses = Peer.p2p.peerStore.addressBook.get(peer);
-          if (!addresses) {
-            Peer.p2p.peerStore.addressBook.set(peer, [m]);
-          }
-
-          // 0. no need to check if already in peerStore (peer always in peerStore)
-          // 1. check if have connection
-          // yes, then return
-          // 2. if not, then dial
-          const connections = Array.from(Peer.p2p.connections.keys());
-          const inConnection = connections.find(x => x === peer.toB58String());
-          if (inConnection) {
-            continue; // for next remote peer
-          }
-
-          try {
-            await Peer.p2p.dial(peer);
-          } catch (err) {
-            continue; // for next remote peer
-          }
+        // 0. no need to check if already in peerStore (peer always in peerStore)
+        // 1. check if have connection
+        // yes, then return
+        // 2. if not, then dial
+        const connections = Array.from(Peer.p2p.connections.keys());
+        const inConnection = connections.find(x => x === peer.toB58String());
+        if (inConnection) {
+          continue; // for next remote peer
         }
-      }, 5 * 1000);
+
+        try {
+          await Peer.p2p.dial(peer);
+        } catch (err) {
+          continue; // for next remote peer
+        }
+      }
     }
+
+    // not rendezvous node
+    if (bootstrapNode.length > 0) {
+      // execute right away
+      await dial();
+      // execute forever every 10 seconds
+      const tenSeconds = 10 * 1000;
+      setInterval(dial, tenSeconds);
+    }
+  };
+
+  // Events
+  public static onBlockchainReady = async () => {
+    // # if rendezvous node
+    //   # broadcast neighor nodes
+    // # if not rendezvous node
+    //   # dial rendezvous node
+    // # find peers, maybe wait a little for peers
+    //   # if found peers
+    //     # ask for common block
+    //     # sync if necessary
+    //     # rollback if necessary
+    //     # then activate block creation
+    //   # else
+    //     # rollbackback if necessary
+    //     # then activate block creation
+
+    // this prevents from
+    StateHelper.SetIsSyncing(true);
+
+    const bootstrapNode = global.library.config.peers.bootstrap
+      ? global.library.config.peers.bootstrap
+      : [];
+    const peerId = await Peer.preparePeerId();
+
+    await Peer.initializeLibP2P(bootstrapNode, peerId);
+
+    await sleep(2 * 1000);
+
+    await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
+    await Peer.dialRendezvousNodeIfNotNormalNode(bootstrapNode);
+
+    StateHelper.SetIsSyncing(false);
+
+    // sync to highest node, especially when the whole network is stuck
+    // let lastHeight = String(0);
+    // setInterval(async () => {
+    //   const state = StateHelper.getState();
+    //   const lastBlock = state.lastBlock;
+    //   const newLastBlock = String(lastBlock.height);
+    //   console.log(
+    //     `lastHeight: ${lastHeight}, lastBlockHeight: ${newLastBlock}`
+    //   );
+
+    //   if (new BigNumber(lastHeight).isEqualTo(newLastBlock)) {
+    //     // no new height for x seconds, look if any other node has a higher node
+    //     global.library.tracer.startSpan('is stuck').finish();
+    //     Loader.startSyncBlocks(lastBlock);
+    //   } else {
+    //     lastHeight = newLastBlock;
+    //     return;
+    //   }
+    // }, 30 * 1000);
   };
 
   public static cleanup = cb => {
