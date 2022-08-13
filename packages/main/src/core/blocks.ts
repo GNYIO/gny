@@ -1245,25 +1245,28 @@ export default class Blocks implements ICoreModule {
 
         return setImmediate(cb);
       }
+
       // TODO: check
       const lastBlockPlus1 = new BigNumber(state.lastBlock.height)
         .plus(1)
         .toFixed();
       if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
-        if (new BigNumber(propose.height).isGreaterThan(lastBlockPlus1)) {
-          span.setTag('error', true);
-          span.log({
-            value: 'block is not in line, going to call startSyncBlocks',
-          });
-          global.library.logger.info(
-            `[p2p] onReceivePropose. block is not in line, going to call startSyncBlocks`
-          );
-          span.finish();
+        global.library.logger.info(
+          `received block propose (${
+            propose.height
+          }) that is not in line with block ${state.lastBlock.height}`
+        );
+        span.log({
+          log: `received block propose that is not in line`,
+          lastBlock: state.lastBlock,
+          propose,
+        });
+        span.setTag('error', true);
+        span.finish();
 
-          Loader.startSyncBlocks(state.lastBlock);
-        }
         return setImmediate(cb);
       }
+
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
         global.app.logger.debug('ignore the frequently propose');
         span.setTag('error', true);
