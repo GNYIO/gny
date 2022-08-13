@@ -1,16 +1,12 @@
 import { SimplePushTypeCallback } from '@gny/p2p';
 import { StateHelper } from './StateHelper';
 import {
-  ApiResult,
   BlockIdWrapper,
   BlockAndVotes,
   ManyVotes,
   IBlock,
-  CommonBlockWrapper,
   CommonBlockParams,
-  CommonBlockResult,
   HeightWrapper,
-  BlocksWrapper,
   BlocksWrapperParams,
   BufferList,
 } from '@gny/interfaces';
