@@ -516,8 +516,8 @@ export interface CommonBlockParams {
 }
 
 export interface CommonBlockResult {
-  success: boolean;
-  common: IBlock;
+  commonBlock: IBlock;
+  currentBlock: IBlock;
 }
 
 export interface Context {

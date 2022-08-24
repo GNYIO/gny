@@ -9,8 +9,6 @@ import {
   Next,
   IBlock,
   ManyVotes,
-  CommonBlockParams,
-  CommonBlockResult,
   IRound,
   ICoreModule,
   UnconfirmedTransaction,

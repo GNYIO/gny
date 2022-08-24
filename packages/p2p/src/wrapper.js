@@ -213,31 +213,19 @@ class Bundle extends Libp2p {
   }
 
   async rendezvousBroadcastsPeers(data) {
-    if (!this.isStarted()) {
-      return;
-    }
     await this.pubsub.publish(this.p2pConfig.V1_RENDEZVOUS_BROADCAST, data);
     this.logger.info(`[p2p][rendezvous] announced all my peers to the network`);
   }
 
   async broadcastProposeAsync(data) {
-    if (!this.isStarted()) {
-      return;
-    }
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_PROPOSE, data);
   }
 
   async broadcastTransactionAsync(data) {
-    if (!this.isStarted()) {
-      return;
-    }
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_TRANSACTION, data);
   }
 
   async broadcastNewBlockHeaderAsync(data) {
-    if (!this.isStarted()) {
-      return;
-    }
     await this.pubsub.publish(
       this.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
       data

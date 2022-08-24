@@ -9,6 +9,7 @@ import {
   HeightWrapper,
   BlocksWrapperParams,
   BufferList,
+  CommonBlockResult,
 } from '@gny/interfaces';
 import {
   isCommonBlockParams,
@@ -17,6 +18,7 @@ import {
   isManyVotes,
   isHeightWrapper,
   isBlockIdWrapper,
+  isCommonBlockResult,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
@@ -216,7 +218,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     peerId: PeerId,
     commonBlockParams: CommonBlockParams,
     span: ISpan
-  ): Promise<IBlock> => {
+  ): Promise<CommonBlockResult> => {
     const raw: TracerWrapper<CommonBlockParams> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: commonBlockParams,
@@ -228,7 +230,25 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
       global.Config.p2pConfig.V1_COMMON_BLOCK,
       data
     );
-    const result: IBlock = JSON.parse(resultRaw.toString());
+    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
+
+    if (!isCommonBlockResult(result)) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p][commonBlock] CommonBlockResult could not be validated',
+      });
+      span.log({
+        returnValue: result,
+      });
+      span.finish();
+      global.app.logger.error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
+      throw new Error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
+    }
+
     return result;
   };
 
@@ -292,9 +312,15 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
           ', '
         )}`,
       });
+      global.app.logger.info(
+        `found in the db the following values for: min: ${min}, max: ${max} and ids: ${ids.join(
+          ', '
+        )}`
+      );
       span.log({
         blocks,
       });
+      global.app.logger.info(JSON.stringify(blocks));
 
       blocks = blocks.reverse();
       let commonBlock: IBlock = null;
@@ -317,7 +343,21 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
         foundCommonBlock: commonBlock,
       });
       span.finish();
-      return [uint8ArrayFromString(JSON.stringify(commonBlock))];
+
+      const currentHeight = StateHelper.getState().lastBlock.height;
+      const currentBlock = await global.app.sdb.getBlockByHeight(
+        currentHeight,
+        false
+      );
+      if (new BigNumber(currentBlock.height).isEqualTo(0)) {
+        currentBlock.prevBlockId = null;
+      }
+      const result: CommonBlockResult = {
+        commonBlock,
+        currentBlock,
+      };
+
+      return [uint8ArrayFromString(JSON.stringify(result))];
     } catch (e) {
       span.setTag('error', true);
       span.log({
@@ -333,7 +373,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
       );
       global.app.logger.error(e);
 
-      const result: IBlock = null;
+      const result: CommonBlockResult = null;
       return [uint8ArrayFromString(JSON.stringify(result))];
     }
   };

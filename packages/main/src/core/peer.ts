@@ -10,6 +10,7 @@ import * as multiaddr from 'multiaddr';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from '@gny/utils';
 import Loader from './loader';
+import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper';
 import { serializedSpanContext } from '@gny/tracer';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -210,10 +211,6 @@ export default class Peer implements ICoreModule {
     // normally this is only the rendezvous node
 
     async function dial() {
-      if (!Peer.p2p.isStarted()) {
-        return;
-      }
-
       const multis = bootstrapNode.map(x => multiaddr(x));
 
       for (let i = 0; i < multis.length; ++i) {
@@ -254,6 +251,37 @@ export default class Peer implements ICoreModule {
     }
   };
 
+  public static syncIfStuck = () => {
+    // sync to highest node, especially when the whole network is stuck
+    let height30SecondsAgo = String(0);
+    setInterval(async () => {
+      const state = StateHelper.getState();
+
+      const lastBlock = state.lastBlock;
+
+      const heightNow = String(state.lastBlock.height);
+      global.library.logger.info(
+        `height30SecondsAgo: ${height30SecondsAgo}, heightNow: ${heightNow}`
+      );
+
+      // no new height for 30 seconds, look if any other node has a higher node
+      if (new BigNumber(height30SecondsAgo).isEqualTo(heightNow)) {
+        const span = global.library.tracer.startSpan('is stuck');
+        span.log({
+          height30SecondsAgo,
+          heightNow,
+        });
+        span.finish();
+        Loader.startSyncBlocks();
+      } else {
+        height30SecondsAgo = heightNow;
+        return;
+      }
+    }, 30 * 1000);
+  };
+
+  public static checkOtherPeers = async () => {};
+
   // Events
   public static onBlockchainReady = async () => {
     // # if rendezvous node
@@ -270,7 +298,7 @@ export default class Peer implements ICoreModule {
     //     # rollbackback if necessary
     //     # then activate block creation
 
-    // this prevents from
+    // this prevents from processing blocks from peers. Maybe we need rollback?
     StateHelper.SetIsSyncing(true);
 
     const bootstrapNode = global.library.config.peers.bootstrap
@@ -280,32 +308,25 @@ export default class Peer implements ICoreModule {
 
     await Peer.initializeLibP2P(bootstrapNode, peerId);
 
-    await sleep(2 * 1000);
+    // await sleep(2 * 1000);
 
     await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
     await Peer.dialRendezvousNodeIfNotNormalNode(bootstrapNode);
 
-    StateHelper.SetIsSyncing(false);
+    // Peer.syncIfStuck();
 
-    // sync to highest node, especially when the whole network is stuck
-    // let lastHeight = String(0);
-    // setInterval(async () => {
-    //   const state = StateHelper.getState();
-    //   const lastBlock = state.lastBlock;
-    //   const newLastBlock = String(lastBlock.height);
-    //   console.log(
-    //     `lastHeight: ${lastHeight}, lastBlockHeight: ${newLastBlock}`
-    //   );
+    // wait a little bit for peers
+    await sleep(7 * 1000);
 
-    //   if (new BigNumber(lastHeight).isEqualTo(newLastBlock)) {
-    //     // no new height for x seconds, look if any other node has a higher node
-    //     global.library.tracer.startSpan('is stuck').finish();
-    //     Loader.startSyncBlocks(lastBlock);
-    //   } else {
-    //     lastHeight = newLastBlock;
-    //     return;
-    //   }
-    // }, 30 * 1000);
+    const connectedPeers = Peer.p2p.getAllConnectedPeersPeerInfo();
+    if (Array.isArray(connectedPeers) && connectedPeers.length > 0) {
+      await Loader.startSyncBlocks();
+
+      await sleep(15 * 1000);
+      StateHelper.SetIsSyncing(false);
+    } else {
+      StateHelper.SetIsSyncing(false);
+    }
   };
 
   public static cleanup = cb => {
