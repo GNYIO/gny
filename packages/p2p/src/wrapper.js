@@ -146,6 +146,35 @@ class Bundle extends Libp2p {
     }
   }
 
+  async connect(peer, peerMultiaddr) {
+    if (PeerId.isPeerId(peer) === false) {
+      throw new Error('argument is not PeerId');
+    }
+    console.log('[p2p][connect] peer is valid');
+
+    // check if there are addresses for this peer saved
+    const addresses = this.peerStore.addressBook.get(peer);
+    if (!addresses) {
+      this.peerStore.addressBook.set(peer, [peerMultiaddr]);
+    }
+
+    // 0. no need to check if already in peerStore (peer always in peerStore)
+    // 1. check if have connection
+    // yes, then return
+    // 2. if not, then dial
+    const connections = Array.from(this.connections.keys());
+    const inConnection = connections.find(x => x === peer.toB58String());
+    if (inConnection) {
+      return; // for next remote peer
+    }
+
+    try {
+      await Peer.p2p.dial(peer);
+    } catch (err) {
+      return; // for next remote peer
+    }
+  }
+
   async pushOnly(peerId, protocol, data) {
     this.logger.info(
       `[p2p] pushOnly "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`

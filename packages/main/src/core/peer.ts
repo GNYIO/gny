@@ -195,7 +195,7 @@ export default class Peer implements ICoreModule {
     // this replaces the constant announcing yourself to the network
     // which produces far to many messages
     // no peers === I am rendezvous node
-    if (bootstrapNode.length === 0) {
+    if (Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0) {
       // execute right away
       await announce();
       // execute forever every 10 seconds
@@ -204,56 +204,71 @@ export default class Peer implements ICoreModule {
     }
   };
 
+  public static dial = async (bootstrapNode: string[]) => {
+    // dial to peers in GNY_P2P_PEERS env variable
+    // normally this is only the rendezvous node
+    for (let i = 0; i < bootstrapNode.length; ++i) {
+      try {
+        const m2 = multiaddr(bootstrapNode[i]);
+        const b58String = m2.getPeerId();
+
+        const peerId = PeerId.createFromB58String(b58String);
+
+        await Peer.p2p.connect(peerId, m2);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
   public static dialRendezvousNodeIfNotNormalNode = async (
     bootstrapNode: string[]
   ) => {
-    // dial to peers in GNY_P2P_PEERS env variable
-    // normally this is only the rendezvous node
-
-    async function dial() {
-      const multis = bootstrapNode.map(x => multiaddr(x));
-
-      for (let i = 0; i < multis.length; ++i) {
-        const m = multis[i];
-        const peer = PeerId.createFromB58String(m.getPeerId());
-
-        // check if there are addresses for this peer saved
-        const addresses = Peer.p2p.peerStore.addressBook.get(peer);
-        if (!addresses) {
-          Peer.p2p.peerStore.addressBook.set(peer, [m]);
-        }
-
-        // 0. no need to check if already in peerStore (peer always in peerStore)
-        // 1. check if have connection
-        // yes, then return
-        // 2. if not, then dial
-        const connections = Array.from(Peer.p2p.connections.keys());
-        const inConnection = connections.find(x => x === peer.toB58String());
-        if (inConnection) {
-          continue; // for next remote peer
-        }
-
-        try {
-          await Peer.p2p.dial(peer);
-        } catch (err) {
-          continue; // for next remote peer
-        }
-      }
-    }
-
     // not rendezvous node
-    if (bootstrapNode.length > 0) {
+    if (Array.isArray(bootstrapNode) && bootstrapNode.length > 0) {
       // execute right away
-      await dial();
-      // execute forever every 10 seconds
+      await Peer.dial(bootstrapNode);
       const tenSeconds = 10 * 1000;
-      setInterval(dial, tenSeconds);
+
+      // execute forever every 10 seconds
+      const dialRendezvousLoop = async () => {
+        console.log('[p2p] dial rendezvous node');
+        await Peer.dial(bootstrapNode);
+        setTimeout(dialRendezvousLoop, tenSeconds);
+      };
+
+      setImmediate(dialRendezvousLoop);
+    }
+  };
+
+  public static askRendezvousNodeForPeers = async (bootstrapNode: string[]) => {
+    // not rendezvous node
+    if (Array.isArray(bootstrapNode) && bootstrapNode.length > 0) {
+      const m = multiaddr(bootstrapNode[0]);
+      const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
+
+      const span = global.app.tracer.startSpan(
+        'request peers from rendezvous node'
+      );
+      const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+      console.log(
+        `[p2p][requestGetPeers] peers: ${JSON.stringify(peers, null, 2)}`
+      );
+
+      span.finish();
+    } else {
+      // else wait for a few peers to connect
+      await sleep(7 * 1000);
     }
   };
 
   public static syncIfStuck = () => {
     // sync to highest node, especially when the whole network is stuck
-    let height30SecondsAgo = String(0);
+    let height30SecondsAgo = String(StateHelper.getState().lastBlock.height);
+    global.library.logger.info(
+      `<heh>height30SecondsAgo ${height30SecondsAgo} <heh>`
+    );
+
     setInterval(async () => {
       const state = StateHelper.getState();
 
@@ -308,12 +323,12 @@ export default class Peer implements ICoreModule {
 
     await Peer.initializeLibP2P(bootstrapNode, peerId);
 
-    // await sleep(2 * 1000);
-
     await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
     await Peer.dialRendezvousNodeIfNotNormalNode(bootstrapNode);
 
     // Peer.syncIfStuck();
+
+    await Peer.askRendezvousNodeForPeers(bootstrapNode);
 
     // wait a little bit for peers
     await sleep(7 * 1000);
@@ -323,7 +338,8 @@ export default class Peer implements ICoreModule {
       await Loader.startSyncBlocks();
 
       await sleep(15 * 1000);
-      StateHelper.SetIsSyncing(false);
+      // here we do not need StateHelper.SetIsSyncing(false);
+      // because Loader.startSyncBlocks(); sets sycing to false
     } else {
       StateHelper.SetIsSyncing(false);
     }

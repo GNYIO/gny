@@ -100,6 +100,7 @@ export default class Application {
       // handle the error safely
       scope.logger.error('unhandledRejection');
       scope.logger.error(err);
+      scope.logger.error(err.stack);
       process.emit('cleanup');
 
       // important

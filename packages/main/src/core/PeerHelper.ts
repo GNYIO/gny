@@ -577,10 +577,57 @@ function V1_BLOCKS_HANDLER(bundle) {
   bundle.directResponse(global.Config.p2pConfig.V1_BLOCKS, response);
 }
 
+function V1_GET_PEERS_HANDLER(bundle) {
+  const request = async (peerId: PeerId, span: ISpan) => {
+    const raw = serializedSpanContext(global.library.tracer, span.context());
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_PEERS,
+      data
+    );
+
+    const result = JSON.parse(resultRaw.toString());
+    return result;
+  };
+
+  const response = async source => {
+    let temp = null;
+    for await (const msg of source) {
+      temp = msg;
+      break;
+    }
+
+    const raw = JSON.parse(temp.toString());
+    const parentContext = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw
+    );
+
+    const span = global.library.tracer.startSpan('receive get peers request', {
+      childOf: parentContext,
+    });
+
+    const peers = bundle.getAllConnectedPeersPeerInfo();
+
+    span.log({
+      peers,
+    });
+    span.finish();
+
+    return [uint8ArrayFromString(JSON.stringify(peers))];
+  };
+
+  bundle.requestGetPeers = request;
+  bundle.directResponse(global.Config.p2pConfig.V1_GET_PEERS, response);
+}
+
 export function attachDirectP2PCommunication(bundle) {
   V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle);
   V1_VOTES_HANDLER(bundle);
   V1_COMMON_BLOCK_HANDLER(bundle);
   V1_GET_HEIGH_HANDLER(bundle);
   V1_BLOCKS_HANDLER(bundle);
+  V1_GET_PEERS_HANDLER(bundle);
 }
