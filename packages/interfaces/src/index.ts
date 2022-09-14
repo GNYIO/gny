@@ -55,6 +55,7 @@ export type MethodActions =
   | 'onNewBlock'
   | 'onProcessBlock'
   | 'onBlockchainReady'
+  | 'onPeerReady'
   | 'onNewPropose'
   | 'onReceiveBlock'
   | 'onReceivePropose'
@@ -137,11 +138,11 @@ export interface IPeer2PeerHandlers {
   V1_COMMON_BLOCK: string;
   V1_GET_HEIGHT: string;
   V1_BLOCKS: string;
+  V1_GET_PEERS: string;
   V1_BROADCAST_NEW_BLOCK_HEADER: string;
   V1_BROADCAST_TRANSACTION: string;
   V1_BROADCAST_PROPOSE: string;
-  V1_BROADCAST_NEW_MEMBER: string;
-  V1_BROADCAST_SELF: string;
+  V1_RENDEZVOUS_BROADCAST: string;
 }
 
 export interface IConfig {
@@ -517,8 +518,8 @@ export interface CommonBlockParams {
 }
 
 export interface CommonBlockResult {
-  success: boolean;
-  common: IBlock;
+  commonBlock: IBlock;
+  currentBlock: IBlock;
 }
 
 export interface Context {

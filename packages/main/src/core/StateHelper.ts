@@ -23,7 +23,6 @@ export class StateHelper {
       pendingVotes: undefined,
 
       lastBlock: undefined,
-      blockCache: {},
 
       proposeCache: {},
       lastPropose: null,
@@ -45,7 +44,6 @@ export class StateHelper {
       pendingVotes: undefined,
 
       lastBlock: lastBlock,
-      blockCache: {},
 
       proposeCache: {},
       lastPropose: null,

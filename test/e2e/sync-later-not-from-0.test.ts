@@ -16,16 +16,16 @@ describe('sync-later-not-from-0 e2e test', () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
     await lib.sleep(10 * 1000);
     done();
-  }, lib.oneMinute);
+  }, lib.oneMinute * 1.2);
 
   afterEach(async done => {
-    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
+    lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-later-not-from-0');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
     done();
   }, lib.oneMinute);
 
   it(
-    'sync-later',
+    'sync-later-not-from-0',
     async done => {
       // start both nodes, (node1 can forge, node2 can't)
       // both nodes get to node ~4
@@ -62,7 +62,7 @@ describe('sync-later-not-from-0 e2e test', () => {
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
       // now
-      done();
+      return done();
     },
     3 * lib.oneMinute
   );

@@ -30,7 +30,7 @@ export default class Delegates implements ICoreModule {
   private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
 
   // Events
-  public static onBlockchainReady = async () => {
+  public static onPeerReady = async () => {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;

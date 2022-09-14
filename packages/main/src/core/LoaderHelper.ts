@@ -1,16 +1,15 @@
 import {
   CommonBlockParams,
+  CommonBlockResult,
   HeightWrapper,
   IBlock,
   PeerNode,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan } from '@gny/tracer';
 import { Block } from '@gny/database-postgres';
 import Peer from './peer';
-import { isBlockWithoutTransactions } from '@gny/type-validation';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
 
@@ -21,26 +20,6 @@ export interface PeerIdCommonBlockHeight {
 }
 
 export class LoaderHelper {
-  public static GetBlockDifference(lastBlock: IBlock, commonBlock: IBlock) {
-    const toRemove = new BigNumber(lastBlock.height)
-      .minus(commonBlock.height)
-      .toFixed();
-    return toRemove;
-  }
-  public static IsLongFork(blockDifference: string) {
-    return new BigNumber(blockDifference).isGreaterThanOrEqualTo(5);
-  }
-  public static TakeNewesterLastBlock(state: IState, lastBlock: IBlock) {
-    // it is possible that some time is passed since
-    // this function was called and since then some blocks
-    // were processed, that means that `height` variable is
-    // possible not up to date. Therefore the Math.max() call
-    if (new BigNumber(state.lastBlock.height).isGreaterThan(lastBlock.height)) {
-      return state.lastBlock;
-    }
-    return lastBlock;
-  }
-
   /***
    * This function shuffles the array
    * It uses sideeffects. It doesn't return a new array but it shufles
@@ -61,6 +40,7 @@ export class LoaderHelper {
     const infoSpan = global.library.tracer.startSpan('query multiple peers', {
       childOf: span.context(),
     });
+    global.library.logger.info('[p2p] query multiple peers');
 
     const result: PeerIdCommonBlockHeight[] = [];
 
@@ -82,10 +62,16 @@ export class LoaderHelper {
 
       let commonBlock: IBlock = null;
       try {
-        commonBlock = await LoaderHelper.getCommonBlock(
+        const commonBlockResult: CommonBlockResult = await LoaderHelper.getCommonBlock(
           currentPeerId,
           String(lastBlock.height),
           collectInfoSpan
+        );
+        commonBlock = commonBlockResult.commonBlock;
+        global.library.logger.info(
+          `[p2p] found commonBlock. h: ${commonBlock.height}, id: ${
+            commonBlock.id
+          }`
         );
       } catch (err) {
         collectInfoSpan.setTag('error', true);
@@ -97,6 +83,9 @@ export class LoaderHelper {
           error: err,
         });
         collectInfoSpan.finish();
+        global.library.logger.error(
+          `[p2p] error while querying peer for commonBlock: ${err.message}`
+        );
         continue;
       }
 
@@ -106,6 +95,9 @@ export class LoaderHelper {
         heightWrapper = await Peer.p2p.requestHeight(
           currentPeerId,
           collectInfoSpan
+        );
+        global.library.logger.info(
+          `[p2p] got highest block height from peer. h: ${heightWrapper.height}`
         );
       } catch (err) {
         collectInfoSpan.log({
@@ -117,6 +109,9 @@ export class LoaderHelper {
 
         collectInfoSpan.setTag('error', true);
         collectInfoSpan.finish();
+        global.library.logger.error(
+          `[p2p] error while querying height from peer: ${err.message}`
+        );
         continue;
       }
 
@@ -133,6 +128,10 @@ export class LoaderHelper {
       collectInfoSpan.finish();
     }
 
+    global.library.logger.info(
+      `[p2p] found (${result.length}) PeerIdCommonBlockHeight`
+    );
+
     infoSpan.finish();
 
     return result;
@@ -143,7 +142,7 @@ export class LoaderHelper {
     peer: PeerId,
     lastBlockHeight: string,
     parentSpan: ISpan
-  ): Promise<IBlock> => {
+  ): Promise<CommonBlockResult> => {
     const params: CommonBlockParams = await LoaderHelper.getIdSequence2(
       lastBlockHeight,
       global.app.sdb.getBlocksByHeightRange
@@ -156,7 +155,7 @@ export class LoaderHelper {
       getCommonBlockParams: params,
     });
 
-    let ret: IBlock;
+    let ret: CommonBlockResult;
     try {
       ret = await Peer.p2p.requestCommonBlock(peer, params, span);
     } catch (err) {
@@ -170,23 +169,14 @@ export class LoaderHelper {
       return null;
     }
 
-    if (!isBlockWithoutTransactions(ret)) {
-      span.setTag('error', true);
-      span.log({
-        value: `[p2p][commonBlock] transactions failed`,
-      });
-      span.log({
-        returnValue: ret,
-      });
-      span.finish();
-      return null;
-    }
-
     span.log({
       value: 'requestCommonBlock finished successfully',
     });
     span.log({
-      commonBlock: ret,
+      commonBlock: ret.commonBlock,
+    });
+    span.log({
+      currentBlock: ret.currentBlock,
     });
     span.finish();
 
@@ -218,33 +208,34 @@ export class LoaderHelper {
   }
 
   public static filterPeers(
-    peers: Array<PeerIdCommonBlockHeight>,
+    peers: PeerIdCommonBlockHeight[],
     lastBlock: IBlock,
     parentSpan: ISpan
   ) {
     const span = global.library.tracer.startSpan('filter eligible peers', {
       childOf: parentSpan.context(),
     });
+    span.log({
+      peersBeforeFilter: peers.length,
+    });
+    global.library.logger.info(`[p2p] before filtering: ${peers.length} peers`);
 
-    // filter for peers that have a higher height
+    // filter peers which have same height or greater than our height
     // sort descending
     const filtered = peers
-      .filter(x => new BigNumber(x.height).isGreaterThan(lastBlock.height))
+      .filter(x =>
+        new BigNumber(x.height).isGreaterThanOrEqualTo(lastBlock.height)
+      )
       .sort((a, b) => new BigNumber(b.height).minus(a.height).toNumber());
 
-    if (filtered.length === 0) {
-      span.log({
-        value: 'no eligible peers for syncing',
-      });
-
-      span.log(filtered);
-
-      span.finish();
-      throw new Error('no elegible peers');
-    }
+    span.log({
+      peersAfterFilter: peers.length,
+    });
+    global.library.logger.info(`[p2p] after filtering: ${peers.length} peers`);
 
     return filtered;
   }
+
   public static async investigateFork(
     highestPeer: PeerIdCommonBlockHeight,
     lastBlock: IBlock,

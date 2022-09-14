@@ -10,6 +10,7 @@ import {
   UnconfirmedTransaction,
   BlockIdWrapper,
   P2PPeerIdAndMultiaddr,
+  SimplePeerInfo,
 } from '@gny/interfaces';
 import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
@@ -30,6 +31,7 @@ import {
   TracerWrapper,
   getSmallBlockHash,
   ISpan,
+  ISerializedSpanContext,
 } from '@gny/tracer';
 
 import * as PeerId from 'peer-id';
@@ -557,7 +559,46 @@ export default class Transport implements ICoreModule {
     }
   };
 
-  public static receiveSelf = async (message: P2PMessage) => {
+  public static receivePeers_from_rendezvous_Broadcast = async (
+    message: P2PMessage
+  ) => {
+    global.library.logger.info(
+      `[p2p][rendezvous] received peers from rendezvous node`
+    );
+
+    let raw: { spanId: ISerializedSpanContext; peers: SimplePeerInfo[] } = null;
+    try {
+      raw = JSON.parse(message.data.toString());
+    } catch (err) {
+      global.library.logger.error(
+        `[p2p] "rondezvous" broadcast, could not parse data`
+      );
+      return;
+    }
+
+    const context = createSpanContextFromSerializedParentContext(
+      global.library.tracer,
+      raw.spanId
+    );
+
+    const span = global.library.tracer.startSpan('receive rendezvous', {
+      childOf: context,
+    });
+    span.finish();
+
+    for (let i = 0; i < raw.peers.length; ++i) {
+      const one = raw.peers[i];
+
+      const parsed: P2PPeerIdAndMultiaddr = {
+        multiaddr: one.multiaddrs,
+        peerId: one.id.id,
+      };
+
+      await Transport.receiveSelf(parsed);
+    }
+  };
+
+  public static receiveSelf = async (parsed: P2PPeerIdAndMultiaddr) => {
     // 0. check if peer is myself
     // validate peerId and Multiaddresses
     // 1. check if peer is in Addressbook
@@ -565,45 +606,29 @@ export default class Transport implements ICoreModule {
     // 2.check if there is a connection
     // if not, dial
 
-    // dial, even when syncing
-    global.library.logger.info(`[p2p] received self msg from ${message.from}`);
-
-    let raw: P2PPeerIdAndMultiaddr = null;
-    try {
-      raw = JSON.parse(uint8ArrayToString(message.data));
-    } catch (err) {
-      global.library.logger.error(
-        `[p2p] "self" event, could not parse data: ${err.message}`
-      );
-      return;
-    }
-
-    const parsed = raw;
-
     // P2PPeerIdAndMultiaddr
-    global.library.logger.info(
-      `[p2p][self] self: ${JSON.stringify(parsed, null, 2)}`
-    );
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
       global.library.logger.error(
-        '[p2p] received broadcast self is not multiaddr'
+        `[p2p][rendezvous] received broadcast self is not multiaddr ${parsed}`
       );
       return;
     }
-    console.log(`[p2p] received self, ${JSON.stringify(parsed, null, 2)}`);
 
     let peerId = null;
     try {
       peerId = PeerId.createFromCID(parsed.peerId);
     } catch (err) {
-      global.library.logger.info(`[p2p][self] error: ${err.message}`);
+      global.library.logger.info(`[p2p][rendezvous] error: ${err.message}`);
       return;
     }
 
+    // do not log if we receive ourselves
     if (peerId.equals(Peer.p2p.peerId)) {
-      global.library.logger.info(`[p2p] "self" is me`);
       return;
     }
+    global.library.logger.info(
+      `[p2p][rendezvous] received peer ${peerId.toB58String()}`
+    );
 
     // is in PeerStore
     const test = Peer.p2p.peerStore.addressBook.get(peerId);
@@ -618,7 +643,7 @@ export default class Transport implements ICoreModule {
       });
       if (multi.length === 0) {
         global.library.logger.error(
-          `[p2p] "self" has no good addresses, will not add to peerStore: ${JSON.stringify(
+          `[p2p][rendezvous] "self" has no good addresses, will not add to peerStore: ${JSON.stringify(
             parsed.multiaddr
           )} `
         );
@@ -632,7 +657,7 @@ export default class Transport implements ICoreModule {
         parsed.multiaddr.map(x => multiaddr(x))
       );
       global.library.logger.info(
-        `[p2p] "self" added peer "${peerId.toB58String()}" to peerBook`
+        `[p2p][rendezvous] added received peer "${peerId.toB58String()}" to peerBook`
       );
     }
 
@@ -645,7 +670,7 @@ export default class Transport implements ICoreModule {
         await Peer.p2p.dial(peerId);
       } catch (err) {
         global.library.logger.info(
-          `[p2p] "self" dial failed for "${peerId.toB58String()}"`
+          `[p2p][rendezvous] dial failed for peer "${peerId.toB58String()}"`
         );
       }
     }

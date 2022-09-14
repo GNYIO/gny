@@ -132,7 +132,7 @@ describe('network-fork-with-transactions', () => {
       expect(accountBefore.gny).toEqual('99950000000');
 
       // wait a little and then make sure that the transaction was returned
-      await lib.sleep(30 * 1000);
+      await lib.sleep(60 * 1000);
 
       // and both nodes have the same block height8
       await helpers.allHeightsAreTheSame([4096, 4098]);

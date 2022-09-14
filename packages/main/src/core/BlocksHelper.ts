@@ -26,12 +26,6 @@ import { RoundBase } from '@gny/base';
 
 const blockReward = new BlockReward();
 
-export enum BlockMessageFitInLineResult {
-  Success = 0,
-  LongFork = 1,
-  SyncBlocks = 2,
-}
-
 export class BlocksHelper {
   public static areTransactionsExceedingPayloadLength(
     transactions: Array<UnconfirmedTransaction | ITransaction>
@@ -217,18 +211,6 @@ export class BlocksHelper {
     state.proposeCache[propose.hash] = true;
     return state;
   }
-
-  public static AlreadyReceivedThisBlock(state: IState, block: IBlock) {
-    if (state.blockCache[block.id]) return true;
-    else return false;
-  }
-  public static MarkBlockAsReceived(old: IState, block: IBlock) {
-    const state = StateHelper.copyState(old);
-
-    state.blockCache[block.id] = true;
-    return state;
-  }
-
   public static ReceivedBlockIsInRightOrder(state: IState, block: IBlock) {
     if (!state.lastBlock) {
       throw new Error('ReceivedBlockIsInRightOrder - no state.lastBlock');
@@ -267,20 +249,14 @@ export class BlocksHelper {
   ) {
     const lastBlock = state.lastBlock;
 
-    // TODO: compare to other "fitInLine" comparisons?! Aren't they equal?
     const lastBlockPlus1 = new BigNumber(lastBlock.height).plus(1).toFixed();
     if (
-      !new BigNumber(newBlock.height).isEqualTo(lastBlockPlus1) ||
-      newBlock.prevBlockId !== lastBlock.id
+      new BigNumber(newBlock.height).isEqualTo(lastBlockPlus1) &&
+      newBlock.prevBlockId === lastBlock.id
     ) {
-      const lastBlockPlus5 = new BigNumber(lastBlock.height).plus(5).toFixed();
-      if (new BigNumber(newBlock.height).isGreaterThan(lastBlockPlus5)) {
-        return BlockMessageFitInLineResult.LongFork;
-      } else {
-        return BlockMessageFitInLineResult.SyncBlocks;
-      }
+      return true;
     }
-    return BlockMessageFitInLineResult.Success;
+    return false;
   }
 
   public static IsBlockchainReady(
@@ -320,7 +296,6 @@ export class BlocksHelper {
   public static ProcessBlockCleanup(old: IState) {
     const state = StateHelper.copyState(old);
 
-    state.blockCache = {};
     state.proposeCache = {};
     state.lastVoteTime = null;
     state.privIsCollectingVotes = false;

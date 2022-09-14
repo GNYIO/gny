@@ -60,7 +60,7 @@ export function createSpanContextFromSerializedParentContext(
 export function createReferenceFromSerializedParentContext(
   myTracer: JaegerTracer,
   obj: ISerializedSpanContext
-) {
+): opentracing.Reference {
   const parentSpanContext = myTracer.extract(opentracing.FORMAT_TEXT_MAP, obj);
   if (parentSpanContext) {
     const reference = new opentracing.Reference(
@@ -96,12 +96,11 @@ export function initTracer(
 
   // we don't want our log full or "reporting span" messages
   const customLogger = {
-    info(msg: string) {
-    },
+    info(msg: string) {},
     error(msg: string) {
       logger.error(msg);
     },
-  }
+  };
 
   const options: jaegerClient.TracingOptions = {
     tags: {

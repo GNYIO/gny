@@ -18,7 +18,7 @@ describe('sync-to-stuck-network e2e test', () => {
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
     done();
-  }, lib.oneMinute);
+  }, lib.oneMinute * 1.2);
 
   afterEach(async done => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);

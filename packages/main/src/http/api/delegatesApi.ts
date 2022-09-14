@@ -579,12 +579,15 @@ export default class DelegatesApi implements IHttpApi {
 
   private forgingStatus = (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const needPublicKey = joi.object().keys({
-      publicKey: joi
-        .string()
-        .publicKey()
-        .required(),
-    });
+    const needPublicKey = joi
+      .object()
+      .keys({
+        publicKey: joi
+          .string()
+          .publicKey()
+          .required(),
+      })
+      .required();
     const report = joi.validate(query, needPublicKey);
     if (report.error) {
       global.app.prom.requests.inc({

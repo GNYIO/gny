@@ -10,6 +10,8 @@ import * as multiaddr from 'multiaddr';
 import { StateHelper } from './StateHelper';
 import { BigNumber } from '@gny/utils';
 import Loader from './loader';
+import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper';
+import { serializedSpanContext } from '@gny/tracer';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -95,15 +97,10 @@ export default class Peer implements ICoreModule {
     return peerId;
   };
 
-  // Events
-  public static onBlockchainReady = async () => {
-    const peerId = await Peer.preparePeerId();
-
-    // TODO persist peerBook of node
-    const bootstrapNode = global.library.config.peers.bootstrap
-      ? global.library.config.peers.bootstrap
-      : [];
-
+  public static initializeLibP2P = async (
+    bootstrapNode: string[],
+    peerId: PeerId
+  ) => {
     const wrapper = create(
       peerId,
       global.library.config.publicIp,
@@ -166,108 +163,202 @@ export default class Peer implements ICoreModule {
     );
 
     Peer.p2p.pubsub.on(
-      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER,
-      Transport.receiveNew_Member
+      global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
+      Transport.receivePeers_from_rendezvous_Broadcast
     );
     await Peer.p2p.pubsub.subscribe(
-      global.Config.p2pConfig.V1_BROADCAST_NEW_MEMBER
+      global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
     );
+  };
 
-    Peer.p2p.pubsub.on(
-      global.Config.p2pConfig.V1_BROADCAST_SELF,
-      Transport.receiveSelf
-    );
-    await Peer.p2p.pubsub.subscribe(global.Config.p2pConfig.V1_BROADCAST_SELF);
+  public static rendezvousBroadcastIfRendezvous = async (
+    bootstrapNode: string[]
+  ) => {
+    // only the rondezvous node should announce the peers it has
+    // this replaces the constant announcing yourself to the network
+    // which produces far to many messages
+    // no peers === I am rendezvous node
+    async function announce() {
+      const span = global.library.tracer.startSpan('rendezvous broadcast');
 
-    await sleep(2 * 1000);
+      const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
 
-    setInterval(async () => {
-      // announce every x seconds yourself to the network
-      const m = Peer.p2p.addressManager
-        .getAnnounceAddrs()
-        .map(x => x.encapsulate(`/p2p/${Peer.p2p.peerId.toB58String()}`))
-        .map(x => x.toString());
-
-      const raw: P2PPeerIdAndMultiaddr = {
-        peerId: Peer.p2p.peerId.toB58String(),
-        multiaddr: m,
+      const data = {
+        spanId: serializedSpanContext(global.library.tracer, span.context()),
+        peers: peers,
       };
+      span.log(data);
 
-      const converted = uint8ArrayFromString(JSON.stringify(raw));
-      await Peer.p2p.broadcastSelf(converted);
-    }, 20 * 1000);
+      const converted = uint8ArrayFromString(JSON.stringify(data));
+      await Peer.p2p.rendezvousBroadcastsPeers(converted);
 
+      span.finish();
+
+      setTimeout(announce, 10 * 1000);
+    }
+
+    // execute right away
+    setImmediate(announce);
+  };
+
+  public static dial = async (bootstrapNode: string[]) => {
+    // dial to peers in GNY_P2P_PEERS env variable
+    // normally this is only the rendezvous node
+    for (let i = 0; i < bootstrapNode.length; ++i) {
+      try {
+        const m2 = multiaddr(bootstrapNode[i]);
+        const b58String = m2.getPeerId();
+
+        const peerId = PeerId.createFromB58String(b58String);
+
+        await Peer.p2p.connect(peerId, m2);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
+  public static dialRendezvousNodeIfNormalNode = async (
+    bootstrapNode: string[]
+  ) => {
+    // execute right away
+    await Peer.dial(bootstrapNode);
+    const tenSeconds = 10 * 1000;
+
+    // execute forever every 10 seconds
+    const dialRendezvousLoop = async () => {
+      console.log('[p2p] dial rendezvous node');
+      await Peer.dial(bootstrapNode);
+      setTimeout(dialRendezvousLoop, tenSeconds);
+    };
+
+    setImmediate(dialRendezvousLoop);
+  };
+
+  public static askRendezvousNodeForPeers = async (bootstrapNode: string[]) => {
+    const m = multiaddr(bootstrapNode[0]);
+    const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
+
+    const span = global.app.tracer.startSpan(
+      'request peers from rendezvous node'
+    );
+    const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    const peersFromRendezvousNode = peers.map(x => x.multiaddrs[0]);
+    await Peer.dial(peersFromRendezvousNode);
+
+    span.finish();
+  };
+
+  public static syncIfStuck = () => {
     // sync to highest node, especially when the whole network is stuck
-    let lastHeight = String(0);
-    setInterval(async () => {
+    let height30SecondsAgo = String(StateHelper.getState().lastBlock.height);
+
+    async function checkIfStuck() {
       const state = StateHelper.getState();
+
       const lastBlock = state.lastBlock;
-      const newLastBlock = String(lastBlock.height);
-      console.log(
-        `lastHeight: ${lastHeight}, lastBlockHeight: ${newLastBlock}`
+
+      const heightNow = String(state.lastBlock.height);
+      global.library.logger.info(
+        `height30SecondsAgo: ${height30SecondsAgo}, heightNow: ${heightNow}`
       );
 
-      if (new BigNumber(lastHeight).isEqualTo(newLastBlock)) {
-        // no new height for x seconds, look if any other node has a higher node
-        global.library.tracer.startSpan('is stuck').finish();
-        Loader.startSyncBlocks(lastBlock);
+      // no new height for 30 seconds, look if any other node has a higher node
+      if (new BigNumber(height30SecondsAgo).isEqualTo(heightNow)) {
+        const span = global.library.tracer.startSpan('is stuck');
+        span.log({
+          height30SecondsAgo,
+          heightNow,
+        });
+        span.finish();
+        // await Loader.startSyncBlocks();
       } else {
-        lastHeight = newLastBlock;
-        return;
+        height30SecondsAgo = heightNow;
       }
-    }, 30 * 1000);
 
-    if (bootstrapNode.length > 0) {
-      setInterval(async () => {
-        if (!Peer.p2p.isStarted()) {
-          return;
-        }
-
-        const multis = bootstrapNode.map(x => multiaddr(x));
-
-        for (let i = 0; i < multis.length; ++i) {
-          const m = multis[i];
-          const peer = PeerId.createFromB58String(m.getPeerId());
-
-          // check if there are addresses for this peer saved
-          const addresses = Peer.p2p.peerStore.addressBook.get(peer);
-          if (!addresses) {
-            Peer.p2p.peerStore.addressBook.set(peer, [m]);
-          }
-
-          // 0. no need to check if already in peerStore (peer always in peerStore)
-          // 1. check if have connection
-          // yes, then return
-          // 2. if not, then dial
-          const connections = Array.from(Peer.p2p.connections.keys());
-          const inConnection = connections.find(x => x === peer.toB58String());
-          if (inConnection) {
-            continue; // for next remote peer
-          }
-
-          try {
-            await Peer.p2p.dial(peer);
-          } catch (err) {
-            continue; // for next remote peer
-          }
-
-          try {
-            const raw: P2PPeerIdAndMultiaddr = {
-              peerId: peer.toB58String(),
-              multiaddr: [m.toString()],
-            };
-            const data = uint8ArrayFromString(JSON.stringify(raw));
-            await Peer.p2p.broadcastNewMember(data);
-          } catch (err) {
-            global.library.logger.info(
-              `[p2p][bootsrap] failed to announce peer "${peer.id}", error: ${
-                err.message
-              }`
-            );
-          }
-        }
-      }, 5 * 1000);
+      setTimeout(checkIfStuck, 30 * 1000);
     }
+    setTimeout(checkIfStuck, 30 * 1000);
+  };
+
+  public static checkOtherPeers = async () => {};
+
+  // Events
+  public static onBlockchainReady = async () => {
+    // # if rendezvous node
+    //   # broadcast neighor nodes
+    // # if not rendezvous node
+    //   # dial rendezvous node
+    // # find peers, maybe wait a little for peers
+    //   # if found peers
+    //     # ask for common block
+    //     # sync if necessary
+    //     # rollback if necessary
+    //     # then activate block creation
+    //   # else
+    //     # rollbackback if necessary
+    //     # then activate block creation
+
+    const bootstrapNode = global.library.config.peers.bootstrap
+      ? global.library.config.peers.bootstrap
+      : [];
+    const peerId = await Peer.preparePeerId();
+
+    await Peer.initializeLibP2P(bootstrapNode, peerId);
+
+    const isRondezvous =
+      Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
+    if (isRondezvous) {
+      await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
+      await sleep(7 * 1000); // else wait for a few peers to connect
+    } else {
+      await Peer.dialRendezvousNodeIfNormalNode(bootstrapNode);
+      await Peer.askRendezvousNodeForPeers(bootstrapNode);
+    }
+
+    // check every 30 seconds if we are stuck
+    Peer.syncIfStuck();
+
+    // ask peers for their height
+    const span = global.library.tracer.startSpan('ask peers');
+    const lastBlock = StateHelper.getState().lastBlock;
+
+    const result = await Loader.silentlyContactPeers(lastBlock, span);
+    span.log({
+      highestPeerCommonBlock: result.highestPeer.commonBlock,
+      highestPeerHeight: result.highestPeer.height,
+      highestPeerPeerId: result.highestPeer.peerId.toB58String(),
+      result: result.lastBlock,
+    });
+    span.finish();
+
+    if (result === undefined) {
+      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
+      global.library.bus.message('onPeerReady');
+      return;
+    }
+
+    const callback = (err: Error) => {
+      setImmediate(() => {
+        global.library.bus.message('onPeerReady');
+      });
+    };
+    global.library.sequence.add(
+      async cb => {
+        const withinSeqSpan = global.library.tracer.startSpan(
+          'within sequence'
+        );
+        await Loader.loadBlocksFromPeerProxy(
+          result.highestPeer.peerId,
+          lastBlock.id,
+          withinSeqSpan
+        );
+        withinSeqSpan.finish();
+        return cb();
+      },
+      undefined,
+      callback
+    );
   };
 
   public static cleanup = cb => {
