@@ -174,6 +174,10 @@ export default class Peer implements ICoreModule {
   public static rendezvousBroadcastIfRendezvous = async (
     bootstrapNode: string[]
   ) => {
+    // only the rondezvous node should announce the peers it has
+    // this replaces the constant announcing yourself to the network
+    // which produces far to many messages
+    // no peers === I am rendezvous node
     async function announce() {
       const span = global.library.tracer.startSpan('rendezvous broadcast');
 
@@ -189,19 +193,12 @@ export default class Peer implements ICoreModule {
       await Peer.p2p.rendezvousBroadcastsPeers(converted);
 
       span.finish();
+
+      setTimeout(announce, 10 * 1000);
     }
 
-    // only the rondezvous node should announce the peers it has
-    // this replaces the constant announcing yourself to the network
-    // which produces far to many messages
-    // no peers === I am rendezvous node
-    if (Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0) {
-      // execute right away
-      await announce();
-      // execute forever every 10 seconds
-      const tenSeconds = 10 * 1000;
-      setInterval(announce, tenSeconds);
-    }
+    // execute right away
+    setImmediate(announce);
   };
 
   public static dial = async (bootstrapNode: string[]) => {
@@ -221,55 +218,42 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static dialRendezvousNodeIfNotNormalNode = async (
+  public static dialRendezvousNodeIfNormalNode = async (
     bootstrapNode: string[]
   ) => {
-    // not rendezvous node
-    if (Array.isArray(bootstrapNode) && bootstrapNode.length > 0) {
-      // execute right away
+    // execute right away
+    await Peer.dial(bootstrapNode);
+    const tenSeconds = 10 * 1000;
+
+    // execute forever every 10 seconds
+    const dialRendezvousLoop = async () => {
+      console.log('[p2p] dial rendezvous node');
       await Peer.dial(bootstrapNode);
-      const tenSeconds = 10 * 1000;
+      setTimeout(dialRendezvousLoop, tenSeconds);
+    };
 
-      // execute forever every 10 seconds
-      const dialRendezvousLoop = async () => {
-        console.log('[p2p] dial rendezvous node');
-        await Peer.dial(bootstrapNode);
-        setTimeout(dialRendezvousLoop, tenSeconds);
-      };
-
-      setImmediate(dialRendezvousLoop);
-    }
+    setImmediate(dialRendezvousLoop);
   };
 
   public static askRendezvousNodeForPeers = async (bootstrapNode: string[]) => {
-    // not rendezvous node
-    if (Array.isArray(bootstrapNode) && bootstrapNode.length > 0) {
-      const m = multiaddr(bootstrapNode[0]);
-      const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
+    const m = multiaddr(bootstrapNode[0]);
+    const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
 
-      const span = global.app.tracer.startSpan(
-        'request peers from rendezvous node'
-      );
-      const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
-      console.log(
-        `[p2p][requestGetPeers] peers: ${JSON.stringify(peers, null, 2)}`
-      );
+    const span = global.app.tracer.startSpan(
+      'request peers from rendezvous node'
+    );
+    const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    const peersFromRendezvousNode = peers.map(x => x.multiaddrs[0]);
+    await Peer.dial(peersFromRendezvousNode);
 
-      span.finish();
-    } else {
-      // else wait for a few peers to connect
-      await sleep(7 * 1000);
-    }
+    span.finish();
   };
 
   public static syncIfStuck = () => {
     // sync to highest node, especially when the whole network is stuck
     let height30SecondsAgo = String(StateHelper.getState().lastBlock.height);
-    global.library.logger.info(
-      `<heh>height30SecondsAgo ${height30SecondsAgo} <heh>`
-    );
 
-    setInterval(async () => {
+    async function checkIfStuck() {
       const state = StateHelper.getState();
 
       const lastBlock = state.lastBlock;
@@ -287,12 +271,14 @@ export default class Peer implements ICoreModule {
           heightNow,
         });
         span.finish();
-        Loader.startSyncBlocks();
+        // await Loader.startSyncBlocks();
       } else {
         height30SecondsAgo = heightNow;
-        return;
       }
-    }, 30 * 1000);
+
+      setTimeout(checkIfStuck, 30 * 1000);
+    }
+    setTimeout(checkIfStuck, 30 * 1000);
   };
 
   public static checkOtherPeers = async () => {};
@@ -313,9 +299,6 @@ export default class Peer implements ICoreModule {
     //     # rollbackback if necessary
     //     # then activate block creation
 
-    // this prevents from processing blocks from peers. Maybe we need rollback?
-    StateHelper.SetIsSyncing(true);
-
     const bootstrapNode = global.library.config.peers.bootstrap
       ? global.library.config.peers.bootstrap
       : [];
@@ -323,26 +306,59 @@ export default class Peer implements ICoreModule {
 
     await Peer.initializeLibP2P(bootstrapNode, peerId);
 
-    await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
-    await Peer.dialRendezvousNodeIfNotNormalNode(bootstrapNode);
-
-    // Peer.syncIfStuck();
-
-    await Peer.askRendezvousNodeForPeers(bootstrapNode);
-
-    // wait a little bit for peers
-    await sleep(7 * 1000);
-
-    const connectedPeers = Peer.p2p.getAllConnectedPeersPeerInfo();
-    if (Array.isArray(connectedPeers) && connectedPeers.length > 0) {
-      await Loader.startSyncBlocks();
-
-      await sleep(15 * 1000);
-      // here we do not need StateHelper.SetIsSyncing(false);
-      // because Loader.startSyncBlocks(); sets sycing to false
+    const isRondezvous =
+      Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
+    if (isRondezvous) {
+      await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
+      await sleep(7 * 1000); // else wait for a few peers to connect
     } else {
-      StateHelper.SetIsSyncing(false);
+      await Peer.dialRendezvousNodeIfNormalNode(bootstrapNode);
+      await Peer.askRendezvousNodeForPeers(bootstrapNode);
     }
+
+    // check every 30 seconds if we are stuck
+    Peer.syncIfStuck();
+
+    // ask peers for their height
+    const span = global.library.tracer.startSpan('ask peers');
+    const lastBlock = StateHelper.getState().lastBlock;
+
+    const result = await Loader.silentlyContactPeers(lastBlock, span);
+    span.log({
+      highestPeerCommonBlock: result.highestPeer.commonBlock,
+      highestPeerHeight: result.highestPeer.height,
+      highestPeerPeerId: result.highestPeer.peerId.toB58String(),
+      result: result.lastBlock,
+    });
+    span.finish();
+
+    if (result === undefined) {
+      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
+      global.library.bus.message('onPeerReady');
+      return;
+    }
+
+    const callback = (err: Error) => {
+      setImmediate(() => {
+        global.library.bus.message('onPeerReady');
+      });
+    };
+    global.library.sequence.add(
+      async cb => {
+        const withinSeqSpan = global.library.tracer.startSpan(
+          'within sequence'
+        );
+        await Loader.loadBlocksFromPeerProxy(
+          result.highestPeer.peerId,
+          lastBlock.id,
+          withinSeqSpan
+        );
+        withinSeqSpan.finish();
+        return cb();
+      },
+      undefined,
+      callback
+    );
   };
 
   public static cleanup = cb => {

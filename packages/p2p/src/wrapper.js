@@ -152,6 +152,10 @@ class Bundle extends Libp2p {
     }
     console.log('[p2p][connect] peer is valid');
 
+    if (this.peerId.equals(peer)) {
+      return;
+    }
+
     // check if there are addresses for this peer saved
     const addresses = this.peerStore.addressBook.get(peer);
     if (!addresses) {

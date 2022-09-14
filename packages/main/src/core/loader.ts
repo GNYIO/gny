@@ -8,6 +8,14 @@ import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 export default class Loader implements ICoreModule {
+  public static async loadBlocksFromPeerProxy(
+    peer: PeerId,
+    id: string,
+    parentSpan: ISpan
+  ) {
+    await Blocks.loadBlocksFromPeer(peer, id, parentSpan);
+  }
+
   public static async silentlyContactPeers(
     lastBlock: IBlock,
     parentSpan: ISpan
@@ -38,7 +46,7 @@ export default class Loader implements ICoreModule {
       parentSpan
     );
     if (filtered.length === 0) {
-      return null;
+      return;
     }
 
     return {
@@ -49,86 +57,6 @@ export default class Loader implements ICoreModule {
   }
 
   // Public methods
-  public static startSyncBlocks = async () => {
-    global.library.logger.debug('startSyncBlocks enter');
-    if (!StateHelper.BlockchainReady()) {
-      global.library.logger.debug(
-        'blockchain not ready for Loader.startSyncBlocks'
-      );
-      global.library.logger.debug('startSyncBlocks end');
-      return;
-    }
-
-    // here get infos about peers
-    const lastBlock = StateHelper.getState().lastBlock;
-    const parentSpan = global.library.tracer.startSpan('silently query peers');
-
-    // in future only query 10 peers (at random)
-    const result = await Loader.silentlyContactPeers(lastBlock, parentSpan);
-
-    if (result === undefined) {
-      global.library.logger.debug('startSyncBlocks end');
-      parentSpan.log({
-        log: 'no peers found',
-      });
-      parentSpan.setTag('warning', true);
-      parentSpan.finish();
-      return;
-    }
-
-    global.library.sequence.add(async cb => {
-      const withinSeqSpan = global.library.tracer.startSpan('within sequence', {
-        childOf: parentSpan.context(),
-      });
-      parentSpan.finish();
-
-      // when we are still on the genesis Block
-      // or commonBlock is our latest block
-      if (
-        new BigNumber(lastBlock.height).isEqualTo(0) ||
-        new BigNumber(result.highestPeer.commonBlock.height).isEqualTo(
-          lastBlock.height
-        ) // is this necessary?
-      ) {
-        StateHelper.SetIsSyncing(true);
-        await Blocks.loadBlocksFromPeer(
-          result.highestPeer.peerId,
-          lastBlock.id,
-          withinSeqSpan
-        );
-        withinSeqSpan.finish();
-        StateHelper.SetIsSyncing(false);
-        return cb();
-      }
-
-      try {
-        StateHelper.SetIsSyncing(true);
-        await LoaderHelper.investigateFork(
-          result.highestPeer,
-          lastBlock,
-          parentSpan
-        );
-        StateHelper.SetIsSyncing(false);
-      } catch (err) {
-        withinSeqSpan.log({
-          log: 'error happend during investigation of fork',
-        });
-        withinSeqSpan.log({
-          err,
-        });
-        withinSeqSpan.setTag('error', true);
-        withinSeqSpan.finish();
-
-        StateHelper.SetIsSyncing(false);
-        return cb();
-      }
-
-      withinSeqSpan.finish();
-
-      return cb();
-    });
-  };
-
   public static syncBlocksFromPeer = (peer: PeerId) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 

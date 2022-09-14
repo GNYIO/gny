@@ -55,6 +55,7 @@ export type MethodActions =
   | 'onNewBlock'
   | 'onProcessBlock'
   | 'onBlockchainReady'
+  | 'onPeerReady'
   | 'onNewPropose'
   | 'onReceiveBlock'
   | 'onReceivePropose'
