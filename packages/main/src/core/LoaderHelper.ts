@@ -3,7 +3,6 @@ import {
   CommonBlockResult,
   HeightWrapper,
   IBlock,
-  PeerNode,
 } from '@gny/interfaces';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
@@ -12,6 +11,11 @@ import { Block } from '@gny/database-postgres';
 import Peer from './peer';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
+
+export function createRandomPeerId(bytes: Buffer) {
+  const peerId = PeerId.createFromBytes(bytes);
+  return peerId;
+}
 
 export interface PeerIdCommonBlockHeight {
   peerId: PeerId;
@@ -234,6 +238,49 @@ export class LoaderHelper {
     global.library.logger.info(`[p2p] after filtering: ${peers.length} peers`);
 
     return filtered;
+  }
+
+  public static syncStrategy(
+    peers: PeerIdCommonBlockHeight[],
+    lastBlock: IBlock
+  ) {
+    if (
+      peers === null ||
+      peers === undefined ||
+      (Array.isArray(peers) && peers.length === 0)
+    ) {
+      return {
+        action: 'forge',
+      };
+    }
+
+    const allPeersAreAtHeight0 = peers.every(p => p.height === String(0));
+    if (
+      new BigNumber(lastBlock.height).isEqualTo(0) &&
+      allPeersAreAtHeight0 === true
+    ) {
+      return {
+        action: 'forge',
+      };
+    }
+
+    if (
+      new BigNumber(lastBlock.height).isEqualTo(0) &&
+      allPeersAreAtHeight0 === false
+    ) {
+      const peersSortedDescending = peers.sort((a, b) => {
+        const res = new BigNumber(a.height).isGreaterThan(b.height);
+        if (res === true) {
+          return -1;
+        }
+        return 1;
+      });
+      const peerToSyncFrom = peersSortedDescending[0];
+      return {
+        action: 'sync',
+        peerToSyncFrom: peerToSyncFrom.peerId,
+      };
+    }
   }
 
   public static async investigateFork(
