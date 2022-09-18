@@ -242,7 +242,18 @@ export default class Peer implements ICoreModule {
     const span = global.app.tracer.startSpan(
       'request peers from rendezvous node'
     );
-    const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    const peers = null;
+    try {
+      await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    } catch (err) {
+      span.log({
+        err,
+      });
+      span.setTag('error', true);
+      span.finish();
+      return;
+    }
+
     const peersFromRendezvousNode = peers.map(x => x.multiaddrs[0]);
     await Peer.dial(peersFromRendezvousNode);
 

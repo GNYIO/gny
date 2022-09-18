@@ -16,3 +16,4 @@ export * from './isBlockWithTransactions';
 export * from './isManyVotes';
 export * from './isBlockIdWrapper';
 export * from './isP2PPeerIdAndMultiaddr';
+export * from './isSimplePeerInfoArray';

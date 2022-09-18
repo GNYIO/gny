@@ -589,6 +589,10 @@ function V1_GET_PEERS_HANDLER(bundle) {
     );
 
     const result = JSON.parse(resultRaw.toString());
+
+    if (!isPeers(result)) {
+      throw new Error(`[p2p][getPeers] validation failed`);
+    }
     return result;
   };
 
