@@ -281,6 +281,11 @@ export class LoaderHelper {
         peerToSyncFrom: peerToSyncFrom.peerId,
       };
     }
+
+    // default
+    return {
+      action: 'forge',
+    };
   }
 
   public static async investigateFork(
