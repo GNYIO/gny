@@ -282,6 +282,17 @@ export default class Peer implements ICoreModule {
           height30SecondsAgo,
           heightNow,
         });
+        try {
+          const result = await Loader.silentlyContactPeers(lastBlock, span);
+          if (result.decision.action === 'sync') {
+            Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
+          }
+        } catch (err) {
+          span.log({
+            error: err,
+          });
+        }
+
         span.finish();
         // await Loader.startSyncBlocks();
       } else {
@@ -292,8 +303,6 @@ export default class Peer implements ICoreModule {
     }
     setTimeout(checkIfStuck, 30 * 1000);
   };
-
-  public static checkOtherPeers = async () => {};
 
   // Events
   public static onBlockchainReady = async () => {
@@ -336,53 +345,20 @@ export default class Peer implements ICoreModule {
     const lastBlock = StateHelper.getState().lastBlock;
 
     const result = await Loader.silentlyContactPeers(lastBlock, span);
-
     span.finish();
 
-    if (result === undefined) {
-      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
+    if (result.decision.action === 'forge') {
       global.library.bus.message('onPeerReady');
-      span.log({
-        message: 'no peers found',
-      });
       return;
     }
 
-    global.library.logger.info(
-      `[p2p][onBlockchainReady] ${JSON.stringify(
-        result.highestPeer.commonBlock,
-        null,
-        2
-      )}`
-    );
-    span.log({
-      highestPeerCommonBlock: result.highestPeer.commonBlock,
-      highestPeerHeight: result.highestPeer.height,
-      highestPeerPeerId: result.highestPeer.peerId.toB58String(),
-      result: result.lastBlock,
-    });
+    if (result.decision.action === 'sync') {
+      const fireEvent = true; // important
+      Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom, fireEvent);
+      return;
+    }
 
-    const callback = (err: Error) => {
-      setImmediate(() => {
-        global.library.bus.message('onPeerReady');
-      });
-    };
-    global.library.sequence.add(
-      async cb => {
-        const withinSeqSpan = global.library.tracer.startSpan(
-          'within sequence'
-        );
-        await Loader.loadBlocksFromPeerProxy(
-          result.highestPeer.peerId,
-          lastBlock.id,
-          withinSeqSpan
-        );
-        withinSeqSpan.finish();
-        return cb();
-      },
-      undefined,
-      callback
-    );
+    throw new Error('should never come here');
   };
 
   public static cleanup = cb => {

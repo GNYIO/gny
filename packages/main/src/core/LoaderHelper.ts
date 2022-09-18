@@ -211,35 +211,6 @@ export class LoaderHelper {
     }
   }
 
-  public static filterPeers(
-    peers: PeerIdCommonBlockHeight[],
-    lastBlock: IBlock,
-    parentSpan: ISpan
-  ) {
-    const span = global.library.tracer.startSpan('filter eligible peers', {
-      childOf: parentSpan.context(),
-    });
-    span.log({
-      peersBeforeFilter: peers.length,
-    });
-    global.library.logger.info(`[p2p] before filtering: ${peers.length} peers`);
-
-    // filter peers which have same height or greater than our height
-    // sort descending
-    const filtered = peers
-      .filter(x =>
-        new BigNumber(x.height).isGreaterThanOrEqualTo(lastBlock.height)
-      )
-      .sort((a, b) => new BigNumber(b.height).minus(a.height).toNumber());
-
-    span.log({
-      peersAfterFilter: peers.length,
-    });
-    global.library.logger.info(`[p2p] after filtering: ${peers.length} peers`);
-
-    return filtered;
-  }
-
   public static syncStrategy(
     peers: PeerIdCommonBlockHeight[],
     lastBlock: IBlock
