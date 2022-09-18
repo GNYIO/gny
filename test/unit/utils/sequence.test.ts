@@ -269,4 +269,24 @@ describe('sequence', () => {
     expect(errMock).toBeCalledTimes(1);
     done();
   });
+
+  it('add(async) callback gets called only when async task is finished (no matter the duration)', async done => {
+    const result: string[] = [];
+
+    const callback = (err: Error) => {
+      result.push('callback called');
+    };
+    const task = async done => {
+      await timeout(200);
+      result.push('after timeout');
+      return done();
+    };
+
+    sut.add(task, undefined, callback);
+
+    await timeout(400);
+    expect(result).toEqual(['after timeout', 'callback called']);
+
+    return done();
+  });
 });
