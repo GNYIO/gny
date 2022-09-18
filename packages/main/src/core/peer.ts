@@ -239,12 +239,10 @@ export default class Peer implements ICoreModule {
     const m = multiaddr(bootstrapNode[0]);
     const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
 
-    const span = global.app.tracer.startSpan(
-      'request peers from rendezvous node'
-    );
-    const peers = null;
+    const span = global.app.tracer.startSpan('request peers');
+    let peers = null;
     try {
-      await Peer.p2p.requestGetPeers(rendezvousNode, span);
+      peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
     } catch (err) {
       span.log({
         err,
@@ -254,6 +252,9 @@ export default class Peer implements ICoreModule {
       return;
     }
 
+    span.log({
+      received: peers,
+    });
     const peersFromRendezvousNode = peers.map(x => x.multiaddrs[0]);
     await Peer.dial(peersFromRendezvousNode);
 
@@ -335,19 +336,31 @@ export default class Peer implements ICoreModule {
     const lastBlock = StateHelper.getState().lastBlock;
 
     const result = await Loader.silentlyContactPeers(lastBlock, span);
+
+    span.finish();
+
+    if (result === undefined) {
+      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
+      global.library.bus.message('onPeerReady');
+      span.log({
+        message: 'no peers found',
+      });
+      return;
+    }
+
+    global.library.logger.info(
+      `[p2p][onBlockchainReady] ${JSON.stringify(
+        result.highestPeer.commonBlock,
+        null,
+        2
+      )}`
+    );
     span.log({
       highestPeerCommonBlock: result.highestPeer.commonBlock,
       highestPeerHeight: result.highestPeer.height,
       highestPeerPeerId: result.highestPeer.peerId.toB58String(),
       result: result.lastBlock,
     });
-    span.finish();
-
-    if (result === undefined) {
-      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
-      global.library.bus.message('onPeerReady');
-      return;
-    }
 
     const callback = (err: Error) => {
       setImmediate(() => {
