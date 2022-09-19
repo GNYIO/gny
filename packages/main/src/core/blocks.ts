@@ -1724,9 +1724,6 @@ export default class Blocks implements ICoreModule {
           // important
           StateHelper.setState(state);
 
-          // refactor, reunite
-          StateHelper.SetBlockchainReady(true);
-
           if (global.Config.nodeAction === 'forging') {
             global.library.bus.message('onBlockchainReady');
           }

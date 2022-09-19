@@ -51,7 +51,10 @@ export default class Loader implements ICoreModule {
   public static syncBlocksFromPeer = (peer: PeerId, fireEvent = false) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
-    if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
+    // do not check if IsReady(), because we call this function from core/peer
+    // and IsReady is set after the initialization in core/peer
+    // if IsReady was set to false, this function would exit too early
+    if (StateHelper.IsSyncing()) {
       global.library.logger.debug('blockchain is already syncing');
       if (fireEvent === true) {
         global.library.bus.message('onPeerReady');
