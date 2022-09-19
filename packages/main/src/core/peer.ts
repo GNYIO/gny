@@ -284,7 +284,7 @@ export default class Peer implements ICoreModule {
         });
         try {
           const result = await Loader.silentlyContactPeers(lastBlock, span);
-          if (result.decision.action === 'sync') {
+          if (typeof result === 'object' && result.decision.action === 'sync') {
             Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
           }
         } catch (err) {
@@ -294,7 +294,6 @@ export default class Peer implements ICoreModule {
         }
 
         span.finish();
-        // await Loader.startSyncBlocks();
       } else {
         height30SecondsAgo = heightNow;
       }
@@ -347,7 +346,7 @@ export default class Peer implements ICoreModule {
     const result = await Loader.silentlyContactPeers(lastBlock, span);
     span.finish();
 
-    if (result.decision.action === 'forge') {
+    if (result === undefined || result.decision.action === 'forge') {
       global.library.bus.message('onPeerReady');
       return;
     }
