@@ -20,6 +20,10 @@ export default class Loader implements ICoreModule {
     lastBlock: IBlock,
     parentSpan: ISpan
   ) {
+    parentSpan.log({
+      lastBlock,
+    });
+
     const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
@@ -41,6 +45,10 @@ export default class Loader implements ICoreModule {
     );
 
     const decision = LoaderHelper.syncStrategy(result, lastBlock);
+    parentSpan.log({
+      decision: decision.action,
+      numberOfPeers: result ? result.length : null,
+    });
     return {
       decision,
       parentSpan,

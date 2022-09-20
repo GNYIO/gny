@@ -166,5 +166,43 @@ describe('LoaderHelper', () => {
       };
       return expect(result).toEqual(expectedResult);
     });
+
+    it('syncStrategy() - we are at height 5, one peer at height 12 -> "sync" from highest', () => {
+      const lastBlock = {
+        height: String(5),
+      } as IBlock;
+
+      const peer1 = createPeerIdCommonBlockHeight('5', '12');
+      const peers: PeerIdCommonBlockHeight[] = [];
+      peers.push(peer1);
+
+      const result = LoaderHelper.syncStrategy(peers, lastBlock);
+      const expectedResult = {
+        action: 'sync',
+        peerToSyncFrom: peer1.peerId,
+      };
+      return expect(result).toEqual(expectedResult);
+    });
+
+    it('syncStrategy() - we are at height 5, peers[h3,h8,h7] -> "sync" from highest', () => {
+      const lastBlock = {
+        height: String(5),
+      } as IBlock;
+
+      const peer1 = createPeerIdCommonBlockHeight('3', '3');
+      const peer2 = createPeerIdCommonBlockHeight('5', '8');
+      const peer3 = createPeerIdCommonBlockHeight('5', '7');
+      const peers: PeerIdCommonBlockHeight[] = [];
+      peers.push(peer1);
+      peers.push(peer2);
+      peers.push(peer3);
+
+      const result = LoaderHelper.syncStrategy(peers, lastBlock);
+      const expectedResult = {
+        action: 'sync',
+        peerToSyncFrom: peer2.peerId,
+      };
+      return expect(result).toEqual(expectedResult);
+    });
   });
 });

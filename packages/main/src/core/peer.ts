@@ -171,9 +171,7 @@ export default class Peer implements ICoreModule {
     );
   };
 
-  public static rendezvousBroadcastIfRendezvous = async (
-    bootstrapNode: string[]
-  ) => {
+  public static rendezvousBroadcastIfRendezvous = async () => {
     // only the rondezvous node should announce the peers it has
     // this replaces the constant announcing yourself to the network
     // which produces far to many messages
@@ -284,8 +282,19 @@ export default class Peer implements ICoreModule {
         });
         try {
           const result = await Loader.silentlyContactPeers(lastBlock, span);
+          span.log({
+            result: result ? result.decision.action : null,
+          });
           if (typeof result === 'object' && result.decision.action === 'sync') {
+            span.log({
+              message: 'sync from:',
+              peerToSyncFrom: result.decision.peerToSyncFrom.toB58String(),
+            });
             Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
+          } else {
+            span.log({
+              message: 'did not sync',
+            });
           }
         } catch (err) {
           span.log({
@@ -329,7 +338,7 @@ export default class Peer implements ICoreModule {
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
     if (isRondezvous) {
-      await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
+      await Peer.rendezvousBroadcastIfRendezvous();
       await sleep(7 * 1000); // else wait for a few peers to connect
     } else {
       await Peer.dialRendezvousNodeIfNormalNode(bootstrapNode);

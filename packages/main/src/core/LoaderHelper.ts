@@ -253,6 +253,22 @@ export class LoaderHelper {
       };
     }
 
+    const peersWithSameCommonBlockAndHigherHight = peers
+      .filter(x =>
+        new BigNumber(x.commonBlock.height).isEqualTo(lastBlock.height)
+      )
+      .filter(x => new BigNumber(x.height).isGreaterThan(lastBlock.height));
+    if (
+      new BigNumber(lastBlock.height).isGreaterThan(0) &&
+      peersWithSameCommonBlockAndHigherHight.length > 0
+    ) {
+      const first = peersWithSameCommonBlockAndHigherHight[0];
+      return {
+        action: 'sync',
+        peerToSyncFrom: first.peerId,
+      };
+    }
+
     // default
     return {
       action: 'forge',
