@@ -3,7 +3,6 @@ import {
   CommonBlockResult,
   HeightWrapper,
   IBlock,
-  PeerNode,
 } from '@gny/interfaces';
 import { BigNumber } from 'bignumber.js';
 import * as PeerId from 'peer-id';
@@ -12,6 +11,11 @@ import { Block } from '@gny/database-postgres';
 import Peer from './peer';
 import { StateHelper } from './StateHelper';
 import Blocks from './blocks';
+
+export function createRandomPeerId(bytes: Buffer) {
+  const peerId = PeerId.createFromBytes(bytes);
+  return peerId;
+}
 
 export interface PeerIdCommonBlockHeight {
   peerId: PeerId;
@@ -207,33 +211,68 @@ export class LoaderHelper {
     }
   }
 
-  public static filterPeers(
+  public static syncStrategy(
     peers: PeerIdCommonBlockHeight[],
-    lastBlock: IBlock,
-    parentSpan: ISpan
+    lastBlock: IBlock
   ) {
-    const span = global.library.tracer.startSpan('filter eligible peers', {
-      childOf: parentSpan.context(),
-    });
-    span.log({
-      peersBeforeFilter: peers.length,
-    });
-    global.library.logger.info(`[p2p] before filtering: ${peers.length} peers`);
+    if (
+      peers === null ||
+      peers === undefined ||
+      (Array.isArray(peers) && peers.length === 0)
+    ) {
+      return {
+        action: 'forge',
+      };
+    }
 
-    // filter peers which have same height or greater than our height
-    // sort descending
-    const filtered = peers
+    const allPeersAreAtHeight0 = peers.every(p => p.height === String(0));
+    if (
+      new BigNumber(lastBlock.height).isEqualTo(0) &&
+      allPeersAreAtHeight0 === true
+    ) {
+      return {
+        action: 'forge',
+      };
+    }
+
+    if (
+      new BigNumber(lastBlock.height).isEqualTo(0) &&
+      allPeersAreAtHeight0 === false
+    ) {
+      const peersSortedDescending = peers.sort((a, b) => {
+        const res = new BigNumber(a.height).isGreaterThan(b.height);
+        if (res === true) {
+          return -1;
+        }
+        return 1;
+      });
+      const peerToSyncFrom = peersSortedDescending[0];
+      return {
+        action: 'sync',
+        peerToSyncFrom: peerToSyncFrom.peerId,
+      };
+    }
+
+    const peersWithSameCommonBlockAndHigherHight = peers
       .filter(x =>
-        new BigNumber(x.height).isGreaterThanOrEqualTo(lastBlock.height)
+        new BigNumber(x.commonBlock.height).isEqualTo(lastBlock.height)
       )
-      .sort((a, b) => new BigNumber(b.height).minus(a.height).toNumber());
+      .filter(x => new BigNumber(x.height).isGreaterThan(lastBlock.height));
+    if (
+      new BigNumber(lastBlock.height).isGreaterThan(0) &&
+      peersWithSameCommonBlockAndHigherHight.length > 0
+    ) {
+      const first = peersWithSameCommonBlockAndHigherHight[0];
+      return {
+        action: 'sync',
+        peerToSyncFrom: first.peerId,
+      };
+    }
 
-    span.log({
-      peersAfterFilter: peers.length,
-    });
-    global.library.logger.info(`[p2p] after filtering: ${peers.length} peers`);
-
-    return filtered;
+    // default
+    return {
+      action: 'forge',
+    };
   }
 
   public static async investigateFork(

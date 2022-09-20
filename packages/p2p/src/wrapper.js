@@ -173,8 +173,22 @@ class Bundle extends Libp2p {
     }
 
     try {
-      await Peer.p2p.dial(peer);
+      console.log(
+        `[p2p][connect] dialing peer: ${peer}, ${JSON.stringify(
+          this.peerStore.addressBook.get(peer),
+          null,
+          2
+        )}`
+      );
+      await this.dial(peer);
     } catch (err) {
+      console.log(
+        `[p2p][connect] error: ${err.message}, ${JSON.stringify(
+          peerMultiaddr,
+          null,
+          2
+        )}`
+      );
       return; // for next remote peer
     }
   }

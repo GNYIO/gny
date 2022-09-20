@@ -44,6 +44,9 @@ export default class Delegates implements ICoreModule {
     };
 
     setImmediate(nextLoop);
+
+    // refactor, reunite
+    StateHelper.SetBlockchainReady(true);
   };
 
   public static getBlockSlotData = (

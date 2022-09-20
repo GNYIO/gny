@@ -19,6 +19,7 @@ import {
   isHeightWrapper,
   isBlockIdWrapper,
   isCommonBlockResult,
+  isSimplePeerInfoArray,
 } from '@gny/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
@@ -589,6 +590,10 @@ function V1_GET_PEERS_HANDLER(bundle) {
     );
 
     const result = JSON.parse(resultRaw.toString());
+
+    if (!isSimplePeerInfoArray(result)) {
+      throw new Error(`[p2p][getPeers] validation failed`);
+    }
     return result;
   };
 

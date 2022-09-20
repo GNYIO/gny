@@ -16,7 +16,6 @@ import { generateAddress } from '../../../packages/utils/src/address';
 import * as ed from '../../../packages/ed';
 import { slots } from '../../../packages/utils/src/slots';
 import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
-import * as fs from 'fs';
 import { StateHelper } from '../../../packages/main/src/core/StateHelper';
 import { ISpan } from '../../../packages/tracer/dist';
 import { getConfig } from '@gny/network';

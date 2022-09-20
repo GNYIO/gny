@@ -20,6 +20,10 @@ export default class Loader implements ICoreModule {
     lastBlock: IBlock,
     parentSpan: ISpan
   ) {
+    parentSpan.log({
+      lastBlock,
+    });
+
     const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
@@ -40,84 +44,98 @@ export default class Loader implements ICoreModule {
       parentSpan
     );
 
-    const filtered: PeerIdCommonBlockHeight[] = LoaderHelper.filterPeers(
-      result,
-      lastBlock,
-      parentSpan
-    );
-    if (filtered.length === 0) {
-      return;
-    }
-
+    const decision = LoaderHelper.syncStrategy(result, lastBlock);
+    parentSpan.log({
+      decision: decision.action,
+      numberOfPeers: result ? result.length : null,
+    });
     return {
-      highestPeer: filtered[0],
-      lastBlock,
+      decision,
       parentSpan,
     };
   }
 
   // Public methods
-  public static syncBlocksFromPeer = (peer: PeerId) => {
+  public static syncBlocksFromPeer = (peer: PeerId, fireEvent = false) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
-    if (!StateHelper.BlockchainReady() || StateHelper.IsSyncing()) {
+    // do not check if IsReady(), because we call this function from core/peer
+    // and IsReady is set after the initialization in core/peer
+    // if IsReady was set to false, this function would exit too early
+    if (StateHelper.IsSyncing()) {
       global.library.logger.debug('blockchain is already syncing');
+      if (fireEvent === true) {
+        global.library.bus.message('onPeerReady');
+      }
       return;
     }
-    global.library.sequence.add(async cb => {
-      global.library.logger.debug('syncBlocksFromPeer enter sequence');
-      StateHelper.SetIsSyncing(true);
 
-      const span = global.library.tracer.startSpan('sync blocks from peer');
-      span.setTag('syncing', true);
-
-      const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
-      StateHelper.ClearUnconfirmedTransactions();
-      try {
-        const rollbackBlockSpan = global.library.tracer.startSpan(
-          'rollback Block (height)',
-          {
-            childOf: span.context(),
-          }
-        );
-        rollbackBlockSpan.log({
-          lastBlock,
+    const sequenceCallback = (err: Error) => {
+      if (fireEvent === true) {
+        setImmediate(() => {
+          global.library.bus.message('onPeerReady');
         });
-        rollbackBlockSpan.setTag('height', lastBlock.height);
-        rollbackBlockSpan.setTag('id', lastBlock.id);
-        rollbackBlockSpan.setTag('hash', getSmallBlockHash(lastBlock));
-        rollbackBlockSpan.finish();
-
-        await global.app.sdb.rollbackBlock(lastBlock.height);
-      } catch (err) {
-        span.setTag('error', true);
-        span.log({
-          value: 'error while sdb.rollbackBlock()',
-        });
-        span.finish();
-
-        global.library.logger.error('error while sdb.rollbackBlock()');
-
-        // reset
-        StateHelper.SetIsSyncing(false);
-        return cb(err);
       }
-      try {
-        // remove
-        span.log({
-          lastBlock,
-        });
+    };
 
-        span.finish();
+    global.library.sequence.add(
+      async cb => {
+        global.library.logger.debug('syncBlocksFromPeer enter sequence');
+        StateHelper.SetIsSyncing(true);
 
-        await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);
-      } catch (err) {
-        throw err;
-      } finally {
-        StateHelper.SetIsSyncing(false);
-        global.library.logger.debug('syncBlocksFromPeer end');
-        return cb();
-      }
-    });
+        const span = global.library.tracer.startSpan('sync blocks from peer');
+        span.setTag('syncing', true);
+
+        const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
+        StateHelper.ClearUnconfirmedTransactions();
+        try {
+          const rollbackBlockSpan = global.library.tracer.startSpan(
+            'rollback Block (height)',
+            {
+              childOf: span.context(),
+            }
+          );
+          rollbackBlockSpan.log({
+            lastBlock,
+          });
+          rollbackBlockSpan.setTag('height', lastBlock.height);
+          rollbackBlockSpan.setTag('id', lastBlock.id);
+          rollbackBlockSpan.setTag('hash', getSmallBlockHash(lastBlock));
+          rollbackBlockSpan.finish();
+
+          await global.app.sdb.rollbackBlock(lastBlock.height);
+        } catch (err) {
+          span.setTag('error', true);
+          span.log({
+            value: 'error while sdb.rollbackBlock()',
+          });
+          span.finish();
+
+          global.library.logger.error('error while sdb.rollbackBlock()');
+
+          // reset
+          StateHelper.SetIsSyncing(false);
+          return cb(err);
+        }
+        try {
+          // remove
+          span.log({
+            lastBlock,
+          });
+
+          span.finish();
+
+          await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);
+        } catch (err) {
+          throw err;
+        } finally {
+          StateHelper.SetIsSyncing(false);
+          global.library.logger.debug('syncBlocksFromPeer end');
+          return cb();
+        }
+      },
+      undefined,
+      sequenceCallback
+    );
   };
 }

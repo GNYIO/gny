@@ -171,9 +171,7 @@ export default class Peer implements ICoreModule {
     );
   };
 
-  public static rendezvousBroadcastIfRendezvous = async (
-    bootstrapNode: string[]
-  ) => {
+  public static rendezvousBroadcastIfRendezvous = async () => {
     // only the rondezvous node should announce the peers it has
     // this replaces the constant announcing yourself to the network
     // which produces far to many messages
@@ -239,10 +237,22 @@ export default class Peer implements ICoreModule {
     const m = multiaddr(bootstrapNode[0]);
     const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
 
-    const span = global.app.tracer.startSpan(
-      'request peers from rendezvous node'
-    );
-    const peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    const span = global.app.tracer.startSpan('request peers');
+    let peers = null;
+    try {
+      peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+    } catch (err) {
+      span.log({
+        err,
+      });
+      span.setTag('error', true);
+      span.finish();
+      return;
+    }
+
+    span.log({
+      received: peers,
+    });
     const peersFromRendezvousNode = peers.map(x => x.multiaddrs[0]);
     await Peer.dial(peersFromRendezvousNode);
 
@@ -270,8 +280,29 @@ export default class Peer implements ICoreModule {
           height30SecondsAgo,
           heightNow,
         });
+        try {
+          const result = await Loader.silentlyContactPeers(lastBlock, span);
+          span.log({
+            result: result ? result.decision.action : null,
+          });
+          if (typeof result === 'object' && result.decision.action === 'sync') {
+            span.log({
+              message: 'sync from:',
+              peerToSyncFrom: result.decision.peerToSyncFrom.toB58String(),
+            });
+            Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
+          } else {
+            span.log({
+              message: 'did not sync',
+            });
+          }
+        } catch (err) {
+          span.log({
+            error: err,
+          });
+        }
+
         span.finish();
-        // await Loader.startSyncBlocks();
       } else {
         height30SecondsAgo = heightNow;
       }
@@ -280,8 +311,6 @@ export default class Peer implements ICoreModule {
     }
     setTimeout(checkIfStuck, 30 * 1000);
   };
-
-  public static checkOtherPeers = async () => {};
 
   // Events
   public static onBlockchainReady = async () => {
@@ -309,7 +338,7 @@ export default class Peer implements ICoreModule {
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
     if (isRondezvous) {
-      await Peer.rendezvousBroadcastIfRendezvous(bootstrapNode);
+      await Peer.rendezvousBroadcastIfRendezvous();
       await sleep(7 * 1000); // else wait for a few peers to connect
     } else {
       await Peer.dialRendezvousNodeIfNormalNode(bootstrapNode);
@@ -324,41 +353,20 @@ export default class Peer implements ICoreModule {
     const lastBlock = StateHelper.getState().lastBlock;
 
     const result = await Loader.silentlyContactPeers(lastBlock, span);
-    span.log({
-      highestPeerCommonBlock: result.highestPeer.commonBlock,
-      highestPeerHeight: result.highestPeer.height,
-      highestPeerPeerId: result.highestPeer.peerId.toB58String(),
-      result: result.lastBlock,
-    });
     span.finish();
 
-    if (result === undefined) {
-      global.library.logger.info('[p2p][onBlockchainReady] found no peers');
+    if (result === undefined || result.decision.action === 'forge') {
       global.library.bus.message('onPeerReady');
       return;
     }
 
-    const callback = (err: Error) => {
-      setImmediate(() => {
-        global.library.bus.message('onPeerReady');
-      });
-    };
-    global.library.sequence.add(
-      async cb => {
-        const withinSeqSpan = global.library.tracer.startSpan(
-          'within sequence'
-        );
-        await Loader.loadBlocksFromPeerProxy(
-          result.highestPeer.peerId,
-          lastBlock.id,
-          withinSeqSpan
-        );
-        withinSeqSpan.finish();
-        return cb();
-      },
-      undefined,
-      callback
-    );
+    if (result.decision.action === 'sync') {
+      const fireEvent = true; // important
+      Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom, fireEvent);
+      return;
+    }
+
+    throw new Error('should never come here');
   };
 
   public static cleanup = cb => {
