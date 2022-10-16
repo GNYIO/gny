@@ -5,7 +5,7 @@
   "keywords": [],
   "license": "MIT",
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true || true",
     "removeArtifacts": "rm -rf dist"
   },
   "files": [

@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist",
     "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js --display-error-details",
     "removeBrowserDir": "rm -rf browser"

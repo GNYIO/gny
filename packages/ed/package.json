@@ -3,7 +3,7 @@
   "version": "1.0.122",
   "description": "",
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
   },
   "keywords": [],

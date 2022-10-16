@@ -4,7 +4,7 @@
   "description": "gny command line tool",
   "main": "dist/index",
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
   },
   "bin": {
