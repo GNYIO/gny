@@ -18,6 +18,6 @@
   "dependencies": {
     "@gny/interfaces": "1.0.122",
     "lodash": "4.17.21",
-    "protocol-buffers": "^4.2.0"
+    "protocol-buffers": "^5.0.0"
   }
 }

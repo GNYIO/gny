@@ -6,7 +6,7 @@
   "scripts": {
     "lerna:bootstrap": "lerna bootstrap --ci",
     "lerna:clean": "lerna clean --yes",
-    "lerna:tsc": "lerna run --no-bail tsc; npm run copyStaticFiles",
+    "lerna:tsc": "lerna run --concurrency 1 --no-bail tsc; npm run copyStaticFiles",
     "lerna:removeArtifacts": "lerna run removeArtifacts",
     "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/src/",
     "start": "node packages/main/dist/src/app",
@@ -68,7 +68,7 @@
   "license": "MIT",
   "engineStrict": true,
   "engines": {
-    "node": "=14.20.0"
+    "node": "=16.18.0"
   },
   "bugs": {
     "url": "https://github.com/GNYIO/gny-experiment/issues"
