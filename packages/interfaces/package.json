@@ -5,7 +5,7 @@
   "keywords": [],
   "license": "MIT",
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true || true",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
     "removeArtifacts": "rm -rf dist"
   },
   "files": [
@@ -14,9 +14,9 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@types/express": "^4.17.13",
+    "@types/express": "^4.17.14",
+    "@types/express-serve-static-core": "=4.17.30",
     "@types/jaeger-client": "^3.15.4",
-    "express": "^4.17.1",
     "jaeger-client": "^3.18.0",
     "tracer": "^1.1.5",
     "type-fest": "^0.18.0"

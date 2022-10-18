@@ -7,8 +7,6 @@ import * as express from 'express';
 import { Server } from 'http';
 import { SetRequired } from 'type-fest';
 
-import BigNumber from 'bignumber.js';
-
 declare interface IBase {
   bus: IMessageBus;
   genesisBlock: IBlock;
@@ -117,7 +115,7 @@ export interface INetwork {
   sslServer?: Server;
 }
 
-export type ILogger = tracer.Tracer.Logger;
+export type ILogger = tracer.Tracer.Logger<string>;
 
 export type ITracer = jaegerClient.JaegerTracer;
 
