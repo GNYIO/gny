@@ -170,7 +170,9 @@ export class StateHelper {
 
   // latestBlocksCache
   public static InitializeLatestBlockCache() {
-    global.latestBlocksCache = new LRU<string, BlockAndVotes>(200);
+    global.latestBlocksCache = new LRU<string, BlockAndVotes>({
+      max: 200,
+    });
   }
   public static SetBlockToLatestBlockCache(
     blockId: string,
@@ -184,7 +186,9 @@ export class StateHelper {
 
   // blockHeaderMidCache
   public static InitializeBlockHeaderMidCache() {
-    global.blockHeaderMidCache = new LRU<string, NewBlockMessage>(1000);
+    global.blockHeaderMidCache = new LRU<string, NewBlockMessage>({
+      max: 1000,
+    });
   }
   public static SetBlockHeaderMidCache(
     blockId: string,
