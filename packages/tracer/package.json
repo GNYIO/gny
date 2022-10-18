@@ -16,6 +16,6 @@
   "author": "",
   "dependencies": {
     "@gny/interfaces": "1.0.122",
-    "jaeger-client": "^3.18.1"
+    "jaeger-client": "^3.19.0"
   }
 }
