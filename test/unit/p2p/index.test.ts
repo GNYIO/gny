@@ -1,3 +1,8 @@
+// workourand for: ReferenceError: TextDecoder is not defined
+import { TextEncoder, TextDecoder } from 'util';
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 import {
   ILogger,
   P2PMessage,
