@@ -12,13 +12,13 @@
     "dist"
   ],
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist",
     "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js --display-error-details",
     "removeBrowserDir": "rm -rf browser"
   },
   "engines": {
-    "node": "=14.20.0"
+    "node": "=16.18.0"
   },
   "dependencies": {
     "@gny/interfaces": "1.0.122",

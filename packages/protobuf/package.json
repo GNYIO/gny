@@ -4,7 +4,7 @@
   "version": "1.0.122",
   "description": "",
   "scripts": {
-    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc",
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
   },
   "keywords": [],
@@ -18,6 +18,6 @@
   "dependencies": {
     "@gny/interfaces": "1.0.122",
     "lodash": "4.17.21",
-    "protocol-buffers": "^4.2.0"
+    "protocol-buffers": "^5.0.0"
   }
 }
