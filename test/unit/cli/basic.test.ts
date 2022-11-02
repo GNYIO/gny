@@ -16,7 +16,7 @@ describe('basic', () => {
   });
 
   describe('setsecondsecret', () => {
-    it('should set second secret', async done => {
+    it('should set second secret', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -35,12 +35,11 @@ describe('basic', () => {
 
       await basic.setSecondSecret(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('lock', () => {
-    it('should lock account transfer', async done => {
+    it('should lock account transfer', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -59,12 +58,11 @@ describe('basic', () => {
 
       await basic.lock(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('vote', () => {
-    it('should vote for delegates', async done => {
+    it('should vote for delegates', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -83,12 +81,11 @@ describe('basic', () => {
       await basic.vote(options);
 
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('unvote', () => {
-    it('should cancel vote for delegates', async done => {
+    it('should cancel vote for delegates', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -107,12 +104,11 @@ describe('basic', () => {
       await basic.vote(options);
 
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('registerdelegate', () => {
-    it('should register a delegate', async done => {
+    it('should register a delegate', async () => {
       const expected = {
         success: true,
       };
@@ -130,7 +126,6 @@ describe('basic', () => {
       await basic.registerDelegate(options);
 
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

@@ -16,7 +16,7 @@ describe('system', () => {
   });
 
   describe('getsysteminfo', () => {
-    it('should get system info', async done => {
+    it('should get system info', async () => {
       const expected = {
         success: true,
         os: 'linux_4.9.184-linuxkit',
@@ -35,7 +35,6 @@ describe('system', () => {
 
       await system.getSystemInfo();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

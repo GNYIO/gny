@@ -16,7 +16,7 @@ describe('account', () => {
   });
 
   describe('openaccount', () => {
-    it('should open account', async done => {
+    it('should open account', async () => {
       const expected = {
         success: true,
         account: {
@@ -50,12 +50,11 @@ describe('account', () => {
 
       await account.openAccount(publicKey);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getaccountbyaddress', () => {
-    it('should get account by the address', async done => {
+    it('should get account by the address', async () => {
       const expected = {
         success: true,
         account: {
@@ -90,12 +89,11 @@ describe('account', () => {
 
       await account.getAccountByAddress(address);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getaccountbyusername', () => {
-    it('should get account by the username', async done => {
+    it('should get account by the username', async () => {
       const expected = {
         success: true,
         account: {
@@ -130,12 +128,11 @@ describe('account', () => {
 
       await account.getAccountByUsername(username);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('countaccounts', () => {
-    it('should get the number of accounts', async done => {
+    it('should get the number of accounts', async () => {
       const expected = {
         success: true,
         count: 103,
@@ -146,13 +143,11 @@ describe('account', () => {
       });
 
       await account.countAccounts();
-
-      done();
     });
   });
 
   describe('getbalancebyaddresscurrency', () => {
-    it('should get balance by address and currency', async done => {
+    it('should get balance by address and currency', async () => {
       const expected = {
         success: true,
         account: {
@@ -189,12 +184,11 @@ describe('account', () => {
       await account.getAddressCurrencyBalance(options);
 
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getvoteddelegates', () => {
-    it('should get voted delegates', async done => {
+    it('should get voted delegates', async () => {
       const expected = {
         success: true,
         delegates: {},
@@ -211,12 +205,11 @@ describe('account', () => {
       await account.getVotedDelegates(options);
 
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getpublickey', () => {
-    it('should get public key by the address', async done => {
+    it('should get public key by the address', async () => {
       const expected = { success: false, error: 'Can not find public key' };
       const address = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
 
@@ -230,7 +223,6 @@ describe('account', () => {
 
       await account.getPublicKey(address);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

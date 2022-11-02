@@ -16,7 +16,7 @@ describe('exchange', () => {
   });
 
   describe('genPublicKey', () => {
-    it('should generate PublicKey', async done => {
+    it('should generate PublicKey', async () => {
       const expected =
         '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
 
@@ -25,12 +25,11 @@ describe('exchange', () => {
 
       await exchange.genPublicKey(secret);
       expect(console.log).toHaveBeenCalledWith(expected);
-      done();
     });
   });
 
   describe('openAccountWithSecret', () => {
-    it('should open account with secret', async done => {
+    it('should open account with secret', async () => {
       const expected = {
         success: true,
         account: {
@@ -65,7 +64,6 @@ describe('exchange', () => {
 
       await exchange.openAccountWithSecret(secret);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });
