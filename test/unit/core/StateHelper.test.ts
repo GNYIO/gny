@@ -8,7 +8,7 @@ function resetGlobalState() {
 
 describe('StateHelper', () => {
   describe('getInitialState', () => {
-    it('getInitialState() - matches blue print', done => {
+    it.only('getInitialState() - matches blue print', () => {
       const initialState = StateHelper.getInitialState();
 
       expect(initialState).toEqual({
@@ -23,11 +23,9 @@ describe('StateHelper', () => {
         privIsCollectingVotes: false,
         lastVoteTime: undefined,
       });
-
-      done();
     });
 
-    it('getInitialState() - returns always a new object reference', done => {
+    it('getInitialState() - returns always a new object reference', () => {
       const first = StateHelper.getInitialState();
       const second = StateHelper.getInitialState();
 
@@ -35,8 +33,6 @@ describe('StateHelper', () => {
       expect(first).toEqual(second);
       // object reference is different
       expect(first).not.toBe(second);
-
-      done();
     });
   });
 
@@ -50,7 +46,7 @@ describe('StateHelper', () => {
       cb();
     });
 
-    it('setState() - set global', done => {
+    it('setState() - set global', () => {
       // check before
       const oldState = StateHelper.getState();
       expect(oldState).toEqual({});
@@ -70,7 +66,6 @@ describe('StateHelper', () => {
           height: String(-1),
         },
       });
-      done();
     });
   });
 
@@ -87,15 +82,14 @@ describe('StateHelper', () => {
       cb();
     });
 
-    it('getState() - returns current state', done => {
+    it('getState() - returns current state', () => {
       const state = StateHelper.getState();
       expect(state).toEqual({
         privIsCollectingVotes: true,
       });
-      done();
     });
 
-    it('getState() - returns same values but other object reference', done => {
+    it('getState() - returns same values but other object reference', () => {
       const state = {
         privIsCollectingVotes: false,
       } as IState;
@@ -105,11 +99,9 @@ describe('StateHelper', () => {
 
       expect(result).toEqual(state); // values are the same
       expect(result).not.toBe(state); // object reference is not the same
-
-      done();
     });
 
-    it('getState() - returns same values but deepCopy (also for nested objects)', done => {
+    it('getState() - returns same values but deepCopy (also for nested objects)', () => {
       const lastBlock = {
         height: String(10),
       } as IBlock;
@@ -127,8 +119,6 @@ describe('StateHelper', () => {
       // check nested object
       expect(result.lastBlock).toEqual(state.lastBlock);
       expect(result.lastBlock).not.toBe(state.lastBlock);
-
-      done();
     });
   });
 });
