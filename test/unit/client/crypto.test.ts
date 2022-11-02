@@ -1,4 +1,6 @@
-import 'jest-extended';
+import * as matchers from 'jest-extended';
+expect.extend(matchers);
+
 import * as gnyClient from '@gny/client';
 import { joi } from '@gny/extended-joi';
 

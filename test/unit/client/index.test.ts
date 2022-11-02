@@ -1,4 +1,5 @@
-import 'jest-extended';
+import * as matchers from 'jest-extended';
+expect.extend(matchers);
 import * as gnyClient from '@gny/client';
 
 describe('GNY client', () => {
