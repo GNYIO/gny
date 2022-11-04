@@ -13,6 +13,7 @@ export class Transaction implements Versioned {
   public id: string;
 
   @Column({
+    type: 'integer',
     nullable: false,
   })
   @Index()
