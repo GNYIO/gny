@@ -14,41 +14,29 @@ describe('smartDB.increase', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('increase() - increases by number x', async done => {
+  it('increase() - increases by number x', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const data: IDelegate = {
@@ -80,10 +68,11 @@ describe('smartDB.increase', () => {
       address: 'G2DU9TeVsWcAKr4Yj4Tefa8U3cZFN',
     });
     expect(result.producedBlocks).toEqual(String(3));
-    done();
   });
 
-  it('increase() - can increase more than one property at time', async done => {
+  it('increase() - can increase more than one property at time', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const data: IDelegate = {
@@ -117,10 +106,11 @@ describe('smartDB.increase', () => {
     });
     expect(result.producedBlocks).toEqual(String(2));
     expect(result.missedBlocks).toEqual(String(1));
-    done();
   });
 
-  it('increase() - by composite primary key', async done => {
+  it('increase() - by composite primary key', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const balance1 = {
@@ -159,14 +149,13 @@ describe('smartDB.increase', () => {
     });
     expect(result1.balance).toEqual(String(2));
     expect(result2.balance).toEqual(String(1));
-    done();
   });
 
-  it.skip('increase() - can increase many DB rows not only one', async done => {
-    done();
-  });
+  it.skip('increase() - can increase many DB rows not only one', async () => {});
 
-  it('increase() - can decrease value by number x', async done => {
+  it('increase() - can decrease value by number x', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const data = {
@@ -195,11 +184,11 @@ describe('smartDB.increase', () => {
     });
     expect(result.gny).toEqual(String(3000));
     expect(resultFromDb).toBeUndefined();
-
-    done();
   });
 
-  it('increase() - returns partial object with changed values', async done => {
+  it('increase() - returns partial object with changed values', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const data = {
@@ -221,11 +210,11 @@ describe('smartDB.increase', () => {
     expect(result).toEqual({
       gny: String(7000),
     });
-
-    done();
   });
 
-  it('increase() - updates first cache and on block-commit writes changes to db', async done => {
+  it('increase() - updates first cache and on block-commit writes changes to db', async () => {
+    expect.assertions(8);
+
     await saveGenesisBlock(sut);
 
     const createdBalance = await sut.create<Balance>(Balance, {
@@ -289,7 +278,5 @@ describe('smartDB.increase', () => {
     });
     expect(checkAfterDB).toHaveProperty('balance', String(30000));
     expect(checkAfterDB).toHaveProperty('_version_', 2);
-
-    done();
   });
 });

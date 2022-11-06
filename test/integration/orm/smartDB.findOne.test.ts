@@ -1,6 +1,5 @@
 import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
 import { IAccount, IBalance } from '../../../packages/interfaces';
-import * as fs from 'fs';
 import * as lib from '../lib';
 import { Account } from '../../../packages/database-postgres/src/entity/Account';
 import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
@@ -19,41 +18,29 @@ describe('smartDB.findOne', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it('findOne() - throws if no params object is provided', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // satisfy compiler
@@ -66,6 +53,8 @@ describe('smartDB.findOne', () => {
   });
 
   it('findOne() - throws if no condition object is provided', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // satisfy compiler by first casting to "unknown"
@@ -80,7 +69,9 @@ describe('smartDB.findOne', () => {
     );
   });
 
-  it('findOne() - load entity from DB by primary key', async done => {
+  it('findOne() - load entity from DB by primary key', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account1 = createAccount('G3SSkWs6UFuoVHU3N4rLvXoobbQCt');
@@ -117,10 +108,11 @@ describe('smartDB.findOne', () => {
       condition: key,
     });
     expect(result).toEqual(expected);
-    done();
   });
 
-  it('findOne() - load entity from DB by unique key', async done => {
+  it('findOne() - load entity from DB by unique key', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account = createAccount('G26gsyu1VkF1z4JJ6UGa5VTa4wdWj');
@@ -152,10 +144,11 @@ describe('smartDB.findOne', () => {
       condition: key,
     });
     expect(result).toEqual(expected);
-    done();
   });
 
-  it('findOne() - load entity from DB by composite key', async done => {
+  it('findOne() - load entity from DB by composite key', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // prepare data
@@ -205,11 +198,11 @@ describe('smartDB.findOne', () => {
       condition: compositeKey,
     });
     expect(result).toEqual(createdBalance2);
-
-    done();
   });
 
-  it('findOne() should not look into the cache', async done => {
+  it('findOne() should not look into the cache', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account1 = createAccount('G4LNZorUUGjt3rimMv5Cr2zod9PoS');
@@ -230,11 +223,11 @@ describe('smartDB.findOne', () => {
       condition: key,
     });
     expect(result).toBeUndefined();
-
-    done();
   });
 
   it('findOne() - throws if more than one 1 entity is found', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const balance1: IBalance = {
@@ -271,7 +264,9 @@ describe('smartDB.findOne', () => {
     );
   });
 
-  it('findOne() - returns undefined when no entity is found', async done => {
+  it('findOne() - returns undefined when no entity is found', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.findOne<Account>(Account, {
@@ -280,7 +275,5 @@ describe('smartDB.findOne', () => {
       },
     });
     expect(result).toBeUndefined();
-
-    done();
   });
 });

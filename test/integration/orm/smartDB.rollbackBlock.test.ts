@@ -23,41 +23,29 @@ describe('SmartDB.rollbackBlock()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('rollbackBlock() - rollback current block after beginBlock()', async done => {
+  it('rollbackBlock() - rollback current block after beginBlock()', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     const one = createBlock(String(1));
@@ -68,11 +56,11 @@ describe('SmartDB.rollbackBlock()', () => {
     await sut.rollbackBlock();
     expect(sut.currentBlock).toBeFalsy();
     expect(sut.lastBlockHeight).toEqual(String(0));
-
-    done();
   }, 5000);
 
-  it('rollbackBlock() - current without call to beginBlock()', async done => {
+  it('rollbackBlock() - current without call to beginBlock()', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     expect(sut.currentBlock).not.toBeUndefined();
@@ -81,11 +69,11 @@ describe('SmartDB.rollbackBlock()', () => {
     await sut.rollbackBlock();
     expect(sut.currentBlock).toBeFalsy();
     expect(sut.lastBlockHeight).toEqual(String(0));
-
-    done();
   }, 5000);
 
-  it('rollbackBlock() - to previous block (within cache - without Transactions)', async done => {
+  it('rollbackBlock() - to previous block (within cache - without Transactions)', async () => {
+    expect.assertions(3);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -111,11 +99,11 @@ describe('SmartDB.rollbackBlock()', () => {
 
     // after
     expect(sut.lastBlockHeight).toEqual(String(1));
-
-    done();
   }, 5000);
 
-  it('rollbackBlock() - to previous block (but not cached)', async done => {
+  it('rollbackBlock() - to previous block (but not cached)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -138,11 +126,11 @@ describe('SmartDB.rollbackBlock()', () => {
 
     // after
     expect(sut.lastBlockHeight).toEqual(String(1));
-
-    done();
   }, 5000);
 
-  it('rollbackBlock() - revert persisted and cached CREATE', async done => {
+  it('rollbackBlock() - revert persisted and cached CREATE', async () => {
+    expect.assertions(6);
+
     await saveGenesisBlock(sut);
 
     // changes for block 1
@@ -185,11 +173,11 @@ describe('SmartDB.rollbackBlock()', () => {
       condition: key,
     });
     expect(fromDbAfter).toBeUndefined();
-
-    done();
   });
 
-  it('rollbackBlock() - revert persisted and cached DEL', async done => {
+  it('rollbackBlock() - revert persisted and cached DEL', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     // first save a new entity
@@ -235,11 +223,11 @@ describe('SmartDB.rollbackBlock()', () => {
       condition: key,
     });
     expect(inDbAfter).toBeUndefined();
-
-    done();
   });
 
-  it('rollbackBlock() - revert persisted and cached MODIFY', async done => {
+  it('rollbackBlock() - revert persisted and cached MODIFY', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     // first create entity
@@ -297,11 +285,11 @@ describe('SmartDB.rollbackBlock()', () => {
       condition: key,
     });
     expect(inDbAfter.producedBlocks).toEqual(String(0));
-
-    done();
   });
 
-  it('rollbackBlock() - delete block and blockHistory on rollback', async done => {
+  it('rollbackBlock() - delete block and blockHistory on rollback', async () => {
+    expect.assertions(20);
+
     await saveGenesisBlock(sut);
 
     // persist
@@ -424,11 +412,11 @@ describe('SmartDB.rollbackBlock()', () => {
 
     const blockHistory5InDbAfter = await loadBlockHistory(String(5));
     expect(blockHistory5InDbAfter).toBeUndefined();
-
-    done();
   });
 
-  it('rollbackBlock() - check MODIFY with load', async done => {
+  it('rollbackBlock() - check MODIFY with load', async () => {
+    expect.assertions(6);
+
     await saveGenesisBlock(sut);
 
     // create account
@@ -521,7 +509,5 @@ describe('SmartDB.rollbackBlock()', () => {
       address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
     });
     expect(inCache0After).toEqual(undefined);
-
-    done();
   });
 });

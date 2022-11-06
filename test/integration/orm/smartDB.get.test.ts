@@ -15,53 +15,42 @@ describe('smartDB.get()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('get() - throws if Model has not memory:true activated', async done => {
+  it('get() - throws if Model has not memory:true activated', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const getAllPromise = sut.get<Account>(Account, {
       address: 'G28aWzLNE7AgJG3w285Zno9wLo88c',
     });
-    expect(getAllPromise).rejects.toThrowError(
+    return expect(getAllPromise).rejects.toThrowError(
       'get only supports memory models'
     );
-    done();
   });
 
-  it('get() - composite keys can be any order to find entity', async done => {
+  it('get() - composite keys can be any order to find entity', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const balance = await sut.create<Balance>(Balance, {
@@ -94,11 +83,11 @@ describe('smartDB.get()', () => {
 
     expect(result1).toEqual(expected);
     expect(result2).toEqual(expected);
-
-    done();
   });
 
-  it('get() - getting by entity from cache by composite key (if entity is untracked it returns undefined)', async done => {
+  it('get() - getting by entity from cache by composite key (if entity is untracked it returns undefined)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const key = {
@@ -108,10 +97,11 @@ describe('smartDB.get()', () => {
     const result = await sut.get<Balance>(Balance, key);
 
     expect(result).toBeUndefined();
-    done();
   });
 
-  it('get() - returns undefined when not found in cache', async done => {
+  it('get() - returns undefined when not found in cache', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const key = {
@@ -120,10 +110,11 @@ describe('smartDB.get()', () => {
     const result = await sut.get<Asset>(Asset, key);
 
     expect(result).toBeUndefined();
-    done();
   });
 
-  it('get() - loads entity from cache (if tracked returns entity)', async done => {
+  it('get() - loads entity from cache (if tracked returns entity)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const data = {
@@ -141,10 +132,11 @@ describe('smartDB.get()', () => {
       username: 'liangpeili',
       _version_: 1,
     });
-    done();
   });
 
-  it('get() - loads entity from cache (by unique key)', async done => {
+  it('get() - loads entity from cache (by unique key)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const delegate = {
@@ -158,10 +150,11 @@ describe('smartDB.get()', () => {
     };
     const result = await sut.get<Delegate>(Delegate, uniqueKey);
     expect(result).toEqual(created);
-    done();
   });
 
   it('get() - loads entity from cache - throws if not provided whole composite key', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // first save data

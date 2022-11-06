@@ -59,6 +59,8 @@ describe('smartDB.findAll()', () => {
   }, lib.tenSeconds);
 
   it('findAll() - throws if no params object is provided', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // satisfy compiler
@@ -71,6 +73,8 @@ describe('smartDB.findAll()', () => {
   });
 
   it('findAll() - throws if no condition object is provided', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // satisfy compiler by first casting to "unknown"
@@ -85,7 +89,9 @@ describe('smartDB.findAll()', () => {
     );
   });
 
-  it('findAll() - works with generics', async done => {
+  it('findAll() - works with generics', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account1 = createAccount('G3igL8sTPQzNquy87bYAR37NoYRNn');
@@ -132,11 +138,11 @@ describe('smartDB.findAll()', () => {
 
     const expected = [expected1, expected3];
     expect(result).toEqual(expected);
-
-    done();
   });
 
-  it('findAll() - access directly DB, no cache read', async done => {
+  it('findAll() - access directly DB, no cache read', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     // populate cache with one entity
@@ -154,10 +160,11 @@ describe('smartDB.findAll()', () => {
     });
     expect(result).toEqual([]);
     expect(result.length).toEqual(0);
-    done();
   });
 
-  it('findAll() - WHERE clause', async done => {
+  it('findAll() - WHERE clause', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     await sut.create<Balance>(Balance, {
@@ -208,10 +215,11 @@ describe('smartDB.findAll()', () => {
       },
     ];
     expect(result).toEqual(expected);
-    done();
   });
 
-  it('findAll() - WHERE IN clause ($in)', async done => {
+  it('findAll() - WHERE IN clause ($in)', async () => {
+    expect.assertions(3);
+
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -241,10 +249,11 @@ describe('smartDB.findAll()', () => {
 
     expect(result).toHaveLength(1);
     expect(result).toEqual([createdABC]);
-    done();
   });
 
-  it('findAll() - limit', async done => {
+  it('findAll() - limit', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -270,10 +279,11 @@ describe('smartDB.findAll()', () => {
       limit: 1,
     });
     expect(limit.length).toEqual(1);
-    done();
   });
 
-  it('findAll() - limit and offset', async done => {
+  it('findAll() - limit and offset', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -300,10 +310,11 @@ describe('smartDB.findAll()', () => {
 
     expect(loadFirst).toEqual([createdABC]);
     expect(loadSecond).toEqual([createdTEC]);
-    done();
   });
 
-  it('findAll() - sort results ASCENDING', async done => {
+  it('findAll() - sort results ASCENDING', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -325,11 +336,11 @@ describe('smartDB.findAll()', () => {
     });
 
     expect(result).toEqual([createdABC, createdTEC]);
-
-    done();
   });
 
-  it('findAll() - sort results DESCENDING', async done => {
+  it('findAll() - sort results DESCENDING', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const abc = createAsset('ABC.ABC');
@@ -351,11 +362,11 @@ describe('smartDB.findAll()', () => {
     });
 
     expect(result).toEqual([createdTEC, createdABC]);
-
-    done();
   });
 
-  it('findAll() - search for a range of values with $gte and $lte', async done => {
+  it('findAll() - search for a range of values with $gte and $lte', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // save first transaction in block 1
@@ -391,11 +402,11 @@ describe('smartDB.findAll()', () => {
     };
 
     expect(result).toEqual([expected]);
-
-    done();
   });
 
-  it('findAll() - returns empty array when no results were found', async done => {
+  it('findAll() - returns empty array when no results were found', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.findAll<Account>(Account, {
@@ -404,7 +415,5 @@ describe('smartDB.findAll()', () => {
       },
     });
     expect(result).toEqual([]);
-
-    done();
   });
 });

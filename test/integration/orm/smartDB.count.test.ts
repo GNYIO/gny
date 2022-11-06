@@ -50,6 +50,8 @@ describe('smartDB.count', () => {
   }, lib.tenSeconds);
 
   it('count() - throws if no condition is passed in', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const condition = undefined as Condition<Delegate>;
@@ -60,7 +62,9 @@ describe('smartDB.count', () => {
     );
   });
 
-  it('count() - no account -> returns count 0', async done => {
+  it('count() - no account -> returns count 0', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const key = {
@@ -68,10 +72,11 @@ describe('smartDB.count', () => {
     };
     const result = await sut.count<Account>(Account, key);
     expect(result).toEqual(0);
-    done();
   });
 
-  it('count() - after save -> returns count 1', async done => {
+  it('count() - after save -> returns count 1', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const delegate1 = {
@@ -106,11 +111,11 @@ describe('smartDB.count', () => {
 
     const result2 = await sut.count<Delegate>(Delegate, {});
     expect(result2).toEqual(2);
-
-    done();
   });
 
-  it('count() - WHERE IN clause ($in)', async done => {
+  it('count() - WHERE IN clause ($in)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const variable1 = await sut.create<Variable>(Variable, {
@@ -137,20 +142,20 @@ describe('smartDB.count', () => {
       },
     });
     expect(result).toEqual(2);
-
-    done();
   });
 
-  it('count() - count all entities in db', async done => {
+  it('count() - count all entities in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.count<Balance>(Balance, {});
     expect(result).toEqual(0);
-
-    done();
   });
 
-  it('count() - $gte and $lte', async done => {
+  it('count() - $gte and $lte', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     await sut.create<Balance>(Balance, {
@@ -189,7 +194,5 @@ describe('smartDB.count', () => {
       },
     });
     expect(result).toEqual(2);
-
-    done();
   });
 });

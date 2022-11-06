@@ -48,7 +48,9 @@ describe('smartDB.create()', () => {
     })();
   }, lib.tenSeconds);
 
-  it('create() - initial _version_ is 1 after creation', async done => {
+  it('create() - initial _version_ is 1 after creation', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const data = {
@@ -58,10 +60,11 @@ describe('smartDB.create()', () => {
     const result = await sut.create<Account>(Account, data);
     expect(result).toBeTruthy();
     expect(result._version_).toEqual(1);
-    done();
   }, 5000);
 
   it('create() - throws if Model was not registered', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     class ImaginaryEntity implements Versioned {
@@ -78,7 +81,9 @@ describe('smartDB.create()', () => {
     );
   }, 5000);
 
-  it('create() - returns other object reference', async done => {
+  it('create() - returns other object reference', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const data = {
@@ -98,10 +103,11 @@ describe('smartDB.create()', () => {
 
     expect(createResult).not.toBe(expected); // not same reference
     expect(createResult).toEqual(expected); // deepEquals (same values)
-    done();
   });
 
   it('create() - throws if no primary key is provided', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const wrongData = {
@@ -116,6 +122,8 @@ describe('smartDB.create()', () => {
   });
 
   it('create() - throws if no complete composite key is provided if needed', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const wrongCompositeKeyData = {

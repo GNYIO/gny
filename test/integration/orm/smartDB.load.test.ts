@@ -12,41 +12,29 @@ describe('smartDB.load()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('load() - loads (in-memory) entity from cache (if cached)', async done => {
+  it('load() - loads (in-memory) entity from cache (if cached)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const variable = await sut.create<Variable>(Variable, {
@@ -63,11 +51,11 @@ describe('smartDB.load()', () => {
       value: 'x',
       _version_: 1,
     });
-
-    done();
   });
 
-  it('load() - loads (normal) entity from cache (if cached)', async done => {
+  it('load() - loads (normal) entity from cache (if cached)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const created = await sut.create<Account>(Account, {
@@ -90,11 +78,11 @@ describe('smartDB.load()', () => {
       lockHeight: String(0),
       _version_: 1,
     });
-
-    done();
   });
 
-  it('load() - loads correct entity from cache after it was updated in cache', async done => {
+  it('load() - loads correct entity from cache after it was updated in cache', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const createdVariable = await sut.create<Variable>(Variable, {
@@ -121,13 +109,13 @@ describe('smartDB.load()', () => {
       value: 'two',
       _version_: 2,
     });
-
-    done();
   });
 
   it(
     'load() - loads data from db when data is not cached',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       await saveGenesisBlock(sut);
 
       // const save account into db and then reconnect to db
@@ -179,12 +167,13 @@ describe('smartDB.load()', () => {
       });
 
       // do not close connection, that makes afterEach() for you
-      done();
     },
     2 * lib.oneMinute
   );
 
-  it('load() - loads correct entity from cache by unique property', async done => {
+  it('load() - loads correct entity from cache by unique property', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account1 = await sut.create<Account>(Account, {
@@ -217,13 +206,13 @@ describe('smartDB.load()', () => {
       username: 'xpgeng',
       _version_: 1,
     });
-
-    done();
   });
 
   it(
     'load() - loads correct entity from DB by unique property',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       // prepare
       await saveGenesisBlock(sut);
       const account1 = await sut.create<Account>(Account, {
@@ -271,19 +260,18 @@ describe('smartDB.load()', () => {
       });
 
       // do not close connection, that makes afterEach() for you
-      done();
     },
     lib.oneMinute
   );
 
-  it('load() - returns undefined when entity is not found in cache and not found in db', async done => {
+  it('load() - returns undefined when entity is not found in cache and not found in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.load<Account>(Account, {
       address: 'G3wzRRCWnPX4MCUjTkWBxjbqVSXLL',
     });
     expect(result).toBeUndefined();
-
-    done();
   });
 });

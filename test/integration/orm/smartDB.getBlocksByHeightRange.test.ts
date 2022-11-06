@@ -10,41 +10,29 @@ describe('smartDB.getBlocksByHeightRange()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('getBlocksByHeightRange()', async done => {
+  it('getBlocksByHeightRange()', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const blocks = await sut.getBlocksByHeightRange(
@@ -54,10 +42,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     );
     expect(blocks).toBeTruthy();
     expect(blocks.length).toEqual(1);
-    done();
   }, 5000);
 
-  it('getBlocksByHeightRange() - with transactions', async done => {
+  it('getBlocksByHeightRange() - with transactions', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -69,11 +58,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     expect(blocks.length).toEqual(2);
     expect(blocks[0].transactions.length).toEqual(0);
     expect(blocks[0].transactions.length).toEqual(0);
-
-    done();
   }, 5000);
 
-  it('getBlocksByHeightRange() - is always ordered in ascending order (without trs)', async done => {
+  it('getBlocksByHeightRange() - is always ordered in ascending order (without trs)', async () => {
+    expect.assertions(5);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -99,11 +88,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     expect(blocks[1].height).toEqual(String(1));
     expect(blocks[2].height).toEqual(String(2));
     expect(blocks[3].height).toEqual(String(3));
-
-    done();
   }, 5000);
 
-  it('getBlocksByHeightRange() - is always ordered in ascending order (with trs)', async done => {
+  it('getBlocksByHeightRange() - is always ordered in ascending order (with trs)', async () => {
+    expect.assertions(5);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -129,11 +118,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     expect(blocks[1].height).toEqual(String(1));
     expect(blocks[2].height).toEqual(String(2));
     expect(blocks[3].height).toEqual(String(3));
-
-    done();
   }, 5000);
 
-  it('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async done => {
+  it('getBlocksByHeightRange() - is always ordered in ascending order (even after some blocks got rolled back)', async () => {
+    expect.assertions(7);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -180,11 +169,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     expect(result[3].height).toEqual(String(3));
     expect(result[4].height).toEqual(String(4));
     expect(result[5].height).toEqual(String(5));
-
-    done();
   });
 
-  it('getBlocksByHeightRange() - WHERE height >= min AND height <= max', async done => {
+  it('getBlocksByHeightRange() - WHERE height >= min AND height <= max', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -218,11 +207,11 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     expect(result[0].height).toEqual(String(3));
     expect(result[1].height).toEqual(String(4));
     expect(result[2].height).toEqual(String(5));
-
-    done();
   }, 5000);
 
   it('getBlocksByHeightRange() - throws if min param is greater then max param', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -237,16 +226,18 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     return expect(resultPromise).rejects.toThrow();
   }, 5000);
 
-  it('getBlocksByHeightRange() - returns empty array if no blocks were found in db', async done => {
+  it('getBlocksByHeightRange() - returns empty array if no blocks were found in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.getBlocksByHeightRange(String(100), String(200));
     expect(result).toEqual([]);
-
-    done();
   });
 
-  it('getBlocksByHeightRange() - works also for from: 0, to: 0', async done => {
+  it('getBlocksByHeightRange() - works also for from: 0, to: 0', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -263,7 +254,5 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     const blocks = await sut.getBlocksByHeightRange(fromHeight, toHeight);
     expect(blocks).toBeTruthy();
     expect(blocks.length).toEqual(1);
-
-    return done();
   });
 });
