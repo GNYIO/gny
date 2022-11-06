@@ -210,7 +210,8 @@ describe('orm - BasicEntityTracker', () => {
     expect(sut.isConfirming).toEqual(true);
     done();
   });
-  it('initVersion(height) loads changes from old blocks', async done => {
+
+  it('initVersion(height) loads changes from old blocks', async () => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
@@ -260,10 +261,9 @@ describe('orm - BasicEntityTracker', () => {
     expect(customSut.getHistoryByVersion(String(0)).length).toEqual(1);
     expect(mockOnLoadHistory).toBeCalledTimes(1);
     expect(mockOnLoadHistory).toBeCalledWith(String(0), String(0));
-    done();
   });
 
-  it('initVersion(height) loads all blocks up to height', async done => {
+  it('initVersion(height) loads all blocks up to height', async () => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
@@ -317,11 +317,9 @@ describe('orm - BasicEntityTracker', () => {
     expect(customSut.getHistoryByVersion(String(3)).length).toEqual(1);
     expect(customSut.getHistoryByVersion(String(4)).length).toEqual(1);
     expect(customSut.getHistoryByVersion(String(5)).length).toEqual(1);
-
-    done();
   });
 
-  it('initVersion(height) does not load if other block was already set', async done => {
+  it('initVersion(height) does not load if other block was already set', async () => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
@@ -347,7 +345,6 @@ describe('orm - BasicEntityTracker', () => {
     const LOAD_UP_TO_HEIGHT = String(5);
     customSut.initVersion(LOAD_UP_TO_HEIGHT);
     expect(mockOnLoadHistory).toBeCalledTimes(0);
-    done();
   });
 
   it('trackNew("Account")', done => {
@@ -713,7 +710,7 @@ describe('orm - BasicEntityTracker', () => {
     done();
   });
 
-  it('getChangesUntil() - loads EntityChanges from DB', async done => {
+  it('getChangesUntil() - loads EntityChanges from DB', async () => {
     const lruEntityCache = new LRUEntityCache(schemas);
     const MAXVERSIONHOLD = 10;
 
@@ -780,8 +777,6 @@ describe('orm - BasicEntityTracker', () => {
     };
     expect(result[0].primaryKey).toEqual(expectedFirstPrimaryKey);
     expect(mockOnLoadHistory).nthCalledWith(2, String(4), String(5));
-
-    done();
   });
 
   it('populate unconfirmedChanges during isConfirming phase', done => {
