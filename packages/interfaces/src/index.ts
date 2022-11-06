@@ -393,6 +393,12 @@ export interface IBalance {
   _version_?: number;
 }
 
+export interface IVote {
+  voterAddress: string;
+  delegate: string;
+  _version_?: number;
+}
+
 export interface IAsset {
   name: string;
   tid: string;
