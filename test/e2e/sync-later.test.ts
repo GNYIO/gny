@@ -15,13 +15,12 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-later/docker-compose.sync-later.yml';
 
 describe('sync-later e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // create **only** network, volumes and all containers, don't start them
@@ -29,22 +28,20 @@ describe('sync-later e2e test', () => {
     await lib.sleep(10 * 1000);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'sync-later',
-    async done => {
+    async () => {
       // start individually all containers
       console.log('starting "jaeger", "db1", "db2", "forger"');
       await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
@@ -89,9 +86,6 @@ describe('sync-later e2e test', () => {
 
       // check if both heights are the same
       await helpers.allHeightsAreTheSame([4096, 4098]);
-
-      // now
-      return done();
     },
     3 * lib.oneMinute
   );

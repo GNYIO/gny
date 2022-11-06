@@ -43,7 +43,6 @@ sudo docker exec -t db1  pg_dumpall -c -U postgres > dump_height_11_node2.sql
 */
 
 import * as lib from './lib';
-import axios from 'axios';
 import { BigNumber } from '@gny/utils';
 
 const DOCKER_COMPOSE_P2P =
@@ -56,13 +55,12 @@ const config = {
 };
 
 describe('network-fork', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
@@ -83,11 +81,9 @@ describe('network-fork', () => {
     ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-
-    done();
   }, lib.oneMinute * 1.5);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
@@ -99,12 +95,11 @@ describe('network-fork', () => {
     ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'network-fork',
-    async done => {
+    async () => {
       console.log(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
@@ -153,8 +148,6 @@ describe('network-fork', () => {
       console.log(`node(4098) has height: ${height}`);
       console.log(`node2: ${JSON.stringify(block, null, 2)}`);
       expect(new BigNumber(height).isGreaterThan(11)).toEqual(true);
-
-      return done();
     },
     5 * lib.oneMinute
   );

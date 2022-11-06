@@ -237,13 +237,12 @@ let client1: Client = null;
 let client2: Client = null;
 
 describe('db-the-same', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
@@ -282,11 +281,9 @@ describe('db-the-same', () => {
     // connect clients
     await client1.connect();
     await client2.connect();
-
-    done();
   }, lib.oneMinute * 1.5);
 
-  afterEach(async done => {
+  afterEach(async () => {
     // disconnect clients
     if (client1 !== null) {
       await client1.end();
@@ -306,12 +303,11 @@ describe('db-the-same', () => {
     ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'db-the-same',
-    async done => {
+    async () => {
       console.log(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
@@ -344,8 +340,6 @@ describe('db-the-same', () => {
       await transactionFeesAreTheSame();
       await compareDelegates();
       await compareAccounts();
-
-      done();
     },
     5 * lib.oneMinute
   );

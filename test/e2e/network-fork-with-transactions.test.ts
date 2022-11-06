@@ -52,13 +52,12 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/network-fork-with-transactions/docker-compose.network-fork-with-transactions.yml';
 
 describe('network-fork-with-transactions', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
@@ -80,11 +79,9 @@ describe('network-fork-with-transactions', () => {
     ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-
-    done();
   }, lib.oneMinute * 1.5);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
@@ -96,12 +93,11 @@ describe('network-fork-with-transactions', () => {
     ]);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'network-fork-with-transactions',
-    async done => {
+    async () => {
       console.log(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
@@ -143,8 +139,6 @@ describe('network-fork-with-transactions', () => {
       );
       console.log(`accountAfter: ${JSON.stringify(accountAfter, null, 2)}`);
       expect(accountAfter.gny).toEqual('109960000000');
-
-      return done();
     },
     5 * lib.oneMinute
   );

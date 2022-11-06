@@ -5,26 +5,23 @@ import BigNumber from 'bignumber.js';
 const DOCKER_COMPOSE_P2P = 'config/e2e/sync-only/docker-compose.sync-only.yml';
 
 describe('sync only e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    return done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
-    return done();
   }, lib.oneMinute * 1.2);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    return done();
   }, lib.oneMinute);
 
   it(
     'sync-only',
-    async done => {
+    async () => {
       await lib.sleep(10 * 1000);
       const first = await helpers.allHeightsAreTheSame([4096, 4098]);
 
@@ -33,8 +30,6 @@ describe('sync only e2e test', () => {
 
       expect(new BigNumber(first[0]).isLessThan(second[0])).toEqual(true);
       expect(new BigNumber(first[1]).isLessThan(second[1])).toEqual(true);
-
-      return done();
     },
     3 * lib.oneMinute
   );

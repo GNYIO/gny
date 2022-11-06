@@ -6,26 +6,23 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/two-different-networks/docker-compose.two-different-networks.yml';
 
 describe('two-different-networks', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'two-different-networks');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.oneMinute);
 
   it(
     'two-different-networks',
-    async done => {
+    async () => {
       // two nodes, each with 101 forging secrets and two different
       // genesis Blocks
 
@@ -50,8 +47,6 @@ describe('two-different-networks', () => {
 
       expect(Array.isArray(con2)).toBe(true);
       expect(con2).toHaveLength(0);
-
-      done();
     },
     2 * lib.oneMinute
   );

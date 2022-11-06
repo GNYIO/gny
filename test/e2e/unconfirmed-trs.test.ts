@@ -94,26 +94,23 @@ async function sendRandomTransaction(numberOfTransaction: number) {
 }
 
 describe('unconfirmed-trs e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'unconfirmed-trs');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.oneMinute);
 
   it(
     'unconfirmed-trs',
-    async done => {
+    async () => {
       // send 3 * 50 transactions to node1
       // node2 and node3 should receive transactions
       await lib.sleep(20 * 1000);
@@ -155,8 +152,6 @@ describe('unconfirmed-trs e2e test', () => {
 
       expect(trs4100.size).toBeGreaterThan(0);
       console.log(`final size[4100]: "${trs4100.size}"`);
-
-      return done();
     },
     4 * lib.oneMinute
   );

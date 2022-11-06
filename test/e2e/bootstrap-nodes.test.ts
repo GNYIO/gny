@@ -5,35 +5,32 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/bootstrap-nodes/docker-compose.bootstrap-nodes.yml';
 
 describe('bootstrap-nodes e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'bootstrap-nodes');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'bootstrap-nodes',
-    async done => {
+    async () => {
       console.log(`[${new Date().toLocaleTimeString()}] up...`);
       // node1, node2 and node3 have no forging secrets
       await lib.upP2PContainers(DOCKER_COMPOSE_P2P, [
@@ -71,8 +68,6 @@ describe('bootstrap-nodes e2e test', () => {
         `http://localhost:${node3Port}/api/peers`
       );
       expect(data3.peers.length).toEqual(2);
-
-      done();
     },
     70 * 1000
   );
