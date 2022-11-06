@@ -1,4 +1,4 @@
-import { SmartDBOptions } from '../../../packages/database-postgres/src/sharedInterfaces';
+import { SmartDBOptions } from '@gny/interfaces';
 
 export const credentials: SmartDBOptions = {
   dbDatabase: 'postgres',

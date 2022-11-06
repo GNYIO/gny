@@ -895,3 +895,13 @@ export type IssueError = 'Issuer not found';
 export type AssetError = 'Asset not found';
 
 export type BalanceError = 'Balance info not found';
+
+export interface SmartDBOptions {
+  cachedBlockCount?: number;
+  checkModifier?: boolean;
+  dbPassword: string;
+  dbDatabase: string;
+  dbUser: string;
+  dbHost: string;
+  dbPort: number;
+}
