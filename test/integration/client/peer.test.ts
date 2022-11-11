@@ -19,28 +19,26 @@ describe('peer', () => {
   const connection = new Connection('127.0.0.1', GNY_PORT, 'localnet', false);
   const peerApi = connection.api.Peer;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getPeers', () => {
     it(
       'should get peers',
       async () => {
+        expect.assertions(1);
+
         const response = await peerApi.getPeers();
         expect(response.success).toBeTruthy();
       },
@@ -52,6 +50,8 @@ describe('peer', () => {
     it(
       'should get version',
       async () => {
+        expect.assertions(1);
+
         const response = await peerApi.getVersion();
         expect(response.success).toBeTruthy();
       },
@@ -63,6 +63,8 @@ describe('peer', () => {
     it(
       'should get info',
       async () => {
+        expect.assertions(1);
+
         const response = await peerApi.getInfo();
         expect(response.success).toEqual(true);
       },

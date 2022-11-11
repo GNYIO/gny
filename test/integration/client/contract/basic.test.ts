@@ -79,22 +79,18 @@ describe('account', () => {
   );
   const basicApi = connection.contract.Basic;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('Set account information', () => {
@@ -102,6 +98,8 @@ describe('account', () => {
       it(
         'should set username',
         async () => {
+          expect.assertions(1);
+
           const username = 'a1300';
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -116,6 +114,8 @@ describe('account', () => {
       it(
         'should lock account',
         async () => {
+          expect.assertions(1);
+
           const height = 173000;
           const amount = 30 * 1e8;
           const secret =
@@ -138,6 +138,8 @@ describe('account', () => {
     it(
       'should get forging status',
       async () => {
+        expect.assertions(1);
+
         const secret =
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
@@ -164,6 +166,8 @@ describe('account', () => {
     it(
       'should get forging status',
       async () => {
+        expect.assertions(1);
+
         const secret =
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
@@ -200,6 +204,8 @@ describe('account', () => {
     it(
       'should vote by key list',
       async () => {
+        expect.assertions(1);
+
         await prepareDelegates([
           'change fire praise liar size soon double tissue image drama ribbon winter',
         ]);
@@ -213,6 +219,8 @@ describe('account', () => {
     it(
       'should be able to vote for two or more delegates',
       async () => {
+        expect.assertions(1);
+
         // vote for 2 delegates
         await prepareDelegates([
           'census make riot edit rib plug hungry lift hockey system push regret',
@@ -249,6 +257,8 @@ describe('account', () => {
     it(
       'should unvote by key list',
       async () => {
+        expect.assertions(1);
+
         // prepare gny_d1
         await prepareDelegates([
           'change fire praise liar size soon double tissue image drama ribbon winter',
@@ -263,6 +273,8 @@ describe('account', () => {
     it(
       'should be able to unvote multiple delegates',
       async () => {
+        expect.assertions(1);
+
         // prepare gny_d100 and gnyd_101
         await prepareDelegates([
           'census make riot edit rib plug hungry lift hockey system push regret',

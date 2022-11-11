@@ -26,28 +26,26 @@ describe('uia', () => {
   );
   const uiaApi = connection.contract.Uia;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/registerIssuer', () => {
     it(
       'should register issuer',
       async () => {
+        expect.assertions(1);
+
         const name = 'ABC';
         const desc = 'some desc';
         const secret =
@@ -64,6 +62,8 @@ describe('uia', () => {
     it(
       'should register asset',
       async () => {
+        expect.assertions(1);
+
         const name = 'BBB';
         const desc = 'some desc';
         const maximum = String(10 * 1e8);

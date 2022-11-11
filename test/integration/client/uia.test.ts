@@ -92,28 +92,26 @@ describe('uia', () => {
   const uiaApi = connection.api.Uia;
   const contractUiaApi = connection.contract.Uia;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getIssuers', () => {
     it(
       'should get issuers',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const limit = 5;
         const offset = 0;
 
@@ -136,7 +134,6 @@ describe('uia', () => {
 
         const response = await uiaApi.getIssuers(limit, offset);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -145,7 +142,9 @@ describe('uia', () => {
   describe('/isIssuer', () => {
     it(
       'should check if is an issuer',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
 
         // register issuer
@@ -167,7 +166,6 @@ describe('uia', () => {
 
         const response = await uiaApi.isIssuer(address);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -176,7 +174,9 @@ describe('uia', () => {
   describe('/getIssuer', () => {
     it(
       'should get an issuer by username',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const name = 'liang';
 
         // register issuer
@@ -198,7 +198,6 @@ describe('uia', () => {
 
         const response = await uiaApi.getIssuer(name);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -208,6 +207,8 @@ describe('uia', () => {
     it(
       'should get assets by name',
       async () => {
+        expect.assertions(1);
+
         const name = 'liang';
         const limit = 5;
         const offset = 0;
@@ -258,6 +259,8 @@ describe('uia', () => {
     it(
       'should get assets',
       async () => {
+        expect.assertions(1);
+
         // register issuer
         const issuerTrs = gnyClient.uia.registerIssuer(
           'liang',
@@ -304,6 +307,8 @@ describe('uia', () => {
     it(
       'should get asset by username',
       async () => {
+        expect.assertions(1);
+
         const name = 'liang.BBB';
 
         // register issuer
@@ -352,6 +357,8 @@ describe('uia', () => {
     it(
       'should get balances by address',
       async () => {
+        expect.assertions(1);
+
         const recipient = randomAddress();
         // prepare
         await beforeUiaTransfer(contractUiaApi);
@@ -385,6 +392,8 @@ describe('uia', () => {
     it(
       'should get balance by address and currency',
       async () => {
+        expect.assertions(1);
+
         const recipient = randomAddress();
         // prepare
         await beforeUiaTransfer(contractUiaApi);
@@ -418,6 +427,8 @@ describe('uia', () => {
     it(
       'should get balance',
       async () => {
+        expect.assertions(9);
+
         const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);
@@ -444,6 +455,8 @@ describe('uia', () => {
     it(
       'works with offset 1',
       async () => {
+        expect.assertions(6);
+
         const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);
@@ -467,6 +480,8 @@ describe('uia', () => {
     it(
       'works with limit 1',
       async () => {
+        expect.assertions(6);
+
         const recipient = 'GTtysDoaWGKMt9Ax6iuscs1eoHeJ';
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);

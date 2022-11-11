@@ -19,28 +19,26 @@ describe('system', () => {
   const connection = new Connection('127.0.0.1', GNY_PORT, 'localnet', false);
   const systemApi = connection.api.System;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getSystemInfo', () => {
     it(
       'should get system information',
       async () => {
+        expect.assertions(1);
+
         const response = await systemApi.getSystemInfo();
         expect(response.success).toBeTruthy();
       },
