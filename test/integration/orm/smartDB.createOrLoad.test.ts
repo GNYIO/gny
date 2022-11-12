@@ -58,7 +58,7 @@ describe('smartDB.createOrLoad()', () => {
     })();
   }, lib.tenSeconds);
 
-  it('createOrLoad() - create entity', async done => {
+  it('createOrLoad() - create entity', async () => {
     await saveGenesisBlock(sut);
 
     const round: IRound = {
@@ -79,10 +79,10 @@ describe('smartDB.createOrLoad()', () => {
     };
     expect(result).toEqual(expected);
 
-    done();
+    expect.assertions(1);
   }, 5000);
 
-  it('createOrLoad() - sets default properties', async done => {
+  it('createOrLoad() - sets default properties', async () => {
     await saveGenesisBlock(sut);
 
     const result = await sut.createOrLoad<Round>(Round, {
@@ -100,10 +100,10 @@ describe('smartDB.createOrLoad()', () => {
     };
     expect(result).toEqual(expected);
 
-    done();
+    expect.assertions(1);
   }, 5000);
 
-  it('createOrLoad() - load entity', async done => {
+  it('createOrLoad() - load entity', async () => {
     await saveGenesisBlock(sut);
 
     const round: IRound = {
@@ -129,10 +129,10 @@ describe('smartDB.createOrLoad()', () => {
     const loadResult = await sut.createOrLoad<Round>(Round, key);
     expect(loadResult).toEqual(expected);
 
-    done();
+    expect.assertions(1);
   }, 5000);
 
-  it('createOrLoad() - entity is tracked after operation', async done => {
+  it('createOrLoad() - entity is tracked after operation', async () => {
     await saveGenesisBlock(sut);
 
     const round: IRound = {
@@ -159,10 +159,10 @@ describe('smartDB.createOrLoad()', () => {
     });
     expect(resultFromDb).toBeUndefined();
 
-    done();
+    expect.assertions(2);
   });
 
-  it('createOrLoad() - create entity with composite key', async done => {
+  it('createOrLoad() - create entity with composite key', async () => {
     await saveGenesisBlock(sut);
 
     const balance: IBalance = {
@@ -199,10 +199,10 @@ describe('smartDB.createOrLoad()', () => {
     const result = await sut.get<Balance>(Balance, key);
     expect(result).toEqual(expected);
 
-    done();
+    expect.assertions(2);
   });
 
-  it('createOrLoad() - load entity by composite key', async done => {
+  it('createOrLoad() - load entity by composite key', async () => {
     await saveGenesisBlock(sut);
 
     const account = createAccount('Gjfw7B8WyHq7bw22TwG6gPtdXD19');
@@ -227,14 +227,15 @@ describe('smartDB.createOrLoad()', () => {
 
     const result = await sut.createOrLoad<Account>(Account, key);
     expect(result).toEqual(expected);
-    done();
+
+    expect.assertions(1);
   });
 
   it.skip('createOrLoad() - this operation should cache entity and the entity should gets returned with sdb.get()', async done => {
     done();
   });
 
-  it('createOrLoad() - after createOrLoad entity should be cached', async done => {
+  it('createOrLoad() - after createOrLoad entity should be cached', async () => {
     const variable: IVariable = {
       key: 'key',
       value: 'value',
@@ -247,6 +248,7 @@ describe('smartDB.createOrLoad()', () => {
       key: 'key',
       value: 'value',
     });
-    done();
+
+    expect.assertions(1);
   });
 });

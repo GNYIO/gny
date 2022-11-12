@@ -146,34 +146,31 @@ async function attack(port: number, transaction: any) {
 }
 
 describe('double-spend-attack', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'double-spend-attack');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute * 1.5);
 
   it(
     'double-spend-attack',
-    async done => {
+    async () => {
       // setup account_0 (1000 GNY)
       // setup account_1 (0 GNY)
       // create attack_trs_0 (account_0 -> account_1 (1000 GNY))
@@ -271,8 +268,6 @@ describe('double-spend-attack', () => {
         [attackTrs_0.id as string, attackTrs_1.id as string],
         [4096, 4098]
       );
-
-      done();
     },
     2 * lib.oneMinute
   );

@@ -15,53 +15,42 @@ describe('smartDB.lastBlock', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('prop lastBlock - before genesisBlock', done => {
+  it('prop lastBlock - before genesisBlock', () => {
+    expect.assertions(1);
     expect(sut.lastBlock).toBeUndefined();
-    done();
   }, 5000);
 
-  it('prop lastBlock - after genesisBlock', async done => {
+  it('prop lastBlock - after genesisBlock', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     expect(sut.lastBlock).toEqual(CUSTOM_GENESIS);
-    done();
   }, 5000);
 
-  it('prop lastBlock - after height 1', async done => {
+  it('prop lastBlock - after height 1', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -69,11 +58,11 @@ describe('smartDB.lastBlock', () => {
     await sut.commitBlock();
 
     expect(sut.lastBlock).toEqual(first);
-
-    done();
   }, 5000);
 
-  it('prop lastBlock - after rollbackBlock()', async done => {
+  it('prop lastBlock - after rollbackBlock()', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const block1 = createBlock(String(1));
@@ -95,7 +84,5 @@ describe('smartDB.lastBlock', () => {
 
     // check after
     expect(sut.lastBlock).toEqual(block1);
-
-    done();
   });
 });

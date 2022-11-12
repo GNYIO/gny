@@ -27,7 +27,10 @@ export class Balance implements Versioned {
   })
   public balance: string;
 
-  @Column()
+  @Column({
+    type: 'integer',
+    nullable: false,
+  })
   @Index()
   public flag: number;
 

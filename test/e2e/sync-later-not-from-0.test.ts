@@ -6,27 +6,24 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-later-not-from-0/docker-compose.sync-later-not-from-0.yml';
 
 describe('sync-later-not-from-0 e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
     await lib.sleep(10 * 1000);
-    done();
   }, lib.oneMinute * 1.2);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-later-not-from-0');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.oneMinute);
 
   it(
     'sync-later-not-from-0',
-    async done => {
+    async () => {
       // start both nodes, (node1 can forge, node2 can't)
       // both nodes get to node ~4
       // stop and kill node1 container (only node, not db)
@@ -60,9 +57,6 @@ describe('sync-later-not-from-0 e2e test', () => {
 
       // check if both heights are the same
       await helpers.allHeightsAreTheSame([4096, 4098]);
-
-      // now
-      return done();
     },
     3 * lib.oneMinute
   );

@@ -5,34 +5,31 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-to-stuck-network/docker-compose.sync-to-stuck-network.yml';
 
 describe('sync-to-stuck-network e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute * 1.2);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-to-stuck-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'sync-to-stuck-network',
-    async done => {
+    async () => {
       await lib.sleep(20 * 1000);
 
       // start 3 nodes (25 secrets each)
@@ -86,8 +83,6 @@ describe('sync-to-stuck-network e2e test', () => {
       /*const [stoppedAfter1, stoppedAfter2] = */ await helpers.allHeightsAreTheSame(
         [4096, 4098, 4100]
       );
-
-      return done();
     },
     lib.oneMinute * 7
   );

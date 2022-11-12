@@ -33,28 +33,26 @@ describe('transfer', () => {
   );
   const transferApi = connection.api.Transfer;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getRoot', () => {
     it(
       'should get the root',
       async () => {
+        expect.assertions(1);
+
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
@@ -89,6 +87,8 @@ describe('transfer', () => {
     it(
       'should get the amount according to an interval of timestamp',
       async () => {
+        expect.assertions(1);
+
         const senderId = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';

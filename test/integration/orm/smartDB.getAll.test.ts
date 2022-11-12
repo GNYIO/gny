@@ -14,51 +14,40 @@ describe('smartDB.getAll()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('getAll() - throws if Model has not memory:true activated', async done => {
+  it('getAll() - throws if Model has not memory:true activated', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const getAllPromise = sut.getAll<Account>(Account);
     expect(getAllPromise).rejects.toThrowError(
       'getAll only supports memory models'
     );
-    done();
   });
 
-  it('getAll() - returns all cached items of one model', async done => {
+  it('getAll() - returns all cached items of one model', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const delegate1 = {
@@ -83,10 +72,11 @@ describe('smartDB.getAll()', () => {
     const expected = [result3, result2, result1];
 
     expect(result).toEqual(expected);
-    done();
   });
 
-  it('getAll() - returns not same reference', async done => {
+  it('getAll() - returns not same reference', async () => {
+    expect.assertions(3);
+
     await saveGenesisBlock(sut);
 
     const delegate1 = {
@@ -100,15 +90,14 @@ describe('smartDB.getAll()', () => {
     expect(result.length).toEqual(1);
     expect(result[0]).toEqual(createdResult); // structure is the same
     expect(result[0]).not.toBe(createdResult); // reference is not the same
-    done();
   });
 
-  it('getAll() - returns empty array if no entities are found in cache', async done => {
+  it('getAll() - returns empty array if no entities are found in cache', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.getAll<Balance>(Balance);
     expect(result).toEqual([]);
-
-    done();
   });
 });

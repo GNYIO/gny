@@ -16,7 +16,7 @@ describe('delegate', () => {
   });
 
   describe('getdelegates', () => {
-    it('should get delegates', async done => {
+    it('should get delegates', async () => {
       const expected = {
         success: true,
         totalCount: 101,
@@ -69,12 +69,11 @@ describe('delegate', () => {
 
       await delegate.getDelegates(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getdelegatescount', () => {
-    it('should get delegates count', async done => {
+    it('should get delegates count', async () => {
       const expected = {
         success: true,
         count: 101,
@@ -86,12 +85,11 @@ describe('delegate', () => {
 
       await delegate.getDelegatesCount();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getvoters', () => {
-    it('should get voters by username', async done => {
+    it('should get voters by username', async () => {
       const expected = {
         success: true,
         delegates: [],
@@ -109,12 +107,11 @@ describe('delegate', () => {
 
       await delegate.getVoters(username);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getdelegatebypublickey', () => {
-    it('should get delegate by public key', async done => {
+    it('should get delegate by public key', async () => {
       const expected = {
         success: true,
         delegate: {
@@ -149,12 +146,11 @@ describe('delegate', () => {
 
       await delegate.getDelegateByPublicKey(publicKey);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getdelegatebyusername', () => {
-    it('should get delegate by username', async done => {
+    it('should get delegate by username', async () => {
       const expected = {
         success: true,
         delegate: {
@@ -188,12 +184,11 @@ describe('delegate', () => {
 
       await delegate.getDelegateByUsername(username);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getdelegatebyaddress', () => {
-    it('should get delegate by address', async done => {
+    it('should get delegate by address', async () => {
       const expected = {
         success: true,
         delegate: {
@@ -227,7 +222,6 @@ describe('delegate', () => {
 
       await delegate.getDelegateByAddress(address);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

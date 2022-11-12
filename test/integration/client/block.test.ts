@@ -19,28 +19,26 @@ describe('block', () => {
   const connection = new Connection('127.0.0.1', GNY_PORT, 'localnet', false);
   const blockApi = connection.api.Block;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getBlockByHeight', () => {
     it(
       'should get the block by height',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         // wait 3 blocks;
         await lib.onNewBlock(GNY_PORT);
         await lib.onNewBlock(GNY_PORT);
@@ -49,7 +47,6 @@ describe('block', () => {
         const height = String(2);
         const response = await blockApi.getBlockByHeight(height);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -58,7 +55,9 @@ describe('block', () => {
   describe('/getBlockById', () => {
     it(
       'should get the block by id',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         // wait 3 blocks;
         await lib.onNewBlock(GNY_PORT);
         await lib.onNewBlock(GNY_PORT);
@@ -69,7 +68,6 @@ describe('block', () => {
         const id = blockResponse.block.id;
         const response = await blockApi.getBlockById(id);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -78,7 +76,9 @@ describe('block', () => {
   describe('/getBlocks', () => {
     it(
       'should get the blocks',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const offset = '0';
         const limit = '2';
 
@@ -89,7 +89,6 @@ describe('block', () => {
 
         const response = await blockApi.getBlocks(offset, limit);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -99,6 +98,8 @@ describe('block', () => {
     it(
       'should get the height',
       async () => {
+        expect.assertions(1);
+
         const response = await blockApi.getHeight();
         expect(response.success).toBeTruthy();
       },
@@ -110,6 +111,8 @@ describe('block', () => {
     it(
       'should get the milestone',
       async () => {
+        expect.assertions(1);
+
         const response = await blockApi.getMilestone();
         expect(response.success).toBeTruthy();
       },
@@ -121,6 +124,8 @@ describe('block', () => {
     it(
       'should get the reward',
       async () => {
+        expect.assertions(1);
+
         const response = await blockApi.getReward();
         expect(response.success).toBeTruthy();
       },
@@ -132,6 +137,8 @@ describe('block', () => {
     it(
       'should get the supply',
       async () => {
+        expect.assertions(1);
+
         const response = await blockApi.getSupply();
         expect(response.success).toBeTruthy();
       },
@@ -143,6 +150,8 @@ describe('block', () => {
     it(
       'should get status',
       async () => {
+        expect.assertions(1);
+
         const response = await blockApi.getStatus();
         expect(response.success).toBeTruthy();
       },

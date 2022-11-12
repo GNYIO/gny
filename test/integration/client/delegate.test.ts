@@ -88,31 +88,28 @@ describe('delegate', () => {
   );
   const delegateApi = connection.api.Delegate;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/count', () => {
     it(
       'should count the number of delegate',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const response = await delegateApi.count();
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -121,7 +118,9 @@ describe('delegate', () => {
   describe('/getVoters', () => {
     it(
       'should get voters by username',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -177,7 +176,6 @@ describe('delegate', () => {
 
         const response = await delegateApi.getVoters(username);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -187,6 +185,8 @@ describe('delegate', () => {
     it(
       'should get own votes by address',
       async () => {
+        expect.assertions(4);
+
         // lock the account
         const lockTrs = gnyClient.basic.lock(
           String(173000),
@@ -243,6 +243,8 @@ describe('delegate', () => {
     it(
       'should get own votes by username',
       async () => {
+        expect.assertions(5);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -312,7 +314,9 @@ describe('delegate', () => {
   describe('/getDelegateByUsername', () => {
     it(
       'should get delegate by username',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         // register delegate
         const username = 'xpgeng';
 
@@ -342,7 +346,6 @@ describe('delegate', () => {
 
         const response = await delegateApi.getDelegateByUsername(username);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -352,6 +355,8 @@ describe('delegate', () => {
     it(
       'should get delegates',
       async () => {
+        expect.assertions(1);
+
         const offset = '1';
         const limit = '5';
 
@@ -366,6 +371,8 @@ describe('delegate', () => {
     it(
       'should get forging status',
       async () => {
+        expect.assertions(1);
+
         const publicKey =
           '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
         const response = await delegateApi.forgingStatus(publicKey);
@@ -379,6 +386,8 @@ describe('delegate', () => {
     it(
       'get own Produced Blocks',
       async () => {
+        expect.assertions(1);
+
         await lib.sleep(20 * 1000);
 
         const blocks = [];
@@ -401,6 +410,8 @@ describe('delegate', () => {
     it(
       'return found delegates that matches the search string, result is sorted by highest rank frist',
       async () => {
+        expect.assertions(4);
+
         const noDelegateWithThisName = await delegateApi.search('x');
         expect(noDelegateWithThisName.delegates).toHaveLength(0);
 
@@ -434,6 +445,8 @@ describe('delegate', () => {
     it(
       'test offset and limit',
       async () => {
+        expect.assertions(10);
+
         const manyResults = await delegateApi.search('1');
         expect(manyResults.count).toEqual(21);
         expect(manyResults.delegates).toHaveLength(21);

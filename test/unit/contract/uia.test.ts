@@ -59,7 +59,7 @@ describe('uia', () => {
       done();
     });
 
-    it('should register the issuer', async done => {
+    it('should register the issuer', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
@@ -77,15 +77,13 @@ describe('uia', () => {
 
       const transfered = await uia.registerIssuer(name, desc);
       expect(transfered).toBeNull();
-      done();
     });
 
-    it('should return Invalid issuer name', async done => {
+    it('should return Invalid issuer name', async () => {
       name = '!@#xpgeng';
 
       const transfered = await uia.registerIssuer(name, desc);
       expect(transfered).toBe('Invalid issuer name');
-      done();
     });
 
     it('should return No issuer description was provided', async () => {
@@ -100,7 +98,7 @@ describe('uia', () => {
       return expect(promise).rejects.toThrowError('Invalid description');
     });
 
-    it('should return Issuer name already exists', async done => {
+    it('should return Issuer name already exists', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
@@ -113,10 +111,9 @@ describe('uia', () => {
 
       const transfered = await uia.registerIssuer(name, desc);
       expect(transfered).toBe('Issuer name already exists');
-      done();
     });
 
-    it('should return Account is already an issuer', async done => {
+    it('should return Account is already an issuer', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
       (uia as any).sender = {
@@ -129,7 +126,6 @@ describe('uia', () => {
 
       const transfered = await uia.registerIssuer(name, desc);
       expect(transfered).toBe('Account is already an issuer');
-      done();
     });
   });
 
@@ -152,7 +148,7 @@ describe('uia', () => {
       done();
     });
 
-    it('should register the asset', async done => {
+    it('should register the asset', async () => {
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
@@ -178,10 +174,9 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBeNull();
-      done();
     });
 
-    it('should return Invalid symbol', async done => {
+    it('should return Invalid symbol', async () => {
       symbol = '!@#xpgeng';
 
       const transfered = await uia.registerAsset(
@@ -191,10 +186,9 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBe('Invalid symbol');
-      done();
     });
 
-    it('should return Precision should be positive integer', async done => {
+    it('should return Precision should be positive integer', async () => {
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
@@ -207,10 +201,9 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBe('Precision should be positive integer');
-      done();
     });
 
-    it('should return Invalid asset precision', async done => {
+    it('should return Invalid asset precision', async () => {
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
@@ -223,10 +216,9 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBe('Invalid asset precision');
-      done();
     });
 
-    it('should return Account is not an issuer', async done => {
+    it('should return Account is not an issuer', async () => {
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         gny: String(200 * 1e8),
@@ -245,10 +237,9 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBe('Account is not an issuer');
-      done();
     });
 
-    it('should return Asset already exists', async done => {
+    it('should return Asset already exists', async () => {
       (uia as any).sender = {
         address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         gny: String(200 * 1e8),
@@ -268,7 +259,6 @@ describe('uia', () => {
         precision
       );
       expect(transfered).toBe('Asset already exists');
-      done();
     });
   });
 
@@ -286,7 +276,7 @@ describe('uia', () => {
       done();
     });
 
-    it('should update asset and balances by name and amount', async done => {
+    it('should update asset and balances by name and amount', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
       (uia as any).sender = {
@@ -307,10 +297,9 @@ describe('uia', () => {
 
       const updated = await uia.issue(name, amount);
       expect(updated).toBeNull();
-      done();
     });
 
-    it('should return Asset not exists', async done => {
+    it('should return Asset not exists', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
 
@@ -319,10 +308,9 @@ describe('uia', () => {
 
       const updated = await uia.issue(name, amount);
       expect(updated).toBe('Asset not exists');
-      done();
     });
 
-    it('should return Permission denied', async done => {
+    it('should return Permission denied', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
       (uia as any).sender = {
@@ -341,10 +329,9 @@ describe('uia', () => {
 
       const updated = await uia.issue(name, amount);
       expect(updated).toBe('Permission denied');
-      done();
     });
 
-    it('should return Exceed issue limit', async done => {
+    it('should return Exceed issue limit', async () => {
       name = 'xpgeng.GNY';
       amount = 1000000000;
       (uia as any).sender = {
@@ -363,7 +350,6 @@ describe('uia', () => {
 
       const updated = await uia.issue(name, amount);
       expect(updated).toBe('Exceed issue limit');
-      done();
     });
   });
 
@@ -390,7 +376,7 @@ describe('uia', () => {
       done();
     });
 
-    it('should transfer some amount of currency to a recipient', async done => {
+    it('should transfer some amount of currency to a recipient', async () => {
       const balance = new BigNumber(100000000);
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -411,19 +397,17 @@ describe('uia', () => {
 
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBeNull();
-      done();
     });
 
-    it('should return Invalid currency', async done => {
+    it('should return Invalid currency', async () => {
       currency = 'gnyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy';
       amount = 100000;
 
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBe('Invalid currency');
-      done();
     });
 
-    it('should return Invalid recipient', async done => {
+    it('should return Invalid recipient', async () => {
       currency = 'gny';
       amount = 100000;
       recipient =
@@ -431,10 +415,9 @@ describe('uia', () => {
 
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBe('Invalid recipient');
-      done();
     });
 
-    it('should return Insufficient balance', async done => {
+    it('should return Insufficient balance', async () => {
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
         gny: String(200),
@@ -444,10 +427,9 @@ describe('uia', () => {
       global.app.balances.get.mockReturnValue(balance);
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBe('Insufficient balance');
-      done();
     });
 
-    it('should return Recipient name not exist', async done => {
+    it('should return Recipient name not exist', async () => {
       (uia as any).sender = {
         address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
         gny: String(200),
@@ -460,7 +442,6 @@ describe('uia', () => {
 
       const transfered = await uia.transfer(currency, amount, recipient);
       expect(transfered).toBe('Recipient name not exist');
-      done();
     });
   });
 });

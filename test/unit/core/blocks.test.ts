@@ -139,7 +139,7 @@ describe('core/blocks', () => {
   });
 
   describe('RunGenesisOrLoadLastBlock()', () => {
-    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB processes genesisBlock and saves it in DB', async done => {
+    it('RunGenesisOrLoadLastBlock() - 0 blocks in DB processes genesisBlock and saves it in DB', async () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
@@ -172,11 +172,9 @@ describe('core/blocks', () => {
       expect(resultState.lastBlock).not.toBeUndefined();
       expect(resultState.lastBlock.id).toEqual(genesisBlock.id);
       expect(resultState).not.toBe(state); // other object reference
-
-      done();
     });
 
-    it('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async done => {
+    it('RunGenesisOrLoadLastBlock() - 3 blocks in DB loades latest Block from db', async () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
 
@@ -210,8 +208,6 @@ describe('core/blocks', () => {
       expect(resultState.lastBlock.height).toEqual(String(9));
       expect(resultState.lastBlock.id).toEqual('nine');
       expect(resultState).not.toBe(state); // other object reference
-
-      done();
     });
   });
 
@@ -356,17 +352,11 @@ describe('core/blocks', () => {
 
   it.skip('generateBlock()', async () => {});
 
-  it.skip('event onReceiveBlock()', done => {
-    done();
-  });
+  it.skip('event onReceiveBlock()', () => {});
 
-  it.skip('event onReceivePropose()', done => {
-    done();
-  });
+  it.skip('event onReceivePropose()', () => {});
 
   it.skip('event onReceiveVotes', async () => {});
 
-  it.skip('event onBind', done => {
-    done();
-  });
+  it.skip('event onBind', () => {});
 });

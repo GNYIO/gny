@@ -44,17 +44,20 @@ describe('smartDB.beginBlock()', () => {
     })();
   }, lib.tenSeconds);
 
-  it('beginBlock() - called with too big height throws', async done => {
+  it('beginBlock() - called with too big height throws', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const wrongBlock = createBlock(String(2));
     expect(() => sut.beginBlock(wrongBlock)).toThrow(
       'invalid block height 2, last = 0'
     );
-    done();
   });
 
-  it('beginBlock() - called with too small height throws', async done => {
+  it('beginBlock() - called with too small height throws', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -69,10 +72,11 @@ describe('smartDB.beginBlock()', () => {
     expect(() => sut.beginBlock(otherFirst)).toThrow(
       'invalid block height 1, last = 2'
     );
-    done();
   });
 
-  it('beginBlock() - called twice with same block after commitBlock() height throws', async done => {
+  it('beginBlock() - called twice with same block after commitBlock() height throws', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const block = createBlock(String(1));
@@ -83,14 +87,13 @@ describe('smartDB.beginBlock()', () => {
     expect(() => sut.beginBlock(block)).toThrow(
       'invalid block height 1, last = 1'
     );
-
-    done();
   });
 
-  it('beginBlock() - called without block throws', async done => {
+  it('beginBlock() - called without block throws', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     expect(() => sut.beginBlock(undefined)).toThrow();
-    done();
   });
 });

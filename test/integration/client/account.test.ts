@@ -75,34 +75,31 @@ describe('account', () => {
   );
   const accountApi = connection.api.Account;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('Get account information', () => {
     describe('/openAccount', () => {
       it(
         'should open an account with public key',
-        async done => {
+        async () => {
+          expect.assertions(1);
+
           const publicKey =
             '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
           const response = await accountApi.openAccount(publicKey);
           expect(response.success).toBeTruthy();
-          done();
         },
         lib.oneMinute
       );
@@ -111,11 +108,12 @@ describe('account', () => {
     describe('/getBalance', () => {
       it(
         'should get balance by the address',
-        async done => {
+        async () => {
+          expect.assertions(1);
+
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getBalance(address);
           expect(response.success).toBeTruthy();
-          done();
         },
         lib.oneMinute
       );
@@ -125,6 +123,8 @@ describe('account', () => {
       it(
         'should get the balance by the address and currency',
         async () => {
+          expect.assertions(1);
+
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const currecny = 'AAA.ONE';
 
@@ -165,6 +165,8 @@ describe('account', () => {
       it(
         'should get the account by address',
         async () => {
+          expect.assertions(1);
+
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = await accountApi.getAccountByAddress(address);
           expect(response.success).toBeTruthy();
@@ -177,6 +179,8 @@ describe('account', () => {
       it(
         'should get the account by username',
         async () => {
+          expect.assertions(1);
+
           // set username
           const username = 'xpgeng';
           const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -201,6 +205,8 @@ describe('account', () => {
       it(
         'should get the voted delegates',
         async () => {
+          expect.assertions(1);
+
           // set username
           const username = 'xpgeng';
           const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -269,6 +275,8 @@ describe('account', () => {
       it(
         'should get the number of accounts',
         async () => {
+          expect.assertions(2);
+
           const response = await accountApi.countAccounts();
           expect(response.success).toBeTruthy();
           expect(response.count).toEqual(103);

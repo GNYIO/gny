@@ -16,7 +16,7 @@ describe('uia', () => {
   });
 
   describe('getissuers', () => {
-    it('should get issuers', async done => {
+    it('should get issuers', async () => {
       const expected = {
         success: true,
         count: 0,
@@ -33,12 +33,11 @@ describe('uia', () => {
 
       await uia.getIssuers(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('isissuer', () => {
-    it('should check if is an issuer by address', async done => {
+    it('should check if is an issuer by address', async () => {
       const expected = {
         success: true,
         isIssuer: true,
@@ -52,12 +51,11 @@ describe('uia', () => {
 
       await uia.isIssuer(address);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getissuer', () => {
-    it('should get issuer by username', async done => {
+    it('should get issuer by username', async () => {
       const expected = {
         success: true,
       };
@@ -69,12 +67,11 @@ describe('uia', () => {
 
       await uia.getIssuer(username);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getissuerassets', () => {
-    it('should get issuer assets by username', async done => {
+    it('should get issuer assets by username', async () => {
       const expected = {
         success: true,
       };
@@ -86,12 +83,11 @@ describe('uia', () => {
 
       await uia.getIssuerAssets(username);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getassets', () => {
-    it('should get assets', async done => {
+    it('should get assets', async () => {
       const expected = {
         success: true,
         count: 0,
@@ -108,12 +104,11 @@ describe('uia', () => {
 
       await uia.getAssets(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getasset', () => {
-    it('should get asset by name', async done => {
+    it('should get asset by name', async () => {
       const expected = {
         success: true,
         count: 0,
@@ -131,12 +126,11 @@ describe('uia', () => {
 
       await uia.getAsset(name);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getbalances', () => {
-    it('should get balances by address', async done => {
+    it('should get balances by address', async () => {
       const expected = {
         success: true,
         count: 0,
@@ -154,12 +148,11 @@ describe('uia', () => {
 
       await uia.getBalances(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getbalancebycurrency', () => {
-    it('should get balance by address and currency', async done => {
+    it('should get balance by address and currency', async () => {
       const expected = {
         success: true,
         count: 0,
@@ -180,12 +173,11 @@ describe('uia', () => {
 
       await uia.getBalance(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('sendasset', () => {
-    it('should send asset to some address', async done => {
+    it('should send asset to some address', async () => {
       const expected = {
         success: true,
         transactionId: '',
@@ -205,12 +197,11 @@ describe('uia', () => {
 
       await uia.sendAsset(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('registerissuer', () => {
-    it('should register issuer', async done => {
+    it('should register issuer', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -230,12 +221,11 @@ describe('uia', () => {
 
       await uia.registerIssuer(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('registerasset', () => {
-    it('should register asset', async done => {
+    it('should register asset', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -257,7 +247,6 @@ describe('uia', () => {
 
       await uia.registerAsset(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

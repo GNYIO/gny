@@ -16,7 +16,7 @@ describe('peer', () => {
   });
 
   describe('getpeers', () => {
-    it('should get peers', async done => {
+    it('should get peers', async () => {
       const expected = {
         success: true,
         peers: [],
@@ -29,12 +29,11 @@ describe('peer', () => {
 
       await peer.getPeers();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getversion', () => {
-    it('should get version', async done => {
+    it('should get version', async () => {
       const expected = {
         success: true,
         version: '1.0.5',
@@ -48,12 +47,11 @@ describe('peer', () => {
 
       await peer.getVersion();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getinfo', () => {
-    it('should get info', async done => {
+    it('should get info', async () => {
       const expected = {
         success: true,
         id: 'QmPEge8KAzhrwKjFekvPgtNdawwusX997N9NYH9YzaUhix',
@@ -70,7 +68,6 @@ describe('peer', () => {
 
       await peer.getInfo();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

@@ -6,26 +6,23 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/two-genesis-blocks/docker-compose.two-genesis-blocks.yml';
 
 describe('two-genesis-blocks', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'two-genesis-blocks');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.oneMinute);
 
   it(
     'two-genesis-blocks',
-    async done => {
+    async () => {
       // two nodes, each with 101 forging secrets and two different
       // genesis Blocks
 
@@ -60,8 +57,6 @@ describe('two-genesis-blocks', () => {
       expect(genesisBlock1.block.id).not.toBeNull();
       expect(genesisBlock2.block.id).not.toBeNull();
       expect(genesisBlock1.block.id).not.toEqual(genesisBlock2.block.id);
-
-      done();
     },
     2 * lib.oneMinute
   );

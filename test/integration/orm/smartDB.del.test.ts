@@ -48,7 +48,9 @@ describe('smartDB.del', () => {
     })();
   }, lib.tenSeconds);
 
-  it('del() - deletes entity from cache (memory model)', async done => {
+  it('del() - deletes entity from cache (memory model)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const delegate = {
@@ -73,11 +75,11 @@ describe('smartDB.del', () => {
       address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
     });
     expect(after).toBeUndefined();
-
-    done();
   });
 
-  it('del() - deletes entity from cache (normal model)', async done => {
+  it('del() - deletes entity from cache (normal model)', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     const account = {
@@ -114,11 +116,11 @@ describe('smartDB.del', () => {
       },
     });
     expect(afterInDb).toBeUndefined();
-
-    done();
   });
 
-  it('del() - delete by unique key (memory model)', async done => {
+  it('del() - delete by unique key (memory model)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const delegate = {
@@ -144,11 +146,11 @@ describe('smartDB.del', () => {
       tid: 'someLongId',
     });
     expect(after).toBeUndefined();
-
-    done();
   });
 
-  it('del() - delete by unique key (normal model)', async done => {
+  it('del() - delete by unique key (normal model)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const account = {
@@ -174,11 +176,11 @@ describe('smartDB.del', () => {
       username: 'a1300',
     });
     expect(after).toBeUndefined();
-
-    done();
   });
 
-  it('del() - deletes entity from cache (with composite primary key)', async done => {
+  it('del() - deletes entity from cache (with composite primary key)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const balance = {
@@ -202,11 +204,11 @@ describe('smartDB.del', () => {
     // check after
     const after = await sut.get<Balance>(Balance, compositeKey);
     expect(after).toBeUndefined();
-
-    done();
   });
 
-  it('del() - deletes entity from DB after beginBlock() and commitBlock()', async done => {
+  it('del() - deletes entity from DB after beginBlock() and commitBlock()', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const account = {
@@ -238,7 +240,5 @@ describe('smartDB.del', () => {
     // after: check how many accounts exist
     const after = await sut.count<Account>(Account, {});
     expect(after).toEqual(0);
-
-    done();
   });
 });

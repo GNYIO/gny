@@ -128,7 +128,7 @@ function createRandomTransaction() {
 
 describe('BlocksHelper', () => {
   describe('pure functions', () => {
-    it('AreTransactionsDuplicated() - returns false if no transaction-ID is duplicated', done => {
+    it('AreTransactionsDuplicated() - returns false if no transaction-ID is duplicated', () => {
       const transactions = [
         {
           id: 'first',
@@ -143,11 +143,9 @@ describe('BlocksHelper', () => {
 
       const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('AreTransactionsDuplicated() - returns true if transaction-IDs are duplicated', done => {
+    it('AreTransactionsDuplicated() - returns true if transaction-IDs are duplicated', () => {
       const transactions = [
         {
           id: 'first',
@@ -162,11 +160,9 @@ describe('BlocksHelper', () => {
 
       const result = BlocksHelper.AreTransactionsDuplicated(transactions);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('CanAllTransactionsBeSerialized() - returns true if for all transaction getBytes() can be called', done => {
+    it('CanAllTransactionsBeSerialized() - returns true if for all transaction getBytes() can be called', () => {
       const transactions = [
         createRandomTransaction(),
         createRandomTransaction(),
@@ -175,11 +171,9 @@ describe('BlocksHelper', () => {
 
       const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('CanAllTransactionsBeSerialized() - returns false if for any transaction getBytes can not be called', done => {
+    it('CanAllTransactionsBeSerialized() - returns false if for any transaction getBytes can not be called', () => {
       const correctTrs = createRandomTransaction();
       const wrongTrs = createRandomTransaction();
       delete wrongTrs.timestamp;
@@ -187,30 +181,24 @@ describe('BlocksHelper', () => {
       const transactions = [correctTrs, wrongTrs];
       const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('CanAllTransactionsBeSerialized() - returns true if empty transactions array is passed in', done => {
+    it('CanAllTransactionsBeSerialized() - returns true if empty transactions array is passed in', () => {
       const transactions = [];
 
       const result = BlocksHelper.CanAllTransactionsBeSerialized(transactions);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('CanAllTransactionsBeSerialized() - throws if no transactions array is passed in', done => {
+    it('CanAllTransactionsBeSerialized() - throws if no transactions array is passed in', () => {
       const transactions = null;
 
       expect(() =>
         BlocksHelper.CanAllTransactionsBeSerialized(transactions)
       ).toThrow('transactions are null');
-
-      done();
     });
 
-    it.skip('ManageProposeCreation() - create propose', done => {
+    it.skip('ManageProposeCreation() - create propose', () => {
       const keypair = null;
       const block = {} as IBlock;
       const config: Partial<IConfig> = {
@@ -228,38 +216,30 @@ describe('BlocksHelper', () => {
       expect(result.id).toEqual(block.id);
       expect(result.signature).toEqual(null);
       expect(result.timestamp).toEqual(block.timestamp);
-
-      done();
     });
 
-    it('NotEnoughActiveKeyPairs() - returns false if one KeyPair is provided', done => {
+    it('NotEnoughActiveKeyPairs() - returns false if one KeyPair is provided', () => {
       const keypairs = [randomKeyPair()];
 
       const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('NotEnoughActiveKeyPairs() - returns true if empty array is provided', done => {
+    it('NotEnoughActiveKeyPairs() - returns true if empty array is provided', () => {
       const keypairs = [];
 
       const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('NotEnoughActiveKeyPairs() - returns true if null value is provided', done => {
+    it('NotEnoughActiveKeyPairs() - returns true if null value is provided', () => {
       const keypairs = null;
 
       const result = BlocksHelper.NotEnoughActiveKeyPairs(keypairs);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('generateBlockShort() - generates block', done => {
+    it('generateBlockShort() - generates block', () => {
       const keypair = randomKeyPair();
       const timestamp = 1343434;
       const lastBlock = {
@@ -298,13 +278,11 @@ describe('BlocksHelper', () => {
       expect(typeof result.id).toEqual('string');
       expect(typeof result.payloadHash).toEqual('string');
       expect(typeof result.signature).toEqual('string');
-
-      done();
     });
 
     it(
       'areTransactionsExceedingPayloadLength() - returns true if bytes of all transaction exceeding threshold',
-      done => {
+      () => {
         const transactions: ITransaction[] = [];
 
         for (let i = 0; i < 180000; ++i) {
@@ -316,13 +294,11 @@ describe('BlocksHelper', () => {
           transactions
         );
         expect(result).toEqual(true);
-
-        done();
       },
       20 * 1000
     );
 
-    it('areTransactionsExceedingPayloadLength() - returns false if bytes of all transaction are not exceeding threshold', done => {
+    it('areTransactionsExceedingPayloadLength() - returns false if bytes of all transaction are not exceeding threshold', () => {
       const transactions: ITransaction[] = [];
 
       for (let i = 0; i < 999; ++i) {
@@ -334,11 +310,9 @@ describe('BlocksHelper', () => {
         transactions
       );
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('getFeesOfAll() - get fees of all transactions', done => {
+    it('getFeesOfAll() - get fees of all transactions', () => {
       const trs1 = createRandomTransaction();
       const trs2 = createRandomTransaction();
       const trs3 = createRandomTransaction();
@@ -351,11 +325,9 @@ describe('BlocksHelper', () => {
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
       expect(fees).toEqual(String(0.3 * 1e8));
-
-      done();
     });
 
-    it('getFeesOfAll() - sums over all transaction fees, also when they are not provided', done => {
+    it('getFeesOfAll() - sums over all transaction fees, also when they are not provided', () => {
       const trs1 = createRandomTransaction();
       delete trs1.fee;
       const trs2 = createRandomTransaction();
@@ -369,11 +341,9 @@ describe('BlocksHelper', () => {
 
       const fees = BlocksHelper.getFeesOfAll(transactions);
       expect(fees).toEqual(String(0.2 * 1e8));
-
-      done();
     });
 
-    it('payloadHashOfAllTransactions() - returns hash of all transactions', done => {
+    it('payloadHashOfAllTransactions() - returns hash of all transactions', () => {
       const transactions = [
         createRandomTransaction(),
         createRandomTransaction(),
@@ -385,11 +355,9 @@ describe('BlocksHelper', () => {
       const hex = hash.toString('hex');
       expect(typeof hex).toEqual('string');
       expect(hex).toHaveLength(64);
-
-      done();
     });
 
-    it('payloadHashOfAllTransactions() - works for empty transactions array', done => {
+    it('payloadHashOfAllTransactions() - works for empty transactions array', () => {
       const transactions: ITransaction[] = [];
 
       const hash = BlocksHelper.payloadHashOfAllTransactions(transactions);
@@ -398,11 +366,9 @@ describe('BlocksHelper', () => {
       const hex = hash.toString('hex');
       expect(typeof hex).toEqual('string');
       expect(hex).toHaveLength(64);
-
-      done();
     });
 
-    it('DoesNewBlockProposeMatchOldOne() - returns true if height, generatorPublicKey', done => {
+    it('DoesNewBlockProposeMatchOldOne() - returns true if height, generatorPublicKey', () => {
       // preparation
       const id = randomHex(32);
       const generatorPublicKey = randomHex(32);
@@ -429,10 +395,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('DoesNewBlockProposeMatchOldOne() - returns false if lastPropose does not exists', done => {
+    it('DoesNewBlockProposeMatchOldOne() - returns false if lastPropose does not exists', () => {
       // preparation
       const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(2));
@@ -444,10 +409,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('DoesNewBlockProposeMatchOldOne() - returns false if height does not match', done => {
+    it('DoesNewBlockProposeMatchOldOne() - returns false if height does not match', () => {
       // preparation
       const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(2));
@@ -461,10 +425,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('DoesNewBlockProposeMatchOldOne() - returns false if generatorPublicKey does not match', done => {
+    it('DoesNewBlockProposeMatchOldOne() - returns false if generatorPublicKey does not match', () => {
       // preparation
       const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(2));
@@ -478,20 +441,18 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('AlreadyReceivedPropose() - returns false when ProposeCache is empty', done => {
+    it('AlreadyReceivedPropose() - returns false when ProposeCache is empty', () => {
       const state = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(10));
 
       const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('AlreadyReceivedPropose() - returns true when Propose hash was already received', done => {
+    it('AlreadyReceivedPropose() - returns true when Propose hash was already received', () => {
       // preparation
       const propose = createRandomBlockPropose(String(10));
 
@@ -502,10 +463,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.AlreadyReceivedPropose(state, propose);
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('MarkProposeAsReceived() - returns new object reference', done => {
+    it('MarkProposeAsReceived() - returns new object reference', () => {
       const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(10));
 
@@ -515,10 +475,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(initialState).not.toBe(updatedState);
-      done();
     });
 
-    it('MarkProposeAsReceived() - marks propose as received', done => {
+    it('MarkProposeAsReceived() - marks propose as received', () => {
       const initialState = StateHelper.getInitialState();
       const propose = createRandomBlockPropose(String(10));
 
@@ -528,10 +487,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(updatedState.proposeCache[propose.hash]).toEqual(true);
-      done();
     });
 
-    it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', done => {
+    it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', () => {
       const state = StateHelper.getInitialState();
       state.lastBlock = loadGenesisBlock();
 
@@ -542,10 +500,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('ReceivedBlockIsInRightOrder() - returns false if prevBlockId is not the same', done => {
+    it('ReceivedBlockIsInRightOrder() - returns false if prevBlockId is not the same', () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
       state.lastBlock = genesisBlock;
@@ -559,10 +516,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('ReceivedBlockIsInRightOrder() - returns true if height and prevBlockId are correct in correct order', done => {
+    it('ReceivedBlockIsInRightOrder() - returns true if height and prevBlockId are correct in correct order', () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
       state.lastBlock = genesisBlock;
@@ -574,10 +530,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.ReceivedBlockIsInRightOrder(state, block);
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('ReceivedBlockIsInRightOrder() - throws if state has no lastBlock (should never happen)', done => {
+    it('ReceivedBlockIsInRightOrder() - throws if state has no lastBlock (should never happen)', () => {
       const initialState = StateHelper.getInitialState();
       const block = createRandomBlock(); // is never used
 
@@ -586,11 +541,9 @@ describe('BlocksHelper', () => {
       expect(() => {
         BlocksHelper.ReceivedBlockIsInRightOrder(initialState, block);
       }).toThrow('ReceivedBlockIsInRightOrder - no state.lastBlock');
-
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', () => {
       const newBlockMessage: NewBlockMessage = undefined;
       const newBlock = createRandomBlock();
 
@@ -600,10 +553,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if newBlockMessage is undefined', () => {
       const newBlockMessage: NewBlockMessage = {
         height: String(1),
         id: randomHex(32),
@@ -617,10 +569,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns true if height, id and prevBlockId are the same', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns true if height, id and prevBlockId are the same', () => {
       const newBlock: IBlock = createRandomBlock(String(14));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
@@ -634,10 +585,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns false if height is not the same', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if height is not the same', () => {
       const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
         height: String(12), // different
@@ -651,10 +601,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns false if id is not the same', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if id is not the same', () => {
       const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
@@ -668,10 +617,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('IsNewBlockMessageAndBlockTheSame() - returns false if prevBlockId is not the same', done => {
+    it('IsNewBlockMessageAndBlockTheSame() - returns false if prevBlockId is not the same', () => {
       const newBlock: IBlock = createRandomBlock(String(13));
       const newBlockMessage: NewBlockMessage = {
         height: newBlock.height,
@@ -685,18 +633,13 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it.skip('AreAnyTransactionsAlreadyInDbIO()', done => {
-      done();
-    });
+    it.skip('AreAnyTransactionsAlreadyInDbIO()', () => {});
 
-    it.skip('IsBlockAlreadyInDbIO()', done => {
-      done();
-    });
+    it.skip('IsBlockAlreadyInDbIO()', () => {});
 
-    it('setPreGenesisBlock() - returns lastBlock with height MINUS 1', done => {
+    it('setPreGenesisBlock() - returns lastBlock with height MINUS 1', () => {
       const initialState = StateHelper.getInitialState();
 
       const result = BlocksHelper.setPreGenesisBlock(initialState);
@@ -704,19 +647,17 @@ describe('BlocksHelper', () => {
       expect(result.lastBlock).toEqual({
         height: String(-1),
       });
-      done();
     });
 
-    it('setPreGenesisBlock() - returns other object reference', done => {
+    it('setPreGenesisBlock() - returns other object reference', () => {
       const initialState = StateHelper.getInitialState();
 
       const result = BlocksHelper.setPreGenesisBlock(initialState);
 
       expect(result).not.toBe(initialState);
-      done();
     });
 
-    it('SetLastBlock() - sets last block', done => {
+    it('SetLastBlock() - sets last block', () => {
       const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
@@ -725,10 +666,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.SetLastBlock(initialState, block);
 
       expect(result.lastBlock).toEqual(block);
-      done();
     });
 
-    it('SetLastBlock() - returns other object', done => {
+    it('SetLastBlock() - returns other object', () => {
       const initialState = StateHelper.getInitialState();
 
       const blockId = randomHex(32);
@@ -737,10 +677,9 @@ describe('BlocksHelper', () => {
       const result = BlocksHelper.SetLastBlock(initialState, block);
 
       expect(result).not.toBe(initialState);
-      done();
     });
 
-    it('ProcessBlockCleanup() - clears processingBlock state fields', done => {
+    it('ProcessBlockCleanup() - clears processingBlock state fields', () => {
       let state = StateHelper.getInitialState();
       state = ConsensusHelper.CollectingVotes(state);
       state = BlocksHelper.MarkProposeAsReceived(state, {
@@ -762,11 +701,9 @@ describe('BlocksHelper', () => {
 
       // returns other object reference
       expect(result).not.toBe(state);
-
-      done();
     });
 
-    it('SetLastPropose() - sets lastVoteTime and lastPropose', done => {
+    it('SetLastPropose() - sets lastVoteTime and lastPropose', () => {
       const state = StateHelper.getInitialState();
 
       const lastVoteTime = Date.now();
@@ -788,11 +725,9 @@ describe('BlocksHelper', () => {
       expect(result).not.toBe(state);
       // propose should be other object refernce
       expect(result.lastPropose).not.toBe(propose);
-
-      done();
     });
 
-    it('IsBlockchainReady() - blockchain is not ready if lastSlot is 130 seconds ago', async done => {
+    it('IsBlockchainReady() - blockchain is not ready if lastSlot is 130 seconds ago', async () => {
       // preparation
       let state = StateHelper.getInitialState();
       const block = createRandomBlock(String(1));
@@ -809,10 +744,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('IsBlockchainReady() - blockchain is ready if lastSlot is 100 seconds ago', async done => {
+    it('IsBlockchainReady() - blockchain is ready if lastSlot is 100 seconds ago', async () => {
       // preparation
       let state = StateHelper.getInitialState();
       const block = createRandomBlock(String(1));
@@ -829,10 +763,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('IsBlockchainReady() - blockchain is ready if lastSlot is 10 seconds ago', async done => {
+    it('IsBlockchainReady() - blockchain is ready if lastSlot is 10 seconds ago', async () => {
       // preparation
       let state = StateHelper.getInitialState();
       const block = createRandomBlock(String(1));
@@ -849,10 +782,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(true);
-      done();
     });
 
-    it('verifyBlockSlot() - currentBlock and lastBlock having same timestamp makes check fail', done => {
+    it('verifyBlockSlot() - currentBlock and lastBlock having same timestamp makes check fail', () => {
       const lastBlock = createRandomBlock(String(1));
       const currentBlock = createRandomBlock(String(2));
 
@@ -872,10 +804,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-      done();
     });
 
-    it('verifyBlockSlot() - lastBock timestamp greater then current block makes check fail', done => {
+    it('verifyBlockSlot() - lastBock timestamp greater then current block makes check fail', () => {
       const lastBlock = createRandomBlock(String(1));
       const currentBlock = createRandomBlock(String(2));
 
@@ -895,11 +826,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('verifyBlockSlot() - currentBlock timestamp is too high for next slot makes check fail', done => {
+    it('verifyBlockSlot() - currentBlock timestamp is too high for next slot makes check fail', () => {
       const lastBlock = createRandomBlock(String(1));
       const currentBlock = createRandomBlock(String(2));
 
@@ -919,11 +848,9 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('verifyBlockSlot() - currentBlock is in time and a slot higher then lastBlock makes check pass', done => {
+    it('verifyBlockSlot() - currentBlock is in time and a slot higher then lastBlock makes check pass', () => {
       const lastBlock = createRandomBlock(String(1));
       const currentBlock = createRandomBlock(String(2));
 
@@ -943,8 +870,6 @@ describe('BlocksHelper', () => {
       );
 
       expect(result).toEqual(true);
-
-      done();
     });
 
     it('getRoundInfoForBlocks - throws if null is passed in', () => {

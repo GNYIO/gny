@@ -16,7 +16,7 @@ describe('transaction', () => {
   });
 
   describe('getunconfirmedtransactions', () => {
-    it('should get unconfirmed transactions', async done => {
+    it('should get unconfirmed transactions', async () => {
       const expected = {
         success: true,
         transactions: [],
@@ -33,12 +33,11 @@ describe('transaction', () => {
 
       await transaction.getUnconfirmedTransactions(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('gettransactions', () => {
-    it('should get transactions', async done => {
+    it('should get transactions', async () => {
       const expected = {
         success: true,
         transactions: [],
@@ -54,12 +53,11 @@ describe('transaction', () => {
 
       await transaction.getTransactions(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('gettransaction', () => {
-    it('should get transaction by id ', async done => {
+    it('should get transaction by id ', async () => {
       const expected = {
         success: true,
         transaction: {},
@@ -78,12 +76,11 @@ describe('transaction', () => {
 
       await transaction.getUnconfirmedTransaction(id);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('sendmoney', () => {
-    it('should send money', async done => {
+    it('should send money', async () => {
       const expected = {
         success: true,
         transactionId: [],
@@ -102,12 +99,11 @@ describe('transaction', () => {
 
       await transaction.sendMoney(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('transaction', () => {
-    it('create a transaction in mainchain with user specified fee', async done => {
+    it('create a transaction in mainchain with user specified fee', async () => {
       const expected = {
         success: true,
         transactionId:
@@ -128,7 +124,6 @@ describe('transaction', () => {
 
       await transaction.sendTransactionWithFee(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

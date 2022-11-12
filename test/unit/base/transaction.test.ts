@@ -1,5 +1,10 @@
 import { TransactionBase, CreateTransactionType } from '@gny/base';
-import { ITransaction, Context, IAccount } from '@gny/packages';
+import {
+  ITransaction,
+  Context,
+  IAccount,
+  UnconfirmedTransaction,
+} from '@gny/interfaces';
 import * as crypto from 'crypto';
 import * as ed from '@gny/ed';
 
@@ -30,7 +35,7 @@ function createTransation() {
 
 describe('Transaction', () => {
   describe('create', () => {
-    let trs: ITransaction;
+    let trs: UnconfirmedTransaction;
     beforeEach(done => {
       const secret = 'ABCDEFG';
       const secondSecret = 'HIJKLMN';

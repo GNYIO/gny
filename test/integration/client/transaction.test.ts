@@ -59,28 +59,26 @@ describe('transaction', () => {
   );
   const transactionApi = connection.api.Transaction;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('/getTransactions', () => {
     it(
       'should get transactions',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
@@ -108,7 +106,6 @@ describe('transaction', () => {
         };
         const response = await transactionApi.getTransactions(query);
         expect(response.success).toBeTruthy();
-        done();
       },
       lib.oneMinute
     );
@@ -117,18 +114,20 @@ describe('transaction', () => {
   describe('/count', () => {
     it(
       'get transaction count',
-      async done => {
+      async () => {
+        expect.assertions(1);
+
         const response = await transactionApi.getCount();
         expect(response.count).toEqual(203);
-
-        done();
       },
       lib.oneMinute
     );
 
     it(
       'get transaction count (from senderId and senderPublicKey)',
-      async done => {
+      async () => {
+        expect.assertions(2);
+
         await send();
         await send();
 
@@ -147,8 +146,6 @@ describe('transaction', () => {
           senderPublicKey: publicKey,
         });
         expect(responsePublicKey.count).toEqual(2);
-
-        done();
       },
       lib.oneMinute
     );
@@ -157,7 +154,9 @@ describe('transaction', () => {
   describe('/newestFirst', () => {
     it(
       'get 10 of the newest transactions',
-      async done => {
+      async () => {
+        expect.assertions(12);
+
         const count = 203;
         const offset = 0;
         const limit = 10;
@@ -201,8 +200,6 @@ describe('transaction', () => {
         expect(response.transactions[9].id).toEqual(
           '67387a102b482ef3a0471c082340331d70fa99431add718e452218620bd9549e'
         );
-
-        done();
       },
       lib.oneMinute
     );
@@ -210,6 +207,8 @@ describe('transaction', () => {
     it(
       'should get only transactions of sender x',
       async () => {
+        expect.assertions(5);
+
         const trs1 = await send();
         const trs2 = await send();
         const trs3 = await send();

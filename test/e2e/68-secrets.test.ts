@@ -6,34 +6,31 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/68-secrets/docker-compose.68-secrets.yml';
 
 describe('68-secrets', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098]);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute * 1.5);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, '68-secrets');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     '68-secrets',
-    async done => {
+    async () => {
       // wait for the network to create some blocks
       await lib.sleep(lib.oneMinute);
 
@@ -53,8 +50,6 @@ describe('68-secrets', () => {
       const after2 = await lib.getHeight(4098);
       expect(new BigNumber(after1).isGreaterThan(before1)).toEqual(true);
       expect(new BigNumber(after2).isGreaterThan(before2)).toEqual(true);
-
-      done();
     },
     3 * lib.oneMinute
   );

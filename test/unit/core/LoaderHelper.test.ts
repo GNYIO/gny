@@ -13,7 +13,7 @@ import { randomBytes } from 'crypto';
 
 describe('LoaderHelper', () => {
   describe('getIdSequence2', () => {
-    it('getIdSequence2() - returns the 4 last blockIds in descending order (happy path)', async done => {
+    it('getIdSequence2() - returns the 4 last blockIds in descending order (happy path)', async () => {
       const currentLastBlockHeight = String(59);
 
       const blocksAscending = [
@@ -57,8 +57,6 @@ describe('LoaderHelper', () => {
         'fivesix',
         'fivefive',
       ]);
-
-      done();
     });
 
     it('getIdSequence2() - throws Error with "getIdSequence2 failed" if something goes wrong', async () => {

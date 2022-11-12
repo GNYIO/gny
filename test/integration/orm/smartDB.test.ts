@@ -25,43 +25,31 @@ describe('integration - SmartDB', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it(
     'getBlockByHeight()',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       await saveGenesisBlock(sut);
 
       const loaded = await sut.getBlockByHeight(String(0));
@@ -83,41 +71,43 @@ describe('integration - SmartDB', () => {
         version: 0,
       };
       expect(loaded).toEqual(expected);
-      done();
     },
     lib.thirtySeconds
   );
 
   it(
     'getBlockByHeight() - with transactions',
-    async done => {
+    async () => {
+      expect.assertions(3);
+
       await saveGenesisBlock(sut);
 
       const loaded = await sut.getBlockByHeight(String(0), true);
       expect(loaded).toBeTruthy();
       expect(loaded).toHaveProperty('transactions');
       expect(loaded.transactions.length).toEqual(0);
-      done();
     },
     lib.thirtySeconds
   );
 
   it(
     'getBlockByHeight() - returns undefined when not found in cache and in db',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       await saveGenesisBlock(sut);
 
       const result = await sut.getBlockByHeight(String(300));
       expect(result).toBeUndefined();
-
-      done();
     },
     lib.thirtySeconds
   );
 
   it(
     'getBlockById()',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       await saveGenesisBlock(sut);
 
       const first = createBlock(String(1));
@@ -130,13 +120,13 @@ describe('integration - SmartDB', () => {
       delete expected._version_;
 
       expect(result).toEqual(expected);
-
-      done();
     },
     lib.thirtySeconds
   );
 
-  it('getBlockById() - with transactions', async done => {
+  it('getBlockById() - with transactions', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const first = createBlock(String(1));
@@ -149,33 +139,35 @@ describe('integration - SmartDB', () => {
 
     expect(result).toEqual(expected);
     expect(result.transactions.length).toEqual(0);
-
-    done();
   });
 
-  it('getBlockById() - returns undefined when Block was not found in cache in db', async done => {
+  it('getBlockById() - returns undefined when Block was not found in cache in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.getBlockById(
       'bbd6220626bba4be88617864e0fe8fb32b0c618c42306397bec6ceac7797a246'
     );
     expect(result).toBeUndefined();
-
-    done();
   });
 
-  it('prop blocksCount - after initalization', done => {
+  it('prop blocksCount - after initalization', () => {
+    expect.assertions(1);
+
     expect(sut.blocksCount).toEqual(String(0));
-    done();
   });
 
-  it('prop blocksCount - after genesis block', async done => {
+  it('prop blocksCount - after genesis block', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
     expect(sut.blocksCount).toEqual(String(1));
-    done();
   });
 
-  it('beginContract() and commitContract() - persits changes after beginBlock(), commitBlock()', async done => {
+  it('beginContract() and commitContract() - persits changes after beginBlock(), commitBlock()', async () => {
+    expect.assertions(3);
+
     await saveGenesisBlock(sut);
 
     // check before
@@ -213,11 +205,11 @@ describe('integration - SmartDB', () => {
     // check after
     const after = await sut.count<Delegate>(Delegate, {});
     expect(after).toEqual(1);
-
-    done();
   });
 
-  it('beginContract() and commitContract() - can rollback changes made during a contract', async done => {
+  it('beginContract() and commitContract() - can rollback changes made during a contract', async () => {
+    expect.assertions(3);
+
     await saveGenesisBlock(sut);
 
     // first contract
@@ -267,15 +259,13 @@ describe('integration - SmartDB', () => {
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
     });
     expect(result.votes).toEqual(String(0));
-
-    done();
   });
 
-  it.skip('beginContract() - should never be called after beginBlock() (feature)', async done => {
-    done();
-  });
+  it.skip('beginContract() - should never be called after beginBlock() (feature)', async () => {});
 
-  it('commitBlock() - fails, then cache and last block in DB should be correct', async done => {
+  it('commitBlock() - fails, then cache and last block in DB should be correct', async () => {
+    expect.assertions(5);
+
     await saveGenesisBlock(sut);
 
     const account = {
@@ -362,11 +352,7 @@ describe('integration - SmartDB', () => {
       condition: balanceKey,
     });
     expect(balanceDbVersion.balance).toEqual(String(0));
-
-    done();
   });
 
-  it.skip('why is the bookkeeper variable not found?', async done => {
-    done();
-  });
+  it.skip('why is the bookkeeper variable not found?', async () => {});
 });

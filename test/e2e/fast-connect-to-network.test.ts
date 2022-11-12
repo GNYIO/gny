@@ -5,35 +5,32 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/fast-connect-to-network/docker-compose.fast-connect-to-network.yml';
 
 describe('fast-connect-to-network e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'fast-connect-to-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'fast-connect-to-network',
-    async done => {
+    async () => {
       // start a network of node1, node2, node3, node4
       // every node should be connect to everybody
       // node5 connects to node4
@@ -107,8 +104,6 @@ describe('fast-connect-to-network e2e test', () => {
       await helpers.hasXAmountOfPeers(4098, 4);
       await helpers.hasXAmountOfPeers(4100, 4);
       await helpers.hasXAmountOfPeers(4102, 4);
-
-      done();
     },
     6 * lib.oneMinute
   );

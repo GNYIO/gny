@@ -6,27 +6,24 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/restarted-node/docker-compose.restarted-node.yml';
 
 describe('restarted node e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
     await lib.sleep(10 * 1000);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'restarted-node');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.oneMinute);
 
   it(
     'restarted node',
-    async done => {
+    async () => {
       await lib.sleep(30 * 1000);
 
       const heightBefore = await lib.getHeight(4096);
@@ -52,8 +49,6 @@ describe('restarted node e2e test', () => {
         }`
       );
       expect(after.data.block).toEqual(before.data.block);
-
-      done();
     },
     2 * lib.oneMinute
   );

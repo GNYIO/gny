@@ -17,41 +17,29 @@ describe('smartDB.exists()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('exists() - entity exists in DB after beginBlock()', async done => {
+  it('exists() - entity exists in DB after beginBlock()', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const block = createBlock(String(1));
@@ -63,10 +51,11 @@ describe('smartDB.exists()', () => {
 
     const exists = await sut.exists<Block>(Block, key);
     expect(exists).toEqual(true);
-    done();
   });
 
-  it('exists() - entity does not exists in DB', async done => {
+  it('exists() - entity does not exists in DB', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const block = createBlock(String(1));
@@ -77,10 +66,11 @@ describe('smartDB.exists()', () => {
     };
     const exists = await sut.exists<Block>(Block, key);
     expect(exists).toEqual(false);
-    done();
   });
 
-  it('exists() - can access item after createOrLoad() (false)', async done => {
+  it('exists() - can access item after createOrLoad() (false)', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // create() or createOrLoad() does not save entity directly to DB
@@ -92,14 +82,13 @@ describe('smartDB.exists()', () => {
 
     const exists = await sut.exists<Variable>(Variable, { key: 'key' });
     expect(exists).toEqual(false);
-    done();
   });
 
-  it.skip('exists() - should it always hit the database?', async done => {
-    done();
-  });
+  it.skip('exists() - should it always hit the database?', async () => {});
 
-  it('exists() - pass in Array[], should return true if one of the elements is in db', async done => {
+  it('exists() - pass in Array[], should return true if one of the elements is in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // create block to persist changes to db
@@ -172,11 +161,11 @@ describe('smartDB.exists()', () => {
       ],
     });
     expect(result).toEqual(true);
-
-    done();
   });
 
-  it('exists() - pass in Array[], should return false if no of the elements are in db', async done => {
+  it('exists() - pass in Array[], should return false if no of the elements are in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     // the following transaction will be saved to the db
@@ -214,11 +203,11 @@ describe('smartDB.exists()', () => {
       ],
     });
     expect(result).toEqual(false);
-
-    done();
   });
 
-  it('exists() - commit Block, now block should exist in DB', async done => {
+  it('exists() - commit Block, now block should exist in DB', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const block = createBlock(String(1));
@@ -229,11 +218,11 @@ describe('smartDB.exists()', () => {
       id: block.id,
     });
     expect(result).toEqual(true);
-
-    done();
   });
 
-  it('exists() - begin Block, now block should NOT exist in DB', async done => {
+  it('exists() - begin Block, now block should NOT exist in DB', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const block = createBlock(String(1));
@@ -244,11 +233,11 @@ describe('smartDB.exists()', () => {
       id: block.id,
     });
     expect(result).toEqual(false);
-
-    done();
   });
 
   it('exists() - throws if two or more properties are searched after', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const balance = await sut.create<Balance>(Balance, {
@@ -274,18 +263,20 @@ describe('smartDB.exists()', () => {
     );
   });
 
-  it('exists() - returns false when passed in undefined value', async done => {
+  it('exists() - returns false when passed in undefined value', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const result = await sut.exists<Account>(Account, {
       address: undefined,
     });
     expect(result).toEqual(false);
-
-    done();
   });
 
-  it('exists() - returns true when unique key was found in db', async done => {
+  it('exists() - returns true when unique key was found in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const account1 = await sut.create<Account>(Account, {
@@ -313,7 +304,5 @@ describe('smartDB.exists()', () => {
       username: 'liang',
     });
     expect(result).toEqual(true);
-
-    done();
   });
 });

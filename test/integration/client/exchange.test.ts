@@ -3,7 +3,6 @@
  */
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
-import axios from 'axios';
 
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -30,33 +29,30 @@ describe('exchange', () => {
   );
   const exchangeApi = connection.api.Exchange;
 
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
     // await lib.buildDockerImage();
-
-    done();
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-    done();
   }, lib.oneMinute);
 
-  afterEach(async done => {
+  afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
-    done();
   }, lib.oneMinute);
 
   describe('Get account information', () => {
     describe('/openAccount', () => {
       it(
         'should open an account with a secret',
-        async done => {
+        async () => {
+          expect.assertions(1);
+
           const secret = genesisSecret;
           const response = await exchangeApi.openAccount(secret);
           expect(response.success).toBeTruthy();
-          done();
         },
         lib.oneMinute
       );
@@ -65,10 +61,11 @@ describe('exchange', () => {
     describe('/generateAccount', () => {
       it(
         'should return a complete new account',
-        async done => {
+        async () => {
+          expect.assertions(1);
+
           const response = await exchangeApi.generateAccount();
           expect(response.success).toBeTruthy();
-          done();
         },
         lib.oneMinute
       );
@@ -77,11 +74,12 @@ describe('exchange', () => {
     describe('/generatePublicKey', () => {
       it(
         'should generate a public key from a secret',
-        async done => {
+        async () => {
+          expect.assertions(1);
+
           const secret = genesisSecret;
           const response = await exchangeApi.generatePublicKey(secret);
           expect(response.success).toBeTruthy();
-          done();
         },
         lib.oneMinute
       );

@@ -16,7 +16,7 @@ describe('block', () => {
   });
 
   describe('getheight', () => {
-    it('should block height', async done => {
+    it('should block height', async () => {
       const expected = {
         success: true,
         height: '8432',
@@ -28,12 +28,11 @@ describe('block', () => {
 
       await block.getHeight();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getstatus', () => {
-    it('should get block status', async done => {
+    it('should get block status', async () => {
       const expected = {
         success: true,
         height: '7122',
@@ -49,12 +48,11 @@ describe('block', () => {
 
       await block.getStatus();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getmilestone', () => {
-    it('should get block milestone', async done => {
+    it('should get block milestone', async () => {
       const expected = {
         success: true,
         milestone: 0,
@@ -66,12 +64,11 @@ describe('block', () => {
 
       await block.getMilestone();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getreward', () => {
-    it('should get block reward', async done => {
+    it('should get block reward', async () => {
       const expected = {
         success: true,
         reward: 200000000,
@@ -83,12 +80,11 @@ describe('block', () => {
 
       await block.getReward();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getsupply', () => {
-    it('should get block supply', async done => {
+    it('should get block supply', async () => {
       const expected = {
         success: true,
         supply: '40001001800000000',
@@ -100,12 +96,11 @@ describe('block', () => {
 
       await block.getSupply();
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getblocks', () => {
-    it('should get blocks', async done => {
+    it('should get blocks', async () => {
       const expected = {
         success: true,
         count: '7188',
@@ -140,12 +135,11 @@ describe('block', () => {
 
       await block.getBlocks(options);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getblockbyid', () => {
-    it('should get block by id', async done => {
+    it('should get block by id', async () => {
       const expected = {
         success: true,
         block: {
@@ -179,12 +173,11 @@ describe('block', () => {
 
       await block.getBlockById(id);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 
   describe('getblockbyheight', () => {
-    it('should get block by height', async done => {
+    it('should get block by height', async () => {
       const expected = {
         success: true,
         block: {
@@ -218,7 +211,6 @@ describe('block', () => {
 
       await block.getBlockByHeight(height);
       expect(console.log).toHaveBeenCalledWith(pretty({ data: expected }));
-      done();
     });
   });
 });

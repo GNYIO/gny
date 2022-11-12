@@ -11,41 +11,29 @@ describe('smartDB - use cases', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
-  it('update of in-memory Model should be persisted after a commitBlock() call', async done => {
+  it('update of in-memory Model should be persisted after a commitBlock() call', async () => {
+    expect.assertions(4);
+
     await saveGenesisBlock(sut);
 
     await sut.createOrLoad<Variable>(Variable, {
@@ -94,11 +82,7 @@ describe('smartDB - use cases', () => {
       value: 'newValue',
       _version_: 2,
     });
-
-    done();
   });
 
-  it.skip('writing 5 blocks to disc, then stop the SmartDB, restart it and rollback to heigh 2', async done => {
-    done();
-  });
+  it.skip('writing 5 blocks to disc, then stop the SmartDB, restart it and rollback to heigh 2', async () => {});
 });

@@ -6,35 +6,32 @@ const DOCKER_COMPOSE_P2P =
   'config/e2e/network-stuck/docker-compose.network-stuck.yml';
 
 describe('network-stuck e2e test', () => {
-  beforeAll(async done => {
+  beforeAll(async () => {
     await lib.stopAndRemoveOldContainersAndNetworks();
     await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
-    done();
   }, lib.tenMinutes + 2000);
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100, 4102]);
     await lib.sleep(10 * 1000);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
-    done();
   }, lib.oneMinute * 1.5);
 
-  afterEach(async done => {
+  afterEach(async () => {
     console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'network-stuck');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
     console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
-    done();
   }, lib.oneMinute);
 
   it(
     'network-stuck',
-    async done => {
+    async () => {
       // sleep for 100 seconds (let the network get some traction)
       await lib.sleep(30 * 1000);
 
@@ -81,8 +78,6 @@ describe('network-stuck e2e test', () => {
       await lib.onNewBlock(4096);
       await lib.sleep(2000);
       await helpers.allHeightsAreTheSame([4096, 4098, 4100, 4102]);
-
-      return done();
     },
     6 * lib.oneMinute
   );

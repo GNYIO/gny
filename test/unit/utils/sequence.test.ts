@@ -15,7 +15,7 @@ describe('sequence', () => {
     done();
   });
 
-  it('add(sync) gets executed once', async done => {
+  it('add(sync) gets executed once', async () => {
     const task = res => {
       res();
     };
@@ -27,10 +27,9 @@ describe('sequence', () => {
 
     expect(taskMock).toBeCalledTimes(1);
     expect(sut.count()).toEqual(0);
-    done();
   });
 
-  it('add(sync) executes second callback if it throws error', async done => {
+  it('add(sync) executes second callback if it throws error', async () => {
     const task = done => {
       throw new Error('test');
     };
@@ -43,10 +42,9 @@ describe('sequence', () => {
     await timeout(300);
 
     expect(errMock).toBeCalledTimes(1);
-    done();
   });
 
-  it('add(sync) passes error to callback', async done => {
+  it('add(sync) passes error to callback', async () => {
     const task = done => {
       throw new Error('my error');
     };
@@ -61,11 +59,9 @@ describe('sequence', () => {
 
     expect(errMock).toBeCalledTimes(1);
     expect(errMock).toBeCalledWith('Error: my error', undefined);
-
-    done();
   });
 
-  it('add(2x sync) executes them in order', async done => {
+  it('add(2x sync) executes them in order', async () => {
     const task = done => {
       setTimeout(done, 2000);
     };
@@ -78,10 +74,11 @@ describe('sequence', () => {
 
     expect(sut.count()).toEqual(1);
     expect(taskMock).toBeCalledTimes(1);
-    done();
+
+    await timeout(800);
   });
 
-  it('add(async)', async done => {
+  it('add(async)', async () => {
     let called = false;
     const asyncTask = async done => {
       await timeout(1000);
@@ -95,10 +92,9 @@ describe('sequence', () => {
     await timeout(1300);
 
     expect(called).toEqual(true);
-    done();
   });
 
-  it('add(2x async)', async done => {
+  it('add(2x async)', async () => {
     const order: number[] = [];
 
     const asyncFirst = async res => {
@@ -119,10 +115,9 @@ describe('sequence', () => {
     await timeout(3000);
 
     expect(order).toEqual([1, 2]);
-    done();
   });
 
-  it('pass argument to function', async done => {
+  it('pass argument to function', async () => {
     const args = [99];
     const task = (res, receivedArgs) => {
       res();
@@ -134,10 +129,9 @@ describe('sequence', () => {
     await timeout(300);
 
     expect(taskMock.mock.calls[0][1]).toEqual(99);
-    done();
   });
 
-  it('add() resolve callback as 3rd parameter', async done => {
+  it('add() resolve callback as 3rd parameter', async () => {
     const task = res => {
       res(undefined, 'this is the result');
     };
@@ -156,11 +150,9 @@ describe('sequence', () => {
     expect(taskMock).toBeCalledTimes(1);
     expect(callbackMock).toBeCalledTimes(1);
     expect(callbackMock).toBeCalledWith(undefined, 'this is the result');
-
-    done();
   });
 
-  it('recursive add() calls', async done => {
+  it('recursive add() calls', async () => {
     const inOrder: number[] = [];
 
     const otherTask = () => {
@@ -183,10 +175,9 @@ describe('sequence', () => {
     await timeout(300);
 
     expect(inOrder).toEqual([1, 3, 2]);
-    done();
   });
 
-  it('return cb() should not further execute the code in the sequence', async done => {
+  it('return cb() should not further execute the code in the sequence', async () => {
     const result: number[] = [];
     const task = cb => {
       result.push(1);
@@ -201,11 +192,9 @@ describe('sequence', () => {
 
     expect(taskMock).toBeCalledTimes(1);
     expect(result).toEqual([1]);
-
-    done();
   });
 
-  it('warning: without "return cb()" will the code execute further', async done => {
+  it('warning: without "return cb()" will the code execute further', async () => {
     const result: number[] = [];
     const task = cb => {
       result.push(1);
@@ -220,11 +209,9 @@ describe('sequence', () => {
 
     expect(taskMock).toBeCalledTimes(1);
     expect(result).toEqual([1, 2]);
-
-    done();
   });
 
-  it('concurrency: async ifii vs. setImidiate()', async done => {
+  it('concurrency: async ifii vs. setImidiate()', async () => {
     let result = '';
     const setResult = res => {
       result = res;
@@ -251,10 +238,9 @@ describe('sequence', () => {
 
     expect(setResultMock).toBeCalledTimes(1);
     expect(setResultMock).toBeCalledWith('async iffii');
-    done();
   });
 
-  it('add(sync) executes second callback if it throws error', async done => {
+  it('add(sync) executes second callback if it throws error', async () => {
     const task = done => {
       throw new Error('test');
     };
@@ -267,10 +253,9 @@ describe('sequence', () => {
     await timeout(300);
 
     expect(errMock).toBeCalledTimes(1);
-    done();
   });
 
-  it('add(async) callback gets called only when async task is finished (no matter the duration)', async done => {
+  it('add(async) callback gets called only when async task is finished (no matter the duration)', async () => {
     const result: string[] = [];
 
     const callback = (err: Error) => {
@@ -286,7 +271,5 @@ describe('sequence', () => {
 
     await timeout(400);
     expect(result).toEqual(['after timeout', 'callback called']);
-
-    return done();
   });
 });

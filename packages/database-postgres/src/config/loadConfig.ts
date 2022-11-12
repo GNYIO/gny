@@ -1,6 +1,6 @@
 import { createConnection } from 'typeorm';
 import { OrmLogger } from './ormLogger';
-import { ILogger } from '@gny/interfaces';
+import { ILogger, SmartDBOptions } from '@gny/interfaces';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 import { Account } from '../entity/Account';
@@ -17,7 +17,6 @@ import { Vote } from '../entity/Vote';
 import { BlockHistory } from '../entity/BlockHistory';
 import { Mldata } from '../entity/Mldata';
 import { Prediction } from '../entity/Prediction';
-import { SmartDBOptions } from '../sharedInterfaces';
 
 import {
   InitMigration1605362544330,

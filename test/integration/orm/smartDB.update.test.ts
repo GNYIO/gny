@@ -15,43 +15,31 @@ describe('smartDB.update()', () => {
   const credentials = cloneDeep(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it(
     'update() - updates (memory-)entity in memory',
-    async done => {
+    async () => {
+      expect.assertions(2);
+
       await saveGenesisBlock(sut);
 
       const createdVariable = await sut.create<Variable>(Variable, {
@@ -81,15 +69,15 @@ describe('smartDB.update()', () => {
         value: 'TypeScript',
         _version_: 2,
       });
-
-      done();
     },
     15 * 1000
   );
 
   it(
     'update() - updates (memory-)entity in memory and after block commit even in db',
-    async done => {
+    async () => {
+      expect.assertions(4);
+
       await saveGenesisBlock(sut);
 
       const createdVariable = await sut.create<Variable>(Variable, {
@@ -161,13 +149,13 @@ describe('smartDB.update()', () => {
         value: 'second',
         _version_: 2,
       });
-
-      done();
     },
     15 * 1000
   );
 
-  it('update() - update 2 or more properties at once (in memory)', async done => {
+  it('update() - update 2 or more properties at once (in memory)', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const createdAccount = await sut.create<Account>(Account, {
@@ -205,13 +193,13 @@ describe('smartDB.update()', () => {
       gny: String(20),
       username: 'liang',
     });
-
-    done();
   }, 5000);
 
   it(
     'update() - update 2 or more properties at once (in db)',
-    async done => {
+    async () => {
+      expect.assertions(1);
+
       await saveGenesisBlock(sut);
 
       const createdAccount = await sut.create<Account>(Account, {
@@ -248,29 +236,21 @@ describe('smartDB.update()', () => {
         gny: String(20),
         username: 'liang',
       });
-
-      done();
     },
     10 * 1000
   );
 
-  it.skip('update() - is it possible to update your key? (what if key already exists - in cache or in db????)', async done => {
-    done();
-  });
+  it.skip('update() - is it possible to update your key? (what if key already exists - in cache or in db????)', async () => {});
 
-  it.skip('update() - is it possible to update your composite key? (what if composite key already exists - in cache or in db???)', async done => {
-    done();
-  });
+  it.skip('update() - is it possible to update your composite key? (what if composite key already exists - in cache or in db???)', async () => {});
 
-  it.skip('update() - is it possible to update one of the unique keys? (what if unique key is in cache or in db???)', async done => {
-    done();
-  });
+  it.skip('update() - is it possible to update one of the unique keys? (what if unique key is in cache or in db???)', async () => {});
 
-  it.skip('update() - updates (not-in-memory-)entity in memory', async done => {
-    done();
-  });
+  it.skip('update() - updates (not-in-memory-)entity in memory', async () => {});
 
   it('update() - throws if entity can be neither found in cache nor in db', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const updatePromise = sut.update<Variable>(
@@ -291,6 +271,8 @@ describe('smartDB.update()', () => {
   it(
     'update() - entity gets loaded for update when it is not in cache but only in db (entity gets loaded for tracking)',
     async () => {
+      expect.assertions(1);
+
       // first create an entity and save it into the block
       // close the existing connection
       // then create a new SmartDB connection
@@ -353,7 +335,9 @@ describe('smartDB.update()', () => {
     25 * 1000
   );
 
-  it.skip('update() - when option checkModifier is enabled - throw if to updated property is not on the model', async done => {
+  it.skip('update() - when option checkModifier is enabled - throw if to updated property is not on the model', async () => {
+    expect.assertions(1);
+
     // use custom SmartDB to this test,
 
     await saveGenesisBlock(sut);
@@ -372,11 +356,11 @@ describe('smartDB.update()', () => {
         key: 'hello',
       }
     );
-
-    done();
   });
 
-  it('update() - should increase the _version_ for each call (also within one block)', async done => {
+  it('update() - should increase the _version_ for each call (also within one block)', async () => {
+    expect.assertions(6);
+
     await saveGenesisBlock(sut);
 
     const tid = randomBytes(32).toString('hex');
@@ -433,11 +417,11 @@ describe('smartDB.update()', () => {
     });
     expect(result3).toHaveProperty('_version_', 3);
     expect(result3).toHaveProperty('amount', String(30 * 1e8));
-
-    done();
   });
 
   it('update() - throws if property is not primary | composite | unique key ', async () => {
+    expect.assertions(1);
+
     await saveGenesisBlock(sut);
 
     const updatePromise = sut.update<Account>(
@@ -455,7 +439,9 @@ describe('smartDB.update()', () => {
     );
   });
 
-  it('update() - can update entity by unique key', async done => {
+  it('update() - can update entity by unique key', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const createdAccount = await sut.create<Account>(Account, {
@@ -516,11 +502,11 @@ describe('smartDB.update()', () => {
 
     expect(resultFromCache).toEqual(expectedInCache);
     expect(resultFromDb).toEqual(expectedFromDb);
-
-    done();
   });
 
-  it('update() - can update entity by composite key', async done => {
+  it('update() - can update entity by composite key', async () => {
+    expect.assertions(2);
+
     await saveGenesisBlock(sut);
 
     const createdBalance = await sut.create<Balance>(Balance, {
@@ -566,7 +552,5 @@ describe('smartDB.update()', () => {
 
     expect(resultFromCache).toEqual(expected);
     expect(resultFromDb).toEqual(expected);
-
-    done();
   });
 });
