@@ -8,7 +8,7 @@ function resetGlobalState() {
 
 describe('StateHelper', () => {
   describe('getInitialState', () => {
-    it.only('getInitialState() - matches blue print', () => {
+    it('getInitialState() - matches blue print', () => {
       const initialState = StateHelper.getInitialState();
 
       expect(initialState).toEqual({
