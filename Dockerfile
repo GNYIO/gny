@@ -55,6 +55,9 @@ COPY packages/machine-learning/package-lock.json ./packages/machine-learning/pac
 RUN true
 COPY packages/tracer/package-lock.json ./packages/tracer/package-lock.json
 RUN true
+COPY packages/json-sql/package-lock.json ./packages/json-sql/package-lock.json
+RUN true
+
 
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
@@ -96,6 +99,10 @@ RUN true
 COPY packages/tracer/package.json ./packages/tracer/package.json
 RUN true
 COPY packages/network/package.json ./packages/network/package.json
+RUN true
+COPY packages/json-sql/package.json ./packages/json-sql/package.json
+RUN true
+
 
 # install all depdencies for packages/*
 RUN npm run lerna:bootstrap

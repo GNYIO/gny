@@ -15,7 +15,7 @@
     "noUnusedLocals": true,
     "noImplicitReturns": false,
 
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "inlineSourceMap": false,
     "inlineSources": false,
 

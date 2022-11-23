@@ -14,6 +14,8 @@
     "strict": false,
     "outDir": "./dist",
     "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/**.js"]
 }

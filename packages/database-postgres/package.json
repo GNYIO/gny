@@ -1,6 +1,5 @@
 {
   "name": "@gny/database-postgres",
-  "private": true,
   "version": "1.0.123",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -15,10 +14,10 @@
   "types": "dist/smartDB",
   "dependencies": {
     "@gny/interfaces": "1.0.123",
+    "@gny/json-sql": "1.0.123",
     "@types/lodash": "^4.14.175",
     "@types/lru-cache": "^5.1.0",
     "bignumber.js": "^8.1.1",
-    "json-sql": "^0.4.11",
     "lodash": "^4.17.21",
     "lru-cache": "^5.1.1",
     "pg": "^8.8.0",

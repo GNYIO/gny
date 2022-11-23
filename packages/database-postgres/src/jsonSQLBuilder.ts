@@ -1,6 +1,6 @@
 import { isArray, isNumber } from 'util';
 
-const jsonSQL = require('json-sql')({
+const jsonSQL = require('@gny/json-sql')({
   separatedValues: false,
 });
 import * as lodash from 'lodash';
