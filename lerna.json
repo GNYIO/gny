@@ -1,5 +1,5 @@
 {
-  "version": "1.0.123",
+  "version": "1.0.124",
   "packages": [
     "packages/base",
     "packages/cli",
