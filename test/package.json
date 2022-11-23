@@ -11,6 +11,7 @@
     "@gny/ed": "1.0.123",
     "@gny/extended-joi": "1.0.123",
     "@gny/interfaces": "1.0.123",
-    "@gny/utils": "1.0.123"
+    "@gny/utils": "1.0.123",
+    "@gny/json-sql": "1.0.123"
   }
 }

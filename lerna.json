@@ -8,6 +8,7 @@
     "packages/ed",
     "packages/extended-joi",
     "packages/interfaces",
+    "packages/json-sql",
     "packages/logger",
     "packages/machine-learning",
     "packages/main",
