@@ -56,3 +56,4 @@ jobs:
           cd packages/extended-joi && npm publish --access=public; cd ../..
           cd packages/logger && npm publish --access=public; cd ../..
           cd packages/type-validation && npm publish --access=public; cd ../..
+          cd packages/json-sql && npm publish --access=public; cd ../..
