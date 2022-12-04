@@ -1,13 +1,29 @@
-import * as program from 'commander';
+import program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gny/logger';
-import { initTracer } from '@gny/tracer';
+import tracerpkg from '@gny/tracer';
 
-import Application from './index';
-import * as packageJson from '../package.json';
+import Application from './index.js';
+
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import { readFileSync } from 'fs';
+const packageJSONPath = path.join(
+  __dirname,
+  '..',
+  '..',
+  'main',
+  'package.json'
+);
+const packageJson = JSON.parse(
+  readFileSync(packageJSONPath, { encoding: 'utf8' })
+);
+
 import { IConfig, IBlock } from '@gny/interfaces';
-import * as ip from 'ip';
+import ip from 'ip';
 import { getConfig } from '@gny/network';
 import { createPeer2PeerHandlers } from '@gny/p2p';
 
@@ -223,10 +239,9 @@ function main() {
     genesisBlock.id.slice(0, 8)
   );
   appConfig.p2pConfig = p2pConfig;
-  console.log(`[p2p] ${JSON.stringify(p2pConfig, null, 2)}`);
 
   // tracer
-  const tracer = initTracer(
+  const tracer = tracerpkg.initTracer(
     appConfig.publicIp,
     appConfig.jaegerHost,
     version,

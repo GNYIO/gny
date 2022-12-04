@@ -1,18 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
-import * as ip from 'ip';
 import * as _ from 'lodash';
 import { Sequence } from '@gny/utils';
 import { getSchema } from '@gny/protobuf';
-import loadedModules from './loadModules';
-import loadCoreApi from './loadCoreApi';
+import loadedModules from './loadModules.js';
+import loadCoreApi from './loadCoreApi.js';
 import { IScope, IConfig } from '@gny/interfaces';
 import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gny/type-validation';
 import { MessageBus } from '@gny/utils';
 
-import { composeNetwork } from './http/index';
+import { composeNetwork } from './http/index.js';
 
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;

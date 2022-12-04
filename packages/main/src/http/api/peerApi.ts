@@ -9,8 +9,8 @@ import {
   VersionWrapper,
   PeerInfoWrapper,
 } from '@gny/interfaces';
-import Peer from '../../../src/core/peer';
-import { StateHelper } from '../../../src/core/StateHelper';
+import Peer from '../../core/peer.js';
+import { StateHelper } from '../../core/StateHelper.js';
 
 export default class PeerApi implements IHttpApi {
   private library: IScope;

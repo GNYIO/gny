@@ -14,11 +14,11 @@ import {
   IVariable,
   ICoreModule,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState } from '../globalInterfaces.js';
 import { RoundBase } from '@gny/base';
-import { ConsensusHelper } from './ConsensusHelper';
-import { StateHelper } from './StateHelper';
-import Blocks from './blocks';
+import { ConsensusHelper } from './ConsensusHelper.js';
+import { StateHelper } from './StateHelper.js';
+import Blocks from './blocks.js';
 import BigNumber from 'bignumber.js';
 import { Variable } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';

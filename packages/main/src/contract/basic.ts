@@ -1,4 +1,4 @@
-import { BigNumber } from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import { IAccount, ITransfer, IDelegate, Context } from '@gny/interfaces';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';

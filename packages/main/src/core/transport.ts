@@ -21,9 +21,9 @@ import {
   isBlockAndVotes,
   isP2PPeerIdAndMultiaddr,
 } from '@gny/type-validation';
-import { StateHelper } from './StateHelper';
-import Peer from './peer';
-import { BlocksHelper } from './BlocksHelper';
+import { StateHelper } from './StateHelper.js';
+import Peer from './peer.js';
+import { BlocksHelper } from './BlocksHelper.js';
 import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
@@ -35,8 +35,7 @@ import {
 } from '@gny/tracer';
 
 import * as PeerId from 'peer-id';
-const uint8ArrayToString = require('uint8arrays/to-string');
-const uint8ArrayFromString = require('uint8arrays/from-string');
+import uint8Arrays from 'uint8arrays';
 import * as multiaddr from 'multiaddr';
 
 export default class Transport implements ICoreModule {
@@ -70,7 +69,7 @@ export default class Transport implements ICoreModule {
       data: obj,
     };
 
-    const encodedTransaction = uint8ArrayFromString(JSON.stringify(raw));
+    const encodedTransaction = uint8Arrays.fromString(JSON.stringify(raw));
     await Peer.p2p.broadcastTransactionAsync(encodedTransaction);
 
     span.finish();
@@ -125,7 +124,7 @@ export default class Transport implements ICoreModule {
 
     let encodedNewBlockMessage: Uint8Array;
     try {
-      encodedNewBlockMessage = uint8ArrayFromString(JSON.stringify(wrapped));
+      encodedNewBlockMessage = uint8Arrays.fromString(JSON.stringify(wrapped));
     } catch (err) {
       global.library.logger.warn(
         'could not encode NewBlockMessage with protobuf'
@@ -176,7 +175,7 @@ export default class Transport implements ICoreModule {
 
     let encodedBlockPropose: Uint8Array;
     try {
-      encodedBlockPropose = uint8ArrayFromString(JSON.stringify(full));
+      encodedBlockPropose = uint8Arrays.fromString(JSON.stringify(full));
     } catch (err) {
       global.library.logger.warn('could not encode Propose with protobuf');
 
@@ -197,7 +196,7 @@ export default class Transport implements ICoreModule {
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
     let wrapper: TracerWrapper<NewBlockMessage>;
     try {
-      wrapper = JSON.parse(uint8ArrayToString(message.data)); // not toString() ?
+      wrapper = JSON.parse(uint8Arrays.toString(message.data)); // not toString() ?
     } catch (err) {
       global.library.logger.warn(
         `could not decode NewBlockMessage with protobuf from ${message.from}`
@@ -483,7 +482,7 @@ export default class Transport implements ICoreModule {
 
     let raw: P2PPeerIdAndMultiaddr = null;
     try {
-      raw = JSON.parse(uint8ArrayToString(message.data));
+      raw = JSON.parse(uint8Arrays.toString(message.data));
     } catch (err) {
       global.library.logger.error(
         `[p2p] "newMember" event, could not parse data: ${err.message}`

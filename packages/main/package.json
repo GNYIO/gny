@@ -12,8 +12,14 @@
   "files": [
     "dist"
   ],
-  "main": "dist/app",
+  "type": "module",
   "types": "dist/app",
+  "exports": {
+    ".": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js"
+    }
+  },
   "dependencies": {
     "@gny/base": "1.0.126",
     "@gny/database-postgres": "1.0.126",

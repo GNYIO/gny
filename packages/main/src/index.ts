@@ -1,9 +1,8 @@
-import * as fs from 'fs';
-import initRuntime from './runtime';
-import initAlt from './init';
+import initRuntime from './runtime.js';
+import initAlt from './init.js';
 import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gny/interfaces';
-import { StateHelper } from './core/StateHelper';
-import { verifyGenesisBlock } from './verifyGenesisBlock';
+import { StateHelper } from './core/StateHelper.js';
+import { verifyGenesisBlock } from './verifyGenesisBlock.js';
 
 interface LocalOptions {
   appConfig: IConfig;

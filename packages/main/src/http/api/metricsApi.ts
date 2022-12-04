@@ -1,14 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import {
-  IScope,
-  Next,
-  IHttpApi,
-  ApiResult,
-  LoaderStatus,
-  SyncStatus,
-} from '@gny/interfaces';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { IScope, Next, IHttpApi } from '@gny/interfaces';
+import { StateHelper } from '../../core/StateHelper.js';
 import { register } from 'prom-client';
 
 export default class MetricsApi implements IHttpApi {

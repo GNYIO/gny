@@ -15,14 +15,14 @@ import {
   SimpleAccountsWrapper,
 } from '@gny/interfaces';
 import { BlockReward, isAddress } from '@gny/utils';
-import { StateHelper } from '../../../src/core/StateHelper';
-import Delegates from '../../../src/core/delegates';
+import { StateHelper } from '../../core/StateHelper.js';
+import Delegates from '../../core/delegates.js';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Block } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
-import { BigNumber } from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 
 async function getDelegateAccount(
   sliced: DelegateViewModel[]

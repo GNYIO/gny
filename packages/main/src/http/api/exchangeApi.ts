@@ -16,10 +16,10 @@ import {
   PublicKeyWrapper,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
-import { StateHelper } from '../../../src/core/StateHelper';
-import Transactions from '../../../src/core/transactions';
+import { StateHelper } from '../../core/StateHelper.js';
+import Transactions from '../../core/transactions.js';
 import { joi } from '@gny/extended-joi';
-import { generateAddressByPublicKey, getAccount } from '../util';
+import { generateAddressByPublicKey, getAccount } from '../util.js';
 import * as bip39 from 'bip39';
 
 export default class ExchangeApi implements IHttpApi {

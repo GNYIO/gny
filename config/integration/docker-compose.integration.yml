@@ -51,7 +51,7 @@ services:
     build: ../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
+    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/app.js'
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet

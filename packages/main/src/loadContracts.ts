@@ -1,7 +1,7 @@
 // import contracts
-import basic from './contract/basic';
-import uia from './contract/uia';
-import ml from './contract/ml';
+import basic from './contract/basic.js';
+import uia from './contract/uia.js';
+import ml from './contract/ml.js';
 
 interface ModuleWrapper {
   module: any;

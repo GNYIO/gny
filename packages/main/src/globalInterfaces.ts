@@ -15,8 +15,8 @@ import {
 } from '@gny/interfaces';
 import { SmartDB } from '@gny/database-postgres';
 import { EventEmitter } from 'events';
-import BalanceManager from './smartdb/balance-manager';
-import * as LRU from 'lru-cache';
+import BalanceManager from './smartdb/balance-manager.js';
+import LRU from 'lru-cache';
 import * as Prom from 'prom-client';
 
 export interface IProm {

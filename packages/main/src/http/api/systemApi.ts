@@ -2,7 +2,7 @@ import { slots } from '@gny/utils';
 import * as os from 'os';
 import { Request, Response, Router } from 'express';
 import { IScope, Next, IHttpApi, ApiResult, SystemInfo } from '@gny/interfaces';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { StateHelper } from '../../core/StateHelper.js';
 
 export default class SystemApi implements IHttpApi {
   private library: IScope;

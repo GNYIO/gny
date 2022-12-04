@@ -22,7 +22,7 @@
       "type": "node",
       "request": "launch",
       "name": "DEBUG_1",
-      "program": "${workspaceFolder}/packages/main/dist/src/app.js",
+      "program": "${workspaceFolder}/packages/main/dist/app.js",
       "cwd": "${workspaceFolder}",
       "args": [],
       "env": {

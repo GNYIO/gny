@@ -4,13 +4,13 @@ import {
   HeightWrapper,
   IBlock,
 } from '@gny/interfaces';
-import { BigNumber } from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan } from '@gny/tracer';
 import { Block } from '@gny/database-postgres';
-import Peer from './peer';
-import { StateHelper } from './StateHelper';
-import Blocks from './blocks';
+import Peer from './peer.js';
+import { StateHelper } from './StateHelper.js';
+import Blocks from './blocks.js';
 
 export function createRandomPeerId(bytes: Buffer) {
   const peerId = PeerId.createFromBytes(bytes);

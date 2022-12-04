@@ -16,20 +16,19 @@ import {
   BlocksWrapperParams,
   IBlockWithTransactions,
 } from '@gny/interfaces';
-import { IState, IStateSuccess } from '../globalInterfaces';
+import { IState, IStateSuccess } from '../globalInterfaces.js';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '@gny/base';
 import { TransactionBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
-import { BlocksHelper } from './BlocksHelper';
-import { Block, Variable, Info } from '@gny/database-postgres';
-import { ConsensusHelper } from './ConsensusHelper';
-import { StateHelper } from './StateHelper';
-import Transactions from './transactions';
-import Peer from './peer';
-import Delegates from './delegates';
-import Loader from './loader';
-import { BigNumber } from 'bignumber.js';
+import { BlocksHelper } from './BlocksHelper.js';
+import { Variable } from '@gny/database-postgres';
+import { ConsensusHelper } from './ConsensusHelper.js';
+import { StateHelper } from './StateHelper.js';
+import Transactions from './transactions.js';
+import Peer from './peer.js';
+import Delegates from './delegates.js';
+import BigNumber from 'bignumber.js';
 import { Transaction } from '@gny/database-postgres';
 import { Round } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';

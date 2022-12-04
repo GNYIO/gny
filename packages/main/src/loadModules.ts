@@ -1,9 +1,9 @@
-import Transactions from './core/transactions';
-import Loader from './core/loader';
-import Peer from './core/peer';
-import Transport from './core/transport';
-import Delegates from './core/delegates';
-import Blocks from './core/blocks';
+import Transactions from './core/transactions.js';
+import Loader from './core/loader.js';
+import Peer from './core/peer.js';
+import Transport from './core/transport.js';
+import Delegates from './core/delegates.js';
+import Blocks from './core/blocks.js';
 
 import { Modules } from '@gny/interfaces';
 
