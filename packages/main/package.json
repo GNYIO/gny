@@ -18,6 +18,10 @@
     ".": {
       "types": "./dist/app.d.ts",
       "import": "./dist/app.js"
+    },
+    "./blockshelper": {
+      "types": "./dist/core/BlocksHelper.d.ts",
+      "import": "./dist/core/BlocksHelper.js"
     }
   },
   "dependencies": {

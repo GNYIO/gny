@@ -1,29 +1,10 @@
 import { ILogger } from '@gny/interfaces';
 
-import {
-  createLogger as winstonCreateLogger,
-  format,
-  transports,
-  Logger,
-} from 'winston';
+import winston from 'winston';
+const { createLogger: winstonCreateLogger, format, transports } = winston;
 const { combine, timestamp, errors, colorize, align, printf } = format;
-import * as ed from '@gny/ed';
-import * as crypto from 'crypto';
-import { generateAddress } from '@gny/utils';
-import * as LokiTransport from 'winston-loki';
 
-function getAddress(secret: string) {
-  const keypair = ed.generateKeyPair(
-    crypto
-      .createHash('sha256')
-      .update(secret, 'utf8')
-      .digest()
-  );
-  const publicKey = keypair.publicKey.toString('hex');
-  const address = generateAddress(publicKey);
-
-  return address;
-}
+import LokiTransport from 'winston-loki';
 
 export enum LogLevel {
   log = 0,

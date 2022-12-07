@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import * as bs58 from 'bs58';
+import bs58 from 'bs58';
 
 export function generateAddress(publicKey: string) {
   const PREFIX = 'G';

@@ -1,8 +1,8 @@
-import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
-import * as ed from '@gny/ed';
+import crypto from 'crypto';
+import ByteBuffer from 'bytebuffer';
+import ed from '@gny/ed';
 import { KeyPair, IAccount, UnconfirmedTransaction } from '@gny/interfaces';
-import { copyObject } from './helpers';
+import { copyObject } from './helpers.js';
 import { ITransaction, Context } from '@gny/interfaces';
 import { slots } from '@gny/utils';
 import { feeCalculators } from '@gny/utils';
