@@ -5,6 +5,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "type": "module",
   "devDependencies": {
     "@gny/base": "1.0.126",
     "@gny/client": "1.0.126",

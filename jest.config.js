@@ -1,19 +1,26 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  roots: ['<rootDir>/test'],
+  testEnvironment: 'node',
+  cache: false,
+
+  extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  collectCoverage: false,
-  globals: {
-    'ts-jest': {
-      diagnostics: false,
-      tsConfig: '<rootDir>/jest.tsconfig.json',
-    },
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.json',
+        useESM: true,
+        tsconfig: {
+          module: 'ES2020',
+          target: 'ES2020',
+          moduleResolution: 'node',
+          esModuleInterop: true,
+        },
+      },
+    ],
   },
 
-  moduleNameMapper: {
-    '@gny/(.*)$': '<rootDir>/packages/$1',
-  },
+  // moduleNameMapper: {
+  //   '@gny/(.*)$': '<rootDir>/packages/$1',
+  // },
 };
