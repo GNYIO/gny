@@ -25,6 +25,46 @@
       "import": "./dist/lib/api.js",
       "require": "./dist/lib/api.js"
     },
+    "./account": {
+      "types": "./dist/api/account.d.ts",
+      "import": "./dist/api/account.js",
+      "require": "./dist/api/account.js"
+    },
+    "./basic": {
+      "types": "./dist/api/basic.d.ts",
+      "import": "./dist/api/basic.js",
+      "require": "./dist/api/basic.js"
+    },
+    "./block": {
+      "types": "./dist/api/block.d.ts",
+      "import": "./dist/api/block.js",
+      "require": "./dist/api/block.js"
+    },
+    "./delegate": {
+      "types": "./dist/api/delegate.d.ts",
+      "import": "./dist/api/delegate.js",
+      "require": "./dist/api/delegate.js"
+    },
+    "./exchange": {
+      "types": "./dist/api/exchange.d.ts",
+      "import": "./dist/api/exchange.js",
+      "require": "./dist/api/exchange.js"
+    },
+    "./peer": {
+      "types": "./dist/api/peer.d.ts",
+      "import": "./dist/api/peer.js",
+      "require": "./dist/api/peer.js"
+    },
+    "./system": {
+      "types": "./dist/api/system.d.ts",
+      "import": "./dist/api/system.js",
+      "require": "./dist/api/system.js"
+    },
+    "./transaction": {
+      "types": "./dist/api/transaction.d.ts",
+      "import": "./dist/api/transaction.js",
+      "require": "./dist/api/transaction.js"
+    },
     "./uia": {
       "types": "./dist/api/uia.d.ts",
       "import": "./dist/api/uia.js",
