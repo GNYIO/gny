@@ -1,14 +1,19 @@
-import * as uia from '../../../packages/cli/src/api/uia';
-import { http, pretty } from '../../../packages/cli/src/lib/api';
+import * as uia from '@gny/cli/uia';
+import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
+function pretty(obj: any) {
+  return JSON.stringify(obj, null, 2);
+}
+
 describe('uia', () => {
-  let mock: MockAdapter;
+  let mock;
   const baseUrl = `http://127.0.0.1:4096`;
   console.log = jest.fn();
 
   beforeEach(() => {
-    mock = new MockAdapter(http);
+    // @ts-ignore
+    mock = new MockAdapter(axios);
   });
   afterEach(() => {
     // cleaning up the mess left behind the previous test
@@ -16,7 +21,7 @@ describe('uia', () => {
   });
 
   describe('getissuers', () => {
-    it('should get issuers', async () => {
+    it.only('should get issuers', async () => {
       const expected = {
         success: true,
         count: 0,

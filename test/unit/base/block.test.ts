@@ -1,4 +1,4 @@
-import { BlockBase } from '../../../packages/base/src/blockBase';
+import { BlockBase } from '@gny/base';
 import {
   KeyPair,
   IBlock,

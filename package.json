@@ -10,7 +10,7 @@
     "lerna:removeArtifacts": "lerna run removeArtifacts",
     "copyStaticFiles": "ts-node copyStaticAssets packages/main/dist/",
     "start": "node packages/main/dist/src/app",
-    "test:unit": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js -c=jest.config.js --no-cache --runInBand test/unit/base",
+    "test:unit": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js -c=jest.config.js --no-cache --runInBand test/unit/cli/uia.test.ts",
     "test:browser": "jest -c jest.config.client.js --ci --runInBand test/browser",
     "test:server": "ts-node test/browser/server.ts",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",

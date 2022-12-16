@@ -13,7 +13,7 @@ module.exports = {
         tsconfig: {
           module: 'ES2020',
           target: 'ES2020',
-          moduleResolution: 'node',
+          moduleResolution: 'node16',
           esModuleInterop: true,
         },
       },

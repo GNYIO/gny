@@ -8,6 +8,7 @@
   "type": "module",
   "devDependencies": {
     "@gny/base": "1.0.126",
+    "@gny/cli": "1.0.126",
     "@gny/client": "1.0.126",
     "@gny/ed": "1.0.126",
     "@gny/extended-joi": "1.0.126",
