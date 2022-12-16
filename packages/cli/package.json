@@ -20,6 +20,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
+    "./api": {
+      "types": "./dist/lib/api.d.ts",
+      "import": "./dist/lib/api.js",
+      "require": "./dist/lib/api.js"
+    },
     "./uia": {
       "types": "./dist/api/uia.d.ts",
       "import": "./dist/api/uia.js",

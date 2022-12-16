@@ -1,7 +1,8 @@
 import * as uia from '@gny/cli/uia';
-import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-
+// import axios from 'axios';
+import { http as axios } from '@gny/cli/api';
+import { jest } from '@jest/globals';
 function pretty(obj: any) {
   return JSON.stringify(obj, null, 2);
 }
@@ -21,7 +22,7 @@ describe('uia', () => {
   });
 
   describe('getissuers', () => {
-    it.only('should get issuers', async () => {
+    it('should get issuers', async () => {
       const expected = {
         success: true,
         count: 0,

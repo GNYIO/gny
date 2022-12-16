@@ -11,8 +11,15 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index",
-  "types": "dist/index",
+  "main": "dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "dependencies": {
     "@gny/interfaces": "1.0.126",
     "@gny/utils": "1.0.126",

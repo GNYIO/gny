@@ -1,12 +1,12 @@
-import { cloneDeep } from 'lodash';
+import lodash from 'lodash';
 import * as sha256 from 'fast-sha256';
 import * as webEd from '@gny/web-ed';
 import { UnconfirmedTransaction } from '@gny/interfaces';
-import { TransactionWebBase } from './transactionWebBase';
+import { TransactionWebBase } from './transactionWebBase.js';
 import { Buffer } from 'buffer';
 
 export function copyObject<T>(obj: T) {
-  return cloneDeep<T>(obj);
+  return lodash.cloneDeep<T>(obj);
 }
 
 function sha256Bytes(data: Buffer): Buffer {

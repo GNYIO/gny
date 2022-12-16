@@ -2,6 +2,7 @@
 module.exports = {
   testEnvironment: 'node',
   cache: false,
+  verbose: true,
 
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {

@@ -2,7 +2,7 @@ import { ITransaction, UnconfirmedTransaction, KeyPair } from '@gny/interfaces';
 import * as addressHelper from '@gny/utils';
 import { slots } from '@gny/utils';
 import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
+import ByteBuffer from 'bytebuffer';
 import * as webEd from '@gny/web-ed';
 import { Buffer } from 'buffer';
 

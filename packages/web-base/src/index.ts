@@ -1,3 +1,3 @@
-export * from './transactionWebBase';
-export * from './blockWebBase';
-export * from './helpers';
+export * from './transactionWebBase.js';
+export * from './blockWebBase.js';
+export * from './helpers.js';
