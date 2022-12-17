@@ -1,9 +1,6 @@
-import * as matchers from 'jest-extended';
-expect.extend(matchers);
-
 import * as gnyClient from '@gny/client';
 import { joi } from '@gny/extended-joi';
-import { ITransaction } from '@gny/interfaces';
+import { ITransaction, UnconfirmedTransaction } from '@gny/interfaces';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';
@@ -21,7 +18,7 @@ describe('transaction', () => {
 
   describe('#createTransaction', () => {
     const createTransaction = transaction.createTransactionEx;
-    let trs: ITransaction;
+    let trs: UnconfirmedTransaction;
 
     beforeEach(() => {
       trs = createTransaction({
@@ -113,7 +110,7 @@ describe('transaction', () => {
 
   describe('#createTransaction with second secret', () => {
     const createTransaction = transaction.createTransactionEx;
-    let trs: ITransaction;
+    let trs: UnconfirmedTransaction;
     const secondSecret =
       'carpet pudding topple genuine relax rally problem before pill gun nation method';
     const keys = gnyClient.crypto.getKeys(secondSecret);
