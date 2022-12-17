@@ -3,25 +3,17 @@ module.exports = {
   testEnvironment: 'node',
   cache: false,
   verbose: true,
+  setupFilesAfterEnv: ['jest-extended/all'],
 
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {
     '^.+\\.tsx?$': [
       'ts-jest',
       {
-        tsconfig: 'tsconfig.json',
+        // tsconfig: 'tsconfig.json',
         useESM: true,
-        tsconfig: {
-          module: 'ES2020',
-          target: 'ES2020',
-          moduleResolution: 'node16',
-          esModuleInterop: true,
-        },
+        tsconfig: 'jest.tsconfig.json',
       },
     ],
   },
-
-  // moduleNameMapper: {
-  //   '@gny/(.*)$': '<rootDir>/packages/$1',
-  // },
 };
