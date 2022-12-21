@@ -22,6 +22,18 @@
     "./blockshelper": {
       "types": "./dist/core/BlocksHelper.d.ts",
       "import": "./dist/core/BlocksHelper.js"
+    },
+    "./blocks": {
+      "types": "./dist/core/blocks.d.ts",
+      "import": "./dist/core/blocks.js"
+    },
+    "./statehelper": {
+      "types": "./dist/core/StateHelper.d.ts",
+      "import": "./dist/core/StateHelper.js"
+    },
+    "./globalInterfaces": {
+      "types": "./dist/globalInterfaces.d.ts",
+      "import": "./dist/globalInterfaces.js"
     }
   },
   "dependencies": {

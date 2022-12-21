@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import ed from '@gny/ed';
+import * as ed from '@gny/ed';
 import assert from 'assert';
 import { joi } from '@gny/extended-joi';
 import ip from 'ip';

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import ed from '@gny/ed';
+import * as ed from '@gny/ed';
 import { KeyPair, IAccount, UnconfirmedTransaction } from '@gny/interfaces';
 import { copyObject } from './helpers.js';
 import { ITransaction, Context } from '@gny/interfaces';

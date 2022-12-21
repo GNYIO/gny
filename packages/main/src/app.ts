@@ -2,7 +2,7 @@ import program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gny/logger';
-import tracerpkg from '@gny/tracer';
+import * as tracerpkg from '@gny/tracer';
 
 import Application from './index.js';
 

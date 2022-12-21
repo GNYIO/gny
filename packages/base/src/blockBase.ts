@@ -6,7 +6,7 @@ import {
 } from '@gny/interfaces';
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import ed from '@gny/ed';
+import * as ed from '@gny/ed';
 import { copyObject } from './helpers.js';
 import { TransactionBase } from './transactionBase.js';
 import { isBlockWithTransactions } from '@gny/type-validation';
