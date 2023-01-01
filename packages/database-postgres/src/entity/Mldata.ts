@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryColumn, Timestamp } from 'typeorm';
-import { Config } from '../decorator/config';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Config } from '../decorator/config.js';
 
 @Config({ memory: false })
 @Entity()
@@ -89,7 +89,7 @@ export class Mldata {
     type: 'date',
     nullable: false,
   })
-  public PurchaseDate: Timestamp;
+  public PurchaseDate: string;
 
   @Column({
     default: 0,

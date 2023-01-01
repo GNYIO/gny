@@ -1,27 +1,27 @@
 import { createConnection } from 'typeorm';
-import { OrmLogger } from './ormLogger';
+import { OrmLogger } from './ormLogger.js';
 import { ILogger, SmartDBOptions } from '@gny/interfaces';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-import { Account } from '../entity/Account';
-import { Asset } from '../entity/Asset';
-import { Balance } from '../entity/Balance';
-import { Block } from '../entity/Block';
-import { Delegate } from '../entity/Delegate';
-import { Issuer } from '../entity/Issuer';
-import { Round } from '../entity/Round';
-import { Transaction } from '../entity/Transaction';
-import { Transfer } from '../entity/Transfer';
-import { Variable } from '../entity/Variable';
-import { Vote } from '../entity/Vote';
-import { BlockHistory } from '../entity/BlockHistory';
-import { Mldata } from '../entity/Mldata';
-import { Prediction } from '../entity/Prediction';
+import { Account } from '../entity/Account.js';
+import { Asset } from '../entity/Asset.js';
+import { Balance } from '../entity/Balance.js';
+import { Block } from '../entity/Block.js';
+import { Delegate } from '../entity/Delegate.js';
+import { Issuer } from '../entity/Issuer.js';
+import { Round } from '../entity/Round.js';
+import { Transaction } from '../entity/Transaction.js';
+import { Transfer } from '../entity/Transfer.js';
+import { Variable } from '../entity/Variable.js';
+import { Vote } from '../entity/Vote.js';
+import { BlockHistory } from '../entity/BlockHistory.js';
+import { Mldata } from '../entity/Mldata.js';
+import { Prediction } from '../entity/Prediction.js';
 
 import {
   InitMigration1605362544330,
   DeleteInfoTable1608475266157,
-} from './migrations';
+} from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
   const options: PostgresConnectionOptions = {

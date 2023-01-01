@@ -1,4 +1,4 @@
-import { ConfigOptions } from './config';
+import { ConfigOptions } from './config.js';
 
 export class MetaDataStore {
   private static store: Map<string, ConfigOptions>;

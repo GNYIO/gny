@@ -13,7 +13,6 @@
     "declarationMap": true,
     "incremental": false,
     "composite": false,
-    "isolatedModules": true,
     "removeComments": false,
     "sourceMap": true,
 

@@ -1,5 +1,5 @@
-import * as LRU from 'lru-cache';
-import { ModelSchema } from './modelSchema';
+import LRU from 'lru-cache';
+import { ModelSchema } from './modelSchema.js';
 
 export class CustomCache {
   private modelSchema: ModelSchema;

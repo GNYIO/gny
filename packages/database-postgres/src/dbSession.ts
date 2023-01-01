@@ -1,22 +1,22 @@
-import { LogManager, LoggerWrapper } from './logger';
+import { LogManager, LoggerWrapper } from './logger.js';
 import { isArray } from 'util';
-import { LRUEntityCache } from './lruEntityCache';
-import { JsonSqlBuilder } from './jsonSQLBuilder';
-import * as CodeContract from './codeContract';
-import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder';
+import { LRUEntityCache } from './lruEntityCache.js';
+import { JsonSqlBuilder } from './jsonSQLBuilder.js';
+import * as CodeContract from './codeContract.js';
+import { BasicTrackerSqlBuilder } from './basicTrackerSqlBuilder.js';
 import {
   BasicEntityTracker,
   LoadChangesHistoryAction,
   EntityChanges,
-} from './basicEntityTracker';
+} from './basicEntityTracker.js';
 import { Connection, ObjectLiteral } from 'typeorm';
-import { ModelSchema } from './modelSchema';
+import { ModelSchema } from './modelSchema.js';
 
-import { Block } from './entity/Block';
-import { Transaction } from './entity/Transaction';
-import { BlockHistory } from './entity/BlockHistory';
-import * as _ from 'lodash';
-import { BigNumber } from 'bignumber.js';
+import { Block } from './entity/Block.js';
+import { Transaction } from './entity/Transaction.js';
+import { BlockHistory } from './entity/BlockHistory.js';
+import _ from 'lodash';
+import BigNumber from 'bignumber.js';
 
 export class DbSession {
   public static readonly DEFAULT_HISTORY_VERSION_HOLD = 10;

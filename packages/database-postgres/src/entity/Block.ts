@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
-import { Config } from '../decorator/config';
-import { Versioned } from '../searchTypes';
+import { Config } from '../decorator/config.js';
+import { Versioned } from '../searchTypes.js';
 import { ITransaction } from '@gny/interfaces';
 
 @Config({ memory: false })

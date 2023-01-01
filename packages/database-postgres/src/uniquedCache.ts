@@ -1,9 +1,9 @@
 import {
   DefaultEntityUniqueIndex,
   ModelIndex,
-} from './defaultEntityUniqueIndex';
-import { CustomCache } from './customCache';
-import * as CodeContract from './codeContract';
+} from './defaultEntityUniqueIndex.js';
+import { CustomCache } from './customCache.js';
+import * as CodeContract from './codeContract.js';
 
 export class UniquedCache {
   private cache: CustomCache;

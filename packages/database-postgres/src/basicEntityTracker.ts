@@ -1,10 +1,10 @@
-import * as CodeContract from './codeContract';
-import * as enumerations from './entityChangeType';
+import * as CodeContract from './codeContract.js';
+import * as enumerations from './entityChangeType.js';
 import { isFunction } from 'util';
-import * as lodash from 'lodash';
-import { ModelSchema } from './modelSchema';
-import { LRUEntityCache, PropertyValue } from './lruEntityCache';
-import { LoggerWrapper } from './logger';
+import lodash from 'lodash';
+import { ModelSchema } from './modelSchema.js';
+import { LRUEntityCache, PropertyValue } from './lruEntityCache.js';
+import { LoggerWrapper } from './logger.js';
 import { ObjectLiteral } from 'typeorm';
 import BigNumber from 'bignumber.js';
 

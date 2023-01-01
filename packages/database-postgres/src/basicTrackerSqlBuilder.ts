@@ -1,8 +1,8 @@
-import * as CodeContract from './codeContract';
-import * as enumerations from './entityChangeType';
-import { BasicEntityTracker, EntityChanges } from './basicEntityTracker';
-import { ModelSchema } from './modelSchema';
-import { JsonSqlBuilder, SqlAndParameters } from './jsonSQLBuilder';
+import * as CodeContract from './codeContract.js';
+import * as enumerations from './entityChangeType.js';
+import { BasicEntityTracker, EntityChanges } from './basicEntityTracker.js';
+import { ModelSchema } from './modelSchema.js';
+import { JsonSqlBuilder, SqlAndParameters } from './jsonSQLBuilder.js';
 import { ObjectLiteral } from 'typeorm';
 
 export class BasicTrackerSqlBuilder {
