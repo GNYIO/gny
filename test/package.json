@@ -10,14 +10,17 @@
     "@gny/base": "1.0.126",
     "@gny/cli": "1.0.126",
     "@gny/client": "1.0.126",
+    "@gny/database-postgres": "1.0.126",
     "@gny/ed": "1.0.126",
     "@gny/extended-joi": "1.0.126",
     "@gny/interfaces": "1.0.126",
     "@gny/json-sql": "1.0.126",
-    "@gny/utils": "1.0.126",
-    "@gny/network": "1.0.126",
     "@gny/main": "1.0.126",
+    "@gny/network": "1.0.126",
     "@gny/tracer": "1.0.126",
-    "@gny/database-postgres": "1.0.126"
+    "@gny/utils": "1.0.126"
+  },
+  "dependencies": {
+    "bignumber.js": "^9.1.1"
   }
 }

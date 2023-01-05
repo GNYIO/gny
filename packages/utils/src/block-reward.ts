@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import { REWARDS, INITIAL_AMOUNT } from './constants.js';
 import * as _ from 'lodash';
 

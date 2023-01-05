@@ -6,7 +6,6 @@ import { BlocksHelper } from '@gny/main/blockshelper';
 import { slots } from '@gny/utils';
 import { ConsensusBase } from '@gny/base';
 import { StateHelper } from '@gny/main/statehelper';
-import { BigNumber } from 'bignumber.js';
 import { ISpan } from '@gny/tracer';
 
 function createRandomBlock(
@@ -18,7 +17,7 @@ function createRandomBlock(
 
   const lastBlock = {
     id: prevBlockId,
-    height: new BigNumber(height).minus(1).toFixed(),
+    height: (Number(height) - 1).toString(),
   } as IBlock;
   const unconfirmedTrs: ITransaction[] = [];
   const block = BlocksHelper.generateBlockShort(
