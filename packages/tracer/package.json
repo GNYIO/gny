@@ -25,5 +25,8 @@
     "@gny/interfaces": "1.0.126",
     "@types/jaeger-client": "^3.18.4",
     "jaeger-client": "^3.19.0"
+  },
+  "overrides": {
+    "uuid": "9.0.0-beta.0"
   }
 }
