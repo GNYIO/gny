@@ -1,14 +1,10 @@
-// workourand for: ReferenceError: TextDecoder is not defined
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
+import { jest } from '@jest/globals';
 import {
   LoaderHelper,
   PeerIdCommonBlockHeight,
   createRandomPeerId,
-} from '../../../packages/main/src/core/LoaderHelper';
-import { IBlock } from '../../../packages/interfaces';
+} from '@gny/main/loaderhelper';
+import { IBlock } from '@gny/interfaces';
 import { randomBytes } from 'crypto';
 
 describe('LoaderHelper', () => {
@@ -38,9 +34,9 @@ describe('LoaderHelper', () => {
           id: 'fivenine',
         },
       ] as IBlock[];
-      const getBlocksByHeightRange = jest
-        .fn()
-        .mockImplementation(() => Promise.resolve(blocksAscending));
+      const getBlocksByHeightRange: jest.Mock<
+        any
+      > = jest.fn().mockImplementation(() => Promise.resolve(blocksAscending));
 
       // act
       const result = await LoaderHelper.getIdSequence2(
@@ -63,7 +59,9 @@ describe('LoaderHelper', () => {
       // preparation
       const currentLastBlockHeight = String(30);
 
-      const getBlocksByHeightRangeMock = jest
+      const getBlocksByHeightRangeMock: jest.Mock<
+        any
+      > = jest
         .fn()
         .mockImplementation(() => Promise.reject('something wrong happend'));
 

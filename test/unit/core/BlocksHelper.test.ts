@@ -1,4 +1,4 @@
-import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
+import { BlocksHelper } from '@gny/main/blockshelper';
 import {
   ITransaction,
   IConfig,
@@ -6,14 +6,13 @@ import {
   KeyPair,
   BlockPropose,
   NewBlockMessage,
-} from '../../../packages/interfaces';
+} from '@gny/interfaces';
 import * as crypto from 'crypto';
-import { generateAddress } from '../../../packages/utils/src/address';
-import * as ed from '../../../packages/ed';
-import * as fs from 'fs';
-import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
-import { slots } from '../../../packages/utils/src/slots';
-import { StateHelper } from '../../../packages/main/src/core/StateHelper';
+import { generateAddress } from '@gny/utils';
+import * as ed from '@gny/ed';
+import { ConsensusHelper } from '@gny/main/consensushelper';
+import { slots } from '@gny/utils';
+import { StateHelper } from '@gny/main/statehelper';
 import { BigNumber } from 'bignumber.js';
 import { getConfig } from '@gny/network';
 
@@ -491,6 +490,7 @@ describe('BlocksHelper', () => {
 
     it('ReceivedBlockIsInRightOrder() - returns false if height is not in order', () => {
       const state = StateHelper.getInitialState();
+      // @ts-ignore
       state.lastBlock = loadGenesisBlock();
 
       const block = createRandomBlock(String(2)); // block should normally be height 1
@@ -505,6 +505,7 @@ describe('BlocksHelper', () => {
     it('ReceivedBlockIsInRightOrder() - returns false if prevBlockId is not the same', () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
+      // @ts-ignore
       state.lastBlock = genesisBlock;
 
       const wrongPrevBlockId = randomHex(32);
@@ -521,8 +522,10 @@ describe('BlocksHelper', () => {
     it('ReceivedBlockIsInRightOrder() - returns true if height and prevBlockId are correct in correct order', () => {
       const state = StateHelper.getInitialState();
       const genesisBlock = loadGenesisBlock();
+      // @ts-ignore
       state.lastBlock = genesisBlock;
 
+      // @ts-ignore
       const block = createRandomBlock(String(1), genesisBlock.id); // correct height, correct prevBlockId
       expect(block.height).toEqual(String(1));
 
@@ -923,6 +926,7 @@ describe('BlocksHelper', () => {
       const blocks = [];
       let feeSum = 0;
       for (let i = 102; i < 203; ++i) {
+        // @ts-ignore
         const fees = (parseInt(Math.random() * 10) / 10) * 1e8;
         feeSum += fees;
 
@@ -1313,6 +1317,7 @@ describe('BlocksHelper', () => {
       const blocks = [...range1, ...range2, ...range3, ...range4];
       const result = BlocksHelper.getGroupedDelegateInfoFor101Blocks(blocks);
 
+      // @ts-ignore
       const parts101 = parseInt((0.1 * 1e8) / 101);
 
       const feeSum = new BigNumber(result[delegate1].fee)
@@ -1321,6 +1326,7 @@ describe('BlocksHelper', () => {
         .toFixed();
       expect(String(0.1 * 1e8)).toEqual(feeSum);
 
+      // @ts-ignore
       const one101thOfTheFee = parseInt((0.1 * 1e8) / 101);
       const rest = 0.1 * 1e8 - one101thOfTheFee * 101;
 
@@ -1357,6 +1363,7 @@ describe('BlocksHelper', () => {
       const one = blocks[0];
       one.fees = String(0.1 * 1e8);
 
+      // @ts-ignore
       const one101thOfTheFee = parseInt((0.1 * 1e8) / 101);
       const rest = 0.1 * 1e8 - one101thOfTheFee * 101;
 

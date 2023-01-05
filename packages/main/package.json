@@ -23,9 +23,25 @@
       "types": "./dist/core/BlocksHelper.d.ts",
       "import": "./dist/core/BlocksHelper.js"
     },
+    "./consensushelper": {
+      "types": "./dist/core/ConsensusHelper.d.ts",
+      "import": "./dist/core/ConsensusHelper.js"
+    },
+    "./loaderhelper": {
+      "types": "./dist/core/LoaderHelper.d.ts",
+      "import": "./dist/core/LoaderHelper.js"
+    },
+    "./transactionshelper": {
+      "types": "./dist/core/TransactionsHelper.d.ts",
+      "import": "./dist/core/TransactionsHelper.js"
+    },
     "./blocks": {
       "types": "./dist/core/blocks.d.ts",
       "import": "./dist/core/blocks.js"
+    },
+    "./delegates": {
+      "types": "./dist/core/delegates.d.ts",
+      "import": "./dist/core/delegates.js"
     },
     "./statehelper": {
       "types": "./dist/core/StateHelper.d.ts",

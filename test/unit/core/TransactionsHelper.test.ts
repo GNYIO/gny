@@ -1,6 +1,4 @@
-import { exec } from 'shelljs';
-import { OperationCanceledException } from 'typescript';
-import { TransactionsHelper } from '../../../packages/main/src/core/TransactionsHelper';
+import { TransactionsHelper } from '@gny/main/transactionshelper';
 
 describe('TransactionsHelper', () => {
   describe('pure functions', () => {
