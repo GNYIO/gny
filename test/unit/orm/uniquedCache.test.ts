@@ -1,10 +1,7 @@
-import { UniquedCache } from '../../../packages/database-postgres/src/uniquedCache';
-import { LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
-import {
-  ModelSchema,
-  MetaSchema,
-} from '../../../packages/database-postgres/src/modelSchema';
-import { CustomCache } from '../../../packages/database-postgres/src/customCache';
+import { UniquedCache } from '@gny/database-postgres';
+import { LRUEntityCache } from '@gny/database-postgres';
+import { ModelSchema, MetaSchema } from '@gny/database-postgres';
+import { CustomCache } from '@gny/database-postgres';
 
 describe('orm UniquedCache', () => {
   let sut: UniquedCache;
@@ -54,8 +51,11 @@ describe('orm UniquedCache', () => {
   });
 
   it('properties are correctly set', done => {
+    // @ts-ignore
     expect(sut.cache).toBeTruthy();
+    // @ts-ignore
     expect(sut.indexes).toBeTruthy();
+    // @ts-ignore
     expect(sut.indexes.size).toBe(1);
     done();
   });

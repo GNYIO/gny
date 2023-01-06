@@ -1,14 +1,8 @@
-import {
-  LRUEntityCache,
-  PropertyValue,
-} from '../../../packages/database-postgres/src/lruEntityCache';
-import {
-  ModelSchema,
-  MetaSchema,
-} from '../../../packages/database-postgres/src/modelSchema';
-import { LogManager } from '../../../packages/database-postgres/src/logger';
-import { ILogger, IDelegate, IAccount } from '../../../packages/interfaces';
-import { generateAddress } from '../../../packages/utils/src/address';
+import { LRUEntityCache, PropertyValue } from '@gny/database-postgres';
+import { ModelSchema, MetaSchema } from '@gny/database-postgres';
+import { LogManager } from '@gny/database-postgres';
+import { ILogger, IDelegate, IAccount } from '@gny/interfaces';
+import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
 
 function getDelegateMetaSchema() {
@@ -344,6 +338,7 @@ describe('orm - LRUEntityCache', () => {
 
     data.producedBlocks = String(10); // update reference
 
+    // @ts-ignore
     expect(sut.get('Delegate', key).producedBlocks).toEqual(String(10));
 
     done();
@@ -366,6 +361,7 @@ describe('orm - LRUEntityCache', () => {
     ];
 
     sut.refreshCached('Delegate', key, changes);
+    // @ts-ignore
     expect(sut.get('Delegate', key).producedBlocks).toEqual(String(10)); // check if cache was updated
 
     done();
@@ -509,13 +505,17 @@ describe('orm - LRUEntityCache', () => {
     // update
     sut.refreshCached('Delegate', delegateKey, updates);
 
+    // @ts-ignore
     expect(sut.getUnique('Delegate', 'tid', tidUnique).votes).toEqual(
       String(100)
     );
+    // @ts-ignore
     expect(sut.getUnique('Delegate', 'username', usernameUnique).votes).toEqual(
       String(100)
     );
+
     expect(
+      // @ts-ignore
       sut.getUnique('Delegate', 'publicKey', publicKeyUnique).votes
     ).toEqual(String(100));
 

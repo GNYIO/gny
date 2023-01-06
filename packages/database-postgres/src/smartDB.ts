@@ -43,6 +43,18 @@ export * from './entity/Vote.js';
 export * from './entity/Mldata.js';
 export * from './entity/Prediction.js';
 
+export * from './basicEntityTracker';
+export * from './lruEntityCache';
+export * from './modelSchema';
+export * from './createMetaSchema';
+export * from './logger';
+export * from './blockCache';
+export * from './codeContract';
+export * from './customCache';
+export * from './defaultEntityUniqueIndex';
+export * from './jsonSQLBuilder';
+export * from './uniquedCache';
+
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
   name: string;

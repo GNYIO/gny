@@ -1,15 +1,15 @@
+import { jest } from '@jest/globals';
+
 import {
+  LoadChangesHistoryAction,
   BasicEntityTracker,
   EntityChanges,
-} from '../../../packages/database-postgres/src/basicEntityTracker';
-import { LRUEntityCache } from '../../../packages/database-postgres/src/lruEntityCache';
-import {
-  ModelSchema,
-  MetaSchema,
-} from '../../../packages/database-postgres/src/modelSchema';
-import { LogManager } from '../../../packages/database-postgres/src/logger';
-import { ILogger, IAccount } from '../../../packages/interfaces';
-import { generateAddress } from '../../../packages/utils/src/address';
+} from '@gny/database-postgres';
+import { LRUEntityCache } from '@gny/database-postgres';
+import { ModelSchema, MetaSchema } from '@gny/database-postgres';
+import { LogManager } from '@gny/database-postgres';
+import { ILogger, IAccount } from '@gny/interfaces';
+import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
 
 function createEntityChanges(account: string, username: string) {
@@ -216,7 +216,10 @@ describe('orm - BasicEntityTracker', () => {
     const MAXVERSIONHOLD = 10;
 
     const logger = LogManager.getLogger('BasicEntityTracker');
-    const onLoadHistory = async (from: string, till: string) => {
+    const onLoadHistory: LoadChangesHistoryAction = async (
+      from: string,
+      till: string
+    ) => {
       const history = new Map<string, EntityChanges[]>();
       const height_0 = String(0);
       history.set(height_0, [
@@ -247,7 +250,9 @@ describe('orm - BasicEntityTracker', () => {
       return Promise.resolve(history);
     };
 
-    const mockOnLoadHistory = jest.fn().mockImplementation(onLoadHistory);
+    const mockOnLoadHistory = jest
+      .fn<LoadChangesHistoryAction>()
+      .mockImplementation(onLoadHistory);
     const customSut = new BasicEntityTracker(
       lruEntityCache,
       schemas,
@@ -298,7 +303,9 @@ describe('orm - BasicEntityTracker', () => {
       return Promise.resolve(history);
     };
 
-    const mockOnLoadHistory = jest.fn().mockImplementation(onLoadHistory);
+    const mockOnLoadHistory = jest
+      .fn<LoadChangesHistoryAction>()
+      .mockImplementation(onLoadHistory);
     const customSut = new BasicEntityTracker(
       lruEntityCache,
       schemas,
@@ -329,7 +336,9 @@ describe('orm - BasicEntityTracker', () => {
       return Promise.resolve(history);
     };
 
-    const mockOnLoadHistory = jest.fn().mockImplementation(onLoadHistory);
+    const mockOnLoadHistory = jest
+      .fn<LoadChangesHistoryAction>()
+      .mockImplementation(onLoadHistory);
     const customSut = new BasicEntityTracker(
       lruEntityCache,
       schemas,
@@ -606,6 +615,7 @@ describe('orm - BasicEntityTracker', () => {
     const accountSchema = schemas.get('Account');
 
     const entityIsNowTracked = sut.trackNew(accountSchema, data);
+    // @ts-ignore
     expect(sut.getTrackingEntity(accountSchema, key).address).toEqual(
       data.address
     ); // first check
@@ -750,7 +760,7 @@ describe('orm - BasicEntityTracker', () => {
 
     // on first call return "history1", on second call return "history2"
     const mockOnLoadHistory = jest
-      .fn()
+      .fn<LoadChangesHistoryAction>()
       .mockReturnValueOnce(Promise.resolve(history1))
       .mockReturnValueOnce(Promise.resolve(history2));
 
@@ -1049,6 +1059,7 @@ describe('orm - BasicEntityTracker', () => {
     sut.beginConfirm();
     const trackedData = sut.trackNew(accountSchema, data);
     sut.confirm();
+    // @ts-ignore
     sut.acceptChanges(0);
 
     // check before delete

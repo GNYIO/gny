@@ -1,11 +1,8 @@
-import { JsonSqlBuilder } from '../../../packages/database-postgres/src/jsonSQLBuilder';
-import {
-  ModelSchema,
-  MetaSchema,
-} from '../../../packages/database-postgres/src/modelSchema';
-import { generateAddress } from '../../../packages/utils/src/address';
+import { JsonSqlBuilder } from '@gny/database-postgres';
+import { ModelSchema, MetaSchema } from '@gny/database-postgres';
+import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
-import { IAccount } from '../../../packages/interfaces';
+import { IAccount } from '@gny/interfaces';
 
 function getAccountMetaSchema() {
   const accountMetaSchema: MetaSchema = {
