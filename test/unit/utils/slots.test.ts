@@ -1,5 +1,5 @@
-import { slots } from '../../../packages/utils/src/slots';
-import { INTERVAL } from '../../../packages/utils/src/constants';
+import { slots } from '@gny/utils';
+import { INTERVAL } from '@gny/utils';
 import * as lolex from 'lolex';
 
 describe('slots', () => {

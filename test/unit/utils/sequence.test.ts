@@ -1,4 +1,5 @@
-import { Sequence } from '../../../packages/utils/src/sequence';
+import { jest } from '@jest/globals';
+import { Sequence } from '@gny/utils';
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 

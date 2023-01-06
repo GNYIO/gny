@@ -1,4 +1,4 @@
-import { BlockReward } from '../../../packages/utils/src/index';
+import { BlockReward } from '@gny/utils';
 import { BigNumber } from 'bignumber.js';
 
 function range(start: number, end: number) {
