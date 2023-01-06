@@ -19,7 +19,9 @@
     "@gny/network": "1.0.126",
     "@gny/tracer": "1.0.126",
     "@gny/utils": "1.0.126",
-    "@gny/p2p": "1.0.126"
+    "@gny/p2p": "1.0.126",
+    "@gny/transaction-pool": "1.0.126",
+    "@gny/type-validation": "1.0.126"
   },
   "dependencies": {
     "bignumber.js": "^9.1.1"
