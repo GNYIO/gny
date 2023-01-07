@@ -50,6 +50,10 @@
     "./globalInterfaces": {
       "types": "./dist/globalInterfaces.d.ts",
       "import": "./dist/globalInterfaces.js"
+    },
+    "./basic": {
+      "types": "./dist/contract/basic.d.ts",
+      "import": "./dist/contract/basic.js"
     }
   },
   "dependencies": {

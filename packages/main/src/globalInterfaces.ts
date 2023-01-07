@@ -59,7 +59,7 @@ interface IValidators {
   description: (value: string) => string;
 }
 
-type ValidateFuncs = (
+export type ValidateFuncs = (
   type: string,
   value: any,
   constraints?: IValidatorConstraints
@@ -89,7 +89,7 @@ export interface IOptions {
   tracer: ITracer;
 }
 
-interface IApp {
+export interface IApp {
   sdb: SmartDB;
   balances: BalanceManager;
   events: EventEmitter;
