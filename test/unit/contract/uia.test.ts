@@ -1,16 +1,23 @@
-import uia from '../../../packages/main/src/contract/uia';
+import { jest } from '@jest/globals';
+import uia from '@gny/main/uia';
 import { BigNumber } from 'bignumber.js';
-import {
-  ILogger,
-  IAccount,
-  IBlock,
-  ITransaction,
-} from '../../../packages/interfaces/src/index';
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import BalanceManager from '../../../packages/main/src/smartdb/balance-manager';
+import { ILogger, IAccount, IBlock, ITransaction } from '@gny/interfaces';
+// import BalanceManager from '@gny/main/balance-manager';
+import { IApp } from '@gny/main/globalInterfaces';
+import { IConfig } from '@gny/interfaces';
 
-jest.mock('../../../packages/main/src/smartdb/balance-manager');
-jest.mock('../../../packages/database-postgres/src/smartDB');
+// mocking of ES modules currently not supported in jest
+// https://github.com/facebook/jest/issues/9430
+// therefore we need to manually mock every function
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      app: Partial<IApp>;
+      Config: Partial<IConfig>;
+    }
+  }
+}
 
 describe('uia', () => {
   beforeEach(done => {
@@ -23,16 +30,11 @@ describe('uia', () => {
       error: x => x,
       fatal: x => x,
     };
-    const sdb = new SmartDB(logger);
 
     global.app = {
       validate: jest.fn((type, value) => null),
-      sdb: sdb,
-      balances: new BalanceManager(sdb),
     };
 
-    // reset blocks
-    jest.resetAllMocks();
     done();
   });
 
@@ -40,6 +42,10 @@ describe('uia', () => {
     delete (uia as any).sender;
     delete (uia as any).block;
     delete (uia as any).trs;
+
+    jest.resetAllMocks();
+    delete (uia as any).sdb;
+    delete global.app;
 
     done();
   });
@@ -62,69 +68,95 @@ describe('uia', () => {
     it('should register the issuer', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
-      (uia as any).trs = {
-        id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-        timestamp: 12165155,
-      } as ITransaction;
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.exists.mockReturnValue(null);
-      global.app.sdb.create.mockReturnValue(null);
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+        trs: {
+          id:
+            '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
+          timestamp: 12165155,
+        } as ITransaction,
+      };
 
-      const transfered = await uia.registerIssuer(name, desc);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const transfered = await uia.registerIssuer.call(context, name, desc);
       expect(transfered).toBeNull();
     });
 
     it('should return Invalid issuer name', async () => {
       name = '!@#xpgeng';
 
-      const transfered = await uia.registerIssuer(name, desc);
+      const context = {};
+
+      const transfered = await uia.registerIssuer.call(context, name, desc);
       expect(transfered).toBe('Invalid issuer name');
     });
 
     it('should return No issuer description was provided', async () => {
       name = 'xpgeng';
       desc = null;
+      const context = {};
 
-      global.app.validate.mockImplementation(() => {
-        throw new Error('Invalid description');
-      });
+      global.app = {
+        validate: jest.fn().mockImplementation(() => {
+          throw new Error('Invalid description');
+        }),
+      };
 
-      const promise = uia.registerIssuer(name, desc);
+      const promise = uia.registerIssuer.call(context, name, desc);
       return expect(promise).rejects.toThrowError('Invalid description');
     });
 
     it('should return Issuer name already exists', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: 100000000,
+
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: 100000000,
+        },
       };
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.exists.mockReturnValue(true);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(true),
+      } as any;
 
-      const transfered = await uia.registerIssuer(name, desc);
+      // global.app.sdb.lock.mockReturnValue(null);
+      // global.app.sdb.exists.mockReturnValue(true);
+
+      const transfered = await uia.registerIssuer.call(context, name, desc);
       expect(transfered).toBe('Issuer name already exists');
     });
 
     it('should return Account is already an issuer', async () => {
       name = 'xpgeng';
       desc = { name: 'xpgeng' };
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+      };
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.exists.mockReturnValueOnce(null).mockReturnValueOnce(true);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        exists: jest
+          .fn()
+          .mockReturnValueOnce(null)
+          .mockReturnValueOnce(true),
+      } as any;
 
-      const transfered = await uia.registerIssuer(name, desc);
+      const transfered = await uia.registerIssuer.call(context, name, desc);
       expect(transfered).toBe('Account is already an issuer');
     });
   });
@@ -140,6 +172,8 @@ describe('uia', () => {
       delete (uia as any).block;
       delete (uia as any).trs;
 
+      delete global.app.sdb;
+
       symbol = undefined;
       desc = undefined;
       maximum = undefined;
@@ -153,21 +187,28 @@ describe('uia', () => {
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 8;
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
-      (uia as any).trs = {
-        id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-        timestamp: 12165155,
-      } as ITransaction;
 
-      global.app.sdb.findOne.mockReturnValue(true);
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.exists.mockReturnValue(null);
-      global.app.sdb.create.mockReturnValue(null);
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+        trs: {
+          id:
+            '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
+          timestamp: 12165155,
+        } as ITransaction,
+      };
 
-      const transfered = await uia.registerAsset(
+      global.app.sdb = {
+        findOne: jest.fn().mockReturnValue(true),
+        lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -178,8 +219,10 @@ describe('uia', () => {
 
     it('should return Invalid symbol', async () => {
       symbol = '!@#xpgeng';
+      const context = {};
 
-      const transfered = await uia.registerAsset(
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -193,8 +236,10 @@ describe('uia', () => {
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 0.8;
+      const context = {};
 
-      const transfered = await uia.registerAsset(
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -208,8 +253,10 @@ describe('uia', () => {
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 17;
+      const context = {};
 
-      const transfered = await uia.registerAsset(
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -219,18 +266,24 @@ describe('uia', () => {
     });
 
     it('should return Account is not an issuer', async () => {
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(200 * 1e8),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(200 * 1e8),
+        } as IAccount,
+      };
+
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 15;
 
-      global.app.sdb.findOne.mockReturnValue(null);
+      global.app.sdb = {
+        findOne: jest.fn().mockReturnValue(null),
+      } as any;
 
-      const transfered = await uia.registerAsset(
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -240,19 +293,26 @@ describe('uia', () => {
     });
 
     it('should return Asset already exists', async () => {
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(200 * 1e8),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(200 * 1e8),
+        } as IAccount,
+      };
+
       symbol = 'GNY';
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 15;
 
-      global.app.sdb.findOne.mockReturnValue(true);
-      global.app.sdb.exists.mockReturnValue(true);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(true),
+        exists: jest.fn().mockReturnValue(true),
+      } as any;
 
-      const transfered = await uia.registerAsset(
+      const transfered = await uia.registerAsset.call(
+        context,
         symbol,
         desc,
         maximum,
@@ -277,12 +337,15 @@ describe('uia', () => {
     });
 
     it('should update asset and balances by name and amount', async () => {
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+      };
+
       name = 'xpgeng.GNY';
       amount = 10000;
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
 
       const asset = {
         issuerId: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -290,33 +353,45 @@ describe('uia', () => {
         maximum: 1000000000,
       };
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.findOne.mockReturnValue(asset);
-      global.app.sdb.update.mockReturnValue(null);
-      global.app.balances.increase.mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(asset),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
-      const updated = await uia.issue(name, amount);
+      // balance-manager
+      global.app.balances = {
+        increase: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const updated = await uia.issue.call(context, name, amount);
       expect(updated).toBeNull();
     });
 
     it('should return Asset not exists', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
+      const context = {};
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.findOne.mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(null),
+      } as any;
 
-      const updated = await uia.issue(name, amount);
+      const updated = await uia.issue.call(context, name, amount);
       expect(updated).toBe('Asset not exists');
     });
 
     it('should return Permission denied', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
+
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+      };
 
       const asset = {
         issuerId: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -324,20 +399,24 @@ describe('uia', () => {
         maximum: 1000000000,
       };
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.findOne.mockReturnValue(asset);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(asset),
+      } as any;
 
-      const updated = await uia.issue(name, amount);
+      const updated = await uia.issue.call(context, name, amount);
       expect(updated).toBe('Permission denied');
     });
 
     it('should return Exceed issue limit', async () => {
       name = 'xpgeng.GNY';
       amount = 1000000000;
-      (uia as any).sender = {
-        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
-        gny: String(100000000),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000000),
+        } as IAccount,
+      };
 
       const asset = {
         issuerId: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -345,10 +424,12 @@ describe('uia', () => {
         maximum: 1000000000,
       };
 
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.findOne.mockReturnValue(asset);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(asset),
+      } as any;
 
-      const updated = await uia.issue(name, amount);
+      const updated = await uia.issue.call(context, name, amount);
       expect(updated).toBe('Exceed issue limit');
     });
   });
@@ -373,37 +454,59 @@ describe('uia', () => {
       currency = undefined;
       amount = undefined;
       recipient = undefined;
+
+      delete global.app.sdb;
       done();
     });
 
     it('should transfer some amount of currency to a recipient', async () => {
       const balance = new BigNumber(100000000);
-      (uia as any).sender = {
-        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: String(100000000),
-      } as IAccount;
-      (uia as any).block = {
-        height: String(1),
-      } as IBlock;
-      (uia as any).trs = {
-        id: '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
-        timestamp: 12165155,
-      } as ITransaction;
 
-      global.app.balances.get.mockReturnValue(balance);
-      global.app.balances.transfer.mockReturnValue(null);
-      global.app.sdb.lock.mockReturnValue(null);
-      global.app.sdb.create.mockReturnValue(null);
+      const context = {
+        sender: {
+          address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+          gny: String(100000000),
+        } as IAccount,
+        block: {
+          height: String(1),
+        } as IBlock,
+        trs: {
+          id:
+            '180a6e8e69f56892eb212edbf0311c13d5219f6258de871e60fac54829979540',
+          timestamp: 12165155,
+        } as ITransaction,
+      };
 
-      const transfered = await uia.transfer(currency, amount, recipient);
+      // balance-manager
+      global.app.balances = {
+        get: jest.fn().mockReturnValue(balance),
+        transfer: jest.fn().mockReturnValue(null),
+      } as any;
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const transfered = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
       expect(transfered).toBeNull();
     });
 
     it('should return Invalid currency', async () => {
       currency = 'gnyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy';
       amount = 100000;
+      const context = {};
 
-      const transfered = await uia.transfer(currency, amount, recipient);
+      const transfered = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
       expect(transfered).toBe('Invalid currency');
     });
 
@@ -412,35 +515,67 @@ describe('uia', () => {
       amount = 100000;
       recipient =
         'Gsdsdsdfsdflklkjljlk123123kjkj238kj2k3jhkhei32hsjdflkjsldji12k3nkhefi2uh3knkenf';
+      const context = {};
 
-      const transfered = await uia.transfer(currency, amount, recipient);
+      const transfered = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
       expect(transfered).toBe('Invalid recipient');
     });
 
     it('should return Insufficient balance', async () => {
-      (uia as any).sender = {
-        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: String(200),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+          gny: String(200),
+        } as IAccount,
+      };
+
       const balance = new BigNumber(1000);
 
-      global.app.balances.get.mockReturnValue(balance);
-      const transfered = await uia.transfer(currency, amount, recipient);
+      // balance-manager
+      global.app.balances = {
+        get: jest.fn().mockReturnValue(balance),
+      } as any;
+
+      const transfered = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
       expect(transfered).toBe('Insufficient balance');
     });
 
     it('should return Recipient name not exist', async () => {
-      (uia as any).sender = {
-        address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
-        gny: String(200),
-      } as IAccount;
+      const context = {
+        sender: {
+          address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+          gny: String(200),
+        } as IAccount,
+      };
+
       recipient = 'xpgeng';
       const balance = new BigNumber(1000000000);
 
-      global.app.balances.get.mockReturnValue(balance);
-      global.app.sdb.findOne.mockReturnValue(null);
+      // balance manager
+      global.app.balances = {
+        get: jest.fn().mockReturnValue(balance),
+      } as any;
 
-      const transfered = await uia.transfer(currency, amount, recipient);
+      global.app.sdb = {
+        findOne: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const transfered = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
       expect(transfered).toBe('Recipient name not exist');
     });
   });

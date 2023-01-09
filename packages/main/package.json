@@ -54,6 +54,14 @@
     "./basic": {
       "types": "./dist/contract/basic.d.ts",
       "import": "./dist/contract/basic.js"
+    },
+    "./uia": {
+      "types": "./dist/contract/uia.d.ts",
+      "import": "./dist/contract/uia.js"
+    },
+    "./balance-manager": {
+      "types": "./dist/smartdb/balance-manager.d.ts",
+      "import": "./dist/smartdb/balance-manager.js"
     }
   },
   "dependencies": {
