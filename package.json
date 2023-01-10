@@ -18,7 +18,7 @@
     "test:integration:contract": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract/",
     "test:integration:contract-env": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract-env",
     "test:integration:http": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/http",
-    "test:integration:orm": "node_modules/jest/bin/jest.js --ci --verbose --maxWorkers 5 test/integration/orm",
+    "test:integration:orm": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci --maxWorkers 1 test/integration/orm/",
     "test:security": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/security",
     "test:e2e": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e",
     "test:e2e:68-secrets": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/68-secrets.test.ts",

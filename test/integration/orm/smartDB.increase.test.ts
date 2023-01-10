@@ -1,17 +1,17 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { IAccount, IDelegate } from '../../../packages/interfaces';
+import { SmartDB } from '@gny/database-postgres';
+import { IAccount, IDelegate } from '@gny/interfaces';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.increase', () => {
   const dbName = 'increasedb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

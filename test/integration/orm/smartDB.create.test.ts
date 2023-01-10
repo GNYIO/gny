@@ -1,51 +1,37 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { IAccount } from '../../../packages/interfaces';
+import { SmartDB } from '@gny/database-postgres';
+import { IAccount } from '@gny/interfaces';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { Versioned } from '../../../packages/database-postgres/src/searchTypes';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
+import { Versioned } from '@gny/database-postgres';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.create()', () => {
   const dbName = 'createdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it('create() - initial _version_ is 1 after creation', async () => {

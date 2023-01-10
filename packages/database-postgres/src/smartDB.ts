@@ -55,6 +55,8 @@ export * from './defaultEntityUniqueIndex.js';
 export * from './jsonSQLBuilder.js';
 export * from './uniquedCache.js';
 
+export * from './searchTypes.js';
+
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {
   name: string;

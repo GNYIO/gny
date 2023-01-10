@@ -1,20 +1,19 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { ITransaction, IVariable } from '../../../packages/interfaces';
-import * as fs from 'fs';
+import { SmartDB } from '@gny/database-postgres';
+import { ITransaction, IVariable } from '@gny/interfaces';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
-import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
-import { Block } from '../../../packages/database-postgres/src/entity/Block';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
+import { Transaction } from '@gny/database-postgres';
+import { Variable } from '@gny/database-postgres';
+import { Block } from '@gny/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.exists()', () => {
   const dbName = 'existsdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

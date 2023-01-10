@@ -4,8 +4,9 @@ import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
 import { BigNumber } from 'bignumber.js';
 import * as shellJS from 'shelljs';
-import { Client } from 'pg';
-import * as pg from 'pg';
+
+import pkg from 'pg';
+const Client = pkg.Client;
 
 const DEFAULT_DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.integration.yml';

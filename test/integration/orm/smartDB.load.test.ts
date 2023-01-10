@@ -1,15 +1,15 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB } from '@gny/database-postgres';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
+import { Account } from '@gny/database-postgres';
+import { Variable } from '@gny/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.load()', () => {
   const dbName = 'loaddb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

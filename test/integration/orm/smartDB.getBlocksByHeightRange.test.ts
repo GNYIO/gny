@@ -1,13 +1,13 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB } from '@gny/database-postgres';
 import * as lib from '../lib';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.getBlocksByHeightRange()', () => {
   const dbName = 'getblocksbyheightrangedb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {
@@ -56,7 +56,9 @@ describe('smartDB.getBlocksByHeightRange()', () => {
     const blocks = await sut.getBlocksByHeightRange(String(0), String(1), true);
     expect(blocks).toBeTruthy();
     expect(blocks.length).toEqual(2);
+    // @ts-ignore
     expect(blocks[0].transactions.length).toEqual(0);
+    // @ts-ignore
     expect(blocks[0].transactions.length).toEqual(0);
   }, 5000);
 

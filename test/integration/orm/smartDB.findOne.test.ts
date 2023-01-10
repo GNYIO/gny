@@ -1,21 +1,22 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { IAccount, IBalance } from '../../../packages/interfaces';
+import { SmartDB } from '@gny/database-postgres';
+import { IAccount, IBalance } from '@gny/interfaces';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
 import {
   saveGenesisBlock,
   createBlock,
   logger,
   createAccount,
 } from './smartDB.test.helpers';
+import { FindOneOptions } from '@gny/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.findOne', () => {
   const dbName = 'findonedb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

@@ -1,9 +1,6 @@
-import {
-  SmartDB,
-  BlockHistory,
-} from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB, BlockHistory } from '@gny/database-postgres';
 import * as lib from '../lib';
-import { Block } from '../../../packages/database-postgres/src/entity/Block';
+import { Block } from '@gny/database-postgres';
 import {
   saveGenesisBlock,
   createBlock,
@@ -11,16 +8,16 @@ import {
   createRandomBytes,
   createAccount,
 } from './smartDB.test.helpers';
-import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
-import { IDelegate } from '../../../packages/interfaces';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
+import { Delegate } from '@gny/database-postgres';
+import { IDelegate } from '@gny/interfaces';
+import { Account } from '@gny/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('SmartDB.rollbackBlock()', () => {
   const dbName = 'rollbackblockdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {
@@ -50,10 +47,12 @@ describe('SmartDB.rollbackBlock()', () => {
 
     const one = createBlock(String(1));
     sut.beginBlock(one);
+    // @ts-ignore
     expect(sut.currentBlock).not.toBeUndefined();
     expect(sut.lastBlockHeight).toEqual(String(0));
 
     await sut.rollbackBlock();
+    // @ts-ignore
     expect(sut.currentBlock).toBeFalsy();
     expect(sut.lastBlockHeight).toEqual(String(0));
   }, 5000);
@@ -63,10 +62,12 @@ describe('SmartDB.rollbackBlock()', () => {
 
     await saveGenesisBlock(sut);
 
+    // @ts-ignore
     expect(sut.currentBlock).not.toBeUndefined();
     expect(sut.lastBlockHeight).toEqual(String(0));
 
     await sut.rollbackBlock();
+    // @ts-ignore
     expect(sut.currentBlock).toBeFalsy();
     expect(sut.lastBlockHeight).toEqual(String(0));
   }, 5000);
@@ -90,7 +91,7 @@ describe('SmartDB.rollbackBlock()', () => {
       // get() loads only from cache
       height: String(2),
     });
-    const secondWithoutTrs = cloneDeep(second);
+    const secondWithoutTrs = copyObject(second);
     Reflect.deleteProperty(secondWithoutTrs, 'transactions');
     expect(existsSecond).toEqual(secondWithoutTrs);
 
