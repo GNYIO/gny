@@ -111,9 +111,11 @@ export async function waitForLoaded(port: number) {
  * @param port of the node
  */
 export async function waitForLoadedHeightZeroAllowed(port: number) {
+  await sleep(100);
+  const before = Math.floor(new Date().valueOf() / 1000);
+
   let loaded = false;
   while (loaded === false) {
-    consoleLog(`wait for ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -125,6 +127,8 @@ export async function waitForLoadedHeightZeroAllowed(port: number) {
     } catch (err) {}
     await sleep(1000);
   }
+  const after = Math.floor(new Date().valueOf() / 1000);
+  consoleLog(`[${after - before}s] waitet for port "${port}"`);
 }
 
 export async function onNetworkDown(port: number) {
@@ -254,7 +258,7 @@ export async function stopP2PContainers(
   configFile: string,
   services: string[]
 ) {
-  shellJS.exec(
+  await executeCmdAndPrint(
     `docker-compose --file "${configFile}" stop --timeout=0 ${services.join(
       ' '
     )}`

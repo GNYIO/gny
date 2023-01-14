@@ -1,9 +1,9 @@
 import * as lib from './lib';
-import * as helpers from './helpers';
-import { BigNumber } from 'bignumber.js';
 import * as gnyJS from '@gny/client';
 import axios from 'axios';
-import { Client } from 'pg';
+import pkg from 'pg';
+const Client = pkg.Client;
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/db-the-same/docker-compose.db-the-same.yml';
@@ -19,7 +19,7 @@ async function blockCountTheSame() {
   const result1 = await client1.query(cmd);
   const result2 = await client2.query(cmd);
 
-  console.log(
+  consoleLog(
     `---block count the same: "${JSON.stringify(
       result1.rows
     )}" == "${JSON.stringify(result2.rows)}"`
@@ -33,7 +33,7 @@ async function accountCountTheSame() {
   const result1 = await client1.query(cmd);
   const result2 = await client2.query(cmd);
 
-  console.log(
+  consoleLog(
     `---account count the same: "${JSON.stringify(
       result1.rows
     )}" == "${JSON.stringify(result2.rows)}"`
@@ -47,7 +47,7 @@ async function transactionCountTheSame() {
   const result1 = await client1.query(cmd);
   const result2 = await client2.query(cmd);
 
-  console.log(
+  consoleLog(
     `--transaction count the same: "${JSON.stringify(
       result1.rows
     )}" == "${JSON.stringify(result2.rows)}"`
@@ -61,7 +61,7 @@ async function transactionFeesAreTheSame() {
   const trs1 = await client1.query(cmd1);
   const trs2 = await client2.query(cmd1);
 
-  console.log(
+  consoleLog(
     `--transaction fee sum is the same: "${JSON.stringify(
       trs1.rows
     )}" == "${JSON.stringify(trs2.rows)}"\n\n`
@@ -72,7 +72,7 @@ async function transactionFeesAreTheSame() {
   const delegate1 = await client1.query(cmd2);
   const delegate2 = await client2.query(cmd2);
 
-  console.log(
+  consoleLog(
     `--delegate fee sum are the same: "${JSON.stringify(
       delegate1.rows
     )}" == "${JSON.stringify(delegate2.rows)}"`
@@ -105,7 +105,7 @@ async function compareDelegates() {
     const one = delegate1.rows[i];
     const two = delegate2.rows[i];
 
-    console.log(
+    consoleLog(
       `--delegates are all the same:\n"${JSON.stringify(
         one,
         null,
@@ -131,7 +131,7 @@ async function compareAccounts() {
     const one = account1.rows[i];
     const two = account2.rows[i];
 
-    console.log(
+    consoleLog(
       `--accounts are all the same:\n"${JSON.stringify(
         one,
         null,
@@ -147,7 +147,7 @@ async function compareProducedBlocks() {
 
   const delegate1 = await client1.query(cmd);
   const delegate2 = await client2.query(cmd);
-  console.log(
+  consoleLog(
     `--producedblocks:\n"${JSON.stringify(
       delegate1.rows
     )}" == "${JSON.stringify(delegate2.rows)}"`
@@ -158,7 +158,7 @@ async function compareProducedBlocks() {
   const cmd2 = 'select count(*) as blockcount from block where height > 0';
   const block1 = await client1.query(cmd2);
   const block2 = await client2.query(cmd2);
-  console.log(
+  consoleLog(
     `--producedBlocks:\n"${JSON.stringify(block1.rows)}" == "${JSON.stringify(
       block2.rows
     )}"`
@@ -174,7 +174,7 @@ async function checkRound() {
     'select fee, reward, round, _version_ from round where round = 1;';
   const round1 = await client1.query(cmd);
   const round2 = await client2.query(cmd);
-  console.log(
+  consoleLog(
     `--rounds:\n"${JSON.stringify(round1.rows)}" == "${JSON.stringify(
       round2.rows
     )}"`
@@ -233,8 +233,8 @@ async function genesisAccountSendToRandomAddress(port: number) {
 }
 
 // postgres connections
-let client1: Client = null;
-let client2: Client = null;
+let client1: pkg.Client;
+let client2: pkg.Client;
 
 describe('db-the-same', () => {
   beforeAll(async () => {
@@ -243,7 +243,7 @@ describe('db-the-same', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
@@ -260,7 +260,7 @@ describe('db-the-same', () => {
       4098,
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
 
     // spin up clients
     client1 = new Client({
@@ -292,7 +292,7 @@ describe('db-the-same', () => {
       await client2.end();
     }
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
     await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, [
@@ -302,13 +302,13 @@ describe('db-the-same', () => {
       'node2',
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
     'db-the-same',
     async () => {
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
@@ -322,13 +322,13 @@ describe('db-the-same', () => {
       // do not wait for a new block, because they are no blocks being produced
       await lib.sleep(lib.oneMinute);
 
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] waiting for network to get down...`
       );
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node1', 'node2']);
       await lib.onNetworkDown(4096);
       await lib.onNetworkDown(4098);
-      console.log(`[${new Date().toLocaleTimeString()}] network down`);
+      consoleLog(`[${new Date().toLocaleTimeString()}] network down`);
 
       // check
       await compareProducedBlocks();
