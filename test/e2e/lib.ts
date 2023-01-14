@@ -155,9 +155,10 @@ export async function onNetworkDown(port: number) {
  * @param port of the node
  */
 export async function waitForApiToBeReadyReady(port: number) {
+  const before = Math.floor(new Date().valueOf() / 1000);
+
   let loaded = false;
   while (loaded === false) {
-    consoleLog(`wait for _ready_ ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -169,6 +170,8 @@ export async function waitForApiToBeReadyReady(port: number) {
     } catch (err) {}
     await sleep(1000);
   }
+  const after = Math.floor(new Date().valueOf() / 1000);
+  consoleLog(`[${after - before}s] waitet for port "${port}"`);
 }
 
 export async function stopAndRemoveOldContainersAndNetworks() {
@@ -180,12 +183,13 @@ export async function stopAndRemoveOldContainersAndNetworks() {
 export async function buildDockerImage(
   configFile: string = 'docker-compose.yml'
 ) {
-  const command = `docker-compose --file ${configFile} build --quiet`;
-  shellJS.exec(command);
+  await executeCmdAndPrint(`docker-compose --file ${configFile} build --quiet`);
 }
 
-export function createP2PContainersOnlyNoStarting(configFile: string) {
-  shellJS.exec(`docker-compose --file "${configFile}" up --no-start`);
+export async function createP2PContainersOnlyNoStarting(configFile: string) {
+  await executeCmdAndPrint(
+    `docker-compose --file "${configFile}" up --no-start`
+  );
 }
 
 export function restoreBackup(
@@ -266,7 +270,7 @@ export async function rmP2PContainers(configFile: string, services: string[]) {
 }
 
 export async function upP2PContainers(configFile: string, services: string[]) {
-  shellJS.exec(
+  await executeCmdAndPrint(
     `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
   );
   await sleep(5000);

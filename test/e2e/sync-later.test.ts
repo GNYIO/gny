@@ -24,7 +24,7 @@ describe('sync-later e2e test', () => {
     console.log(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // create **only** network, volumes and all containers, don't start them
-    lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
+    await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
 
     console.log(`[${new Date().toLocaleTimeString()}] started.`);
