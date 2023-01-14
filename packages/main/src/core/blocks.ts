@@ -1,4 +1,4 @@
-import async = require('async');
+import { waterfall } from 'async';
 import { MAX_TXS_PER_BLOCK } from '@gny/utils';
 import { generateAddress } from '@gny/utils';
 import { BlockReward } from '@gny/utils';
@@ -1281,31 +1281,30 @@ export default class Blocks implements ICoreModule {
 
       // propose ok
       let activeDelegates: string[];
-      return async.waterfall(
+
+      // new waterfall will jump to end function if
+      // an error occurs
+      // to get a var to the next function return array
+      return waterfall(
         [
-          async next => {
-            try {
-              activeDelegates = await Delegates.generateDelegateList(
-                propose.height
-              );
-              span.log({
-                value: 'going to validate propose slot',
-              });
-              global.library.logger.info(
-                `[p2p] onReceivePropose. going to validate propose slot`
-              );
+          async function waterfallOne() {
+            activeDelegates = await Delegates.generateDelegateList(
+              propose.height
+            );
+            span.log({
+              value: 'going to validate propose slot',
+            });
+            global.library.logger.info(
+              `[p2p] onReceivePropose. going to validate propose slot`
+            );
 
-              Delegates.validateProposeSlot(propose, activeDelegates);
+            Delegates.validateProposeSlot(propose, activeDelegates);
 
-              span.log({
-                value: 'successfully validated propose slot',
-              });
-              next();
-            } catch (err) {
-              next(err.toString());
-            }
+            span.log({
+              value: 'successfully validated propose slot',
+            });
           },
-          async next => {
+          async function waterfallTwo() {
             span.log({
               value: 'going to accept propose',
             });
@@ -1313,12 +1312,12 @@ export default class Blocks implements ICoreModule {
               `[p2p] onReceivePropose. going to accept propose`
             );
             if (ConsensusBase.acceptPropose(propose)) {
-              next();
+              return [];
             } else {
-              next('did not accept propose');
+              throw new Error('did not accept propose');
             }
           },
-          async next => {
+          async function waterfallThree() {
             span.log({
               value: 'get active delegate keypairs',
             });
@@ -1329,9 +1328,9 @@ export default class Blocks implements ICoreModule {
             const activeKeypairs = Delegates.getActiveDelegateKeypairs(
               activeDelegates
             );
-            next(undefined, activeKeypairs);
+            return [activeKeypairs];
           },
-          async (activeKeypairs: KeyPair[], next: Next) => {
+          async function waterfallFour([activeKeypairs]) {
             try {
               span.log({
                 value: `I got activeKeypairs: ${activeKeypairs &&
@@ -1376,17 +1375,17 @@ export default class Blocks implements ICoreModule {
               global.library.logger.error(
                 `[p2p] failed to create and push VOTES "${err.message}"`
               );
-              return next(
+              throw new Error(
                 `[p2p] failed to create and push VOTES "${err.message}"`
               );
             }
 
             // important
             StateHelper.setState(state);
-            return next();
+            return [];
           },
         ],
-        (err: any) => {
+        (err: Error, [result]) => {
           if (err) {
             span.setTag('error', true);
             span.log({

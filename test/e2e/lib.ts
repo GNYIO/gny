@@ -1,19 +1,39 @@
 import axios from 'axios';
-import * as dockerCompose from 'docker-compose';
 import { generateAddress } from '@gny/utils';
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
 import * as gnyJS from '@gny/client';
 import * as crypto from 'crypto';
-import * as shellJS from 'shelljs';
+import shellJS from 'shelljs';
 import { IBlock, KeyPair } from '@gny/interfaces';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+// https://stackoverflow.com/a/70768410/5536304
+// jest is changeing the global console object
+import { log as consoleLog, error as consoleError } from 'console';
 
 const config = {
   headers: {
     magic: '594fe0f3',
   },
 };
+
+function executeCmd(command: string) {
+  shellJS.exec(command);
+}
+
+async function executeCmdAndPrint(command: string) {
+  const before = Math.floor(new Date().valueOf() / 1000);
+
+  const { stdout, stderr } = shellJS.exec(command, { silent: true });
+  const after = Math.floor(new Date().valueOf() / 1000);
+
+  consoleLog(`[${after - before}s]\n${command}`);
+  if (typeof stderr === 'string' && stderr.length > 0) {
+    consoleError(stderr);
+  }
+  if (typeof stdout === 'string' && stdout.length > 0) {
+    consoleLog(stdout.trimStart());
+  }
+  await sleep(100);
+}
 
 export const GENESIS = {
   address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -66,9 +86,10 @@ export async function onNewBlock(port: number = 4096) {
  * @param port of the node
  */
 export async function waitForLoaded(port: number) {
+  const before = Math.floor(new Date().valueOf() / 1000);
+
   let loaded = false;
   while (loaded === false) {
-    console.log(`wait for ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -80,6 +101,8 @@ export async function waitForLoaded(port: number) {
     } catch (err) {}
     await sleep(1000);
   }
+  const after = Math.floor(new Date().valueOf() / 1000);
+  consoleLog(`[${after - before}s] waitet for port "${port}"`);
 }
 
 /**
@@ -90,7 +113,7 @@ export async function waitForLoaded(port: number) {
 export async function waitForLoadedHeightZeroAllowed(port: number) {
   let loaded = false;
   while (loaded === false) {
-    console.log(`wait for ${port} (${Date.now()})`);
+    consoleLog(`wait for ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -114,7 +137,7 @@ export async function onNetworkDown(port: number) {
     try {
       await getHeight(port);
 
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] network on  "${port}" still up...`
       );
       await sleep(1000);
@@ -124,7 +147,7 @@ export async function onNetworkDown(port: number) {
       }
     }
   }
-  console.log(`[${new Date().toLocaleTimeString()}] network down "${port}"`);
+  consoleLog(`[${new Date().toLocaleTimeString()}] network down "${port}"`);
 }
 
 /**
@@ -134,7 +157,7 @@ export async function onNetworkDown(port: number) {
 export async function waitForApiToBeReadyReady(port: number) {
   let loaded = false;
   while (loaded === false) {
-    console.log(`wait for _ready_ ${port} (${Date.now()})`);
+    consoleLog(`wait for _ready_ ${port} (${Date.now()})`);
     try {
       const height = await getHeight(port);
       if (
@@ -149,23 +172,16 @@ export async function waitForApiToBeReadyReady(port: number) {
 }
 
 export async function stopAndRemoveOldContainersAndNetworks() {
-  const command =
-    'docker stop $(sudo docker ps --all --quiet); ' +
-    'docker rm $(sudo docker ps --all --quiet); ' +
-    'docker network prune --force';
-
-  shellJS.exec(command);
+  await executeCmdAndPrint('docker stop $(docker ps --all --quiet)');
+  await executeCmdAndPrint('docker rm $(docker ps --all --quiet)');
+  await executeCmdAndPrint('docker network prune --force');
 }
 
-export async function buildDockerImage(configFile?: string) {
-  // first stop all running containers
-  // then delete image file
-  console.log(`building "${configFile}"`);
-  await dockerCompose.buildAll({
-    cwd: process.cwd(),
-    log: false,
-    config: configFile,
-  });
+export async function buildDockerImage(
+  configFile: string = 'docker-compose.yml'
+) {
+  const command = `docker-compose --file ${configFile} build --quiet`;
+  shellJS.exec(command);
 }
 
 export function createP2PContainersOnlyNoStarting(configFile: string) {
@@ -178,17 +194,17 @@ export function restoreBackup(
   dbService: string
 ) {
   shellJS.exec(
-    `cat ${backupFile} | sudo docker exec -i ${dbService} psql -U postgres`
+    `cat ${backupFile} | docker exec -i ${dbService} psql -U postgres`
   );
 }
 
-export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
-  // await dockerCompose
-  await dockerCompose.upAll({
-    cwd: process.cwd(),
-    log: true,
-    config: configFile,
-  });
+export async function spawnP2PContainers(
+  configFile: string = 'docker-compose.yml',
+  ports = [4096]
+) {
+  const command = `docker-compose --file ${configFile} up --detach`;
+  shellJS.exec(command);
+
   await sleep(10 * 1000);
 
   const waitForAllContainers = ports.map(x => waitForLoaded(x));
@@ -196,15 +212,12 @@ export async function spawnP2PContainers(configFile?: string, ports = [4096]) {
 }
 
 export async function spawnP2PContainersHeightZeroAllowed(
-  configFile?: string,
+  configFile: string = 'docker-compose.yml',
   ports = [4096]
 ) {
-  // await dockerCompose
-  await dockerCompose.upAll({
-    cwd: process.cwd(),
-    log: true,
-    config: configFile,
-  });
+  const command = `docker-compose --file ${configFile} up --detach`;
+  shellJS.exec(command);
+
   await sleep(10 * 1000);
 
   const waitForAllContainers = ports.map(x =>
@@ -238,7 +251,7 @@ export async function stopP2PContainers(
   services: string[]
 ) {
   shellJS.exec(
-    `sudo docker-compose --file "${configFile}" stop --timeout=0 ${services.join(
+    `docker-compose --file "${configFile}" stop --timeout=0 ${services.join(
       ' '
     )}`
   );
@@ -247,44 +260,22 @@ export async function stopP2PContainers(
 
 export async function rmP2PContainers(configFile: string, services: string[]) {
   shellJS.exec(
-    `sudo docker-compose --file "${configFile}" rm --force ${services.join(
-      ' '
-    )}`
+    `docker-compose --file "${configFile}" rm --force ${services.join(' ')}`
   );
   await sleep(5000);
 }
 
 export async function upP2PContainers(configFile: string, services: string[]) {
   shellJS.exec(
-    `sudo docker-compose --file "${configFile}" up --detach ${services.join(
-      ' '
-    )}`
+    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
   );
   await sleep(5000);
 }
 
-export async function restartP2PContainers(
-  configFile: string,
-  services: string[]
+export async function stopAndKillContainer(
+  configFile: string = 'docker-compose.yml'
 ) {
-  console.log(`starting services: ${JSON.stringify(services)}`);
-  await dockerCompose.restartMany(services, {
-    config: configFile,
-    cwd: process.cwd(),
-  });
-}
-
-export async function printActiveContainers() {
-  const result = await dockerCompose.ps({
-    cwd: process.cwd(),
-    log: true,
-  });
-  await sleep(1000);
-}
-
-export async function stopAndKillContainer(configFile?: string) {
-  const file = configFile ? `--file ${configFile}` : '';
-  shellJS.exec(`docker-compose ${file} down --volumes`, {
+  shellJS.exec(`docker-compose ${configFile} down --volumes`, {
     silent: true,
   });
   await sleep(20 * 1000);
@@ -329,17 +320,16 @@ export function getLogsOfAllServices(configFile: string, e2eTestName: string) {
     }
   );
 
-  const logsDir = path.join(__dirname, '..', '..', 'logs');
-  fs.ensureDirSync(logsDir);
+  // const logsDir = path.join(__dirname, '..', '..', 'logs');
+  // fs.ensureDirSync(logsDir);
 
-  const fileName = `end2end-${e2eTestName}-${Date.now()}.log`;
-  const filePath = path.join(logsDir, fileName);
+  // const fileName = `end2end-${e2eTestName}-${Date.now()}.log`;
+  // const filePath = path.join(logsDir, fileName);
 
-  fs.writeFileSync(filePath, result.stdout, {
-    encoding: 'utf8',
-  });
-  // change permissions of entiry directory
-  shellJS.exec(`sudo chmod 777 -R ${logsDir}`);
+  // fs.writeFileSync(filePath, result.stdout, {
+  //   encoding: 'utf8',
+  // });
+  // shellJS.exec(`chmod 777 -R ${logsDir}`);
 
-  console.log(`storing log file in "${filePath}"`);
+  // log(`storing log file in "${filePath}"`);
 }

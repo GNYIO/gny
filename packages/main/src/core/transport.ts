@@ -36,7 +36,7 @@ import {
 
 import * as PeerId from 'peer-id';
 import uint8Arrays from 'uint8arrays';
-import * as multiaddr from 'multiaddr';
+import multiaddr from 'multiaddr';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
