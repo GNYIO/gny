@@ -283,9 +283,9 @@ export async function upP2PContainers(configFile: string, services: string[]) {
 export async function stopAndKillContainer(
   configFile: string = 'docker-compose.yml'
 ) {
-  shellJS.exec(`docker-compose ${configFile} down --volumes`, {
-    silent: true,
-  });
+  await executeCmdAndPrint(
+    `docker-compose --file ${configFile} down --volumes`
+  );
   await sleep(20 * 1000);
 }
 
