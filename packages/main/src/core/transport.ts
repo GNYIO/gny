@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import pkg from 'lodash';
+const { cloneDeep } = pkg;
 import {
   ManyVotes,
   NewBlockMessage,
@@ -56,7 +57,7 @@ export default class Transport implements ICoreModule {
       unconfirmedTransaction: transaction,
     });
 
-    const obj = _.cloneDeep(transaction);
+    const obj = cloneDeep(transaction);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
     }

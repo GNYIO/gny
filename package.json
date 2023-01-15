@@ -24,7 +24,7 @@
     "test:e2e:68-secrets": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js  --no-cache --ci test/e2e/68-secrets.test.ts",
     "test:e2e:bootstrap-nodes": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js  --no-cache --ci test/e2e/bootstrap-nodes.test.ts",
     "test:e2e:db-the-same": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js  --no-cache --ci test/e2e/db-the-same.test.ts",
-    "test:e2e:double-spend-attack": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/double-spend-attack.test.ts",
+    "test:e2e:double-spend-attack": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js  --no-cache --ci test/e2e/double-spend-attack.test.ts",
     "test:e2e:fast-connect-to-network": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/fast-connect-to-network.test.ts",
     "test:e2e:network-fork-with-transactions": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-fork-with-transactions.test.ts",
     "test:e2e:network-fork": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/network-fork.test.ts",
