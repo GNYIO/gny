@@ -43,7 +43,8 @@ sudo docker exec -t db1  pg_dumpall -c -U postgres > dump_height_11_node2.sql
 */
 
 import * as lib from './lib';
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/network-fork/docker-compose.network-fork.yml';
@@ -61,7 +62,7 @@ describe('network-fork', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
@@ -80,11 +81,11 @@ describe('network-fork', () => {
       4098,
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute * 1.5);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
     await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, [
@@ -94,13 +95,13 @@ describe('network-fork', () => {
       'node2',
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
     'network-fork',
     async () => {
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
@@ -110,8 +111,8 @@ describe('network-fork', () => {
       // confirm that node2 is = height 11
       const height1 = await lib.getHeight(4096);
       const height2 = await lib.getHeight(4098);
-      console.log(`height1: ${height1}`);
-      console.log(`height2: ${height2}`);
+      consoleLog(`height1: ${height1}`);
+      consoleLog(`height2: ${height2}`);
 
       expect(new BigNumber(height1).isGreaterThan(11)).toEqual(true);
       expect(new BigNumber(height2).isEqualTo(11)).toEqual(true);
@@ -120,8 +121,8 @@ describe('network-fork', () => {
       const node1_block10 = await lib.getBlock(4096, String(10));
       const node2_block10 = await lib.getBlock(4098, String(10));
 
-      console.log(`node1(10): ${JSON.stringify(node1_block10, null, 2)}`);
-      console.log(`node2(10): ${JSON.stringify(node2_block10, null, 2)}`);
+      consoleLog(`node1(10): ${JSON.stringify(node1_block10, null, 2)}`);
+      consoleLog(`node2(10): ${JSON.stringify(node2_block10, null, 2)}`);
 
       expect(node1_block10).toHaveProperty('id');
       expect(node2_block10).toHaveProperty('id');
@@ -132,8 +133,8 @@ describe('network-fork', () => {
       const node1_block11 = await lib.getBlock(4096, String(11));
       const node2_block11 = await lib.getBlock(4098, String(11));
 
-      console.log(`node1(11): ${JSON.stringify(node1_block11, null, 2)}`);
-      console.log(`node2(11): ${JSON.stringify(node2_block11, null, 2)}`);
+      consoleLog(`node1(11): ${JSON.stringify(node1_block11, null, 2)}`);
+      consoleLog(`node2(11): ${JSON.stringify(node2_block11, null, 2)}`);
 
       expect(node1_block11).toHaveProperty('id');
       expect(node2_block11).toHaveProperty('id');
@@ -145,8 +146,8 @@ describe('network-fork', () => {
 
       const height = await lib.getHeight(4098);
       const block = await lib.getBlock(4098, height);
-      console.log(`node(4098) has height: ${height}`);
-      console.log(`node2: ${JSON.stringify(block, null, 2)}`);
+      consoleLog(`node(4098) has height: ${height}`);
+      consoleLog(`node2: ${JSON.stringify(block, null, 2)}`);
       expect(new BigNumber(height).isGreaterThan(11)).toEqual(true);
     },
     5 * lib.oneMinute
