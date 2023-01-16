@@ -29,7 +29,7 @@
     "test:e2e:network-fork-with-transactions": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/network-fork-with-transactions.test.ts",
     "test:e2e:network-fork": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/network-fork.test.ts",
     "test:e2e:network-stuck": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/network-stuck.test.ts",
-    "test:e2e:restarted-node": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/restarted-node.test.ts",
+    "test:e2e:restarted-node": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/restarted-node.test.ts",
     "test:e2e:should-connect": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/should-connect.test.ts",
     "test:e2e:sync-later-not-from-0": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-later-not-from-0.test.ts",
     "test:e2e:sync-later": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-later.test.ts",
