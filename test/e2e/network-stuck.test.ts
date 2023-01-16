@@ -1,6 +1,7 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/network-stuck/docker-compose.network-stuck.yml';
@@ -12,21 +13,21 @@ describe('network-stuck e2e test', () => {
   }, lib.tenMinutes + 2000);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100, 4102]);
     await lib.sleep(10 * 1000);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute * 1.5);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'network-stuck');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
@@ -46,30 +47,30 @@ describe('network-stuck e2e test', () => {
       expect(new BigNumber(height).isGreaterThanOrEqualTo(2)).toEqual(true);
 
       // stop node3 and node4 (now network has not enough votes for block generation)
-      console.log('stopping... "node3", "node4"');
+      consoleLog('stopping... "node3", "node4"');
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
-      console.log('stopped: "node3", "node4"');
+      consoleLog('stopped: "node3", "node4"');
 
-      console.log('removing... "node3", "node4"');
+      consoleLog('removing... "node3", "node4"');
       await lib.rmP2PContainers(DOCKER_COMPOSE_P2P, ['node3', 'node4']);
-      console.log('removed: "node3", "node4"');
+      consoleLog('removed: "node3", "node4"');
 
       await lib.sleep(lib.oneMinute / 2);
 
       // start node3 and node4
       await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4100, 4102]);
 
-      console.log('wait for block 1');
+      consoleLog('wait for block 1');
       await lib.onNewBlock(4096);
-      console.log('block 1 finished');
+      consoleLog('block 1 finished');
 
-      console.log('wait for block 2');
+      consoleLog('wait for block 2');
       await lib.onNewBlock(4096);
-      console.log('block 2 finished');
+      consoleLog('block 2 finished');
 
-      console.log('wait for block 3');
+      consoleLog('wait for block 3');
       await lib.onNewBlock(4096);
-      console.log('block 3 finished');
+      consoleLog('block 3 finished');
 
       await lib.sleep(30 * 1000);
 
