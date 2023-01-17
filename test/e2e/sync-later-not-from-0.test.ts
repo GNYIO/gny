@@ -1,6 +1,7 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-later-not-from-0/docker-compose.sync-later-not-from-0.yml';
@@ -34,7 +35,7 @@ describe('sync-later-not-from-0 e2e test', () => {
 
       const height1 = await lib.getHeight(4096);
       const height2 = await lib.getHeight(4098);
-      console.log(`height1: ${height1} === height2: ${height2}`);
+      consoleLog(`height1: ${height1} === height2: ${height2}`);
 
       expect(new BigNumber(height1).isGreaterThan(0)).toEqual(true);
       expect(new BigNumber(height1).isEqualTo(height2)).toEqual(true);
