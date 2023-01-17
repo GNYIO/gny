@@ -14,12 +14,12 @@ jobs:
 
 
       - name: md5sum of all package.json and package-lock.json files
-          run: |
-            # set locale for consistent sort results
-            find -type f \( -name "package-lock.json" -o -name "package.json" \) \
-              -not -path "**/node_modules/*" -not -path "**/dist/*" \
-              -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
-            cat packages.txt | md5sum | awk '{print $1}' > hash.txt
+        run: |
+          # set locale for consistent sort results
+          find -type f \( -name "package-lock.json" -o -name "package.json" \) \
+            -not -path "**/node_modules/*" -not -path "**/dist/*" \
+            -exec md5sum "{}" + | sort -k2,2 -d > packages.txt
+          cat packages.txt | md5sum | awk '{print $1}' > hash.txt
 
       - name: restore lerna
         uses: actions/cache@v2
@@ -62,7 +62,6 @@ jobs:
 
       - name: build typescript
         run: npm run lerna:tsc
-
 
 
 

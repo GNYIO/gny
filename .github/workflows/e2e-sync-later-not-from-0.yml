@@ -13,7 +13,7 @@ jobs:
 
 
 
-     - name: md5sum of all package.json and package-lock.json files
+      - name: md5sum of all package.json and package-lock.json files
         run: |
           # set locale for consistent sort results
           find -type f \( -name "package-lock.json" -o -name "package.json" \) \
