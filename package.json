@@ -32,7 +32,7 @@
     "test:e2e:restarted-node": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/restarted-node.test.ts",
     "test:e2e:should-connect": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/should-connect.test.ts",
     "test:e2e:sync-later-not-from-0": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/sync-later-not-from-0.test.ts",
-    "test:e2e:sync-later": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-later.test.ts",
+    "test:e2e:sync-later": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci test/e2e/sync-later.test.ts",
     "test:e2e:sync-only": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-only.test.ts",
     "test:e2e:sync-to-stuck-network": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/sync-to-stuck-network.test.ts",
     "test:e2e:two-different-networks": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/e2e/two-different-networks.test.ts",
