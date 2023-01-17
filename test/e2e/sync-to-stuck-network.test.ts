@@ -1,5 +1,6 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/sync-to-stuck-network/docker-compose.sync-to-stuck-network.yml';
@@ -11,20 +12,20 @@ describe('sync-to-stuck-network e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096, 4098, 4100]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute * 1.2);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-to-stuck-network');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
@@ -69,12 +70,12 @@ describe('sync-to-stuck-network e2e test', () => {
       expect(stopped2).toEqual(stoppedAfter2);
 
       // start services db3 and node3
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] starting "db3" and "node3"...`
       );
       await lib.upP2PContainers(DOCKER_COMPOSE_P2P, ['db3', 'node3']);
       await lib.waitForApiToBeReadyReady(4100);
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] started "db3" and "node3"!`
       );
 
