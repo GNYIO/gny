@@ -47,7 +47,7 @@ services:
   node1:
     build: ../..
     image: gny-experiment:integration # tags
-    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/src/app'
+    command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/app'
     environment:
       - NODE_ENV=production
       - EXCHANGE_API=$EXCHANGE_FEATURE
