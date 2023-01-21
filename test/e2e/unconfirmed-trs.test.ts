@@ -6,6 +6,7 @@ import axios from 'axios';
 import * as _ from 'lodash';
 import { getConfig } from '@gny/network';
 import { UnconfirmedTransaction } from '@gny/interfaces';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/unconfirmed-trs/docker-compose.unconfirmed-trs.yml';
@@ -21,7 +22,7 @@ async function getUnconfirmedTrsCount(port: number) {
     `http://localhost:${port}/api/transactions/unconfirmed`
   );
   const count = data.transactions.length as number;
-  console.log(`port [${port}] received "${count}" unconfirmed-trs`);
+  consoleLog(`port [${port}] received "${count}" unconfirmed-trs`);
   return count;
 }
 
@@ -56,6 +57,7 @@ async function constantQuery(
 }
 
 function createTransactions(count: number) {
+  // @ts-ignore
   const genesisSecret = getConfig('localnet').genesis;
   const message = '';
   const amount = 5 * 1e8;
@@ -86,7 +88,7 @@ async function sendRandomTransaction(numberOfTransaction: number) {
         config
       );
     } catch (err) {
-      console.log(
+      consoleLog(
         `[trs sending failed] ${err.response ? err.response.data : err.message}`
       );
     }
@@ -128,30 +130,30 @@ describe('unconfirmed-trs e2e test', () => {
       // 1st try
       await sendRandomTransaction(50);
       await lib.sleep(7 * 1000);
-      console.log(`[1][4098]: "${trs4098.size}"`);
-      console.log(`[1][4100]: "${trs4100.size}"`);
+      consoleLog(`[1][4098]: "${trs4098.size}"`);
+      consoleLog(`[1][4100]: "${trs4100.size}"`);
 
       // 2nd try
       await sendRandomTransaction(50);
       await lib.sleep(7 * 1000);
-      console.log(`[2][4098]: "${trs4098.size}"`);
-      console.log(`[2][4100]: "${trs4100.size}"`);
+      consoleLog(`[2][4098]: "${trs4098.size}"`);
+      consoleLog(`[2][4100]: "${trs4100.size}"`);
 
       // 3rd
       await sendRandomTransaction(50);
       await lib.sleep(7 * 1000);
-      console.log(`[3][4098]: "${trs4098.size}"`);
-      console.log(`[3][4100]: "${trs4100.size}"`);
+      consoleLog(`[3][4098]: "${trs4098.size}"`);
+      consoleLog(`[3][4100]: "${trs4100.size}"`);
 
       // stop checkinng unconfirmed transactions
       continueRequest = false;
       await trs4098Promise;
 
       expect(trs4098.size).toBeGreaterThan(0);
-      console.log(`final size[4098]: "${trs4098.size}"`);
+      consoleLog(`final size[4098]: "${trs4098.size}"`);
 
       expect(trs4100.size).toBeGreaterThan(0);
-      console.log(`final size[4100]: "${trs4100.size}"`);
+      consoleLog(`final size[4100]: "${trs4100.size}"`);
     },
     4 * lib.oneMinute
   );
