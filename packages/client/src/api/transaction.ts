@@ -45,12 +45,11 @@ export class Transaction {
     this.base = new Base(connection);
   }
 
-  public async getCount(countQuery?: CountQuery) {
-    // const params = {
-    //   senderId: typeof countQuery === "undefined" ? undefined : countQuery.senderId,
-    //   senderPublicKey: typeof countQuery === "undefined" ? undefined : countQuery.senderPublicKey,
-    // };
-
+  public async getCount(
+    countQuery?: CountQuery
+  ): Promise<
+    ApiResult<TransactionCountWrapper, ValidationError | ServerError>
+  > {
     const res = await this.base.get('/api/transactions/count', countQuery);
     const result: ApiResult<
       TransactionCountWrapper,
@@ -59,7 +58,11 @@ export class Transaction {
     return result;
   }
 
-  public async newestFirst(newestFirstQuery: NewestFirstQuery) {
+  public async newestFirst(
+    newestFirstQuery: NewestFirstQuery
+  ): Promise<
+    ApiResult<NewestTransactionWrapper, ValidationError | ServerError>
+  > {
     const params = {
       count: newestFirstQuery.count,
       offset: newestFirstQuery.offset,
@@ -75,7 +78,9 @@ export class Transaction {
     return result;
   }
 
-  public async getTransactions(query: Query) {
+  public async getTransactions(
+    query: Query
+  ): Promise<ApiResult<TransactionsWrapper, ValidationError | ServerError>> {
     const params = {
       limit: query.limit,
       offset: query.offset,
@@ -95,7 +100,11 @@ export class Transaction {
     return result;
   }
 
-  public async getUnconfirmedTransaction(id: string) {
+  public async getUnconfirmedTransaction(
+    id: string
+  ): Promise<
+    ApiResult<UnconfirmedTransactionWrapper, ValidationError | TransactionError>
+  > {
     const params = {
       id: id,
     };
@@ -113,7 +122,7 @@ export class Transaction {
   public async getUnconfirmedTransactions(
     senderPublicKey: string,
     address: string
-  ) {
+  ): Promise<ApiResult<UnconfirmedTransactionsWrapper, ValidationError>> {
     const params = {
       senderPublicKey: senderPublicKey,
       address: address,
@@ -124,7 +133,11 @@ export class Transaction {
     return result;
   }
 
-  public async addTransactions(transactions: UnconfirmedTransaction[]) {
+  public async addTransactions(
+    transactions: UnconfirmedTransaction[]
+  ): Promise<
+    ApiResult<TransactionsWrapper, ValidationError | TransactionError>
+  > {
     const params = {
       transactions: transactions,
     };

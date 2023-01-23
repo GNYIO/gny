@@ -35,7 +35,7 @@ async function prepareDelegates(delegates: string[]) {
     const nameTrs = gnyClient.basic.transfer(
       recipientAddress,
       String(200000 * 1e8),
-      undefined,
+      (undefined as never) as string,
       genesisSecret
     );
     const nameTransData = {
@@ -116,8 +116,8 @@ describe('account', () => {
         async () => {
           expect.assertions(1);
 
-          const height = 173000;
-          const amount = 30 * 1e8;
+          const height = '173000';
+          const amount = String(30 * 1e8);
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const username = 'a1300';
@@ -144,8 +144,8 @@ describe('account', () => {
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
-        const height = 183000;
-        const amount = 30 * 1e8;
+        const height = '183000';
+        const amount = String(30 * 1e8);
 
         // set username
         await basicApi.setUserName(username, secret);
@@ -172,8 +172,8 @@ describe('account', () => {
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const username = 'a1300';
-        const height = 183000;
-        const amount = 30 * 1e8;
+        const height = '183000';
+        const amount = String(30 * 1e8);
 
         // set username
         await basicApi.setUserName(username, secret);
@@ -193,7 +193,7 @@ describe('account', () => {
   describe('/vote', () => {
     async function vote(keyList: string[], secret: string) {
       // lock the account
-      await basicApi.lockAccount(173000, 30 * 1e8, genesisSecret);
+      await basicApi.lockAccount('173000', String(30 * 1e8), genesisSecret);
       await lib.onNewBlock(GNY_PORT);
 
       // vote

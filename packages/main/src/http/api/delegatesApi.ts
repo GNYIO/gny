@@ -10,6 +10,7 @@ import {
   CountWrapper,
   AccountsWrapper,
   DelegateWrapper,
+  DelegatesWrapperSimple,
   ExtendedDelegatesWrapper,
   ForgingStatus,
   SimpleAccountsWrapper,
@@ -643,14 +644,15 @@ export default class DelegatesApi implements IHttpApi {
         statusCode: '422',
       });
 
-      return res.status(422).send({
+      const r: ApiResult<DelegatesWrapperSimple> = {
         success: false,
         error: report.error.message,
-      });
+      };
+      return res.status(422).send(r);
     }
 
-    const offset = query.offset || 0;
-    const limit = query.limit || 200;
+    const offset = ((query.offset as never) as number) || 0;
+    const limit = ((query.limit as never) as number) || 200;
 
     const { searchFor } = query;
     const delegates = await Delegates.getDelegates();
@@ -664,11 +666,12 @@ export default class DelegatesApi implements IHttpApi {
         }
       });
 
-      return res.json({
+      const r: ApiResult<DelegatesWrapperSimple> = {
         success: true,
         count: result.length,
         delegates: result,
-      });
+      };
+      return res.json(r);
     } else {
       // is a partial username
       let result = delegates.filter(value => {
@@ -681,11 +684,12 @@ export default class DelegatesApi implements IHttpApi {
       const count = result.length;
       result = result.slice(offset, offset + limit);
 
-      return res.json({
+      const r: ApiResult<DelegatesWrapperSimple> = {
         success: true,
         count,
         delegates: result,
-      });
+      };
+      return res.json(r);
     }
   };
 }

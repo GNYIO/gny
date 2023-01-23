@@ -3,7 +3,6 @@ module.exports = {
   moduleNameMapper: {
     uuid: require.resolve('uuid'),
   },
-  testEnvironment: 'node',
   cache: false,
   verbose: true,
   setupFilesAfterEnv: ['jest-extended/all'],

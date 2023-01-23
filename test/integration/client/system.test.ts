@@ -3,6 +3,7 @@
  */
 import { Connection } from '@gny/client';
 import * as lib from './lib';
+import { ApiSuccess } from '@gny/interfaces';
 
 const GNY_PORT = 10096;
 const GNY_APP_NAME = 'app7';
@@ -39,7 +40,7 @@ describe('system', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await systemApi.getSystemInfo();
+        const response = (await systemApi.getSystemInfo()) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute

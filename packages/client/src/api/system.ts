@@ -9,7 +9,9 @@ export class System {
     this.base = new Base(connection);
   }
 
-  public async getSystemInfo() {
+  public async getSystemInfo(): Promise<
+    ApiResult<VersionWrapper, ServerError>
+  > {
     const res = await this.base.get('/api/system');
     const result: ApiResult<VersionWrapper, ServerError> = res.data;
     return result;

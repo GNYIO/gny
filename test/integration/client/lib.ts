@@ -2,10 +2,12 @@ import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '@gny/utils';
-import { BigNumber } from '@gny/utils';
-import * as shellJS from 'shelljs';
-import { Client } from 'pg';
-import * as pg from 'pg';
+import { BigNumber } from 'bignumber.js';
+import shellJS from 'shelljs';
+import { log as consoleLog } from 'console';
+
+import pkg from 'pg';
+const Client = pkg.Client;
 
 const DEFAULT_DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.integration.yml';
@@ -21,7 +23,7 @@ export async function apiGetAsync(gnyPort: number, endpoint: string) {
   return result.data;
 }
 
-export async function getHeight(gnyPort: number) {
+export async function getHeight(gnyPort: number): Promise<string> {
   const ret = await apiGetAsync(gnyPort, '/blocks/getHeight');
   return ret.height as string;
 }
@@ -56,26 +58,13 @@ async function waitForLoaded(gnyPort: number) {
   }
 }
 
-export async function waitUntilBlock(height: string) {
-  let currentHeight = await getHeight();
-  if (new BigNumber(height).isLessThanOrEqualTo(currentHeight)) {
-    throw new Error(`the height "${height} was already reached`);
-  }
-
-  while (new BigNumber(currentHeight).isLessThanOrEqualTo(height)) {
-    currentHeight = await getHeight();
-    console.log(`currentHeight: ${currentHeight}`);
-    await sleep(2000);
-  }
-}
-
 export async function stopOldInstances(dockerFile: string, env: string) {
   const command = `${env} docker-compose --file ${dockerFile} down`;
 
   shellJS.exec(command, {
     silent: true,
   });
-  console.log('\n');
+  consoleLog('\n');
 }
 
 export async function buildDockerImage(
@@ -100,7 +89,7 @@ export async function spawnContainer(
   shellJS.exec(command, {
     silent: false,
   });
-  console.log('\n');
+  consoleLog('\n');
 
   await waitForLoaded(gnyPort);
 }
@@ -116,7 +105,7 @@ export async function stopAndKillContainer(
   shellJS.exec(command, {
     silent: false,
   });
-  console.log('\n');
+  consoleLog('\n');
 }
 
 export async function spawnPostgres() {

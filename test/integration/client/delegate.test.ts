@@ -4,6 +4,14 @@
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
+import {
+  ApiSuccess,
+  DelegateOwnProducedBlocks,
+  DelegatesWrapper,
+  DelegatesWrapperSimple,
+  IBlock,
+  SimpleAccountsWrapper,
+} from '@gny/interfaces';
 
 const GNY_PORT = 6096;
 const GNY_APP_NAME = 'app3';
@@ -224,7 +232,9 @@ describe('delegate', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr'; // genesis address
-        const response = await delegateApi.getOwnVotes({ address });
+        const response = (await delegateApi.getOwnVotes({
+          address,
+        })) as (ApiSuccess & SimpleAccountsWrapper);
         expect(response.success).toBeTruthy();
 
         expect(response.delegates).toHaveLength(2);
@@ -294,10 +304,12 @@ describe('delegate', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        const response = await delegateApi.getOwnVotes({ username });
+        const response = (await delegateApi.getOwnVotes({
+          username,
+        })) as (ApiSuccess & SimpleAccountsWrapper);
         expect(response.success).toBeTruthy();
 
-        response.success && expect(response.delegates).toHaveLength(3);
+        expect(response.delegates).toHaveLength(3);
 
         const gny_d1 = response.delegates.filter(x => x.username === 'gny_d1');
         const gny_d2 = response.delegates.filter(x => x.username === 'gny_d2');
@@ -390,13 +402,12 @@ describe('delegate', () => {
 
         await lib.sleep(20 * 1000);
 
-        const blocks = [];
+        const blocks: IBlock[] = [];
         for (let i = 1; i < 102; ++i) {
           const delegate = `gny_d${i}`;
-          console.log(`delegate: ${delegate}`);
-          const response = await delegateApi.ownProducedBlocks({
+          const response = (await delegateApi.ownProducedBlocks({
             username: delegate,
-          });
+          })) as (ApiSuccess & DelegateOwnProducedBlocks);
           blocks.push(...response.blocks);
         }
 
@@ -412,10 +423,15 @@ describe('delegate', () => {
       async () => {
         expect.assertions(4);
 
-        const noDelegateWithThisName = await delegateApi.search('x');
+        // this type (ApiSuccess & DelegatesWrapper) should be correct because
+        // the validation will not throw an error
+        const noDelegateWithThisName = (await delegateApi.search(
+          'x'
+        )) as (ApiSuccess & DelegatesWrapper);
         expect(noDelegateWithThisName.delegates).toHaveLength(0);
 
-        const manyResults = await delegateApi.search('1');
+        const manyResults = (await delegateApi.search('1')) as (ApiSuccess &
+          DelegatesWrapper);
         expect(manyResults.delegates).toHaveLength(21);
         // delegates are named gny_d1 up to gny_d101
         const expectedDelegates = range(1, 101)
@@ -447,24 +463,37 @@ describe('delegate', () => {
       async () => {
         expect.assertions(10);
 
-        const manyResults = await delegateApi.search('1');
+        // cast result from search() to ApiSuccess to make for TypeScript
+        // compiler clear that we get the results from the happy path
+        const manyResults = (await delegateApi.search('1')) as (ApiSuccess &
+          DelegatesWrapperSimple);
         expect(manyResults.count).toEqual(21);
         expect(manyResults.delegates).toHaveLength(21);
 
-        const useOffset = await delegateApi.search('1', 20);
+        const useOffset = (await delegateApi.search('1', 20)) as (ApiSuccess &
+          DelegatesWrapperSimple);
         expect(useOffset.count).toEqual(21);
         expect(useOffset.delegates).toHaveLength(1);
         expect(manyResults.delegates[20]).toEqual(useOffset.delegates[0]);
 
-        const atTheStart = await delegateApi.search('1', 0, 5);
+        const atTheStart = (await delegateApi.search(
+          '1',
+          0,
+          5
+        )) as (ApiSuccess & DelegatesWrapperSimple);
         expect(atTheStart.count).toEqual(21);
         expect(atTheStart.delegates).toHaveLength(5);
 
-        const inTheMiddle = await delegateApi.search('1', 10, 7);
+        const inTheMiddle = (await delegateApi.search(
+          '1',
+          10,
+          7
+        )) as (ApiSuccess & DelegatesWrapperSimple);
         expect(inTheMiddle.count).toEqual(21);
         expect(inTheMiddle.delegates).toHaveLength(7);
 
-        const otherCount = await delegateApi.search('2');
+        const otherCount = (await delegateApi.search('2')) as (ApiSuccess &
+          DelegatesWrapperSimple);
         expect(otherCount.count).toEqual(19);
       },
       lib.oneMinute

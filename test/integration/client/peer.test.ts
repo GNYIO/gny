@@ -3,6 +3,7 @@
  */
 import { Connection } from '@gny/client';
 import * as lib from './lib';
+import { ApiSuccess } from '@gny/interfaces';
 
 const GNY_PORT = 9096;
 const GNY_APP_NAME = 'app6';
@@ -39,7 +40,7 @@ describe('peer', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await peerApi.getPeers();
+        const response = (await peerApi.getPeers()) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -52,7 +53,7 @@ describe('peer', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await peerApi.getVersion();
+        const response = (await peerApi.getVersion()) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -65,7 +66,7 @@ describe('peer', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await peerApi.getInfo();
+        const response = (await peerApi.getInfo()) as ApiSuccess;
         expect(response.success).toEqual(true);
       },
       lib.oneMinute

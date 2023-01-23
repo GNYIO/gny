@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import { ApiSuccess, CountWrapper } from '@gny/interfaces';
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
@@ -112,7 +113,7 @@ describe('account', () => {
           expect.assertions(1);
 
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
-          const response = await accountApi.getBalance(address);
+          const response = (await accountApi.getBalance(address)) as ApiSuccess;
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -151,10 +152,10 @@ describe('account', () => {
           );
           await lib.onNewBlock(GNY_PORT);
 
-          const response = await accountApi.getAddressCurrencyBalance(
+          const response = (await accountApi.getAddressCurrencyBalance(
             address,
             currecny
-          );
+          )) as ApiSuccess;
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -168,7 +169,9 @@ describe('account', () => {
           expect.assertions(1);
 
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
-          const response = await accountApi.getAccountByAddress(address);
+          const response = (await accountApi.getAccountByAddress(
+            address
+          )) as ApiSuccess;
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -194,7 +197,9 @@ describe('account', () => {
           );
           await lib.onNewBlock(GNY_PORT);
 
-          const response = await accountApi.getAccountByUsername(username);
+          const response = (await accountApi.getAccountByUsername(
+            username
+          )) as ApiSuccess;
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -262,9 +267,9 @@ describe('account', () => {
           await lib.onNewBlock(GNY_PORT);
 
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
-          const response = await accountApi.getVotedDelegates({
+          const response = (await accountApi.getVotedDelegates({
             address,
-          });
+          })) as ApiSuccess;
           expect(response.success).toBeTruthy();
         },
         lib.oneMinute
@@ -277,7 +282,8 @@ describe('account', () => {
         async () => {
           expect.assertions(2);
 
-          const response = await accountApi.countAccounts();
+          const response = (await accountApi.countAccounts()) as (ApiSuccess &
+            CountWrapper);
           expect(response.success).toBeTruthy();
           expect(response.count).toEqual(103);
         },

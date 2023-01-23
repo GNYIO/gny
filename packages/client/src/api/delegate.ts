@@ -9,7 +9,7 @@ import {
   DelegateWrapper,
   DelegateOwnProducedBlocks,
   OwnProducedBlocksQuery,
-  DelegatesWrapper,
+  DelegatesWrapperSimple,
   ExtendedDelegatesWrapper,
   ForgingError,
   ForgingStatus,
@@ -25,13 +25,17 @@ export class Delegate {
     this.base = new Base(connection);
   }
 
-  public async count() {
+  public async count(): Promise<
+    ApiResult<CountWrapper, DelegateResponseError>
+  > {
     const res = await this.base.get('/api/delegates/count');
     const result: ApiResult<CountWrapper, DelegateResponseError> = res.data;
     return result;
   }
 
-  public async getVoters(username: string) {
+  public async getVoters(
+    username: string
+  ): Promise<ApiResult<AccountsWrapper, ValidationError | ServerError>> {
     const params = {
       username: username,
     };
@@ -41,7 +45,9 @@ export class Delegate {
     return result;
   }
 
-  public async getOwnVotes(params: DelegateAddressOrUsername) {
+  public async getOwnVotes(
+    params: DelegateAddressOrUsername
+  ): Promise<ApiResult<SimpleAccountsWrapper, ValidationError | ServerError>> {
     const res = await this.base.get('/api/delegates/getOwnVotes', params);
     const result: ApiResult<
       SimpleAccountsWrapper,
@@ -50,7 +56,11 @@ export class Delegate {
     return result;
   }
 
-  public async getDelegateByPubKey(publicKey: string) {
+  public async getDelegateByPubKey(
+    publicKey: string
+  ): Promise<
+    ApiResult<DelegateWrapper, ValidationError | DelegateResponseError>
+  > {
     const params = {
       publicKey: publicKey,
     };
@@ -62,7 +72,11 @@ export class Delegate {
     return result;
   }
 
-  public async getDelegateByUsername(username: string) {
+  public async getDelegateByUsername(
+    username: string
+  ): Promise<
+    ApiResult<DelegateWrapper, ValidationError | DelegateResponseError>
+  > {
     const params = {
       username: username,
     };
@@ -74,7 +88,11 @@ export class Delegate {
     return result;
   }
 
-  public async getDelegateByAddress(address: string) {
+  public async getDelegateByAddress(
+    address: string
+  ): Promise<
+    ApiResult<DelegateWrapper, ValidationError | DelegateResponseError>
+  > {
     const params = {
       address: address,
     };
@@ -86,14 +104,21 @@ export class Delegate {
     return result;
   }
 
-  public async ownProducedBlocks(params: OwnProducedBlocksQuery) {
+  public async ownProducedBlocks(
+    params: OwnProducedBlocksQuery
+  ): Promise<ApiResult<DelegateOwnProducedBlocks, ValidationError>> {
     const res = await this.base.get('/api/delegates/ownProducedBlocks', params);
     const result: ApiResult<DelegateOwnProducedBlocks, ValidationError> =
       res.data;
     return result;
   }
 
-  public async getDelegates(offset?: string, limit?: string) {
+  public async getDelegates(
+    offset?: string,
+    limit?: string
+  ): Promise<
+    ApiResult<ExtendedDelegatesWrapper, ValidationError | DelegateResponseError>
+  > {
     const params = {
       offset: offset,
       limit: limit,
@@ -106,7 +131,9 @@ export class Delegate {
     return result;
   }
 
-  public async forgingStatus(publicKey: string) {
+  public async forgingStatus(
+    publicKey: string
+  ): Promise<ApiResult<ForgingStatus, ValidationError | ForgingError>> {
     const params = {
       publicKey: publicKey,
     };
@@ -120,7 +147,9 @@ export class Delegate {
     addressOrPartialUsername: string,
     offset?: number,
     limit?: number
-  ) {
+  ): Promise<
+    ApiResult<DelegatesWrapperSimple, ValidationError | DelegateResponseError>
+  > {
     const params = {
       searchFor: addressOrPartialUsername,
       offset: offset,
@@ -129,7 +158,7 @@ export class Delegate {
 
     const res = await this.base.get('/api/delegates/search', params);
     const result: ApiResult<
-      DelegatesWrapper,
+      DelegatesWrapperSimple,
       ValidationError | DelegateResponseError
     > = res.data;
     return result;

@@ -4,6 +4,12 @@
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
+import {
+  ApiSuccess,
+  NewestTransactionWrapper,
+  TransactionCountWrapper,
+  TransactionsWrapper,
+} from '@gny/interfaces';
 
 const GNY_PORT = 11096;
 const GNY_APP_NAME = 'app8';
@@ -104,7 +110,9 @@ describe('transaction', () => {
         const query = {
           senderId: senderId,
         };
-        const response = await transactionApi.getTransactions(query);
+        const response = (await transactionApi.getTransactions(
+          query
+        )) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -117,7 +125,8 @@ describe('transaction', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await transactionApi.getCount();
+        const response = (await transactionApi.getCount()) as (ApiSuccess &
+          TransactionCountWrapper);
         expect(response.count).toEqual(203);
       },
       lib.oneMinute
@@ -136,15 +145,15 @@ describe('transaction', () => {
         const genesisAddress = gnyClient.crypto.getAddress(publicKey);
 
         // check address
-        const responseAddress = await transactionApi.getCount({
+        const responseAddress = (await transactionApi.getCount({
           senderId: genesisAddress,
-        });
+        })) as (ApiSuccess & TransactionCountWrapper);
         expect(responseAddress.count).toEqual(2);
 
         // check publicKey
-        const responsePublicKey = await transactionApi.getCount({
+        const responsePublicKey = (await transactionApi.getCount({
           senderPublicKey: publicKey,
-        });
+        })) as (ApiSuccess & TransactionCountWrapper);
         expect(responsePublicKey.count).toEqual(2);
       },
       lib.oneMinute
@@ -161,11 +170,11 @@ describe('transaction', () => {
         const offset = 0;
         const limit = 10;
 
-        const response = await transactionApi.newestFirst({
+        const response = (await transactionApi.newestFirst({
           count,
           offset,
           limit,
-        });
+        })) as (ApiSuccess & NewestTransactionWrapper);
 
         expect(response.count).toEqual(203);
         expect(response.transactions).toHaveLength(10);
@@ -222,44 +231,44 @@ describe('transaction', () => {
         const genesisAddress = gnyClient.crypto.getAddress(publicKey);
 
         // should be 3 transactions
-        const countByAddress = await transactionApi.getCount({
+        const countByAddress = (await transactionApi.getCount({
           senderId: genesisAddress,
-        });
+        })) as (ApiSuccess & TransactionCountWrapper);
         expect(countByAddress.count).toEqual(3);
 
         // newestfirst returns the transactions reversed
-        const getTrsFirst = await transactionApi.newestFirst({
+        const getTrsFirst = (await transactionApi.newestFirst({
           senderId: genesisAddress,
           count: countByAddress.count,
-        });
-        const normalOne = await transactionApi.getTransactions({
+        })) as (ApiSuccess & NewestTransactionWrapper);
+        const normalOne = (await transactionApi.getTransactions({
           senderId: genesisAddress,
-        });
+        })) as (ApiSuccess & TransactionsWrapper);
         const normalReverted = normalOne.transactions.reverse();
         expect(getTrsFirst.transactions).toEqual(normalReverted);
 
         // get oldest
-        const oldest = await transactionApi.getTransactions({
+        const oldest = (await transactionApi.getTransactions({
           senderId: genesisAddress,
           offset: 0,
           limit: 1,
-        });
+        })) as (ApiSuccess & TransactionsWrapper);
         expect(oldest.transactions[0].id).toEqual(trs3.id);
 
         // second oldest
-        const secondOldest = await transactionApi.getTransactions({
+        const secondOldest = (await transactionApi.getTransactions({
           senderId: genesisAddress,
           offset: 1,
           limit: 1,
-        });
+        })) as (ApiSuccess & TransactionsWrapper);
         expect(secondOldest.transactions[0].id).toEqual(trs2.id);
 
         // third oldest
-        const thirdOldest = await transactionApi.getTransactions({
+        const thirdOldest = (await transactionApi.getTransactions({
           senderId: genesisAddress,
           offset: 2,
           limit: 1,
-        });
+        })) as (ApiSuccess & TransactionsWrapper);
         expect(thirdOldest.transactions[0].id).toEqual(trs1.id);
 
         // first, second, third
