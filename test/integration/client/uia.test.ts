@@ -6,6 +6,14 @@ import * as gnyClient from '@gny/client';
 import axios from 'axios';
 import { generateAddress } from '@gny/utils';
 import { randomBytes } from 'crypto';
+import {
+  ApiSuccess,
+  IsIssuerWrapper,
+  IssuerWrapper,
+  IssuesWrapper,
+  AssetsWrapper,
+  AssetHoldersWrapper,
+} from '@gny/interfaces';
 
 const GNY_PORT = 14096;
 const GNY_APP_NAME = 'app11';
@@ -132,7 +140,10 @@ describe('uia', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        const response = await uiaApi.getIssuers(limit, offset);
+        const response = (await uiaApi.getIssuers(
+          limit,
+          offset
+        )) as (ApiSuccess & IssuesWrapper);
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -164,7 +175,8 @@ describe('uia', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        const response = await uiaApi.isIssuer(address);
+        const response = (await uiaApi.isIssuer(address)) as (ApiSuccess &
+          IsIssuerWrapper);
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -196,7 +208,8 @@ describe('uia', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        const response = await uiaApi.getIssuer(name);
+        const response = (await uiaApi.getIssuer(name)) as (ApiSuccess &
+          IssuerWrapper);
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -248,7 +261,11 @@ describe('uia', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
-        const response = await uiaApi.getIssuerAssets(name, limit, offset);
+        const response = (await uiaApi.getIssuerAssets(
+          name,
+          limit,
+          offset
+        )) as (ApiSuccess & AssetsWrapper);
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -433,7 +450,8 @@ describe('uia', () => {
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);
 
-        const data = await uiaApi.getHolders('ABC.BBB');
+        const data = (await uiaApi.getHolders('ABC.BBB')) as (ApiSuccess &
+          AssetHoldersWrapper);
 
         expect(data.success).toEqual(true);
         expect(data.count).toEqual(2);
@@ -461,7 +479,11 @@ describe('uia', () => {
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);
 
-        const data = await uiaApi.getHolders('ABC.BBB', 100, 1);
+        const data = (await uiaApi.getHolders(
+          'ABC.BBB',
+          100,
+          1
+        )) as (ApiSuccess & AssetHoldersWrapper);
         console.log(`result: ${JSON.stringify(data, null, 2)}`);
 
         expect(data.success).toEqual(true);
@@ -486,7 +508,8 @@ describe('uia', () => {
         await beforeUiaTransfer(contractUiaApi);
         await transferUiaTo(recipient);
 
-        const data = await uiaApi.getHolders('ABC.BBB', 1, 0);
+        const data = (await uiaApi.getHolders('ABC.BBB', 1, 0)) as (ApiSuccess &
+          AssetHoldersWrapper);
         console.log(`result: ${JSON.stringify(data, null, 2)}`);
 
         expect(data.success).toEqual(true);
