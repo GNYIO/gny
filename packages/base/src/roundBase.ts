@@ -11,4 +11,28 @@ export class RoundBase {
     const result = new BigNumber(first).plus(second).toFixed();
     return result;
   }
+
+  public static getAllBlocksInRound(round: string): string[] {
+    if (new BigNumber(round).isEqualTo(0)) {
+      return ['0'];
+    }
+
+    if (new BigNumber(round).isEqualTo(1)) {
+      // create an array of 101 elements
+      // starting at 1
+      return Array(101)
+        .fill(1)
+        .map((ind, val) => String(val + 1));
+    }
+
+    const start = new BigNumber(round)
+      .times(101)
+      .plus(1)
+      .minus(101)
+      .toFixed();
+
+    return Array(101)
+      .fill(start)
+      .map((ind, x) => new BigNumber(ind).plus(x).toFixed());
+  }
 }

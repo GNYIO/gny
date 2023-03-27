@@ -24,6 +24,8 @@ import { Delegate } from '@gny/database-postgres';
 import { Block } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
 import BigNumber from 'bignumber.js';
+import { slots } from '@gny/utils';
+import { RoundBase } from '@gny/base';
 
 async function getDelegateAccount(
   sliced: DelegateViewModel[]
@@ -82,6 +84,7 @@ export default class DelegatesApi implements IHttpApi {
     router.get('/ownProducedBlocks', this.ownProducedBlocks);
     router.get('/forging/status', this.forgingStatus);
     router.get('/search', this.search);
+    router.get('/forging', this.forging);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -96,6 +99,71 @@ export default class DelegatesApi implements IHttpApi {
 
       return res.status(500).send({ success: false, error: err.toString() });
     });
+  };
+
+  // this returns every delegate that should forge for the current round
+  // one round is 101 blocks
+  private forging = async (req: Request, res: Response, next: Next) => {
+    const result = [];
+
+    const currentBlock = StateHelper.getState().lastBlock;
+
+    if (new BigNumber(currentBlock.height).isEqualTo(0)) {
+      return res.json([]);
+    }
+
+    // all delegates that where ever registered
+    const allDelegates = await Delegates.getDelegates();
+
+    const currentSlot = slots.getSlotNumber();
+
+    const currentRound = RoundBase.calculateRound(currentBlock.height);
+    const allBlockHeightsFromThisRound = RoundBase.getAllBlocksInRound(
+      currentRound
+    ) as any[];
+
+    let nextSlot = currentSlot + 1;
+
+    for (let i = 0; i < allBlockHeightsFromThisRound.length; ++i) {
+      const oneBlock = allBlockHeightsFromThisRound[i];
+
+      if (new BigNumber(oneBlock).isLessThanOrEqualTo(currentBlock.height)) {
+        const loadedBlock = await global.app.sdb.findOne<Block>(Block, {
+          condition: {
+            height: oneBlock,
+          },
+        });
+
+        allBlockHeightsFromThisRound[i] = {
+          height: loadedBlock.height,
+          status: 'forged',
+          round: currentRound,
+          delegate: allDelegates.find(x => x.publicKey === loadedBlock.delegate)
+            .username,
+          timestamp: loadedBlock.timestamp,
+          timestampPretty: new Date(slots.getRealTime(loadedBlock.timestamp)),
+        };
+      } else {
+        const timestampInFuture = nextSlot * 10;
+
+        const activeDelegates = await Delegates.generateDelegateList(oneBlock);
+        const delegateKey = activeDelegates[nextSlot % 101];
+
+        allBlockHeightsFromThisRound[i] = {
+          height: oneBlock,
+          status: 'planned',
+          round: currentRound,
+          delegate: allDelegates.find(x => x.publicKey === delegateKey)
+            .username,
+          timestamp: timestampInFuture,
+          timestampPretty: new Date(slots.getRealTime(timestampInFuture)),
+        };
+
+        nextSlot += 1;
+      }
+    }
+
+    return res.json(allBlockHeightsFromThisRound);
   };
 
   private count = async (req: Request, res: Response, next: Next) => {
