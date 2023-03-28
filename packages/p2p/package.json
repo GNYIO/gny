@@ -27,6 +27,7 @@
     "libp2p-secio": "^0.13.1",
     "multiaddr": "^8.1.1",
     "peer-id": "^0.14.2",
+    "timeout-abort-controller": "^3.0.0",
     "uint8arrays": "^1.1.0"
   }
 }
