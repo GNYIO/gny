@@ -1,7 +1,8 @@
 import * as gnyClient from '@gny/client';
-import * as lib from '../lib';
+import * as lib from '../../e2e/lib';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import { log as consoleLog } from 'console';
 
 const config = {
   headers: {
@@ -47,7 +48,11 @@ async function voteUser(name) {
   await lib.onNewBlock();
 
   // lock the account
-  const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+  const lockTrs = gnyClient.basic.lock(
+    String(173000),
+    String(187500 * 1e8),
+    genesisSecret
+  );
   const lockTransData = {
     transaction: lockTrs,
   };
@@ -83,29 +88,39 @@ async function voteUser(name) {
 }
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+const DOCKER_COMPOSE_P2P = 'config/integration/docker-compose.integration.yml';
 
 describe('basic', () => {
-  beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
-    done();
+  beforeAll(async () => {
+    await lib.stopAndRemoveOldContainersAndNetworks();
+    await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
-    await lib.spawnContainer();
-    done();
+  beforeEach(async () => {
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
+
+    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
+
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute);
 
-  afterEach(async done => {
-    await lib.stopAndKillContainer();
-    done();
+  afterEach(async () => {
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
+
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   describe('transfer', () => {
     it(
       'should transfer to a recipient account',
-      async done => {
+      async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -141,14 +156,16 @@ describe('basic', () => {
           'http://localhost:4096/api/accounts/getBalance?address=' + recipient
         );
         expect(afterTrs.data.balances[0].gny).toBe(String(5 * 1e8));
-        done();
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should return recipient name not exist',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const senderId = createAddress(genesisSecret);
         const amount = 5 * 1e8;
         const recipient = 'guQr4DM3aiTD36EARqDpbfsEHoNF'; // wrong recipient
@@ -192,14 +209,18 @@ describe('basic', () => {
         );
         expect(afterTrs.data.balances[0].gny).toBe(String('40000000000000000'));
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should return error: invalid recipient, if recipient address is equal to sender address',
       async () => {
+        expect.assertions(1);
+        await lib.waitForApiToBeReadyReady(4096);
+        await lib.sleep(10 * 1000);
+
         const amount = 5 * 1e8;
-        const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const recipient = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
         const message = '';
 
         // Transaction
@@ -214,21 +235,24 @@ describe('basic', () => {
         };
 
         const transferPromise = axios.post(
-          'http://localhost:4096/peer/transactions',
+          'http://127.0.0.1:4096/peer/transactions',
           transData,
           config
         );
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid recipient',
         });
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should return error: invalid recipient, if recipient username is equal to sender username',
       async () => {
+        expect.assertions(1);
+        await lib.sleep(10 * 1000);
+
         const amount = 5 * 1e8;
         const username = 'a1300';
         const recipient = 'a1300';
@@ -241,11 +265,12 @@ describe('basic', () => {
         };
 
         await axios.post(
-          'http://localhost:4096/peer/transactions',
+          'http://127.0.0.1:4096/peer/transactions',
           nameTransData,
           config
         );
 
+        await lib.onNewBlock();
         await lib.onNewBlock();
 
         // Transaction
@@ -260,16 +285,16 @@ describe('basic', () => {
         };
 
         const transferPromise = axios.post(
-          'http://localhost:4096/peer/transactions',
+          'http://127.0.0.1:4096/peer/transactions',
           transData,
           config
         );
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid recipient',
         });
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
   });
 
@@ -277,20 +302,23 @@ describe('basic', () => {
     it(
       'should set the user name',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const username = 'xpgeng';
 
-        const beforeset = await axios.get(
+        const beforesetPromise = axios.get(
           'http://localhost:4096/api/accounts?username=' + username
         );
-        console.log(beforeset.data.username);
-        expect(beforeset.data.username).toBeUndefined();
-        await lib.onNewBlock();
+        await expect(beforesetPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'account with this username not found',
+        });
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);
         const transData = {
           transaction: trs,
         };
-
         const { data } = await axios.post(
           'http://localhost:4096/peer/transactions',
           transData,
@@ -306,18 +334,24 @@ describe('basic', () => {
         );
         expect(afterset.data.username).toBe(username);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should return the error: Name already registered',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const username = 'xpgeng';
 
-        const beforeset = await axios.get(
-          'http://localhost:4096/api/accounts?username=' + username
+        const beforesetPromise = axios.get(
+          'http://127.0.0.1:4096/api/accounts?username=' + username
         );
-        expect(beforeset.data.username).toBeUndefined();
+        await expect(beforesetPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'account with this username not found',
+        });
         await lib.onNewBlock();
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -326,7 +360,7 @@ describe('basic', () => {
         };
 
         const { data } = await axios.post(
-          'http://localhost:4096/peer/transactions',
+          'http://127.0.0.1:4096/peer/transactions',
           transData,
           config
         );
@@ -344,11 +378,11 @@ describe('basic', () => {
         };
 
         const setPromise = axios.post(
-          'http://localhost:4096/peer/transactions',
+          'http://127.0.0.1:4096/peer/transactions',
           transTwiceData,
           config
         );
-        expect(setPromise).rejects.toHaveProperty('response.data', {
+        await expect(setPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Name already registered',
         });
@@ -359,12 +393,17 @@ describe('basic', () => {
     it(
       'should return the error: Name already set',
       async () => {
-        const username = 'xpgeng';
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
 
-        const beforeset = await axios.get(
+        const username = 'xpgeng';
+        const beforesetPromise = axios.get(
           'http://localhost:4096/api/accounts?username=' + username
         );
-        expect(beforeset.data.username).toBeUndefined();
+        await expect(beforesetPromise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'account with this username not found',
+        });
         await lib.onNewBlock();
 
         const trs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -399,7 +438,7 @@ describe('basic', () => {
           transTwiceData,
           config
         );
-        expect(setPromise).rejects.toHaveProperty('response.data', {
+        await expect(setPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Name already set',
         });
@@ -412,17 +451,24 @@ describe('basic', () => {
     it(
       'should lock the sender with an amount according to the height',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // Before lock
         const keys = gnyClient.crypto.getKeys(genesisSecret);
         const senderId = gnyClient.crypto.getAddress(keys.publicKey);
         const beforeLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + senderId
         );
-        expect(beforeLock.data.account.lockHeight).toBe('0');
+        expect(beforeLock.data.lockHeight).toBe('0');
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -442,7 +488,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe(String(173000));
+        expect(afterLock.data.lockHeight).toBe(String(173000));
       },
       lib.oneMinute
     );
@@ -450,8 +496,15 @@ describe('basic', () => {
     it(
       'trying to lock amount till height "0" returns error',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock
-        const trs = gnyClient.basic.lock(0, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(0),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -463,7 +516,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Amount should be positive integer',
         });
@@ -473,7 +526,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('0');
+        expect(afterLock.data.lockHeight).toBe('0');
       },
       lib.oneMinute
     );
@@ -481,8 +534,15 @@ describe('basic', () => {
     it(
       'should return the error: Insufficient balance',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock
-        const trs = gnyClient.basic.lock(173000, 40 * 1e16, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(173000),
+          String(40 * 1e16),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -494,7 +554,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Insufficient balance',
         });
@@ -504,7 +564,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('0');
+        expect(afterLock.data.lockHeight).toBe('0');
       },
       lib.oneMinute
     );
@@ -512,8 +572,15 @@ describe('basic', () => {
     it(
       'locking account below the MIN_LOCK_HEIGHT returns error',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock
-        const trs = gnyClient.basic.lock(17300, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(17300),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -525,7 +592,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid lock height',
         });
@@ -535,7 +602,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('0');
+        expect(afterLock.data.lockHeight).toBe('0');
       },
       lib.oneMinute
     );
@@ -543,8 +610,15 @@ describe('basic', () => {
     it(
       'trying to lock account with amount "0" results in error',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock
-        const trs = gnyClient.basic.lock(173000, 0, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(173000),
+          String(0),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -556,7 +630,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Amount should be positive integer',
         });
@@ -566,7 +640,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('0');
+        expect(afterLock.data.lockHeight).toBe('0');
       },
       lib.oneMinute
     );
@@ -574,8 +648,15 @@ describe('basic', () => {
     it(
       'trying to lock account two times with same height returns error',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock the sender before locking again
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transLockData = {
           transaction: lockTrs,
@@ -589,7 +670,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -601,7 +686,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid lock height',
         });
@@ -611,7 +696,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('173000');
+        expect(afterLock.data.lockHeight).toBe('173000');
       },
       lib.oneMinute
     );
@@ -619,8 +704,15 @@ describe('basic', () => {
     it(
       'locking account a second time with an amount of "0" should return error',
       async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // lock the sender before locking again
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
 
         const transLockData = {
           transaction: lockTrs,
@@ -634,7 +726,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock
-        const trs = gnyClient.basic.lock(173000 * 2 + 20, 0, genesisSecret);
+        const trs = gnyClient.basic.lock(
+          String(173000 * 2 + 20),
+          String(0),
+          genesisSecret
+        );
 
         const transData = {
           transaction: trs,
@@ -646,7 +742,7 @@ describe('basic', () => {
           config
         );
 
-        expect(lockPromise).rejects.toHaveProperty('response.data', {
+        await expect(lockPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Amount should be positive integer',
         });
@@ -656,7 +752,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe('173000');
+        expect(afterLock.data.lockHeight).toBe('173000');
       },
       lib.oneMinute
     );
@@ -666,7 +762,14 @@ describe('basic', () => {
     it(
       'cannot unlock the sender account',
       async () => {
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -682,7 +785,7 @@ describe('basic', () => {
         const afterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + lockTrs.senderId
         );
-        expect(afterLock.data.account.lockHeight).toBe(String(173000));
+        expect(afterLock.data.lockHeight).toBe(String(173000));
         await lib.onNewBlock();
 
         // unlock
@@ -697,7 +800,7 @@ describe('basic', () => {
           config
         );
 
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        await expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account cannot unlock',
         });
@@ -708,6 +811,9 @@ describe('basic', () => {
     it(
       'should return the error: Account is not locked',
       async () => {
+        expect.assertions(1);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const trs = gnyClient.basic.unlock(genesisSecret);
         const transData = {
           transaction: trs,
@@ -719,7 +825,7 @@ describe('basic', () => {
           config
         );
 
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        await expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is not locked',
         });
@@ -732,6 +838,9 @@ describe('basic', () => {
     it(
       'should register the delegate',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const username = 'xpgeng';
 
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -782,6 +891,9 @@ describe('basic', () => {
     it(
       'should return error if username is not set',
       async () => {
+        expect.assertions(1);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const trs = gnyClient.basic.registerDelegate(genesisSecret);
 
         const transData = {
@@ -794,7 +906,7 @@ describe('basic', () => {
           config
         );
 
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        await expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account has not a name',
         });
@@ -805,6 +917,9 @@ describe('basic', () => {
     it(
       'should return error if the account is already delegated',
       async () => {
+        expect.assertions(1);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
 
@@ -847,7 +962,7 @@ describe('basic', () => {
           config
         );
 
-        return expect(contractPromise).rejects.toHaveProperty('response.data', {
+        await expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is already Delegate',
         });
@@ -860,6 +975,9 @@ describe('basic', () => {
     it(
       'should vote the delegates',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -874,7 +992,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -932,6 +1054,9 @@ describe('basic', () => {
     it(
       'should return the error: Account is not locked',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -977,7 +1102,7 @@ describe('basic', () => {
           config
         );
 
-        expect(votePromise).rejects.toHaveProperty('response.data', {
+        await expect(votePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is not locked',
         });
@@ -997,6 +1122,9 @@ describe('basic', () => {
     it(
       'should return the error: Voting limit exceeded',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -1011,7 +1139,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1058,7 +1190,7 @@ describe('basic', () => {
           config
         );
 
-        expect(votePromise).rejects.toHaveProperty('response.data', {
+        await expect(votePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Voting limit exceeded',
         });
@@ -1076,6 +1208,9 @@ describe('basic', () => {
     it(
       'should return the error: Duplicated vote item',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -1090,7 +1225,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1133,7 +1272,7 @@ describe('basic', () => {
           config
         );
 
-        expect(votePromise).rejects.toHaveProperty('response.data', {
+        await expect(votePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Duplicated vote item',
         });
@@ -1151,6 +1290,9 @@ describe('basic', () => {
     it(
       'should return the error: Already voted for delegate',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -1165,7 +1307,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1221,7 +1367,7 @@ describe('basic', () => {
           config
         );
 
-        expect(votePromise).rejects.toHaveProperty('response.data', {
+        await expect(votePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Already voted for delegate: xpgeng',
         });
@@ -1241,6 +1387,9 @@ describe('basic', () => {
     it(
       'should return the error: Voted delegate not exists',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         // set username
         const username = 'xpgeng';
         const nameTrs = gnyClient.basic.setUserName(username, genesisSecret);
@@ -1255,7 +1404,11 @@ describe('basic', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };
@@ -1286,7 +1439,7 @@ describe('basic', () => {
           config
         );
 
-        expect(votePromise).rejects.toHaveProperty('response.data', {
+        await expect(votePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Voted delegate not exists: xpgeng',
         });
@@ -1306,6 +1459,9 @@ describe('basic', () => {
     it(
       'should unvote the delegates',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const username = 'xpgeng';
         await voteUser(username);
 
@@ -1339,12 +1495,15 @@ describe('basic', () => {
         );
         expect(afterUnvote.data.delegates).toHaveLength(0);
       },
-      lib.oneMinute
+      2 * lib.oneMinute
     );
 
     it(
       'should return the error: Delegate not voted yet',
       async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const username = 'xpgeng';
         await voteUser(username);
 
@@ -1401,7 +1560,10 @@ describe('basic', () => {
   describe('testing basic contract locking functionality', () => {
     it(
       'successfully invoke two different basic.transfer transactions in one block',
-      async done => {
+      async () => {
+        expect.assertions(7);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const recipient1 = createRandomAddress();
         const basicTransfer1 = gnyClient.basic.transfer(
           recipient1,
@@ -1468,8 +1630,6 @@ describe('basic', () => {
         expect(info1.transactions[0].height).toEqual(
           info2.transactions[0].height
         );
-
-        done();
       },
       lib.oneMinute * 2
     );
