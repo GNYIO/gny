@@ -6,3 +6,4 @@ export * from './limit-cache.js';
 export * from './messageBus.js';
 export * from './sequence.js';
 export * from './slots.js';
+export * from './get-date.js';
