@@ -1,8 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
+
 module.exports = {
-  moduleNameMapper: {
-    uuid: require.resolve('uuid'),
-  },
   cache: false,
   verbose: true,
   setupFilesAfterEnv: ['jest-extended/all'],
