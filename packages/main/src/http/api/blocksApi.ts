@@ -16,9 +16,9 @@ import {
 } from '@gny/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gny/base';
-import { getBlocks as getBlocksFromApi } from '../util';
-import { StateHelper } from '../../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
+import { getBlocks as getBlocksFromApi } from '../util.js';
+import { StateHelper } from '../../core/StateHelper.js';
+import BigNumber from 'bignumber.js';
 import { joi } from '@gny/extended-joi';
 
 export default class BlocksApi implements IHttpApi {

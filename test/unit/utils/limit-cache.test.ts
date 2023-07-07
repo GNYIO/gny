@@ -1,4 +1,4 @@
-import { LimitCache } from '../../../packages/utils/src/limit-cache';
+import { LimitCache } from '@gny/utils';
 
 describe('LimitCache', () => {
   let sut: LimitCache<string, boolean>;

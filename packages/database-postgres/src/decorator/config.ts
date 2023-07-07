@@ -1,4 +1,4 @@
-import { MetaDataStore } from './metaDataStore';
+import { MetaDataStore } from './metaDataStore.js';
 
 export interface ConfigOptions {
   memory: boolean;

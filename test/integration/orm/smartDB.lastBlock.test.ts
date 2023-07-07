@@ -1,4 +1,4 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB } from '@gny/database-postgres';
 import * as lib from '../lib';
 import {
   saveGenesisBlock,
@@ -7,12 +7,12 @@ import {
   CUSTOM_GENESIS,
 } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.lastBlock', () => {
   const dbName = 'lastblockdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

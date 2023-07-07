@@ -1,15 +1,15 @@
-import BlocksApi from './http/api/blocksApi';
-import AccountsApi from './http/api/accountsApi';
-import DelegatesApi from './http/api/delegatesApi';
-import PeerApi from './http/api/peerApi';
-import SystemApi from './http/api/systemApi';
-import TransactionsApi from './http/api/transactionsApi';
-import TransportApi from './http/api/transportApi';
-import UiaApi from './http/api/uiaApi';
-import LoaderApi from './http/api/loaderApi';
-import TransfersApi from './http/api/transfersApi';
-import ExchangeApi from './http/api/exchangeApi';
-import MetricsApi from './http/api/metricsApi';
+import BlocksApi from './http/api/blocksApi.js';
+import AccountsApi from './http/api/accountsApi.js';
+import DelegatesApi from './http/api/delegatesApi.js';
+import PeerApi from './http/api/peerApi.js';
+import SystemApi from './http/api/systemApi.js';
+import TransactionsApi from './http/api/transactionsApi.js';
+import TransportApi from './http/api/transportApi.js';
+import UiaApi from './http/api/uiaApi.js';
+import LoaderApi from './http/api/loaderApi.js';
+import TransfersApi from './http/api/transfersApi.js';
+import ExchangeApi from './http/api/exchangeApi.js';
+import MetricsApi from './http/api/metricsApi.js';
 import { IScope, CoreApi } from '@gny/interfaces';
 
 export default function loadCoreApi(scope: IScope) {

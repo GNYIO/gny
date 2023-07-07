@@ -16,7 +16,9 @@ export class Exchange {
     this.base = new Base(connection);
   }
 
-  public async openAccount(secret: string) {
+  public async openAccount(
+    secret: string
+  ): Promise<ApiResult<AccountOpenModel, GetAccountError>> {
     const res = await this.base.post('/api/exchange/openAccount', {
       secret: secret,
     });
@@ -24,13 +26,17 @@ export class Exchange {
     return result;
   }
 
-  public async generateAccount() {
+  public async generateAccount(): Promise<
+    ApiResult<AccountGenerateModel, ServerError>
+  > {
     const res = await this.base.post('/api/exchange/generateAccount');
     const result: ApiResult<AccountGenerateModel, ServerError> = res.data;
     return result;
   }
 
-  public async generatePublicKey(secret: string) {
+  public async generatePublicKey(
+    secret: string
+  ): Promise<ApiResult<PublicKeyWrapper, ServerError>> {
     const res = await this.base.post('/api/exchange/generatePublicKey', {
       secret: secret,
     });

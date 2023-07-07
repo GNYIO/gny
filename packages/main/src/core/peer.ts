@@ -1,16 +1,15 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import { create } from '@gny/p2p';
-import { PeerNode, ICoreModule, P2PPeerIdAndMultiaddr } from '@gny/interfaces';
+import { PeerNode, ICoreModule } from '@gny/interfaces';
 import * as PeerId from 'peer-id';
-import { attachDirectP2PCommunication } from './PeerHelper';
-import Transport from './transport';
-const uint8ArrayFromString = require('uint8arrays/from-string');
-import * as multiaddr from 'multiaddr';
-import { StateHelper } from './StateHelper';
-import { BigNumber } from '@gny/utils';
-import Loader from './loader';
-import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper';
+import { attachDirectP2PCommunication } from './PeerHelper.js';
+import Transport from './transport.js';
+import uint8Arrays from 'uint8arrays';
+import multiaddr from 'multiaddr';
+import { StateHelper } from './StateHelper.js';
+import BigNumber from 'bignumber.js';
+import Loader from './loader.js';
 import { serializedSpanContext } from '@gny/tracer';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -187,7 +186,7 @@ export default class Peer implements ICoreModule {
       };
       span.log(data);
 
-      const converted = uint8ArrayFromString(JSON.stringify(data));
+      const converted = uint8Arrays.fromString(JSON.stringify(data));
       await Peer.p2p.rendezvousBroadcastsPeers(converted);
 
       span.finish();

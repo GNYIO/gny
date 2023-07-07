@@ -1,19 +1,21 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  roots: ['<rootDir>/test'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  collectCoverage: false,
-  globals: {
-    'ts-jest': {
-      diagnostics: false,
-      tsConfig: '<rootDir>/jest.tsconfig.json',
-    },
-  },
-
   moduleNameMapper: {
-    '@gny/(.*)$': '<rootDir>/packages/$1',
+    uuid: require.resolve('uuid'),
+  },
+  cache: false,
+  verbose: true,
+  setupFilesAfterEnv: ['jest-extended/all'],
+
+  extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        // tsconfig: 'tsconfig.json',
+        useESM: true,
+        tsconfig: 'jest.tsconfig.json',
+      },
+    ],
   },
 };

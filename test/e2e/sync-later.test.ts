@@ -1,9 +1,10 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import axios from 'axios';
 import { getConfig } from '@gny/network';
 import * as gnyClient from '@gny/client';
+import { log as consoleLog } from 'console';
 
 const config = {
   headers: {
@@ -21,29 +22,29 @@ describe('sync-later e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // create **only** network, volumes and all containers, don't start them
-    lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
+    await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'sync-only');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
     'sync-later',
     async () => {
       // start individually all containers
-      console.log('starting "jaeger", "db1", "db2", "forger"');
+      consoleLog('starting "jaeger", "db1", "db2", "forger"');
       await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
         'loki.local',
         'jaeger.local',
@@ -52,23 +53,24 @@ describe('sync-later e2e test', () => {
         'forger',
       ]);
       await lib.waitForLoaded(4096);
-      console.log('successfully started "forger"');
+      consoleLog('successfully started "forger"');
 
       // send a transaction, so a transaction also gets synced
       const trs = gnyClient.basic.transfer(
         'GGrBMK5LjNFHCjc3bxu6Wfy4fie6',
         String(5 * 1e8),
         null,
+        // @ts-ignore
         getConfig('localnet').genesis
       );
 
-      console.log('sending transaction...');
+      consoleLog('sending transaction...');
       const result = await axios.post(
         'http://localhost:4096/peer/transactions',
         { transaction: trs },
         config
       );
-      console.log('finished sending.');
+      consoleLog('finished sending.');
       // sleep for 100 seconds
       await lib.sleep(100 * 1000);
 
@@ -77,9 +79,9 @@ describe('sync-later e2e test', () => {
       expect(new BigNumber(height).isGreaterThanOrEqualTo(6)).toEqual(true);
 
       // start service "sync-later"
-      console.log('starting service "sync-later"');
+      consoleLog('starting service "sync-later"');
       await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4098]);
-      console.log('started "sync-later".');
+      consoleLog('started "sync-later".');
 
       // wait for 20 seconds
       await lib.sleep(20 * 1000);

@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
 import { SmartDB } from '@gny/database-postgres';
-import BalanceManager from './smartdb/balance-manager';
-import loadContracts from './loadContracts';
+import BalanceManager from './smartdb/balance-manager.js';
+import loadContracts from './loadContracts.js';
 
-import { BigNumber } from 'bignumber.js';
-import { IOptions, IValidatorConstraints } from './globalInterfaces';
-import { StateHelper } from './core/StateHelper';
+import BigNumber from 'bignumber.js';
+import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
+import { StateHelper } from './core/StateHelper.js';
 import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gny/database-postgres';
-import Peer from './core/peer';
+import Peer from './core/peer.js';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();

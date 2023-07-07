@@ -1,5 +1,5 @@
 import { SimplePushTypeCallback } from '@gny/p2p';
-import { StateHelper } from './StateHelper';
+import { StateHelper } from './StateHelper.js';
 import {
   BlockIdWrapper,
   BlockAndVotes,
@@ -25,13 +25,13 @@ import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { TracerWrapper, getSmallBlockHash } from '@gny/tracer';
 
-import { getBlocks as getBlocksFromApi } from '../http/util';
+import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {
   ISpan,
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
 } from '@gny/tracer';
-const uint8ArrayFromString = require('uint8arrays/from-string');
+import uint8Arrays from 'uint8arrays';
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
@@ -45,7 +45,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       data: blockIdWrapper,
     };
 
-    const data = uint8ArrayFromString(JSON.stringify(raw));
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
 
     const resultRaw = await bundle.directRequest(
       peerId,
@@ -135,7 +135,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
       },
     };
 
-    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    const converted = [uint8Arrays.fromString(JSON.stringify(result))];
     return converted;
   };
 
@@ -155,7 +155,7 @@ function V1_VOTES_HANDLER(bundle) {
       data: votes,
     };
 
-    const data = uint8ArrayFromString(JSON.stringify(before));
+    const data = uint8Arrays.fromString(JSON.stringify(before));
     await bundle.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
   };
 
@@ -358,7 +358,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
         currentBlock,
       };
 
-      return [uint8ArrayFromString(JSON.stringify(result))];
+      return [uint8Arrays.fromString(JSON.stringify(result))];
     } catch (e) {
       span.setTag('error', true);
       span.log({
@@ -375,7 +375,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
       global.app.logger.error(e);
 
       const result: CommonBlockResult = null;
-      return [uint8ArrayFromString(JSON.stringify(result))];
+      return [uint8Arrays.fromString(JSON.stringify(result))];
     }
   };
 
@@ -399,7 +399,7 @@ function V1_GET_HEIGH_HANDLER(bundle) {
       ),
       data: 'no param',
     };
-    const data = uint8ArrayFromString(JSON.stringify(raw));
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
 
     const resultRaw = await bundle.directRequest(
       peerId,
@@ -452,7 +452,7 @@ function V1_GET_HEIGH_HANDLER(bundle) {
 
     span.finish();
 
-    const converted = [uint8ArrayFromString(JSON.stringify(result))];
+    const converted = [uint8Arrays.fromString(JSON.stringify(result))];
     return converted;
   };
 
@@ -553,7 +553,7 @@ function V1_BLOCKS_HANDLER(bundle) {
 
       span.finish();
 
-      return [uint8ArrayFromString(JSON.stringify(blocks))];
+      return [uint8Arrays.fromString(JSON.stringify(blocks))];
     } catch (e) {
       span.setTag('error', true);
       span.log({
@@ -570,7 +570,7 @@ function V1_BLOCKS_HANDLER(bundle) {
       global.app.logger.error(e);
 
       const result: IBlock[] = [];
-      return [uint8ArrayFromString(JSON.stringify(result))];
+      return [uint8Arrays.fromString(JSON.stringify(result))];
     }
   };
 
@@ -621,7 +621,7 @@ function V1_GET_PEERS_HANDLER(bundle) {
     });
     span.finish();
 
-    return [uint8ArrayFromString(JSON.stringify(peers))];
+    return [uint8Arrays.fromString(JSON.stringify(peers))];
   };
 
   bundle.requestGetPeers = request;

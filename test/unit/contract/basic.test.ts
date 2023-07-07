@@ -1,4 +1,7 @@
-import basic from '../../../packages/main/src/contract/basic';
+import { jest } from '@jest/globals';
+
+import basic from '@gny/main/basic';
+import { IApp } from '@gny/main/globalInterfaces';
 import {
   ILogger,
   IAccount,
@@ -6,10 +9,21 @@ import {
   ITransaction,
   Context,
   IVote,
-} from '../../../packages/interfaces/src/index';
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+} from '@gny/interfaces';
+import { IConfig } from '@gny/interfaces';
 
-jest.mock('../../../packages/database-postgres/src/smartDB');
+// mocking of ES modules currently not supported in jest
+// https://github.com/facebook/jest/issues/9430
+// therefore we need to manually mock every function
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      app: Partial<IApp>;
+      Config: Partial<IConfig>;
+    }
+  }
+}
 
 describe('basic', () => {
   beforeEach(done => {
@@ -25,7 +39,6 @@ describe('basic', () => {
 
     global.app = {
       validate: jest.fn((type, value) => null),
-      sdb: new SmartDB(logger),
     };
     global.Config = {
       netVersion: 'localnet',
@@ -37,6 +50,10 @@ describe('basic', () => {
     delete (basic as any).sender;
     delete (basic as any).block;
     delete (basic as any).trs;
+
+    // new
+    jest.clearAllMocks();
+    delete (basic as any).sdb;
 
     done();
   });
@@ -85,8 +102,11 @@ describe('basic', () => {
         } as ITransaction,
       } as Context;
 
-      (global.app.sdb.increase as jest.Mock).mockReturnValue(recipientAccount);
-      (global.app.sdb.load as jest.Mock).mockReturnValue(recipientAccount);
+      global.app.sdb = {
+        increase: jest.fn().mockReturnValue(recipientAccount),
+        load: jest.fn().mockReturnValue(recipientAccount),
+        create: jest.fn(),
+      } as any;
 
       const transfered = await basic.transfer.call(context, amount, recipient);
       expect(transfered).toBeNull();
@@ -105,9 +125,11 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.load as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+        load: jest.fn().mockReturnValue(null),
+      } as any;
 
       const set = await basic.setUserName.call(context, username);
 
@@ -131,9 +153,11 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.load as jest.Mock).mockReturnValue(account);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+        load: jest.fn().mockReturnValue(account),
+      } as any;
 
       const set = await basic.setUserName.call(context, username);
       expect(set).toBe('Name already registered');
@@ -150,9 +174,11 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.load as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+        load: jest.fn().mockReturnValue(null),
+      } as any;
 
       const set = await basic.setUserName.call(context, username);
       expect(set).toBe('Name already set');
@@ -172,8 +198,10 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
       const result = await basic.setSecondPassphrase.call(context, publicKey);
       expect(context.sender.secondPublicKey).toBe(publicKey);
@@ -189,8 +217,10 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
       const set = await basic.setSecondPassphrase.call(context, publicKey);
       expect(set).toBe('Invalid account type');
@@ -205,8 +235,10 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
       const set = await basic.setSecondPassphrase.call(context, publicKey);
       expect(set).toBe('Password already set');
@@ -232,10 +264,12 @@ describe('basic', () => {
         },
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue([vote]);
-      (global.app.sdb.increase as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue([vote]),
+        increase: jest.fn().mockReturnValue(null),
+      } as any;
 
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBeNull();
@@ -254,6 +288,10 @@ describe('basic', () => {
           lockAmount: String(0),
         } as IAccount,
       };
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Insufficient balance');
@@ -276,6 +314,10 @@ describe('basic', () => {
         },
       };
 
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid lock height');
     });
@@ -296,6 +338,10 @@ describe('basic', () => {
           height: String(1),
         },
       } as Context;
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid amount');
@@ -318,6 +364,10 @@ describe('basic', () => {
         },
       };
 
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid lock height');
     });
@@ -339,6 +389,10 @@ describe('basic', () => {
         },
       } as Context;
 
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid amount');
     });
@@ -349,6 +403,8 @@ describe('basic', () => {
       delete (basic as any).sender;
       delete (basic as any).block;
       delete (basic as any).trs;
+
+      jest.restoreAllMocks();
 
       done();
     });
@@ -368,8 +424,10 @@ describe('basic', () => {
         },
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unlocked = await basic.unlock.call(context);
       expect(unlocked).toBeNull();
@@ -396,7 +454,9 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unlocked = await basic.unlock.call(context);
       expect(unlocked).toBe('Account is not locked');
@@ -417,7 +477,9 @@ describe('basic', () => {
         },
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unlocked = await basic.unlock.call(context);
       expect(unlocked).toBe('Account cannot unlock');
@@ -429,6 +491,8 @@ describe('basic', () => {
       delete (basic as any).sender;
       delete (basic as any).block;
       delete (basic as any).trs;
+
+      jest.restoreAllMocks();
 
       done();
     });
@@ -454,9 +518,11 @@ describe('basic', () => {
         } as ITransaction,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.create as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.update as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValue(null),
+        update: jest.fn().mockReturnValue(null),
+      } as any;
 
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBeNull();
@@ -467,7 +533,9 @@ describe('basic', () => {
         sender: undefined as unknown,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBe('Account not found');
@@ -478,7 +546,9 @@ describe('basic', () => {
         sender: undefined as unknown,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBe('Account not found');
@@ -500,7 +570,9 @@ describe('basic', () => {
         },
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBe('Account has not a name');
@@ -522,7 +594,9 @@ describe('basic', () => {
         },
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBe('Account is already Delegate');
@@ -574,16 +648,20 @@ describe('basic', () => {
       currentVotes = undefined;
       oneAccount = undefined;
 
+      jest.restoreAllMocks();
+
       done();
     });
 
     it('should return null', async () => {
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.exists as jest.Mock).mockReturnValue(true);
-      (global.app.sdb.increase as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.create as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        exists: jest.fn().mockReturnValue(true),
+        increase: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBeNull();
@@ -601,8 +679,10 @@ describe('basic', () => {
         } as Pick<IBlock, 'height'>,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Account is not locked');
@@ -614,8 +694,10 @@ describe('basic', () => {
         delegates += i + ',';
       }
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Voting limit exceeded');
@@ -624,7 +706,9 @@ describe('basic', () => {
     it('should return Duplicated vote item', async () => {
       delegates = 'xpgeng,liangpeili,a1300,liangpeili';
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Duplicated vote item');
@@ -640,9 +724,11 @@ describe('basic', () => {
         currentVotes.push({ delegate: String(i) });
       }
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Maximum number of votes exceeded');
@@ -651,19 +737,23 @@ describe('basic', () => {
     it('should return Already voted for delegate: xpgeng', async () => {
       currentVotes.push({ delegate: 'xpgeng' });
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Already voted for delegate: xpgeng');
     });
 
     it('should return Voted delegate not exists: xpgeng', async () => {
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.exists as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findOne as jest.Mock).mockReturnValue(oneAccount);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        exists: jest.fn().mockReturnValue(null),
+        findOne: jest.fn().mockReturnValue(oneAccount),
+      } as any;
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Voted delegate not exists: xpgeng');
@@ -709,11 +799,13 @@ describe('basic', () => {
     });
 
     it('should return null', async () => {
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.exists as jest.Mock).mockReturnValue(true);
-      (global.app.sdb.increase as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.del as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        exists: jest.fn().mockReturnValue(true),
+        increase: jest.fn().mockReturnValue(null),
+        del: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBeNull();
@@ -729,7 +821,9 @@ describe('basic', () => {
         } as IAccount,
       } as Context;
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBe('Account is not locked');
@@ -741,7 +835,9 @@ describe('basic', () => {
         delegates += i + ',';
       }
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBe('Voting limit exceeded');
@@ -750,7 +846,9 @@ describe('basic', () => {
     it('should return Duplicated vote item', async () => {
       delegates = 'xpgeng,liangpeili,a1300,liangpeili';
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBe('Duplicated vote item');
@@ -768,17 +866,21 @@ describe('basic', () => {
         },
       ];
 
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(null);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBe('Delegate not voted yet: a1300');
     });
 
     it('should return Voted delegate not exists: xpgeng', async () => {
-      (global.app.sdb.lock as jest.Mock).mockReturnValue(undefined);
-      (global.app.sdb.findAll as jest.Mock).mockReturnValue(currentVotes);
-      (global.app.sdb.exists as jest.Mock).mockReturnValue(null);
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+        findAll: jest.fn().mockReturnValue(currentVotes),
+        exists: jest.fn().mockReturnValue(null),
+      } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBe('Voted delegate not exists: xpgeng');

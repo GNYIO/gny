@@ -705,6 +705,11 @@ export interface DelegatesWrapper {
   delegates: DelegateViewModel[];
 }
 
+export interface DelegatesWrapperSimple {
+  count: number;
+  delegates: DelegateViewModel[];
+}
+
 export interface ExtendedDelegatesWrapper {
   totalCount?: number;
   delegates: ExtendedDelegateViewModel[];

@@ -1,4 +1,4 @@
-import { joi } from '../../../packages/extended-joi/src/index';
+import { joi } from '@gny/extended-joi';
 
 describe('extendedJoi', () => {
   describe('publickey', () => {

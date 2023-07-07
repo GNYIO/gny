@@ -1,5 +1,3 @@
-import * as matchers from 'jest-extended';
-expect.extend(matchers);
 import * as gnyClient from '@gny/client';
 
 describe('GNY client', () => {
@@ -113,7 +111,10 @@ describe('GNY client', () => {
         const url = '127.0.0.1';
         const port = 4096;
         const net = 'hello';
-        expect(() => new gnyClient.Connection(url, port, net)).toThrow();
+        expect(() => {
+          // @ts-ignore
+          return new gnyClient.Connection(url, port, net);
+        }).toThrow();
       });
     });
 
@@ -143,7 +144,10 @@ describe('GNY client', () => {
         const port = 4096;
         const net = 'localnet';
         const https = 2;
-        expect(() => new gnyClient.Connection(url, port, net, https)).toThrow();
+        expect(() => {
+          // @ts-ignore
+          return new gnyClient.Connection(url, port, net, https);
+        }).toThrow();
       });
     });
   });

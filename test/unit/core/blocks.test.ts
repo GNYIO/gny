@@ -1,28 +1,18 @@
-// workourand for: ReferenceError: TextDecoder is not defined
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+import { jest } from '@jest/globals';
 
-import Blocks from '../../../packages/main/src/core/blocks';
-import {
-  IBlock,
-  KeyPair,
-  ProcessBlockOptions,
-} from '../../../packages/interfaces';
-import {
-  IState,
-  IStateSuccess,
-} from '../../../packages/main/src/globalInterfaces';
-import { BlockBase } from '../../../packages/base/src/blockBase';
-import { TransactionBase } from '../../../packages/base/src/transactionBase';
-import { Block as BlockModel } from '../../../packages/database-postgres/src/entity/Block';
+import Blocks from '@gny/main/blocks';
+import { IBlock, KeyPair, ProcessBlockOptions } from '@gny/interfaces';
+import { IState, IStateSuccess } from '@gny/main/globalInterfaces';
+import { BlockBase } from '@gny/base';
+import { TransactionBase } from '@gny/base';
+import { Block as BlockModel } from '@gny/database-postgres';
 import * as crypto from 'crypto';
-import { generateAddress } from '../../../packages/utils/src/address';
-import * as ed from '../../../packages/ed';
-import { slots } from '../../../packages/utils/src/slots';
-import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
-import { StateHelper } from '../../../packages/main/src/core/StateHelper';
-import { ISpan } from '../../../packages/tracer/dist';
+import { generateAddress } from '@gny/utils';
+import * as ed from '@gny/ed';
+import { slots } from '@gny/utils';
+import { BlocksHelper } from '@gny/main/blockshelper';
+import { StateHelper } from '@gny/main/statehelper';
+import { ISpan } from '@gny/tracer';
 import { getConfig } from '@gny/network';
 
 function loadGenesisBlock() {
@@ -58,14 +48,16 @@ function createBlock(
   if (transactionsAmount > 0) {
     for (let i = 0; i < transactionsAmount; ++i) {
       const trans = TransactionBase.create({
+        // @ts-ignore
         secret:
           'grow pencil ten junk bomb right describe trade rich valid tuna service',
         fee: String(0),
         type: 0,
         args: [generateAddress(randomHex(32)), 2 * 1e8],
-        message: null,
+        message: undefined,
         keypair,
       });
+      // @ts-ignore
       transactions.push(trans);
     }
 
@@ -110,6 +102,7 @@ const dummyLogger = {
 
 function createSpan(): ISpan {
   const val: ISpan = {
+    // @ts-ignore
     context: () => {},
     finish: () => null,
     log: () => null,
@@ -128,6 +121,7 @@ describe('core/blocks', () => {
       logger: dummyLogger,
     };
     global.library = {
+      // @ts-ignore
       tracer,
     };
     done();
@@ -155,14 +149,14 @@ describe('core/blocks', () => {
           lastBlock: genesisBlock as IBlock,
         },
       } as IStateSuccess;
-      const processBlockMock = jest
+      const processBlockMock: jest.Mock<any> = jest
         .fn()
         .mockImplementation(() => Promise.resolve(expectedState));
 
       const resultState = await Blocks.RunGenesisOrLoadLastBlock(
         state,
         String(0),
-        genesisBlock,
+        genesisBlock as IBlock,
         processBlockMock,
         getBlocksByHeightRangeFunc
       );
@@ -190,15 +184,15 @@ describe('core/blocks', () => {
         height: String(9),
         id: 'nine',
       } as IBlock;
-      const getBlocksByHeightMock = jest
-        .fn()
-        .mockImplementation(() => Promise.resolve(expected));
+      const getBlocksByHeightMock: jest.Mock<
+        any
+      > = jest.fn().mockImplementation(() => Promise.resolve(expected));
 
       const BLOCK_IN_DB = String(10);
       const resultState = await Blocks.RunGenesisOrLoadLastBlock(
         state,
         BLOCK_IN_DB,
-        genesisBlock,
+        genesisBlock as IBlock,
         processBlockFunc,
         getBlocksByHeightMock
       );
@@ -324,12 +318,14 @@ describe('core/blocks', () => {
       );
 
       expect(block).toHaveProperty('count', TOO_MUCH_TRANSACTIONS);
+      // @ts-ignore
       expect(block.transactions.length).toEqual(TOO_MUCH_TRANSACTIONS);
 
       // prepare lastBlock
       const lastBlockTimestamp = slots.getSlotTime(slots.getSlotNumber()) - 1;
       // act
       const options = {};
+      // @ts-expect-error
       const func = Blocks.verifyBlock(block, options);
 
       return expect(func).rejects.toMatchObject({

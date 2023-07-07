@@ -1,15 +1,10 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import {
-  IBlock,
-  IAccount,
-  IDelegate,
-  IBalance,
-} from '../../../packages/interfaces';
-import { generateAddress } from '../../../packages/utils/src/address';
+import { SmartDB } from '@gny/database-postgres';
+import { IBlock, IAccount, IDelegate, IBalance } from '@gny/interfaces';
+import { generateAddress } from '@gny/utils';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
 import {
   createRandomBytes,
   saveGenesisBlock,
@@ -17,12 +12,12 @@ import {
   logger,
 } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('integration - SmartDB', () => {
   const dbName = 'smartdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
   beforeAll(async () => {

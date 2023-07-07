@@ -1,12 +1,8 @@
 import * as bip39 from 'bip39';
 import { isAddress, feeCalculators } from '@gny/utils';
-import * as Joi from 'joi';
-import { BigNumber } from 'bignumber.js';
-import * as CID from 'cids';
-
-const allContractTypes = Object.keys(feeCalculators).map(x => Number(x));
-
-new RegExp(/^$|([a-zA-Z0-9]{1}[a-zA-Z0-9 ]*[a-zA-Z0-9]{1})$/);
+import Joi from 'joi';
+import BigNumber from 'bignumber.js';
+import CID from 'cids';
 
 interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;

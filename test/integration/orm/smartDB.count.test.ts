@@ -1,52 +1,38 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
+import { SmartDB } from '@gny/database-postgres';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
-import { Delegate } from '../../../packages/database-postgres/src/entity/Delegate';
-import { Condition } from '../../../packages/database-postgres/src/searchTypes';
+import { Account } from '@gny/database-postgres';
+import { Variable } from '@gny/database-postgres';
+import { Delegate } from '@gny/database-postgres';
+import { Condition } from '@gny/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
+import { Balance } from '@gny/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.count', () => {
   const dbName = 'countdb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it('count() - throws if no condition is passed in', async () => {

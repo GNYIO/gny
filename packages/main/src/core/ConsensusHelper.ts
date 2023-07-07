@@ -1,9 +1,9 @@
 import { ManyVotes, IBlock } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState } from '../globalInterfaces.js';
 import { ConsensusBase } from '@gny/base';
-import { slots, BigNumber } from '@gny/utils';
+import { slots } from '@gny/utils';
 import { copyObject } from '@gny/base';
-import { StateHelper } from './StateHelper';
+import { StateHelper } from './StateHelper.js';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
 
 export class ConsensusHelper {

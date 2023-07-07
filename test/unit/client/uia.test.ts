@@ -1,8 +1,5 @@
 import * as gnyClient from '@gny/client';
 
-import * as matchers from 'jest-extended';
-expect.extend(matchers);
-
 describe('uia', () => {
   const uia = gnyClient.uia;
 

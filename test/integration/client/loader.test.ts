@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { Connection } from '@gny/client';
+import { ApiSuccess } from '@gny/interfaces';
 import * as lib from './lib';
 
 const GNY_PORT = 8096;
@@ -39,7 +40,7 @@ describe('loader', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await loaderApi.getStatus();
+        const response = (await loaderApi.getStatus()) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -52,7 +53,7 @@ describe('loader', () => {
       async () => {
         expect.assertions(1);
 
-        const response = await loaderApi.syncStatus();
+        const response = (await loaderApi.syncStatus()) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute

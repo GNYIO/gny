@@ -1,4 +1,4 @@
-import parseNums from './parse';
+import parseNums from './parse.js';
 
 export default function(options) {
   options = options || {

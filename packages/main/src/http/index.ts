@@ -1,17 +1,17 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
-import * as express from 'express';
-import * as compression from 'compression';
-import * as cors from 'cors';
-import * as bodyParser from 'body-parser';
-import * as methodOverride from 'method-override';
-import * as ip from 'ip';
+import express from 'express';
+import compression from 'compression';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import methodOverride from 'method-override';
+import ip from 'ip';
 import { slots } from '@gny/utils';
-import queryParser from './express-query-int';
+import queryParser from './express-query-int/index.js';
 import { IConfig, Modules, ILogger, INetwork } from '@gny/interfaces';
-import Peer from '../../src/core/peer';
-import { StateHelper } from '../../src/core/StateHelper';
+import Peer from '../core/peer.js';
+import { StateHelper } from '../core/StateHelper.js';
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:

@@ -1,7 +1,4 @@
-import {
-  generateAddress,
-  isAddress,
-} from '../../../packages/utils/src/address';
+import { generateAddress, isAddress } from '@gny/utils';
 
 describe('address', () => {
   describe('generateAddress', () => {

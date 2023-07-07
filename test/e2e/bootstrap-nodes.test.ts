@@ -1,5 +1,6 @@
 import * as lib from './lib';
 import axios from 'axios';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/bootstrap-nodes/docker-compose.bootstrap-nodes.yml';
@@ -11,27 +12,27 @@ describe('bootstrap-nodes e2e test', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
     await lib.sleep(10 * 1000);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'bootstrap-nodes');
     await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
     'bootstrap-nodes',
     async () => {
-      console.log(`[${new Date().toLocaleTimeString()}] up...`);
+      consoleLog(`[${new Date().toLocaleTimeString()}] up...`);
       // node1, node2 and node3 have no forging secrets
       await lib.upP2PContainers(DOCKER_COMPOSE_P2P, [
         'loki.local',
@@ -43,7 +44,7 @@ describe('bootstrap-nodes e2e test', () => {
         'node2',
         'node3',
       ]);
-      console.log(`[${new Date().toLocaleTimeString()}] finished up`);
+      consoleLog(`[${new Date().toLocaleTimeString()}] finished up`);
       await lib.waitForApiToBeReadyReady(4096);
       await lib.waitForApiToBeReadyReady(4098);
       await lib.waitForApiToBeReadyReady(4100);

@@ -1,8 +1,8 @@
-import * as CodeContract from './codeContract';
-import { ENTITY_VERSION_PROPERTY } from './entityChangeType';
-import * as lodash from 'lodash';
+import * as CodeContract from './codeContract.js';
+import { ENTITY_VERSION_PROPERTY } from './entityChangeType.js';
+import lodash from 'lodash';
 import { ObjectLiteral } from 'typeorm';
-import { ModelIndex } from './defaultEntityUniqueIndex';
+import { ModelIndex } from './defaultEntityUniqueIndex.js';
 import { isObject } from 'util';
 
 // export type ModelSchemaMetadata = Pick<EntityMetadata, 'name' | 'indices' | 'propertiesMap'>;

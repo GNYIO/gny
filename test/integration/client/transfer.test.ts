@@ -4,6 +4,7 @@
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
+import { ApiSuccess } from '@gny/interfaces';
 
 const GNY_PORT = 12096;
 const GNY_APP_NAME = 'app9';
@@ -76,7 +77,7 @@ describe('transfer', () => {
         );
         await lib.onNewBlock(GNY_PORT);
         const query = { ownerId: senderId };
-        const response = await transferApi.getRoot(query);
+        const response = (await transferApi.getRoot(query)) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -119,10 +120,10 @@ describe('transfer', () => {
         // get the amount
         const startTimestamp = trsData.data.transfers[0].timestamp;
         const endTimestamp = startTimestamp + 10000;
-        const response = await transferApi.getAmount(
+        const response = (await transferApi.getAmount(
           startTimestamp,
           endTimestamp
-        );
+        )) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute

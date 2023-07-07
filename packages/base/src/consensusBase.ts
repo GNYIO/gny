@@ -1,9 +1,9 @@
-import * as crypto from 'crypto';
-import * as ByteBuffer from 'bytebuffer';
+import crypto from 'crypto';
+import ByteBuffer from 'bytebuffer';
 import * as ed from '@gny/ed';
-import * as assert from 'assert';
+import assert from 'assert';
 import { joi } from '@gny/extended-joi';
-import * as ip from 'ip';
+import ip from 'ip';
 import {
   IBlock,
   KeyPair,

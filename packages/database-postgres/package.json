@@ -10,8 +10,15 @@
   "files": [
     "dist"
   ],
-  "main": "dist/smartDB",
-  "types": "dist/smartDB",
+  "main": "dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/smartDB.d.ts",
+      "import": "./dist/smartDB.js",
+      "require": "./dist/smartDB.js"
+    }
+  },
   "dependencies": {
     "@gny/interfaces": "1.0.126",
     "@gny/json-sql": "1.0.126",
@@ -22,7 +29,7 @@
     "lru-cache": "^5.1.1",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
-    "type-fest": "^0.6.0",
+    "type-fest": "^3.4.0",
     "typeorm": "^0.2.38"
   }
 }

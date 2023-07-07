@@ -1,17 +1,8 @@
-// workourand for: ReferenceError: TextDecoder is not defined
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
-import Delegates from '../../../packages/main/src/core/delegates';
-import {
-  KeyPairsIndexer,
-  IBlock,
-  IDelegate,
-} from '../../../packages/interfaces';
+import Delegates from '@gny/main/delegates';
+import { KeyPairsIndexer, IBlock, IDelegate } from '@gny/interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
-import { StateHelper } from '../../../packages/main/src/core/StateHelper';
+import { StateHelper } from '@gny/main/statehelper';
 
 interface DelegateTestData {
   delegateList: string[];
@@ -446,6 +437,7 @@ describe('core/delegates', () => {
 
       const expectedTime = 10;
       expect(result).toHaveProperty('time');
+      // @ts-ignore
       expect(result.time).not.toEqual(expectedTime);
 
       done();

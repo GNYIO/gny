@@ -1,16 +1,11 @@
-// workourand for: ReferenceError: TextDecoder is not defined
-import { TextEncoder, TextDecoder } from 'util';
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
-import {
-  ILogger,
-  P2PMessage,
-  SimplePeerInfo,
-} from '../../../packages/interfaces';
+// @ts-nocheck
+import { ILogger, P2PMessage, SimplePeerInfo } from '@gny/interfaces';
 import * as PeerInfo from 'peer-info';
-import { sleep } from '../../integration/lib';
 import { create } from '@gny/p2p';
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function extractIpAndPort() {}
 async function createPeerInfo() {}

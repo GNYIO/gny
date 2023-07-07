@@ -21,7 +21,11 @@ export class Block {
     this.base = new Base(connection);
   }
 
-  public async getBlockById(id: string) {
+  public async getBlockById(
+    id: string
+  ): Promise<
+    ApiResult<BlockWrapper, ServerError | BlockError | ValidationError>
+  > {
     const params = {
       id: id,
     };
@@ -33,7 +37,11 @@ export class Block {
     return result;
   }
 
-  public async getBlockByHeight(height: string) {
+  public async getBlockByHeight(
+    height: string
+  ): Promise<
+    ApiResult<BlockWrapper, ServerError | BlockError | ValidationError>
+  > {
     const params = {
       height: height,
     };
@@ -50,7 +58,7 @@ export class Block {
     limit?: string,
     orderBy?: string,
     transactions?: boolean
-  ) {
+  ): Promise<ApiResult<BlocksWrapper>> {
     const params = {
       offset: offset,
       limit: limit,
@@ -63,31 +71,31 @@ export class Block {
     return result;
   }
 
-  public async getHeight() {
+  public async getHeight(): Promise<ApiResult<HeightWrapper>> {
     const res = await this.base.get('/api/blocks/getHeight');
     const result: ApiResult<HeightWrapper> = res.data;
     return result;
   }
 
-  public async getMilestone() {
+  public async getMilestone(): Promise<ApiResult<MilestoneWrapper>> {
     const res = await this.base.get('/api/blocks/getMilestone');
     const result: ApiResult<MilestoneWrapper> = res.data;
     return result;
   }
 
-  public async getReward() {
+  public async getReward(): Promise<ApiResult<RewardWrappper>> {
     const res = await this.base.get('/api/blocks/getReward');
     const result: ApiResult<RewardWrappper> = res.data;
     return result;
   }
 
-  public async getSupply() {
+  public async getSupply(): Promise<ApiResult<SupplyWrapper>> {
     const res = await this.base.get('/api/blocks/getSupply');
     const result: ApiResult<SupplyWrapper> = res.data;
     return result;
   }
 
-  public async getStatus() {
+  public async getStatus(): Promise<ApiResult<Status>> {
     const res = await this.base.get('/api/blocks/getStatus');
     const result: ApiResult<Status> = res.data;
     return result;

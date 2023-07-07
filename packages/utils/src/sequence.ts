@@ -1,4 +1,5 @@
-import { queue } from 'async';
+import pkg from 'async';
+const { queue } = pkg;
 
 function tick(task: any, cb: any) {
   let isCallbacked = false;

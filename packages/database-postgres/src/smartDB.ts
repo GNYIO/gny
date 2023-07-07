@@ -1,44 +1,61 @@
 import 'reflect-metadata';
 import { Connection } from 'typeorm';
-import { loadConfig } from './config/loadConfig';
+import { loadConfig } from './config/loadConfig.js';
 import { ILogger, IBlock, SmartDBOptions } from '@gny/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
-import * as CodeContract from './codeContract';
-import { DbSession } from './dbSession';
-import { LogManager, LoggerWrapper } from './logger';
-import { BlockCache } from './blockCache';
+import * as CodeContract from './codeContract.js';
+import { DbSession } from './dbSession.js';
+import { LogManager, LoggerWrapper } from './logger.js';
+import { BlockCache } from './blockCache.js';
 import * as _ from 'lodash';
-import { ModelSchema } from './modelSchema';
-import { LoadChangesHistoryAction, EntityChanges } from './basicEntityTracker';
-import { Block } from './entity/Block';
-import { BlockHistory } from './entity/BlockHistory';
-import { createMetaSchema } from './createMetaSchema';
-import { BigNumber } from 'bignumber.js';
+import { ModelSchema } from './modelSchema.js';
+import {
+  LoadChangesHistoryAction,
+  EntityChanges,
+} from './basicEntityTracker.js';
+import { Block } from './entity/Block.js';
+import { BlockHistory } from './entity/BlockHistory.js';
+import { createMetaSchema } from './createMetaSchema.js';
+import BigNumber from 'bignumber.js';
 import {
   Versioned,
   FindOneOptions,
   FindAllOptions,
   ArrayCondition,
   Condition,
-} from './searchTypes';
+} from './searchTypes.js';
 import { RequireAtLeastOne } from 'type-fest';
-import { Transaction } from './entity/Transaction';
+import { Transaction } from './entity/Transaction.js';
 
-export * from './entity/Account';
-export * from './entity/Asset';
-export * from './entity/Balance';
-export * from './entity/Block';
-export * from './entity/BlockHistory';
-export * from './entity/Delegate';
-export * from './entity/Issuer';
-export * from './entity/Round';
-export * from './entity/Transaction';
-export * from './entity/Transfer';
-export * from './entity/Variable';
-export * from './entity/Vote';
-export * from './entity/Mldata';
-export * from './entity/Prediction';
+export * from './entity/Account.js';
+export * from './entity/Asset.js';
+export * from './entity/Balance.js';
+export * from './entity/Block.js';
+export * from './entity/BlockHistory.js';
+export * from './entity/Delegate.js';
+export * from './entity/Issuer.js';
+export * from './entity/Round.js';
+export * from './entity/Transaction.js';
+export * from './entity/Transfer.js';
+export * from './entity/Variable.js';
+export * from './entity/Vote.js';
+export * from './entity/Mldata.js';
+export * from './entity/Prediction.js';
+
+export * from './basicEntityTracker.js';
+export * from './lruEntityCache.js';
+export * from './modelSchema.js';
+export * from './createMetaSchema.js';
+export * from './logger.js';
+export * from './blockCache.js';
+export * from './codeContract.js';
+export * from './customCache.js';
+export * from './defaultEntityUniqueIndex.js';
+export * from './jsonSQLBuilder.js';
+export * from './uniquedCache.js';
+
+export * from './searchTypes.js';
 
 export type CommitBlockHook = (block: Block) => void;
 export type Hooks = {

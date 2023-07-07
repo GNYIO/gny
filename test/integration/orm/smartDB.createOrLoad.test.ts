@@ -1,61 +1,42 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import {
-  IAccount,
-  IRound,
-  IBalance,
-  IVariable,
-} from '../../../packages/interfaces';
+import { SmartDB } from '@gny/database-postgres';
+import { IAccount, IRound, IBalance, IVariable } from '@gny/interfaces';
 import * as lib from '../lib';
-import { Account } from '../../../packages/database-postgres/src/entity/Account';
-import { Balance } from '../../../packages/database-postgres/src/entity/Balance';
-import { Round } from '../../../packages/database-postgres/src/entity/Round';
+import { Account } from '@gny/database-postgres';
+import { Balance } from '@gny/database-postgres';
+import { Round } from '@gny/database-postgres';
 import {
   saveGenesisBlock,
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { Variable } from '../../../packages/database-postgres/src/entity/Variable';
+import { Variable } from '@gny/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
 
 describe('smartDB.createOrLoad()', () => {
   const dbName = 'createorloaddb';
   let sut: SmartDB;
-  const credentials = cloneDeep(oldCredentials);
+  const credentials = copyObject(oldCredentials);
   credentials.dbDatabase = dbName;
 
-  beforeAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      await lib.createDb(dbName);
-      done();
-    })();
+  beforeAll(async () => {
+    await lib.dropDb(dbName);
+    await lib.createDb(dbName);
   }, lib.tenSeconds);
 
-  afterAll(done => {
-    (async () => {
-      await lib.dropDb(dbName);
-      done();
-    })();
+  afterAll(async () => {
+    await lib.dropDb(dbName);
   }, lib.tenSeconds);
 
-  beforeEach(done => {
-    (async () => {
-      await lib.resetDb(dbName);
+  beforeEach(async () => {
+    await lib.resetDb(dbName);
 
-      sut = new SmartDB(logger, credentials);
-      await sut.init();
-
-      done();
-    })();
+    sut = new SmartDB(logger, credentials);
+    await sut.init();
   }, lib.tenSeconds);
 
-  afterEach(done => {
-    (async () => {
-      await sut.close();
-
-      done();
-    })();
+  afterEach(async () => {
+    await sut.close();
   }, lib.tenSeconds);
 
   it('createOrLoad() - create entity', async () => {

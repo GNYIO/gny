@@ -7,10 +7,10 @@ import {
   UnconfirmedTransaction,
   IBlock,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState } from '../globalInterfaces.js';
 import { TransactionPool } from '@gny/transaction-pool';
 import { LimitCache } from '@gny/utils';
-import * as LRU from 'lru-cache';
+import LRU from 'lru-cache';
 import { copyObject } from '@gny/base';
 
 export class StateHelper {

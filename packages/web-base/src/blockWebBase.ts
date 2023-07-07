@@ -6,7 +6,7 @@ import {
 } from '@gny/interfaces';
 import * as webEd from '@gny/web-ed';
 import * as ByteBuffer from 'bytebuffer';
-import { copyObject } from './helpers';
+import { copyObject } from './helpers.js';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 

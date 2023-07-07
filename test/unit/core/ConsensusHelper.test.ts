@@ -1,18 +1,12 @@
-import {
-  IBlock,
-  ManyVotes,
-  ITransaction,
-  ILogger,
-} from '../../../packages/interfaces';
-import { ConsensusHelper } from '../../../packages/main/src/core/ConsensusHelper';
-import * as ed from '../../../packages/ed';
+import { IBlock, ManyVotes, ITransaction, ILogger } from '@gny/interfaces';
+import { ConsensusHelper } from '@gny/main/consensushelper';
+import * as ed from '@gny/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '../../../packages/main/src/core/BlocksHelper';
-import { slots } from '../../../packages/utils/src/slots';
-import { ConsensusBase } from '../../../packages/base/src/consensusBase';
-import { StateHelper } from '../../../packages/main/src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
-import { ISpan } from '../../../packages/tracer/dist';
+import { BlocksHelper } from '@gny/main/blockshelper';
+import { slots } from '@gny/utils';
+import { ConsensusBase } from '@gny/base';
+import { StateHelper } from '@gny/main/statehelper';
+import { ISpan } from '@gny/tracer';
 
 function createRandomBlock(
   height: string = String(6),
@@ -23,7 +17,7 @@ function createRandomBlock(
 
   const lastBlock = {
     id: prevBlockId,
-    height: new BigNumber(height).minus(1).toFixed(),
+    height: (Number(height) - 1).toString(),
   } as IBlock;
   const unconfirmedTrs: ITransaction[] = [];
   const block = BlocksHelper.generateBlockShort(
@@ -50,6 +44,7 @@ function randomKeyPair() {
 
 function createSpan(): ISpan {
   const val: ISpan = {
+    // @ts-ignore
     context: () => {},
     finish: () => null,
     log: () => null,
@@ -72,7 +67,7 @@ describe('ConsensusHelper', () => {
 
     const tracer = {
       startSpan: () => createSpan(),
-    };
+    } as any;
 
     global.library = {
       logger,

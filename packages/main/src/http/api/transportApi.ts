@@ -12,9 +12,9 @@ import {
   P2PApiResult,
 } from '@gny/interfaces';
 import { TransactionBase } from '@gny/base';
-import { BlocksHelper } from '../../../src/core/BlocksHelper';
-import { StateHelper } from '../../../src/core/StateHelper';
-import Transactions from '../../../src/core/transactions';
+import { BlocksHelper } from '../../core/BlocksHelper.js';
+import { StateHelper } from '../../core/StateHelper.js';
+import Transactions from '../../core/transactions.js';
 
 const osInfo = {
   getOS() {

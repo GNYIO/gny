@@ -1,14 +1,20 @@
-import * as basic from '../../../packages/cli/src/api/basic';
-import { http, pretty } from '../../../packages/cli/src/lib/api';
+import * as basic from '@gny/cli/basic';
 import MockAdapter from 'axios-mock-adapter';
+import { http as axios } from '@gny/cli/api';
+import { jest } from '@jest/globals';
+
+function pretty(obj: any) {
+  return JSON.stringify(obj, null, 2);
+}
 
 describe('basic', () => {
-  let mock: MockAdapter;
+  let mock;
   const baseUrl = `http://127.0.0.1:4096`;
   console.log = jest.fn();
 
   beforeEach(() => {
-    mock = new MockAdapter(http);
+    // @ts-ignore
+    mock = new MockAdapter(axios);
   });
   afterEach(() => {
     // cleaning up the mess left behind the previous test

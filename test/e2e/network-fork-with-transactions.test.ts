@@ -44,9 +44,10 @@ sudo docker exec -t db1 pg_dumpall -c -U postgres > \
 sudo docker-compose --file config/integration/docker-compose.integration.yml down
 */
 
-import { BigNumber } from '@gny/utils';
+import { BigNumber } from 'bignumber.js';
 import * as lib from './lib';
 import * as helpers from './helpers';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/network-fork-with-transactions/docker-compose.network-fork-with-transactions.yml';
@@ -58,7 +59,7 @@ describe('network-fork-with-transactions', () => {
   }, lib.tenMinutes);
 
   beforeEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] starting...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
 
     // restore
     await lib.createP2PContainersOnlyNoStarting(DOCKER_COMPOSE_P2P);
@@ -78,11 +79,11 @@ describe('network-fork-with-transactions', () => {
       4098,
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] started.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute * 1.5);
 
   afterEach(async () => {
-    console.log(`[${new Date().toLocaleTimeString()}] stopping...`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
 
     lib.getLogsOfAllServices(DOCKER_COMPOSE_P2P, 'db-the-same');
     await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, [
@@ -92,21 +93,21 @@ describe('network-fork-with-transactions', () => {
       'node2',
     ]);
 
-    console.log(`[${new Date().toLocaleTimeString()}] stopped.`);
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   it(
     'network-fork-with-transactions',
     async () => {
-      console.log(
+      consoleLog(
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
       const height1 = await lib.getHeight(4096);
       const height2 = await lib.getHeight(4098);
 
-      console.log(`height1: ${height1}`);
-      console.log(`height2: ${height2}`);
+      consoleLog(`height1: ${height1}`);
+      consoleLog(`height2: ${height2}`);
 
       // node1 should be at height 8
       expect(height1).toEqual(String(8));
@@ -115,8 +116,8 @@ describe('network-fork-with-transactions', () => {
 
       const node1Height8 = await lib.getBlock(4096, String(8));
       const node2Height8 = await lib.getBlock(4098, String(8));
-      console.log(`node1Height8: ${JSON.stringify(node1Height8, null, 2)}`);
-      console.log(`node2Height8: ${JSON.stringify(node2Height8, null, 2)}`);
+      consoleLog(`node1Height8: ${JSON.stringify(node1Height8, null, 2)}`);
+      consoleLog(`node2Height8: ${JSON.stringify(node2Height8, null, 2)}`);
       // id's of block8 should be different
       expect(node1Height8.id).not.toEqual(node2Height8.id);
 
@@ -124,7 +125,7 @@ describe('network-fork-with-transactions', () => {
         4096,
         'G3opyS22tR1NEnjfXPYM6fAhnmtpG'
       );
-      console.log(`accountBefore: ${JSON.stringify(accountBefore, null, 2)}`);
+      consoleLog(`accountBefore: ${JSON.stringify(accountBefore, null, 2)}`);
       expect(accountBefore.gny).toEqual('99950000000');
 
       // wait a little and then make sure that the transaction was returned
@@ -137,7 +138,7 @@ describe('network-fork-with-transactions', () => {
         4096,
         'G3opyS22tR1NEnjfXPYM6fAhnmtpG'
       );
-      console.log(`accountAfter: ${JSON.stringify(accountAfter, null, 2)}`);
+      consoleLog(`accountAfter: ${JSON.stringify(accountAfter, null, 2)}`);
       expect(accountAfter.gny).toEqual('109960000000');
     },
     5 * lib.oneMinute

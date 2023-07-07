@@ -1,14 +1,20 @@
-import * as block from '../../../packages/cli/src/api/block';
-import { http, pretty } from '../../../packages/cli/src/lib/api';
+import * as block from '@gny/cli/block';
 import MockAdapter from 'axios-mock-adapter';
+import { http as axios } from '@gny/cli/api';
+import { jest } from '@jest/globals';
+
+function pretty(obj: any) {
+  return JSON.stringify(obj, null, 2);
+}
 
 describe('block', () => {
-  let mock: MockAdapter;
+  let mock;
   const baseUrl = `http://127.0.0.1:4096`;
   console.log = jest.fn();
 
   beforeEach(() => {
-    mock = new MockAdapter(http);
+    // @ts-ignore
+    mock = new MockAdapter(axios);
   });
   afterEach(() => {
     // cleaning up the mess left behind the previous test

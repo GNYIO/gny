@@ -11,10 +11,10 @@ import {
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
 } from '@gny/interfaces';
-import { StateHelper } from '../../../src/core/StateHelper';
+import { StateHelper } from '../../core/StateHelper.js';
 import { Transaction } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
-import { TransactionsHelper } from '../../core/TransactionsHelper';
+import { TransactionsHelper } from '../../core/TransactionsHelper.js';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;

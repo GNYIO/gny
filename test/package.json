@@ -5,13 +5,29 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "type": "module",
   "devDependencies": {
     "@gny/base": "1.0.126",
+    "@gny/cli": "1.0.126",
     "@gny/client": "1.0.126",
+    "@gny/database-postgres": "1.0.126",
     "@gny/ed": "1.0.126",
     "@gny/extended-joi": "1.0.126",
     "@gny/interfaces": "1.0.126",
     "@gny/json-sql": "1.0.126",
-    "@gny/utils": "1.0.126"
+    "@gny/main": "1.0.126",
+    "@gny/network": "1.0.126",
+    "@gny/tracer": "1.0.126",
+    "@gny/utils": "1.0.126",
+    "@gny/p2p": "1.0.126",
+    "@gny/transaction-pool": "1.0.126",
+    "@gny/type-validation": "1.0.126"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.191",
+    "@types/pg": "^8.6.6",
+    "bignumber.js": "^9.1.1",
+    "lodash": "^4.17.21",
+    "pg": "^8.8.0"
   }
 }

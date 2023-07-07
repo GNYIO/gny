@@ -1,15 +1,16 @@
-import { SmartDB } from '../../../packages/database-postgres/src/smartDB';
-import { Transaction } from '../../../packages/database-postgres/src/entity/Transaction';
+import { SmartDB } from '@gny/database-postgres';
+import { Transaction } from '@gny/database-postgres';
 import {
   IAccount,
   IAsset,
   IBlock,
   ITransaction,
   ILogger,
-} from '../../../packages/interfaces';
+} from '@gny/interfaces';
 import { randomBytes } from 'crypto';
-import { cloneDeep } from 'lodash';
-import { generateAddress } from '../../../packages/utils/src/address';
+// import { cloneDeep } from 'lodash';
+import { copyObject } from '@gny/base';
+import { generateAddress } from '@gny/utils';
 
 export const CUSTOM_GENESIS: IBlock = {
   version: 0,
@@ -101,10 +102,10 @@ export function createTransaction(height: string) {
 }
 
 export async function saveGenesisBlock(smartDB: SmartDB) {
-  const block = cloneDeep(CUSTOM_GENESIS);
+  const block = copyObject(CUSTOM_GENESIS);
 
   await smartDB.beginBlock(block);
-  const transactions = cloneDeep(block.transactions);
+  const transactions = copyObject(block.transactions) as ITransaction[];
   for (const trs of transactions) {
     trs.height = block.height;
     // trs.block = block;

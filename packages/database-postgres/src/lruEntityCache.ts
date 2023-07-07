@@ -1,9 +1,9 @@
-import { CustomCache } from './customCache';
-import { LoggerWrapper, LogManager } from './logger';
-import { ModelSchema } from './modelSchema';
-import { ModelIndex } from './defaultEntityUniqueIndex';
-import { UniquedCache } from './uniquedCache';
-import * as CodeContract from './codeContract';
+import { CustomCache } from './customCache.js';
+import { LoggerWrapper, LogManager } from './logger.js';
+import { ModelSchema } from './modelSchema.js';
+import { ModelIndex } from './defaultEntityUniqueIndex.js';
+import { UniquedCache } from './uniquedCache.js';
+import * as CodeContract from './codeContract.js';
 import { isString } from 'util';
 
 export interface PropertyValue {

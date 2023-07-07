@@ -1,18 +1,36 @@
 {
   "compilerOptions": {
-    "target": "ES2016",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "lib": [
-      "es2015",
-      "es2016",
-      "es2017"
-    ],
+    "outDir": "dist",
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2021", "ES2021.Promise", "ES2021.String", "ES2020.BigInt", "DOM", "DOM.Iterable"],
+    "noEmit": false,
+    "noEmitOnError": false,
+    "emitDeclarationOnly": false,
     "declaration": true,
     "declarationMap": true,
+    "incremental": false,
+    "composite": false,
+    "isolatedModules": true,
+    "removeComments": false,
     "sourceMap": true,
-    "strict": true,
-    "outDir": "./dist"
+
+
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+
+    "importsNotUsedAsValues": "error",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "stripInternal": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/**.ts"]
 }

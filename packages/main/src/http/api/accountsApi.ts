@@ -22,9 +22,9 @@ import {
   getAccountByAddress,
   generateAddressByPublicKey,
   getAccount,
-} from '../util';
-import Delegates from '../../../src/core/delegates';
-import { StateHelper } from '../../../src/core/StateHelper';
+} from '../util.js';
+import Delegates from '../../core/delegates.js';
+import { StateHelper } from '../../core/StateHelper.js';
 import { Balance } from '@gny/database-postgres';
 import { Asset } from '@gny/database-postgres';
 import { Vote } from '@gny/database-postgres';

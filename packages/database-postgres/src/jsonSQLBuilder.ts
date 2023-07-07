@@ -1,10 +1,11 @@
 import { isArray, isNumber } from 'util';
 
-const jsonSQL = require('@gny/json-sql')({
+import sq from '@gny/json-sql';
+const jsonSQL = sq({
   separatedValues: false,
 });
-import * as lodash from 'lodash';
-import { ModelSchema } from './modelSchema';
+import lodash from 'lodash';
+import { ModelSchema } from './modelSchema.js';
 import { ObjectLiteral } from 'typeorm';
 
 export const MULTI_SQL_SEPARATOR = ';';

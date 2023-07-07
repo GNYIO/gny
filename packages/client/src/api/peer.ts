@@ -13,19 +13,19 @@ export class Peer {
   constructor(connection: Connection) {
     this.base = new Base(connection);
   }
-  public async getPeers() {
+  public async getPeers(): Promise<ApiResult<PeersWrapper>> {
     const res = await this.base.get('/api/peers');
     const result: ApiResult<PeersWrapper> = res.data;
     return result;
   }
 
-  public async getVersion() {
+  public async getVersion(): Promise<ApiResult<VersionWrapper>> {
     const res = await this.base.get('/api/peers/version');
     const result: ApiResult<VersionWrapper> = res.data;
     return result;
   }
 
-  public async getInfo() {
+  public async getInfo(): Promise<ApiResult<PeerInfoWrapper>> {
     const res = await this.base.get('/api/peers/info');
     const result: ApiResult<PeerInfoWrapper> = res.data;
     return result;

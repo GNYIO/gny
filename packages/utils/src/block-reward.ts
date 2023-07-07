@@ -1,6 +1,6 @@
 import { BigNumber } from 'bignumber.js';
-import { REWARDS, INITIAL_AMOUNT } from './constants';
-import * as _ from 'lodash';
+import { REWARDS, INITIAL_AMOUNT } from './constants.js';
+import _ from 'lodash';
 
 export class BlockReward {
   public distance: number;

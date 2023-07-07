@@ -1,18 +1,17 @@
-import { CustomCache } from '../../../packages/database-postgres/src/customCache';
+import { CustomCache } from '@gny/database-postgres';
 
 describe('orm - CustomCache', () => {
   let modelSchema: any;
   let size: number;
   beforeEach(() => {
-    modelSchema = {
-    };
+    modelSchema = {};
     size = 5000;
   });
-  it('creating works', (done) => {
+  it('creating works', done => {
     const sut = new CustomCache(modelSchema, size);
     done();
   });
-  it('onEvit() executes registered callback', (done) => {
+  it('onEvit() executes registered callback', done => {
     const sut = new CustomCache(modelSchema, size);
     const callBack = (key: string, obj: Object) => {
       expect(key).toEqual('key');
@@ -23,7 +22,7 @@ describe('orm - CustomCache', () => {
     sut.onEvit = callBack;
     sut.onEvit('key', { hello: 1 });
   });
-  it('test max cache, size 2, add 3 items, first should not be there', (done) => {
+  it('test max cache, size 2, add 3 items, first should not be there', done => {
     const sut = new CustomCache(modelSchema, 2);
 
     const key1 = '{"address":"1"}';
@@ -43,7 +42,7 @@ describe('orm - CustomCache', () => {
     expect(sut.get(key3)).toBeTruthy();
     done();
   });
-  it('forEach returns every item that is available', (done) => {
+  it('forEach returns every item that is available', done => {
     const sut = new CustomCache(modelSchema, 10);
 
     sut.set('key1', { hello: 1 });
@@ -58,29 +57,32 @@ describe('orm - CustomCache', () => {
     });
 
     expect(called).toEqual(2);
-    expect(result).toEqual([{
-      value: { hello: 2 },
-      key: 'key2'
-    }, {
-      value: { hello: 1 },
-      key: 'key1',
-    }]);
+    expect(result).toEqual([
+      {
+        value: { hello: 2 },
+        key: 'key2',
+      },
+      {
+        value: { hello: 1 },
+        key: 'key1',
+      },
+    ]);
     done();
   });
-  it('empty cache -> exists() -> returns false', (done) => {
+  it('empty cache -> exists() -> returns false', done => {
     const sut = new CustomCache(modelSchema, 10);
 
     expect(sut.exists('key1')).toEqual(false);
     done();
   });
-  it('add item(key) -> exists(key) -> returns true', (done) => {
+  it('add item(key) -> exists(key) -> returns true', done => {
     const sut = new CustomCache(modelSchema, 10);
 
     sut.set('key1', { hello: 1 });
     expect(sut.exists('key1')).toEqual(true);
     done();
   });
-  it('evit item', (done) => {
+  it('evit item', done => {
     const sut = new CustomCache(modelSchema, 10);
 
     const key1 = '{"address":"1"}';
@@ -99,7 +101,7 @@ describe('orm - CustomCache', () => {
 
     done();
   });
-  it('clear all items', (done) => {
+  it('clear all items', done => {
     const sut = new CustomCache(modelSchema, 10);
 
     const key1 = '{"address":"1"}';

@@ -9,13 +9,13 @@ export class Loader {
     this.base = new Base(connection);
   }
 
-  public async getStatus() {
+  public async getStatus(): Promise<ApiResult<LoaderStatus>> {
     const res = await this.base.get('/api/loader/status');
     const result: ApiResult<LoaderStatus> = res.data;
     return result;
   }
 
-  public async syncStatus() {
+  public async syncStatus(): Promise<ApiResult<SyncStatus>> {
     const res = await this.base.get('/api/loader/status/sync');
     const result: ApiResult<SyncStatus> = res.data;
     return result;

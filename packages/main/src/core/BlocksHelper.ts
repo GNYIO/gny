@@ -9,7 +9,7 @@ import {
   UnconfirmedTransaction,
   IRound,
 } from '@gny/interfaces';
-import { IState, ISimpleCache } from '../globalInterfaces';
+import { IState, ISimpleCache } from '../globalInterfaces.js';
 import { TransactionBase } from '@gny/base';
 import { MAX_PAYLOAD_LENGTH } from '@gny/utils';
 import * as crypto from 'crypto';
@@ -18,8 +18,8 @@ import { BlockBase } from '@gny/base';
 import { ConsensusBase } from '@gny/base';
 import { slots } from '@gny/utils';
 import { copyObject } from '@gny/base';
-import { StateHelper } from './StateHelper';
-import { BigNumber } from 'bignumber.js';
+import { StateHelper } from './StateHelper.js';
+import BigNumber from 'bignumber.js';
 import { Block } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
 import { RoundBase } from '@gny/base';

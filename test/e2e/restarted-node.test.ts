@@ -1,6 +1,7 @@
 import * as lib from './lib';
 import axios from 'axios';
 import { BigNumber } from 'bignumber.js';
+import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =
   'config/e2e/restarted-node/docker-compose.restarted-node.yml';
@@ -33,14 +34,14 @@ describe('restarted node e2e test', () => {
       const before = await axios.get(
         `http://localhost:${4096}/api/blocks/getBlock?height=${heightBefore}`
       );
-      console.log(`blockId: ${before.data.block.id}`);
+      consoleLog(`blockId: ${before.data.block.id}`);
 
       // restart only the service node1, not the db1 service
       await lib.stopP2PContainers(DOCKER_COMPOSE_P2P, ['node1']);
       await lib.sleep(10 * 1000);
-      console.log('starting node1 again');
+      consoleLog('starting node1 again');
       await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
-      console.log('node1 started');
+      consoleLog('node1 started');
       await lib.sleep(10 * 1000);
 
       const after = await axios.get(

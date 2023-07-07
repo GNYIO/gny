@@ -1,15 +1,16 @@
-import { MessageBus } from '../../../packages/utils/src/messageBus';
-import { Modules, CoreApi } from '../../../packages/interfaces';
+import { jest } from '@jest/globals';
+import { MessageBus } from '@gny/utils';
+import { Modules, CoreApi, MethodActions } from '@gny/interfaces';
 
 describe('messageBus', () => {
   it('message() - event gets executed in all Modules and all registered CoreApi instances', done => {
-    const EVENT_NAME = 'onLoaded';
+    const EVENT_NAME: MethodActions = 'onBind';
 
     // to satisfy the Typescript type checker we first need to cast to "unknown"
     const modulesMock = jest.fn().mockImplementation(first => {});
     const modules = ({
       blocks: {
-        onLoaded: modulesMock,
+        onBind: modulesMock,
       },
     } as unknown) as Modules;
 
@@ -17,7 +18,7 @@ describe('messageBus', () => {
     const coreApiMock = jest.fn().mockImplementation(first => {});
     const coreApi = ({
       blocksApi: {
-        onLoaded: coreApiMock,
+        onBind: coreApiMock,
       },
     } as unknown) as CoreApi;
 
@@ -36,7 +37,7 @@ describe('messageBus', () => {
     done();
   });
   it('message() - pass arbitrary arguments to event target', done => {
-    const EVENT_NAME = 'onLoaded';
+    const EVENT_NAME: MethodActions = 'onBind';
 
     // to satisfy the Typescript type checker we first need to cast to "unknown"
     const modulesMock = jest.fn().mockImplementation((first, second, third) => {
@@ -46,7 +47,7 @@ describe('messageBus', () => {
     });
     const modules = ({
       blocks: {
-        onLoaded: modulesMock,
+        onBind: modulesMock,
       },
     } as unknown) as Modules;
 
@@ -58,7 +59,7 @@ describe('messageBus', () => {
     });
     const coreApi = ({
       blocksApi: {
-        onLoaded: coreApiMock,
+        onBind: coreApiMock,
       },
     } as unknown) as CoreApi;
 
@@ -89,10 +90,10 @@ describe('messageBus', () => {
     });
 
     // subscribe to "native" EventEmitter evnet
-    bus.on('onLoaded', onNativeEventMock);
+    bus.on('onBind', onNativeEventMock);
 
     // fire message()
-    bus.message('onLoaded', 'hello world');
+    bus.message('onBind', 'hello world');
 
     // assert
     expect(onNativeEventMock).toBeCalledTimes(1);

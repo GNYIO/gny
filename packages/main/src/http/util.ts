@@ -1,9 +1,9 @@
 import { AccountViewModel } from '@gny/interfaces';
 import { generateAddress } from '@gny/utils';
 import { joi } from '@gny/extended-joi';
-import Peer from '../../src/core/peer';
-import { StateHelper } from '../../src/core/StateHelper';
-import { BigNumber } from 'bignumber.js';
+import Peer from '../core/peer.js';
+import { StateHelper } from '../core/StateHelper.js';
+import BigNumber from 'bignumber.js';
 import { Transaction } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 

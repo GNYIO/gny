@@ -196,6 +196,7 @@ describe('double-spend-attack', () => {
         account_0.address,
         String(1000.1 * 1e8),
         undefined,
+        // @ts-ignore
         getConfig('localnet').genesis
       );
       const fuelTransaction_0_Data = {

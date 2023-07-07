@@ -15,8 +15,8 @@ import {
 } from '@gny/interfaces';
 import { SmartDB } from '@gny/database-postgres';
 import { EventEmitter } from 'events';
-import BalanceManager from './smartdb/balance-manager';
-import * as LRU from 'lru-cache';
+import BalanceManager from './smartdb/balance-manager.js';
+import LRU from 'lru-cache';
 import * as Prom from 'prom-client';
 
 export interface IProm {
@@ -59,7 +59,7 @@ interface IValidators {
   description: (value: string) => string;
 }
 
-type ValidateFuncs = (
+export type ValidateFuncs = (
   type: string,
   value: any,
   constraints?: IValidatorConstraints
@@ -89,7 +89,7 @@ export interface IOptions {
   tracer: ITracer;
 }
 
-interface IApp {
+export interface IApp {
   sdb: SmartDB;
   balances: BalanceManager;
   events: EventEmitter;

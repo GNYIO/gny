@@ -1,5 +1,5 @@
 import * as lib from './lib';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import axios from 'axios';
 
 const DOCKER_COMPOSE_P2P =

@@ -1,5 +1,5 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
-import { Config } from '../decorator/config';
+import { Config } from '../decorator/config.js';
 
 @Config({ memory: true })
 @Entity()

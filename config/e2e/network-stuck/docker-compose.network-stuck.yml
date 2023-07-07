@@ -50,7 +50,7 @@ services:
     build: ../../..
     container_name: 'node1'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node1.json"'
+    command: bash -c 'sleep 20s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config "config/e2e/network-stuck/node1.json"'
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
@@ -91,7 +91,7 @@ services:
     build: ../../..
     container_name: 'node2'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node2.json"'
+    command: bash -c 'sleep 20s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config "config/e2e/network-stuck/node2.json"'
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
@@ -133,7 +133,7 @@ services:
     build: ../../..
     container_name: 'node3'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node3.json"'
+    command: bash -c 'sleep 20s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config "config/e2e/network-stuck/node3.json"'
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
@@ -175,7 +175,7 @@ services:
     build: ../../..
     container_name: 'node4'
     image: gny-experiment:integration # tags
-    command: bash -c 'sleep 20s; node packages/main/dist/src/app --config "config/e2e/network-stuck/node4.json"'
+    command: bash -c 'sleep 20s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config "config/e2e/network-stuck/node4.json"'
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet

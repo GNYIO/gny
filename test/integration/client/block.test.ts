@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { Connection } from '@gny/client';
+import { ApiSuccess, BlockWrapper } from '@gny/interfaces';
 import * as lib from './lib';
 
 const GNY_PORT = 5096;
@@ -45,7 +46,9 @@ describe('block', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const height = String(2);
-        const response = await blockApi.getBlockByHeight(height);
+        const response = (await blockApi.getBlockByHeight(
+          height
+        )) as ApiSuccess;
         expect(response.success).toBeTruthy();
       },
       lib.oneMinute
@@ -64,7 +67,9 @@ describe('block', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const height = String(2);
-        const blockResponse = await blockApi.getBlockByHeight(height);
+        const blockResponse = (await blockApi.getBlockByHeight(
+          height
+        )) as (ApiSuccess & BlockWrapper);
         const id = blockResponse.block.id;
         const response = await blockApi.getBlockById(id);
         expect(response.success).toBeTruthy();

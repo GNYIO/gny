@@ -12,8 +12,58 @@
   "files": [
     "dist"
   ],
-  "main": "dist/app",
+  "type": "module",
   "types": "dist/app",
+  "exports": {
+    ".": {
+      "types": "./dist/app.d.ts",
+      "import": "./dist/app.js"
+    },
+    "./blockshelper": {
+      "types": "./dist/core/BlocksHelper.d.ts",
+      "import": "./dist/core/BlocksHelper.js"
+    },
+    "./consensushelper": {
+      "types": "./dist/core/ConsensusHelper.d.ts",
+      "import": "./dist/core/ConsensusHelper.js"
+    },
+    "./loaderhelper": {
+      "types": "./dist/core/LoaderHelper.d.ts",
+      "import": "./dist/core/LoaderHelper.js"
+    },
+    "./transactionshelper": {
+      "types": "./dist/core/TransactionsHelper.d.ts",
+      "import": "./dist/core/TransactionsHelper.js"
+    },
+    "./blocks": {
+      "types": "./dist/core/blocks.d.ts",
+      "import": "./dist/core/blocks.js"
+    },
+    "./delegates": {
+      "types": "./dist/core/delegates.d.ts",
+      "import": "./dist/core/delegates.js"
+    },
+    "./statehelper": {
+      "types": "./dist/core/StateHelper.d.ts",
+      "import": "./dist/core/StateHelper.js"
+    },
+    "./globalInterfaces": {
+      "types": "./dist/globalInterfaces.d.ts",
+      "import": "./dist/globalInterfaces.js"
+    },
+    "./basic": {
+      "types": "./dist/contract/basic.d.ts",
+      "import": "./dist/contract/basic.js"
+    },
+    "./uia": {
+      "types": "./dist/contract/uia.d.ts",
+      "import": "./dist/contract/uia.js"
+    },
+    "./balance-manager": {
+      "types": "./dist/smartdb/balance-manager.d.ts",
+      "import": "./dist/smartdb/balance-manager.js"
+    }
+  },
   "dependencies": {
     "@gny/base": "1.0.126",
     "@gny/database-postgres": "1.0.126",
@@ -29,6 +79,7 @@
     "@gny/transaction-pool": "1.0.126",
     "@gny/type-validation": "1.0.126",
     "@gny/utils": "1.0.126",
+    "@types/async": "^3.2.16",
     "@types/bip39": "^2.4.2",
     "@types/body-parser": "^1.17.0",
     "@types/compression": "0.0.36",
@@ -38,7 +89,7 @@
     "@types/lodash": "^4.14.138",
     "@types/lru-cache": "^7.10.10",
     "@types/nedb": "^1.8.6",
-    "async": "^1.5.2",
+    "async": "^3.2.4",
     "bignumber.js": "^8.1.1",
     "bip39": "^2.6.0",
     "body-parser": "^1.18.3",

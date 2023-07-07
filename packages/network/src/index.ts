@@ -1,9 +1,9 @@
 import { NetworkType } from '@gny/interfaces';
 
-import { network as testnet } from './testnet';
-import { network as testnet_app } from './testnet_app';
-import { network as mainnet } from './mainnet';
-import { network as localnet } from './localnet';
+import { network as testnet } from './testnet.js';
+import { network as testnet_app } from './testnet_app.js';
+import { network as mainnet } from './mainnet.js';
+import { network as localnet } from './localnet.js';
 
 export function getConfig(network: NetworkType) {
   if (network === 'mainnet') {

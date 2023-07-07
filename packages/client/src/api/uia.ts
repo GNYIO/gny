@@ -23,7 +23,10 @@ export class Uia {
     this.base = new Base(connection);
   }
 
-  public async getIssuers(limit?: number, offset?: number) {
+  public async getIssuers(
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResult<IssuesWrapper, ValidationError | string>> {
     const params = {
       limit: limit,
       offset: offset,
@@ -33,21 +36,29 @@ export class Uia {
     return result;
   }
 
-  public async isIssuer(address: string) {
+  public async isIssuer(
+    address: string
+  ): Promise<ApiResult<IsIssuerWrapper, ValidationError | string>> {
     const res = await this.base.get(`/api/uia/isIssuer/${address}`);
     const result: ApiResult<IsIssuerWrapper, ValidationError | string> =
       res.data;
     return result;
   }
 
-  public async getIssuer(name: string) {
+  public async getIssuer(
+    name: string
+  ): Promise<ApiResult<IssuerWrapper, ValidationError | IssueError>> {
     const res = await this.base.get(`/api/uia/issuers/${name}`);
     const result: ApiResult<IssuerWrapper, ValidationError | IssueError> =
       res.data;
     return result;
   }
 
-  public async getIssuerAssets(name: string, limit?: number, offset?: number) {
+  public async getIssuerAssets(
+    name: string,
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResult<AssetsWrapper, ValidationError | string>> {
     const params = {
       limit: limit,
       offset: offset,
@@ -57,7 +68,10 @@ export class Uia {
     return result;
   }
 
-  public async getAssets(limit?: number, offset?: number) {
+  public async getAssets(
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResult<AssetsWrapper, ValidationError | string>> {
     const params = {
       limit: limit,
       offset: offset,
@@ -67,7 +81,9 @@ export class Uia {
     return result;
   }
 
-  public async getAsset(name: string) {
+  public async getAsset(
+    name: string
+  ): Promise<ApiResult<AssetWrapper, ValidationError | AssetError | string>> {
     const res = await this.base.get(`/api/uia/assets/${name}`);
     const result: ApiResult<
       AssetWrapper,
@@ -76,7 +92,11 @@ export class Uia {
     return result;
   }
 
-  public async getBalances(address: string, limit?: number, offset?: number) {
+  public async getBalances(
+    address: string,
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResult<BalancesWrapper, ValidationError | string>> {
     const params = {
       limit: limit,
       offset: offset,
@@ -87,7 +107,12 @@ export class Uia {
     return result;
   }
 
-  public async getBalance(address: string, currency: string) {
+  public async getBalance(
+    address: string,
+    currency: string
+  ): Promise<
+    ApiResult<BalanceWrapper, ValidationError | BalanceError | string>
+  > {
     const res = await this.base.get(`/api/uia/balances/${address}/${currency}`);
     const result: ApiResult<
       BalanceWrapper,
@@ -100,7 +125,7 @@ export class Uia {
     asset: string,
     limit: number = 100,
     offset: number = 0
-  ) {
+  ): Promise<ApiResult<AssetHoldersWrapper, ValidationError | string>> {
     const res = await this.base.get(
       `/api/uia/holders/${asset}?limit=${limit}&offset=${offset}`
     );

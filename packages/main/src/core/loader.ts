@@ -1,9 +1,8 @@
 import { IBlock, ICoreModule } from '@gny/interfaces';
-import { StateHelper } from './StateHelper';
-import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper';
-import Blocks from './blocks';
-import Peer from './peer';
-import { BigNumber } from 'bignumber.js';
+import { StateHelper } from './StateHelper.js';
+import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper.js';
+import Blocks from './blocks.js';
+import Peer from './peer.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
 

@@ -1,6 +1,6 @@
 import { CommonBlockResult } from '@gny/interfaces';
 import { joi } from '@gny/extended-joi';
-import { blockWithoutTransactionsSchema } from './schema/blockWithoutTransactionsSchema';
+import { blockWithoutTransactionsSchema } from './schema/blockWithoutTransactionsSchema.js';
 
 export function isCommonBlockResult(
   commonBlockResult: any

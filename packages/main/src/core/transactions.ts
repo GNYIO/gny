@@ -5,10 +5,10 @@ import {
   ICoreModule,
   UnconfirmedTransaction,
 } from '@gny/interfaces';
-import { IState } from '../globalInterfaces';
+import { IState } from '../globalInterfaces.js';
 import { TransactionBase } from '@gny/base';
-import { StateHelper } from './StateHelper';
-import { BigNumber } from 'bignumber.js';
+import { StateHelper } from './StateHelper.js';
+import BigNumber from 'bignumber.js';
 import { Account } from '@gny/database-postgres';
 import { Transaction } from '@gny/database-postgres';
 import { isAddress } from '@gny/utils';

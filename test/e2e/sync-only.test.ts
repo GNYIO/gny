@@ -1,6 +1,6 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 
 const DOCKER_COMPOSE_P2P = 'config/e2e/sync-only/docker-compose.sync-only.yml';
 
