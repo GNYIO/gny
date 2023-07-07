@@ -1,6 +1,6 @@
 {
   "name": "@gny/web-base",
-  "version": "1.0.126",
+  "version": "1.0.127",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -21,9 +21,9 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.126",
-    "@gny/utils": "1.0.126",
-    "@gny/web-ed": "1.0.126",
+    "@gny/interfaces": "1.0.127",
+    "@gny/utils": "1.0.127",
+    "@gny/web-ed": "1.0.127",
     "@types/bytebuffer": "^5.0.40",
     "buffer": "^5.4.3",
     "bytebuffer": "^5.0.1",
