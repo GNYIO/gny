@@ -15,7 +15,7 @@
     "test:server": "ts-node test/browser/server.ts",
     "test:integration": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration",
     "test:integration:client": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci --maxWorkers 4 test/integration/client/",
-    "test:integration:contract": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract/",
+    "test:integration:contract": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci --maxWorkers 1 test/integration/contract/",
     "test:integration:contract-env": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/contract-env",
     "test:integration:http": "node_modules/jest/bin/jest.js --ci --runInBand --verbose test/integration/http",
     "test:integration:orm": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js --verbose -c=jest.config.js --no-cache --ci --maxWorkers 1 test/integration/orm/",
@@ -119,12 +119,12 @@
     "sinon": "^7.2.7",
     "systeminformation": "^5.17.3",
     "ts-jest": "^29.0.3",
-    "ts-loader": "^6.2.0",
+    "ts-loader": "^9.4.4",
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
     "typescript-eslint-parser": "^22.0.0",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-middleware": "^3.7.2"
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-middleware": "^6.1.1"
   }
 }

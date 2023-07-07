@@ -6,16 +6,6 @@ import {
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
-interface Keypair {
-  publicKey: string;
-  signature: string;
-}
-interface Votes {
-  height: string;
-  id: string;
-  signatures: Keypair[];
-}
-
 export class Transport {
   private base: Base;
 
