@@ -12,7 +12,7 @@
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist",
-    "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js --display-error-details",
+    "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js",
     "removeBrowserDir": "rm -rf browser"
   },
   "engines": {

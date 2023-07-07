@@ -9,16 +9,6 @@ import { IBlock, KeyPair } from '@gny/interfaces';
 // jest is changeing the global console object
 import { log as consoleLog, error as consoleError } from 'console';
 
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
-
-function executeCmd(command: string) {
-  shellJS.exec(command);
-}
-
 async function executeCmdAndPrint(command: string) {
   const before = Math.floor(new Date().valueOf() / 1000);
 
