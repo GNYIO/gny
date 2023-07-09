@@ -18,7 +18,6 @@ export default async function runtime(options: IOptions) {
   StateHelper.InitializeModulesAreLoaded();
   StateHelper.InitializeBlockchainReady();
   StateHelper.InitializeLatestBlockCache();
-  StateHelper.InitializeBlockHeaderMidCache();
   StateHelper.SetIsSyncing(false);
 
   global.app = {

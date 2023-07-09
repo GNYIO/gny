@@ -110,13 +110,11 @@ export default class Transport implements ICoreModule {
 
     StateHelper.SetBlockToLatestBlockCache(block.id, blockAndVotes);
 
-    const message: NewBlockMessage =
-      StateHelper.GetBlockHeaderMidCache(block.id) ||
-      ({
-        id: block.id,
-        height: block.height,
-        prevBlockId: block.prevBlockId,
-      } as NewBlockMessage);
+    const message: NewBlockMessage = {
+      id: block.id,
+      height: block.height,
+      prevBlockId: block.prevBlockId,
+    };
 
     const wrapped: TracerWrapper<NewBlockMessage> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
@@ -357,7 +355,6 @@ export default class Transport implements ICoreModule {
       }
 
       StateHelper.SetBlockToLatestBlockCache(block.id, result.data); // TODO: make side effect more predictable
-      StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
       receiveBlockSpan.setTag('error', true);
       receiveBlockSpan.log({

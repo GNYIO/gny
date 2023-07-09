@@ -122,7 +122,6 @@ declare global {
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
       latestBlocksCache: LRU<string, BlockAndVotes>;
-      blockHeaderMidCache: LRU<string, NewBlockMessage>;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;
