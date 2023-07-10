@@ -59,7 +59,7 @@ async function waitForLoaded(gnyPort: number) {
 }
 
 export async function stopOldInstances(dockerFile: string, env: string) {
-  const command = `${env} docker-compose --file ${dockerFile} down`;
+  const command = `${env} docker compose --file ${dockerFile} down`;
 
   shellJS.exec(command, {
     silent: true,
@@ -84,7 +84,7 @@ export async function spawnContainer(
   env: string,
   gnyPort: number
 ) {
-  const command = `${env} docker-compose --file ${configFile} up --detach`;
+  const command = `${env} docker compose --file ${configFile} up --detach`;
 
   shellJS.exec(command, {
     silent: false,
@@ -99,7 +99,7 @@ export async function stopAndKillContainer(
   env: string
 ) {
   const command = `
-    ${env} docker-compose --file ${configFile} down --volumes --timeout=0
+    ${env} docker compose --file ${configFile} down --volumes --timeout=0
   `;
 
   shellJS.exec(command, {
