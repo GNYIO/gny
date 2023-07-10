@@ -1,7 +1,6 @@
 import {
   ITransaction,
   KeyPair,
-  NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
   UnconfirmedTransaction,

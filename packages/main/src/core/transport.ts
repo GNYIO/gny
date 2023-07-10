@@ -267,7 +267,14 @@ export default class Transport implements ICoreModule {
     try {
       const bundle = Peer.p2p;
 
+      const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
+        'find peer-info in DHT',
+        {
+          childOf: span.context(),
+        }
+      );
       peerId = await bundle.findPeerInfoInDHT(message);
+      findPeerInfoInDHTSpan.finish();
 
       result = await bundle.requestBlockAndVotes(peerId, params, span);
     } catch (err) {
