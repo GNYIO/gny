@@ -101,8 +101,8 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "auditAllPackages",
-      "program": "${workspaceFolder}/auditAllPackages.js",
+      "name": "test.js",
+      "program": "${workspaceFolder}/packages/utils/src/test.js",
       "cwd": "${workspaceFolder}",
       "skipFiles": [
         "<node_internals>/**/*.js"

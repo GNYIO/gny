@@ -105,7 +105,7 @@ describe('sequence', () => {
     };
 
     const asyncSecond = async res => {
-      await timeout(1000);
+      await timeout(100);
       order.push(2);
       res();
     };
@@ -272,5 +272,31 @@ describe('sequence', () => {
 
     await timeout(400);
     expect(result).toEqual(['after timeout', 'callback called']);
+  });
+
+  it('add(async) callback from task1 finishes after task2', async () => {
+    const result: string[] = [];
+
+    const task1 = async done => {
+      await timeout(200);
+      result.push('task1');
+      return done();
+    };
+    const callback1 = async (err: Error) => {
+      await timeout(200);
+      result.push('callback1');
+    };
+
+    const task2 = async done => {
+      result.push('task2');
+      return done();
+    };
+
+    sut.add(task1, undefined, callback1);
+    sut.add(task2);
+
+    await timeout(800);
+    const expectedResult = ['task1', 'task2', 'callback1'];
+    expect(result).toEqual(expectedResult);
   });
 });
