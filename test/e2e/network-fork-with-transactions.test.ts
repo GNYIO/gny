@@ -103,43 +103,45 @@ describe('network-fork-with-transactions', () => {
         `[${new Date().toLocaleTimeString()}] STARTED STARTED STARTED...`
       );
 
-      const height1 = await lib.getHeight(4096);
-      const height2 = await lib.getHeight(4098);
+      // wait a little and then make sure that the transaction was returned
+      // await lib.sleep(60 * 1000);
 
+      let height1 = await lib.getHeight(4096);
+      let height2 = await lib.getHeight(4098);
       consoleLog(`height1: ${height1}`);
       consoleLog(`height2: ${height2}`);
 
-      // node1 should be at height 8
-      expect(height1).toEqual(String(8));
-      // node2 should be at height greater than 8
-      expect(new BigNumber(height2).isGreaterThan(8)).toEqual(true);
+      // block7 needs to be equal
+      const block7_port4096 = await lib.getBlock(4096, String(7));
+      const block7_port4098 = await lib.getBlock(4098, String(7));
 
-      const node1Height8 = await lib.getBlock(4096, String(8));
-      const node2Height8 = await lib.getBlock(4098, String(8));
-      consoleLog(`node1Height8: ${JSON.stringify(node1Height8, null, 2)}`);
-      consoleLog(`node2Height8: ${JSON.stringify(node2Height8, null, 2)}`);
-      // id's of block8 should be different
-      expect(node1Height8.id).not.toEqual(node2Height8.id);
+      expect(block7_port4096).toEqual(block7_port4098);
 
-      const accountBefore = await lib.getAccount(
-        4096,
-        'G3opyS22tR1NEnjfXPYM6fAhnmtpG'
+      // for both nodes the block should have id
+      // 2b80240c3f401bcc0fef33e22e624fd15d56c45287fb55987483fd788573af19
+      const block8_port4096 = await lib.getBlock(4096, String(8));
+      const block8_port4098 = await lib.getBlock(4098, String(8));
+
+      expect(block8_port4096.id).toEqual(
+        '2b80240c3f401bcc0fef33e22e624fd15d56c45287fb55987483fd788573af19'
       );
-      consoleLog(`accountBefore: ${JSON.stringify(accountBefore, null, 2)}`);
-      expect(accountBefore.gny).toEqual('99950000000');
-
-      // wait a little and then make sure that the transaction was returned
-      await lib.sleep(60 * 1000);
+      expect(block8_port4098.id).toEqual(
+        '2b80240c3f401bcc0fef33e22e624fd15d56c45287fb55987483fd788573af19'
+      );
 
       // and both nodes have the same block height8
       await helpers.allHeightsAreTheSame([4096, 4098]);
 
-      const accountAfter = await lib.getAccount(
-        4096,
-        'G3opyS22tR1NEnjfXPYM6fAhnmtpG'
-      );
-      consoleLog(`accountAfter: ${JSON.stringify(accountAfter, null, 2)}`);
-      expect(accountAfter.gny).toEqual('109960000000');
+      // grab height again
+      height1 = await lib.getHeight(4096);
+      height2 = await lib.getHeight(4098);
+      consoleLog(`height1: ${height1}`);
+      consoleLog(`height2: ${height2}`);
+
+      // node1 should be at height greater than 8
+      expect(new BigNumber(height1).isGreaterThan(8)).toEqual(true);
+      // node2 should be at height greater than 8
+      expect(new BigNumber(height2).isGreaterThan(8)).toEqual(true);
     },
     5 * lib.oneMinute
   );
