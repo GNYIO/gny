@@ -3,7 +3,6 @@ import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 import * as gnyClient from '@gny/client';
 import axios from 'axios';
-import * as _ from 'lodash';
 import { getConfig } from '@gny/network';
 import { UnconfirmedTransaction } from '@gny/interfaces';
 import { log as consoleLog } from 'console';

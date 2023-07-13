@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import { create } from '@gny/p2p';
 import { PeerNode, ICoreModule } from '@gny/interfaces';

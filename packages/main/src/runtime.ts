@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { SmartDB } from '@gny/database-postgres';
 import BalanceManager from './smartdb/balance-manager.js';
 import loadContracts from './loadContracts.js';

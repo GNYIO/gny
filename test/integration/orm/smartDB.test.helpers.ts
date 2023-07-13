@@ -8,7 +8,6 @@ import {
   ILogger,
 } from '@gny/interfaces';
 import { randomBytes } from 'crypto';
-// import { cloneDeep } from 'lodash';
 import { copyObject } from '@gny/base';
 import { generateAddress } from '@gny/utils';
 
