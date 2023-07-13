@@ -1,6 +1,6 @@
 {
   "name": "@gny/ed",
-  "version": "1.0.130",
+  "version": "1.0.131",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.130",
+    "@gny/interfaces": "1.0.131",
     "sodium": "^3.0.2"
   }
 }
