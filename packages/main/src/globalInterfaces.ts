@@ -4,7 +4,6 @@ import {
   IConfig,
   ITracer,
   BlockAndVotes,
-  NewBlockMessage,
   ILimitCache,
   ITransactionPool,
   IBlock,
@@ -104,6 +103,7 @@ export interface IApp {
   logger: ILogger;
   tracer: ITracer;
   prom: IProm;
+  mutex: Mutex;
 }
 
 declare global {
@@ -123,7 +123,6 @@ declare global {
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
       latestBlocksCache: LRU<string, BlockAndVotes>;
-      mutex: Mutex;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;
