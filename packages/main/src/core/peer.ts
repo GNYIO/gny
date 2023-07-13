@@ -11,6 +11,7 @@ import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
 import { serializedSpanContext } from '@gny/tracer';
 import pMinDelay from 'p-min-delay';
+import { LoaderHelper } from './LoaderHelper.js';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -290,10 +291,19 @@ export default class Peer implements ICoreModule {
               peerToSyncFrom: result.decision.peerToSyncFrom.toB58String(),
             });
             await Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
-          } else {
-            span.log({
-              message: 'did not sync',
+          }
+
+          if (
+            typeof result === 'object' &&
+            result.decision.action === 'rollback'
+          ) {
+            await global.app.mutex.runExclusive(async () => {
+              await LoaderHelper.investigateFork(lastBlock, span);
             });
+            await Loader.syncBlocksFromPeer(
+              result.decision.peerIdCommonBlockHeight.peerId,
+              true
+            );
           }
         } catch (err) {
           span.log({
@@ -368,6 +378,18 @@ export default class Peer implements ICoreModule {
         result.decision.peerToSyncFrom,
         fireEvent
       );
+      return;
+    }
+
+    if (result.decision.action === 'rollback') {
+      await global.app.mutex.runExclusive(async () => {
+        await LoaderHelper.investigateFork(lastBlock, span);
+      });
+      await Loader.syncBlocksFromPeer(
+        result.decision.peerIdCommonBlockHeight.peerId,
+        true
+      );
+
       return;
     }
 
