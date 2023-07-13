@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import lodash from 'lodash';
 import { BlockReward } from '@gny/utils';
 import {
   IScope,
@@ -229,7 +229,7 @@ export default class BlocksApi implements IHttpApi {
         withTransactions
       );
       if (needReverse) {
-        blocks = _.reverse(blocks);
+        blocks = lodash.reverse(blocks);
       }
       const count = global.app.sdb.blocksCount;
       const result: ApiResult<BlocksWrapper> = {
