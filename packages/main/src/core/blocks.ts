@@ -1718,89 +1718,74 @@ export default class Blocks implements ICoreModule {
   public static onBind = async () => {
     // this.loaded = true; // TODO: use stateK
 
-    await global.app.mutex.runExclusive(
-      async () => {
-        try {
-          let state = StateHelper.getState();
+    await global.app.mutex.runExclusive(async () => {
+      try {
+        let state = StateHelper.getState();
 
-          const numberOfBlocksInDb = global.app.sdb.blocksCount;
-          state = await Blocks.RunGenesisOrLoadLastBlock(
-            state,
-            numberOfBlocksInDb,
-            global.library.genesisBlock,
-            Blocks.processBlock,
-            global.app.sdb.getBlockByHeight
+        const numberOfBlocksInDb = global.app.sdb.blocksCount;
+        state = await Blocks.RunGenesisOrLoadLastBlock(
+          state,
+          numberOfBlocksInDb,
+          global.library.genesisBlock,
+          Blocks.processBlock,
+          global.app.sdb.getBlockByHeight
+        );
+        // important
+        StateHelper.setState(state);
+
+        if (global.Config.nodeAction === 'forging') {
+          return global.library.bus.message('onBlockchainReady');
+        }
+
+        if (
+          typeof global.Config.nodeAction == 'string' &&
+          global.Config.nodeAction.startsWith('rollback')
+        ) {
+          return global.library.bus.message('onBlockchainRollback');
+        }
+
+        if (
+          typeof global.Config.nodeAction == 'string' &&
+          global.Config.nodeAction.startsWith('stopWithHeight')
+        ) {
+          const stopHeight = global.Config.nodeAction.split(':')[1];
+          const lastHeight = state.lastBlock.height;
+          global.library.logger.info(
+            `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
           );
-          // important
-          StateHelper.setState(state);
 
-          if (global.Config.nodeAction === 'forging') {
-            global.library.bus.message('onBlockchainReady');
-          }
+          if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
+            const span = global.library.tracer.startSpan('stop with height');
+            span.log({
+              stopHeight,
+              lastHeight,
+            });
+            span.finish();
 
-          if (
-            typeof global.Config.nodeAction == 'string' &&
-            global.Config.nodeAction.startsWith('rollback')
-          ) {
-            global.library.bus.message('onBlockchainRollback');
-          }
-
-          if (
-            typeof global.Config.nodeAction == 'string' &&
-            global.Config.nodeAction.startsWith('stopWithHeight')
-          ) {
-            const stopHeight = global.Config.nodeAction.split(':')[1];
-            const lastHeight = state.lastBlock.height;
-            global.library.logger.info(
+            global.library.logger.error(
               `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
             );
 
-            if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
-              const span = global.library.tracer.startSpan('stop with height');
-              span.log({
-                stopHeight,
-                lastHeight,
-              });
-              span.finish();
-
-              global.library.logger.error(
-                `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
-              );
-
-              global.process.emit('cleanup');
-            } else {
-              global.library.bus.message('onBlockchainReady');
-            }
+            return global.process.emit('cleanup');
+          } else {
+            return global.library.bus.message('onBlockchainReady');
           }
-
-          return;
-        } catch (err) {
-          const span = global.app.tracer.startSpan('onBind');
-          span.setTag('error', true);
-          span.log({
-            value: `Failed to prepare local blockchain ${err}`,
-          });
-          span.finish();
-
-          global.app.logger.error('Failed to prepare local blockchain');
-          global.app.logger.error(err);
-          throw new Error('Failed to prepare local blockchain');
         }
-      },
-      err => {
-        if (err) {
-          const span = global.app.tracer.startSpan('onBind');
-          span.setTag('error', true);
-          span.log({
-            value: err.message,
-          });
-          span.finish();
 
-          global.app.logger.error(err.message);
-          process.exit(0);
-        }
+        return;
+      } catch (err) {
+        const span = global.app.tracer.startSpan('onBind');
+        span.setTag('error', true);
+        span.log({
+          value: `Failed to prepare local blockchain ${err}`,
+        });
+        span.finish();
+
+        global.app.logger.error('Failed to prepare local blockchain');
+        global.app.logger.error(err);
+        throw new Error('Failed to prepare local blockchain');
       }
-    );
+    });
   };
 
   public static shutDownInXSeconds = async () => {
