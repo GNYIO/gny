@@ -205,5 +205,58 @@ describe('LoaderHelper', () => {
       };
       return expect(result).toEqual(expectedResult);
     });
+
+    it('syncStrategy() - we are at height 5, peers[h6] -> rollback to height 4', () => {
+      const lastBlock = {
+        height: String(5),
+      } as IBlock;
+
+      const peer1 = createPeerIdCommonBlockHeight('4', '6');
+      const peers: PeerIdCommonBlockHeight[] = [];
+      peers.push(peer1);
+
+      const result = LoaderHelper.syncStrategy(peers, lastBlock);
+      const expectedResult = {
+        action: 'rollback',
+        peerIdCommonBlockHeight: {
+          peerId: peer1.peerId,
+          height: String(6),
+          commonBlock: {
+            height: String(4),
+          },
+        },
+      };
+
+      return expect(result).toEqual(expectedResult);
+    });
+
+    it('syncStrategy() - we are at height 5, peers[h6,h7,h5] -> rollback to height 4', () => {
+      const lastBlock = {
+        height: String(5),
+      } as IBlock;
+
+      const peer1 = createPeerIdCommonBlockHeight('4', '6');
+      const peer2 = createPeerIdCommonBlockHeight('4', '7');
+      const peer3 = createPeerIdCommonBlockHeight('4', '5');
+
+      const peers: PeerIdCommonBlockHeight[] = [];
+      peers.push(peer1);
+      peers.push(peer2);
+      peers.push(peer3);
+
+      const result = LoaderHelper.syncStrategy(peers, lastBlock);
+      const expectedResult = {
+        action: 'rollback',
+        peerIdCommonBlockHeight: {
+          peerId: peer2.peerId,
+          height: String(7),
+          commonBlock: {
+            height: String(4),
+          },
+        },
+      };
+
+      return expect(result).toEqual(expectedResult);
+    });
   });
 });

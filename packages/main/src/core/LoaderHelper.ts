@@ -269,6 +269,34 @@ export class LoaderHelper {
       };
     }
 
+    const peersWithCommonBlockWhereWeAreOneBehind = peers
+      .filter(x =>
+        new BigNumber(x.commonBlock.height).isEqualTo(
+          new BigNumber(lastBlock.height).minus(1)
+        )
+      )
+      .filter(x => new BigNumber(x.height).isGreaterThan(lastBlock.height));
+    if (
+      new BigNumber(lastBlock.height).isGreaterThan(0) &&
+      peersWithCommonBlockWhereWeAreOneBehind.length > 0
+    ) {
+      const elegiblePeersDescending = peersWithCommonBlockWhereWeAreOneBehind.sort(
+        (a, b) => {
+          const res = new BigNumber(a.height).isGreaterThan(b.height);
+          if (res === true) {
+            return -1;
+          }
+          return 1;
+        }
+      );
+
+      const first = elegiblePeersDescending[0];
+      return {
+        action: 'rollback',
+        peerIdCommonBlockHeight: first,
+      };
+    }
+
     // default
     return {
       action: 'forge',
