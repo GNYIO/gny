@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as _ from 'lodash';
 import { Sequence } from '@gny/utils';
 import { getSchema } from '@gny/protobuf';
 import loadedModules from './loadModules.js';

@@ -110,13 +110,11 @@ export default class Transport implements ICoreModule {
 
     StateHelper.SetBlockToLatestBlockCache(block.id, blockAndVotes);
 
-    const message: NewBlockMessage =
-      StateHelper.GetBlockHeaderMidCache(block.id) ||
-      ({
-        id: block.id,
-        height: block.height,
-        prevBlockId: block.prevBlockId,
-      } as NewBlockMessage);
+    const message: NewBlockMessage = {
+      id: block.id,
+      height: block.height,
+      prevBlockId: block.prevBlockId,
+    };
 
     const wrapped: TracerWrapper<NewBlockMessage> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
@@ -269,7 +267,14 @@ export default class Transport implements ICoreModule {
     try {
       const bundle = Peer.p2p;
 
+      const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
+        'find peer-info in DHT',
+        {
+          childOf: span.context(),
+        }
+      );
       peerId = await bundle.findPeerInfoInDHT(message);
+      findPeerInfoInDHTSpan.finish();
 
       result = await bundle.requestBlockAndVotes(peerId, params, span);
     } catch (err) {
@@ -357,7 +362,6 @@ export default class Transport implements ICoreModule {
       }
 
       StateHelper.SetBlockToLatestBlockCache(block.id, result.data); // TODO: make side effect more predictable
-      StateHelper.SetBlockHeaderMidCache(block.id, newBlockMsg); // TODO: make side effect more predictable
     } catch (e) {
       receiveBlockSpan.setTag('error', true);
       receiveBlockSpan.log({

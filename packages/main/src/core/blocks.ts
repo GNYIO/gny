@@ -6,7 +6,6 @@ import {
   KeyPair,
   ProcessBlockOptions,
   BlockPropose,
-  Next,
   IBlock,
   ManyVotes,
   IRound,
@@ -36,7 +35,9 @@ import { Account } from '@gny/database-postgres';
 import { slots } from '@gny/utils';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import pImmediate from 'p-immediate';
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const blockReward = new BlockReward();
@@ -990,7 +991,7 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onReceiveBlock = (
+  public static onReceiveBlock = async (
     peerId: PeerId,
     block: IBlock,
     votes: ManyVotes,
@@ -1015,7 +1016,7 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
-    global.library.sequence.add(async cb => {
+    await global.app.mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       span.log({
@@ -1058,7 +1059,7 @@ export default class Blocks implements ICoreModule {
         longForkSpan.finish();
         span.finish();
 
-        return cb();
+        return;
       }
 
       span.finish();
@@ -1109,7 +1110,7 @@ export default class Blocks implements ICoreModule {
           rollbackBlockSpan.finish();
           processBlockSpan.finish();
 
-          return cb();
+          return;
         }
 
         try {
@@ -1159,16 +1160,16 @@ export default class Blocks implements ICoreModule {
 
           processBlockSpan.finish();
 
-          return cb();
+          return;
         }
       }
 
       // this is important
-      return cb();
+      return;
     });
   };
 
-  public static onReceivePropose = (
+  public static onReceivePropose = async (
     propose: BlockPropose,
     message: P2PMessage,
     parentSpan: ISpan
@@ -1183,7 +1184,7 @@ export default class Blocks implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
-    global.library.sequence.add(cb => {
+    await global.app.mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       global.library.logger.info(`[p2p] onReceivePropose started sequence`);
@@ -1226,7 +1227,8 @@ export default class Blocks implements ICoreModule {
         alreadyReceivedSpan.finish();
         span.finish();
 
-        return setImmediate(cb);
+        await pImmediate();
+        return;
       }
       state = BlocksHelper.MarkProposeAsReceived(state, propose);
 
@@ -1240,7 +1242,8 @@ export default class Blocks implements ICoreModule {
         });
         span.finish();
 
-        return setImmediate(cb);
+        await pImmediate();
+        return;
       }
 
       // TODO: check
@@ -1261,7 +1264,8 @@ export default class Blocks implements ICoreModule {
         span.setTag('error', true);
         span.finish();
 
-        return setImmediate(cb);
+        await pImmediate();
+        return;
       }
 
       if (state.lastVoteTime && Date.now() - state.lastVoteTime < 5 * 1000) {
@@ -1276,7 +1280,8 @@ export default class Blocks implements ICoreModule {
           `[p2p] onReceivePropose. ignore the frequently propose`
         );
 
-        return setImmediate(cb);
+        await pImmediate();
+        return;
       }
 
       // propose ok
@@ -1399,13 +1404,13 @@ export default class Blocks implements ICoreModule {
           global.app.logger.debug('onReceivePropose finished');
 
           span.finish();
-          cb();
+          return;
         }
       );
     });
   };
 
-  public static onReceiveTransaction = (
+  public static onReceiveTransaction = async (
     unconfirmedTrs: UnconfirmedTransaction,
     parentSpan: ISpan
   ) => {
@@ -1417,7 +1422,7 @@ export default class Blocks implements ICoreModule {
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
-    global.library.sequence.add(async cb => {
+    await global.app.mutex.runExclusive(async () => {
       span.log({
         value: 'execute in sequence',
       });
@@ -1435,7 +1440,8 @@ export default class Blocks implements ICoreModule {
         span.finish();
 
         // TODO this should access state
-        return cb();
+        await pImmediate();
+        return;
       }
 
       const state = StateHelper.getState();
@@ -1448,7 +1454,8 @@ export default class Blocks implements ICoreModule {
         });
         span.finish();
 
-        return cb();
+        await pImmediate();
+        return;
       }
 
       try {
@@ -1471,15 +1478,18 @@ export default class Blocks implements ICoreModule {
         );
         global.app.logger.warn(err);
 
-        return cb();
+        await pImmediate();
+        return;
       }
 
       span.finish();
-      return cb();
+
+      await pImmediate();
+      return;
     });
   };
 
-  public static onReceiveVotes = (votes: ManyVotes, span: ISpan) => {
+  public static onReceiveVotes = async (votes: ManyVotes, span: ISpan) => {
     const isSyncing = StateHelper.IsSyncing();
     const modules = !StateHelper.ModulesAreLoaded();
 
@@ -1499,7 +1509,7 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
-    global.library.sequence.add(async cb => {
+    await global.app.mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       // check if incoming votes aren't stale
@@ -1523,7 +1533,7 @@ export default class Blocks implements ICoreModule {
         });
         span.finish();
 
-        return cb();
+        return;
       }
 
       // first we need to check if the votes fit in line
@@ -1551,7 +1561,7 @@ export default class Blocks implements ICoreModule {
 
         span.finish();
 
-        return cb();
+        return;
       }
 
       global.library.logger.info(`[p2p] add remote votes`);
@@ -1633,7 +1643,7 @@ export default class Blocks implements ICoreModule {
           global.app.logger.error(err);
         }
 
-        return cb();
+        return;
       } else {
         span.log({
           value: 'has not enough votes',
@@ -1643,7 +1653,9 @@ export default class Blocks implements ICoreModule {
         span.finish();
 
         StateHelper.setState(state); // important
-        return setImmediate(cb);
+
+        await pImmediate();
+        return;
       }
     });
   };
@@ -1703,92 +1715,77 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onBind = () => {
+  public static onBind = async () => {
     // this.loaded = true; // TODO: use stateK
 
-    return global.library.sequence.add(
-      async cb => {
-        try {
-          let state = StateHelper.getState();
+    await global.app.mutex.runExclusive(async () => {
+      try {
+        let state = StateHelper.getState();
 
-          const numberOfBlocksInDb = global.app.sdb.blocksCount;
-          state = await Blocks.RunGenesisOrLoadLastBlock(
-            state,
-            numberOfBlocksInDb,
-            global.library.genesisBlock,
-            Blocks.processBlock,
-            global.app.sdb.getBlockByHeight
+        const numberOfBlocksInDb = global.app.sdb.blocksCount;
+        state = await Blocks.RunGenesisOrLoadLastBlock(
+          state,
+          numberOfBlocksInDb,
+          global.library.genesisBlock,
+          Blocks.processBlock,
+          global.app.sdb.getBlockByHeight
+        );
+        // important
+        StateHelper.setState(state);
+
+        if (global.Config.nodeAction === 'forging') {
+          return global.library.bus.message('onBlockchainReady');
+        }
+
+        if (
+          typeof global.Config.nodeAction == 'string' &&
+          global.Config.nodeAction.startsWith('rollback')
+        ) {
+          return global.library.bus.message('onBlockchainRollback');
+        }
+
+        if (
+          typeof global.Config.nodeAction == 'string' &&
+          global.Config.nodeAction.startsWith('stopWithHeight')
+        ) {
+          const stopHeight = global.Config.nodeAction.split(':')[1];
+          const lastHeight = state.lastBlock.height;
+          global.library.logger.info(
+            `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
           );
-          // important
-          StateHelper.setState(state);
 
-          if (global.Config.nodeAction === 'forging') {
-            global.library.bus.message('onBlockchainReady');
-          }
+          if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
+            const span = global.library.tracer.startSpan('stop with height');
+            span.log({
+              stopHeight,
+              lastHeight,
+            });
+            span.finish();
 
-          if (
-            typeof global.Config.nodeAction == 'string' &&
-            global.Config.nodeAction.startsWith('rollback')
-          ) {
-            global.library.bus.message('onBlockchainRollback');
-          }
-
-          if (
-            typeof global.Config.nodeAction == 'string' &&
-            global.Config.nodeAction.startsWith('stopWithHeight')
-          ) {
-            const stopHeight = global.Config.nodeAction.split(':')[1];
-            const lastHeight = state.lastBlock.height;
-            global.library.logger.info(
+            global.library.logger.error(
               `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
             );
 
-            if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
-              const span = global.library.tracer.startSpan('stop with height');
-              span.log({
-                stopHeight,
-                lastHeight,
-              });
-              span.finish();
-
-              global.library.logger.error(
-                `[stopWithHeight] stopWithHeight: lastHeight: "${lastHeight}" is bigger than "${stopHeight}"`
-              );
-
-              global.process.emit('cleanup');
-            } else {
-              global.library.bus.message('onBlockchainReady');
-            }
+            return global.process.emit('cleanup');
+          } else {
+            return global.library.bus.message('onBlockchainReady');
           }
-
-          return cb();
-        } catch (err) {
-          const span = global.app.tracer.startSpan('onBind');
-          span.setTag('error', true);
-          span.log({
-            value: `Failed to prepare local blockchain ${err}`,
-          });
-          span.finish();
-
-          global.app.logger.error('Failed to prepare local blockchain');
-          global.app.logger.error(err);
-          return cb('Failed to prepare local blockchain');
         }
-      },
-      err => {
-        if (err) {
-          const span = global.app.tracer.startSpan('onBind');
-          span.setTag('error', true);
-          span.log({
-            value: err.message,
-          });
-          span.finish();
 
-          global.app.logger.error(err.message);
-          process.exit(0);
-        }
+        return;
+      } catch (err) {
+        const span = global.app.tracer.startSpan('onBind');
+        span.setTag('error', true);
+        span.log({
+          value: `Failed to prepare local blockchain ${err}`,
+        });
+        span.finish();
+
+        global.app.logger.error('Failed to prepare local blockchain');
+        global.app.logger.error(err);
+        throw new Error('Failed to prepare local blockchain');
       }
-    );
+    });
   };
 
   public static shutDownInXSeconds = async () => {
@@ -1796,33 +1793,17 @@ export default class Blocks implements ICoreModule {
     // for other peers to have time to request the new block
     global.library.logger.info(`[stopWithHeight] setInterval [start]...`);
 
-    setInterval(() => {
+    await sleep(3 * 1000);
+
+    await global.app.mutex.runExclusive(async () => {
       global.library.logger.info(
         `[stopWithHeight] setInterval add sequence [start]`
       );
 
-      global.library.sequence.add(
-        async done => {
-          global.library.logger.info(
-            `[stopWithHeight] sequence now running...`
-          );
+      global.library.logger.info(`[stopWithHeight] sequence now running...`);
 
-          done();
-        },
-        err => {
-          global.library.logger.info(
-            `[stopWithHeight] sequence finished callback().`
-          );
-          process.exit(1);
-        }
-      );
-
-      global.library.logger.info(
-        `[stopWithHeight] setInterval add sequence [end]`
-      );
-    }, 3000);
-
-    global.library.logger.info(`[stopWithHeight] setInterval [end]...`);
+      process.exit(1);
+    });
   };
 
   public static onBlockchainRollback = async () => {

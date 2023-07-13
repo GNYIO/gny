@@ -1,7 +1,6 @@
 import {
   ITransaction,
   KeyPair,
-  NewBlockMessage,
   KeyPairsIndexer,
   BlockAndVotes,
   UnconfirmedTransaction,
@@ -182,21 +181,5 @@ export class StateHelper {
   }
   public static GetBlockFromLatestBlockCache(blockId: string) {
     return global.latestBlocksCache.get(blockId);
-  }
-
-  // blockHeaderMidCache
-  public static InitializeBlockHeaderMidCache() {
-    global.blockHeaderMidCache = new LRU<string, NewBlockMessage>({
-      max: 1000,
-    });
-  }
-  public static SetBlockHeaderMidCache(
-    blockId: string,
-    newBlockMsg: NewBlockMessage
-  ) {
-    global.blockHeaderMidCache.set(blockId, newBlockMsg);
-  }
-  public static GetBlockHeaderMidCache(blockId: string) {
-    return global.blockHeaderMidCache.get(blockId);
   }
 }

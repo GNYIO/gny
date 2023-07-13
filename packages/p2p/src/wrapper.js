@@ -9,7 +9,7 @@ const pipe = require('it-pipe');
 const first = require('it-first');
 const multiaddr = require('multiaddr');
 
-class Bundle extends Libp2p {
+export class Bundle extends Libp2p {
   constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
     const options = {
       peerId,

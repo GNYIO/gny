@@ -56,15 +56,15 @@
       "runtimeVersion": "16.18.0",
       "request": "launch",
       "name": "Unit Tests",
-      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
       "args": [
-          "--verbose",
-          "--runInBand",
-          "--no-cache",
-          "test/integration/client/block.test.ts"
-      ],
-      "runtimeArgs": [
-          "--nolazy"
+        "--experimental-vm-modules",
+        "--no-warnings",
+        "node_modules/jest/bin/jest.js",
+        "--verbose",
+        "-c=jest.config.js",
+        "--no-cache",
+        "--runInBand",
+        "test/unit/p2p/another.test.ts"
       ],
       "console": "internalConsole",
       "env": {
@@ -101,8 +101,8 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "auditAllPackages",
-      "program": "${workspaceFolder}/auditAllPackages.js",
+      "name": "test.js",
+      "program": "${workspaceFolder}/packages/utils/src/test.js",
       "cwd": "${workspaceFolder}",
       "skipFiles": [
         "<node_internals>/**/*.js"

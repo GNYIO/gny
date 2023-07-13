@@ -145,7 +145,7 @@ export default class Delegates implements ICoreModule {
       return;
     }
 
-    global.library.sequence.add(async done => {
+    await global.app.mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       let error = false;
@@ -253,7 +253,7 @@ export default class Delegates implements ICoreModule {
         // if (error) {
         //   throw new Error('error occured during Blocks.processBlock()');
         // }
-        return done();
+        return;
       }
     });
   };

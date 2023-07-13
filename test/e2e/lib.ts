@@ -177,12 +177,12 @@ export async function stopAndRemoveOldContainersAndNetworks() {
 export async function buildDockerImage(
   configFile: string = 'docker-compose.yml'
 ) {
-  await executeCmdAndPrint(`docker-compose --file ${configFile} build --quiet`);
+  await executeCmdAndPrint(`docker compose --file ${configFile} build --quiet`);
 }
 
 export async function createP2PContainersOnlyNoStarting(configFile: string) {
   await executeCmdAndPrint(
-    `docker-compose --file "${configFile}" up --no-start`
+    `docker compose --file "${configFile}" up --no-start`
   );
 }
 
@@ -200,7 +200,7 @@ export async function spawnP2PContainers(
   configFile: string = 'docker-compose.yml',
   ports = [4096]
 ) {
-  const command = `docker-compose --file ${configFile} up --detach`;
+  const command = `docker compose --file ${configFile} up --detach`;
   shellJS.exec(command);
 
   await sleep(10 * 1000);
@@ -213,7 +213,7 @@ export async function spawnP2PContainersHeightZeroAllowed(
   configFile: string = 'docker-compose.yml',
   ports = [4096]
 ) {
-  const command = `docker-compose --file ${configFile} up --detach`;
+  const command = `docker compose --file ${configFile} up --detach`;
   shellJS.exec(command);
 
   await sleep(10 * 1000);
@@ -229,7 +229,7 @@ export async function spawnP2pContainersSingle(
   services: string[]
 ) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
+    `docker compose --file "${configFile}" up --detach ${services.join(' ')}`
   );
   await sleep(5000);
 }
@@ -239,7 +239,7 @@ export async function startP2PContainers(
   services: string[]
 ) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" start ${services.join(' ')}`
+    `docker compose --file "${configFile}" start ${services.join(' ')}`
   );
   await sleep(5000);
 }
@@ -249,7 +249,7 @@ export async function stopP2PContainers(
   services: string[]
 ) {
   await executeCmdAndPrint(
-    `docker-compose --file "${configFile}" stop --timeout=0 ${services.join(
+    `docker compose --file "${configFile}" stop --timeout=0 ${services.join(
       ' '
     )}`
   );
@@ -258,14 +258,14 @@ export async function stopP2PContainers(
 
 export async function rmP2PContainers(configFile: string, services: string[]) {
   shellJS.exec(
-    `docker-compose --file "${configFile}" rm --force ${services.join(' ')}`
+    `docker compose --file "${configFile}" rm --force ${services.join(' ')}`
   );
   await sleep(5000);
 }
 
 export async function upP2PContainers(configFile: string, services: string[]) {
   await executeCmdAndPrint(
-    `docker-compose --file "${configFile}" up --detach ${services.join(' ')}`
+    `docker compose --file "${configFile}" up --detach ${services.join(' ')}`
   );
   await sleep(5000);
 }
@@ -274,7 +274,7 @@ export async function stopAndKillContainer(
   configFile: string = 'docker-compose.yml'
 ) {
   await executeCmdAndPrint(
-    `docker-compose --file ${configFile} down --volumes`
+    `docker compose --file ${configFile} down --volumes`
   );
   await sleep(20 * 1000);
 }
@@ -312,7 +312,7 @@ export const tenMinutes = 10 * 60 * 1000;
 
 export function getLogsOfAllServices(configFile: string, e2eTestName: string) {
   const result = shellJS.exec(
-    `docker-compose --file ${configFile} logs --no-color --timestamp | sort -k3,3`,
+    `docker compose --file ${configFile} logs --no-color --timestamp | sort -k3,3`,
     {
       silent: true,
     }

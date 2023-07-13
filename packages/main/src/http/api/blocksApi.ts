@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import lodash from 'lodash';
 import { BlockReward } from '@gny/utils';
 import {
   IScope,
@@ -49,6 +49,7 @@ export default class BlocksApi implements IHttpApi {
     router.get('/getReward', this.getReward);
     router.get('/getSupply', this.getSupply);
     router.get('/getStatus', this.getStatus);
+    router.get('/cached', this.cached);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -229,7 +230,7 @@ export default class BlocksApi implements IHttpApi {
         withTransactions
       );
       if (needReverse) {
-        blocks = _.reverse(blocks);
+        blocks = lodash.reverse(blocks);
       }
       const count = global.app.sdb.blocksCount;
       const result: ApiResult<BlocksWrapper> = {
@@ -340,5 +341,12 @@ export default class BlocksApi implements IHttpApi {
       supply,
     };
     return res.json(result);
+  };
+
+  private cached = (req: Request, res: Response, next: Next) => {
+    const entries = global.latestBlocksCache.dump();
+    console.log(entries);
+
+    return res.json(entries);
   };
 }

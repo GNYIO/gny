@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { SmartDB } from '@gny/database-postgres';
 import BalanceManager from './smartdb/balance-manager.js';
 import loadContracts from './loadContracts.js';
@@ -9,6 +8,7 @@ import { StateHelper } from './core/StateHelper.js';
 import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gny/database-postgres';
 import Peer from './core/peer.js';
+import { Mutex } from 'async-mutex';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -18,7 +18,6 @@ export default async function runtime(options: IOptions) {
   StateHelper.InitializeModulesAreLoaded();
   StateHelper.InitializeBlockchainReady();
   StateHelper.InitializeLatestBlockCache();
-  StateHelper.InitializeBlockHeaderMidCache();
   StateHelper.SetIsSyncing(false);
 
   global.app = {
@@ -28,6 +27,7 @@ export default async function runtime(options: IOptions) {
     contractTypeMapping: {},
     logger: options.logger,
     tracer: options.tracer,
+    mutex: new Mutex(),
   };
   global.app.prom = {
     accounts: new prom.Gauge<string>({

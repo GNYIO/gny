@@ -55,7 +55,10 @@ export default class Loader implements ICoreModule {
   }
 
   // Public methods
-  public static syncBlocksFromPeer = (peer: PeerId, fireEvent = false) => {
+  public static syncBlocksFromPeer = async (
+    peer: PeerId,
+    fireEvent = false
+  ) => {
     global.library.logger.debug('syncBlocksFromPeer enter');
 
     // do not check if IsReady(), because we call this function from core/peer
@@ -69,72 +72,62 @@ export default class Loader implements ICoreModule {
       return;
     }
 
-    const sequenceCallback = (err: Error) => {
-      if (fireEvent === true) {
-        setImmediate(() => {
-          global.library.bus.message('onPeerReady');
+    await global.app.mutex.runExclusive(async () => {
+      global.library.logger.debug('syncBlocksFromPeer enter sequence');
+      StateHelper.SetIsSyncing(true);
+
+      const span = global.library.tracer.startSpan('sync blocks from peer');
+      span.setTag('syncing', true);
+
+      const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
+      StateHelper.ClearUnconfirmedTransactions();
+      try {
+        const rollbackBlockSpan = global.library.tracer.startSpan(
+          'rollback Block (height)',
+          {
+            childOf: span.context(),
+          }
+        );
+        rollbackBlockSpan.log({
+          lastBlock,
         });
+        rollbackBlockSpan.setTag('height', lastBlock.height);
+        rollbackBlockSpan.setTag('id', lastBlock.id);
+        rollbackBlockSpan.setTag('hash', getSmallBlockHash(lastBlock));
+        rollbackBlockSpan.finish();
+
+        await global.app.sdb.rollbackBlock(lastBlock.height);
+      } catch (err) {
+        span.setTag('error', true);
+        span.log({
+          value: 'error while sdb.rollbackBlock()',
+        });
+        span.finish();
+
+        global.library.logger.error('error while sdb.rollbackBlock()');
+
+        // reset
+        StateHelper.SetIsSyncing(false);
+        throw err;
       }
-    };
+      try {
+        // remove
+        span.log({
+          lastBlock,
+        });
 
-    global.library.sequence.add(
-      async cb => {
-        global.library.logger.debug('syncBlocksFromPeer enter sequence');
-        StateHelper.SetIsSyncing(true);
+        span.finish();
 
-        const span = global.library.tracer.startSpan('sync blocks from peer');
-        span.setTag('syncing', true);
+        await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);
+      } catch (err) {
+        throw err;
+      } finally {
+        StateHelper.SetIsSyncing(false);
+        global.library.logger.debug('syncBlocksFromPeer end');
+        return;
+      }
+    });
 
-        const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
-        StateHelper.ClearUnconfirmedTransactions();
-        try {
-          const rollbackBlockSpan = global.library.tracer.startSpan(
-            'rollback Block (height)',
-            {
-              childOf: span.context(),
-            }
-          );
-          rollbackBlockSpan.log({
-            lastBlock,
-          });
-          rollbackBlockSpan.setTag('height', lastBlock.height);
-          rollbackBlockSpan.setTag('id', lastBlock.id);
-          rollbackBlockSpan.setTag('hash', getSmallBlockHash(lastBlock));
-          rollbackBlockSpan.finish();
-
-          await global.app.sdb.rollbackBlock(lastBlock.height);
-        } catch (err) {
-          span.setTag('error', true);
-          span.log({
-            value: 'error while sdb.rollbackBlock()',
-          });
-          span.finish();
-
-          global.library.logger.error('error while sdb.rollbackBlock()');
-
-          // reset
-          StateHelper.SetIsSyncing(false);
-          return cb(err);
-        }
-        try {
-          // remove
-          span.log({
-            lastBlock,
-          });
-
-          span.finish();
-
-          await Blocks.loadBlocksFromPeer(peer, lastBlock.id, span);
-        } catch (err) {
-          throw err;
-        } finally {
-          StateHelper.SetIsSyncing(false);
-          global.library.logger.debug('syncBlocksFromPeer end');
-          return cb();
-        }
-      },
-      undefined,
-      sequenceCallback
-    );
+    global.library.bus.message('onPeerReady');
   };
 }

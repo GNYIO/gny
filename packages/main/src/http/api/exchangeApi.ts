@@ -67,7 +67,7 @@ export default class ExchangeApi implements IHttpApi {
     }
   };
 
-  private addTransactionUnsigned = (
+  private addTransactionUnsigned = async (
     req: Request,
     res: Response,
     next: Next
@@ -162,39 +162,9 @@ export default class ExchangeApi implements IHttpApi {
       return setImmediate(next, 'error while signing');
     }
 
-    const finishSequence = (err: string, result: any) => {
-      if (err) {
-        global.app.prom.requests.inc({
-          method: 'PUT',
-          endpoint: '/api/exchange',
-          statusCode: '500',
-        });
-
-        span.setTag('error', true);
-        span.log({
-          value: `unconfirmed transaction error: ${err}`,
-        });
-
-        span.finish();
-        return next(err);
-      }
-
-      span.log({
-        result,
-      });
-      span.finish();
-
-      global.app.prom.requests.inc({
-        method: 'PUT',
-        endpoint: '/api/exchange',
-        statusCode: '200',
-      });
-
-      res.json(result);
-    };
-
-    this.library.sequence.add(
-      async cb => {
+    let result = null;
+    try {
+      await global.app.mutex.runExclusive(async () => {
         span.log({
           value: 'start sequence',
         });
@@ -214,20 +184,46 @@ export default class ExchangeApi implements IHttpApi {
             span
           );
 
-          const result: ApiResult<TransactionIdWrapper> = {
+          const temp: ApiResult<TransactionIdWrapper> = {
             success: true,
             transactionId: unconfirmedTrs.id,
           };
-          return cb(null, result);
+
+          result = temp;
         } catch (e) {
           this.library.logger.warn('Failed to process unsigned transaction');
           this.library.logger.warn(e);
-          return cb('Server Error');
+          throw new Error('Server Error');
         }
-      },
-      undefined,
-      finishSequence
-    );
+      });
+    } catch (err) {
+      global.app.prom.requests.inc({
+        method: 'PUT',
+        endpoint: '/api/exchange',
+        statusCode: '500',
+      });
+
+      span.setTag('error', true);
+      span.log({
+        value: `unconfirmed transaction error: ${err}`,
+      });
+
+      span.finish();
+      return next(err);
+    }
+
+    span.log({
+      result,
+    });
+    span.finish();
+
+    global.app.prom.requests.inc({
+      method: 'PUT',
+      endpoint: '/api/exchange',
+      statusCode: '200',
+    });
+
+    return res.json(result);
   };
 
   private openAccount = async (req: Request, res: Response, next: Next) => {

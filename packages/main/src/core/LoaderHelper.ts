@@ -269,146 +269,149 @@ export class LoaderHelper {
       };
     }
 
+    const peersWithCommonBlockWhereWeAreOneBehind = peers
+      .filter(x =>
+        new BigNumber(x.commonBlock.height).isEqualTo(
+          new BigNumber(lastBlock.height).minus(1)
+        )
+      )
+      .filter(x => new BigNumber(x.height).isGreaterThan(lastBlock.height));
+    if (
+      new BigNumber(lastBlock.height).isGreaterThan(0) &&
+      peersWithCommonBlockWhereWeAreOneBehind.length > 0
+    ) {
+      const elegiblePeersDescending = peersWithCommonBlockWhereWeAreOneBehind.sort(
+        (a, b) => {
+          const res = new BigNumber(a.height).isGreaterThan(b.height);
+          if (res === true) {
+            return -1;
+          }
+          return 1;
+        }
+      );
+
+      const first = elegiblePeersDescending[0];
+      return {
+        action: 'rollback',
+        peerIdCommonBlockHeight: first,
+      };
+    }
+
     // default
     return {
       action: 'forge',
     };
   }
 
-  public static async investigateFork(
-    highestPeer: PeerIdCommonBlockHeight,
-    lastBlock: IBlock,
-    parentSpan: ISpan
-  ) {
+  public static async investigateFork(lastBlock: IBlock, parentSpan: ISpan) {
     const forkSpan = global.library.tracer.startSpan('investigate fork', {
       childOf: parentSpan.context(),
     });
     forkSpan.finish();
 
-    if (
-      new BigNumber(highestPeer.commonBlock.height)
-        .plus(1)
-        .isEqualTo(lastBlock.height)
-    ) {
-      // clear unconfirmed transactions
-      const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
-        'clear unconfirmed transactions',
-        {
-          childOf: forkSpan.context(),
-        }
-      );
-      try {
-        StateHelper.ClearUnconfirmedTransactions();
-
-        clearUnconfirmedTrsSpan.finish();
-      } catch (err) {
-        clearUnconfirmedTrsSpan.log({
-          err,
-        });
-        clearUnconfirmedTrsSpan.setTag('error', true);
-        clearUnconfirmedTrsSpan.finish();
-        forkSpan.finish();
-
-        return;
+    // clear unconfirmed transactions
+    const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
+      'clear unconfirmed transactions',
+      {
+        childOf: forkSpan.context(),
       }
+    );
+    try {
+      StateHelper.ClearUnconfirmedTransactions();
 
-      // rollback current block (to revert transactions)
-      const revertCurrentBlockSpan = global.library.tracer.startSpan(
-        'rollback current block',
-        {
-          childOf: clearUnconfirmedTrsSpan.context(),
-        }
-      );
-      try {
-        revertCurrentBlockSpan.log({
-          log: 'rolling back current block',
-        });
-        revertCurrentBlockSpan.log({
-          lastBlock,
-        });
+      clearUnconfirmedTrsSpan.finish();
+    } catch (err) {
+      clearUnconfirmedTrsSpan.log({
+        err,
+      });
+      clearUnconfirmedTrsSpan.setTag('error', true);
+      clearUnconfirmedTrsSpan.finish();
+      forkSpan.finish();
 
-        await global.app.sdb.rollbackBlock();
+      return;
+    }
 
-        // state management
-        let state = StateHelper.getState();
-        state = StateHelper.stateBeforeRollback(state.lastBlock);
-        state.lastBlock = global.app.sdb.lastBlock;
-        StateHelper.setState(state);
-
-        revertCurrentBlockSpan.finish();
-      } catch (err) {
-        revertCurrentBlockSpan.finish();
-        forkSpan.finish();
-
-        // make sure that the actual lastBlock is set within the StateHelper
-        const state = StateHelper.getState();
-        state.lastBlock = global.app.sdb.lastBlock;
-        StateHelper.setState(state);
-
-        return;
+    // rollback current block (to revert transactions)
+    const revertCurrentBlockSpan = global.library.tracer.startSpan(
+      'rollback current block',
+      {
+        childOf: clearUnconfirmedTrsSpan.context(),
       }
+    );
+    try {
+      revertCurrentBlockSpan.log({
+        log: 'rolling back current block',
+      });
+      revertCurrentBlockSpan.log({
+        lastBlock,
+      });
 
-      // rollback to block minus1
-      const rollbackToMinus1BlockSpan = global.library.tracer.startSpan(
-        'rollback block minus1',
-        {
-          childOf: revertCurrentBlockSpan.context(),
-        }
-      );
-      try {
-        // revert
-        const targetBlockHeight = new BigNumber(lastBlock.height)
-          .minus(1)
-          .toFixed();
+      await global.app.sdb.rollbackBlock();
 
-        rollbackToMinus1BlockSpan.log({
-          log: `rolling block back from ${
-            lastBlock.height
-          } to: ${targetBlockHeight}`,
-        });
-        rollbackToMinus1BlockSpan.log({
-          isSyncing: StateHelper.IsSyncing(),
-        });
+      // state management
+      let state = StateHelper.getState();
+      state = StateHelper.stateBeforeRollback(state.lastBlock);
+      state.lastBlock = global.app.sdb.lastBlock;
+      StateHelper.setState(state);
 
-        await global.app.sdb.rollbackBlock(targetBlockHeight);
+      revertCurrentBlockSpan.finish();
+    } catch (err) {
+      revertCurrentBlockSpan.finish();
+      forkSpan.finish();
 
-        // state management
-        let state = StateHelper.getState();
-        state = StateHelper.stateBeforeRollback(state.lastBlock); // unnecessary?
-        state.lastBlock = global.app.sdb.lastBlock;
-        StateHelper.setState(state);
+      // make sure that the actual lastBlock is set within the StateHelper
+      const state = StateHelper.getState();
+      state.lastBlock = global.app.sdb.lastBlock;
+      StateHelper.setState(state);
 
-        rollbackToMinus1BlockSpan.finish();
-      } catch (err) {
-        rollbackToMinus1BlockSpan.log({
-          err,
-        });
-        rollbackToMinus1BlockSpan.setTag('error', true);
-        rollbackToMinus1BlockSpan.finish();
-        forkSpan.finish();
+      return;
+    }
 
-        // make sure that the actual lastBlock is set within the StateHelper
-        const state = StateHelper.getState();
-        state.lastBlock = global.app.sdb.lastBlock;
-        StateHelper.setState(state);
-
-        return;
+    // rollback to block minus1
+    const rollbackToMinus1BlockSpan = global.library.tracer.startSpan(
+      'rollback block minus1',
+      {
+        childOf: revertCurrentBlockSpan.context(),
       }
+    );
+    try {
+      // revert
+      const targetBlockHeight = new BigNumber(lastBlock.height)
+        .minus(1)
+        .toFixed();
 
-      const syncFromPeerSpan = global.library.tracer.startSpan(
-        'after rollback sync from peer',
-        {
-          childOf: rollbackToMinus1BlockSpan.context(),
-        }
-      );
-      syncFromPeerSpan.finish();
+      rollbackToMinus1BlockSpan.log({
+        log: `rolling block back from ${
+          lastBlock.height
+        } to: ${targetBlockHeight}`,
+      });
+      rollbackToMinus1BlockSpan.log({
+        isSyncing: StateHelper.IsSyncing(),
+      });
 
-      const currentBlock = StateHelper.getState().lastBlock;
-      await Blocks.loadBlocksFromPeer(
-        highestPeer.peerId,
-        currentBlock.id,
-        syncFromPeerSpan
-      );
+      await global.app.sdb.rollbackBlock(targetBlockHeight);
+
+      // state management
+      let state = StateHelper.getState();
+      state = StateHelper.stateBeforeRollback(state.lastBlock); // unnecessary?
+      state.lastBlock = global.app.sdb.lastBlock;
+      StateHelper.setState(state);
+
+      rollbackToMinus1BlockSpan.finish();
+    } catch (err) {
+      rollbackToMinus1BlockSpan.log({
+        err,
+      });
+      rollbackToMinus1BlockSpan.setTag('error', true);
+      rollbackToMinus1BlockSpan.finish();
+      forkSpan.finish();
+
+      // make sure that the actual lastBlock is set within the StateHelper
+      const state = StateHelper.getState();
+      state.lastBlock = global.app.sdb.lastBlock;
+      StateHelper.setState(state);
+
+      return;
     }
   }
 }

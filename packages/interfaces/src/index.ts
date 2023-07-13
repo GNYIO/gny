@@ -51,7 +51,6 @@ export type MethodActions =
   | 'onUnconfirmedTransaction'
   | 'onReceiveVotes'
   | 'onNewBlock'
-  | 'onProcessBlock'
   | 'onBlockchainReady'
   | 'onPeerReady'
   | 'onNewPropose'
