@@ -96,7 +96,7 @@ export default class TransportApi implements IHttpApi {
   };
 
   // POST
-  private transactions = (req: Request, res: Response, next: Next) => {
+  private transactions = async (req: Request, res: Response, next: Next) => {
     const span = global.library.tracer.startSpan(
       'receive transaction via http'
     );
@@ -143,43 +143,8 @@ export default class TransportApi implements IHttpApi {
     span.setTag('transactionId', unconfirmedTrs.id);
     span.setTag('senderId', unconfirmedTrs.senderId);
 
-    const finished = err => {
-      if (err) {
-        span.finish();
-
-        global.app.prom.requests.inc({
-          method: 'POST',
-          endpoint: '/api/peer/transactions',
-          statusCode: '500',
-        });
-
-        const errMsg: string = err.message ? err.message : err.toString();
-        return next(`Error: ${errMsg}`);
-      } else {
-        span.finish();
-
-        this.library.bus.message(
-          'onUnconfirmedTransaction',
-          unconfirmedTrs,
-          span
-        );
-
-        global.app.prom.requests.inc({
-          method: 'POST',
-          endpoint: '/api/peer/transactions',
-          statusCode: '200',
-        });
-
-        const result: ApiResult<TransactionIdWrapper> = {
-          success: true,
-          transactionId: unconfirmedTrs.id,
-        };
-        return res.status(200).json(result);
-      }
-    };
-
-    return this.library.sequence.add(
-      async cb => {
+    try {
+      await global.app.mutex.runExclusive(async () => {
         span.log({
           value: 'start sequence',
         });
@@ -201,7 +166,7 @@ export default class TransportApi implements IHttpApi {
             value: 'Blockchain is not ready',
           });
 
-          return cb('Blockchain is not ready');
+          throw new Error('Blockchain is not ready');
         }
 
         try {
@@ -221,14 +186,38 @@ export default class TransportApi implements IHttpApi {
           );
           this.library.logger.warn(err);
 
-          return cb(err.message);
+          throw new Error(err.message);
         }
 
-        return cb();
-      },
-      undefined,
-      finished
-    );
+        return;
+      });
+    } catch (err) {
+      span.finish();
+
+      global.app.prom.requests.inc({
+        method: 'POST',
+        endpoint: '/api/peer/transactions',
+        statusCode: '500',
+      });
+
+      const errMsg: string = err.message ? err.message : err.toString();
+      return next(`Error: ${errMsg}`);
+    }
+
+    span.finish();
+    this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs, span);
+
+    global.app.prom.requests.inc({
+      method: 'POST',
+      endpoint: '/api/peer/transactions',
+      statusCode: '200',
+    });
+
+    const result: ApiResult<TransactionIdWrapper> = {
+      success: true,
+      transactionId: unconfirmedTrs.id,
+    };
+    return res.status(200).json(result);
   };
 
   // POST

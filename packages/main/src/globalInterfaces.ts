@@ -18,6 +18,7 @@ import { EventEmitter } from 'events';
 import BalanceManager from './smartdb/balance-manager.js';
 import LRU from 'lru-cache';
 import * as Prom from 'prom-client';
+import { Mutex } from 'async-mutex';
 
 export interface IProm {
   peers: Prom.Gauge<string>;
@@ -122,6 +123,7 @@ declare global {
       areAllModulesLoaded: boolean;
       blockchainReady: boolean;
       latestBlocksCache: LRU<string, BlockAndVotes>;
+      mutex: Mutex;
     }
     interface Process {
       once(event: 'cleanup', listener: () => void): this;

@@ -11,6 +11,7 @@ import { StateHelper } from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
 import { serializedSpanContext } from '@gny/tracer';
+import pMinDelay from 'p-min-delay';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -258,7 +259,7 @@ export default class Peer implements ICoreModule {
     span.finish();
   };
 
-  public static syncIfStuck = () => {
+  public static syncIfStuck = async () => {
     // sync to highest node, especially when the whole network is stuck
     let height30SecondsAgo = String(StateHelper.getState().lastBlock.height);
 
@@ -289,7 +290,7 @@ export default class Peer implements ICoreModule {
               message: 'sync from:',
               peerToSyncFrom: result.decision.peerToSyncFrom.toB58String(),
             });
-            Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
+            await Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom);
           } else {
             span.log({
               message: 'did not sync',
@@ -305,10 +306,11 @@ export default class Peer implements ICoreModule {
       } else {
         height30SecondsAgo = heightNow;
       }
-
-      setTimeout(checkIfStuck, 30 * 1000);
     }
-    setTimeout(checkIfStuck, 30 * 1000);
+
+    while (true) {
+      await pMinDelay(checkIfStuck(), 30 * 1000);
+    }
   };
 
   // Events
@@ -345,6 +347,8 @@ export default class Peer implements ICoreModule {
     }
 
     // check every 30 seconds if we are stuck
+    // fire and forget
+    // here we deliberately not "await" the promise
     Peer.syncIfStuck();
 
     // ask peers for their height
@@ -361,7 +365,10 @@ export default class Peer implements ICoreModule {
 
     if (result.decision.action === 'sync') {
       const fireEvent = true; // important
-      Loader.syncBlocksFromPeer(result.decision.peerToSyncFrom, fireEvent);
+      await Loader.syncBlocksFromPeer(
+        result.decision.peerToSyncFrom,
+        fireEvent
+      );
       return;
     }
 
