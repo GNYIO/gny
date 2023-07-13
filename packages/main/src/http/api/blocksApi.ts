@@ -49,6 +49,7 @@ export default class BlocksApi implements IHttpApi {
     router.get('/getReward', this.getReward);
     router.get('/getSupply', this.getSupply);
     router.get('/getStatus', this.getStatus);
+    router.get('/cached', this.cached);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -340,5 +341,12 @@ export default class BlocksApi implements IHttpApi {
       supply,
     };
     return res.json(result);
+  };
+
+  private cached = (req: Request, res: Response, next: Next) => {
+    const entries = global.latestBlocksCache.dump();
+    console.log(entries);
+
+    return res.json(entries);
   };
 }
