@@ -35,3 +35,9 @@ jobs:
         push: true
         tags: "gnyio/node:testnet,gnyio/node:${{ env.latestversion }}-testnet"
         platforms: linux/amd64
+    - name: Build and push testnet (ARM) image
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        tags: "gnyio/node:testnet-arm,gnyio/node:${{ env.latestversion }}-testnet-arm"
+        platforms: linux/arm64
