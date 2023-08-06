@@ -545,3 +545,71 @@ export class DeleteInfoTable1608475266157 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class CreateNfts1691091279392 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE TABLE public.nft_maker (
+        name character varying(16) NOT NULL,
+        "desc" character varying(100) NOT NULL,
+        "makerId" character varying(50) NOT NULL,
+        tid character varying(64) NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.nft_maker OWNER TO postgres;
+
+      ALTER TABLE ONLY public.nft_maker
+          ADD CONSTRAINT "nft_maker_name_pkey" PRIMARY KEY (name);
+
+      ALTER TABLE ONLY public.nft_maker
+          ADD CONSTRAINT "nft_maker_tid_key" UNIQUE (tid);
+
+
+
+
+
+      CREATE TABLE public.nft (
+        name character varying(50) NOT NULL,
+        cid character varying(50) NOT NULL,
+        "prevNft" character varying(50),
+        ownerId character varying(50) NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.nft OWNER TO postgres;
+
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "nft_name_pkey" PRIMARY KEY (name);
+
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "cid" UNIQUE (cid);
+
+
+
+      CREATE TABLE public.nft_transfer (
+        tid character varying(64) NOT NULL,
+        "senderId" character varying(50) NOT NULL,
+        "recipientId" character varying(50) NOT NULL,
+        "nftName" character varying(50) NOT NULL,
+        "timestamp" integer NOT NULL,
+        height bigint NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.nft_transfer OWNER TO postgres;
+
+      ALTER TABLE ONLY public.nft_transfer
+          ADD CONSTRAINT "nft_transfer_tid_pkey" PRIMARY KEY (tid);
+
+      CREATE INDEX "nft_transfer_height_idx" ON public.nft_transfer USING btree (height);
+      CREATE INDEX "nft_transfer_recipientId_idx" ON public.nft_transfer USING btree ("recipientId");
+      CREATE INDEX "nft_transfer_timestamp_idx" ON public.nft_transfer USING btree ("timestamp");
+      CREATE INDEX "nft_transfer_senderId_idx" ON public.nft_transfer USING btree ("senderId");
+      CREATE INDEX "nft_transfer_nftName_idx" ON public.nft_transfer USING btree ("nftName");
+
+    `);
+  }
+
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

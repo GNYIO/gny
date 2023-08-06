@@ -25,4 +25,9 @@ export const feeCalculators: FeeCalculatorIndexer = {
   208: () => 0.1,
   209: () => 0.1,
   210: () => 0.1,
+
+  // nft
+  300: () => 100,
+  301: () => 0.1,
+  302: () => 0.2,
 };
