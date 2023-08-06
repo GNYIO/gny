@@ -4,12 +4,12 @@ import {
   Next,
   IHttpApi,
   ApiResult,
-  NftsMakerWrapper,
+  NftMakerWrapper,
 } from '@gny/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { NftMaker } from '@gny/database-postgres';
 
-export default class NftsApi implements IHttpApi {
+export default class NftApi implements IHttpApi {
   private library: IScope;
 
   constructor(library: IScope) {
@@ -28,7 +28,7 @@ export default class NftsApi implements IHttpApi {
         .send({ success: false, error: 'Blockchain is loading' });
     });
 
-    router.get('/makers', this.getNftsMakers);
+    router.get('/makers', this.getNftMakers);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -37,11 +37,11 @@ export default class NftsApi implements IHttpApi {
         .json({ success: false, error: 'API endpoint not found' });
     });
 
-    this.library.network.app.use('/api/nfts', router);
+    this.library.network.app.use('/api/nft', router);
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('nftsApi');
+        const span = this.library.tracer.startSpan('nftApi');
         span.setTag('error', true);
         span.log({
           value: `${req.url} ${err}`,
@@ -59,14 +59,14 @@ export default class NftsApi implements IHttpApi {
     );
   };
 
-  private getNftsMakers = async (req: Request, res: Response, next: Next) => {
+  private getNftMakers = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
     const nftMakers = await global.app.sdb.findAll<NftMaker>(NftMaker, {
       condition: {},
     });
 
-    const result: ApiResult<NftsMakerWrapper> = {
+    const result: ApiResult<NftMakerWrapper> = {
       success: true,
       makers: nftMakers,
     };

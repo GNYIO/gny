@@ -546,7 +546,7 @@ export class DeleteInfoTable1608475266157 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
 
-export class CreateNfts1691091279392 implements MigrationInterface {
+export class CreateNft1691091279392 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
       CREATE TABLE public.nft_maker (

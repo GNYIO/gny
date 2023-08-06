@@ -91,7 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
-  nftsApi: IHttpApi;
+  nftApi: IHttpApi;
 }
 
 export interface ITransactionPool {
@@ -911,7 +911,7 @@ export interface SmartDBOptions {
   dbPort: number;
 }
 
-export interface INftsMaker {
+export interface INftMaker {
   name: string;
   desc: string;
   makerId: string;
@@ -919,6 +919,6 @@ export interface INftsMaker {
   _version_?: number;
 }
 
-export interface NftsMakerWrapper {
-  makers: INftsMaker[];
+export interface NftMakerWrapper {
+  makers: INftMaker[];
 }

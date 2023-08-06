@@ -22,7 +22,7 @@ import { NftMaker } from '../entity/NftMaker.js';
 import {
   InitMigration1605362544330,
   DeleteInfoTable1608475266157,
-  CreateNfts1691091279392,
+  CreateNft1691091279392,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -42,7 +42,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
     migrations: [
       InitMigration1605362544330,
       DeleteInfoTable1608475266157,
-      CreateNfts1691091279392,
+      CreateNft1691091279392,
     ],
   };
 

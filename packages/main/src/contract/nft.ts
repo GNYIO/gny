@@ -1,5 +1,5 @@
 import { Context } from '@gny/interfaces';
-import { INftsMaker } from '@gny/interfaces';
+import { INftMaker } from '@gny/interfaces';
 import { NftMaker } from '@gny/database-postgres';
 
 export default {
@@ -14,7 +14,7 @@ export default {
     const exists = await global.app.sdb.exists<NftMaker>(NftMaker, { name });
     if (exists) return 'Nft maker name already exists';
 
-    const maker: INftsMaker = {
+    const maker: INftMaker = {
       name,
       desc,
       makerId: senderId,
