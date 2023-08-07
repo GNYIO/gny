@@ -7,13 +7,13 @@ import { Versioned } from '../searchTypes.js';
 export class Nft implements Versioned {
   @PrimaryColumn({
     type: 'varchar',
-    length: 50,
+    length: 20,
     nullable: false,
   })
   public name: string;
 
   @Column({
-    length: 50,
+    length: 60,
     type: 'varchar',
     nullable: false,
     unique: true,

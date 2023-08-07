@@ -26,11 +26,12 @@ export default {
     return null;
   },
 
-  async createNft(this: Context, name, cid, makerId) {
-    if (arguments.length !== 3) return 'Invalid arguments length';
+  async createNft(this: Context, name, cid, makerId, previousNft) {
+    if (arguments.length !== 4) return 'Invalid arguments length';
 
-    // TODO: validate name
-    // TODO: validate cid
+    if (!/^[a-zA-Z]{5,20}$/.test(name)) return 'Invalid nft name';
+    // TODO: better validate cid
+    if (!/^[a-zA-Z0-9]{59}$/.test(cid)) return 'Invalid nft CID';
 
     const existsCid = await global.app.sdb.exists<Nft>(Nft, { cid });
     if (existsCid) return 'Nft with cid already exists';
@@ -45,13 +46,30 @@ export default {
       return 'Provided NftMaker does not exist';
     }
 
+    const maker = await global.app.sdb.findOne<NftMaker>(NftMaker, {
+      condition: {
+        name: makerId,
+      },
+    });
+    const senderId = this.sender.address;
+    if (senderId !== maker.address) return 'You do not own the makerId';
+
+    if (previousNft !== undefined && previousNft !== null) {
+      if (!/^[a-zA-Z]{5,20}$/.test(name)) return 'Invalid previousNft';
+
+      const existsPreviousNft = await global.app.sdb.exists<Nft>(Nft, {
+        name: previousNft,
+      });
+      if (!existsPreviousNft) return 'PreviousNft does not exist';
+    }
+
     await global.app.sdb.lock(`uia.createNft@${name}`);
     await global.app.sdb.lock(`uia.createNft@${cid}`);
 
     const nft: INft = {
       name,
       cid,
-      prevNft: undefined,
+      prevNft: previousNft,
       makerId: makerId,
     };
     await global.app.sdb.create<Nft>(Nft, nft);

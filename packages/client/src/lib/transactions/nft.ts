@@ -21,6 +21,7 @@ function createNft(
   nftName: string,
   cid: string,
   makerId: string,
+  previousNft: string | undefined,
   message: string,
   secret: string,
   secondSecret?: string
@@ -28,7 +29,7 @@ function createNft(
   return transaction.createTransactionEx({
     type: 301,
     fee: String(0.1 * 1e8),
-    args: [nftName, cid, makerId],
+    args: [nftName, cid, makerId, previousNft],
     secret,
     secondSecret: secondSecret,
     message,

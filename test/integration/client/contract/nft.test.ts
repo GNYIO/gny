@@ -101,7 +101,8 @@ describe('nft', () => {
           await lib.onNewBlock(GNY_PORT);
 
           const firstNft = 'firstnft';
-          const cid = 'qqqqqqqqqqqqqqq';
+          const cid =
+            'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
           const makerId = 'mynftmaker';
 
           try {
@@ -110,11 +111,12 @@ describe('nft', () => {
               cid,
               makerId,
               undefined,
+              undefined,
               secret
             );
             expect(response).toHaveProperty('transactionId');
           } catch (err) {
-            console.log(err.response ? err.response.data : err.message);
+            console.log(err && err.response.data);
           }
 
           await lib.onNewBlock(GNY_PORT);
@@ -125,7 +127,8 @@ describe('nft', () => {
             nft: [
               {
                 name: 'firstnft',
-                cid: 'qqqqqqqqqqqqqqq',
+                cid:
+                  'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 makerId: 'mynftmaker',
                 prevNft: null,
                 _version_: 1,
@@ -133,7 +136,7 @@ describe('nft', () => {
             ],
           });
         },
-        lib.oneMinute
+        lib.oneMinute * 2
       );
     });
   });

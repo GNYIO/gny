@@ -29,6 +29,7 @@ export class Nft {
     nftName: string,
     cid: string,
     makerId: string,
+    previousNft: string | undefined,
     message: string,
     secret: string,
     secondSecret?: string
@@ -37,6 +38,7 @@ export class Nft {
       nftName,
       cid,
       makerId,
+      previousNft,
       message,
       secret,
       secondSecret
