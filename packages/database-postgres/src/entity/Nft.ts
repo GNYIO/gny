@@ -29,12 +29,12 @@ export class Nft implements Versioned {
   public prevNft: string;
 
   @Column({
-    length: 50,
+    length: 20,
     type: 'varchar',
     nullable: false,
     unique: false,
   })
-  public ownerId: string;
+  public makerId: string;
 
   @Column({
     default: 0,

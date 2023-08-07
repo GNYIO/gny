@@ -21,12 +21,12 @@ export class NftMaker implements Versioned {
   public desc: string;
 
   @Column({
-    length: 100,
+    length: 50,
     type: 'varchar',
     nullable: false,
     unique: false,
   })
-  public makerId: string;
+  public address: string;
 
   @Column({
     length: 64,

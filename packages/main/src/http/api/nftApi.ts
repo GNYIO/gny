@@ -5,9 +5,12 @@ import {
   IHttpApi,
   ApiResult,
   NftMakerWrapper,
+  NftWrapper,
 } from '@gny/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
+
 import { NftMaker } from '@gny/database-postgres';
+import { Nft } from '@gny/database-postgres';
 
 export default class NftApi implements IHttpApi {
   private library: IScope;
@@ -29,6 +32,7 @@ export default class NftApi implements IHttpApi {
     });
 
     router.get('/makers', this.getNftMakers);
+    router.get('/nft', this.getNft);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -69,6 +73,20 @@ export default class NftApi implements IHttpApi {
     const result: ApiResult<NftMakerWrapper> = {
       success: true,
       makers: nftMakers,
+    };
+    return res.json(result);
+  };
+
+  private getNft = async (req: Request, res: Response, next: Next) => {
+    const { query } = req;
+
+    const nft = await global.app.sdb.findAll<Nft>(Nft, {
+      condition: {},
+    });
+
+    const result: ApiResult<NftWrapper> = {
+      success: true,
+      nft: nft,
     };
     return res.json(result);
   };

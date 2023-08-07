@@ -17,4 +17,22 @@ function registerNftMaker(
   });
 }
 
-export { registerNftMaker };
+function createNft(
+  nftName: string,
+  cid: string,
+  makerId: string,
+  message: string,
+  secret: string,
+  secondSecret?: string
+) {
+  return transaction.createTransactionEx({
+    type: 301,
+    fee: String(0.1 * 1e8),
+    args: [nftName, cid, makerId],
+    secret,
+    secondSecret: secondSecret,
+    message,
+  });
+}
+
+export { registerNftMaker, createNft };

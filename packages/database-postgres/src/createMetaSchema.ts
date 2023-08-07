@@ -22,6 +22,7 @@ import { BlockHistory } from './entity/BlockHistory.js';
 import { Mldata } from './entity/Mldata.js';
 import { Prediction } from './entity/Prediction.js';
 import { NftMaker } from './entity/NftMaker.js';
+import { Nft } from './entity/Nft.js';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -93,6 +94,7 @@ export function createMetaSchema() {
   const mldata = transform(Mldata);
   const prediction = transform(Prediction);
   const nftMaker = transform(NftMaker);
+  const nft = transform(Nft);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -109,6 +111,7 @@ export function createMetaSchema() {
   result.set('Mldata', mldata);
   result.set('Prediction', prediction);
   result.set('NftMaker', nftMaker);
+  result.set('Nft', nft);
 
   return result;
 }

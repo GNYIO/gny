@@ -914,11 +914,23 @@ export interface SmartDBOptions {
 export interface INftMaker {
   name: string;
   desc: string;
-  makerId: string;
+  address: string;
   tid: string;
   _version_?: number;
 }
 
 export interface NftMakerWrapper {
   makers: INftMaker[];
+}
+
+export interface INft {
+  name: string;
+  cid: string;
+  prevNft: string;
+  makerId: string;
+  _version_?: number;
+}
+
+export interface NftWrapper {
+  nft: INft[];
 }

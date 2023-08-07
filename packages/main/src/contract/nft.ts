@@ -1,6 +1,8 @@
 import { Context } from '@gny/interfaces';
-import { INftMaker } from '@gny/interfaces';
+import { INftMaker, INft } from '@gny/interfaces';
+
 import { NftMaker } from '@gny/database-postgres';
+import { Nft } from '@gny/database-postgres';
 
 export default {
   async registerNftMaker(this: Context, name, desc) {
@@ -17,15 +19,44 @@ export default {
     const maker: INftMaker = {
       name,
       desc,
-      makerId: senderId,
+      address: senderId,
       tid: this.trs.id,
     };
-    console.log(JSON.stringify(maker, null, 2));
     await global.app.sdb.create<NftMaker>(NftMaker, maker);
     return null;
   },
 
-  async createNft(this: Context) {},
+  async createNft(this: Context, name, cid, makerId) {
+    if (arguments.length !== 3) return 'Invalid arguments length';
+
+    // TODO: validate name
+    // TODO: validate cid
+
+    const existsCid = await global.app.sdb.exists<Nft>(Nft, { cid });
+    if (existsCid) return 'Nft with cid already exists';
+
+    const existsName = await global.app.sdb.exists<Nft>(Nft, { cid });
+    if (existsName) return 'Nft with name already exists';
+
+    const existsMakerId = await global.app.sdb.exists<NftMaker>(NftMaker, {
+      name: makerId,
+    });
+    if (!existsMakerId) {
+      return 'Provided NftMaker does not exist';
+    }
+
+    await global.app.sdb.lock(`uia.createNft@${name}`);
+    await global.app.sdb.lock(`uia.createNft@${cid}`);
+
+    const nft: INft = {
+      name,
+      cid,
+      prevNft: undefined,
+      makerId: makerId,
+    };
+    await global.app.sdb.create<Nft>(Nft, nft);
+    return null;
+  },
 
   async transferNft(this: Context) {},
 };

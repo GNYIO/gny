@@ -12,6 +12,7 @@ const env = lib.createEnvironmentVariables(
   GNY_APP_NAME,
   NETWORK_PREFIX
 );
+
 const DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.client-integration.yml';
 
@@ -43,8 +44,8 @@ describe('nft', () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
   }, lib.oneMinute);
 
-  describe('Nft Maker', () => {
-    describe('create nft maker', () => {
+  describe('Nft', () => {
+    describe('nft maker', () => {
       it(
         'create nft maker',
         async () => {
@@ -71,10 +72,65 @@ describe('nft', () => {
           expect(result.makers[0]).toEqual({
             _version_: 1,
             desc: desc,
-            makerId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             name: nftmaker,
             // @ts-ignore
             tid: response.transactionId,
+          });
+        },
+        lib.oneMinute
+      );
+    });
+
+    describe('nft', () => {
+      it.only(
+        'create nft',
+        async () => {
+          // expect.assertions(1);
+          const secret =
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+          const makerResponse = await nftApi.registerNftMaker(
+            'mynftmaker',
+            'desc',
+            undefined,
+            secret
+          );
+          expect(makerResponse).toHaveProperty('transactionId');
+
+          await lib.onNewBlock(GNY_PORT);
+
+          const firstNft = 'firstnft';
+          const cid = 'qqqqqqqqqqqqqqq';
+          const makerId = 'mynftmaker';
+
+          try {
+            const response = await nftApi.createNft(
+              firstNft,
+              cid,
+              makerId,
+              undefined,
+              secret
+            );
+            expect(response).toHaveProperty('transactionId');
+          } catch (err) {
+            console.log(err.response ? err.response.data : err.message);
+          }
+
+          await lib.onNewBlock(GNY_PORT);
+
+          const result = await connection.api.Nft.getNfts();
+          expect(result).toEqual({
+            success: true,
+            nft: [
+              {
+                name: 'firstnft',
+                cid: 'qqqqqqqqqqqqqqq',
+                makerId: 'mynftmaker',
+                prevNft: null,
+                _version_: 1,
+              },
+            ],
           });
         },
         lib.oneMinute

@@ -24,4 +24,28 @@ export class Nft {
     const result: ApiResult<TransactionIdWrapper> = res.data;
     return result;
   }
+
+  public async createNft(
+    nftName: string,
+    cid: string,
+    makerId: string,
+    message: string,
+    secret: string,
+    secondSecret?: string
+  ) {
+    const trs = nft.createNft(
+      nftName,
+      cid,
+      makerId,
+      message,
+      secret,
+      secondSecret
+    );
+    const params = {
+      transaction: trs,
+    };
+    const res = await this.base.post('/peer/transactions', params);
+    const result: ApiResult<TransactionIdWrapper> = res.data;
+    return result;
+  }
 }

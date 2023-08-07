@@ -18,6 +18,7 @@ import { BlockHistory } from '../entity/BlockHistory.js';
 import { Mldata } from '../entity/Mldata.js';
 import { Prediction } from '../entity/Prediction.js';
 import { NftMaker } from '../entity/NftMaker.js';
+import { Nft } from '../entity/Nft.js';
 
 import {
   InitMigration1605362544330,
@@ -63,6 +64,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Mldata,
       Prediction,
       NftMaker,
+      Nft,
     ],
   });
   Object.assign(options, {

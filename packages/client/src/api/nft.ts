@@ -1,5 +1,10 @@
 import { Base } from './base';
-import { ApiResult, ValidationError, NftMakerWrapper } from '@gny/interfaces';
+import {
+  ApiResult,
+  ValidationError,
+  NftMakerWrapper,
+  NftWrapper,
+} from '@gny/interfaces';
 import { Connection } from '../connection';
 
 export class Nft {
@@ -19,6 +24,15 @@ export class Nft {
     };
     const res = await this.base.get('/api/nft/makers', params);
     const result: ApiResult<NftMakerWrapper, ValidationError> = res.data;
+    return result;
+  }
+
+  public async getNfts(makerId?: string): Promise<ApiResult<NftWrapper>> {
+    const params = {
+      makerId: makerId,
+    };
+    const res = await this.base.get('/api/nft/nft', params);
+    const result: ApiResult<NftWrapper, ValidationError> = res.data;
     return result;
   }
 }
