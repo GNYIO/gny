@@ -91,6 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
+  burnApi: IHttpApi;
 }
 
 export interface ITransactionPool {
@@ -908,4 +909,17 @@ export interface SmartDBOptions {
   dbUser: string;
   dbHost: string;
   dbPort: number;
+}
+
+export interface IBurn {
+  tid: string;
+  senderId: string;
+  amount: string;
+
+  height: string;
+  _version_?: number;
+}
+
+export interface BurnWrapper {
+  burn: IBurn[];
 }

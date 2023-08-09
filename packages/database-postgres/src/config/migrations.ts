@@ -545,3 +545,20 @@ export class DeleteInfoTable1608475266157 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class AddBurnTable1691572220932 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE TABLE public.burn (
+        tid character varying(64) NOT NULL,
+        "senderId" character varying(50) NOT NULL,
+        amount bigint NOT NULL,
+        height bigint NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.burn OWNER TO postgres;
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

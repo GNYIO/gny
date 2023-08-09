@@ -21,6 +21,7 @@ import { Vote } from './entity/Vote.js';
 import { BlockHistory } from './entity/BlockHistory.js';
 import { Mldata } from './entity/Mldata.js';
 import { Prediction } from './entity/Prediction.js';
+import { Burn } from './entity/Burn.js';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -89,6 +90,7 @@ export function createMetaSchema() {
   const blockHistory = transform(BlockHistory);
   const mldata = transform(Mldata);
   const prediction = transform(Prediction);
+  const burn = transform(Burn);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -104,6 +106,7 @@ export function createMetaSchema() {
   result.set('BlockHistory', blockHistory);
   result.set('Mldata', mldata);
   result.set('Prediction', prediction);
+  result.set('Burn', burn);
 
   return result;
 }
