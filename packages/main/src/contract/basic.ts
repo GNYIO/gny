@@ -457,7 +457,12 @@ export default {
       { address: sender.address }
     );
 
-    const burn: IBurn = {};
+    const burn: IBurn = {
+      tid: this.trs.id,
+      height: String(this.block.height),
+      amount: String(amount),
+      senderId: this.trs.senderId,
+    };
     await global.app.sdb.create<Burn>(Burn, burn);
   },
 };
