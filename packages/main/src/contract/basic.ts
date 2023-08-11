@@ -438,10 +438,7 @@ export default {
     global.app.validate('amount', String(amount));
 
     const sender = this.sender;
-    if (
-      new BigNumber(this.block.height).isGreaterThan(0) &&
-      new BigNumber(sender.gny).isLessThan(amount)
-    ) {
+    if (new BigNumber(sender.gny).minus(0.1 * 1e8).isLessThan(amount)) {
       return 'Insufficient balance';
     }
     await global.app.sdb.lock(`basic.burn@${sender.address}`);
@@ -461,8 +458,9 @@ export default {
       tid: this.trs.id,
       height: String(this.block.height),
       amount: String(amount),
-      senderId: this.trs.senderId,
+      senderId: sender.address,
     };
     await global.app.sdb.create<Burn>(Burn, burn);
+    return null;
   },
 };
