@@ -558,6 +558,12 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
       );
 
       ALTER TABLE public.burn OWNER TO postgres;
+
+      ALTER TABLE ONLY public.burn
+        ADD CONSTRAINT "burn_tid_pkey" PRIMARY KEY (tid);
+
+      CREATE INDEX "burn_senderId_idx" ON public.burn USING btree ("senderId");
+      CREATE INDEX "burn_height_idx" ON public.burn USING btree (height);
     `);
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
