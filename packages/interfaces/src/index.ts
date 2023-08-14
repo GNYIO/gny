@@ -645,6 +645,8 @@ export interface RewardWrappper {
 }
 
 export interface SupplyWrapper {
+  deprecated: string;
+  burned: string;
   supply: string;
 }
 

@@ -2,8 +2,14 @@
  * @jest-environment jsdom
  */
 import { Connection } from '@gny/client';
-import { ApiSuccess, BlockWrapper } from '@gny/interfaces';
+import {
+  ApiResult,
+  ApiSuccess,
+  BlockWrapper,
+  SupplyWrapper,
+} from '@gny/interfaces';
 import * as lib from './lib';
+import { resolveModuleName } from 'typescript';
 
 const GNY_PORT = 5096;
 const GNY_APP_NAME = 'app2';
@@ -142,12 +148,54 @@ describe('block', () => {
     it(
       'should get the supply',
       async () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
-        const response = await blockApi.getSupply();
-        expect(response.success).toBeTruthy();
+        const response: ApiResult<SupplyWrapper> = await blockApi.getSupply();
+
+        expect(response.success).toEqual(true);
+        // @ts-ignore
+        expect(response.deprecated).toEqual(String(400_000_000 * 1e8));
+        // @ts-ignore
+        expect(response.burned).toEqual(String(0));
+        // @ts-ignore
+        expect(response.supply).toEqual(String(400_000_000 * 1e8));
       },
       lib.oneMinute
+    );
+
+    it(
+      'supply should decrease when token were burned',
+      async () => {
+        expect.assertions(4);
+
+        const secret =
+          'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+
+        const trs1 = connection.contract.Basic.burn(
+          String(1_000_000 * 1e8),
+          secret,
+          undefined
+        );
+        await lib.onNewBlock(GNY_PORT);
+
+        const trs2 = connection.contract.Basic.burn(
+          String(1_000_000 * 1e8),
+          secret,
+          undefined
+        );
+        await lib.onNewBlock(GNY_PORT);
+
+        const response = await blockApi.getSupply();
+
+        expect(response.success).toEqual(true);
+        // @ts-ignore
+        expect(response.deprecated).toEqual(String(400_000_000 * 1e8));
+        // @ts-ignore
+        expect(response.burned).toEqual(String(2_000_000 * 1e8));
+        // @ts-ignore
+        expect(response.supply).toEqual(String(398_000_000 * 1e8));
+      },
+      lib.oneMinute * 2
     );
   });
 
