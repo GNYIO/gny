@@ -286,7 +286,11 @@ describe('accountsApi', () => {
         await lib.onNewBlock();
 
         // lock the account
-        const lockTrs = gnyClient.basic.lock(173000, 30 * 1e8, genesisSecret);
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(30 * 1e8),
+          genesisSecret
+        );
         const lockTransData = {
           transaction: lockTrs,
         };

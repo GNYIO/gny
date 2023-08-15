@@ -115,7 +115,7 @@ export class Basic {
     return result;
   }
 
-  public async burn(amount: string, secret: string, secondSecret: string) {
+  public async burn(amount: string, secret: string, secondSecret?: string) {
     const trs = basic.burn(amount, secret, secondSecret);
     const params = {
       transaction: trs,

@@ -99,6 +99,8 @@ export default class Burnapi implements IHttpApi {
       };
     }
 
+    const count = await global.app.sdb.count<Burn>(Burn, condition);
+
     const burn = await global.app.sdb.findAll<Burn>(Burn, {
       condition,
       offset,
@@ -107,6 +109,7 @@ export default class Burnapi implements IHttpApi {
 
     return res.json({
       success: true,
+      count,
       burn,
     });
   };

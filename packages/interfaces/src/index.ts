@@ -924,4 +924,5 @@ export interface IBurn {
 
 export interface BurnWrapper {
   burn: IBurn[];
+  count: number;
 }
