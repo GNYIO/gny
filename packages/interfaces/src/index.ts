@@ -917,7 +917,7 @@ export interface IBurn {
   tid: string;
   senderId: string;
   amount: string;
-
+  timestamp: number;
   height: string;
   _version_?: number;
 }

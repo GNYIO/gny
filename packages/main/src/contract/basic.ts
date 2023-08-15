@@ -458,6 +458,7 @@ export default {
       tid: this.trs.id,
       height: String(this.block.height),
       amount: String(amount),
+      timestamp: this.trs.timestamp,
       senderId: sender.address,
     };
     await global.app.sdb.create<Burn>(Burn, burn);

@@ -553,6 +553,7 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
         tid character varying(64) NOT NULL,
         "senderId" character varying(50) NOT NULL,
         amount bigint NOT NULL,
+        "timestamp" integer NOT NULL,
         height bigint NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
@@ -563,6 +564,7 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
         ADD CONSTRAINT "burn_tid_pkey" PRIMARY KEY (tid);
 
       CREATE INDEX "burn_senderId_idx" ON public.burn USING btree ("senderId");
+      CREATE INDEX "burn_timestamp_idx" ON public.burn USING btree ("timestamp");
       CREATE INDEX "burn_height_idx" ON public.burn USING btree (height);
     `);
   }

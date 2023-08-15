@@ -28,6 +28,13 @@ export class Burn implements Versioned {
 
   @Column({
     nullable: false,
+    type: 'int',
+  })
+  @Index()
+  public timestamp: number;
+
+  @Column({
+    nullable: false,
     type: 'bigint',
   })
   @Index()
