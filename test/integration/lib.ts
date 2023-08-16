@@ -154,7 +154,7 @@ export const tenMinutes = 10 * 60 * 1000;
 
 export async function createDb(dbName: string) {
   // bad, better parameterize query
-  const statement = `CREATE DATABASE ${dbName}`;
+  const statement = `CREATE DATABASE "${dbName}";`;
   const client = new Client({
     user: 'postgres',
     host: '127.0.0.1',
@@ -200,6 +200,7 @@ export async function resetDb(dbName: string) {
     DROP TABLE IF EXISTS "transfer";
     DROP TABLE IF EXISTS "variable";
     DROP TABLE IF EXISTS "vote";
+    DROP TABLE IF EXISTS "burn";
 
     DROP TABLE IF EXISTS migrations;
     DROP SEQUENCE IF EXISTS migrations_id_seq;

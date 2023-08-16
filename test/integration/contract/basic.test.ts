@@ -1634,4 +1634,47 @@ describe('basic', () => {
       lib.oneMinute * 2
     );
   });
+
+  describe('burn', () => {
+    it(
+      'burn 100 GNY',
+      async () => {
+        await lib.waitForApiToBeReadyReady(4096);
+
+        const targetSecret =
+          'flame plunge lift minor ozone aisle violin life mystery lion bid repeat';
+        const targetAddress = createAddress(targetSecret);
+
+        const basicTransfer = gnyClient.basic.transfer(
+          targetAddress,
+          String(120 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const basicTransferData = {
+          transaction: basicTransfer,
+        };
+
+        const transferResult = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          basicTransferData,
+          config
+        );
+        console.log(transferResult.data);
+        await lib.onNewBlock();
+
+        const burnTrs = gnyClient.basic.burn(String(100 * 1e8), targetSecret);
+        const burnTrsData = {
+          transaction: burnTrs,
+        };
+        const burnResult = await axios.post(
+          'http://localhost:4096/peer/transactions',
+          burnTrsData,
+          config
+        );
+        console.log(burnResult.data);
+      },
+      lib.oneMinute * 2
+    );
+  });
 });

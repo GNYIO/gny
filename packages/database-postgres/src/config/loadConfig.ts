@@ -17,10 +17,12 @@ import { Vote } from '../entity/Vote.js';
 import { BlockHistory } from '../entity/BlockHistory.js';
 import { Mldata } from '../entity/Mldata.js';
 import { Prediction } from '../entity/Prediction.js';
+import { Burn } from '../entity/Burn.js';
 
 import {
   InitMigration1605362544330,
   DeleteInfoTable1608475266157,
+  AddBurnTable1691572220932,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -37,7 +39,11 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
     dropSchema: false,
     logging: false,
     migrationsRun: false,
-    migrations: [InitMigration1605362544330, DeleteInfoTable1608475266157],
+    migrations: [
+      InitMigration1605362544330,
+      DeleteInfoTable1608475266157,
+      AddBurnTable1691572220932,
+    ],
   };
 
   Object.assign(options, {
@@ -56,6 +62,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       BlockHistory,
       Mldata,
       Prediction,
+      Burn,
     ],
   });
   Object.assign(options, {

@@ -64,7 +64,7 @@
         "-c=jest.config.js",
         "--no-cache",
         "--runInBand",
-        "test/unit/p2p/another.test.ts"
+        "test/unit/contract/basic.test.ts"
       ],
       "console": "internalConsole",
       "env": {

@@ -11,6 +11,7 @@ export const feeCalculators: FeeCalculatorIndexer = {
   5: () => 0.1,
   6: () => 0,
   10: () => 100,
+  20: () => 0.1,
   100: () => 100,
   101: () => 500,
   102: () => 0.1,

@@ -886,4 +886,146 @@ describe('basic', () => {
       expect(unvoted).toBe('Voted delegate not exists: xpgeng');
     });
   });
+
+  describe('burn', () => {
+    let context: Context;
+
+    beforeEach(done => {
+      context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100 * 1e8),
+          isLocked: 1,
+        } as IAccount,
+        block: {
+          height: String(1),
+        } as Pick<IBlock, 'height'>,
+        trs: {
+          id: 'mytransactionid',
+        },
+      } as Context;
+
+      done();
+    });
+
+    afterEach(done => {
+      jest.resetAllMocks();
+      done();
+    });
+
+    it('burn - calling with more than 1 arguments - throws error', async () => {
+      const amount = String(100 * 1e8);
+      const additialArgument = 'hello';
+
+      const burned = await basic.burn.call(context, amount, additialArgument);
+      expect(burned).toBe('Invalid arguments length');
+    });
+
+    it('burn - global.app.validate gets called - with wrong amount', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+      } as any;
+
+      const myMock = jest.fn().mockImplementation(() => {
+        throw new Error('this is an error');
+      });
+      global.app.validate = myMock;
+
+      const amount = 'hello';
+
+      expect(() => basic.burn.call(context, amount)).rejects.toThrow(
+        'this is an error'
+      );
+
+      expect(myMock).toBeCalledTimes(1);
+      expect(myMock).toBeCalledWith('amount', 'hello');
+    });
+
+    it('burn - calls sdb.lock', async () => {
+      const mock = jest.fn().mockImplementation(() => {});
+      global.app.sdb = {
+        lock: mock,
+        increase: jest.fn().mockReturnValue(undefined),
+        create: jest.fn().mockReturnValue(undefined),
+      } as any;
+
+      const amount = String(1 * 1e8);
+
+      const burned = await basic.burn.call(context, amount);
+      expect(burned).toEqual(null);
+
+      expect(mock).toBeCalledTimes(1);
+      const expectedAddress = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
+      expect(mock).toBeCalledWith(`basic.burn@${expectedAddress}`);
+    });
+
+    it('burn - error if user wants to burn more than 1 million GNY', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+        increase: jest.fn().mockReturnValue(undefined),
+        create: jest.fn().mockReturnValue(undefined),
+      } as any;
+
+      // set account balance to 10 millionen
+      context.sender.gny = String(10_000_000 * 1e8);
+
+      const amount = String(1_000_001 * 1e8);
+
+      const burned = await basic.burn.call(context, amount);
+      expect(burned).toEqual('Only 1 million can be burned at once');
+    });
+
+    it('burn - can burn 1 millionen GNY at once', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+        increase: jest.fn().mockReturnValue(undefined),
+        create: jest.fn().mockReturnValue(undefined),
+      } as any;
+
+      // set account balance to 2 millionen
+      context.sender.gny = String(2_000_000 * 1e8);
+
+      const amount = String(1_000_000 * 1e8);
+
+      const burned = await basic.burn.call(context, amount);
+      expect(burned).toEqual(null);
+    });
+
+    it('burn - throws if balance is not sufficient', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+        increase: jest.fn().mockReturnValue(undefined),
+        create: jest.fn().mockReturnValue(undefined),
+      } as any;
+
+      // set account balance to 500 GNY
+      context.sender.gny = String(500 * 1e8);
+
+      // 500 - 0.1 fee < 500
+      const amount = String(500 * 1e8);
+
+      const burned = await basic.burn.call(context, amount);
+      expect(burned).toEqual('Insufficient balance');
+    });
+
+    it('burn - calls sdb.create when successfully creating a Burn object', async () => {
+      const createMock = jest.fn().mockImplementation(() => {});
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(undefined),
+        increase: jest.fn().mockReturnValue(undefined),
+        create: createMock,
+      } as any;
+
+      // set account balance to 100 GNY
+      context.sender.gny = String(100 * 1e8);
+
+      const amount = String(50 * 1e8);
+
+      const burned = await basic.burn.call(context, amount);
+      expect(burned).toEqual(null);
+
+      expect(createMock).toBeCalledTimes(1);
+    });
+  });
 });

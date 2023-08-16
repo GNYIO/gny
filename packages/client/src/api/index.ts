@@ -9,6 +9,7 @@ import { Transfer } from './transfer';
 import { Transport } from './transport';
 import { Uia } from './uia';
 import { Exchange } from './exchange';
+import { Burn } from './burn';
 import { Connection } from '../connection';
 
 export const Api = (connection: Connection) => {
@@ -24,5 +25,6 @@ export const Api = (connection: Connection) => {
     Transport: new Transport(connection),
     Uia: new Uia(connection),
     Exchange: new Exchange(connection),
+    Burn: new Burn(connection),
   };
 };

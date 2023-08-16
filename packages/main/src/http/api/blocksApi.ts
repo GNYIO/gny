@@ -13,6 +13,7 @@ import {
   RewardWrappper,
   SupplyWrapper,
   Status,
+  IBurn,
 } from '@gny/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gny/base';
@@ -20,6 +21,7 @@ import { getBlocks as getBlocksFromApi } from '../util.js';
 import { StateHelper } from '../../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { joi } from '@gny/extended-joi';
+import { Burn } from '@gny/database-postgres';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;
@@ -304,7 +306,7 @@ export default class BlocksApi implements IHttpApi {
     return res.json(result);
   };
 
-  private getSupply = (req: Request, res: Response, next: Next) => {
+  private getSupply = async (req: Request, res: Response, next: Next) => {
     global.app.prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getSupply',
@@ -313,9 +315,22 @@ export default class BlocksApi implements IHttpApi {
 
     const height = StateHelper.getState().lastBlock.height;
     const supply = this.blockReward.calculateSupply(height).toFixed();
+
+    const allBurns: IBurn[] = await global.app.sdb.findAll<Burn>(Burn, {
+      condition: {},
+    });
+
+    let burnedSum = String(0);
+    for (let i = 0; i < allBurns.length; ++i) {
+      const one = allBurns[i];
+      burnedSum = new BigNumber(burnedSum).plus(one.amount).toFixed(0);
+    }
+
     const result: ApiResult<SupplyWrapper> = {
       success: true,
-      supply,
+      deprecated: supply,
+      burned: burnedSum,
+      supply: new BigNumber(supply).minus(burnedSum).toFixed(0),
     };
     return res.json(result);
   };

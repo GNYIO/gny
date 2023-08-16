@@ -101,6 +101,16 @@ function registerDelegate(secret: string, secondSecret?: string) {
   });
 }
 
+function burn(amount: string, secret: string, secondSecret?: string) {
+  return transaction.createTransactionEx({
+    type: 20,
+    fee: String(0.1 * 1e8),
+    args: [amount],
+    secret: secret,
+    secondSecret: secondSecret,
+  });
+}
+
 export {
   transfer,
   setUserName,
@@ -110,4 +120,5 @@ export {
   vote,
   unvote,
   registerDelegate,
+  burn,
 };
