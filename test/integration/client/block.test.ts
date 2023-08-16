@@ -9,7 +9,6 @@ import {
   SupplyWrapper,
 } from '@gny/interfaces';
 import * as lib from './lib';
-import { resolveModuleName } from 'typescript';
 
 const GNY_PORT = 5096;
 const GNY_APP_NAME = 'app2';

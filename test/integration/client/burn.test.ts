@@ -4,12 +4,9 @@
 import * as lib from './lib';
 import * as gnyClient from '@gny/client';
 
-const genesisSecret =
-  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
-
-const GNY_PORT = 15096;
-const GNY_APP_NAME = 'app12';
-const NETWORK_PREFIX = '172.30';
+const GNY_PORT = 17096;
+const GNY_APP_NAME = 'app14';
+const NETWORK_PREFIX = '172.33';
 const env = lib.createEnvironmentVariables(
   GNY_PORT,
   GNY_APP_NAME,
