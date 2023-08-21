@@ -105,8 +105,10 @@ describe('nft', () => {
             'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
           const makerId = 'mynftmaker';
 
+          let response = null;
           try {
-            const response = await nftApi.createNft(
+            // @ts-ignore
+            response = await nftApi.createNft(
               firstNft,
               cid,
               makerId,
@@ -126,11 +128,14 @@ describe('nft', () => {
             success: true,
             nft: [
               {
-                name: 'firstnft',
-                cid:
+                hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
-                makerId: 'mynftmaker',
+                counter: String(1),
                 prevNft: null,
+                nftMakerId: 'mynftmaker',
+                ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                previousHash: null,
+                tid: response.transactionId,
                 _version_: 1,
               },
             ],

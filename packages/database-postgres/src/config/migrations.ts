@@ -554,6 +554,7 @@ export class CreateNft1691091279392 implements MigrationInterface {
         "desc" character varying(100) NOT NULL,
         "address" character varying(50) NOT NULL,
         tid character varying(64) NOT NULL,
+        "nftCounter" bigint NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 
@@ -571,9 +572,12 @@ export class CreateNft1691091279392 implements MigrationInterface {
 
       CREATE TABLE public.nft (
         name character varying(20) NOT NULL,
-        cid character varying(60) NOT NULL,
-        "prevNft" character varying(50),
-        "makerId" character varying(20) NOT NULL,
+        hash character varying(60) NOT NULL,
+        "previousHash" character varying(60) NULL,
+        tid character varying(64) NOT NULL,
+        "counter" bigint NOT NULL,
+        "nftMakerId" character varying(20) NOT NULL,
+        "ownerAddress" character varying(50) NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 
@@ -581,9 +585,16 @@ export class CreateNft1691091279392 implements MigrationInterface {
 
       ALTER TABLE ONLY public.nft
           ADD CONSTRAINT "nft_name_pkey" PRIMARY KEY (name);
-
       ALTER TABLE ONLY public.nft
-          ADD CONSTRAINT "cid" UNIQUE (cid);
+          ADD CONSTRAINT "nft_hash_key" UNIQUE (hash);
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "nft_tid_key" UNIQUE (tid);
+      CREATE INDEX "nft_counter_idx"
+          ON public.nft USING btree (counter);
+      CREATE INDEX "nft_nftMakerId_idx"
+          ON public.nft USING btree ("nftMakerId");
+      CREATE INDEX "nft_ownerAddress_idx"
+          ON public.nft USING btree ("ownerAddress");
 
 
 

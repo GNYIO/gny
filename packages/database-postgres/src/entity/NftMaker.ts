@@ -37,6 +37,12 @@ export class NftMaker implements Versioned {
   public tid: string;
 
   @Column({
+    type: 'bigint',
+    nullable: false,
+  })
+  public nftCounter: string;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,

@@ -916,6 +916,7 @@ export interface INftMaker {
   desc: string;
   address: string;
   tid: string;
+  nftCounter: string;
   _version_?: number;
 }
 
@@ -925,9 +926,12 @@ export interface NftMakerWrapper {
 
 export interface INft {
   name: string;
-  cid: string;
-  prevNft: string;
-  makerId: string;
+  hash: string;
+  previousHash?: string;
+  tid: string;
+  counter: string;
+  nftMakerId: string;
+  ownerAddress: string;
   _version_?: number;
 }
 

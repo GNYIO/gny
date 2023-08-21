@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { Config } from '../decorator/config.js';
 import { Versioned } from '../searchTypes.js';
 
@@ -18,23 +18,45 @@ export class Nft implements Versioned {
     nullable: false,
     unique: true,
   })
-  public cid: string;
+  public hash: string;
 
   @Column({
-    length: 50,
+    length: 60,
     type: 'varchar',
     nullable: true,
-    unique: false,
   })
-  public prevNft: string;
+  public previousHash: string;
+
+  @Column({
+    length: 64,
+    type: 'varchar',
+    nullable: false,
+    unique: true,
+  })
+  public tid: string;
+
+  @Column({
+    type: 'bigint',
+    nullable: false,
+  })
+  @Index()
+  public counter: string;
 
   @Column({
     length: 20,
     type: 'varchar',
     nullable: false,
-    unique: false,
   })
-  public makerId: string;
+  @Index()
+  public nftMakerId: string;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  @Index()
+  public ownerAddress: string;
 
   @Column({
     default: 0,
