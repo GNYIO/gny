@@ -93,7 +93,6 @@ describe('nft', () => {
           const makerResponse = await nftApi.registerNftMaker(
             'mynftmaker',
             'desc',
-            undefined,
             secret
           );
           expect(makerResponse).toHaveProperty('transactionId');
@@ -105,37 +104,74 @@ describe('nft', () => {
             'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
           const makerId = 'mynftmaker';
 
-          let response = null;
-          try {
-            // @ts-ignore
-            response = await nftApi.createNft(
-              firstNft,
-              cid,
-              makerId,
-              undefined,
-              undefined,
-              secret
-            );
-            expect(response).toHaveProperty('transactionId');
-          } catch (err) {
-            console.log(err && err.response.data);
-          }
+          const nftOne = await nftApi.createNft(firstNft, cid, makerId, secret);
 
           await lib.onNewBlock(GNY_PORT);
 
           const result = await connection.api.Nft.getNfts();
+          // @ts-ignore
+          expect(result.nft).toHaveLength(1);
           expect(result).toEqual({
             success: true,
             nft: [
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
+                name: firstNft,
                 counter: String(1),
-                prevNft: null,
                 nftMakerId: 'mynftmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
                 previousHash: null,
-                tid: response.transactionId,
+                // @ts-ignore
+                tid: nftOne.transactionId,
+                _version_: 1,
+              },
+            ],
+          });
+
+          // create second nft
+          const secondNft = 'secondnft';
+          const cid2 =
+            'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze';
+          const nftTwo = await nftApi.createNft(
+            secondNft,
+            cid2,
+            makerId,
+            secret
+          );
+          expect(nftTwo).toHaveProperty('transactionId');
+
+          await lib.onNewBlock(GNY_PORT);
+
+          const result2 = await connection.api.Nft.getNfts();
+          // @ts-ignore
+          expect(result2.nft).toHaveLength(2);
+          expect(result2).toEqual({
+            success: true,
+            nft: [
+              {
+                hash:
+                  'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
+                name: firstNft,
+                counter: String(1),
+                nftMakerId: 'mynftmaker',
+                ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                previousHash: null,
+                // @ts-ignore
+                tid: nftOne.transactionId,
+                _version_: 1,
+              },
+              {
+                hash:
+                  'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
+                name: secondNft,
+                counter: String(2),
+                nftMakerId: 'mynftmaker',
+                ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                previousHash:
+                  'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
+                // @ts-ignore
+                tid: nftTwo.transactionId,
                 _version_: 1,
               },
             ],

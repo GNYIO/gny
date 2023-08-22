@@ -12,11 +12,10 @@ export class Nft {
   public async registerNftMaker(
     name: string,
     desc: string,
-    message: string,
     secret: string,
     secondSecret?: string
   ) {
-    const trs = nft.registerNftMaker(name, desc, message, secret, secondSecret);
+    const trs = nft.registerNftMaker(name, desc, secret, secondSecret);
     const params = {
       transaction: trs,
     };
@@ -27,22 +26,12 @@ export class Nft {
 
   public async createNft(
     nftName: string,
-    cid: string,
+    hash: string,
     makerId: string,
-    previousNft: string | undefined,
-    message: string,
     secret: string,
     secondSecret?: string
   ) {
-    const trs = nft.createNft(
-      nftName,
-      cid,
-      makerId,
-      previousNft,
-      message,
-      secret,
-      secondSecret
-    );
+    const trs = nft.createNft(nftName, hash, makerId, secret, secondSecret);
     const params = {
       transaction: trs,
     };

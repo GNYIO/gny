@@ -3,7 +3,6 @@ import * as transaction from './transaction';
 function registerNftMaker(
   name: string,
   desc: string,
-  message: string,
   secret: string,
   secondSecret?: string
 ) {
@@ -13,26 +12,22 @@ function registerNftMaker(
     args: [name, desc],
     secret,
     secondSecret: secondSecret,
-    message,
   });
 }
 
 function createNft(
   nftName: string,
-  cid: string,
+  hash: string,
   makerId: string,
-  previousNft: string | undefined,
-  message: string,
   secret: string,
   secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 301,
     fee: String(0.1 * 1e8),
-    args: [nftName, cid, makerId, previousNft],
+    args: [nftName, hash, makerId],
     secret,
     secondSecret: secondSecret,
-    message,
   });
 }
 

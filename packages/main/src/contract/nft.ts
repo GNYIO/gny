@@ -27,8 +27,8 @@ export default {
     return null;
   },
 
-  async createNft(this: Context, name, cid, makerId, previousNft) {
-    if (arguments.length !== 4) return 'Invalid arguments length';
+  async createNft(this: Context, name, cid, makerId) {
+    if (arguments.length !== 3) return 'Invalid arguments length';
 
     if (!/^[a-zA-Z]{5,20}$/.test(name)) return 'Invalid nft name';
     // TODO: better validate cid
@@ -56,7 +56,7 @@ export default {
     if (senderId !== maker.address) return 'You do not own the makerId';
 
     const previousHash = null;
-    const counter = Number(maker.nftCounter) + 1;
+    const increasedCounter = Number(maker.nftCounter) + 1;
 
     await global.app.sdb.lock(`uia.createNft@${name}`);
     await global.app.sdb.lock(`uia.createNft@${cid}`);
@@ -64,13 +64,20 @@ export default {
     const nft: INft = {
       name,
       hash: cid,
-      previousHash,
+      previousHash: previousHash,
       tid: this.trs.id,
-      counter: String(counter),
+      counter: String(increasedCounter),
       nftMakerId: maker.name,
       ownerAddress: maker.address,
     };
     await global.app.sdb.create<Nft>(Nft, nft);
+
+    await global.app.sdb.update<NftMaker>(
+      NftMaker,
+      { nftCounter: String(increasedCounter) },
+      { name: makerId }
+    );
+
     return null;
   },
 
