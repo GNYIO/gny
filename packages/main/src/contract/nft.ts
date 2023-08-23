@@ -55,8 +55,19 @@ export default {
     const senderId = this.sender.address;
     if (senderId !== maker.address) return 'You do not own the makerId';
 
-    const previousHash = null;
+    let previousHash = null;
     const increasedCounter = Number(maker.nftCounter) + 1;
+
+    let previousNft = null;
+    if (increasedCounter > 1) {
+      previousNft = await global.app.sdb.findOne<Nft>(Nft, {
+        condition: {
+          nftMakerId: makerId,
+          counter: maker.nftCounter,
+        },
+      });
+      previousHash = previousNft.hash;
+    }
 
     await global.app.sdb.lock(`uia.createNft@${name}`);
     await global.app.sdb.lock(`uia.createNft@${cid}`);
