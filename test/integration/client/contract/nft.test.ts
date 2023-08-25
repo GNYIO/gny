@@ -22,14 +22,45 @@ const config = {
   },
 };
 
-describe('nft', () => {
-  const connection = new gnyClient.Connection(
-    '127.0.0.1',
-    GNY_PORT,
-    'localnet'
-  );
-  const nftApi = connection.contract.Nft;
+const connection = new gnyClient.Connection('127.0.0.1', GNY_PORT, 'localnet');
 
+async function registerNftMaker(
+  name: string,
+  description: string,
+  secret: string
+) {
+  const makerResponse = await connection.contract.Nft.registerNftMaker(
+    name,
+    description,
+    secret
+  );
+  expect(makerResponse).toHaveProperty('transactionId');
+
+  await lib.onNewBlock(GNY_PORT);
+
+  return makerResponse;
+}
+
+async function registerNft(
+  nftName: string,
+  hash: string,
+  makerId: string,
+  secret: string
+) {
+  const nftResponse = await connection.contract.Nft.createNft(
+    nftName,
+    hash,
+    makerId,
+    secret
+  );
+  expect(nftResponse).toHaveProperty('transactionId');
+
+  await lib.onNewBlock(GNY_PORT);
+
+  return nftResponse;
+}
+
+describe('nft', () => {
   beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
@@ -41,7 +72,7 @@ describe('nft', () => {
   }, lib.oneMinute);
 
   afterEach(async () => {
-    await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
+    // await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
   }, lib.oneMinute);
 
   describe('Nft', () => {
@@ -55,15 +86,8 @@ describe('nft', () => {
           const desc = 'first nft maker';
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
-          const response = await nftApi.registerNftMaker(
-            nftmaker,
-            desc,
-            undefined,
-            secret
-          );
-          expect(response).toHaveProperty('transactionId');
 
-          await lib.onNewBlock(GNY_PORT);
+          const response = await registerNftMaker(nftmaker, desc, secret);
 
           const result = await connection.api.Nft.getNftMakers();
           // @ts-ignore
@@ -74,6 +98,7 @@ describe('nft', () => {
             desc: desc,
             address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             name: nftmaker,
+            nftCounter: String(0),
             // @ts-ignore
             tid: response.transactionId,
           });
@@ -83,30 +108,21 @@ describe('nft', () => {
     });
 
     describe('nft', () => {
-      it.only(
+      it(
         'create nft',
         async () => {
           // expect.assertions(1);
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
-          const makerResponse = await nftApi.registerNftMaker(
-            'mynftmaker',
-            'desc',
-            secret
-          );
-          expect(makerResponse).toHaveProperty('transactionId');
-
-          await lib.onNewBlock(GNY_PORT);
+          await registerNftMaker('mynftmaker', 'desc', secret);
 
           const firstNft = 'firstnft';
           const cid =
             'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
           const makerId = 'mynftmaker';
 
-          const nftOne = await nftApi.createNft(firstNft, cid, makerId, secret);
-
-          await lib.onNewBlock(GNY_PORT);
+          const nftOne = await registerNft(firstNft, cid, makerId, secret);
 
           const result = await connection.api.Nft.getNfts();
           // @ts-ignore
@@ -133,15 +149,9 @@ describe('nft', () => {
           const secondNft = 'secondnft';
           const cid2 =
             'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze';
-          const nftTwo = await nftApi.createNft(
-            secondNft,
-            cid2,
-            makerId,
-            secret
-          );
-          expect(nftTwo).toHaveProperty('transactionId');
 
-          await lib.onNewBlock(GNY_PORT);
+          const nftTwo = await registerNft(secondNft, cid2, makerId, secret);
+          expect(nftTwo).toHaveProperty('transactionId');
 
           const result2 = await connection.api.Nft.getNfts();
           // @ts-ignore

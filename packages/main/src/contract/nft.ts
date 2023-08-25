@@ -32,7 +32,7 @@ export default {
 
     if (!/^[a-zA-Z]{5,20}$/.test(name)) return 'Invalid nft name';
     // TODO: better validate cid
-    if (!/^[a-zA-Z0-9]{59}$/.test(cid)) return 'Invalid nft CID';
+    if (!/^[a-zA-Z0-9]{30,60}$/.test(cid)) return 'Invalid nft CID';
 
     const existsCid = await global.app.sdb.exists<Nft>(Nft, { hash: cid });
     if (existsCid) return 'Nft with cid already exists';

@@ -924,6 +924,10 @@ export interface NftMakerWrapper {
   makers: INftMaker[];
 }
 
+export interface SingleNftMakerWrapper {
+  maker: INftMaker;
+}
+
 export interface INft {
   name: string;
   hash: string;
@@ -933,6 +937,10 @@ export interface INft {
   nftMakerId: string;
   ownerAddress: string;
   _version_?: number;
+}
+
+export interface SingleNftWrapper {
+  nft: INft;
 }
 
 export interface NftWrapper {
