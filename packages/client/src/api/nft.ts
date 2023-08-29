@@ -17,8 +17,8 @@ export class Nft {
   }
 
   public async getNftMakers(
-    offset?: string,
-    limit?: string
+    offset?: number,
+    limit?: number
   ): Promise<ApiResult<NftMakerWrapper>> {
     const params = {
       offset: offset,

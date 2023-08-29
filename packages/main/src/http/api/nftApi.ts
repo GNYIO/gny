@@ -78,11 +78,13 @@ export default class NftApi implements IHttpApi {
           .number()
           .integer()
           .min(0)
-          .max(100),
+          .max(100)
+          .optional(),
         offset: joi
           .number()
           .integer()
-          .min(0),
+          .min(0)
+          .optional(),
       })
       .required();
 
@@ -143,7 +145,7 @@ export default class NftApi implements IHttpApi {
 
     const maker = await global.app.sdb.findOne<NftMaker>(NftMaker, {
       condition: {
-        maker: req.params.maker,
+        name: req.params.maker,
       },
     });
 
@@ -172,11 +174,13 @@ export default class NftApi implements IHttpApi {
           .number()
           .integer()
           .min(0)
-          .max(100),
+          .max(100)
+          .optional(),
         offset: joi
           .number()
           .integer()
-          .min(0),
+          .min(0)
+          .optional(),
       })
       .required();
 
