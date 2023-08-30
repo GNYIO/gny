@@ -269,10 +269,10 @@ describe('nft', () => {
 
           const result = await connection.api.Nft.getNfts();
           // @ts-ignore
-          expect(result.nft).toHaveLength(1);
+          expect(result.nfts).toHaveLength(1);
           expect(result).toEqual({
             success: true,
-            nft: [
+            nfts: [
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
@@ -298,10 +298,10 @@ describe('nft', () => {
 
           const result2 = await connection.api.Nft.getNfts();
           // @ts-ignore
-          expect(result2.nft).toHaveLength(2);
+          expect(result2.nfts).toHaveLength(2);
           expect(result2).toEqual({
             success: true,
-            nft: [
+            nfts: [
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
@@ -566,9 +566,9 @@ describe('nft', () => {
 
           const nfts = await connection.api.Nft.getNfts(0, 100);
           // @ts-ignore
-          expect(nfts.nft).toHaveLength(1);
+          expect(nfts.nfts).toHaveLength(1);
           // @ts-ignore
-          expect(nfts.nft[0]).toEqual({
+          expect(nfts.nfts[0]).toEqual({
             _version_: 1,
             counter: String(1),
             hash: '2c2624a5059934a947d6e25fe8332ade',

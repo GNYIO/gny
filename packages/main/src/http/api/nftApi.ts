@@ -203,7 +203,7 @@ export default class NftApi implements IHttpApi {
     const condition =
       typeof query.maker === 'string' ? { maker: query.maker } : {};
 
-    const nft = await global.app.sdb.findAll<Nft>(Nft, {
+    const nfts = await global.app.sdb.findAll<Nft>(Nft, {
       condition,
       limit,
       offset,
@@ -211,7 +211,7 @@ export default class NftApi implements IHttpApi {
 
     const result: ApiResult<NftWrapper> = {
       success: true,
-      nft: nft,
+      nfts: nfts,
     };
     return res.json(result);
   };

@@ -944,5 +944,5 @@ export interface SingleNftWrapper {
 }
 
 export interface NftWrapper {
-  nft: INft[];
+  nfts: INft[];
 }
