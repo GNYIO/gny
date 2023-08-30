@@ -12,7 +12,7 @@ export default {
     if (desc.length > 100) return 'Invalid description';
 
     const senderId = this.sender.address;
-    await global.app.sdb.lock(`uia.registerNftMaker@${senderId}`);
+    await global.app.sdb.lock(`nft.registerNftMaker@${senderId}`);
     const exists = await global.app.sdb.exists<NftMaker>(NftMaker, { name });
     if (exists) return 'Nft maker name already exists';
 
@@ -69,8 +69,11 @@ export default {
       previousHash = previousNft.hash;
     }
 
-    await global.app.sdb.lock(`uia.createNft@${name}`);
-    await global.app.sdb.lock(`uia.createNft@${cid}`);
+    await global.app.sdb.lock(`nft.createNft@${name}`);
+    await global.app.sdb.lock(`nft.createNft@${cid}`);
+    // should not be possible that the same maker is creating multiple nfts
+    // in one block, otherwise the counter would be wrong
+    await global.app.sdb.lock(`nft.createNft@${makerId}`);
 
     const nft: INft = {
       name,

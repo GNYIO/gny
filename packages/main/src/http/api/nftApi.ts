@@ -36,7 +36,7 @@ export default class NftApi implements IHttpApi {
 
     router.get('/makers', this.getNftMakers);
     router.get('/makers/:maker', this.getMakerByName);
-    router.get('/nft', this.getNfts);
+    router.get('/', this.getNfts);
     router.get('/getNft', this.getNft);
 
     // Configuration
@@ -199,7 +199,7 @@ export default class NftApi implements IHttpApi {
     }
 
     const limit = query.limit || 100;
-    const offset = query.limit || 0;
+    const offset = query.offset || 0;
     const condition =
       typeof query.maker === 'string' ? { maker: query.maker } : {};
 

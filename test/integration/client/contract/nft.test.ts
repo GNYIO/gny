@@ -523,6 +523,77 @@ describe('nft', () => {
         },
         lib.oneMinute
       );
+
+      it(
+        'can not create two nfts of same maker in one block',
+        async () => {
+          const genesisSecret =
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+          const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
+
+          const reg1 = await registerNftMaker('one', 'desc', genesisSecret);
+          // @ts-ignore
+          expect(reg1).toHaveProperty('transactionId');
+
+          /*
+          start 2 nfts with the same makerId in the same block
+          the second nft should return an error
+        */
+          // first nft
+          const prom0 = registerNft(
+            'FIRST',
+            '2c2624a5059934a947d6e25fe8332ade',
+            'one',
+            genesisSecret
+          );
+          await lib.sleep(300);
+
+          // second nft
+          const prom1 = registerNft(
+            'SECOND',
+            '2200becb80f0019c4a2ccecec350d0db',
+            'one',
+            genesisSecret
+          );
+          expect(prom1).rejects.toHaveProperty('response.data', {
+            success: false,
+            error: 'Error: Lock name = nft.createNft@one exists already',
+          });
+
+          const res = await prom0;
+
+          await lib.onNewBlock(GNY_PORT);
+
+          const nfts = await connection.api.Nft.getNfts(0, 100);
+          // @ts-ignore
+          expect(nfts.nft).toHaveLength(1);
+          // @ts-ignore
+          expect(nfts.nft[0]).toEqual({
+            _version_: 1,
+            counter: String(1),
+            hash: '2c2624a5059934a947d6e25fe8332ade',
+            name: 'FIRST',
+            nftMakerId: 'one',
+            ownerAddress: genesisAddress,
+            previousHash: null,
+            // @ts-ignore
+            tid: res.transactionId,
+          });
+
+          const maker = await connection.api.Nft.getSingleNftMaker('one');
+          // @ts-ignore
+          expect(maker.maker).toEqual({
+            _version_: 2,
+            address: genesisAddress,
+            desc: 'desc',
+            name: 'one',
+            nftCounter: '1',
+            // @ts-ignore
+            tid: reg1.transactionId,
+          });
+        },
+        lib.oneMinute
+      );
     });
   });
 });

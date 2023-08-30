@@ -53,7 +53,7 @@ export class Nft {
       limit,
       maker,
     };
-    const res = await this.base.get('/api/nft/nft', params);
+    const res = await this.base.get('/api/nft', params);
     const result: ApiResult<NftWrapper, ValidationError> = res.data;
     return result;
   }
