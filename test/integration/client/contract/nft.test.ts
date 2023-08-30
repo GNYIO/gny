@@ -200,6 +200,8 @@ describe('nft', () => {
           expect(res.makers[0].name).toEqual('one');
           // @ts-ignore
           expect(res.makers[0].tid).toEqual(tid0.transactionId);
+          // @ts-ignore
+          expect(res.makers[0].nftCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[1].address).toEqual(anotherAddress);
@@ -207,6 +209,8 @@ describe('nft', () => {
           expect(res.makers[1].name).toEqual('two');
           // @ts-ignore
           expect(res.makers[1].tid).toEqual(tid1.transactionId);
+          // @ts-ignore
+          expect(res.makers[1].nftCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[2].address).toEqual(genesisAddress);
@@ -214,6 +218,8 @@ describe('nft', () => {
           expect(res.makers[2].name).toEqual('three');
           // @ts-ignore
           expect(res.makers[2].tid).toEqual(tid2.transactionId);
+          // @ts-ignore
+          expect(res.makers[2].nftCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[3].address).toEqual(anotherAddress);
@@ -221,6 +227,8 @@ describe('nft', () => {
           expect(res.makers[3].name).toEqual('four');
           // @ts-ignore
           expect(res.makers[3].tid).toEqual(tid3.transactionId);
+          // @ts-ignore
+          expect(res.makers[3].nftCounter).toEqual(String(0));
 
           const one = await connection.api.Nft.getNftMakers(0, 1);
           // @ts-ignore
@@ -329,6 +337,12 @@ describe('nft', () => {
               },
             ],
           });
+
+          const maker = await connection.api.Nft.getSingleNftMaker(
+            'mynftmaker'
+          );
+          // @ts-ignore
+          expect(maker.maker.nftCounter).toEqual(String(2));
         },
         lib.oneMinute * 2
       );
@@ -405,6 +419,10 @@ describe('nft', () => {
           });
           // @ts-ignore
           expect(res1_by_name.nft).toEqual(expected1);
+
+          const maker = await connection.api.Nft.getSingleNftMaker('one');
+          // @ts-ignore
+          expect(maker.maker.nftCounter).toEqual(String(2));
         },
         lib.oneMinute
       );
@@ -520,6 +538,21 @@ describe('nft', () => {
             // @ts-ignore
             tid: nft3.transactionId,
           });
+
+          // check that the counter has increased maker
+          const makers = await connection.api.Nft.getNftMakers(0, 100);
+          // @ts-ignore
+          expect(makers.makers).toHaveLength(2);
+
+          // @ts-ignore
+          expect(makers.makers[0].name).toEqual('one');
+          // @ts-ignore
+          expect(makers.makers[0].nftCounter).toEqual(String(2));
+
+          // @ts-ignore
+          expect(makers.makers[1].name).toEqual('two');
+          // @ts-ignore
+          expect(makers.makers[1].nftCounter).toEqual(String(2));
         },
         lib.oneMinute
       );
