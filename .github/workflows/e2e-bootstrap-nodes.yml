@@ -3,6 +3,7 @@ name: e2e-bootstrap-nodes
 on: [push]
 jobs:
   e2e-bootstrap-nodes:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

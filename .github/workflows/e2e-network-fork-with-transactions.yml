@@ -3,6 +3,7 @@ name: e2e-network-fork-with-transactions
 on: [push]
 jobs:
   e2e-network-fork-with-transactions:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

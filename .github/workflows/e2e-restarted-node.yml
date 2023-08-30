@@ -3,6 +3,7 @@ name: e2e-restarted-node
 on: [push]
 jobs:
   e2e-restarted-node:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

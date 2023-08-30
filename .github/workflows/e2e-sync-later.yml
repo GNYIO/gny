@@ -3,6 +3,7 @@ name: e2e-sync-later
 on: [push]
 jobs:
   e2e-sync-later:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

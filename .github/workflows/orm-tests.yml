@@ -6,6 +6,7 @@ on: push
 
 jobs:
   orm-tests:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
 
     services:
