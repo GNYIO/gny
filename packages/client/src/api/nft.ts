@@ -9,6 +9,14 @@ import {
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
+interface OnlyHash {
+  hash: string;
+}
+
+interface OnlyName {
+  name: string;
+}
+
 export class Nft {
   private base: Base;
 
@@ -51,9 +59,9 @@ export class Nft {
   }
 
   public async getSingleNft(
-    hash: string
+    query: OnlyHash | OnlyName
   ): Promise<ApiResult<SingleNftWrapper>> {
-    const res = await this.base.get(`/api/nft/${hash}`);
+    const res = await this.base.get(`/api/nft/getNft`, query);
     const result: ApiResult<SingleNftWrapper, ValidationError> = res.data;
     return result;
   }

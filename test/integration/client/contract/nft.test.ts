@@ -332,6 +332,197 @@ describe('nft', () => {
         },
         lib.oneMinute * 2
       );
+
+      it(
+        'get nft by hash and name',
+        async () => {
+          const genesisSecret =
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+          const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
+
+          const registerTrs = await registerNftMaker(
+            'one',
+            'desc',
+            genesisSecret
+          );
+
+          const nft0 = await registerNft(
+            'ONEONE',
+            'bc21e6484530fc9d0313cb816b733396',
+            'one',
+            genesisSecret
+          );
+          await lib.sleep(100);
+          const nft1 = await registerNft(
+            'TWOTWO',
+            '0f82d86afa0f5dc965c5c15aca58dcfb',
+            'one',
+            genesisSecret
+          );
+
+          // query first nft
+          const res0_by_hash = await connection.api.Nft.getSingleNft({
+            hash: 'bc21e6484530fc9d0313cb816b733396',
+          });
+          const expected0 = {
+            _version_: 1,
+            counter: String(1),
+            hash: 'bc21e6484530fc9d0313cb816b733396',
+            name: 'ONEONE',
+            nftMakerId: 'one',
+            ownerAddress: genesisAddress,
+            previousHash: null,
+            // @ts-ignore
+            tid: nft0.transactionId,
+          };
+          // @ts-ignore
+          expect(res0_by_hash.nft).toEqual(expected0);
+          const res0_by_name = await connection.api.Nft.getSingleNft({
+            name: 'ONEONE',
+          });
+          // @ts-ignore
+          expect(res0_by_name.nft).toEqual(expected0);
+
+          // query second nft
+          const res1_by_hash = await connection.api.Nft.getSingleNft({
+            hash: '0f82d86afa0f5dc965c5c15aca58dcfb',
+          });
+          const expected1 = {
+            _version_: 1,
+            counter: String(2),
+            hash: '0f82d86afa0f5dc965c5c15aca58dcfb',
+            name: 'TWOTWO',
+            nftMakerId: 'one',
+            ownerAddress: genesisAddress,
+            previousHash: 'bc21e6484530fc9d0313cb816b733396',
+            // @ts-ignore
+            tid: nft1.transactionId,
+          };
+          // @ts-ignore
+          expect(res1_by_hash.nft).toEqual(expected1);
+          const res1_by_name = await connection.api.Nft.getSingleNft({
+            name: 'TWOTWO',
+          });
+          // @ts-ignore
+          expect(res1_by_name.nft).toEqual(expected1);
+        },
+        lib.oneMinute
+      );
+
+      it(
+        'create multiple nfts from different makers',
+        async () => {
+          const genesisSecret =
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+          const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
+
+          const anotherSecret =
+            'dragon despair shuffle vast donate exclude pair word mixed click rate ignore';
+          const anotherAddress = 'G4EaQhF6kckgg9cHVcxf9VeQiEsTm';
+
+          await transferGNY(anotherAddress, String(10000 * 1e8), genesisSecret);
+
+          const prom1 = registerNftMaker('one', 'desc', genesisSecret);
+          await lib.sleep(100);
+          const prom2 = registerNftMaker('two', 'desc', anotherSecret);
+          const [tid0, tid1] = await Promise.all([prom1, prom2]);
+
+          const promNft0 = registerNft(
+            'NFTONE',
+            '4beea259c4a1e6fe982e32a9988bee3d',
+            'one',
+            genesisSecret
+          ); // md5sum
+          await lib.sleep(100);
+          const promNft1 = registerNft(
+            'NFTTWO',
+            'fceda27fd75e3fa76467646b8d3e7656',
+            'two',
+            anotherSecret
+          );
+          const [nft0, nft1] = await Promise.all([promNft0, promNft1]);
+
+          const promNft2 = registerNft(
+            'NFTTHREE',
+            'f1cd9cc9830ae4ab330a7d7175032b10',
+            'one',
+            genesisSecret
+          ); // md5sum
+          await lib.sleep(100);
+          const promNft3 = registerNft(
+            'NFTFOUR',
+            '0b719b7df84b7846237101b23bb9b91e',
+            'two',
+            anotherSecret
+          );
+          const [nft2, nft3] = await Promise.all([promNft2, promNft3]);
+
+          const nftOne = await connection.api.Nft.getSingleNft({
+            hash: '4beea259c4a1e6fe982e32a9988bee3d',
+          });
+          // @ts-ignore
+          expect(nftOne.nft).toEqual({
+            _version_: 1,
+            counter: '1',
+            hash: '4beea259c4a1e6fe982e32a9988bee3d',
+            name: 'NFTONE',
+            nftMakerId: 'one',
+            ownerAddress: genesisAddress,
+            previousHash: null,
+            // @ts-ignore
+            tid: nft0.transactionId,
+          });
+
+          const nftTwo = await connection.api.Nft.getSingleNft({
+            hash: 'fceda27fd75e3fa76467646b8d3e7656',
+          });
+          // @ts-ignore
+          expect(nftTwo.nft).toEqual({
+            _version_: 1,
+            counter: '1',
+            hash: 'fceda27fd75e3fa76467646b8d3e7656',
+            name: 'NFTTWO',
+            nftMakerId: 'two',
+            ownerAddress: anotherAddress,
+            previousHash: null,
+            // @ts-ignore
+            tid: nft1.transactionId,
+          });
+
+          const nftThree = await connection.api.Nft.getSingleNft({
+            hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
+          });
+          // @ts-ignore
+          expect(nftThree.nft).toEqual({
+            _version_: 1,
+            counter: '2',
+            hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
+            name: 'NFTTHREE',
+            nftMakerId: 'one',
+            ownerAddress: genesisAddress,
+            previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
+            // @ts-ignore
+            tid: nft2.transactionId,
+          });
+
+          const nftFour = await connection.api.Nft.getSingleNft({
+            hash: '0b719b7df84b7846237101b23bb9b91e',
+          });
+          // @ts-ignore
+          expect(nftFour.nft).toEqual({
+            _version_: 1,
+            counter: '2',
+            hash: '0b719b7df84b7846237101b23bb9b91e',
+            name: 'NFTFOUR',
+            nftMakerId: 'two',
+            ownerAddress: anotherAddress,
+            previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
+            // @ts-ignore
+            tid: nft3.transactionId,
+          });
+        },
+        lib.oneMinute
+      );
     });
   });
 });

@@ -37,7 +37,7 @@ export default class NftApi implements IHttpApi {
     router.get('/makers', this.getNftMakers);
     router.get('/makers/:maker', this.getMakerByName);
     router.get('/nft', this.getNfts);
-    router.get('/nft/:hash', this.getNftByHash);
+    router.get('/getNft', this.getNft);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -216,22 +216,21 @@ export default class NftApi implements IHttpApi {
     return res.json(result);
   };
 
-  private getNftByHash = async (req: Request, res: Response, next: Next) => {
-    const schema = joi
+  private getNft = async (req: Request, res: Response, next: Next) => {
+    const hashOrName = joi
       .object()
       .keys({
-        hash: joi
-          .string()
-          .regex(new RegExp(/^[a-zA-Z0-9]{30,60}$/))
-          .required(),
+        hash: joi.string().regex(new RegExp(/^[a-zA-Z0-9]{30,60}$/)),
+        name: joi.string().regex(new RegExp(/^[a-zA-Z]{5,20}$/)),
       })
+      .xor('hash', 'name')
       .required();
 
-    const report = joi.validate(req.params, schema);
+    const report = joi.validate(req.query, hashOrName);
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
-        endpoint: '/api/nft/nft/:hash',
+        endpoint: '/api/nft/getNft',
         statusCode: '422',
       });
 
@@ -241,10 +240,13 @@ export default class NftApi implements IHttpApi {
       });
     }
 
+    const condition =
+      typeof req.query.hash === 'string'
+        ? { hash: req.query.hash }
+        : { name: req.query.name };
+
     const nft = await global.app.sdb.findOne<Nft>(Nft, {
-      condition: {
-        hash: req.params.hash,
-      },
+      condition,
     });
 
     if (nft === undefined) {
