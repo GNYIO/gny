@@ -23,6 +23,7 @@ import { Mldata } from './entity/Mldata.js';
 import { Prediction } from './entity/Prediction.js';
 import { NftMaker } from './entity/NftMaker.js';
 import { Nft } from './entity/Nft.js';
+import { Burn } from './entity/Burn.js';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -95,6 +96,7 @@ export function createMetaSchema() {
   const prediction = transform(Prediction);
   const nftMaker = transform(NftMaker);
   const nft = transform(Nft);
+  const burn = transform(Burn);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -112,6 +114,7 @@ export function createMetaSchema() {
   result.set('Prediction', prediction);
   result.set('NftMaker', nftMaker);
   result.set('Nft', nft);
+  result.set('Burn', burn);
 
   return result;
 }

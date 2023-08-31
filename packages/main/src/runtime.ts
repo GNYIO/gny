@@ -146,6 +146,7 @@ export default async function runtime(options: IOptions) {
   global.app.contractTypeMapping[5] = 'basic.unvote';
   global.app.contractTypeMapping[6] = 'basic.unlock';
   global.app.contractTypeMapping[10] = 'basic.registerDelegate';
+  global.app.contractTypeMapping[20] = 'basic.burn';
 
   global.app.contractTypeMapping[100] = 'uia.registerIssuer';
   global.app.contractTypeMapping[101] = 'uia.registerAsset';
@@ -164,5 +165,4 @@ export default async function runtime(options: IOptions) {
 
   global.app.contractTypeMapping[300] = 'nft.registerNftMaker';
   global.app.contractTypeMapping[301] = 'nft.createNft';
-  global.app.contractTypeMapping[302] = 'nft.transferNft';
 }

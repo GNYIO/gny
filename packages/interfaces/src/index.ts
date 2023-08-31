@@ -92,6 +92,7 @@ export interface CoreApi {
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
   nftApi: IHttpApi;
+  burnApi: IHttpApi;
 }
 
 export interface ITransactionPool {
@@ -645,6 +646,8 @@ export interface RewardWrappper {
 }
 
 export interface SupplyWrapper {
+  deprecated: string;
+  burned: string;
   supply: string;
 }
 
@@ -945,4 +948,18 @@ export interface SingleNftWrapper {
 
 export interface NftWrapper {
   nfts: INft[];
+}
+
+export interface IBurn {
+  tid: string;
+  senderId: string;
+  amount: string;
+  timestamp: number;
+  height: string;
+  _version_?: number;
+}
+
+export interface BurnWrapper {
+  burn: IBurn[];
+  count: number;
 }

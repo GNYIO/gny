@@ -546,6 +546,31 @@ export class DeleteInfoTable1608475266157 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
 
+export class AddBurnTable1691572220932 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE TABLE public.burn (
+        tid character varying(64) NOT NULL,
+        "senderId" character varying(50) NOT NULL,
+        amount bigint NOT NULL,
+        "timestamp" integer NOT NULL,
+        height bigint NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.burn OWNER TO postgres;
+
+      ALTER TABLE ONLY public.burn
+        ADD CONSTRAINT "burn_tid_pkey" PRIMARY KEY (tid);
+
+      CREATE INDEX "burn_senderId_idx" ON public.burn USING btree ("senderId");
+      CREATE INDEX "burn_timestamp_idx" ON public.burn USING btree ("timestamp");
+      CREATE INDEX "burn_height_idx" ON public.burn USING btree (height);
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
+
 export class CreateNft1691091279392 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
@@ -597,6 +622,5 @@ export class CreateNft1691091279392 implements MigrationInterface {
           ON public.nft USING btree ("ownerAddress");
     `);
   }
-
   async down(queryRunner: QueryRunner): Promise<any> {}
 }

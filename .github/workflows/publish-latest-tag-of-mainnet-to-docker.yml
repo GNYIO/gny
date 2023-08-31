@@ -35,3 +35,9 @@ jobs:
         push: true
         tags: "gnyio/node:mainnet,gnyio/node:${{ env.latestversion }}-mainnet"
         platforms: linux/amd64
+    - name: Build and push mainnet (ARM) image
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        tags: "gnyio/node:mainnet-arm,gnyio/node:${{ env.latestversion }}-mainnet-arm"
+        platforms: linux/arm64

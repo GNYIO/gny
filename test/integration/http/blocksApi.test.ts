@@ -150,6 +150,8 @@ describe('blocksApi', () => {
         const { data } = await axios.get(
           'http://localhost:4096/api/blocks/getSupply'
         );
+        expect(data.deprecated).toBe('40000000000000000');
+        expect(data.burned).toBe('0');
         expect(data.supply).toBe('40000000000000000');
       },
       lib.oneMinute

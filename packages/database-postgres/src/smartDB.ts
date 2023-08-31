@@ -44,6 +44,7 @@ export * from './entity/Mldata.js';
 export * from './entity/Prediction.js';
 export * from './entity/NftMaker.js';
 export * from './entity/Nft.js';
+export * from './entity/Burn.js';
 
 export * from './basicEntityTracker.js';
 export * from './lruEntityCache.js';

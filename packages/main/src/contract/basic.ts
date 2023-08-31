@@ -1,9 +1,16 @@
 import BigNumber from 'bignumber.js';
-import { IAccount, ITransfer, IDelegate, Context } from '@gny/interfaces';
+import {
+  IAccount,
+  ITransfer,
+  IDelegate,
+  Context,
+  IBurn,
+} from '@gny/interfaces';
 import { Vote } from '@gny/database-postgres';
 import { Account } from '@gny/database-postgres';
 import { Delegate } from '@gny/database-postgres';
 import { Transfer } from '@gny/database-postgres';
+import { Burn } from '@gny/database-postgres';
 import { isAddress } from '@gny/utils';
 
 async function deleteCreatedVotes(account: IAccount) {
@@ -423,6 +430,38 @@ export default {
       };
       await global.app.sdb.del<Vote>(Vote, v);
     }
+    return null;
+  },
+
+  async burn(this: Context, amount) {
+    if (arguments.length !== 1) return 'Invalid arguments length';
+    global.app.validate('amount', String(amount));
+
+    const sender = this.sender;
+    if (new BigNumber(sender.gny).minus(0.1 * 1e8).isLessThan(amount)) {
+      return 'Insufficient balance';
+    }
+    await global.app.sdb.lock(`basic.burn@${sender.address}`);
+
+    const oneMillion = new BigNumber(1000000).times(1e8).toFixed(0);
+    if (new BigNumber(amount).isGreaterThan(oneMillion)) {
+      return 'Only 1 million can be burned at once';
+    }
+
+    await global.app.sdb.increase<Account>(
+      Account,
+      { gny: String(-amount) },
+      { address: sender.address }
+    );
+
+    const burn: IBurn = {
+      tid: this.trs.id,
+      height: String(this.block.height),
+      amount: String(amount),
+      timestamp: this.trs.timestamp,
+      senderId: sender.address,
+    };
+    await global.app.sdb.create<Burn>(Burn, burn);
     return null;
   },
 };

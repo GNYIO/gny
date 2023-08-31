@@ -9,6 +9,7 @@ import { Transfer } from './transfer';
 import { Transport } from './transport';
 import { Uia } from './uia';
 import { Exchange } from './exchange';
+import { Burn } from './burn';
 import { Connection } from '../connection';
 import { Nft } from './nft';
 
@@ -26,5 +27,6 @@ export const Api = (connection: Connection) => {
     Uia: new Uia(connection),
     Exchange: new Exchange(connection),
     Nft: new Nft(connection),
+    Burn: new Burn(connection),
   };
 };

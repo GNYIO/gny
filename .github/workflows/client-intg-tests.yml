@@ -5,6 +5,11 @@ jobs:
     timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v2
