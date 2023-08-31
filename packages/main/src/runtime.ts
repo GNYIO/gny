@@ -162,4 +162,7 @@ export default async function runtime(options: IOptions) {
   global.app.contractTypeMapping[207] = 'ml.fraudDetection';
   global.app.contractTypeMapping[208] = 'ml.locationPrediction';
   global.app.contractTypeMapping[209] = 'ml.nlp';
+
+  global.app.contractTypeMapping[300] = 'nft.registerNftMaker';
+  global.app.contractTypeMapping[301] = 'nft.createNft';
 }

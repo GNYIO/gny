@@ -3,6 +3,7 @@ name: e2e-sync-later-not-from-0
 on: [push]
 jobs:
   e2e-sync-later-not-from-0:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space

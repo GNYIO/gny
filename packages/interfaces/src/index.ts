@@ -91,6 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
+  nftApi: IHttpApi;
   burnApi: IHttpApi;
 }
 
@@ -911,6 +912,42 @@ export interface SmartDBOptions {
   dbUser: string;
   dbHost: string;
   dbPort: number;
+}
+
+export interface INftMaker {
+  name: string;
+  desc: string;
+  address: string;
+  tid: string;
+  nftCounter: string;
+  _version_?: number;
+}
+
+export interface NftMakerWrapper {
+  makers: INftMaker[];
+}
+
+export interface SingleNftMakerWrapper {
+  maker: INftMaker;
+}
+
+export interface INft {
+  name: string;
+  hash: string;
+  previousHash?: string;
+  tid: string;
+  counter: string;
+  nftMakerId: string;
+  ownerAddress: string;
+  _version_?: number;
+}
+
+export interface SingleNftWrapper {
+  nft: INft;
+}
+
+export interface NftWrapper {
+  nfts: INft[];
 }
 
 export interface IBurn {

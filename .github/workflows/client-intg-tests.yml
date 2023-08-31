@@ -2,6 +2,7 @@ name: client integration tests
 on: [push]
 jobs:
   client-integration-tests:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space

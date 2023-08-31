@@ -570,3 +570,57 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class CreateNft1691091279392 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE TABLE public.nft_maker (
+        name character varying(16) NOT NULL,
+        "desc" character varying(100) NOT NULL,
+        "address" character varying(50) NOT NULL,
+        tid character varying(64) NOT NULL,
+        "nftCounter" bigint NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.nft_maker OWNER TO postgres;
+
+      ALTER TABLE ONLY public.nft_maker
+          ADD CONSTRAINT "nft_maker_name_pkey" PRIMARY KEY (name);
+
+      ALTER TABLE ONLY public.nft_maker
+          ADD CONSTRAINT "nft_maker_tid_key" UNIQUE (tid);
+
+
+
+
+
+      CREATE TABLE public.nft (
+        name character varying(20) NOT NULL,
+        hash character varying(60) NOT NULL,
+        "previousHash" character varying(60) NULL,
+        tid character varying(64) NOT NULL,
+        "counter" bigint NOT NULL,
+        "nftMakerId" character varying(20) NOT NULL,
+        "ownerAddress" character varying(50) NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.nft OWNER TO postgres;
+
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "nft_name_pkey" PRIMARY KEY (name);
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "nft_hash_key" UNIQUE (hash);
+      ALTER TABLE ONLY public.nft
+          ADD CONSTRAINT "nft_tid_key" UNIQUE (tid);
+      CREATE INDEX "nft_counter_idx"
+          ON public.nft USING btree (counter);
+      CREATE INDEX "nft_nftMakerId_idx"
+          ON public.nft USING btree ("nftMakerId");
+      CREATE INDEX "nft_ownerAddress_idx"
+          ON public.nft USING btree ("ownerAddress");
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

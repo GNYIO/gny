@@ -17,12 +17,15 @@ import { Vote } from '../entity/Vote.js';
 import { BlockHistory } from '../entity/BlockHistory.js';
 import { Mldata } from '../entity/Mldata.js';
 import { Prediction } from '../entity/Prediction.js';
+import { NftMaker } from '../entity/NftMaker.js';
+import { Nft } from '../entity/Nft.js';
 import { Burn } from '../entity/Burn.js';
 
 import {
   InitMigration1605362544330,
   DeleteInfoTable1608475266157,
   AddBurnTable1691572220932,
+  CreateNft1691091279392,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -43,6 +46,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       InitMigration1605362544330,
       DeleteInfoTable1608475266157,
       AddBurnTable1691572220932,
+      CreateNft1691091279392,
     ],
   };
 
@@ -63,6 +67,8 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Mldata,
       Prediction,
       Burn,
+      NftMaker,
+      Nft,
     ],
   });
   Object.assign(options, {

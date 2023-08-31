@@ -10,6 +10,7 @@ import LoaderApi from './http/api/loaderApi.js';
 import TransfersApi from './http/api/transfersApi.js';
 import ExchangeApi from './http/api/exchangeApi.js';
 import MetricsApi from './http/api/metricsApi.js';
+import NftApi from './http/api/nftApi.js';
 import BurnApi from './http/api/burnApi.js';
 import { IScope, CoreApi } from '@gny/interfaces';
 
@@ -26,6 +27,7 @@ export default function loadCoreApi(scope: IScope) {
   const loaderApi = new LoaderApi(scope);
   const exchangeApi = new ExchangeApi(scope);
   const metricsApi = new MetricsApi(scope);
+  const nftApi = new NftApi(scope);
   const burnApi = new BurnApi(scope);
 
   const coreApi: CoreApi = {
@@ -41,6 +43,7 @@ export default function loadCoreApi(scope: IScope) {
     loaderApi,
     exchangeApi,
     metricsApi,
+    nftApi,
     burnApi,
   };
   return coreApi;

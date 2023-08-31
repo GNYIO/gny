@@ -3,6 +3,7 @@ name: e2e-should-connect
 on: [push]
 jobs:
   e2e-should-connect:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space

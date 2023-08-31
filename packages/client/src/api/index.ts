@@ -11,6 +11,7 @@ import { Uia } from './uia';
 import { Exchange } from './exchange';
 import { Burn } from './burn';
 import { Connection } from '../connection';
+import { Nft } from './nft';
 
 export const Api = (connection: Connection) => {
   return {
@@ -25,6 +26,7 @@ export const Api = (connection: Connection) => {
     Transport: new Transport(connection),
     Uia: new Uia(connection),
     Exchange: new Exchange(connection),
+    Nft: new Nft(connection),
     Burn: new Burn(connection),
   };
 };

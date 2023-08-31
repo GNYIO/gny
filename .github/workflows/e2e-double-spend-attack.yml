@@ -3,6 +3,7 @@ name: e2e-double-spend-attack
 on: [push]
 jobs:
   e2e-double-spend-attack:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space

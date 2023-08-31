@@ -2,6 +2,7 @@
 import basic from './contract/basic.js';
 import uia from './contract/uia.js';
 import ml from './contract/ml.js';
+import nft from './contract/nft.js';
 
 interface ModuleWrapper {
   module: any;
@@ -18,4 +19,5 @@ export default async function loadContracts() {
   addContract({ module: basic, name: 'basic' });
   addContract({ module: uia, name: 'uia' });
   addContract({ module: ml, name: 'ml' });
+  addContract({ module: nft, name: 'nft' });
 }

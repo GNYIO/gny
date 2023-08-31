@@ -59,6 +59,10 @@
       "types": "./dist/contract/uia.d.ts",
       "import": "./dist/contract/uia.js"
     },
+    "./nft": {
+      "types": "./dist/contract/nft.d.ts",
+      "import": "./dist/contract/nft.js"
+    },
     "./balance-manager": {
       "types": "./dist/smartdb/balance-manager.d.ts",
       "import": "./dist/smartdb/balance-manager.js"
