@@ -94,6 +94,4 @@ export default {
 
     return null;
   },
-
-  async transferNft(this: Context) {},
 };

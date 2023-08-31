@@ -595,30 +595,6 @@ export class CreateNft1691091279392 implements MigrationInterface {
           ON public.nft USING btree ("nftMakerId");
       CREATE INDEX "nft_ownerAddress_idx"
           ON public.nft USING btree ("ownerAddress");
-
-
-
-      CREATE TABLE public.nft_transfer (
-        tid character varying(64) NOT NULL,
-        "senderId" character varying(50) NOT NULL,
-        "recipientId" character varying(50) NOT NULL,
-        "nftName" character varying(50) NOT NULL,
-        "timestamp" integer NOT NULL,
-        height bigint NOT NULL,
-        _version_ integer DEFAULT 0 NOT NULL
-      );
-
-      ALTER TABLE public.nft_transfer OWNER TO postgres;
-
-      ALTER TABLE ONLY public.nft_transfer
-          ADD CONSTRAINT "nft_transfer_tid_pkey" PRIMARY KEY (tid);
-
-      CREATE INDEX "nft_transfer_height_idx" ON public.nft_transfer USING btree (height);
-      CREATE INDEX "nft_transfer_recipientId_idx" ON public.nft_transfer USING btree ("recipientId");
-      CREATE INDEX "nft_transfer_timestamp_idx" ON public.nft_transfer USING btree ("timestamp");
-      CREATE INDEX "nft_transfer_senderId_idx" ON public.nft_transfer USING btree ("senderId");
-      CREATE INDEX "nft_transfer_nftName_idx" ON public.nft_transfer USING btree ("nftName");
-
     `);
   }
 

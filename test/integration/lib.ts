@@ -202,7 +202,6 @@ export async function resetDb(dbName: string) {
     DROP TABLE IF EXISTS "vote";
     DROP TABLE IF EXISTS "nft_maker";
     DROP TABLE IF EXISTS "nft";
-    DROP TABLE IF EXISTS "nft_transfer";
 
     DROP TABLE IF EXISTS migrations;
     DROP SEQUENCE IF EXISTS migrations_id_seq;
