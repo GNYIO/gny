@@ -1,6 +1,6 @@
 {
   "name": "@gny/cli",
-  "version": "1.0.133",
+  "version": "1.0.134",
   "description": "gny command line tool",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -73,10 +73,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gny/interfaces": "1.0.133",
-    "@gny/utils": "1.0.133",
-    "@gny/web-base": "1.0.133",
-    "@gny/web-ed": "1.0.133",
+    "@gny/interfaces": "1.0.134",
+    "@gny/utils": "1.0.134",
+    "@gny/web-base": "1.0.134",
+    "@gny/web-ed": "1.0.134",
     "@types/node": "^12.6.8",
     "assert": "^2.0.0",
     "async": "^3.1.0",
