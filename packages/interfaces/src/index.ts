@@ -924,6 +924,7 @@ export interface INftMaker {
 }
 
 export interface NftMakerWrapper {
+  count: number;
   makers: INftMaker[];
 }
 
@@ -947,6 +948,7 @@ export interface SingleNftWrapper {
 }
 
 export interface NftWrapper {
+  count: number;
   nfts: INft[];
 }
 
