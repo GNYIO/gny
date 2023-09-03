@@ -105,6 +105,8 @@ export default class NftApi implements IHttpApi {
     const limit = query.limit || 100;
     const offset = query.offset || 0;
 
+    const count = await global.app.sdb.count<NftMaker>(NftMaker, {});
+
     const nftMakers = await global.app.sdb.findAll<NftMaker>(NftMaker, {
       condition: {},
       limit,
@@ -113,6 +115,7 @@ export default class NftApi implements IHttpApi {
 
     const result: ApiResult<NftMakerWrapper> = {
       success: true,
+      count: count,
       makers: nftMakers,
     };
     return res.json(result);
@@ -201,8 +204,9 @@ export default class NftApi implements IHttpApi {
     const limit = query.limit || 100;
     const offset = query.offset || 0;
     const condition =
-      typeof query.maker === 'string' ? { maker: query.maker } : {};
+      typeof query.maker === 'string' ? { nftMakerId: query.maker } : {};
 
+    const count = await global.app.sdb.count<Nft>(Nft, condition);
     const nfts = await global.app.sdb.findAll<Nft>(Nft, {
       condition,
       limit,
@@ -211,6 +215,7 @@ export default class NftApi implements IHttpApi {
 
     const result: ApiResult<NftWrapper> = {
       success: true,
+      count,
       nfts: nfts,
     };
     return res.json(result);
