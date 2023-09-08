@@ -53,7 +53,7 @@ export class Nft implements Versioned {
   @Column({
     type: 'varchar',
     length: 50,
-    nullable: true,
+    nullable: false,
   })
   @Index()
   public ownerAddress: string;
