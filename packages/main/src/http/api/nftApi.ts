@@ -211,6 +211,7 @@ export default class NftApi implements IHttpApi {
       condition,
       limit,
       offset,
+      sort: { timestamp: 1 },
     });
 
     const result: ApiResult<NftWrapper> = {
