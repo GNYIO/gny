@@ -793,6 +793,17 @@ export interface TransactionIdWrapper {
   transactionId: string;
 }
 
+export interface ITransactionConfirmation {
+  id: string;
+  confirmations: string;
+  inBlock: string;
+  currentBlock: string;
+}
+
+export interface TransactionConfirmationWrapper {
+  info: ITransactionConfirmation;
+}
+
 export interface TransfersWrapper {
   count: number;
   transfers: ITransfer[];

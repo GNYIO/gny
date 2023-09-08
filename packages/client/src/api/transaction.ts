@@ -10,6 +10,7 @@ import {
   TransactionError,
   UnconfirmedTransaction,
   UnconfirmedTransactionsWrapper,
+  TransactionConfirmationWrapper,
 } from '@gny/interfaces';
 import { Connection } from '../connection';
 
@@ -146,6 +147,18 @@ export class Transaction {
       TransactionsWrapper,
       ValidationError | TransactionError
     > = res.data;
+    return result;
+  }
+
+  public async getConfirmations(
+    id: string
+  ): Promise<ApiResult<TransactionConfirmationWrapper, ValidationError>> {
+    const params = {
+      id,
+    };
+    const res = await this.base.get('/api/transactions/confirmations', params);
+    const result: ApiResult<UnconfirmedTransactionsWrapper, ValidationError> =
+      res.data;
     return result;
   }
 }
