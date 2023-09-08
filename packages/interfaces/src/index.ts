@@ -940,6 +940,7 @@ export interface INft {
   counter: string;
   nftMakerId: string;
   ownerAddress: string;
+  timestamp: number;
   _version_?: number;
 }
 

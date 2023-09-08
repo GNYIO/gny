@@ -83,6 +83,7 @@ export default {
       counter: String(increasedCounter),
       nftMakerId: maker.name,
       ownerAddress: maker.address,
+      timestamp: this.trs.timestamp,
     };
     await global.app.sdb.create<Nft>(Nft, nft);
 

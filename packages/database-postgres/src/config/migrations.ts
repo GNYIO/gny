@@ -603,6 +603,7 @@ export class CreateNft1691091279392 implements MigrationInterface {
         "counter" bigint NOT NULL,
         "nftMakerId" character varying(20) NOT NULL,
         "ownerAddress" character varying(50) NOT NULL,
+        "timestamp" integer NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 

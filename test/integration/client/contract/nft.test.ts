@@ -280,6 +280,7 @@ describe('nft', () => {
           expect(result.nfts).toHaveLength(1);
           expect(result).toEqual({
             success: true,
+            count: 1,
             nfts: [
               {
                 hash:
@@ -291,6 +292,7 @@ describe('nft', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: nftOne.transactionId,
+                timestamp: expect.toBeNumber(),
                 _version_: 1,
               },
             ],
@@ -309,6 +311,7 @@ describe('nft', () => {
           expect(result2.nfts).toHaveLength(2);
           expect(result2).toEqual({
             success: true,
+            count: 2,
             nfts: [
               {
                 hash:
@@ -320,6 +323,7 @@ describe('nft', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: nftOne.transactionId,
+                timestamp: expect.toBeNumber(),
                 _version_: 1,
               },
               {
@@ -333,6 +337,7 @@ describe('nft', () => {
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 // @ts-ignore
                 tid: nftTwo.transactionId,
+                timestamp: expect.toBeNumber(),
                 _version_: 1,
               },
             ],
@@ -388,6 +393,7 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft0.transactionId,
+            timestamp: expect.toBeNumber(),
           };
           // @ts-ignore
           expect(res0_by_hash.nft).toEqual(expected0);
@@ -411,6 +417,7 @@ describe('nft', () => {
             previousHash: 'bc21e6484530fc9d0313cb816b733396',
             // @ts-ignore
             tid: nft1.transactionId,
+            timestamp: expect.toBeNumber(),
           };
           // @ts-ignore
           expect(res1_by_hash.nft).toEqual(expected1);
@@ -489,6 +496,7 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft0.transactionId,
+            timestamp: expect.toBeNumber(),
           });
 
           const nftTwo = await connection.api.Nft.getSingleNft({
@@ -505,6 +513,7 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft1.transactionId,
+            timestamp: expect.toBeNumber(),
           });
 
           const nftThree = await connection.api.Nft.getSingleNft({
@@ -521,6 +530,7 @@ describe('nft', () => {
             previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
             // @ts-ignore
             tid: nft2.transactionId,
+            timestamp: expect.toBeNumber(),
           });
 
           const nftFour = await connection.api.Nft.getSingleNft({
@@ -537,6 +547,7 @@ describe('nft', () => {
             previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
             // @ts-ignore
             tid: nft3.transactionId,
+            timestamp: expect.toBeNumber(),
           });
 
           // check that the counter has increased maker
@@ -611,6 +622,7 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: res.transactionId,
+            timestamp: expect.toBeNumber(),
           });
 
           const maker = await connection.api.Nft.getSingleNftMaker('one');

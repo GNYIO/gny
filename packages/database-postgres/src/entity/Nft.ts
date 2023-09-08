@@ -59,6 +59,11 @@ export class Nft implements Versioned {
   public ownerAddress: string;
 
   @Column({
+    type: 'int',
+  })
+  public timestamp: number;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,
