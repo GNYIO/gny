@@ -621,6 +621,8 @@ export class CreateNft1691091279392 implements MigrationInterface {
           ON public.nft USING btree ("nftMakerId");
       CREATE INDEX "nft_ownerAddress_idx"
           ON public.nft USING btree ("ownerAddress");
+      CREATE INDEX "nft_timestamp_idx"
+          ON public.nft USING btree ("timestamp");
     `);
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
