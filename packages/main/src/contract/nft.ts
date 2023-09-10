@@ -27,12 +27,16 @@ export default {
     return null;
   },
 
-  async createNft(this: Context, name, cid, makerId) {
-    if (arguments.length !== 3) return 'Invalid arguments length';
+  async createNft(this: Context, name, cid, makerId, url) {
+    if (arguments.length !== 4) return 'Invalid arguments length';
 
     if (!/^[a-zA-Z]{5,20}$/.test(name)) return 'Invalid nft name';
     // TODO: better validate cid
     if (!/^[a-zA-Z0-9]{30,60}$/.test(cid)) return 'Invalid nft CID';
+
+    if (typeof url !== 'string') return 'Invalid nft url type';
+    if (url.length > 255) return 'Nft url too long';
+    // if (!/^$/.test(url)) return 'Invalid nft url';
 
     const existsCid = await global.app.sdb.exists<Nft>(Nft, { hash: cid });
     if (existsCid) return 'Nft with cid already exists';
@@ -84,6 +88,7 @@ export default {
       nftMakerId: maker.name,
       ownerAddress: maker.address,
       timestamp: this.trs.timestamp,
+      url,
     };
     await global.app.sdb.create<Nft>(Nft, nft);
 

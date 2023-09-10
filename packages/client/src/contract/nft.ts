@@ -28,10 +28,18 @@ export class Nft {
     nftName: string,
     hash: string,
     makerId: string,
+    url: string,
     secret: string,
     secondSecret?: string
   ) {
-    const trs = nft.createNft(nftName, hash, makerId, secret, secondSecret);
+    const trs = nft.createNft(
+      nftName,
+      hash,
+      makerId,
+      url,
+      secret,
+      secondSecret
+    );
     const params = {
       transaction: trs,
     };

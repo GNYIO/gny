@@ -952,6 +952,7 @@ export interface INft {
   nftMakerId: string;
   ownerAddress: string;
   timestamp: number;
+  url: string;
   _version_?: number;
 }
 

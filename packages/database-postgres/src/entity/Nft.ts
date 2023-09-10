@@ -64,6 +64,14 @@ export class Nft implements Versioned {
   public timestamp: number;
 
   @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+  })
+  @Index()
+  public url: string;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,
