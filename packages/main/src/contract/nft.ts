@@ -3,6 +3,7 @@ import { INftMaker, INft } from '@gny/interfaces';
 
 import { NftMaker } from '@gny/database-postgres';
 import { Nft } from '@gny/database-postgres';
+import { urlRegex } from '@gny/utils';
 
 export default {
   async registerNftMaker(this: Context, name, desc) {
@@ -36,7 +37,7 @@ export default {
 
     if (typeof url !== 'string') return 'Invalid nft url type';
     if (url.length > 255) return 'Nft url too long';
-    // if (!/^$/.test(url)) return 'Invalid nft url';
+    if (!urlRegex.test(url)) return 'Invalid nft url';
 
     const existsCid = await global.app.sdb.exists<Nft>(Nft, { hash: cid });
     if (existsCid) return 'Nft with cid already exists';
