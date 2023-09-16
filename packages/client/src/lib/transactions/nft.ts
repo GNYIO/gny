@@ -19,13 +19,14 @@ function createNft(
   nftName: string,
   hash: string,
   makerId: string,
+  url: string,
   secret: string,
   secondSecret?: string
 ) {
   return transaction.createTransactionEx({
     type: 301,
     fee: String(0.1 * 1e8),
-    args: [nftName, hash, makerId],
+    args: [nftName, hash, makerId, url],
     secret,
     secondSecret: secondSecret,
   });

@@ -45,12 +45,14 @@ async function registerNft(
   nftName: string,
   hash: string,
   makerId: string,
+  url: string,
   secret: string
 ) {
   const nftResponse = await connection.contract.Nft.createNft(
     nftName,
     hash,
     makerId,
+    url,
     secret
   );
   expect(nftResponse).toHaveProperty('transactionId');
@@ -84,7 +86,7 @@ describe('nft', () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
   }, lib.oneMinute);
 
-  describe.skip('Nft', () => {
+  describe('Nft', () => {
     describe('nft maker', () => {
       it(
         'create one nft maker',
@@ -140,9 +142,6 @@ describe('nft', () => {
 
           const res1 = await connection.api.Nft.getSingleNftMaker('A');
           const res2 = await connection.api.Nft.getSingleNftMaker('B');
-
-          // @ts-ignore
-          console.log(JSON.stringify(res1, null, 1));
 
           // @ts-ignore
           expect(res1.maker).toEqual({
@@ -273,13 +272,20 @@ describe('nft', () => {
             'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
           const makerId = 'mynftmaker';
 
-          const nftOne = await registerNft(firstNft, cid, makerId, secret);
+          const nftOne = await registerNft(
+            firstNft,
+            cid,
+            makerId,
+            `https://test.com/${cid}`,
+            secret
+          );
 
           const result = await connection.api.Nft.getNfts();
           // @ts-ignore
           expect(result.nfts).toHaveLength(1);
           expect(result).toEqual({
             success: true,
+            count: 1,
             nfts: [
               {
                 hash:
@@ -291,6 +297,9 @@ describe('nft', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: nftOne.transactionId,
+                timestamp: expect.toBeNumber(),
+                url:
+                  'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 _version_: 1,
               },
             ],
@@ -301,7 +310,13 @@ describe('nft', () => {
           const cid2 =
             'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze';
 
-          const nftTwo = await registerNft(secondNft, cid2, makerId, secret);
+          const nftTwo = await registerNft(
+            secondNft,
+            cid2,
+            makerId,
+            `https://test.com/${cid2}`,
+            secret
+          );
           expect(nftTwo).toHaveProperty('transactionId');
 
           const result2 = await connection.api.Nft.getNfts();
@@ -309,6 +324,7 @@ describe('nft', () => {
           expect(result2.nfts).toHaveLength(2);
           expect(result2).toEqual({
             success: true,
+            count: 2,
             nfts: [
               {
                 hash:
@@ -320,6 +336,9 @@ describe('nft', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: nftOne.transactionId,
+                timestamp: expect.toBeNumber(),
+                url:
+                  'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 _version_: 1,
               },
               {
@@ -333,6 +352,9 @@ describe('nft', () => {
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 // @ts-ignore
                 tid: nftTwo.transactionId,
+                timestamp: expect.toBeNumber(),
+                url:
+                  'https://test.com/bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
                 _version_: 1,
               },
             ],
@@ -364,6 +386,7 @@ describe('nft', () => {
             'ONEONE',
             'bc21e6484530fc9d0313cb816b733396',
             'one',
+            'https://test.com/bc21e6484530fc9d0313cb816b733396',
             genesisSecret
           );
           await lib.sleep(100);
@@ -371,6 +394,7 @@ describe('nft', () => {
             'TWOTWO',
             '0f82d86afa0f5dc965c5c15aca58dcfb',
             'one',
+            'https://test.com/0f82d86afa0f5dc965c5c15aca58dcfb',
             genesisSecret
           );
 
@@ -388,6 +412,8 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft0.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/bc21e6484530fc9d0313cb816b733396',
           };
           // @ts-ignore
           expect(res0_by_hash.nft).toEqual(expected0);
@@ -411,6 +437,8 @@ describe('nft', () => {
             previousHash: 'bc21e6484530fc9d0313cb816b733396',
             // @ts-ignore
             tid: nft1.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/0f82d86afa0f5dc965c5c15aca58dcfb',
           };
           // @ts-ignore
           expect(res1_by_hash.nft).toEqual(expected1);
@@ -449,6 +477,7 @@ describe('nft', () => {
             'NFTONE',
             '4beea259c4a1e6fe982e32a9988bee3d',
             'one',
+            'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
             genesisSecret
           ); // md5sum
           await lib.sleep(100);
@@ -456,6 +485,7 @@ describe('nft', () => {
             'NFTTWO',
             'fceda27fd75e3fa76467646b8d3e7656',
             'two',
+            'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
             anotherSecret
           );
           const [nft0, nft1] = await Promise.all([promNft0, promNft1]);
@@ -464,6 +494,7 @@ describe('nft', () => {
             'NFTTHREE',
             'f1cd9cc9830ae4ab330a7d7175032b10',
             'one',
+            'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
             genesisSecret
           ); // md5sum
           await lib.sleep(100);
@@ -471,6 +502,7 @@ describe('nft', () => {
             'NFTFOUR',
             '0b719b7df84b7846237101b23bb9b91e',
             'two',
+            'https://test.com/0b719b7df84b7846237101b23bb9b91e',
             anotherSecret
           );
           const [nft2, nft3] = await Promise.all([promNft2, promNft3]);
@@ -489,6 +521,8 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft0.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
           });
 
           const nftTwo = await connection.api.Nft.getSingleNft({
@@ -505,6 +539,8 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: nft1.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
           });
 
           const nftThree = await connection.api.Nft.getSingleNft({
@@ -521,6 +557,8 @@ describe('nft', () => {
             previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
             // @ts-ignore
             tid: nft2.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
           });
 
           const nftFour = await connection.api.Nft.getSingleNft({
@@ -537,6 +575,8 @@ describe('nft', () => {
             previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
             // @ts-ignore
             tid: nft3.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
           });
 
           // check that the counter has increased maker
@@ -569,14 +609,15 @@ describe('nft', () => {
           expect(reg1).toHaveProperty('transactionId');
 
           /*
-          start 2 nfts with the same makerId in the same block
-          the second nft should return an error
-        */
+            start 2 nfts with the same makerId in the same block
+            the second nft should return an error
+          */
           // first nft
           const prom0 = registerNft(
             'FIRST',
             '2c2624a5059934a947d6e25fe8332ade',
             'one',
+            'https://test.com/2c2624a5059934a947d6e25fe8332ade',
             genesisSecret
           );
           await lib.sleep(300);
@@ -586,6 +627,7 @@ describe('nft', () => {
             'SECOND',
             '2200becb80f0019c4a2ccecec350d0db',
             'one',
+            'https://test.com/2200becb80f0019c4a2ccecec350d0db',
             genesisSecret
           );
           expect(prom1).rejects.toHaveProperty('response.data', {
@@ -601,6 +643,8 @@ describe('nft', () => {
           // @ts-ignore
           expect(nfts.nfts).toHaveLength(1);
           // @ts-ignore
+          expect(nfts.count).toEqual(1);
+          // @ts-ignore
           expect(nfts.nfts[0]).toEqual({
             _version_: 1,
             counter: String(1),
@@ -611,6 +655,8 @@ describe('nft', () => {
             previousHash: null,
             // @ts-ignore
             tid: res.transactionId,
+            timestamp: expect.toBeNumber(),
+            url: 'https://test.com/2c2624a5059934a947d6e25fe8332ade',
           });
 
           const maker = await connection.api.Nft.getSingleNftMaker('one');

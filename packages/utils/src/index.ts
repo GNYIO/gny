@@ -7,3 +7,4 @@ export * from './messageBus.js';
 export * from './sequence.js';
 export * from './slots.js';
 export * from './get-date.js';
+export * from './url.js';

@@ -277,4 +277,42 @@ describe('transaction', () => {
       lib.oneMinute
     );
   });
+
+  describe('/confirmations', () => {
+    it(
+      'throws if transaction not in block',
+      async () => {
+        const prom = transactionApi.getConfirmations(
+          '9788c71668aec5cfe8f24ffdf19e74b5bff676d6674198aa81e5d3f6e3b54f6b'
+        );
+
+        await expect(prom).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'transaction not included in any block',
+        });
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'get confirmation',
+      async () => {
+        const transfer = await send();
+
+        const bigNumberRegex = new RegExp(/^[0-9]+$/);
+
+        const result = await transactionApi.getConfirmations(transfer.id);
+        expect(result).toEqual({
+          success: true,
+          info: {
+            confirmations: expect.stringMatching(bigNumberRegex),
+            currentBlock: expect.stringMatching(bigNumberRegex),
+            id: transfer.id,
+            inBlock: expect.stringMatching(bigNumberRegex),
+          },
+        });
+      },
+      lib.oneMinute
+    );
+  });
 });

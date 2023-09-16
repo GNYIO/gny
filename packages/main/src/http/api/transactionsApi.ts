@@ -10,11 +10,13 @@ import {
   ApiResult,
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
+  TransactionConfirmationWrapper,
 } from '@gny/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { Transaction } from '@gny/database-postgres';
 import { joi } from '@gny/extended-joi';
 import { TransactionsHelper } from '../../core/TransactionsHelper.js';
+import BigNumber from 'bignumber.js';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;
@@ -39,6 +41,7 @@ export default class TransactionsApi implements IHttpApi {
     router.get('/newestFirst', this.newestFirst);
     router.get('/unconfirmed/get', this.getUnconfirmedTransaction);
     router.get('/unconfirmed', this.getUnconfirmedTransactions);
+    router.get('/confirmations', this.getTransactionConfirmations);
 
     router.use((req: Request, res: Response) => {
       res.status(500).json({ success: false, error: 'API endpoint not found' });
@@ -459,6 +462,60 @@ export default class TransactionsApi implements IHttpApi {
     const result: ApiResult<TransactionsWrapper> = {
       success: true,
       transactions: toSend,
+    };
+    return res.json(result);
+  };
+
+  private getTransactionConfirmations = async (
+    req: Request,
+    res: Response,
+    next: Next
+  ) => {
+    const { query } = req;
+    const typeSchema = joi
+      .object()
+      .keys({
+        id: joi
+          .string()
+          .hex()
+          .required(),
+      })
+      .required();
+    const report = joi.validate(query, typeSchema);
+    if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transactions/confirmations',
+        statusCode: '422',
+      });
+
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const transaction = await global.app.sdb.findOne<Transaction>(Transaction, {
+      condition: {
+        id: query.id,
+      },
+    });
+
+    if (transaction === undefined) {
+      return next('transaction not included in any block');
+    }
+
+    const height = StateHelper.getState().lastBlock.height;
+    const diff = new BigNumber(height).minus(transaction.height).toFixed();
+
+    const result: ApiResult<TransactionConfirmationWrapper> = {
+      success: true,
+      info: {
+        id: query.id,
+        confirmations: String(diff),
+        inBlock: String(transaction.height),
+        currentBlock: String(height),
+      },
     };
     return res.json(result);
   };

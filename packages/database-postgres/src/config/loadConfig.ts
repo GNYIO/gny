@@ -46,7 +46,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       InitMigration1605362544330,
       DeleteInfoTable1608475266157,
       AddBurnTable1691572220932,
-      // CreateNft1691091279392,
+      CreateNft1691091279392,
     ],
   };
 

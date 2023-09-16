@@ -91,7 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
-  // nftApi: IHttpApi;
+  nftApi: IHttpApi;
   burnApi: IHttpApi;
 }
 
@@ -793,6 +793,17 @@ export interface TransactionIdWrapper {
   transactionId: string;
 }
 
+export interface ITransactionConfirmation {
+  id: string;
+  confirmations: string;
+  inBlock: string;
+  currentBlock: string;
+}
+
+export interface TransactionConfirmationWrapper {
+  info: ITransactionConfirmation;
+}
+
 export interface TransfersWrapper {
   count: number;
   transfers: ITransfer[];
@@ -940,6 +951,8 @@ export interface INft {
   counter: string;
   nftMakerId: string;
   ownerAddress: string;
+  timestamp: number;
+  url: string;
   _version_?: number;
 }
 
