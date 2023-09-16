@@ -91,7 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
-  // nftApi: IHttpApi;
+  nftApi: IHttpApi;
   burnApi: IHttpApi;
 }
 

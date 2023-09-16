@@ -86,7 +86,7 @@ describe('nft', () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
   }, lib.oneMinute);
 
-  describe.skip('Nft', () => {
+  describe('Nft', () => {
     describe('nft maker', () => {
       it(
         'create one nft maker',
