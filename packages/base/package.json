@@ -1,6 +1,6 @@
 {
   "name": "@gny/base",
-  "version": "1.0.136",
+  "version": "1.0.137",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -23,11 +23,11 @@
     }
   },
   "dependencies": {
-    "@gny/ed": "1.0.136",
-    "@gny/extended-joi": "1.0.136",
-    "@gny/interfaces": "1.0.136",
-    "@gny/type-validation": "1.0.136",
-    "@gny/utils": "1.0.136",
+    "@gny/ed": "1.0.137",
+    "@gny/extended-joi": "1.0.137",
+    "@gny/interfaces": "1.0.137",
+    "@gny/type-validation": "1.0.137",
+    "@gny/utils": "1.0.137",
     "@types/bytebuffer": "^5.0.39",
     "@types/ip": "0.0.32",
     "bignumber.js": "^8.1.1",
