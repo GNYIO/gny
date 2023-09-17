@@ -72,6 +72,7 @@ export class Block implements Versioned {
     nullable: false,
     type: 'varchar',
   })
+  @Index()
   public delegate: string;
 
   @Column({

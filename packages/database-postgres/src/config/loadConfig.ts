@@ -26,6 +26,7 @@ import {
   DeleteInfoTable1608475266157,
   AddBurnTable1691572220932,
   CreateNft1691091279392,
+  AddBlockDelegateIndex1694943715000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -47,6 +48,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       DeleteInfoTable1608475266157,
       AddBurnTable1691572220932,
       CreateNft1691091279392,
+      AddBlockDelegateIndex1694943715000,
     ],
   };
 
