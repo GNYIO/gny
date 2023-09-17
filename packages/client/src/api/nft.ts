@@ -26,11 +26,13 @@ export class Nft {
 
   public async getNftMakers(
     offset?: number,
-    limit?: number
+    limit?: number,
+    address?: string
   ): Promise<ApiResult<NftMakerWrapper>> {
     const params = {
       offset: offset,
       limit: limit,
+      address: address,
     };
     const res = await this.base.get('/api/nft/makers', params);
     const result: ApiResult<NftMakerWrapper, ValidationError> = res.data;

@@ -85,6 +85,10 @@ export default class NftApi implements IHttpApi {
           .integer()
           .min(0)
           .optional(),
+        address: joi
+          .string()
+          .address()
+          .optional(),
       })
       .required();
 
@@ -105,10 +109,13 @@ export default class NftApi implements IHttpApi {
     const limit = query.limit || 100;
     const offset = query.offset || 0;
 
-    const count = await global.app.sdb.count<NftMaker>(NftMaker, {});
+    const condition =
+      query.address !== undefined ? { address: query.address } : {};
+
+    const count = await global.app.sdb.count<NftMaker>(NftMaker, condition);
 
     const nftMakers = await global.app.sdb.findAll<NftMaker>(NftMaker, {
-      condition: {},
+      condition,
       limit,
       offset,
     });
