@@ -630,3 +630,12 @@ export class CreateNft1691091279392 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class AddBlockDelegateIndex1694943715000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE INDEX "block_delegate_idx" ON public.block USING btree ("delegate");
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
