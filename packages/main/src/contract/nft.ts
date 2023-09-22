@@ -8,7 +8,7 @@ import { urlRegex } from '@gny/utils';
 export default {
   async registerNftMaker(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
-    if (!/^[A-Za-z_]{1,16}$/.test(name)) return 'Invalid nft maker name';
+    if (!/^[a-zA-Z_]{1,16}$/.test(name)) return 'Invalid nft maker name';
     global.app.validate('description', desc);
     if (desc.length > 100) return 'Invalid description';
 
@@ -28,19 +28,21 @@ export default {
     return null;
   },
 
-  async createNft(this: Context, name, cid, makerId, url) {
+  async createNft(this: Context, name, hash, makerId, url) {
     if (arguments.length !== 4) return 'Invalid arguments length';
 
     if (!/^[a-zA-Z_]{5,20}$/.test(name)) return 'Invalid nft name';
-    // TODO: better validate cid
-    if (!/^[a-zA-Z0-9]{30,60}$/.test(cid)) return 'Invalid nft CID';
+
+    if (!/^[a-zA-Z0-9]{30,60}$/.test(hash)) return 'Invalid nft hash';
+
+    if (!/^[a-zA-Z_]{1,16}$/.test(makerId)) return 'Invalid nft maker name';
 
     if (typeof url !== 'string') return 'Invalid nft url type';
     if (url.length > 255) return 'Nft url too long';
     if (!urlRegex.test(url)) return 'Invalid nft url';
 
-    const existsCid = await global.app.sdb.exists<Nft>(Nft, { hash: cid });
-    if (existsCid) return 'Nft with cid already exists';
+    const existsHash = await global.app.sdb.exists<Nft>(Nft, { hash: hash });
+    if (existsHash) return 'Nft with hash already exists';
 
     const existsName = await global.app.sdb.exists<Nft>(Nft, { name: name });
     if (existsName) return 'Nft with name already exists';
@@ -75,14 +77,14 @@ export default {
     }
 
     await global.app.sdb.lock(`nft.createNft@${name}`);
-    await global.app.sdb.lock(`nft.createNft@${cid}`);
+    await global.app.sdb.lock(`nft.createNft@${hash}`);
     // should not be possible that the same maker is creating multiple nfts
     // in one block, otherwise the counter would be wrong
     await global.app.sdb.lock(`nft.createNft@${makerId}`);
 
     const nft: INft = {
       name,
-      hash: cid,
+      hash,
       previousHash: previousHash,
       tid: this.trs.id,
       counter: String(increasedCounter),

@@ -252,6 +252,84 @@ describe('nft', () => {
           expect(four.makers).toHaveLength(1);
           // @ts-ignore
           expect(four.makers[0].name).toEqual('four');
+
+          /**
+           * now test /api/nft/makers endpoint and filtering by address
+           */
+
+          const onlyNftMakersFromGenesisAddressFirst = await connection.api.Nft.getNftMakers(
+            0,
+            1,
+            genesisAddress
+          );
+
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressFirst.makers).toHaveLength(1);
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressFirst.count).toEqual(2);
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressFirst.makers[0].tid).toEqual(
+            tid0.transactionId
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressFirst.makers[0].name).toEqual(
+            'one'
+          );
+
+          const onlyNftMakersFromAnotherAddressFirst = await connection.api.Nft.getNftMakers(
+            0,
+            1,
+            anotherAddress
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressFirst.makers).toHaveLength(1);
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressFirst.count).toEqual(2);
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressFirst.makers[0].tid).toEqual(
+            tid1.transactionId
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressFirst.makers[0].name).toEqual(
+            'two'
+          );
+
+          const onlyNftMakersFromGenesisAddressSecond = await connection.api.Nft.getNftMakers(
+            1,
+            1,
+            genesisAddress
+          );
+
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressSecond.makers).toHaveLength(1);
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressSecond.count).toEqual(2);
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressSecond.makers[0].tid).toEqual(
+            tid2.transactionId
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromGenesisAddressSecond.makers[0].name).toEqual(
+            'three'
+          );
+
+          const onlyNftMakersFromAnotherAddressSecond = await connection.api.Nft.getNftMakers(
+            1,
+            1,
+            anotherAddress
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressSecond.makers).toHaveLength(1);
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressSecond.count).toEqual(2);
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressSecond.makers[0].tid).toEqual(
+            tid3.transactionId
+          );
+          // @ts-ignore
+          expect(onlyNftMakersFromAnotherAddressSecond.makers[0].name).toEqual(
+            'four'
+          );
         },
         lib.oneMinute * 2
       );
