@@ -104,18 +104,6 @@ describe('nft', () => {
       const result = await nft.registerNftMaker(param1, param2);
       expect(result).toEqual('Invalid nft maker name');
     });
-
-    // it.skip('throws if maker description (zero length)', async () => {
-    //   const param1 = 'A';
-    //   const param2 = 1;
-
-    //   const result = await nft.registerNftMaker(param1, param2);
-    //   expect(result).toEqual('sdf');
-    // });
-
-    it.skip('lock() gets called', async () => {});
-    it.skip('if name already exists it does not return null', async () => {});
-    it.skip('create() gets called', async () => {});
   });
 
   describe('createNft', () => {
@@ -452,20 +440,14 @@ describe('nft', () => {
           .mockReturnValueOnce(false) // second call (checks if name exists)
           .mockReturnValueOnce(true); // third call (checks if maker exists)
 
-        const findOneMock = jest
-          .fn()
-          .mockReturnValueOnce({
-            // return nft maker
-            name: 'NFT_MAKER',
-            desc: 'some desc',
-            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T', // same address
-            tid: 'beforebeforebeforebeforebeforebefore',
-            nftCounter: String(0),
-          })
-          .mockReturnValueOnce({
-            // return nft
-            hash: 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
-          });
+        const findOneMock = jest.fn().mockReturnValueOnce({
+          // return nft maker
+          name: 'NFT_MAKER',
+          desc: 'some desc',
+          address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T', // same address
+          tid: 'beforebeforebeforebeforebeforebefore',
+          nftCounter: String(0),
+        });
 
         const createMock = jest.fn().mockReturnValueOnce(undefined);
         const updateMock = jest.fn().mockReturnValueOnce(undefined);
@@ -487,6 +469,14 @@ describe('nft', () => {
           url
         );
         expect(result).toEqual(null); // no error
+
+        // make sure findOne was called only once
+        expect(findOneMock).toHaveBeenCalledTimes(1);
+        expect(findOneMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+          condition: {
+            name: 'NFT_MAKER',
+          },
+        });
 
         // create nft was called 1 times
         expect(createMock).toHaveBeenCalledTimes(1);
@@ -516,7 +506,93 @@ describe('nft', () => {
         );
       });
 
-      it.skip('second nft for maker - does set previousHash', async () => {});
+      it('second nft for maker - sets previousHash', async () => {
+        const name = 'NFTnftsecond';
+        const hash = 'a'.repeat(30);
+        const makerId = 'NFT_MAKER';
+        const url = 'https://test.com';
+
+        // trs caller is not owner of maker
+        const context = {
+          sender: {
+            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+          } as IAccount,
+          trs: {
+            id: 'idididididididididididididid',
+            timestamp: 1234000000,
+          } as ITransaction,
+          block: {} as IBlock,
+        } as Context;
+
+        const existsMock = jest
+          .fn()
+          .mockReturnValueOnce(false) // first call (checks if hash exists)
+          .mockReturnValueOnce(false) // second call (checks if name exists)
+          .mockReturnValueOnce(true); // third call (checks if maker exists)
+
+        const findOneMock = jest
+          .fn()
+          .mockReturnValueOnce({
+            // return nft maker
+            name: 'NFT_MAKER',
+            desc: 'some desc',
+            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T', // same address
+            tid: 'beforebeforebeforebeforebeforebefore',
+            nftCounter: String(1), // this nft maker already created one nft
+          })
+          .mockReturnValueOnce({
+            // return previous nft
+            hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          });
+
+        const createMock = jest.fn().mockReturnValueOnce(undefined);
+        const updateMock = jest.fn().mockReturnValueOnce(undefined);
+
+        global.app.sdb = {
+          exists: existsMock,
+          findOne: findOneMock,
+          lock: jest.fn().mockReturnValue(null),
+          create: createMock,
+          update: updateMock,
+        } as any;
+
+        // @ts-ignore
+        const result = await nft.createNft.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
+        expect(result).toEqual(null); // no error
+
+        // create nft was called 1 times
+        expect(createMock).toHaveBeenCalledTimes(1);
+        expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+          counter: '2',
+          hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          name: 'NFTnftsecond',
+          nftMakerId: 'NFT_MAKER',
+          ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+          previousHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          tid: 'idididididididididididididid',
+          timestamp: 1234000000,
+          url: 'https://test.com',
+        });
+
+        // update nftMaker was called 1 times
+        expect(updateMock).toHaveBeenCalledTimes(1);
+        expect(updateMock).toHaveBeenNthCalledWith(
+          1,
+          expect.any(Function),
+          {
+            nftCounter: String(2),
+          },
+          {
+            name: 'NFT_MAKER',
+          }
+        );
+      });
     });
   });
 });
