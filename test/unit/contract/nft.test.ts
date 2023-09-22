@@ -24,18 +24,8 @@ declare global {
   }
 }
 
-describe('nft', () => {
+describe('nft contract', () => {
   beforeEach(done => {
-    const logger: ILogger = {
-      log: x => x,
-      trace: x => x,
-      debug: x => x,
-      info: x => x,
-      warn: x => x,
-      error: x => x,
-      fatal: x => x,
-    };
-
     global.app = {
       validate: jest.fn((type, value) => null),
     };
@@ -58,70 +48,154 @@ describe('nft', () => {
   });
 
   describe('registerNftMaker', () => {
-    it('zero arguments - returns Invalid arguments length', async () => {
-      // @ts-ignore
-      const result = await nft.registerNftMaker();
-      expect(result).toEqual('Invalid arguments length');
+    describe('generic', () => {
+      it('registerNftMaker() - zero arguments - returns Invalid arguments length', async () => {
+        // @ts-ignore
+        const result = await nft.registerNftMaker();
+        expect(result).toEqual('Invalid arguments length');
+      });
+
+      it('registerNftMaker() - one argument - returns Invalid arguments length', async () => {
+        const param1 = 'first';
+        // @ts-ignore
+        const result = await nft.registerNftMaker(param1);
+        expect(result).toEqual('Invalid arguments length');
+      });
+
+      it('registerNftMaker() - three argument - returns Invalid arguments length', async () => {
+        const param1 = 'first';
+        const param2 = 'second';
+        const param3 = 'third';
+        // @ts-ignore
+        const result = await nft.registerNftMaker(param1, param2, param3);
+        expect(result).toEqual('Invalid arguments length');
+      });
     });
 
-    it('one argument - returns Invalid arguments length', async () => {
-      const param1 = 'first';
-      // @ts-ignore
-      const result = await nft.registerNftMaker(param1);
-      expect(result).toEqual('Invalid arguments length');
+    describe('name', () => {
+      it('registerNftMaker() - throws if invaild maker name', async () => {
+        const param1 = 1;
+        const param2 = 'description';
+        // @ts-ignore
+        const result = await nft.registerNftMaker(param1, param2);
+        expect(result).toEqual('Invalid nft maker name');
+      });
+
+      it('registerNftMaker() - throws if maker name too short (zero length)', async () => {
+        const param1 = '';
+        const param2 = 'description';
+        // @ts-ignore
+        const result = await nft.registerNftMaker(param1, param2);
+        expect(result).toEqual('Invalid nft maker name');
+      });
+
+      it('registerNftMaker() - throws if maker name too long (17 length)', async () => {
+        const param1 = 'A'.repeat(17);
+        const param2 = 'description';
+
+        // @ts-ignore
+        const result = await nft.registerNftMaker(param1, param2);
+        expect(result).toEqual('Invalid nft maker name');
+      });
     });
 
-    it('three argument - returns Invalid arguments length', async () => {
-      const param1 = 'first';
-      const param2 = 'second';
-      const param3 = 'third';
-      // @ts-ignore
-      const result = await nft.registerNftMaker(param1, param2, param3);
-      expect(result).toEqual('Invalid arguments length');
+    describe('description', () => {
+      it('registerNftMaker() - throws if description is longer than 100 characters long', async () => {
+        const name = 'ABC';
+        const description = 'a'.repeat(101);
+
+        // @ts-ignore
+        const result = await nft.registerNftMaker(name, description);
+        expect(result).toEqual('Invalid description');
+      });
     });
 
-    it('throws if invaild maker name', async () => {
-      const param1 = 1;
-      const param2 = 'description';
-      // @ts-ignore
-      const result = await nft.registerNftMaker(param1, param2);
-      expect(result).toEqual('Invalid nft maker name');
-    });
+    describe('execution', () => {
+      it('registerNftMaker() - maker with same name exists - returns Nft maker name already exists', async () => {
+        const name = 'MY_NFT_MAKER';
+        const description = 'short description';
 
-    it('throws if maker name too short (zero length)', async () => {
-      const param1 = '';
-      const param2 = 'description';
-      // @ts-ignore
-      const result = await nft.registerNftMaker(param1, param2);
-      expect(result).toEqual('Invalid nft maker name');
-    });
+        const context = {
+          sender: {
+            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          } as IAccount,
+        } as Context;
 
-    it('throws if maker name too long (17 length)', async () => {
-      const param1 = 'A'.repeat(17);
-      const param2 = 'description';
+        const existsMock = jest.fn().mockReturnValueOnce(true);
 
-      // @ts-ignore
-      const result = await nft.registerNftMaker(param1, param2);
-      expect(result).toEqual('Invalid nft maker name');
+        global.app.sdb = {
+          lock: jest.fn(),
+          exists: existsMock,
+        } as any;
+
+        // @ts-ignore
+        const result = await nft.registerNftMaker.call(
+          context,
+          name,
+          description
+        );
+        expect(result).toEqual('Nft maker name already exists');
+      });
+
+      it('registerNftMaker() - if a maker with same does not exist - create new maker', async () => {
+        const name = 'MY_NFT_MAKER';
+        const description = 'short description';
+
+        const context = {
+          sender: {
+            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          } as IAccount,
+          trs: {
+            id: 'ididididididididididididididididididididid',
+          } as ITransaction,
+          block: {} as IBlock,
+        } as Context;
+
+        const existsMock = jest.fn().mockReturnValueOnce(false); // maker with same name does not exist
+        const createMock = jest.fn().mockReturnValueOnce(null); // return null when creating the maker
+
+        global.app.sdb = {
+          lock: jest.fn(),
+          exists: existsMock,
+          create: createMock,
+        } as any;
+
+        // @ts-ignore
+        const result = await nft.registerNftMaker.call(
+          context,
+          name,
+          description
+        );
+        expect(result).toEqual(null); // success
+
+        expect(createMock).toHaveBeenCalledTimes(1);
+        expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+          address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          desc: 'short description',
+          name: 'MY_NFT_MAKER',
+          nftCounter: String(0),
+          tid: 'ididididididididididididididididididididid',
+        });
+      });
     });
   });
 
   describe('createNft', () => {
     describe('generic', () => {
-      it('zero arguments - returns Invalid arguments length', async () => {
+      it('createNft() - zero arguments - returns Invalid arguments length', async () => {
         // @ts-ignore
         const result = await nft.createNft();
         expect(result).toEqual('Invalid arguments length');
       });
 
-      it('one argument - returns Invalid arguments length', async () => {
+      it('createNft() - one argument - returns Invalid arguments length', async () => {
         const param1 = 'firstNft';
         // @ts-ignore
         const result = await nft.createNft(param1);
         expect(result).toEqual('Invalid arguments length');
       });
 
-      it('two arguments - returns Invalid arguments length', async () => {
+      it('createNft() - two arguments - returns Invalid arguments length', async () => {
         const param1 = 'firstNft';
         const param2 = 'secondNft';
         // @ts-ignore
@@ -129,7 +203,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid arguments length');
       });
 
-      it('three arguments - returns Invalid arguments length', async () => {
+      it('createNft() - three arguments - returns Invalid arguments length', async () => {
         const param1 = 'firstNft';
         const param2 = 'secondNft';
         const param3 = 'thirdNft';
@@ -138,7 +212,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid arguments length');
       });
 
-      it('five arguments - returns Invalid arguments length', async () => {
+      it('createNft() - five arguments - returns Invalid arguments length', async () => {
         const par1 = 'firstNft';
         const par2 = 'secondNft';
         const par3 = 'thirdNft';
@@ -152,7 +226,7 @@ describe('nft', () => {
     });
 
     describe('name', () => {
-      it('4 character nft name (too short) - returns Invalid nft name', async () => {
+      it('createNft() - 4 character nft name (too short) - returns Invalid nft name', async () => {
         const name = 'abcd';
         const param2 = '';
         const param3 = '';
@@ -163,7 +237,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft name');
       });
 
-      it('21 character nft name (too long) - returns Invalid nft name', async () => {
+      it('createNft() - 21 character nft name (too long) - returns Invalid nft name', async () => {
         const name = 'a'.repeat(21);
         const param2 = '';
         const param3 = '';
@@ -174,7 +248,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft name');
       });
 
-      it('numbers within nft name - returns Invalid nft name', async () => {
+      it('createNft() - numbers within nft name - returns Invalid nft name', async () => {
         const name = 'ABCDE012345';
         const param2 = '';
         const param3 = '';
@@ -187,13 +261,42 @@ describe('nft', () => {
     });
 
     describe('hash', () => {
-      it.skip('throws if hash is shorter than 30 characters', async () => {});
-      it.skip('throws if hash is longer than 60 characters', async () => {});
-      it.skip('throws if hash has special symbols in it', async () => {});
+      it('createNft() - hash shorter than 30 characters - returns Invalid nft hash', async () => {
+        const name = 'MY_NFT_NAME';
+        const hash = 'a'.repeat(29);
+        const makerId = '';
+        const url = '';
+
+        // @ts-ignore
+        const result = await nft.createNft(name, hash, makerId, url);
+        expect(result).toEqual('Invalid nft hash');
+      });
+
+      it('createNft() - hash longer than 60 characters - returns Invalid nft hash', async () => {
+        const name = 'MY_NFT_NAME';
+        const hash = 'a'.repeat(61);
+        const makerId = '';
+        const url = '';
+
+        // @ts-ignore
+        const result = await nft.createNft(name, hash, makerId, url);
+        expect(result).toEqual('Invalid nft hash');
+      });
+
+      it('createNft() - hash has special symbols in it - returns Invalid nft hash', async () => {
+        const name = 'MY_NFT_NAME';
+        const hash = 'a'.repeat(30) + '!';
+        const makerId = '';
+        const url = '';
+
+        // @ts-ignore
+        const result = await nft.createNft(name, hash, makerId, url);
+        expect(result).toEqual('Invalid nft hash');
+      });
     });
 
     describe('makerId', () => {
-      it('numbers within nft makerId - returns Invalid nft maker id', async () => {
+      it('createNft() - numbers within nft makerId - returns Invalid nft maker id', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'ABC123';
@@ -204,7 +307,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft maker name');
       });
 
-      it('object as nft makerId - returns Invalid nft maker id', async () => {
+      it('createNft() - object as nft makerId - returns Invalid nft maker id', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = {};
@@ -215,7 +318,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft maker name');
       });
 
-      it('array is nft makerId - returns Invalid nft maker id', async () => {
+      it('createNft() - array is nft makerId - returns Invalid nft maker id', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = [];
@@ -228,7 +331,7 @@ describe('nft', () => {
     });
 
     describe('url', () => {
-      it('object as nft url - returns Invalid nft url type', async () => {
+      it('createNft() - object as nft url - returns Invalid nft url type', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -239,7 +342,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft url type');
       });
 
-      it('array as nft url - returns Invalid nft url', async () => {
+      it('createNft() - array as nft url - returns Invalid nft url', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -250,7 +353,7 @@ describe('nft', () => {
         expect(result).toEqual('Invalid nft url type');
       });
 
-      it('url longer than 255 - returns Invalid nft url', async () => {
+      it('createNft() - url longer than 255 - returns Invalid nft url', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -263,7 +366,7 @@ describe('nft', () => {
     });
 
     describe('execution', () => {
-      it('if hash already exists - returns Nft with cid already exists', async () => {
+      it('createNft() - if hash already exists - returns Nft with cid already exists', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -293,7 +396,7 @@ describe('nft', () => {
         });
       });
 
-      it('if name already exists - returns Nft with name already exists', async () => {
+      it('createNft() - if name already exists - returns Nft with name already exists', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -330,7 +433,7 @@ describe('nft', () => {
         });
       });
 
-      it('if makerId does not exists - return Provided NftMaker does not exist', async () => {
+      it('createNft() - if makerId does not exists - return Provided NftMaker does not exist', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -370,7 +473,7 @@ describe('nft', () => {
         });
       });
 
-      it('sender is not owner of maker - returns You do not own the makerId', async () => {
+      it('createNft() - sender is not owner of maker - returns You do not own the makerId', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -416,7 +519,7 @@ describe('nft', () => {
         });
       });
 
-      it('first nft for maker - does not set previousHash', async () => {
+      it('createNft() - first nft for maker - does not set previousHash', async () => {
         const name = 'NFTnft';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -506,7 +609,7 @@ describe('nft', () => {
         );
       });
 
-      it('second nft for maker - sets previousHash', async () => {
+      it('createNft() - second nft for maker - sets previousHash', async () => {
         const name = 'NFTnftsecond';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';

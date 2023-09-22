@@ -32,8 +32,8 @@ export default {
     if (arguments.length !== 4) return 'Invalid arguments length';
 
     if (!/^[a-zA-Z_]{5,20}$/.test(name)) return 'Invalid nft name';
-    // TODO: better validate cid
-    if (!/^[a-zA-Z0-9]{30,60}$/.test(cid)) return 'Invalid nft CID';
+
+    if (!/^[a-zA-Z0-9]{30,60}$/.test(cid)) return 'Invalid nft hash';
 
     if (!/^[a-zA-Z_]{1,16}$/.test(makerId)) return 'Invalid nft maker name';
 
