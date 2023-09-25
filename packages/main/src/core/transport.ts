@@ -23,6 +23,7 @@ import {
   isP2PPeerIdAndMultiaddr,
 } from '@gny/type-validation';
 import { StateHelper } from './StateHelper.js';
+import { TransportHelper } from './TransportHelper.js';
 import Peer from './peer.js';
 import { BlocksHelper } from './BlocksHelper.js';
 import {
@@ -320,6 +321,17 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const timestamp = result.data.block.timestamp as number;
+    if (
+      TransportHelper.timestampWithinTreshold(
+        'block-header',
+        timestamp,
+        receiveBlockSpan
+      ) === false
+    ) {
+      return;
+    }
+
     receiveBlockSpan.setTag(
       'hash',
       getSmallBlockHash(result.data.block as IBlock)
@@ -469,6 +481,17 @@ export default class Transport implements ICoreModule {
         propose.id
       }, height: ${propose.height}`
     );
+
+    if (
+      TransportHelper.timestampWithinTreshold(
+        'propose',
+        propose.timestamp,
+        span
+      ) === false
+    ) {
+      return;
+    }
+
     span.finish();
 
     global.library.bus.message('onReceivePropose', propose, message, span);
