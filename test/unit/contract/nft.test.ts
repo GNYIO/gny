@@ -247,17 +247,6 @@ describe('nft contract', () => {
         const result = await nft.createNft(name, param2, param3, param4);
         expect(result).toEqual('Invalid nft name');
       });
-
-      it('createNft() - numbers within nft name - returns Invalid nft name', async () => {
-        const name = 'ABCDE012345';
-        const param2 = '';
-        const param3 = '';
-        const param4 = '';
-
-        // @ts-ignore
-        const result = await nft.createNft(name, param2, param3, param4);
-        expect(result).toEqual('Invalid nft name');
-      });
     });
 
     describe('hash', () => {

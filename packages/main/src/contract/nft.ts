@@ -31,7 +31,7 @@ export default {
   async createNft(this: Context, name, hash, makerId, url) {
     if (arguments.length !== 4) return 'Invalid arguments length';
 
-    if (!/^[a-zA-Z_]{5,20}$/.test(name)) return 'Invalid nft name';
+    if (!/^[0-9a-zA-Z_]{5,20}$/.test(name)) return 'Invalid nft name';
 
     if (!/^[a-zA-Z0-9]{30,60}$/.test(hash)) return 'Invalid nft hash';
 
