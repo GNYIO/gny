@@ -15,6 +15,8 @@ import { joi } from '@gny/extended-joi';
 import { NftMaker } from '@gny/database-postgres';
 import { Nft } from '@gny/database-postgres';
 
+import { nftMakerRegex, nftNameRegex, nftHashRegex } from '@gny/utils';
+
 export default class NftApi implements IHttpApi {
   private library: IScope;
 
@@ -134,7 +136,7 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(new RegExp(/^[A-Za-z]{1,16}$/))
+          .regex(nftMakerRegex)
           .required(),
       })
       .required();
@@ -178,7 +180,7 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(new RegExp(/^[A-Za-z]{1,16}$/))
+          .regex(nftMakerRegex)
           .optional(),
         limit: joi
           .number()
@@ -233,8 +235,8 @@ export default class NftApi implements IHttpApi {
     const hashOrName = joi
       .object()
       .keys({
-        hash: joi.string().regex(new RegExp(/^[a-zA-Z0-9]{30,60}$/)),
-        name: joi.string().regex(new RegExp(/^[a-zA-Z]{5,20}$/)),
+        hash: joi.string().regex(nftHashRegex),
+        name: joi.string().regex(nftNameRegex),
       })
       .xor('hash', 'name')
       .required();
