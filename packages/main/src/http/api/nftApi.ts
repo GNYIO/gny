@@ -182,6 +182,10 @@ export default class NftApi implements IHttpApi {
           .string()
           .regex(nftMakerRegex)
           .optional(),
+        ownerAddress: joi
+          .string()
+          .address()
+          .optional(),
         limit: joi
           .number()
           .integer()
@@ -194,6 +198,7 @@ export default class NftApi implements IHttpApi {
           .min(0)
           .optional(),
       })
+      .oxor('maker', 'ownerAddress') // either maker or ownerAddress
       .required();
 
     const report = joi.validate(query, schema);
@@ -212,8 +217,17 @@ export default class NftApi implements IHttpApi {
 
     const limit = query.limit || 100;
     const offset = query.offset || 0;
-    const condition =
-      typeof query.maker === 'string' ? { nftMakerId: query.maker } : {};
+
+    // condition can never have both "maker" and "ownerAddress" because
+    // with .oxor() only can be present
+    const condition = {};
+
+    if (typeof query.maker === 'string') {
+      condition.nftMakerId = query.maker;
+    }
+    if (typeof query.ownerAddress === 'string') {
+      condition.ownerAddress = query.ownerAddress;
+    }
 
     const count = await global.app.sdb.count<Nft>(Nft, condition);
     const nfts = await global.app.sdb.findAll<Nft>(Nft, {
