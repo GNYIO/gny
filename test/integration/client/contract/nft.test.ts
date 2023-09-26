@@ -269,6 +269,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromGenesisAddressFirst.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromGenesisAddressFirst.makers[0].tid).toEqual(
+            // @ts-ignore
             tid0.transactionId
           );
           // @ts-ignore
@@ -287,6 +288,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromAnotherAddressFirst.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromAnotherAddressFirst.makers[0].tid).toEqual(
+            // @ts-ignore
             tid1.transactionId
           );
           // @ts-ignore
@@ -306,6 +308,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromGenesisAddressSecond.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromGenesisAddressSecond.makers[0].tid).toEqual(
+            // @ts-ignore
             tid2.transactionId
           );
           // @ts-ignore
@@ -324,6 +327,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromAnotherAddressSecond.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromAnotherAddressSecond.makers[0].tid).toEqual(
+            // @ts-ignore
             tid3.transactionId
           );
           // @ts-ignore
