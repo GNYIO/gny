@@ -1016,7 +1016,16 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveBlock',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       span.log({
@@ -1184,7 +1193,16 @@ export default class Blocks implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceivePropose',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       global.library.logger.info(`[p2p] onReceivePropose started sequence`);
@@ -1422,7 +1440,16 @@ export default class Blocks implements ICoreModule {
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveTransaction',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       span.log({
         value: 'execute in sequence',
       });
@@ -1509,7 +1536,16 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveVotes',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       // check if incoming votes aren't stale

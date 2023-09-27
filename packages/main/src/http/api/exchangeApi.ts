@@ -164,7 +164,16 @@ export default class ExchangeApi implements IHttpApi {
 
     let result = null;
     try {
+      const waitOnMutexSpan = global.library.tracer.startSpan(
+        'mutex wait on unsigned trs',
+        {
+          childOf: span.context(),
+        }
+      );
+
       await global.app.mutex.runExclusive(async () => {
+        waitOnMutexSpan.finish();
+
         span.log({
           value: 'start sequence',
         });
