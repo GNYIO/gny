@@ -1,6 +1,6 @@
 {
   "name": "@gny/network",
-  "version": "1.0.138",
+  "version": "1.0.141",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -22,6 +22,6 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.138"
+    "@gny/interfaces": "1.0.141"
   }
 }

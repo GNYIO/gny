@@ -3,12 +3,17 @@ import { INftMaker, INft } from '@gny/interfaces';
 
 import { NftMaker } from '@gny/database-postgres';
 import { Nft } from '@gny/database-postgres';
-import { urlRegex } from '@gny/utils';
+import {
+  urlRegex,
+  nftMakerRegex,
+  nftNameRegex,
+  nftHashRegex,
+} from '@gny/utils';
 
 export default {
   async registerNftMaker(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
-    if (!/^[a-zA-Z_]{1,16}$/.test(name)) return 'Invalid nft maker name';
+    if (!nftMakerRegex.test(name)) return 'Invalid nft maker name';
     global.app.validate('description', desc);
     if (desc.length > 100) return 'Invalid description';
 
@@ -31,11 +36,11 @@ export default {
   async createNft(this: Context, name, hash, makerId, url) {
     if (arguments.length !== 4) return 'Invalid arguments length';
 
-    if (!/^[a-zA-Z_]{5,20}$/.test(name)) return 'Invalid nft name';
+    if (!nftNameRegex.test(name)) return 'Invalid nft name';
 
-    if (!/^[a-zA-Z0-9]{30,60}$/.test(hash)) return 'Invalid nft hash';
+    if (!nftHashRegex.test(hash)) return 'Invalid nft hash';
 
-    if (!/^[a-zA-Z_]{1,16}$/.test(makerId)) return 'Invalid nft maker name';
+    if (!nftMakerRegex.test(makerId)) return 'Invalid nft maker name';
 
     if (typeof url !== 'string') return 'Invalid nft url type';
     if (url.length > 255) return 'Nft url too long';

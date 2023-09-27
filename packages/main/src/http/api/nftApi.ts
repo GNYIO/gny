@@ -15,6 +15,8 @@ import { joi } from '@gny/extended-joi';
 import { NftMaker } from '@gny/database-postgres';
 import { Nft } from '@gny/database-postgres';
 
+import { nftMakerRegex, nftNameRegex, nftHashRegex } from '@gny/utils';
+
 export default class NftApi implements IHttpApi {
   private library: IScope;
 
@@ -134,7 +136,7 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(new RegExp(/^[A-Za-z]{1,16}$/))
+          .regex(nftMakerRegex)
           .required(),
       })
       .required();
@@ -178,7 +180,11 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(new RegExp(/^[A-Za-z]{1,16}$/))
+          .regex(nftMakerRegex)
+          .optional(),
+        ownerAddress: joi
+          .string()
+          .address()
           .optional(),
         limit: joi
           .number()
@@ -192,6 +198,7 @@ export default class NftApi implements IHttpApi {
           .min(0)
           .optional(),
       })
+      .oxor('maker', 'ownerAddress') // either maker or ownerAddress
       .required();
 
     const report = joi.validate(query, schema);
@@ -210,8 +217,17 @@ export default class NftApi implements IHttpApi {
 
     const limit = query.limit || 100;
     const offset = query.offset || 0;
-    const condition =
-      typeof query.maker === 'string' ? { nftMakerId: query.maker } : {};
+
+    // condition can never have both "maker" and "ownerAddress" because
+    // with .oxor() only can be present
+    const condition = {};
+
+    if (typeof query.maker === 'string') {
+      condition.nftMakerId = query.maker;
+    }
+    if (typeof query.ownerAddress === 'string') {
+      condition.ownerAddress = query.ownerAddress;
+    }
 
     const count = await global.app.sdb.count<Nft>(Nft, condition);
     const nfts = await global.app.sdb.findAll<Nft>(Nft, {
@@ -233,8 +249,8 @@ export default class NftApi implements IHttpApi {
     const hashOrName = joi
       .object()
       .keys({
-        hash: joi.string().regex(new RegExp(/^[a-zA-Z0-9]{30,60}$/)),
-        name: joi.string().regex(new RegExp(/^[a-zA-Z]{5,20}$/)),
+        hash: joi.string().regex(nftHashRegex),
+        name: joi.string().regex(nftNameRegex),
       })
       .xor('hash', 'name')
       .required();

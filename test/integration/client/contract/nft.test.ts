@@ -269,6 +269,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromGenesisAddressFirst.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromGenesisAddressFirst.makers[0].tid).toEqual(
+            // @ts-ignore
             tid0.transactionId
           );
           // @ts-ignore
@@ -287,6 +288,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromAnotherAddressFirst.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromAnotherAddressFirst.makers[0].tid).toEqual(
+            // @ts-ignore
             tid1.transactionId
           );
           // @ts-ignore
@@ -306,6 +308,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromGenesisAddressSecond.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromGenesisAddressSecond.makers[0].tid).toEqual(
+            // @ts-ignore
             tid2.transactionId
           );
           // @ts-ignore
@@ -324,6 +327,7 @@ describe('nft', () => {
           expect(onlyNftMakersFromAnotherAddressSecond.count).toEqual(2);
           // @ts-ignore
           expect(onlyNftMakersFromAnotherAddressSecond.makers[0].tid).toEqual(
+            // @ts-ignore
             tid3.transactionId
           );
           // @ts-ignore
@@ -671,6 +675,76 @@ describe('nft', () => {
           expect(makers.makers[1].name).toEqual('two');
           // @ts-ignore
           expect(makers.makers[1].nftCounter).toEqual(String(2));
+
+          const ntfsFromGenesis = await connection.api.Nft.getNfts({
+            maker: 'one',
+          });
+          // @ts-ignore
+          expect(ntfsFromGenesis.count).toEqual(2);
+          // @ts-ignore
+          expect(ntfsFromGenesis.nfts).toEqual([
+            {
+              _version_: 1,
+              counter: '1',
+              hash: '4beea259c4a1e6fe982e32a9988bee3d',
+              name: 'NFTONE',
+              nftMakerId: 'one',
+              ownerAddress: genesisAddress,
+              previousHash: null,
+              // @ts-ignore
+              tid: nft0.transactionId,
+              timestamp: expect.any(Number),
+              url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
+            },
+            {
+              _version_: 1,
+              counter: '2',
+              hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
+              name: 'NFTTHREE',
+              nftMakerId: 'one',
+              ownerAddress: genesisAddress,
+              previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
+              // @ts-ignore
+              tid: nft2.transactionId,
+              timestamp: expect.any(Number),
+              url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
+            },
+          ]);
+
+          const nftsFromAnother = await connection.api.Nft.getNfts({
+            ownerAddress: anotherAddress,
+          });
+          // @ts-ignore
+          expect(nftsFromAnother.count).toEqual(2);
+          // @ts-ignore
+          expect(nftsFromAnother.nfts).toEqual([
+            {
+              _version_: 1,
+              counter: '1',
+              hash: 'fceda27fd75e3fa76467646b8d3e7656',
+              name: 'NFTTWO',
+              nftMakerId: 'two',
+              ownerAddress: anotherAddress,
+              previousHash: null,
+              // @ts-ignore
+              tid: nft1.transactionId,
+              timestamp: expect.any(Number),
+              url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
+            },
+            {
+              _version_: 1,
+              counter: '2',
+              hash: '0b719b7df84b7846237101b23bb9b91e',
+              name: 'NFTFOUR',
+              nftMakerId: 'two',
+              ownerAddress: anotherAddress,
+              previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
+              // @ts-ignore
+              tid: nft3.transactionId,
+              timestamp: expect.any(Number),
+              url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
+            },
+          ]);
         },
         lib.oneMinute
       );
@@ -717,7 +791,10 @@ describe('nft', () => {
 
           await lib.onNewBlock(GNY_PORT);
 
-          const nfts = await connection.api.Nft.getNfts(0, 100);
+          const nfts = await connection.api.Nft.getNfts({
+            offset: 0,
+            limit: 100,
+          });
           // @ts-ignore
           expect(nfts.nfts).toHaveLength(1);
           // @ts-ignore

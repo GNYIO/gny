@@ -17,6 +17,18 @@ interface OnlyName {
   name: string;
 }
 
+interface OnlyOwnerAddress {
+  ownerAddress?: string;
+  limit?: number;
+  offset?: number;
+}
+
+interface OnlyMaker {
+  maker?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export class Nft {
   private base: Base;
 
@@ -46,16 +58,9 @@ export class Nft {
   }
 
   public async getNfts(
-    offset?: number,
-    limit?: number,
-    maker?: string
+    query?: OnlyOwnerAddress | OnlyMaker
   ): Promise<ApiResult<NftWrapper>> {
-    const params = {
-      offset,
-      limit,
-      maker,
-    };
-    const res = await this.base.get('/api/nft', params);
+    const res = await this.base.get('/api/nft', query);
     const result: ApiResult<NftWrapper, ValidationError> = res.data;
     return result;
   }
