@@ -287,9 +287,10 @@ export default class Blocks implements ICoreModule {
     beginBlockSpan.setTag('hash', getSmallBlockHash(block));
     beginBlockSpan.setTag('id', block.id);
     beginBlockSpan.setTag('height', block.height);
-    beginBlockSpan.finish();
 
     await global.app.sdb.beginBlock(block);
+
+    beginBlockSpan.finish();
 
     try {
       span.log({
@@ -311,7 +312,15 @@ export default class Blocks implements ICoreModule {
 
       await Blocks.saveBlockTransactions(block, span);
       await Blocks.applyRound(block, span);
+
+      // what happens if commitBlock throws an exception?
+      const commitBlockSpan = global.library.tracer.startSpan('commit block', {
+        childOf: span.context(),
+      });
+
       await global.app.sdb.commitBlock();
+
+      commitBlockSpan.finish();
 
       span.finish();
     } catch (e) {
@@ -1386,9 +1395,12 @@ export default class Blocks implements ICoreModule {
                   votes,
                 });
 
+                // todo add timing on how long it takes to find
                 await bundle.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+
+                // span.log()
               }
             } catch (err) {
               global.library.logger.error(err);
