@@ -23,6 +23,7 @@ import {
   isP2PPeerIdAndMultiaddr,
 } from '@gny/type-validation';
 import { StateHelper } from './StateHelper.js';
+import { TransportHelper } from './TransportHelper.js';
 import Peer from './peer.js';
 import { BlocksHelper } from './BlocksHelper.js';
 import {
@@ -186,6 +187,7 @@ export default class Transport implements ICoreModule {
 
       return;
     }
+
     await Peer.p2p.broadcastProposeAsync(encodedBlockPropose);
 
     span.finish();
@@ -263,48 +265,67 @@ export default class Transport implements ICoreModule {
     };
 
     let peerId: PeerId;
+    const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
+      'find peer-info in DHT',
+      {
+        childOf: span.context(),
+      }
+    );
+    try {
+      const bundle = Peer.p2p;
+      peerId = await bundle.findPeerInfoInDHT(message);
+
+      findPeerInfoInDHTSpan.finish();
+    } catch (err) {
+      findPeerInfoInDHTSpan.finish();
+      span.finish();
+      return;
+    }
+
+    const requestBlockAndVotesSpan = global.library.tracer.startSpan(
+      'request block and votes',
+      {
+        childOf: span.context(),
+      }
+    );
     let result: TracerWrapper<BlockAndVotes>;
     try {
       const bundle = Peer.p2p;
-
-      const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
-        'find peer-info in DHT',
-        {
-          childOf: span.context(),
-        }
+      result = await bundle.requestBlockAndVotes(
+        peerId,
+        params,
+        requestBlockAndVotesSpan
       );
-      peerId = await bundle.findPeerInfoInDHT(message);
-      findPeerInfoInDHTSpan.finish();
-
-      result = await bundle.requestBlockAndVotes(peerId, params, span);
+      requestBlockAndVotesSpan.finish();
     } catch (err) {
       global.library.logger.error('[p2p] Failed to get latest block data');
       global.library.logger.error(err);
 
-      span.setTag('error', true);
-      span.log({
+      requestBlockAndVotesSpan.setTag('error', true);
+      requestBlockAndVotesSpan.log({
         value: `[p2p] Failed to get latest block data, err: ${err.message}`,
       });
+      requestBlockAndVotesSpan.finish();
 
       span.finish();
       return;
     }
     span.finish();
 
-    const requestBlockVotesSpanContext = createSpanContextFromSerializedParentContext(
+    const receiveBlockVotesSpanContext = createSpanContextFromSerializedParentContext(
       global.library.tracer,
       result.spanId
     );
     const receiveBlockSpan = global.library.tracer.startSpan(
       'going to receiveBlock',
       {
-        childOf: requestBlockVotesSpanContext,
+        childOf: receiveBlockVotesSpanContext,
       }
     );
 
     if (!isBlockAndVotes(result.data)) {
       global.library.logger.error(
-        `[p2p] validation failed blockAndVotes: ${JSON.stringify(
+        `[p2p] validation failed for received blockAndVotes: ${JSON.stringify(
           result,
           null,
           2
@@ -313,10 +334,21 @@ export default class Transport implements ICoreModule {
 
       receiveBlockSpan.setTag('error', true);
       receiveBlockSpan.log({
-        value: `Failed to failed blockAndVotes`,
+        value: `validation failed for received blockAndVotes`,
       });
       receiveBlockSpan.finish();
 
+      return;
+    }
+
+    const timestamp = result.data.block.timestamp as number;
+    if (
+      TransportHelper.timestampWithinTreshold(
+        'block-header',
+        timestamp,
+        receiveBlockSpan
+      ) === false
+    ) {
       return;
     }
 
@@ -455,7 +487,6 @@ export default class Transport implements ICoreModule {
       span.finish();
       return;
     }
-
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
@@ -469,6 +500,17 @@ export default class Transport implements ICoreModule {
         propose.id
       }, height: ${propose.height}`
     );
+
+    if (
+      TransportHelper.timestampWithinTreshold(
+        'propose',
+        propose.timestamp,
+        span
+      ) === false
+    ) {
+      return;
+    }
+
     span.finish();
 
     global.library.bus.message('onReceivePropose', propose, message, span);

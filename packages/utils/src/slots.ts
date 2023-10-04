@@ -43,6 +43,18 @@ class Slots {
   roundTime(date: Date) {
     return Math.floor(date.getTime() / 1000) * 1000;
   }
+
+  /**
+   * Beware, this function is using Date.now()
+   *
+   * @param timestamp
+   * @returns
+   */
+  secondsAfterTimestamp(timestamp: number) {
+    const now = this.getEpochTime();
+
+    return now - timestamp;
+  }
 }
 
 export const slots = new Slots();

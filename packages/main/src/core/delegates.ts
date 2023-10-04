@@ -134,7 +134,8 @@ export default class Delegates implements ICoreModule {
     const delList = await Delegates.generateDelegateList(
       new BigNumber(preState.lastBlock.height).plus(1).toFixed()
     );
-    const currentSlot = slots.getSlotNumber(slots.getEpochTime(now)); // or simply slots.getSlotNumber()
+    const epochTimeNow = slots.getEpochTime(now);
+    const currentSlot = slots.getSlotNumber(epochTimeNow); // or simply slots.getSlotNumber()
     const currentBlockData = Delegates.getBlockSlotData(
       currentSlot,
       delList,
@@ -147,6 +148,17 @@ export default class Delegates implements ICoreModule {
 
     await global.app.mutex.runExclusive(async () => {
       let state = StateHelper.getState();
+
+      // make sure that this mutex is run not later than 3 second after
+      // it should have run
+      // otherwise when this gets queued too late it can mess things up
+      const diff = slots.secondsAfterTimestamp(epochTimeNow);
+      if (diff > 3) {
+        global.library.logger.info(
+          `[p2p] loop() delegates runExclusive() - it took to long to run this mutex. Exiting... It is "${diff}" seconds behind`
+        );
+        return;
+      }
 
       let error = false;
 

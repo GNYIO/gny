@@ -287,9 +287,10 @@ export default class Blocks implements ICoreModule {
     beginBlockSpan.setTag('hash', getSmallBlockHash(block));
     beginBlockSpan.setTag('id', block.id);
     beginBlockSpan.setTag('height', block.height);
-    beginBlockSpan.finish();
 
     await global.app.sdb.beginBlock(block);
+
+    beginBlockSpan.finish();
 
     try {
       span.log({
@@ -311,7 +312,15 @@ export default class Blocks implements ICoreModule {
 
       await Blocks.saveBlockTransactions(block, span);
       await Blocks.applyRound(block, span);
+
+      // what happens if commitBlock throws an exception?
+      const commitBlockSpan = global.library.tracer.startSpan('commit block', {
+        childOf: span.context(),
+      });
+
       await global.app.sdb.commitBlock();
+
+      commitBlockSpan.finish();
 
       span.finish();
     } catch (e) {
@@ -1016,7 +1025,16 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveBlock',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       span.log({
@@ -1184,7 +1202,16 @@ export default class Blocks implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceivePropose',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       global.library.logger.info(`[p2p] onReceivePropose started sequence`);
@@ -1368,9 +1395,12 @@ export default class Blocks implements ICoreModule {
                   votes,
                 });
 
+                // todo add timing on how long it takes to find
                 await bundle.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
+
+                // span.log()
               }
             } catch (err) {
               global.library.logger.error(err);
@@ -1422,7 +1452,16 @@ export default class Blocks implements ICoreModule {
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveTransaction',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       span.log({
         value: 'execute in sequence',
       });
@@ -1509,7 +1548,16 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on onReceiveVotes',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       let state = StateHelper.getState();
 
       // check if incoming votes aren't stale

@@ -72,12 +72,21 @@ export default class Loader implements ICoreModule {
       return;
     }
 
+    const span = global.library.tracer.startSpan('sync blocks from peer');
+    span.setTag('syncing', true);
+
+    const waitOnMutexSpan = global.library.tracer.startSpan(
+      'mutex wait on syncBlocks',
+      {
+        childOf: span.context(),
+      }
+    );
+
     await global.app.mutex.runExclusive(async () => {
+      waitOnMutexSpan.finish();
+
       global.library.logger.debug('syncBlocksFromPeer enter sequence');
       StateHelper.SetIsSyncing(true);
-
-      const span = global.library.tracer.startSpan('sync blocks from peer');
-      span.setTag('syncing', true);
 
       const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();

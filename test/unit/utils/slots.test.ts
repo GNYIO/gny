@@ -163,4 +163,40 @@ describe('slots', () => {
       clock.uninstall();
     });
   });
+
+  describe('secondsAfterTimestamp', () => {
+    it('secondsAfterTimestamp - result should be 0 when called within same second', () => {
+      // set current date
+      const date = new Date('2023-9-24Z16:50:40+02:00');
+      const clock = lolex.install({ now: date });
+
+      const blockTimestamp = slots.getEpochTime();
+      expect(blockTimestamp).toEqual(152995840);
+
+      const result = slots.secondsAfterTimestamp(blockTimestamp);
+
+      expect(result).toEqual(expect.any(Number));
+      expect(result).toEqual(0);
+
+      clock.uninstall();
+    });
+
+    it('secondsAfterTimestamp - block timestamp is 5 seconds after "now"', () => {
+      const currentDate = new Date('2023-9-24Z16:50:45+02:00');
+      const clock = lolex.install({ now: currentDate });
+
+      // block 5 seconds before "now" so we can simulate that 5 seconds
+      // passed since the block has been created
+      const blockDate = new Date('2023-9-24Z16:50:40+02:00');
+      const blockTimestamp = slots.getEpochTime(Number(blockDate));
+      expect(blockTimestamp).toEqual(152995840);
+
+      const result = slots.secondsAfterTimestamp(blockTimestamp);
+
+      expect(result).toEqual(expect.any(Number));
+      expect(result).toEqual(5);
+
+      clock.uninstall();
+    });
+  });
 });
