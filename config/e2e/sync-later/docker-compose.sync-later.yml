@@ -7,16 +7,6 @@ networks:
         - subnet: 172.20.0.0/24
 
 services:
-  loki.local:
-    container_name: loki.local
-    image: grafana/loki:2.0.0
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      my_net:
-        ipv4_address: 172.20.0.21
-
   jaeger.local:
     image: jaegertracing/all-in-one:1.21
     container_name: jaeger.local
@@ -54,7 +44,6 @@ services:
     environment:
       - GNY_LOG_LEVEL=log
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -68,7 +57,6 @@ services:
       - '4096:4096'
       - '4097:4097'
     depends_on:
-      - loki.local
       - jaeger.local
       - db1
     networks:
@@ -97,7 +85,6 @@ services:
     environment:
       - GNY_LOG_LEVEL=log
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -112,7 +99,6 @@ services:
       - '4098:4096'
       - '4099:4097'
     depends_on:
-      - loki.local
       - jaeger.local
       - db2
     networks:

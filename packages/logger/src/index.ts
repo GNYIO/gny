@@ -4,8 +4,6 @@ import winston from 'winston';
 const { createLogger: winstonCreateLogger, format, transports } = winston;
 const { combine, timestamp, errors, colorize, align, printf } = format;
 
-import LokiTransport from 'winston-loki';
-
 export enum LogLevel {
   log = 0,
   trace = 1,
@@ -16,7 +14,7 @@ export enum LogLevel {
   fatal = 6,
 }
 
-function orchestrateWinstonLogger(lokiHost: string, ip: string) {
+function orchestrateWinstonLogger(ip: string) {
   const consoleFormat = combine(
     colorize(),
     timestamp(),
@@ -38,14 +36,6 @@ function orchestrateWinstonLogger(lokiHost: string, ip: string) {
       level: 'silly',
     })
   );
-  logger.add(
-    new LokiTransport({
-      host: lokiHost,
-      labels: {
-        host: ip,
-      },
-    })
-  );
 
   return logger;
 }
@@ -60,12 +50,11 @@ function newMetaObject(ip: string, version: string, network: string) {
 
 export function createLogger(
   consoleLogLevel: LogLevel,
-  lokiHost: string,
   ip: string,
   version: string,
   network: string
 ): ILogger {
-  const logger = orchestrateWinstonLogger(lokiHost, ip);
+  const logger = orchestrateWinstonLogger(ip);
 
   const wrapper: ILogger = {
     log(...args: string[]) {

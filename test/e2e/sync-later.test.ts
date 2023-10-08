@@ -46,7 +46,6 @@ describe('sync-later e2e test', () => {
       // start individually all containers
       consoleLog('starting "jaeger", "db1", "db2", "forger"');
       await lib.startP2PContainers(DOCKER_COMPOSE_P2P, [
-        'loki.local',
         'jaeger.local',
         'db1',
         'db2',

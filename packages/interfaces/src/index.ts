@@ -185,7 +185,6 @@ export interface IConfig {
   dbPort: number;
   nodeAction: string;
   jaegerHost: string;
-  lokiHost: string;
   p2pConfig: IPeer2PeerHandlers;
 }
 

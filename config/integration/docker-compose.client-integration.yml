@@ -8,15 +8,6 @@ networks:
 
 
 services:
-  loki.local:
-    image: grafana/loki:2.0.0
-    ports:
-      - $LOKI_PORT:3100
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      my_net:
-        ipv4_address: $NETWORK_PREFIX.0.22
-
   jaeger.local:
     image: jaegertracing/all-in-one:1.21
     environment:
@@ -52,7 +43,6 @@ services:
       - NODE_ENV=production
       - EXCHANGE_API=$EXCHANGE_FEATURE
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_DISABLE_JAEGER=false
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_LOG_LEVEL=info
