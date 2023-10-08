@@ -215,19 +215,8 @@ function main() {
       ? 'https://mainnet.jaeger.gny.io/api/traces'
       : undefined);
 
-  // centralized logging endpoint
-  appConfig.lokiHost =
-    process.env['GNY_LOKI_HOST'] ||
-    (appConfig.netVersion === 'testnet'
-      ? 'https://testnet.loki.gny.io'
-      : undefined) ||
-    (appConfig.netVersion === 'mainnet'
-      ? 'https://mainnet.loki.gny.io'
-      : undefined);
-
   const logger = createLogger(
     LogLevel[appConfig.logLevel],
-    appConfig.lokiHost,
     appConfig.publicIp,
     appConfig.version,
     appConfig.netVersion

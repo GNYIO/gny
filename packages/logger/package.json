@@ -26,7 +26,6 @@
     "@gny/interfaces": "1.0.142",
     "@gny/utils": "1.0.142",
     "tracer": "^1.1.5",
-    "winston": "^3.3.3",
-    "winston-loki": "^6.0.2"
+    "winston": "^3.3.3"
   }
 }

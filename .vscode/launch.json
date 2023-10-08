@@ -29,7 +29,6 @@
         "NODE_ENV": "development",
         "BLUEBIRD_DEBUG": "true",
 
-        "GNY_LOKI_HOST": "http://127.0.0.1:3100",
         "GNY_DISABLE_JAEGER": "false",
         "GNY_JAEGER_HOST": "http://127.0.0.1:14268/api/traces",
         "GNY_LOG_LEVEL":"info",

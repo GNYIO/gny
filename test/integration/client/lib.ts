@@ -211,7 +211,6 @@ export function createEnvironmentVariables(
   const env = {
     COMPOSE_PROJECT_NAME: appName,
     NETWORK_PREFIX: networkPrefix,
-    LOKI_PORT: Number(gnyPort) + 100,
     JAEGER_PORT_NR1: Number(gnyPort) + 10000,
     JAEGER_PORT_NR2: Number(gnyPort) + 12000,
     GNY_PORT_NR1: Number(gnyPort),

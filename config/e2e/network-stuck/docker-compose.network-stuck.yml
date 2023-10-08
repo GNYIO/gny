@@ -7,16 +7,6 @@ networks:
         - subnet: 172.20.0.0/24
 
 services:
-  loki.local:
-    container_name: loki.local
-    image: grafana/loki:2.0.0
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      my_net:
-        ipv4_address: 172.20.0.21
-
   jaeger.local:
     image: jaegertracing/all-in-one:1.21
     container_name: jaeger.local
@@ -54,7 +44,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.3
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_DB_PASSWORD=docker
@@ -70,7 +59,6 @@ services:
       my_net:
         ipv4_address: 172.20.0.3
     depends_on:
-      - loki.local
       - jaeger.local
       - db1
 
@@ -95,7 +83,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.5
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -112,7 +99,6 @@ services:
       my_net:
         ipv4_address: 172.20.0.5
     depends_on:
-      - loki.local
       - jaeger.local
       - db2
 
@@ -137,7 +123,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.7
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -154,7 +139,6 @@ services:
       my_net:
         ipv4_address: 172.20.0.7
     depends_on:
-      - loki.local
       - jaeger.local
       - db3
 
@@ -179,7 +163,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_NETWORK=localnet
-      - GNY_LOKI_HOST=http://loki.local:3100
       - GNY_PUBLIC_IP=172.20.0.9
       - GNY_P2P_PEERS=/ip4/172.20.0.3/tcp/4097/p2p/QmNurLAfquUV58wu5JqfVk6DnRACpkzaurNzm9WK4ARfYd
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
@@ -196,6 +179,5 @@ services:
       my_net:
         ipv4_address: 172.20.0.9
     depends_on:
-      - loki.local
       - jaeger.local
       - db4

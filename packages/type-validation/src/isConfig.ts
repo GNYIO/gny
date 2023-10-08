@@ -93,10 +93,6 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .string()
         .uri()
         .required(),
-      lokiHost: joi
-        .string()
-        .uri()
-        .required(),
       p2pConfig: joi
         .object()
         .keys({
