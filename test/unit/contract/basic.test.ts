@@ -701,6 +701,16 @@ describe('basic', () => {
       expect(voted).toEqual('Invalid arguments length');
     });
 
+    it('should return Invalid delegates', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const delegates = {}; // wront type
+      const voted = await basic.vote.call(context, delegates);
+      expect(voted).toEqual('Invalid delegates');
+    });
+
     it('should return Account is not locked', async () => {
       context = {
         sender: {
@@ -877,6 +887,16 @@ describe('basic', () => {
         'four'
       );
       expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should return Invalid delegates', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const delegates = {}; // wront type
+      const unvoted = await basic.unvote.call(context, delegates);
+      expect(unvoted).toEqual('Invalid delegates');
     });
 
     it('should return Account is not locked', async () => {
