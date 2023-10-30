@@ -667,6 +667,40 @@ describe('basic', () => {
       expect(voted).toBeNull();
     });
 
+    it('should fail if passed 0 argument', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context);
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 2 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context, 'one', 'two');
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 3 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context, 'one', 'two', 'three');
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 4 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(
+        context,
+        'one',
+        'two',
+        'three',
+        'four'
+      );
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
     it('should return Account is not locked', async () => {
       context = {
         sender: {
@@ -809,6 +843,40 @@ describe('basic', () => {
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBeNull();
+    });
+
+    it('should fail if passed 0 argument', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context);
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 2 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context, 'one', 'two');
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 3 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context, 'one', 'two', 'three');
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 4 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(
+        context,
+        'one',
+        'two',
+        'three',
+        'four'
+      );
+      expect(unvoted).toEqual('Invalid arguments length');
     });
 
     it('should return Account is not locked', async () => {

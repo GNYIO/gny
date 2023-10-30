@@ -305,8 +305,8 @@ export default {
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';
 
+    if (typeof delegates !== 'string') return 'Invalid delegates';
     delegates = delegates.split(',');
-    if (!delegates || !delegates.length) return 'Invalid delegates';
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
@@ -389,8 +389,8 @@ export default {
     const sender = this.sender as IAccount;
     if (!sender.isLocked) return 'Account is not locked';
 
+    if (typeof delegates !== 'string') return 'Invalid delegates';
     delegates = delegates.split(',');
-    if (!delegates || !delegates.length) return 'Invalid delegates';
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
