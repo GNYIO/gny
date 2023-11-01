@@ -261,9 +261,9 @@ describe('nft contract', () => {
         expect(result).toEqual('Invalid nft hash');
       });
 
-      it('createNft() - hash longer than 60 characters - returns Invalid nft hash', async () => {
+      it('createNft() - hash longer than 64 characters - returns Invalid nft hash', async () => {
         const name = 'MY_NFT_NAME';
-        const hash = 'a'.repeat(61);
+        const hash = 'a'.repeat(65);
         const makerId = '';
         const url = '';
 
