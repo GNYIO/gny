@@ -25,12 +25,10 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.191",
-    "@types/pg": "^8.6.6",
     "bignumber.js": "^9.1.1",
     "it-first": "^1.0.4",
     "it-pipe": "^1.1.0",
     "lodash": "^4.17.21",
-    "peer-id": "^0.14.0",
-    "pg": "^8.8.0"
+    "peer-id": "^0.14.0"
   }
 }
