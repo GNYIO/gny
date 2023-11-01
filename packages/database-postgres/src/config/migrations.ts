@@ -596,7 +596,7 @@ export class CreateNft1691091279392 implements MigrationInterface {
 
 
       CREATE TABLE public.nft (
-        name character varying(20) NOT NULL,
+        name character varying(40) NOT NULL,
         hash character varying(64) NOT NULL,
         "previousHash" character varying(64) NULL,
         tid character varying(64) NOT NULL,

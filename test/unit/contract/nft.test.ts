@@ -237,8 +237,8 @@ describe('nft contract', () => {
         expect(result).toEqual('Invalid nft name');
       });
 
-      it('createNft() - 21 character nft name (too long) - returns Invalid nft name', async () => {
-        const name = 'a'.repeat(21);
+      it('createNft() - 41 character nft name (too long) - returns Invalid nft name', async () => {
+        const name = 'a'.repeat(41);
         const param2 = '';
         const param3 = '';
         const param4 = '';

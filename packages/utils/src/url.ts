@@ -4,6 +4,6 @@ export const urlRegex = new RegExp(
 
 export const nftMakerRegex = new RegExp(/^[a-zA-Z_]{1,16}$/);
 
-export const nftNameRegex = new RegExp(/^[0-9a-zA-Z_]{5,20}$/);
+export const nftNameRegex = new RegExp(/^[0-9a-zA-Z_]{5,40}$/);
 
 export const nftHashRegex = new RegExp(/^[a-zA-Z0-9]{30,64}$/);

@@ -35,27 +35,60 @@ describe('GNY client', () => {
     describe('url', () => {
       it('should throw when http is used in url', () => {
         const url = 'http://test.com';
-        expect(() => new gnyClient.Connection(url)).toThrow();
+        const port = 4096;
+        const testnet = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, testnet)
+        ).toThrow('host not valid');
       });
 
       it('should throw when https is used in url', () => {
         const url = 'https://test.com';
-        expect(() => new gnyClient.Connection(url)).toThrow();
+        const port = 4096;
+        const testnet = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, testnet)
+        ).toThrow('host not valid');
       });
 
       it('should pass when naked url url is used', () => {
         const url = 'test.com';
-        expect(() => new gnyClient.Connection(url)).not.toThrow();
+        const port = 80;
+        const network = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).not.toThrow();
       });
 
       it('should pass when naked url with subdomain is used', () => {
         const url = 'testnet.test.com';
-        expect(() => new gnyClient.Connection(url)).not.toThrow();
+        const port = 80;
+        const network = 'localnet';
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).not.toThrow();
       });
 
       it('should pass when ip for url is used', () => {
         const url = '127.0.0.1';
-        expect(() => new gnyClient.Connection(url)).not.toThrow();
+        const port = 80;
+        const network = 'localnet';
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).not.toThrow();
       });
     });
 
@@ -63,25 +96,49 @@ describe('GNY client', () => {
       it('port -1 not valid', () => {
         const url = '127.0.0.1';
         const port = -1;
-        expect(() => new gnyClient.Connection(url, port)).toThrow();
+        const network = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).toThrow('port not valid');
       });
 
       it('port 4096 is valid', () => {
         const url = '127.0.0.1';
         const port = 4096;
-        expect(() => new gnyClient.Connection(url, port)).not.toThrow();
+        const network = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).not.toThrow();
       });
 
       it('port 80000 not valid', () => {
         const url = '127.0.0.1';
         const port = 80000;
-        expect(() => new gnyClient.Connection(url, port)).toThrow();
+        const network = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port)
+        ).toThrow('port not valid');
       });
 
       it('port 2444.2 not valid', () => {
         const url = '127.0.0.1';
         const port = 2444.2;
-        expect(() => new gnyClient.Connection(url, port)).toThrow();
+        const network = 'localnet';
+
+        expect(
+          () =>
+            // @ts-ignore
+            new gnyClient.Connection(url, port, network)
+        ).toThrow('port not valid');
       });
     });
 
@@ -90,6 +147,7 @@ describe('GNY client', () => {
         const url = '127.0.0.1';
         const port = 4096;
         const net = 'localnet';
+
         expect(() => new gnyClient.Connection(url, port, net)).not.toThrow();
       });
 
@@ -97,6 +155,7 @@ describe('GNY client', () => {
         const url = '127.0.0.1';
         const port = 4096;
         const net = 'testnet';
+
         expect(() => new gnyClient.Connection(url, port, net)).not.toThrow();
       });
 
@@ -104,6 +163,7 @@ describe('GNY client', () => {
         const url = '127.0.0.1';
         const port = 4096;
         const net = 'mainnet';
+
         expect(() => new gnyClient.Connection(url, port, net)).not.toThrow();
       });
 
@@ -111,10 +171,11 @@ describe('GNY client', () => {
         const url = '127.0.0.1';
         const port = 4096;
         const net = 'hello';
+
         expect(() => {
           // @ts-ignore
           return new gnyClient.Connection(url, port, net);
-        }).toThrow();
+        }).toThrow('networktype not valid');
       });
     });
 
@@ -124,6 +185,7 @@ describe('GNY client', () => {
         const port = 4096;
         const net = 'localnet';
         const https = true;
+
         expect(
           () => new gnyClient.Connection(url, port, net, https)
         ).not.toThrow();
@@ -134,6 +196,7 @@ describe('GNY client', () => {
         const port = 4096;
         const net = 'localnet';
         const https = false;
+
         expect(
           () => new gnyClient.Connection(url, port, net, https)
         ).not.toThrow();
@@ -144,10 +207,11 @@ describe('GNY client', () => {
         const port = 4096;
         const net = 'localnet';
         const https = 2;
+
         expect(() => {
           // @ts-ignore
           return new gnyClient.Connection(url, port, net, https);
-        }).toThrow();
+        }).toThrow('https not valid');
       });
     });
   });

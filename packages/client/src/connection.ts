@@ -39,15 +39,10 @@ export class Connection {
   baseUrl: string;
   hash: string;
 
-  constructor(
-    host?: string,
-    port?: number,
-    network?: NetworkType,
-    https = false
-  ) {
-    this.host = host || '127.0.0.1';
-    this.port = port || 4096;
-    this.network = network || 'localnet';
+  constructor(host: string, port: number, network: NetworkType, https = false) {
+    this.host = host;
+    this.port = port;
+    this.network = network;
     if (this.port === 80) {
       this.baseUrl = `${https ? 'https' : 'http'}://${this.host}`;
     } else {
