@@ -1,6 +1,6 @@
 {
   "name": "@gny/extended-joi",
-  "version": "1.0.144",
+  "version": "1.0.145",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "@gny/utils": "1.0.144",
+    "@gny/utils": "1.0.145",
     "@types/bip39": "^2.4.2",
     "@types/joi": "^14.0.1",
     "bignumber.js": "^8.1.1",
