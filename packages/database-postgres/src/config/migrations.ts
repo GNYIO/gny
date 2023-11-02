@@ -575,7 +575,7 @@ export class CreateNft1691091279392 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
       CREATE TABLE public.nft_maker (
-        name character varying(16) NOT NULL,
+        name character varying(30) NOT NULL,
         "desc" character varying(100) NOT NULL,
         "address" character varying(50) NOT NULL,
         tid character varying(64) NOT NULL,
@@ -601,7 +601,7 @@ export class CreateNft1691091279392 implements MigrationInterface {
         "previousHash" character varying(64) NULL,
         tid character varying(64) NOT NULL,
         "counter" bigint NOT NULL,
-        "nftMakerId" character varying(20) NOT NULL,
+        "nftMakerId" character varying(30) NOT NULL,
         "ownerAddress" character varying(50) NOT NULL,
         "timestamp" integer NOT NULL,
         "url" varchar(255) NOT NULL,
