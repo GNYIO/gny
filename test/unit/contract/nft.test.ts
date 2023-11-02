@@ -2,13 +2,7 @@ import { jest } from '@jest/globals';
 
 import nft from '@gny/main/nft';
 import { IApp } from '@gny/main/globalInterfaces';
-import {
-  ILogger,
-  IAccount,
-  ITransaction,
-  Context,
-  IBlock,
-} from '@gny/interfaces';
+import { IAccount, ITransaction, Context, IBlock } from '@gny/interfaces';
 import { IConfig } from '@gny/interfaces';
 
 // mocking of ES modules currently not supported in jest
@@ -89,8 +83,8 @@ describe('nft contract', () => {
         expect(result).toEqual('Invalid nft maker name');
       });
 
-      it('registerNftMaker() - throws if maker name too long (17 length)', async () => {
-        const param1 = 'A'.repeat(17);
+      it('registerNftMaker() - throws if maker name too long (31 length)', async () => {
+        const param1 = 'A'.repeat(31);
         const param2 = 'description';
 
         // @ts-ignore
