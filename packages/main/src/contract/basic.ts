@@ -316,6 +316,13 @@ export default {
       global.app.validate('name', one);
     }
 
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
+      if (!exists) return `Voted delegate not exists: ${username}`;
+    }
+
     if (
       (global.Config.netVersion === 'testnet' &&
         new BigNumber(this.block.height).isGreaterThan(3130000)) ||
@@ -356,13 +363,6 @@ export default {
           return `Already voted for delegate: ${name}`;
         }
       }
-    }
-
-    for (const username of delegates) {
-      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
-        username,
-      });
-      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
     for (const username of delegates) {

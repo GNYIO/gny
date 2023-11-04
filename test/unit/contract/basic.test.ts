@@ -770,6 +770,7 @@ describe('basic', () => {
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(true),
         findAll: jest.fn().mockReturnValue(currentVotes),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
@@ -783,9 +784,12 @@ describe('basic', () => {
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(true),
         findAll: jest.fn().mockReturnValue(currentVotes),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
+
+      console.log(JSON.stringify(context, null, 2));
 
       const voted = await basic.vote.call(context, delegates);
       expect(voted).toBe('Already voted for delegate: xpgeng');
@@ -795,7 +799,7 @@ describe('basic', () => {
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue(currentVotes),
-        exists: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(false),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
 
@@ -967,7 +971,7 @@ describe('basic', () => {
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(undefined),
         findAll: jest.fn().mockReturnValue(currentVotes),
-        exists: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(false),
       } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);
