@@ -247,6 +247,19 @@ export default {
     if (!sender.isLocked) return 'Account is not locked';
     if (new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight))
       return 'Account cannot unlock';
+    // in order to not break the chain
+    // mainnet between 3,500,000 and 8,150,000 should keep running this bug
+    // issue: #582
+    if (
+      global.Config.netVersion === 'mainnet' &&
+      new BigNumber(this.block.height).isGreaterThan(3500000) &&
+      new BigNumber(this.block.height).isLessThan(8150000) &&
+      this.sender.isDelegate // keep the bug for mainnet and this period alive
+    ) {
+      await deleteVotesForMe(this.sender);
+    } else {
+      await deleteVotesForMe(this.sender);
+    }
 
     if (this.sender.isDelegate) {
       await deleteCreatedVotes(this.sender);
