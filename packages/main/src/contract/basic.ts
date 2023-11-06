@@ -256,12 +256,8 @@ export default {
       new BigNumber(this.block.height).isLessThan(8150000) &&
       this.sender.isDelegate // keep the bug for mainnet and this period alive
     ) {
-      await deleteVotesForMe(this.sender);
+      await deleteCreatedVotes(this.sender);
     } else {
-      await deleteVotesForMe(this.sender);
-    }
-
-    if (this.sender.isDelegate) {
       await deleteCreatedVotes(this.sender);
     }
 
