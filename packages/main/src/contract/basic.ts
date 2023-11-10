@@ -13,7 +13,7 @@ import { Transfer } from '@gny/database-postgres';
 import { Burn } from '@gny/database-postgres';
 import { isAddress } from '@gny/utils';
 
-async function deleteCreatedVotes(account: IAccount) {
+async function deleteCreatedVotesObsolete(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {
     condition: { voterAddress: account.address },
   });
@@ -249,18 +249,44 @@ export default {
       return 'Account cannot unlock';
     }
 
-    // in order to not break the chain
-    // mainnet between 3,500,000 and 8,150,000 should keep running this bug
+    const mainnetSwitchHeight = 8200000;
+    const testnetSwitchHeight = 7500000;
+    // keep running the bug below height x for mainnet and y for testnet
     // issue: #582
     if (
-      global.Config.netVersion === 'mainnet' &&
-      new BigNumber(this.block.height).isGreaterThan(3500000) &&
-      new BigNumber(this.block.height).isLessThan(8150000) &&
-      this.sender.isDelegate // keep the bug for mainnet and this period alive
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(this.block.height).isLessThan(mainnetSwitchHeight) &&
+        this.sender.isDelegate) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(this.block.height).isLessThan(testnetSwitchHeight) &&
+        this.sender.isDelegate)
     ) {
-      await deleteCreatedVotes(this.sender);
-    } else {
-      await deleteCreatedVotes(this.sender);
+      await deleteCreatedVotesObsolete(this.sender);
+    }
+
+    // stop unlocking if sender still has votes
+    // run the following if block
+    // on localnet from the start
+    // on mainnet above height x
+    // on testnet above height y
+    if (
+      global.Config.netVersion === 'localnet' ||
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(this.block.height).isGreaterThanOrEqualTo(
+          mainnetSwitchHeight
+        )) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(this.block.height).isGreaterThanOrEqualTo(
+          testnetSwitchHeight
+        ))
+    ) {
+      const myVotes = await global.app.sdb.findAll<Vote>(Vote, {
+        condition: { voterAddress: senderId },
+      });
+
+      if (myVotes && myVotes.length > 0) {
+        return 'delete first all of your votes before unlocking';
+      }
     }
 
     sender.isLocked = 0;
