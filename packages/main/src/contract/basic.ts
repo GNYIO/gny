@@ -191,9 +191,6 @@ export default {
       ) {
         return 'Invalid lock height';
       }
-      if (new BigNumber(0).isEqualTo(amount)) {
-        return 'Invalid amount';
-      }
     } else {
       if (
         height.isLessThan(
@@ -202,9 +199,10 @@ export default {
       ) {
         return 'Invalid lock height';
       }
-      if (amount.isEqualTo(0)) {
-        return 'Invalid amount';
-      }
+    }
+
+    if (amount.isEqualTo(0)) {
+      return 'Invalid amount';
     }
 
     if (!sender.isLocked) {
