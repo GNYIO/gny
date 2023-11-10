@@ -243,8 +243,12 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
-    if (new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight))
+    if (
+      new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight)
+    ) {
       return 'Account cannot unlock';
+    }
+
     // in order to not break the chain
     // mainnet between 3,500,000 and 8,150,000 should keep running this bug
     // issue: #582
@@ -323,6 +327,7 @@ export default {
       global.app.validate('name', one);
     }
 
+    // check if all passed in delegates exists in DB
     for (const username of delegates) {
       const exists = await global.app.sdb.exists<Delegate>(Delegate, {
         username,
