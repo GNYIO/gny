@@ -12,7 +12,6 @@ import {
   NetworkType,
 } from '@gny/interfaces';
 import { IConfig } from '@gny/interfaces';
-import each from 'jest-each';
 
 // mocking of ES modules currently not supported in jest
 // https://github.com/facebook/jest/issues/9430
