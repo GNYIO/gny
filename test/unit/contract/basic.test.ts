@@ -9,6 +9,7 @@ import {
   ITransaction,
   Context,
   IVote,
+  NetworkType,
 } from '@gny/interfaces';
 import { IConfig } from '@gny/interfaces';
 
@@ -54,6 +55,8 @@ describe('basic', () => {
     // new
     jest.clearAllMocks();
     delete (basic as any).sdb;
+
+    delete global.Config;
 
     done();
   });
@@ -409,6 +412,23 @@ describe('basic', () => {
       done();
     });
 
+    it('should return "Invalid arguments length" when passed in 1 argument', async () => {
+      const context = {};
+      const arg1 = 'test';
+
+      const unlocked = await basic.unlock.call(context, arg1);
+      expect(unlocked).toEqual('Invalid arguments length');
+    });
+
+    it('should return "Invalid arguments length" when passed in 2 argument', async () => {
+      const context = {};
+      const arg1 = 'test1';
+      const arg2 = 'test2';
+
+      const unlocked = await basic.unlock.call(context, arg1, arg2);
+      expect(unlocked).toEqual('Invalid arguments length');
+    });
+
     it('should unlock the account', async () => {
       const context = {
         sender: {
@@ -427,6 +447,7 @@ describe('basic', () => {
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
         update: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue([]),
       } as any;
 
       const unlocked = await basic.unlock.call(context);
@@ -442,7 +463,7 @@ describe('basic', () => {
       expect(unlocked).toBe('Account not found');
     });
 
-    it('should return Account is not locked', async () => {
+    it('should return "Account is not locked" if account is not locked', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -462,14 +483,14 @@ describe('basic', () => {
       expect(unlocked).toBe('Account is not locked');
     });
 
-    it('should return Account cannot unlock', async () => {
+    it('should return "Account cannot unlock" (when lockHeight hasn\'t been reached)', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
           gny: String(100000100),
           isLocked: 1,
           lockHeight: String(3),
-          lockAmount: String(0),
+          lockAmount: String(2),
           isDelegate: 0,
         } as IAccount,
         block: {
@@ -483,6 +504,439 @@ describe('basic', () => {
 
       const unlocked = await basic.unlock.call(context);
       expect(unlocked).toBe('Account cannot unlock');
+    });
+
+    it('should return "Account cannot unlock" (when current block and lockHeight is the same)', async () => {
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000100),
+          isLocked: 1,
+          lockHeight: String(10),
+          lockAmount: String(2),
+          isDelegate: 0,
+        } as IAccount,
+        block: {
+          height: String(10),
+        },
+      } as Context;
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const unlocked = await basic.unlock.call(context);
+      expect(unlocked).toBe('Account cannot unlock');
+    });
+
+    it('should increase gny (balance) field with lockedAmount value', async () => {
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(50 * 1e8),
+          isLocked: 1,
+          lockHeight: String(500),
+          lockAmount: String(100 * 1e8),
+          isDelegate: 0,
+        } as IAccount,
+        block: {
+          height: String(1000),
+        },
+      } as Context;
+
+      // sdb.update() does normally return something, but in this context
+      // it is not needed
+      const updateMock = jest.fn().mockReturnValue(undefined);
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        findAll: jest.fn().mockReturnValue([]),
+        update: updateMock,
+      } as any;
+
+      const unlocked = await basic.unlock.call(context);
+      expect(unlocked).toBeNull();
+
+      // expect "isLocked" to 0
+      // expect "lockHeight" to String(0)
+      // expect "gny" to increase by value of "lockedAmount"
+      // expect "lockAmount" to String(0)
+      // expect a call to sdb.update<Account>(Account) with correct arguments
+      expect(updateMock).toBeCalledTimes(1);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(150 * 1e8),
+          isDelegate: 0,
+          isLocked: 0,
+          lockHeight: String(0),
+          lockAmount: String(0),
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+    });
+
+    describe('unlock (localnet)', () => {
+      it('should return "delete first all of your votes before unlocking" if account has still has votes (localnet)', async () => {
+        const context = {
+          sender: {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            gny: String(50 * 1e8),
+            isLocked: 1,
+            lockHeight: String(200000),
+            lockAmount: String(100 * 1e8),
+            isDelegate: 0,
+          } as IAccount,
+          block: {
+            height: String(300000), // higher than "lockHeight"
+          },
+        } as Context;
+
+        global.Config.netVersion = 'localnet';
+
+        const myVotes = [
+          {
+            voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            delegate: 'a1300',
+          },
+        ] as IVote[];
+        const findAllMock = jest.fn().mockReturnValue(myVotes);
+
+        global.app.sdb = {
+          lock: jest.fn().mockReturnValue(null),
+          findAll: findAllMock,
+        } as any;
+
+        const unlocked = await basic.unlock.call(context);
+        expect(unlocked).toEqual(
+          'delete first all of your votes before unlocking'
+        );
+
+        expect(findAllMock).toHaveBeenCalledTimes(1);
+      });
+
+      it('when account has 0 votes it should unlock (localnet)', async () => {
+        const context = {
+          sender: {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            gny: String(50 * 1e8),
+            isLocked: 1,
+            lockHeight: String(200000),
+            lockAmount: String(100 * 1e8),
+            isDelegate: 0,
+          } as IAccount,
+          block: {
+            height: String(300000), // higher than "lockHeight"
+          },
+        } as Context;
+
+        global.Config.netVersion = 'localnet';
+
+        const myVotes = [] as IVote[];
+        const findAllMock = jest.fn().mockReturnValue(myVotes);
+
+        global.app.sdb = {
+          lock: jest.fn().mockReturnValue(null),
+          findAll: findAllMock,
+          update: jest.fn().mockReturnValueOnce(null),
+        } as any;
+
+        const unlocked = await basic.unlock.call(context);
+        expect(unlocked).toBeNull();
+
+        expect(findAllMock).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('unlock (mainnet/testnet)', () => {
+      test.each([
+        ['mainnet', String(3_000_000), String(3_200_000)],
+        ['testnet', String(2_000_000), String(2_200_000)],
+      ])(
+        'below switch, sender is delegate, has 2 vote, should delete votes (param %p)',
+        async (
+          network: NetworkType,
+          lockHeight: string,
+          heightBelowSwitch: string
+        ) => {
+          const isDelegate = 1;
+
+          const context = {
+            sender: {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(50 * 1e8),
+              isLocked: isDelegate,
+              lockHeight: lockHeight,
+              lockAmount: String(100 * 1e8),
+              isDelegate: isDelegate, // is delegate
+            } as IAccount,
+            block: {
+              height: heightBelowSwitch, // higher than "lockHeight"
+            },
+          } as Context;
+
+          global.Config.netVersion = network;
+
+          const myVotes = [
+            {
+              voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              delegate: 'a1300',
+            },
+            {
+              voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              delegate: 'another',
+            },
+          ] as IVote[];
+          const findAllMock = jest.fn().mockReturnValueOnce(myVotes);
+
+          const increaseMock = jest
+            .fn()
+            .mockReturnValueOnce(null)
+            .mockReturnValueOnce(null);
+
+          const delMock = jest
+            .fn()
+            .mockReturnValueOnce(null)
+            .mockReturnValueOnce(null);
+
+          const updateMock = jest.fn().mockReturnValueOnce(null);
+
+          global.app.sdb = {
+            lock: jest.fn().mockReturnValue(null),
+            findAll: findAllMock,
+            increase: increaseMock,
+            del: delMock,
+            update: updateMock,
+          } as any;
+
+          const unlocked = await basic.unlock.call(context);
+          expect(unlocked).toBeNull();
+
+          expect(findAllMock).toHaveBeenCalledTimes(1);
+          expect(findAllMock).toBeCalledWith(expect.any(Function), {
+            condition: { voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r' },
+          });
+
+          expect(increaseMock).toHaveBeenCalledTimes(2);
+          expect(increaseMock).toHaveBeenNthCalledWith(
+            1,
+            expect.any(Function),
+            { votes: `-${String(100 * 1e8)}` },
+            { username: 'a1300' }
+          );
+          expect(increaseMock).toHaveBeenNthCalledWith(
+            2,
+            expect.any(Function),
+            { votes: `-${String(100 * 1e8)}` },
+            { username: 'another' }
+          );
+
+          expect(delMock).toHaveBeenCalledTimes(2);
+          expect(delMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+            delegate: 'a1300',
+            voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          });
+          expect(delMock).toHaveBeenNthCalledWith(2, expect.any(Function), {
+            delegate: 'another',
+            voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          });
+
+          expect(updateMock).toHaveBeenCalledTimes(1);
+          expect(updateMock).toHaveBeenNthCalledWith(
+            1,
+            expect.any(Function),
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(150 * 1e8),
+              isDelegate: 1,
+              isLocked: 0,
+              lockAmount: String(0),
+              lockHeight: String(0),
+            },
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            }
+          );
+        }
+      );
+
+      test.each([
+        ['mainnet', String(4_000_000), String(4_200_000)],
+        ['testnet', String(3_000_000), String(3_200_000)],
+      ])(
+        'below switch, sender is not delegate, should not delete votes (param %p)',
+        async (
+          network: NetworkType,
+          lockHeight: string,
+          heightBelowSwitch: string
+        ) => {
+          const isDelegate = 0;
+
+          const context = {
+            sender: {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(50 * 1e8),
+              isLocked: 1,
+              lockHeight: lockHeight,
+              lockAmount: String(100 * 1e8),
+              isDelegate: isDelegate, // is not delegate
+            } as IAccount,
+            block: {
+              height: heightBelowSwitch, // higher than "lockHeight"
+            },
+          } as Context;
+          global.Config.netVersion = network;
+
+          const updateMock = jest.fn().mockReturnValueOnce(null);
+          global.app.sdb = {
+            lock: jest.fn().mockReturnValue(null),
+            update: updateMock,
+          } as any;
+
+          const unlocked = await basic.unlock.call(context);
+          expect(unlocked).toBeNull();
+
+          expect(updateMock).toHaveBeenCalledTimes(1);
+          expect(updateMock).toHaveBeenNthCalledWith(
+            1,
+            expect.any(Function),
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(150 * 1e8),
+              isDelegate: 0,
+              isLocked: 0,
+              lockAmount: String(0),
+              lockHeight: String(0),
+            },
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            }
+          );
+        }
+      );
+
+      // isDelegate (last parameter) is not relevant, but we test it anyway
+      // too proof it does not make a difference
+      test.each([
+        ['mainnet', String(9_000_000), String(9_200_000), 0],
+        ['mainnet', String(9_000_000), String(9_200_000), 1],
+        ['testnet', String(8_000_000), String(8_200_000), 0],
+        ['testnet', String(8_000_000), String(8_200_000), 1],
+      ])(
+        'above switch, created 1 vote, should return "delete first all of your votes before unlocking" (param %p) ',
+        async (
+          network: NetworkType,
+          lockHeight: string,
+          heightAboveSwitch: string,
+          isDelegate: number
+        ) => {
+          const context = {
+            sender: {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(50 * 1e8),
+              isLocked: 1,
+              lockHeight: lockHeight,
+              lockAmount: String(100 * 1e8),
+              isDelegate: isDelegate, // is for this case not relevant
+            } as IAccount,
+            block: {
+              height: heightAboveSwitch, // higher than "lockHeight"
+            },
+          } as Context;
+          global.Config.netVersion = network;
+
+          const myVotes: IVote[] = [
+            {
+              voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              delegate: 'a1300',
+            },
+          ];
+          const findAllMock = jest.fn().mockReturnValue(myVotes);
+
+          global.app.sdb = {
+            lock: jest.fn().mockReturnValue(null),
+            findAll: findAllMock,
+          } as any;
+
+          const unlocked = await basic.unlock.call(context);
+          expect(unlocked).toEqual(
+            'delete first all of your votes before unlocking'
+          );
+
+          expect(findAllMock).toHaveBeenCalledTimes(1);
+          expect(findAllMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+            condition: { voterAddress: 'GBR31pwhxvsgtrQDfzRxjfoPB62r' },
+          });
+        }
+      );
+
+      // isDelegate (last parameter) is not relevant, but we test it anyway
+      // too proof it does not make a difference
+      test.each([
+        ['mainnet', String(8_000_000), String(8_200_000), 0],
+        ['mainnet', String(8_000_000), String(8_200_000), 1],
+        ['testnet', String(7_000_000), String(7_500_000), 0],
+        ['testnet', String(7_000_000), String(7_500_000), 1],
+      ])(
+        'above switch, created 0 votes, should unlock (param %p)',
+        async (
+          network: NetworkType,
+          lockHeight: string,
+          heightAboveSwitch: string,
+          isDelegate: number
+        ) => {
+          const context = {
+            sender: {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(50 * 1e8),
+              isLocked: 1,
+              lockHeight: lockHeight,
+              lockAmount: String(100 * 1e8),
+              isDelegate: isDelegate, // is for this case not relevant
+            } as IAccount,
+            block: {
+              height: heightAboveSwitch, // higher than "lockHeight"
+            },
+          } as Context;
+          global.Config.netVersion = network;
+
+          const myVotes: IVote[] = [];
+          const findAllMock = jest.fn().mockReturnValueOnce(myVotes);
+          const updateMock = jest.fn().mockReturnValueOnce(null);
+
+          global.app.sdb = {
+            lock: jest.fn().mockReturnValue(null),
+            findAll: findAllMock,
+            update: updateMock,
+          } as any;
+
+          const unlocked = await basic.unlock.call(context);
+          expect(unlocked).toBeNull();
+
+          expect(findAllMock).toHaveBeenCalledTimes(1);
+
+          expect(updateMock).toHaveBeenCalledTimes(1);
+          expect(updateMock).toHaveBeenNthCalledWith(
+            1,
+            expect.any(Function),
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+              gny: String(150 * 1e8),
+              isDelegate: isDelegate, // is dynamic
+              isLocked: 0,
+              lockAmount: String(0),
+              lockHeight: String(0),
+            },
+            {
+              address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            }
+          );
+        }
+      );
     });
   });
 
@@ -667,6 +1121,50 @@ describe('basic', () => {
       expect(voted).toBeNull();
     });
 
+    it('should fail if passed 0 argument', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context);
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 2 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context, 'one', 'two');
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 3 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(context, 'one', 'two', 'three');
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 4 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const voted = await basic.vote.call(
+        context,
+        'one',
+        'two',
+        'three',
+        'four'
+      );
+      expect(voted).toEqual('Invalid arguments length');
+    });
+
+    it('should return Invalid delegates', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const delegates = {}; // wront type
+      const voted = await basic.vote.call(context, delegates);
+      expect(voted).toEqual('Invalid delegates');
+    });
+
     it('should return Account is not locked', async () => {
       context = {
         sender: {
@@ -726,6 +1224,7 @@ describe('basic', () => {
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(true),
         findAll: jest.fn().mockReturnValue(currentVotes),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
@@ -739,6 +1238,7 @@ describe('basic', () => {
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(true),
         findAll: jest.fn().mockReturnValue(currentVotes),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
@@ -751,7 +1251,7 @@ describe('basic', () => {
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue(currentVotes),
-        exists: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(false),
         findOne: jest.fn().mockReturnValue(oneAccount),
       } as any;
 
@@ -809,6 +1309,50 @@ describe('basic', () => {
 
       const unvoted = await basic.unvote.call(context, delegates);
       expect(unvoted).toBeNull();
+    });
+
+    it('should fail if passed 0 argument', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context);
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 2 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context, 'one', 'two');
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 3 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(context, 'one', 'two', 'three');
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should fail if passed 4 arguments', async () => {
+      global.app.sdb = {} as any;
+
+      const unvoted = await basic.unvote.call(
+        context,
+        'one',
+        'two',
+        'three',
+        'four'
+      );
+      expect(unvoted).toEqual('Invalid arguments length');
+    });
+
+    it('should return Invalid delegates', async () => {
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+      } as any;
+
+      const delegates = {}; // wront type
+      const unvoted = await basic.unvote.call(context, delegates);
+      expect(unvoted).toEqual('Invalid delegates');
     });
 
     it('should return Account is not locked', async () => {
@@ -879,7 +1423,7 @@ describe('basic', () => {
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(undefined),
         findAll: jest.fn().mockReturnValue(currentVotes),
-        exists: jest.fn().mockReturnValue(null),
+        exists: jest.fn().mockReturnValue(false),
       } as any;
 
       const unvoted = await basic.unvote.call(context, delegates);

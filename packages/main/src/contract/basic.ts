@@ -13,7 +13,7 @@ import { Transfer } from '@gny/database-postgres';
 import { Burn } from '@gny/database-postgres';
 import { isAddress } from '@gny/utils';
 
-async function deleteCreatedVotes(account: IAccount) {
+async function deleteCreatedVotesObsolete(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {
     condition: { voterAddress: account.address },
   });
@@ -191,9 +191,6 @@ export default {
       ) {
         return 'Invalid lock height';
       }
-      if (new BigNumber(0).isEqualTo(amount)) {
-        return 'Invalid amount';
-      }
     } else {
       if (
         height.isLessThan(
@@ -202,9 +199,10 @@ export default {
       ) {
         return 'Invalid lock height';
       }
-      if (amount.isEqualTo(0)) {
-        return 'Invalid amount';
-      }
+    }
+
+    if (amount.isEqualTo(0)) {
+      return 'Invalid amount';
     }
 
     if (!sender.isLocked) {
@@ -245,11 +243,50 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
-    if (new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight))
+    if (
+      new BigNumber(this.block.height).isLessThanOrEqualTo(sender.lockHeight)
+    ) {
       return 'Account cannot unlock';
+    }
 
-    if (this.sender.isDelegate) {
-      await deleteCreatedVotes(this.sender);
+    const mainnetSwitchHeight = 8200000;
+    const testnetSwitchHeight = 7500000;
+    // keep running the bug below height x for mainnet and y for testnet
+    // issue: #582
+    if (
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(this.block.height).isLessThan(mainnetSwitchHeight) &&
+        this.sender.isDelegate) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(this.block.height).isLessThan(testnetSwitchHeight) &&
+        this.sender.isDelegate)
+    ) {
+      await deleteCreatedVotesObsolete(this.sender);
+    }
+
+    // stop unlocking if sender still has votes
+    // run the following if block
+    // on localnet from the start
+    // on mainnet above height x
+    // on testnet above height y
+    if (
+      global.Config.netVersion === 'localnet' ||
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(this.block.height).isGreaterThanOrEqualTo(
+          mainnetSwitchHeight
+        )) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(this.block.height).isGreaterThanOrEqualTo(
+          testnetSwitchHeight
+        ))
+    ) {
+      const myVotes = await global.app.sdb.findAll<Vote>(Vote, {
+        condition: { voterAddress: senderId },
+      });
+
+      if (myVotes && myVotes.length > 0) {
+        return 'delete first all of your votes before unlocking';
+      }
     }
 
     sender.isLocked = 0;
@@ -305,8 +342,8 @@ export default {
     const sender = this.sender;
     if (!sender.isLocked) return 'Account is not locked';
 
+    if (typeof delegates !== 'string') return 'Invalid delegates';
     delegates = delegates.split(',');
-    if (!delegates || !delegates.length) return 'Invalid delegates';
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
@@ -314,6 +351,14 @@ export default {
     for (let i = 0; i < delegates.length; ++i) {
       const one = delegates[i];
       global.app.validate('name', one);
+    }
+
+    // check if all passed in delegates exists in DB
+    for (const username of delegates) {
+      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
+        username,
+      });
+      if (!exists) return `Voted delegate not exists: ${username}`;
     }
 
     if (
@@ -359,13 +404,6 @@ export default {
     }
 
     for (const username of delegates) {
-      const exists = await global.app.sdb.exists<Delegate>(Delegate, {
-        username,
-      });
-      if (!exists) return `Voted delegate not exists: ${username}`;
-    }
-
-    for (const username of delegates) {
       const votes = sender.lockAmount;
       await global.app.sdb.increase<Delegate>(
         Delegate,
@@ -389,8 +427,8 @@ export default {
     const sender = this.sender as IAccount;
     if (!sender.isLocked) return 'Account is not locked';
 
+    if (typeof delegates !== 'string') return 'Invalid delegates';
     delegates = delegates.split(',');
-    if (!delegates || !delegates.length) return 'Invalid delegates';
     if (delegates.length > 33) return 'Voting limit exceeded';
     if (!isUniq(delegates)) return 'Duplicated vote item';
 
