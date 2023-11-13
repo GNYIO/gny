@@ -3,6 +3,7 @@
 module.exports = {
   cache: false,
   verbose: true,
+  setupFiles: ['./jest.polyfills.js'],
   setupFilesAfterEnv: ['jest-extended/all'],
 
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
