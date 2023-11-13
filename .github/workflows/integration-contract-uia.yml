@@ -1,8 +1,8 @@
-name: Integration Contract UIA Tests
+name: integration-contract-uia-tests
 on: [push]
 jobs:
   integration-contract-uia-tests:
-    timeout-minutes: 45
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space
