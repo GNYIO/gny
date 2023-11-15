@@ -16,7 +16,7 @@
     "removeBrowserDir": "rm -rf browser"
   },
   "engines": {
-    "node": "=16.18.0"
+    "node": "=16.20.2"
   },
   "main": "dist/index.js",
   "type": "module",
