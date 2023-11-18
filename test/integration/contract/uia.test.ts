@@ -133,6 +133,7 @@ describe('uia', () => {
     it(
       'registerIssuer - should regitster an issuer',
       async () => {
+        expect.assertions(4);
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -182,6 +183,8 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error: Invalid issuer name',
       async () => {
+        expect.assertions(2);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = '#123abc';
@@ -220,6 +223,8 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error: No issuer description was provided',
       async () => {
+        expect.assertions(2);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -265,6 +270,8 @@ describe('uia', () => {
     it(
       'registerIssuer - when the issuer description has leading spaces -> Invalid issuer description',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -297,6 +304,8 @@ describe('uia', () => {
     it(
       'registerIssuer - when issuer description is 4097 chars long -> Invalid issuer description',
       async () => {
+        expect.assertions(2);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -343,6 +352,8 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error -> Issuer name already exists',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -410,6 +421,8 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error: Account is already an issuer',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const issuerName = 'liang';
@@ -479,6 +492,8 @@ describe('uia', () => {
     it(
       'registerAsset - should register the asset',
       async () => {
+        expect.assertions(4);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const name = 'liang.BBB';
@@ -531,6 +546,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid symbol',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const name = 'liang.BBB';
@@ -591,6 +608,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid asset description',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const name = 'liang.BBB';
@@ -655,6 +674,8 @@ describe('uia', () => {
     it(
       'should return the error: Precision should be positive integer',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await lib.onNewBlock();
@@ -717,6 +738,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid asset precision',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await lib.onNewBlock();
@@ -779,6 +802,8 @@ describe('uia', () => {
     it(
       'should return the error: Account is not an issuer',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const name = 'liang.BBB';
@@ -839,6 +864,8 @@ describe('uia', () => {
     it(
       'should return the error: Asset already exists',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         const name = 'liang.BBB';
@@ -913,6 +940,8 @@ describe('uia', () => {
     it(
       'maximum of 9000000000000000000 is ok',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await lib.onNewBlock();
@@ -950,6 +979,8 @@ describe('uia', () => {
     it(
       'maximum of 9000000000000000001 will fail',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await lib.onNewBlock();
@@ -987,6 +1018,8 @@ describe('uia', () => {
     it(
       'should update asset',
       async () => {
+        expect.assertions(4);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await registerIssuerAsync('liang', 'liang');
@@ -1038,6 +1071,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid currency',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await registerIssuerAsync('liang', 'liang');
@@ -1091,6 +1126,8 @@ describe('uia', () => {
     it(
       'should return the error: Asset not exists',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await registerIssuerAsync('liang', 'liang');
@@ -1127,6 +1164,8 @@ describe('uia', () => {
     it(
       'should return the error: Exceed issue limit',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         await registerIssuerAsync('liang', 'liang');
@@ -1183,6 +1222,8 @@ describe('uia', () => {
     it(
       'should transfer some amount to the recipient',
       async () => {
+        expect.assertions(4);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         // prepare
@@ -1231,6 +1272,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid currency',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         // prepare
@@ -1281,6 +1324,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid recipient',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         // prepare
@@ -1319,6 +1364,8 @@ describe('uia', () => {
     it(
       'should return the error: Insufficient balance',
       async () => {
+        expect.assertions(3);
+
         await lib.waitForApiToBeReadyReady(4096);
         await lib.onNewBlock(4096);
 
@@ -1370,6 +1417,8 @@ describe('uia', () => {
     it(
       'should return the error: Recipient name not exist',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
         await lib.onNewBlock(4096);
 
@@ -1408,6 +1457,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid recipient, if recipient address is equal to sender address',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         // prepare
@@ -1444,6 +1495,8 @@ describe('uia', () => {
     it(
       'should return the error: Invalid recipient, if recipient username is equal to sender username',
       async () => {
+        expect.assertions(1);
+
         await lib.waitForApiToBeReadyReady(4096);
 
         // prepare
