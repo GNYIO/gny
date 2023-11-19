@@ -571,7 +571,17 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
 
-export class CreateNft1691091279392 implements MigrationInterface {
+// was moved before CreateNft* migration
+export class AddBlockDelegateIndex1694943715000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE INDEX "block_delegate_idx" ON public.block USING btree ("delegate");
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
+
+export class CreateNft1700423861000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
       CREATE TABLE public.nft_maker (
@@ -626,15 +636,6 @@ export class CreateNft1691091279392 implements MigrationInterface {
           ON public.nft USING btree ("timestamp");
       CREATE INDEX "nft_url_idx"
           ON public.nft USING btree ("url");
-    `);
-  }
-  async down(queryRunner: QueryRunner): Promise<any> {}
-}
-
-export class AddBlockDelegateIndex1694943715000 implements MigrationInterface {
-  async up(queryRunner: QueryRunner): Promise<any> {
-    await queryRunner.query(`
-      CREATE INDEX "block_delegate_idx" ON public.block USING btree ("delegate");
     `);
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
