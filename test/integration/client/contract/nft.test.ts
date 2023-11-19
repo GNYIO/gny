@@ -71,7 +71,7 @@ async function transferGNY(to: string, amount: string, secret: string) {
   return sendResponse;
 }
 
-describe('nft', () => {
+describe.skip('nft', () => {
   beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)

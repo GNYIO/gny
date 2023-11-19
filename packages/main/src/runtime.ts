@@ -153,6 +153,6 @@ export default async function runtime(options: IOptions) {
   global.app.contractTypeMapping[102] = 'uia.issue';
   global.app.contractTypeMapping[103] = 'uia.transfer';
 
-  global.app.contractTypeMapping[300] = 'nft.registerNftMaker';
-  global.app.contractTypeMapping[301] = 'nft.createNft';
+  // global.app.contractTypeMapping[300] = 'nft.registerNftMaker';
+  // global.app.contractTypeMapping[301] = 'nft.createNft';
 }
