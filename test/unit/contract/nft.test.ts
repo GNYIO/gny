@@ -279,16 +279,53 @@ describe('nft contract', () => {
     });
 
     describe('makerId', () => {
-      it('createNft() - numbers within nft makerId - returns Invalid nft maker id', async () => {
-        const name = 'NFTnft';
-        const hash = 'a'.repeat(30);
-        const makerId = 'ABC123';
-        const param4 = '';
+      test.each([['A3'], ['A'], ['_1'], ['A1'.repeat(15)]])(
+        'createNft() - numbers within nft makerId are valid - returns null (params: %p)',
+        async (makerId: string) => {
+          const context = {
+            sender: {
+              address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+            } as IAccount,
+            trs: {
+              id: 'idididididididididididididid',
+            } as ITransaction,
+            block: {} as IBlock,
+          } as Context;
 
-        // @ts-ignore
-        const result = await nft.createNft(name, hash, makerId, param4);
-        expect(result).toEqual('Invalid nft maker name');
-      });
+          const nftName = 'NFTnft';
+          const hash = 'a'.repeat(30);
+          // const makerId = 'A3';
+          const param4 = 'https://test.com/asdf.json';
+
+          const existMock = jest
+            .fn()
+            .mockReturnValueOnce(false)
+            .mockReturnValueOnce(false)
+            .mockReturnValueOnce(true);
+
+          const findOneMock = jest.fn().mockReturnValueOnce({
+            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          });
+
+          global.app.sdb = {
+            lock: jest.fn().mockReturnValue(null),
+            exists: existMock,
+            findOne: findOneMock,
+            create: jest.fn().mockReturnValue(undefined),
+            update: jest.fn().mockReturnValueOnce(undefined),
+          } as any;
+
+          // @ts-ignore
+          const result = await nft.createNft.call(
+            context,
+            nftName,
+            hash,
+            makerId,
+            param4
+          );
+          expect(result).toEqual(null);
+        }
+      );
 
       it('createNft() - object as nft makerId - returns Invalid nft maker id', async () => {
         const name = 'NFTnft';
