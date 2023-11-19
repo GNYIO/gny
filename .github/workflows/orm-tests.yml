@@ -24,7 +24,7 @@ jobs:
 
     - uses: actions/setup-node@v2
       with:
-        node-version: '16.18.0'
+        node-version: '16.20.2'
 
     - name: md5sum of all package.json and package-lock.json files
       run: |

@@ -18,7 +18,10 @@ export default {
     if (desc.length > 100) return 'Invalid description';
 
     const senderId = this.sender.address;
-    await global.app.sdb.lock(`nft.registerNftMaker@${senderId}`);
+
+    // can't register the same nft maker within the same block
+    // different lock strategy then usual
+    await global.app.sdb.lock(`nft.registerNftMaker@${name}`);
     const exists = await global.app.sdb.exists<NftMaker>(NftMaker, { name });
     if (exists) return 'Nft maker name already exists';
 

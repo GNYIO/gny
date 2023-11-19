@@ -196,7 +196,7 @@ describe('basic', () => {
           transData,
           config
         );
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        await expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Recipient name not exist',
         });
@@ -382,7 +382,7 @@ describe('basic', () => {
           transTwiceData,
           config
         );
-        await expect(setPromise).rejects.toHaveProperty('response.data', {
+        return expect(setPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Name already registered',
         });
@@ -438,7 +438,7 @@ describe('basic', () => {
           transTwiceData,
           config
         );
-        await expect(setPromise).rejects.toHaveProperty('response.data', {
+        return expect(setPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Name already set',
         });
@@ -800,7 +800,7 @@ describe('basic', () => {
           config
         );
 
-        await expect(contractPromise).rejects.toHaveProperty('response.data', {
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account cannot unlock',
         });
@@ -825,7 +825,7 @@ describe('basic', () => {
           config
         );
 
-        await expect(contractPromise).rejects.toHaveProperty('response.data', {
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is not locked',
         });
@@ -906,7 +906,7 @@ describe('basic', () => {
           config
         );
 
-        await expect(contractPromise).rejects.toHaveProperty('response.data', {
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account has not a name',
         });
@@ -962,7 +962,7 @@ describe('basic', () => {
           config
         );
 
-        await expect(contractPromise).rejects.toHaveProperty('response.data', {
+        return expect(contractPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is already Delegate',
         });
@@ -1541,7 +1541,7 @@ describe('basic', () => {
           config
         );
 
-        expect(unvotePromise).rejects.toHaveProperty('response.data', {
+        await expect(unvotePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Delegate not voted yet: xpgeng',
         });

@@ -2,7 +2,7 @@ name: integration-contract-uia-tests
 on: [push]
 jobs:
   integration-contract-uia-tests:
-    timeout-minutes: 60
+    timeout-minutes: 75
     runs-on: ubuntu-latest
     steps:
       - name: Set Swap Space
@@ -14,7 +14,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '16.18.0'
+          node-version: '16.20.2'
 
 
 

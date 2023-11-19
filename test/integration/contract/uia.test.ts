@@ -1,8 +1,9 @@
 import * as gnyClient from '@gny/client';
-import * as lib from '../lib';
+import * as lib from '../../e2e/lib';
 import axios from 'axios';
 import { generateAddress } from '../../../packages/utils/src/address';
 import { randomBytes } from 'crypto';
+import { log as consoleLog } from 'console';
 
 const config = {
   headers: {
@@ -11,7 +12,7 @@ const config = {
 };
 
 const genesisSecret =
-  'grow pencil ten junk bomb right describe trade rich valid tuna service';
+  'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
 function randomAddress() {
   return generateAddress(randomBytes(32).toString('hex'));
@@ -104,37 +105,50 @@ async function registerAssetAsync(
   await lib.onNewBlock();
 }
 
+const DOCKER_COMPOSE_P2P = 'config/integration/docker-compose.integration.yml';
+
 describe('uia', () => {
-  beforeAll(async done => {
-    await lib.deleteOldDockerImages();
-    await lib.buildDockerImage();
-    done();
+  beforeAll(async () => {
+    await lib.stopAndRemoveOldContainersAndNetworks();
+    await lib.buildDockerImage(DOCKER_COMPOSE_P2P);
   }, lib.tenMinutes);
 
-  beforeEach(async done => {
-    await lib.spawnContainer();
-    done();
+  beforeEach(async () => {
+    consoleLog(`[${new Date().toLocaleTimeString()}] starting...`);
+
+    await lib.spawnP2PContainers(DOCKER_COMPOSE_P2P, [4096]);
+
+    consoleLog(`[${new Date().toLocaleTimeString()}] started.`);
   }, lib.oneMinute);
 
-  afterEach(async done => {
-    await lib.stopAndKillContainer();
-    done();
+  afterEach(async () => {
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopping...`);
+
+    await lib.stopAndKillContainer(DOCKER_COMPOSE_P2P);
+
+    consoleLog(`[${new Date().toLocaleTimeString()}] stopped.`);
   }, lib.oneMinute);
 
   describe('registerIssuer', () => {
     it(
       'registerIssuer - should regitster an issuer',
       async () => {
+        expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Before registering
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' + issuerName
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Issuer not found',
+          }
+        );
         await lib.onNewBlock();
 
         // Register
@@ -163,12 +177,16 @@ describe('uia', () => {
         );
         expect(afterTrs.data.issuer.name).toBe(issuerName);
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'registerIssuer - should return the error: Invalid issuer name',
       async () => {
+        expect.assertions(2);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = '#123abc';
 
         // Before registering
@@ -194,27 +212,34 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        return expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid issuer name',
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'registerIssuer - should return the error: No issuer description was provided',
       async () => {
+        expect.assertions(2);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Before registering
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' + issuerName
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Issuer not found',
+          }
+        );
         await lib.onNewBlock();
 
         // Register
@@ -234,7 +259,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        return expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid description',
         });
@@ -245,6 +270,10 @@ describe('uia', () => {
     it(
       'registerIssuer - when the issuer description has leading spaces -> Invalid issuer description',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Register
@@ -264,31 +293,38 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        return expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid description',
         });
       },
       lib.oneMinute
-    )
+    );
 
     it(
       'registerIssuer - when issuer description is 4097 chars long -> Invalid issuer description',
       async () => {
+        expect.assertions(2);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Before registering
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' + issuerName
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Issuer not found',
+          }
+        );
         await lib.onNewBlock();
 
         // Register
-        let description = 'a'.repeat(4097);
+        const description = 'a'.repeat(4097);
 
         const trs = gnyClient.uia.registerIssuer(
           issuerName,
@@ -305,7 +341,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        return expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid description',
         });
@@ -316,16 +352,23 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error -> Issuer name already exists',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Before registering
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' + issuerName
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Issuer not found',
+          }
+        );
         await lib.onNewBlock();
 
         // Register first time
@@ -360,7 +403,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        await expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Issuer name already exists',
         });
@@ -378,16 +421,23 @@ describe('uia', () => {
     it(
       'registerIssuer - should return the error: Account is already an issuer',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const issuerName = 'liang';
 
         // Before registering
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/issuers/' + issuerName
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Issuer not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Issuer not found',
+          }
+        );
         await lib.onNewBlock();
 
         // Register first time
@@ -422,7 +472,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuerPromise).rejects.toHaveProperty('response.data', {
+        await expect(issuerPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is already an issuer',
         });
@@ -442,15 +492,22 @@ describe('uia', () => {
     it(
       'registerAsset - should register the asset',
       async () => {
+        expect.assertions(4);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -483,21 +540,28 @@ describe('uia', () => {
         );
         expect(afterTrs.data.asset.name).toBe(name);
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid symbol',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -519,7 +583,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid symbol',
         });
@@ -530,26 +594,36 @@ describe('uia', () => {
         const afterRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(afterRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        return expect(afterRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid asset description',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -575,7 +649,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid description',
         });
@@ -586,17 +660,24 @@ describe('uia', () => {
         const afterRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(afterRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        return expect(afterRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Precision should be positive integer',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await lib.onNewBlock();
 
         const name = 'liang.BBB';
@@ -604,10 +685,13 @@ describe('uia', () => {
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -629,7 +713,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Precision should be positive integer',
         });
@@ -640,10 +724,13 @@ describe('uia', () => {
         const afterRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(afterRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        return expect(afterRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
       },
       1.5 * lib.oneMinute
     );
@@ -651,6 +738,10 @@ describe('uia', () => {
     it(
       'should return the error: Invalid asset precision',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await lib.onNewBlock();
 
         const name = 'liang.BBB';
@@ -658,10 +749,13 @@ describe('uia', () => {
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -683,7 +777,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid asset precision',
         });
@@ -694,10 +788,13 @@ describe('uia', () => {
         const afterRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(afterRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        return expect(afterRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
       },
       lib.oneMinute
     );
@@ -705,15 +802,22 @@ describe('uia', () => {
     it(
       'should return the error: Account is not an issuer',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         // await registerIssuerAsync('liang', 'liang');
@@ -735,7 +839,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Account is not an issuer',
         });
@@ -746,10 +850,13 @@ describe('uia', () => {
         const afterRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(afterRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        return expect(afterRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
       },
       lib.oneMinute
     );
@@ -757,15 +864,22 @@ describe('uia', () => {
     it(
       'should return the error: Asset already exists',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         const name = 'liang.BBB';
         // Before registering asset
         const beforeRegisterPromise = axios.get(
           'http://localhost:4096/api/uia/assets/' + name
         );
-        expect(beforeRegisterPromise).rejects.toHaveProperty('response.data', {
-          success: false,
-          error: 'Asset not found',
-        });
+        await expect(beforeRegisterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Asset not found',
+          }
+        );
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -807,7 +921,7 @@ describe('uia', () => {
           config
         );
 
-        expect(assetPromise).rejects.toHaveProperty('response.data', {
+        await expect(assetPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Asset already exists',
         });
@@ -820,12 +934,16 @@ describe('uia', () => {
         );
         expect(afterTrs.data.asset.name).toBe(name);
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'maximum of 9000000000000000000 is ok',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -855,12 +973,16 @@ describe('uia', () => {
           },
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'maximum of 9000000000000000001 will fail',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await lib.onNewBlock();
 
         await registerIssuerAsync('liang', 'liang');
@@ -896,6 +1018,10 @@ describe('uia', () => {
     it(
       'should update asset',
       async () => {
+        expect.assertions(4);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await registerIssuerAsync('liang', 'liang');
         await registerAssetAsync(
           'BBB',
@@ -945,6 +1071,10 @@ describe('uia', () => {
     it(
       'should return the error: Invalid currency',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await registerIssuerAsync('liang', 'liang');
         await registerAssetAsync(
           'BBB',
@@ -977,7 +1107,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuePromise).rejects.toHaveProperty('response.data', {
+        await expect(issuePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid currency',
         });
@@ -996,6 +1126,10 @@ describe('uia', () => {
     it(
       'should return the error: Asset not exists',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await registerIssuerAsync('liang', 'liang');
         // await registerAssetAsync('BBB', 'some description', String(10 * 1e8), 8);
 
@@ -1015,7 +1149,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuePromise).rejects.toHaveProperty('response.data', {
+        await expect(issuePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Asset not exists',
         });
@@ -1030,6 +1164,10 @@ describe('uia', () => {
     it(
       'should return the error: Exceed issue limit',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         await registerIssuerAsync('liang', 'liang');
         await registerAssetAsync(
           'BBB',
@@ -1063,7 +1201,7 @@ describe('uia', () => {
           config
         );
 
-        expect(issuePromise).rejects.toHaveProperty('response.data', {
+        await expect(issuePromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Exceed issue limit',
         });
@@ -1083,7 +1221,11 @@ describe('uia', () => {
   describe('transfer', () => {
     it(
       'should transfer some amount to the recipient',
-      async done => {
+      async () => {
+        expect.assertions(4);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1123,14 +1265,17 @@ describe('uia', () => {
           'http://localhost:4096/api/uia/balances/' + recipient
         );
         expect(afterTransfer.data.balances[0].balance).toBe('1000000000');
-        done();
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid currency',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1160,7 +1305,7 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        await expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid currency',
         });
@@ -1173,12 +1318,16 @@ describe('uia', () => {
         );
         expect(afterTransfer.data.balances).toHaveLength(0);
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid recipient',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1204,17 +1353,22 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid recipient',
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Insufficient balance',
       async () => {
+        expect.assertions(3);
+
+        await lib.waitForApiToBeReadyReady(4096);
+        await lib.onNewBlock(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1244,7 +1398,7 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        await expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Insufficient balance',
         });
@@ -1257,12 +1411,17 @@ describe('uia', () => {
         );
         expect(afterTransfer.data.balances).toHaveLength(0);
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Recipient name not exist',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+        await lib.onNewBlock(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1287,22 +1446,26 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Recipient name not exist',
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid recipient, if recipient address is equal to sender address',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         // prepare
         await beforeUiaTransfer();
 
         // act
-        const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const recipient = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
 
         const transfer = gnyClient.uia.transfer(
           'ABC.BBB',
@@ -1321,17 +1484,21 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid recipient',
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
 
     it(
       'should return the error: Invalid recipient, if recipient username is equal to sender username',
       async () => {
+        expect.assertions(1);
+
+        await lib.waitForApiToBeReadyReady(4096);
+
         // prepare
         await beforeUiaTransfer();
 
@@ -1370,12 +1537,12 @@ describe('uia', () => {
           config
         );
 
-        expect(transferPromise).rejects.toHaveProperty('response.data', {
+        return expect(transferPromise).rejects.toHaveProperty('response.data', {
           success: false,
           error: 'Error: Invalid recipient',
         });
       },
-      lib.oneMinute
+      lib.oneMinute * 2
     );
   });
 });

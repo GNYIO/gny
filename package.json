@@ -69,7 +69,7 @@
   "license": "MIT",
   "engineStrict": true,
   "engines": {
-    "node": "=16.18.0"
+    "node": "=16.20.2"
   },
   "bugs": {
     "url": "https://github.com/GNYIO/gny-experiment/issues"
