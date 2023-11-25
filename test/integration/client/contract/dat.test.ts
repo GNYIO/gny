@@ -24,12 +24,12 @@ const config = {
 
 const connection = new gnyClient.Connection('127.0.0.1', GNY_PORT, 'localnet');
 
-async function registerNftMaker(
+async function registerDatMaker(
   name: string,
   description: string,
   secret: string
 ) {
-  const makerResponse = await connection.contract.Nft.registerNftMaker(
+  const makerResponse = await connection.contract.Dat.registerDatMaker(
     name,
     description,
     secret
@@ -41,25 +41,25 @@ async function registerNftMaker(
   return makerResponse;
 }
 
-async function registerNft(
-  nftName: string,
+async function registerDat(
+  datName: string,
   hash: string,
   makerId: string,
   url: string,
   secret: string
 ) {
-  const nftResponse = await connection.contract.Nft.createNft(
-    nftName,
+  const datResponse = await connection.contract.Dat.createDat(
+    datName,
     hash,
     makerId,
     url,
     secret
   );
-  expect(nftResponse).toHaveProperty('transactionId');
+  expect(datResponse).toHaveProperty('transactionId');
 
   await lib.onNewBlock(GNY_PORT);
 
-  return nftResponse;
+  return datResponse;
 }
 
 async function transferGNY(to: string, amount: string, secret: string) {
@@ -71,7 +71,7 @@ async function transferGNY(to: string, amount: string, secret: string) {
   return sendResponse;
 }
 
-describe('nft', () => {
+describe('dat', () => {
   beforeAll(async () => {
     await lib.stopOldInstances(DOCKER_COMPOSE_FILE, env);
     // do not build (this can run parallel)
@@ -86,21 +86,21 @@ describe('nft', () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
   }, lib.oneMinute);
 
-  describe('Nft', () => {
-    describe('nft maker', () => {
+  describe('Dat', () => {
+    describe('dat maker', () => {
       it(
-        'create one nft maker',
+        'create one dat maker',
         async () => {
           expect.assertions(4);
 
-          const nftmaker = 'mynftmaker';
-          const desc = 'first nft maker';
+          const datmaker = 'mydatmaker';
+          const desc = 'first dat maker';
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
-          const response = await registerNftMaker(nftmaker, desc, secret);
+          const response = await registerDatMaker(datmaker, desc, secret);
 
-          const result = await connection.api.Nft.getNftMakers();
+          const result = await connection.api.Dat.getDatMakers();
           // @ts-ignore
           expect(result.makers).toHaveLength(1);
           // @ts-ignore
@@ -108,22 +108,22 @@ describe('nft', () => {
             _version_: 1,
             desc: desc,
             address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
-            name: nftmaker,
-            nftCounter: String(0),
+            name: datmaker,
+            datCounter: String(0),
             // @ts-ignore
             tid: response.transactionId,
           });
 
-          const singleResponse = await connection.api.Nft.getSingleNftMaker(
-            nftmaker
+          const singleResponse = await connection.api.Dat.getSingleDatMaker(
+            datmaker
           );
           // @ts-ignore
           expect(singleResponse.maker).toEqual({
             _version_: 1,
             desc: desc,
             address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
-            name: nftmaker,
-            nftCounter: String(0),
+            name: datmaker,
+            datCounter: String(0),
             // @ts-ignore
             tid: response.transactionId,
           });
@@ -132,16 +132,16 @@ describe('nft', () => {
       );
 
       it(
-        'get single nft maker by name',
+        'get single dat maker by name',
         async () => {
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
-          const response1 = await registerNftMaker('A', 'desc', secret);
-          const response2 = await registerNftMaker('B', 'desc', secret);
+          const response1 = await registerDatMaker('A', 'desc', secret);
+          const response2 = await registerDatMaker('B', 'desc', secret);
 
-          const res1 = await connection.api.Nft.getSingleNftMaker('A');
-          const res2 = await connection.api.Nft.getSingleNftMaker('B');
+          const res1 = await connection.api.Dat.getSingleDatMaker('A');
+          const res2 = await connection.api.Dat.getSingleDatMaker('B');
 
           // @ts-ignore
           expect(res1.maker).toEqual({
@@ -150,7 +150,7 @@ describe('nft', () => {
             address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             // @ts-ignore
             tid: response1.transactionId,
-            nftCounter: String(0),
+            datCounter: String(0),
             _version_: 1,
           });
 
@@ -161,7 +161,7 @@ describe('nft', () => {
             address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             // @ts-ignore
             tid: response2.transactionId,
-            nftCounter: String(0),
+            datCounter: String(0),
             _version_: 1,
           });
         },
@@ -169,7 +169,7 @@ describe('nft', () => {
       );
 
       it(
-        'create multiple nft makers from different owners',
+        'create multiple dat makers from different owners',
         async () => {
           const genesisSecret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -181,17 +181,17 @@ describe('nft', () => {
 
           await transferGNY(anotherAddress, String(10000 * 1e8), genesisSecret);
 
-          const prom1 = registerNftMaker('one', 'desc', genesisSecret);
+          const prom1 = registerDatMaker('one', 'desc', genesisSecret);
           await lib.sleep(100);
-          const prom2 = registerNftMaker('two', 'desc', anotherSecret);
+          const prom2 = registerDatMaker('two', 'desc', anotherSecret);
           const [tid0, tid1] = await Promise.all([prom1, prom2]);
 
-          const prom3 = registerNftMaker('three', 'desc', genesisSecret);
+          const prom3 = registerDatMaker('three', 'desc', genesisSecret);
           await lib.sleep(100);
-          const prom4 = registerNftMaker('four', 'desc', anotherSecret);
+          const prom4 = registerDatMaker('four', 'desc', anotherSecret);
           const [tid2, tid3] = await Promise.all([prom3, prom4]);
 
-          const res = await connection.api.Nft.getNftMakers(0, 100);
+          const res = await connection.api.Dat.getDatMakers(0, 100);
           expect(res.success).toEqual(true);
           // @ts-ignore
           expect(res.makers[0].address).toEqual(genesisAddress);
@@ -200,7 +200,7 @@ describe('nft', () => {
           // @ts-ignore
           expect(res.makers[0].tid).toEqual(tid0.transactionId);
           // @ts-ignore
-          expect(res.makers[0].nftCounter).toEqual(String(0));
+          expect(res.makers[0].datCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[1].address).toEqual(anotherAddress);
@@ -209,7 +209,7 @@ describe('nft', () => {
           // @ts-ignore
           expect(res.makers[1].tid).toEqual(tid1.transactionId);
           // @ts-ignore
-          expect(res.makers[1].nftCounter).toEqual(String(0));
+          expect(res.makers[1].datCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[2].address).toEqual(genesisAddress);
@@ -218,7 +218,7 @@ describe('nft', () => {
           // @ts-ignore
           expect(res.makers[2].tid).toEqual(tid2.transactionId);
           // @ts-ignore
-          expect(res.makers[2].nftCounter).toEqual(String(0));
+          expect(res.makers[2].datCounter).toEqual(String(0));
 
           // @ts-ignore
           expect(res.makers[3].address).toEqual(anotherAddress);
@@ -227,111 +227,111 @@ describe('nft', () => {
           // @ts-ignore
           expect(res.makers[3].tid).toEqual(tid3.transactionId);
           // @ts-ignore
-          expect(res.makers[3].nftCounter).toEqual(String(0));
+          expect(res.makers[3].datCounter).toEqual(String(0));
 
-          const one = await connection.api.Nft.getNftMakers(0, 1);
+          const one = await connection.api.Dat.getDatMakers(0, 1);
           // @ts-ignore
           expect(one.makers).toHaveLength(1);
           // @ts-ignore
           expect(one.makers[0].name).toEqual('one');
 
-          const two = await connection.api.Nft.getNftMakers(1, 1);
+          const two = await connection.api.Dat.getDatMakers(1, 1);
           // @ts-ignore
           expect(two.makers).toHaveLength(1);
           // @ts-ignore
           expect(two.makers[0].name).toEqual('two');
 
-          const three = await connection.api.Nft.getNftMakers(2, 1);
+          const three = await connection.api.Dat.getDatMakers(2, 1);
           // @ts-ignore
           expect(three.makers).toHaveLength(1);
           // @ts-ignore
           expect(three.makers[0].name).toEqual('three');
 
-          const four = await connection.api.Nft.getNftMakers(3, 1);
+          const four = await connection.api.Dat.getDatMakers(3, 1);
           // @ts-ignore
           expect(four.makers).toHaveLength(1);
           // @ts-ignore
           expect(four.makers[0].name).toEqual('four');
 
           /**
-           * now test /api/nft/makers endpoint and filtering by address
+           * now test /api/dat/makers endpoint and filtering by address
            */
 
-          const onlyNftMakersFromGenesisAddressFirst = await connection.api.Nft.getNftMakers(
+          const onlyDatMakersFromGenesisAddressFirst = await connection.api.Dat.getDatMakers(
             0,
             1,
             genesisAddress
           );
 
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressFirst.makers).toHaveLength(1);
+          expect(onlyDatMakersFromGenesisAddressFirst.makers).toHaveLength(1);
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressFirst.count).toEqual(2);
+          expect(onlyDatMakersFromGenesisAddressFirst.count).toEqual(2);
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressFirst.makers[0].tid).toEqual(
+          expect(onlyDatMakersFromGenesisAddressFirst.makers[0].tid).toEqual(
             // @ts-ignore
             tid0.transactionId
           );
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressFirst.makers[0].name).toEqual(
+          expect(onlyDatMakersFromGenesisAddressFirst.makers[0].name).toEqual(
             'one'
           );
 
-          const onlyNftMakersFromAnotherAddressFirst = await connection.api.Nft.getNftMakers(
+          const onlyDatMakersFromAnotherAddressFirst = await connection.api.Dat.getDatMakers(
             0,
             1,
             anotherAddress
           );
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressFirst.makers).toHaveLength(1);
+          expect(onlyDatMakersFromAnotherAddressFirst.makers).toHaveLength(1);
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressFirst.count).toEqual(2);
+          expect(onlyDatMakersFromAnotherAddressFirst.count).toEqual(2);
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressFirst.makers[0].tid).toEqual(
+          expect(onlyDatMakersFromAnotherAddressFirst.makers[0].tid).toEqual(
             // @ts-ignore
             tid1.transactionId
           );
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressFirst.makers[0].name).toEqual(
+          expect(onlyDatMakersFromAnotherAddressFirst.makers[0].name).toEqual(
             'two'
           );
 
-          const onlyNftMakersFromGenesisAddressSecond = await connection.api.Nft.getNftMakers(
+          const onlyDatMakersFromGenesisAddressSecond = await connection.api.Dat.getDatMakers(
             1,
             1,
             genesisAddress
           );
 
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressSecond.makers).toHaveLength(1);
+          expect(onlyDatMakersFromGenesisAddressSecond.makers).toHaveLength(1);
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressSecond.count).toEqual(2);
+          expect(onlyDatMakersFromGenesisAddressSecond.count).toEqual(2);
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressSecond.makers[0].tid).toEqual(
+          expect(onlyDatMakersFromGenesisAddressSecond.makers[0].tid).toEqual(
             // @ts-ignore
             tid2.transactionId
           );
           // @ts-ignore
-          expect(onlyNftMakersFromGenesisAddressSecond.makers[0].name).toEqual(
+          expect(onlyDatMakersFromGenesisAddressSecond.makers[0].name).toEqual(
             'three'
           );
 
-          const onlyNftMakersFromAnotherAddressSecond = await connection.api.Nft.getNftMakers(
+          const onlyDatMakersFromAnotherAddressSecond = await connection.api.Dat.getDatMakers(
             1,
             1,
             anotherAddress
           );
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressSecond.makers).toHaveLength(1);
+          expect(onlyDatMakersFromAnotherAddressSecond.makers).toHaveLength(1);
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressSecond.count).toEqual(2);
+          expect(onlyDatMakersFromAnotherAddressSecond.count).toEqual(2);
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressSecond.makers[0].tid).toEqual(
+          expect(onlyDatMakersFromAnotherAddressSecond.makers[0].tid).toEqual(
             // @ts-ignore
             tid3.transactionId
           );
           // @ts-ignore
-          expect(onlyNftMakersFromAnotherAddressSecond.makers[0].name).toEqual(
+          expect(onlyDatMakersFromAnotherAddressSecond.makers[0].name).toEqual(
             'four'
           );
         },
@@ -339,46 +339,46 @@ describe('nft', () => {
       );
     });
 
-    describe('nft', () => {
+    describe('dat', () => {
       it(
-        'create nft',
+        'create dat',
         async () => {
           // expect.assertions(1);
           const secret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
-          await registerNftMaker('mynftmaker', 'desc', secret);
+          await registerDatMaker('mydatmaker', 'desc', secret);
 
-          const firstNft = 'firstnft';
+          const firstDat = 'firstdat';
           const cid =
             'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku';
-          const makerId = 'mynftmaker';
+          const makerId = 'mydatmaker';
 
-          const nftOne = await registerNft(
-            firstNft,
+          const datOne = await registerDat(
+            firstDat,
             cid,
             makerId,
             `https://test.com/${cid}`,
             secret
           );
 
-          const result = await connection.api.Nft.getNfts();
+          const result = await connection.api.Dat.getDats();
           // @ts-ignore
-          expect(result.nfts).toHaveLength(1);
+          expect(result.dats).toHaveLength(1);
           expect(result).toEqual({
             success: true,
             count: 1,
-            nfts: [
+            dats: [
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
-                name: firstNft,
+                name: firstDat,
                 counter: String(1),
-                nftMakerId: 'mynftmaker',
+                datMakerId: 'mydatmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
                 previousHash: null,
                 // @ts-ignore
-                tid: nftOne.transactionId,
+                tid: datOne.transactionId,
                 timestamp: expect.toBeNumber(),
                 url:
                   'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
@@ -387,37 +387,37 @@ describe('nft', () => {
             ],
           });
 
-          // create second nft
-          const secondNft = 'secondnft';
+          // create second dat
+          const secondDat = 'seconddat';
           const cid2 =
             'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze';
 
-          const nftTwo = await registerNft(
-            secondNft,
+          const datTwo = await registerDat(
+            secondDat,
             cid2,
             makerId,
             `https://test.com/${cid2}`,
             secret
           );
-          expect(nftTwo).toHaveProperty('transactionId');
+          expect(datTwo).toHaveProperty('transactionId');
 
-          const result2 = await connection.api.Nft.getNfts();
+          const result2 = await connection.api.Dat.getDats();
           // @ts-ignore
-          expect(result2.nfts).toHaveLength(2);
+          expect(result2.dats).toHaveLength(2);
           expect(result2).toEqual({
             success: true,
             count: 2,
-            nfts: [
+            dats: [
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
-                name: firstNft,
+                name: firstDat,
                 counter: String(1),
-                nftMakerId: 'mynftmaker',
+                datMakerId: 'mydatmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
                 previousHash: null,
                 // @ts-ignore
-                tid: nftOne.transactionId,
+                tid: datOne.transactionId,
                 timestamp: expect.toBeNumber(),
                 url:
                   'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
@@ -426,14 +426,14 @@ describe('nft', () => {
               {
                 hash:
                   'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
-                name: secondNft,
+                name: secondDat,
                 counter: String(2),
-                nftMakerId: 'mynftmaker',
+                datMakerId: 'mydatmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
                 previousHash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 // @ts-ignore
-                tid: nftTwo.transactionId,
+                tid: datTwo.transactionId,
                 timestamp: expect.toBeNumber(),
                 url:
                   'https://test.com/bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
@@ -442,29 +442,29 @@ describe('nft', () => {
             ],
           });
 
-          const maker = await connection.api.Nft.getSingleNftMaker(
-            'mynftmaker'
+          const maker = await connection.api.Dat.getSingleDatMaker(
+            'mydatmaker'
           );
           // @ts-ignore
-          expect(maker.maker.nftCounter).toEqual(String(2));
+          expect(maker.maker.datCounter).toEqual(String(2));
         },
         lib.oneMinute * 2
       );
 
       it(
-        'get nft by hash and name',
+        'get dat by hash and name',
         async () => {
           const genesisSecret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
 
-          const registerTrs = await registerNftMaker(
+          const registerTrs = await registerDatMaker(
             'one',
             'desc',
             genesisSecret
           );
 
-          const nft0 = await registerNft(
+          const dat0 = await registerDat(
             'ONEONE',
             'bc21e6484530fc9d0313cb816b733396',
             'one',
@@ -472,7 +472,7 @@ describe('nft', () => {
             genesisSecret
           );
           await lib.sleep(100);
-          const nft1 = await registerNft(
+          const dat1 = await registerDat(
             'TWOTWO',
             '0f82d86afa0f5dc965c5c15aca58dcfb',
             'one',
@@ -480,8 +480,8 @@ describe('nft', () => {
             genesisSecret
           );
 
-          // query first nft
-          const res0_by_hash = await connection.api.Nft.getSingleNft({
+          // query first dat
+          const res0_by_hash = await connection.api.Dat.getSingleDat({
             hash: 'bc21e6484530fc9d0313cb816b733396',
           });
           const expected0 = {
@@ -489,24 +489,24 @@ describe('nft', () => {
             counter: String(1),
             hash: 'bc21e6484530fc9d0313cb816b733396',
             name: 'ONEONE',
-            nftMakerId: 'one',
+            datMakerId: 'one',
             ownerAddress: genesisAddress,
             previousHash: null,
             // @ts-ignore
-            tid: nft0.transactionId,
+            tid: dat0.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/bc21e6484530fc9d0313cb816b733396',
           };
           // @ts-ignore
-          expect(res0_by_hash.nft).toEqual(expected0);
-          const res0_by_name = await connection.api.Nft.getSingleNft({
+          expect(res0_by_hash.dat).toEqual(expected0);
+          const res0_by_name = await connection.api.Dat.getSingleDat({
             name: 'ONEONE',
           });
           // @ts-ignore
-          expect(res0_by_name.nft).toEqual(expected0);
+          expect(res0_by_name.dat).toEqual(expected0);
 
-          // query second nft
-          const res1_by_hash = await connection.api.Nft.getSingleNft({
+          // query second dat
+          const res1_by_hash = await connection.api.Dat.getSingleDat({
             hash: '0f82d86afa0f5dc965c5c15aca58dcfb',
           });
           const expected1 = {
@@ -514,31 +514,31 @@ describe('nft', () => {
             counter: String(2),
             hash: '0f82d86afa0f5dc965c5c15aca58dcfb',
             name: 'TWOTWO',
-            nftMakerId: 'one',
+            datMakerId: 'one',
             ownerAddress: genesisAddress,
             previousHash: 'bc21e6484530fc9d0313cb816b733396',
             // @ts-ignore
-            tid: nft1.transactionId,
+            tid: dat1.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/0f82d86afa0f5dc965c5c15aca58dcfb',
           };
           // @ts-ignore
-          expect(res1_by_hash.nft).toEqual(expected1);
-          const res1_by_name = await connection.api.Nft.getSingleNft({
+          expect(res1_by_hash.dat).toEqual(expected1);
+          const res1_by_name = await connection.api.Dat.getSingleDat({
             name: 'TWOTWO',
           });
           // @ts-ignore
-          expect(res1_by_name.nft).toEqual(expected1);
+          expect(res1_by_name.dat).toEqual(expected1);
 
-          const maker = await connection.api.Nft.getSingleNftMaker('one');
+          const maker = await connection.api.Dat.getSingleDatMaker('one');
           // @ts-ignore
-          expect(maker.maker.nftCounter).toEqual(String(2));
+          expect(maker.maker.datCounter).toEqual(String(2));
         },
         lib.oneMinute
       );
 
       it(
-        'create multiple nfts from different makers',
+        'create multiple dats from different makers',
         async () => {
           const genesisSecret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -550,12 +550,12 @@ describe('nft', () => {
 
           await transferGNY(anotherAddress, String(10000 * 1e8), genesisSecret);
 
-          const prom1 = registerNftMaker('one', 'desc', genesisSecret);
+          const prom1 = registerDatMaker('one', 'desc', genesisSecret);
           await lib.sleep(100);
-          const prom2 = registerNftMaker('two', 'desc', anotherSecret);
+          const prom2 = registerDatMaker('two', 'desc', anotherSecret);
           const [tid0, tid1] = await Promise.all([prom1, prom2]);
 
-          const promNft0 = registerNft(
+          const promDat0 = registerDat(
             'NFTONE',
             '4beea259c4a1e6fe982e32a9988bee3d',
             'one',
@@ -563,16 +563,16 @@ describe('nft', () => {
             genesisSecret
           ); // md5sum
           await lib.sleep(100);
-          const promNft1 = registerNft(
+          const promDat1 = registerDat(
             'NFTTWO',
             'fceda27fd75e3fa76467646b8d3e7656',
             'two',
             'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
             anotherSecret
           );
-          const [nft0, nft1] = await Promise.all([promNft0, promNft1]);
+          const [dat0, dat1] = await Promise.all([promDat0, promDat1]);
 
-          const promNft2 = registerNft(
+          const promDat2 = registerDat(
             'NFTTHREE',
             'f1cd9cc9830ae4ab330a7d7175032b10',
             'one',
@@ -580,119 +580,119 @@ describe('nft', () => {
             genesisSecret
           ); // md5sum
           await lib.sleep(100);
-          const promNft3 = registerNft(
+          const promDat3 = registerDat(
             'NFTFOUR',
             '0b719b7df84b7846237101b23bb9b91e',
             'two',
             'https://test.com/0b719b7df84b7846237101b23bb9b91e',
             anotherSecret
           );
-          const [nft2, nft3] = await Promise.all([promNft2, promNft3]);
+          const [dat2, dat3] = await Promise.all([promDat2, promDat3]);
 
-          const nftOne = await connection.api.Nft.getSingleNft({
+          const datOne = await connection.api.Dat.getSingleDat({
             hash: '4beea259c4a1e6fe982e32a9988bee3d',
           });
           // @ts-ignore
-          expect(nftOne.nft).toEqual({
+          expect(datOne.dat).toEqual({
             _version_: 1,
             counter: '1',
             hash: '4beea259c4a1e6fe982e32a9988bee3d',
             name: 'NFTONE',
-            nftMakerId: 'one',
+            datMakerId: 'one',
             ownerAddress: genesisAddress,
             previousHash: null,
             // @ts-ignore
-            tid: nft0.transactionId,
+            tid: dat0.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
           });
 
-          const nftTwo = await connection.api.Nft.getSingleNft({
+          const datTwo = await connection.api.Dat.getSingleDat({
             hash: 'fceda27fd75e3fa76467646b8d3e7656',
           });
           // @ts-ignore
-          expect(nftTwo.nft).toEqual({
+          expect(datTwo.dat).toEqual({
             _version_: 1,
             counter: '1',
             hash: 'fceda27fd75e3fa76467646b8d3e7656',
             name: 'NFTTWO',
-            nftMakerId: 'two',
+            datMakerId: 'two',
             ownerAddress: anotherAddress,
             previousHash: null,
             // @ts-ignore
-            tid: nft1.transactionId,
+            tid: dat1.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
           });
 
-          const nftThree = await connection.api.Nft.getSingleNft({
+          const datThree = await connection.api.Dat.getSingleDat({
             hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
           });
           // @ts-ignore
-          expect(nftThree.nft).toEqual({
+          expect(datThree.dat).toEqual({
             _version_: 1,
             counter: '2',
             hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
             name: 'NFTTHREE',
-            nftMakerId: 'one',
+            datMakerId: 'one',
             ownerAddress: genesisAddress,
             previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
             // @ts-ignore
-            tid: nft2.transactionId,
+            tid: dat2.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
           });
 
-          const nftFour = await connection.api.Nft.getSingleNft({
+          const datFour = await connection.api.Dat.getSingleDat({
             hash: '0b719b7df84b7846237101b23bb9b91e',
           });
           // @ts-ignore
-          expect(nftFour.nft).toEqual({
+          expect(datFour.dat).toEqual({
             _version_: 1,
             counter: '2',
             hash: '0b719b7df84b7846237101b23bb9b91e',
             name: 'NFTFOUR',
-            nftMakerId: 'two',
+            datMakerId: 'two',
             ownerAddress: anotherAddress,
             previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
             // @ts-ignore
-            tid: nft3.transactionId,
+            tid: dat3.transactionId,
             timestamp: expect.toBeNumber(),
             url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
           });
 
           // check that the counter has increased maker
-          const makers = await connection.api.Nft.getNftMakers(0, 100);
+          const makers = await connection.api.Dat.getDatMakers(0, 100);
           // @ts-ignore
           expect(makers.makers).toHaveLength(2);
 
           // @ts-ignore
           expect(makers.makers[0].name).toEqual('one');
           // @ts-ignore
-          expect(makers.makers[0].nftCounter).toEqual(String(2));
+          expect(makers.makers[0].datCounter).toEqual(String(2));
 
           // @ts-ignore
           expect(makers.makers[1].name).toEqual('two');
           // @ts-ignore
-          expect(makers.makers[1].nftCounter).toEqual(String(2));
+          expect(makers.makers[1].datCounter).toEqual(String(2));
 
-          const ntfsFromGenesis = await connection.api.Nft.getNfts({
+          const ntfsFromGenesis = await connection.api.Dat.getDats({
             maker: 'one',
           });
           // @ts-ignore
           expect(ntfsFromGenesis.count).toEqual(2);
           // @ts-ignore
-          expect(ntfsFromGenesis.nfts).toEqual([
+          expect(ntfsFromGenesis.dats).toEqual([
             {
               _version_: 1,
               counter: '1',
               hash: '4beea259c4a1e6fe982e32a9988bee3d',
               name: 'NFTONE',
-              nftMakerId: 'one',
+              datMakerId: 'one',
               ownerAddress: genesisAddress,
               previousHash: null,
               // @ts-ignore
-              tid: nft0.transactionId,
+              tid: dat0.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
             },
@@ -701,33 +701,33 @@ describe('nft', () => {
               counter: '2',
               hash: 'f1cd9cc9830ae4ab330a7d7175032b10',
               name: 'NFTTHREE',
-              nftMakerId: 'one',
+              datMakerId: 'one',
               ownerAddress: genesisAddress,
               previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
               // @ts-ignore
-              tid: nft2.transactionId,
+              tid: dat2.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
             },
           ]);
 
-          const nftsFromAnother = await connection.api.Nft.getNfts({
+          const datsFromAnother = await connection.api.Dat.getDats({
             ownerAddress: anotherAddress,
           });
           // @ts-ignore
-          expect(nftsFromAnother.count).toEqual(2);
+          expect(datsFromAnother.count).toEqual(2);
           // @ts-ignore
-          expect(nftsFromAnother.nfts).toEqual([
+          expect(datsFromAnother.dats).toEqual([
             {
               _version_: 1,
               counter: '1',
               hash: 'fceda27fd75e3fa76467646b8d3e7656',
               name: 'NFTTWO',
-              nftMakerId: 'two',
+              datMakerId: 'two',
               ownerAddress: anotherAddress,
               previousHash: null,
               // @ts-ignore
-              tid: nft1.transactionId,
+              tid: dat1.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
             },
@@ -736,11 +736,11 @@ describe('nft', () => {
               counter: '2',
               hash: '0b719b7df84b7846237101b23bb9b91e',
               name: 'NFTFOUR',
-              nftMakerId: 'two',
+              datMakerId: 'two',
               ownerAddress: anotherAddress,
               previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
               // @ts-ignore
-              tid: nft3.transactionId,
+              tid: dat3.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
             },
@@ -750,22 +750,22 @@ describe('nft', () => {
       );
 
       it(
-        'can not create two nfts of same maker in one block',
+        'can not create two dats of same maker in one block',
         async () => {
           const genesisSecret =
             'summer produce nation depth home scheme trade pitch marble season crumble autumn';
           const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
 
-          const reg1 = await registerNftMaker('one', 'desc', genesisSecret);
+          const reg1 = await registerDatMaker('one', 'desc', genesisSecret);
           // @ts-ignore
           expect(reg1).toHaveProperty('transactionId');
 
           /*
-            start 2 nfts with the same makerId in the same block
-            the second nft should return an error
+            start 2 dats with the same makerId in the same block
+            the second dat should return an error
           */
-          // first nft
-          const prom0 = registerNft(
+          // first dat
+          const prom0 = registerDat(
             'FIRST',
             '2c2624a5059934a947d6e25fe8332ade',
             'one',
@@ -774,8 +774,8 @@ describe('nft', () => {
           );
           await lib.sleep(300);
 
-          // second nft
-          const prom1 = registerNft(
+          // second dat
+          const prom1 = registerDat(
             'SECOND',
             '2200becb80f0019c4a2ccecec350d0db',
             'one',
@@ -784,28 +784,28 @@ describe('nft', () => {
           );
           expect(prom1).rejects.toHaveProperty('response.data', {
             success: false,
-            error: 'Error: Lock name = nft.createNft@one exists already',
+            error: 'Error: Lock name = dat.createDat@one exists already',
           });
 
           const res = await prom0;
 
           await lib.onNewBlock(GNY_PORT);
 
-          const nfts = await connection.api.Nft.getNfts({
+          const dats = await connection.api.Dat.getDats({
             offset: 0,
             limit: 100,
           });
           // @ts-ignore
-          expect(nfts.nfts).toHaveLength(1);
+          expect(dats.dats).toHaveLength(1);
           // @ts-ignore
-          expect(nfts.count).toEqual(1);
+          expect(dats.count).toEqual(1);
           // @ts-ignore
-          expect(nfts.nfts[0]).toEqual({
+          expect(dats.dats[0]).toEqual({
             _version_: 1,
             counter: String(1),
             hash: '2c2624a5059934a947d6e25fe8332ade',
             name: 'FIRST',
-            nftMakerId: 'one',
+            datMakerId: 'one',
             ownerAddress: genesisAddress,
             previousHash: null,
             // @ts-ignore
@@ -814,14 +814,14 @@ describe('nft', () => {
             url: 'https://test.com/2c2624a5059934a947d6e25fe8332ade',
           });
 
-          const maker = await connection.api.Nft.getSingleNftMaker('one');
+          const maker = await connection.api.Dat.getSingleDatMaker('one');
           // @ts-ignore
           expect(maker.maker).toEqual({
             _version_: 2,
             address: genesisAddress,
             desc: 'desc',
             name: 'one',
-            nftCounter: '1',
+            datCounter: '1',
             // @ts-ignore
             tid: reg1.transactionId,
           });

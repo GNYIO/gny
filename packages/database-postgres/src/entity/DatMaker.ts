@@ -4,7 +4,7 @@ import { Versioned } from '../searchTypes.js';
 
 @Config({ memory: false })
 @Entity()
-export class NftMaker implements Versioned {
+export class DatMaker implements Versioned {
   @PrimaryColumn({
     type: 'varchar',
     length: 16,
@@ -40,7 +40,7 @@ export class NftMaker implements Versioned {
     type: 'bigint',
     nullable: false,
   })
-  public nftCounter: string;
+  public datCounter: string;
 
   @Column({
     default: 0,

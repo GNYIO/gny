@@ -4,20 +4,20 @@ import {
   Next,
   IHttpApi,
   ApiResult,
-  NftMakerWrapper,
-  NftWrapper,
-  SingleNftWrapper,
-  SingleNftMakerWrapper,
+  DatMakerWrapper,
+  DatWrapper,
+  SingleDatWrapper,
+  SingleDatMakerWrapper,
 } from '@gny/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { joi } from '@gny/extended-joi';
 
-import { NftMaker } from '@gny/database-postgres';
-import { Nft } from '@gny/database-postgres';
+import { DatMaker } from '@gny/database-postgres';
+import { Dat } from '@gny/database-postgres';
 
-import { nftMakerRegex, nftNameRegex, nftHashRegex } from '@gny/utils';
+import { datMakerRegex, datNameRegex, datHashRegex } from '@gny/utils';
 
-export default class NftApi implements IHttpApi {
+export default class DatApi implements IHttpApi {
   private library: IScope;
 
   constructor(library: IScope) {
@@ -36,10 +36,10 @@ export default class NftApi implements IHttpApi {
         .send({ success: false, error: 'Blockchain is loading' });
     });
 
-    router.get('/makers', this.getNftMakers);
+    router.get('/makers', this.getDatMakers);
     router.get('/makers/:maker', this.getMakerByName);
-    router.get('/', this.getNfts);
-    router.get('/getNft', this.getNft);
+    router.get('/', this.getDats);
+    router.get('/getDat', this.getDat);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -48,11 +48,11 @@ export default class NftApi implements IHttpApi {
         .json({ success: false, error: 'API endpoint not found' });
     });
 
-    this.library.network.app.use('/api/nft', router);
+    this.library.network.app.use('/api/dat', router);
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('nftApi');
+        const span = this.library.tracer.startSpan('datApi');
         span.setTag('error', true);
         span.log({
           value: `${req.url} ${err}`,
@@ -70,7 +70,7 @@ export default class NftApi implements IHttpApi {
     );
   };
 
-  private getNftMakers = async (req: Request, res: Response, next: Next) => {
+  private getDatMakers = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
     const schema = joi
@@ -98,7 +98,7 @@ export default class NftApi implements IHttpApi {
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
-        endpoint: '/api/nft/makers',
+        endpoint: '/api/dat/makers',
         statusCode: '422',
       });
 
@@ -114,18 +114,18 @@ export default class NftApi implements IHttpApi {
     const condition =
       query.address !== undefined ? { address: query.address } : {};
 
-    const count = await global.app.sdb.count<NftMaker>(NftMaker, condition);
+    const count = await global.app.sdb.count<DatMaker>(DatMaker, condition);
 
-    const nftMakers = await global.app.sdb.findAll<NftMaker>(NftMaker, {
+    const datMakers = await global.app.sdb.findAll<DatMaker>(DatMaker, {
       condition,
       limit,
       offset,
     });
 
-    const result: ApiResult<NftMakerWrapper> = {
+    const result: ApiResult<DatMakerWrapper> = {
       success: true,
       count: count,
-      makers: nftMakers,
+      makers: datMakers,
     };
     return res.json(result);
   };
@@ -136,7 +136,7 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(nftMakerRegex)
+          .regex(datMakerRegex)
           .required(),
       })
       .required();
@@ -145,7 +145,7 @@ export default class NftApi implements IHttpApi {
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
-        endpoint: '/api/nft/nft/:hash',
+        endpoint: '/api/dat/dat/:hash',
         statusCode: '422',
       });
 
@@ -155,7 +155,7 @@ export default class NftApi implements IHttpApi {
       });
     }
 
-    const maker = await global.app.sdb.findOne<NftMaker>(NftMaker, {
+    const maker = await global.app.sdb.findOne<DatMaker>(DatMaker, {
       condition: {
         name: req.params.maker,
       },
@@ -165,14 +165,14 @@ export default class NftApi implements IHttpApi {
       return next('maker could not be found');
     }
 
-    const result: ApiResult<SingleNftMakerWrapper> = {
+    const result: ApiResult<SingleDatMakerWrapper> = {
       success: true,
       maker: maker,
     };
     return res.json(result);
   };
 
-  private getNfts = async (req: Request, res: Response, next: Next) => {
+  private getDats = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
     const schema = joi
@@ -180,7 +180,7 @@ export default class NftApi implements IHttpApi {
       .keys({
         maker: joi
           .string()
-          .regex(nftMakerRegex)
+          .regex(datMakerRegex)
           .optional(),
         ownerAddress: joi
           .string()
@@ -205,7 +205,7 @@ export default class NftApi implements IHttpApi {
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
-        endpoint: '/api/nft/nft',
+        endpoint: '/api/dat/dat',
         statusCode: '422',
       });
 
@@ -223,34 +223,34 @@ export default class NftApi implements IHttpApi {
     const condition = {};
 
     if (typeof query.maker === 'string') {
-      condition.nftMakerId = query.maker;
+      condition.datMakerId = query.maker;
     }
     if (typeof query.ownerAddress === 'string') {
       condition.ownerAddress = query.ownerAddress;
     }
 
-    const count = await global.app.sdb.count<Nft>(Nft, condition);
-    const nfts = await global.app.sdb.findAll<Nft>(Nft, {
+    const count = await global.app.sdb.count<Dat>(Dat, condition);
+    const dats = await global.app.sdb.findAll<Dat>(Dat, {
       condition,
       limit,
       offset,
       sort: { timestamp: 1 },
     });
 
-    const result: ApiResult<NftWrapper> = {
+    const result: ApiResult<DatWrapper> = {
       success: true,
       count,
-      nfts: nfts,
+      dats: dats,
     };
     return res.json(result);
   };
 
-  private getNft = async (req: Request, res: Response, next: Next) => {
+  private getDat = async (req: Request, res: Response, next: Next) => {
     const hashOrName = joi
       .object()
       .keys({
-        hash: joi.string().regex(nftHashRegex),
-        name: joi.string().regex(nftNameRegex),
+        hash: joi.string().regex(datHashRegex),
+        name: joi.string().regex(datNameRegex),
       })
       .xor('hash', 'name')
       .required();
@@ -259,7 +259,7 @@ export default class NftApi implements IHttpApi {
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
-        endpoint: '/api/nft/getNft',
+        endpoint: '/api/dat/getDat',
         statusCode: '422',
       });
 
@@ -274,17 +274,17 @@ export default class NftApi implements IHttpApi {
         ? { hash: req.query.hash }
         : { name: req.query.name };
 
-    const nft = await global.app.sdb.findOne<Nft>(Nft, {
+    const dat = await global.app.sdb.findOne<Dat>(Dat, {
       condition,
     });
 
-    if (nft === undefined) {
-      return next('nft can not be found');
+    if (dat === undefined) {
+      return next('dat can not be found');
     }
 
-    const result: ApiResult<SingleNftWrapper> = {
+    const result: ApiResult<SingleDatWrapper> = {
       success: true,
-      nft: nft,
+      dat: dat,
     };
     return res.json(result);
   };
