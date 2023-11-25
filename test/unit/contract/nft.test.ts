@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-describe.skip('nft contract', () => {
+describe('nft contract', () => {
   beforeEach(done => {
     global.app = {
       validate: jest.fn((type, value) => null),
