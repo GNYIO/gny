@@ -4,9 +4,9 @@
 import * as lib from '../lib';
 import * as gnyClient from '@gny/client';
 
-const GNY_PORT = 15096;
-const GNY_APP_NAME = 'app12';
-const NETWORK_PREFIX = '172.31';
+const GNY_PORT = 18096;
+const GNY_APP_NAME = 'app15';
+const NETWORK_PREFIX = '172.34';
 const env = lib.createEnvironmentVariables(
   GNY_PORT,
   GNY_APP_NAME,
