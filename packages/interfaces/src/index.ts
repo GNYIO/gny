@@ -186,6 +186,7 @@ export interface IConfig {
   nodeAction: string;
   jaegerHost: string;
   p2pConfig: IPeer2PeerHandlers;
+  activateDat: boolean;
 }
 
 export interface KeyPairsIndexer {

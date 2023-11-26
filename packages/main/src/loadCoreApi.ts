@@ -27,7 +27,6 @@ export default function loadCoreApi(scope: IScope) {
   const loaderApi = new LoaderApi(scope);
   const exchangeApi = new ExchangeApi(scope);
   const metricsApi = new MetricsApi(scope);
-  const datApi = new DatApi(scope);
   const burnApi = new BurnApi(scope);
 
   const coreApi: CoreApi = {
@@ -43,8 +42,13 @@ export default function loadCoreApi(scope: IScope) {
     loaderApi,
     exchangeApi,
     metricsApi,
-    datApi,
     burnApi,
   };
+
+  if (global.Config.activateDat === true) {
+    const datApi = new DatApi(scope);
+    coreApi['datApi'] = datApi;
+  }
+
   return coreApi;
 }

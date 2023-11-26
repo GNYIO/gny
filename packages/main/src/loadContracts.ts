@@ -17,5 +17,8 @@ function addContract(contract: ModuleWrapper) {
 export default async function loadContracts() {
   addContract({ module: basic, name: 'basic' });
   addContract({ module: uia, name: 'uia' });
-  addContract({ module: dat, name: 'dat' });
+
+  if (global.Config.activateDat === true) {
+    addContract({ module: dat, name: 'dat' });
+  }
 }

@@ -41,9 +41,9 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/app'
     environment:
       - NODE_ENV=production
+      - GNY_ACTIVATE_DAT=true
       - EXCHANGE_API=$EXCHANGE_FEATURE
       - GNY_NETWORK=localnet
-      - GNY_DISABLE_JAEGER=false
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces
       - GNY_LOG_LEVEL=info
       - GNY_DB_PASSWORD=docker
