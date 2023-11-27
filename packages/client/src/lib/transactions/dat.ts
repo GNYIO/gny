@@ -1,6 +1,6 @@
 import * as transaction from './transaction';
 
-function registerNftMaker(
+function registerDatMaker(
   name: string,
   desc: string,
   secret: string,
@@ -15,8 +15,8 @@ function registerNftMaker(
   });
 }
 
-function createNft(
-  nftName: string,
+function createDat(
+  datName: string,
   hash: string,
   makerId: string,
   url: string,
@@ -26,10 +26,10 @@ function createNft(
   return transaction.createTransactionEx({
     type: 301,
     fee: String(0.1 * 1e8),
-    args: [nftName, hash, makerId, url],
+    args: [datName, hash, makerId, url],
     secret,
     secondSecret: secondSecret,
   });
 }
 
-export { registerNftMaker, createNft };
+export { registerDatMaker, createDat };

@@ -571,7 +571,7 @@ export class AddBurnTable1691572220932 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
 
-// was moved before CreateNft* migration
+// was moved before CreateDat* migration
 export class AddBlockDelegateIndex1694943715000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
@@ -581,61 +581,61 @@ export class AddBlockDelegateIndex1694943715000 implements MigrationInterface {
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
 
-export class CreateNft1700423861000 implements MigrationInterface {
+export class CreateDat1700423861000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query(`
-      CREATE TABLE public.nft_maker (
+      CREATE TABLE public.dat_maker (
         name character varying(30) NOT NULL,
         "desc" character varying(100) NOT NULL,
         "address" character varying(50) NOT NULL,
         tid character varying(64) NOT NULL,
-        "nftCounter" bigint NOT NULL,
+        "datCounter" bigint NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 
-      ALTER TABLE public.nft_maker OWNER TO postgres;
+      ALTER TABLE public.dat_maker OWNER TO postgres;
 
-      ALTER TABLE ONLY public.nft_maker
-          ADD CONSTRAINT "nft_maker_name_pkey" PRIMARY KEY (name);
+      ALTER TABLE ONLY public.dat_maker
+          ADD CONSTRAINT "dat_maker_name_pkey" PRIMARY KEY (name);
 
-      ALTER TABLE ONLY public.nft_maker
-          ADD CONSTRAINT "nft_maker_tid_key" UNIQUE (tid);
-
-
+      ALTER TABLE ONLY public.dat_maker
+          ADD CONSTRAINT "dat_maker_tid_key" UNIQUE (tid);
 
 
 
-      CREATE TABLE public.nft (
+
+
+      CREATE TABLE public.dat (
         name character varying(40) NOT NULL,
         hash character varying(64) NOT NULL,
         "previousHash" character varying(64) NULL,
         tid character varying(64) NOT NULL,
         "counter" bigint NOT NULL,
-        "nftMakerId" character varying(30) NOT NULL,
+        "datMakerId" character varying(30) NOT NULL,
         "ownerAddress" character varying(50) NOT NULL,
         "timestamp" integer NOT NULL,
         "url" varchar(255) NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 
-      ALTER TABLE public.nft OWNER TO postgres;
+      ALTER TABLE public.dat OWNER TO postgres;
 
-      ALTER TABLE ONLY public.nft
-          ADD CONSTRAINT "nft_name_pkey" PRIMARY KEY (name);
-      ALTER TABLE ONLY public.nft
-          ADD CONSTRAINT "nft_hash_key" UNIQUE (hash);
-      ALTER TABLE ONLY public.nft
-          ADD CONSTRAINT "nft_tid_key" UNIQUE (tid);
-      CREATE INDEX "nft_counter_idx"
-          ON public.nft USING btree (counter);
-      CREATE INDEX "nft_nftMakerId_idx"
-          ON public.nft USING btree ("nftMakerId");
-      CREATE INDEX "nft_ownerAddress_idx"
-          ON public.nft USING btree ("ownerAddress");
-      CREATE INDEX "nft_timestamp_idx"
-          ON public.nft USING btree ("timestamp");
-      CREATE INDEX "nft_url_idx"
-          ON public.nft USING btree ("url");
+      ALTER TABLE ONLY public.dat
+          ADD CONSTRAINT "dat_name_pkey" PRIMARY KEY (name);
+      ALTER TABLE ONLY public.dat
+          ADD CONSTRAINT "dat_hash_key" UNIQUE (hash);
+      ALTER TABLE ONLY public.dat
+          ADD CONSTRAINT "dat_tid_key" UNIQUE (tid);
+      CREATE INDEX "dat_counter_idx"
+          ON public.dat USING btree (counter);
+      CREATE INDEX "dat_datMakerId_idx"
+          ON public.dat USING btree ("datMakerId");
+      CREATE INDEX "dat_ownerAddress_idx"
+          ON public.dat USING btree ("ownerAddress");
+      CREATE INDEX "dat_timestamp_idx"
+          ON public.dat USING btree ("timestamp");
+      CREATE INDEX "dat_url_idx"
+          ON public.dat USING btree ("url");
     `);
   }
   async down(queryRunner: QueryRunner): Promise<any> {}

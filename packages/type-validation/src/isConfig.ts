@@ -114,6 +114,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
           V1_RENDEZVOUS_BROADCAST: joi.string().required(),
         })
         .required(),
+      activateDat: joi
+        .boolean()
+        .strict()
+        .required(),
     })
     .required();
 

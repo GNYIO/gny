@@ -244,8 +244,11 @@ function main() {
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
 
-  // asign config to global variable
-  global.Config = appConfig;
+  (appConfig.activateDat = JSON.parse(
+    process.env['GNY_ACTIVATE_DAT'] || false
+  )),
+    // asign config to global variable
+    (global.Config = appConfig);
 
   const options = {
     appConfig,

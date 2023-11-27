@@ -91,7 +91,7 @@ export interface CoreApi {
   loaderApi: IHttpApi;
   exchangeApi: IHttpApi;
   metricsApi: IHttpApi;
-  // nftApi: IHttpApi;
+  datApi: IHttpApi;
   burnApi: IHttpApi;
 }
 
@@ -186,6 +186,7 @@ export interface IConfig {
   nodeAction: string;
   jaegerHost: string;
   p2pConfig: IPeer2PeerHandlers;
+  activateDat: boolean;
 }
 
 export interface KeyPairsIndexer {
@@ -924,44 +925,44 @@ export interface SmartDBOptions {
   dbPort: number;
 }
 
-export interface INftMaker {
+export interface IDatMaker {
   name: string;
   desc: string;
   address: string;
   tid: string;
-  nftCounter: string;
+  datCounter: string;
   _version_?: number;
 }
 
-export interface NftMakerWrapper {
+export interface DatMakerWrapper {
   count: number;
-  makers: INftMaker[];
+  makers: IDatMaker[];
 }
 
-export interface SingleNftMakerWrapper {
-  maker: INftMaker;
+export interface SingleDatMakerWrapper {
+  maker: IDatMaker;
 }
 
-export interface INft {
+export interface IDat {
   name: string;
   hash: string;
   previousHash?: string;
   tid: string;
   counter: string;
-  nftMakerId: string;
+  datMakerId: string;
   ownerAddress: string;
   timestamp: number;
   url: string;
   _version_?: number;
 }
 
-export interface SingleNftWrapper {
-  nft: INft;
+export interface SingleDatWrapper {
+  dat: IDat;
 }
 
-export interface NftWrapper {
+export interface DatWrapper {
   count: number;
-  nfts: INft[];
+  dats: IDat[];
 }
 
 export interface IBurn {

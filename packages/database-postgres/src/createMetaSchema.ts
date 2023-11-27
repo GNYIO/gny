@@ -21,8 +21,8 @@ import { Vote } from './entity/Vote.js';
 import { BlockHistory } from './entity/BlockHistory.js';
 import { Mldata } from './entity/Mldata.js';
 import { Prediction } from './entity/Prediction.js';
-import { NftMaker } from './entity/NftMaker.js';
-import { Nft } from './entity/Nft.js';
+import { DatMaker } from './entity/DatMaker.js';
+import { Dat } from './entity/Dat.js';
 import { Burn } from './entity/Burn.js';
 
 export function transform(entity: any) {
@@ -94,8 +94,8 @@ export function createMetaSchema() {
   const blockHistory = transform(BlockHistory);
   const mldata = transform(Mldata);
   const prediction = transform(Prediction);
-  const nftMaker = transform(NftMaker);
-  const nft = transform(Nft);
+  const datMaker = transform(DatMaker);
+  const dat = transform(Dat);
   const burn = transform(Burn);
 
   result.set('Account', account);
@@ -112,8 +112,8 @@ export function createMetaSchema() {
   result.set('BlockHistory', blockHistory);
   result.set('Mldata', mldata);
   result.set('Prediction', prediction);
-  result.set('NftMaker', nftMaker);
-  result.set('Nft', nft);
+  result.set('DatMaker', datMaker);
+  result.set('Dat', dat);
   result.set('Burn', burn);
 
   return result;

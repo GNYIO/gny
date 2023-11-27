@@ -1,6 +1,6 @@
 import * as basic from './lib/transactions/basic';
 import * as crypto from './lib/transactions/crypto';
-import * as nft from './lib/transactions/nft';
+import * as dat from './lib/transactions/dat';
 
 import * as transaction from './lib/transactions/transaction';
 import * as uia from './lib/transactions/uia';
@@ -11,4 +11,4 @@ const utils = {
   format: format,
 };
 
-export { basic, crypto, transaction, uia, utils, Connection, nft };
+export { basic, crypto, transaction, uia, utils, Connection, dat };

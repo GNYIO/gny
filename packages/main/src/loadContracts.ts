@@ -1,7 +1,7 @@
 // import contracts
 import basic from './contract/basic.js';
 import uia from './contract/uia.js';
-// import nft from './contract/nft.js';
+import dat from './contract/dat.js';
 
 interface ModuleWrapper {
   module: any;
@@ -17,5 +17,8 @@ function addContract(contract: ModuleWrapper) {
 export default async function loadContracts() {
   addContract({ module: basic, name: 'basic' });
   addContract({ module: uia, name: 'uia' });
-  // addContract({ module: nft, name: 'nft' });
+
+  if (global.Config.activateDat === true) {
+    addContract({ module: dat, name: 'dat' });
+  }
 }
