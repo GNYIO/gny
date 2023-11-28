@@ -233,6 +233,34 @@ export default {
         }
       }
     }
+
+    // update Delegate entity, set eligible to 1 (true) if at least 187.5k
+    // is locked
+    // should this feature only be available above height x for mainnet?
+    // it is possible that this account is not a delegate and only wants to
+    // lock its account for voting
+    if (
+      sender.isDelegate &&
+      new BigNumber(sender.lockAmount).isGreaterThanOrEqualTo(187500 * 1e8)
+    ) {
+      const myDelegate = await global.app.sdb.get<Delegate>(Delegate, {
+        address: senderId,
+      });
+
+      // only set if not set before
+      if (!myDelegate.eligible) {
+        await global.app.sdb.update<Delegate>(
+          Delegate,
+          {
+            eligible: 1,
+          },
+          {
+            address: senderId,
+          }
+        );
+      }
+    }
+
     return null;
   },
 
@@ -297,6 +325,22 @@ export default {
       address: senderId,
     });
 
+    // set eligible to 0 (false) if set to 1 (true)
+    const delegate = await global.app.sdb.get<Delegate>(Delegate, {
+      address: senderId,
+    });
+    if (delegate && delegate.eligible) {
+      await global.app.sdb.update<Delegate>(
+        Delegate,
+        {
+          eligible: 0,
+        },
+        {
+          address: senderId,
+        }
+      );
+    }
+
     return null;
   },
 
@@ -312,6 +356,16 @@ export default {
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
 
+    // todo set eligible flag to true if has 187500 locked
+    // should set for mainnet only above height x ?
+    // this needs to be done in case a account that has locked GNY before
+    // but was not a delegate suddenly becomes a delegate
+    const isEligible = new BigNumber(sender.lockAmount).isGreaterThanOrEqualTo(
+      187500 * 1e8
+    )
+      ? 1
+      : 0;
+
     const delegate: IDelegate = {
       address: senderId,
       username: sender.username,
@@ -322,6 +376,7 @@ export default {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: isEligible,
     };
     await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
