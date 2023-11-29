@@ -454,6 +454,23 @@ export default class Delegates implements ICoreModule {
     return left.publicKey < right.publicKey ? 1 : -1;
   };
 
+  // incorporates the fact that delegates need to have 187,500 GNY locked
+  // 1. "eligible" delegates should always be before "non-eligible" delegates
+  // 2. between two eligible delegates votes should win, then publicKey desc
+  // 3. between to non-eligible delegates votes should win, then publicKey desc
+  public static compareStrict = (left: IDelegate, right: IDelegate) => {
+    if (left.eligible && !right.eligible) {
+      return -1; // take left before right
+    }
+
+    if (!left.eligible && right.eligible) {
+      return 1; // take right before left
+    }
+
+    // is this correct?
+    return Delegates.compare(left, right);
+  };
+
   public static getTopDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
     const sortedPublicKeys = allDelegates
