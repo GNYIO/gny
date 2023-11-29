@@ -234,10 +234,11 @@ export default {
       }
     }
 
-    // update Delegate entity, set eligible to 1 (true) if at least 187.5k
-    // is locked
-    // should this feature only be available above height x for mainnet?
-    // it is possible that this account is not a delegate and only wants to
+    // in order to set eligible to 1 (true)
+    // 1. account must be delegate
+    // 2. account needs to have 187,500 GNY locked
+    // 3. account can't be already "eligible"
+    // FYI: it is possible that this account is not a delegate and only wants to
     // lock its account for voting
     if (
       sender.isDelegate &&
