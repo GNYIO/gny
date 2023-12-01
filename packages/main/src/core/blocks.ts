@@ -598,38 +598,6 @@ export default class Blocks implements ICoreModule {
     span.finish();
   };
 
-  public static saveSlotStatistics = async (block: IBlock, span: ISpan) => {
-    const delegates = await Delegates.generateDelegateList(block.height);
-
-    // save block slot number
-    const currentSlot = slots.getSlotNumber(block.timestamp);
-    const delegateKey = delegates[currentSlot % 101];
-
-    const delegateNamesShuffled: string[] = [];
-    for (let i = 0; i < delegates.length; ++i) {
-      const one = await global.app.sdb.get<Delegate>(Delegate, {
-        publicKey: delegates[i],
-      });
-      delegateNamesShuffled.push(one.username);
-    }
-
-    span.log({
-      key: `delegate_slot_number_${block.height}`,
-      value: JSON.stringify(
-        {
-          currentSlot: currentSlot,
-          blockTimestamp: block.timestamp,
-          delegatePosition: currentSlot % 101,
-          delegateBlock: block.delegate,
-          currentDelegate: delegateKey,
-          delegateListShuffled: delegateNamesShuffled,
-        },
-        null,
-        2
-      ),
-    });
-  };
-
   public static loadBlocksFromPeer = async (
     peer: PeerId,
     id: string,
