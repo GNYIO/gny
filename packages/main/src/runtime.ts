@@ -48,7 +48,7 @@ export default async function runtime(options: IOptions) {
     }),
     transactions: new prom.Gauge<string>({
       name: 'gny_transactions',
-      help: 'the number of blocks',
+      help: 'the number of transactions',
       collect: async function getTransactions() {
         const data = await global.app.sdb.count<Transaction>(Transaction, {});
         this.set(Number.parseInt(data));
