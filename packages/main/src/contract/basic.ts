@@ -129,6 +129,8 @@ export default {
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
+    // because we are using load() we can make sure that within one block
+    // not two accounts set the same username
     const exists = await global.app.sdb.load<Account>(Account, {
       username: username,
     });
@@ -234,10 +236,10 @@ export default {
       }
     }
 
-    // in order to set eligible to 1 (true)
-    // 1. account must be delegate
-    // 2. account needs to have 187,500 GNY locked
-    // 3. account can't be already "eligible"
+    // in order to become eligible=1 (true)
+    // 1. sender must be delegate
+    // 2. sender needs to have 187,500 GNY locked
+    // 3. sender can't be already "eligible"
     // FYI: it is possible that this account is not a delegate and only wants to
     // lock its account for voting
     if (
