@@ -445,6 +445,83 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'two different accounts can not set the same account within one block',
+      async () => {
+        // expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        const secret1 =
+          'young burger certain exchange alley control link cry tide fluid confirm air';
+        const address1 = 'G3DYQjmTbC1Rg24c5hLjQva4Chd5H';
+
+        const secret2 =
+          'recipe exercise fit caught mesh recycle garment raven sun urge lava point';
+        const address2 = 'GmrEvrJ8bPG6KS3pcXXMXN2NJH71';
+
+        // send 200 GNY to both of theses addresses
+        const basicTransfer1 = gnyClient.basic.transfer(
+          address1,
+          String(200 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData1 = {
+          transaction: basicTransfer1,
+        };
+
+        const basicTransfer2 = gnyClient.basic.transfer(
+          address2,
+          String(200 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData2 = {
+          transaction: basicTransfer2,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData1,
+          config
+        );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData2,
+          config
+        );
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        const setUsernameTrs1 = gnyClient.basic.setUserName('a1300', secret1);
+        const setUsernameData1 = {
+          transaction: setUsernameTrs1,
+        };
+        const setUsernameTrs2 = gnyClient.basic.setUserName('a1300', secret2);
+        const setUsernameData2 = {
+          transaction: setUsernameTrs2,
+        };
+
+        const promise1 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          setUsernameData1,
+          config
+        );
+        await expect(promise1).resolves.toHaveProperty('data.transactionId');
+
+        const promise2 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          setUsernameData2,
+          config
+        );
+        return expect(promise2).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Name already registered',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('lock', () => {
