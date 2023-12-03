@@ -75,7 +75,7 @@ describe('smartDB.getAll()', () => {
   });
 
   it('getAll() - returns not same reference', async () => {
-    expect.assertions(3);
+    expect.assertions(5);
 
     await saveGenesisBlock(sut);
 
@@ -89,7 +89,15 @@ describe('smartDB.getAll()', () => {
 
     expect(result.length).toEqual(1);
     expect(result[0]).toEqual(createdResult); // structure is the same
-    expect(result[0]).not.toBe(createdResult); // reference is not the same
+
+    const initialSameAsCreatedResult = delegate1 === createdResult;
+    expect(initialSameAsCreatedResult).toEqual(false);
+
+    const initialSameAsResult = delegate1 === result[0];
+    expect(initialSameAsResult).toEqual(false);
+
+    const resultSameAsCreatedResult = result[0] === createdResult;
+    expect(resultSameAsCreatedResult).toEqual(false);
   });
 
   it('getAll() - returns empty array if no entities are found in cache', async () => {

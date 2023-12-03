@@ -1,10 +1,11 @@
 import { SmartDB } from '@gny/database-postgres';
-import { IAccount } from '@gny/interfaces';
+import { IAccount, IAsset } from '@gny/interfaces';
 import * as lib from '../lib';
 import { Account } from '@gny/database-postgres';
+import { Asset } from '@gny/database-postgres';
 import { Balance } from '@gny/database-postgres';
 import { Versioned } from '@gny/database-postgres';
-import { saveGenesisBlock, logger } from './smartDB.test.helpers';
+import { saveGenesisBlock, logger, createBlock } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
 import { copyObject } from '@gny/base';
 
@@ -87,8 +88,12 @@ describe('smartDB.create()', () => {
       lockHeight: String(0),
     };
 
-    expect(createResult).not.toBe(expected); // not same reference
-    expect(createResult).toEqual(expected); // deepEquals (same values)
+    // create() does not return the same object reference
+    const dataSameAsCreateResult = data === createResult;
+    expect(dataSameAsCreateResult).toEqual(false);
+
+    // but values are the same
+    expect(createResult).toEqual(expected);
   });
 
   it('create() - throws if no primary key is provided', async () => {
@@ -123,15 +128,53 @@ describe('smartDB.create()', () => {
     );
   });
 
-  it.skip('create() - throws if not all mandatory properties are provided', async done => {
-    done();
+  it.skip('create() - throws if not all mandatory properties are provided', async () => {
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(String(1));
+    sut.beginBlock(first);
+
+    const asset = {
+      name: 'ABC.ABC',
+    } as IAsset;
+
+    await sut.create<Asset>(Asset, asset);
+    await sut.commitBlock();
   });
 
-  it.skip('create() - throws if unnecessary properties are provided', async done => {
-    done();
+  // new Bug ticket: should throw if passed in wrong properties!
+  it.skip('create() - throws if unnecessary properties are provided', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(String(1));
+    sut.beginBlock(first);
+
+    const asset = ({
+      name: 'ABC.ABC',
+      hello: 'this is a wrong property',
+    } as unknown) as IAsset;
+
+    const createPromise = sut.create<Asset>(Asset, asset);
+
+    return expect(createPromise).rejects.toBe('passed in wrong property');
   });
 
-  it.skip('create() - if mandatory property is missing, should throw (feature)', async done => {
-    done();
+  it.skip('create() - throws if trying to add _version_ property to input', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    const first = createBlock(String(1));
+    sut.beginBlock(first);
+
+    const account = {
+      address: 'G3avVDiYyPRkzVWZ4QTW93yoJZMXg',
+      _version_: 10, // illegal
+    };
+
+    const createPromise = sut.create<Account>(Account, account);
+    return expect(createPromise).rejects.toEqual('not allowed');
   });
 });

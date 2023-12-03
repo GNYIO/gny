@@ -8,6 +8,7 @@ import { saveGenesisBlock, logger } from './smartDB.test.helpers';
 import { Asset } from '@gny/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
 import { copyObject } from '@gny/base';
+import { get } from 'lodash';
 
 describe('smartDB.get()', () => {
   const dbName = 'getdb';
@@ -130,6 +131,7 @@ describe('smartDB.get()', () => {
     expect(result).toEqual({
       address: 'G4GNdWmigYht2C9ipfexSzn67mLZE',
       username: 'liangpeili',
+      eligible: 0,
       _version_: 1,
     });
   });
@@ -174,4 +176,71 @@ describe('smartDB.get()', () => {
       new Error('no primary key of entity found')
     );
   });
+
+  it('get() - does not return the same object reference', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    // first save data
+    const balance: IBalance = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+      balance: String(2000),
+      flag: 1,
+    };
+
+    await sut.create<Balance>(Balance, balance);
+
+    const wholeKey = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+    };
+
+    const result = await sut.get<Balance>(Balance, wholeKey);
+
+    // check if return value is same reference
+    const theSameReference = balance === result;
+
+    expect(theSameReference).toEqual(false);
+  });
+
+  it('get() - get after update should not return the same object reference', async () => {
+    expect.assertions(3);
+
+    await saveGenesisBlock(sut);
+
+    // first save data
+    const balance: IBalance = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+      balance: String(2000),
+      flag: 1,
+    };
+
+    await sut.create<Balance>(Balance, balance);
+
+    const wholeKey = {
+      address: 'G2EX4yLiTdqtn2bZRsTMWppvffkQ8',
+      currency: 'ABC.ABC',
+    };
+
+    const result1 = await sut.get<Balance>(Balance, wholeKey);
+    const updateWith = {
+      flag: 2,
+    };
+    await sut.update<Balance>(Balance, updateWith, wholeKey);
+    const result2 = await sut.get<Balance>(Balance, wholeKey);
+
+    const initialSameAsUpdateWith = balance === updateWith;
+    expect(initialSameAsUpdateWith).toEqual(false);
+
+    const initialSameAsResult1 = balance === result1;
+    expect(initialSameAsResult1).toEqual(false);
+
+    const initialSameAsResult2 = balance === result2;
+    expect(initialSameAsResult2).toEqual(false);
+  });
+
+  it.skip('get() - two calls to get should not return the same object reference', async () => {});
 });
