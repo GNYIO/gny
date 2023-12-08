@@ -42,13 +42,14 @@ export default async function runtime(options: IOptions) {
       name: 'gny_blocks',
       help: 'the number of blocks',
       collect: async function getBlocks() {
-        const data = await global.app.sdb.count<Block>(Block, {});
-        this.set(Number.parseInt(data));
+        const lastBlock = StateHelper.getState().lastBlock;
+        // +1, because height 0 is also a block
+        this.set(Number.parseInt(lastBlock.height) + 1);
       },
     }),
     transactions: new prom.Gauge<string>({
       name: 'gny_transactions',
-      help: 'the number of blocks',
+      help: 'the number of transactions',
       collect: async function getTransactions() {
         const data = await global.app.sdb.count<Transaction>(Transaction, {});
         this.set(Number.parseInt(data));
