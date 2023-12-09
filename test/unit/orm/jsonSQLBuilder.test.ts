@@ -112,7 +112,9 @@ describe('orm jsonSQLBuilder', () => {
     sut = undefined;
   });
 
-  it('buildInsert', done => {
+  it('buildInsert', () => {
+    expect.assertions(3);
+
     const data = createAccount('liangpeili');
     const address = data.address;
     const publicKey = data.publicKey;
@@ -120,32 +122,38 @@ describe('orm jsonSQLBuilder', () => {
 
     const result = sut.buildInsert(accountModelSchema, data);
 
-    const expected = `insert into "account" ("address", "username", "gny", "publicKey", "secondPublicKey", "isDelegate", "isLocked", "lockHeight", "lockAmount") values (\'${address}\', \'liangpeili\', \'0\', \'${publicKey}\', null, 0, 0, null, null);`;
+    // todo
+    // this is odd that for "null" and 0 is not used a $x parameter
+    const expectedString = `insert into "account" ("address", "username", "gny", "publicKey", "secondPublicKey", "isDelegate", "isLocked", "lockHeight", "lockAmount") values ($1, $2, $3, $4, null, 0, 0, null, null);`;
+
+    const expectedValues = [address, 'liangpeili', String(0), publicKey];
 
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expected);
-
-    done();
+    expect(result).toHaveProperty('query', expectedString);
+    expect(result).toHaveProperty('values', expectedValues);
   });
 
-  it('buildDelete', done => {
+  it('buildDelete', () => {
+    expect.assertions(3);
+
     const primaryKey = {
       address: 'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
     };
     const accountModelSchema = schemas.get('Account');
     const result = sut.buildDelete(accountModelSchema, primaryKey);
 
-    const expected = `delete from "account" where "address" = \'${
-      primaryKey.address
-    }\';`;
+    const expectedString = `delete from "account" where "address" = $1;`;
+
+    const expectedValues = ['G2kDbA9SWh9k1vmf7XFTADcCHHsNY'];
 
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expected);
-
-    done();
+    expect(result).toHaveProperty('query', expectedString);
+    expect(result).toHaveProperty('values', expectedValues);
   });
 
-  it('buildUpdate', done => {
+  it('buildUpdate', () => {
+    expect.assertions(3);
+
     const data = createAccount('liangpeili');
     const accountModelSchema = schemas.get('Account');
     const primaryKey = {
@@ -159,33 +167,35 @@ describe('orm jsonSQLBuilder', () => {
       version
     );
 
-    const expected = `update "account" set "address" = \'${
-      data.address
-    }\', "username" = \'liangpeili\', "gny" = '0', "publicKey" = \'${
-      data.publicKey
-    }\', "secondPublicKey" = null, "isDelegate" = 0, "isLocked" = 0, "lockHeight" = null, "lockAmount" = null where "address" = \'${
-      primaryKey.address
-    }\' and "_version_" = 1;`;
+    const expectedString = `update "account" set "address" = $1, "username" = $2, "gny" = $3, "publicKey" = $4, "secondPublicKey" = null, "isDelegate" = 0, "isLocked" = 0, "lockHeight" = null, "lockAmount" = null where "address" = $5 and "_version_" = 1;`;
+
+    const expectedValues = [
+      data.address,
+      'liangpeili',
+      '0',
+      data.publicKey,
+      'G2kDbA9SWh9k1vmf7XFTADcCHHsNY',
+    ];
 
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expected);
-
-    done();
+    expect(result).toHaveProperty('query', expectedString);
+    expect(result).toHaveProperty('values', expectedValues);
   });
 
-  it('buildSelect', done => {
+  it('buildSelect', () => {
+    expect.assertions(3);
+
     const field = ['username', 'address'];
     const accountModelSchema = schemas.get('Account');
     const where = { username: 'liangpeili' };
     const result = sut.buildSelect(accountModelSchema, field, where);
 
-    const expected = `select "username", "address" from "account" where "username" = \'${
-      where.username
-    }\';`;
+    const expectedString = `select "username", "address" from "account" where "username" = $1;`;
+
+    const expectedValues = ['liangpeili'];
 
     expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expected);
-
-    done();
+    expect(result).toHaveProperty('query', expectedString);
+    expect(result).toHaveProperty('values', expectedValues);
   });
 });

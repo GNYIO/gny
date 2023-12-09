@@ -2,7 +2,9 @@ import { isArray, isNumber } from 'util';
 
 import sq from '@gny/json-sql';
 const jsonSQL = sq({
-  separatedValues: false,
+  dialect: 'postgresql',
+  separatedValues: true,
+  namedValues: false,
 });
 import lodash from 'lodash';
 import { ModelSchema } from './modelSchema.js';

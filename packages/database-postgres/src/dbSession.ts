@@ -94,7 +94,7 @@ export class DbSession {
   private async queryEntities(schema: ModelSchema, queryObject) {
     const result = await this.connection.query(
       queryObject.query,
-      queryObject.parameters
+      queryObject.values
     );
     return this.replaceEntitiesJsonPropertis(schema, result);
   }
@@ -378,7 +378,7 @@ export class DbSession {
       for (let i = 0; i < value.length; ++i) {
         const one = value[i];
         // @ts-ignore
-        const params = Array.from(one.parameters || []);
+        const params = Array.from(one.values || []);
         await queryRunner.query(one.query, params);
       }
 
