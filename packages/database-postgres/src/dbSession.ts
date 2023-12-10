@@ -417,7 +417,8 @@ export class DbSession {
     try {
       for (let i = 0; i < rollbackSql.length; ++i) {
         const one = rollbackSql[i];
-        await queryRunner.query(one.query);
+        // @ts-ignore
+        await queryRunner.query(one.query, one.values);
       }
 
       this.entityTracker.rejectChanges();
