@@ -1,5 +1,4 @@
 import { LogManager, LoggerWrapper } from './logger.js';
-import { isArray } from 'util';
 import { LRUEntityCache } from './lruEntityCache.js';
 import { JsonSqlBuilder } from './jsonSQLBuilder.js';
 import * as CodeContract from './codeContract.js';
@@ -127,13 +126,9 @@ export class DbSession {
     return [];
   }
 
-  public async getMany(schema: ModelSchema, condition, cache = true) {
+  public async getMany(schema: ModelSchema, cache = true) {
     // TODO, refactor
-    const options = this.sqlBuilder.buildSelect(
-      schema,
-      schema.properties,
-      condition
-    );
+    const options = this.sqlBuilder.buildSelect(schema, schema.properties, {});
     const result = await this.queryEntities(schema, options);
     return cache ? this.trackPersistentEntities(schema, result, true) : result;
   }
@@ -182,7 +177,7 @@ export class DbSession {
       ],
       condition: condition,
     });
-    return isArray(range) ? parseInt(range[0].count) : 0;
+    return Array.isArray(range) ? parseInt(range[0].count) : 0;
   }
 
   public create(schema: ModelSchema, entity: ObjectLiteral) {
