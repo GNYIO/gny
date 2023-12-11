@@ -182,20 +182,270 @@ describe('orm jsonSQLBuilder', () => {
     expect(result).toHaveProperty('values', expectedValues);
   });
 
-  it('buildSelect', () => {
-    expect.assertions(3);
+  describe('buildSelect', () => {
+    it('buildSelect - query by unique key', () => {
+      expect.assertions(3);
 
-    const field = ['username', 'address'];
-    const accountModelSchema = schemas.get('Account');
-    const where = { username: 'liangpeili' };
-    const result = sut.buildSelect(accountModelSchema, field, where);
+      const field = ['username', 'address'];
+      const accountModelSchema = schemas.get('Account');
+      const where = { username: 'liangpeili' };
+      const result = sut.buildSelect(accountModelSchema, field, where);
 
-    const expectedString = `select "username", "address" from "account" where "username" = $1;`;
+      const expectedString = `select "username", "address" from "account" where "username" = $1;`;
 
-    const expectedValues = ['liangpeili'];
+      const expectedValues = ['liangpeili'];
 
-    expect(result).toHaveProperty('type');
-    expect(result).toHaveProperty('query', expectedString);
-    expect(result).toHaveProperty('values', expectedValues);
+      expect(result).toHaveProperty('type');
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - $in (WHERE IN)', () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {
+          address: {
+            $in: [
+              'G3igL8sTPQzNquy87bYAR37NoYRNn',
+              'G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr',
+            ],
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account" where "address" in ($1, $2);`;
+      const expectedValues = [
+        'G3igL8sTPQzNquy87bYAR37NoYRNn',
+        'G3HRXhs3tDJLpA4ntLHP2nb5Xwwyr',
+      ];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it.skip('buildSelect - query by composite key', () => {});
+
+    it('buildSelect - sort by column ascending (ASC)', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {},
+        sort: {
+          address: 1,
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account"  order by "address" asc;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - sort by column descending (DESC)', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {},
+        sort: {
+          address: -1,
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account"  order by "address" desc;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - sort first by column x then by column y', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {},
+        sort: {
+          gny: -1,
+          username: 1,
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account"  order by "gny" desc, "username" asc;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - sort first by column y then by column x', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {},
+        sort: {
+          username: 1,
+          gny: -1,
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account"  order by "username" asc, "gny" desc;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - filter by $gte', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {
+          gny: {
+            $gte: 3000,
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account" where "gny" >= 3000;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - filter by $lte', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {
+          gny: {
+            $lte: 3000,
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account" where "gny" <= 3000;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - filter by $gte and $lte', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {
+          gny: {
+            $gte: 5000,
+            $lte: 10000,
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select * from "account" where "gny" >= 5000 and "gny" <= 10000;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - count(*)', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        fields: [
+          {
+            expression: 'count(*)',
+          },
+        ],
+        condition: {},
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select count(*) from "account";`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - count(*) with $gte and $lte', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        fields: [
+          {
+            expression: 'count(*)',
+          },
+        ],
+        condition: {
+          gny: {
+            $gte: 5000,
+            $lte: 10000,
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      const expectedString = `select count(*) from "account" where "gny" >= 5000 and "gny" <= 10000;`;
+      const expectedValues = [];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
+
+    it('buildSelect - $or', async () => {
+      expect.assertions(2);
+
+      const accountModelSchema = schemas.get('Account');
+      const fields = {
+        condition: {
+          $or: {
+            username: 'a1300',
+            address: 'G2ntnY6Ph3WVHESwpeFmMGa2BATrr',
+          },
+        },
+      };
+
+      const result = sut.buildSelect(accountModelSchema, fields);
+
+      console.log(result);
+
+      const expectedString = `select * from "account" where "username" = $1 or "address" = $2;`;
+      const expectedValues = ['a1300', 'G2ntnY6Ph3WVHESwpeFmMGa2BATrr'];
+
+      expect(result).toHaveProperty('query', expectedString);
+      expect(result).toHaveProperty('values', expectedValues);
+    });
   });
 });
