@@ -4,7 +4,7 @@ import * as lib from '../lib';
 import { Account } from '@gny/database-postgres';
 import { Balance } from '@gny/database-postgres';
 import { Versioned } from '@gny/database-postgres';
-import { saveGenesisBlock, logger } from './smartDB.test.helpers';
+import { saveGenesisBlock, logger, createBlock } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
 import { copyObject } from '@gny/base';
 
@@ -133,5 +133,27 @@ describe('smartDB.create()', () => {
 
   it.skip('create() - if mandatory property is missing, should throw (feature)', async done => {
     done();
+  });
+
+  it.skip('create() - throws if _version_ is provided', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(String(1));
+    sut.beginBlock(block);
+
+    const data = {
+      currency: 'ABC.ABC',
+      address: 'G3EviK1p98D9EoXUeb8K3bRTW5goT',
+      balance: String(10),
+      flag: 1,
+      _version_: 5,
+    };
+    const createPromise = sut.create<Balance>(Balance, data);
+
+    return expect(createPromise).rejects.toThrow(
+      '_version_ property not allowed'
+    );
   });
 });

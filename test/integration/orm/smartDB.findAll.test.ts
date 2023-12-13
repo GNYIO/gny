@@ -349,6 +349,128 @@ describe('smartDB.findAll()', () => {
     expect(result).toEqual([createdTEC, createdABC]);
   });
 
+  it('findAll() - search first by column x then by column y', async () => {
+    expect.assertions(2);
+
+    await saveGenesisBlock(sut);
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    const account1 = createAccount('G3hARVY9s4SBvt74f7TevQG2ebtpu');
+    account1.username = 'user_1';
+    account1.gny = String(10);
+    account1.lockAmount = String(1000);
+    const created1 = await sut.create<Account>(Account, account1);
+
+    const account2 = createAccount('G3F2v2xUB8Ns4h174LssGNftvGoCY');
+    account2.username = 'user_2';
+    account2.gny = String(10);
+    account2.lockAmount = String(2000);
+    const created2 = await sut.create<Account>(Account, account2);
+
+    const account3 = createAccount('G2eEgoeCqAPVN5Q5b9SAsY6aYWr1U');
+    account3.username = 'user_3';
+    account3.gny = String(11);
+    account3.lockAmount = String(3000);
+    const created3 = await sut.create<Account>(Account, account3);
+
+    const account4 = createAccount('G4WRHX7Me93SJ52qrLAv5NY1AQgBk');
+    account4.username = 'user_4';
+    account4.gny = String(11);
+    account4.lockAmount = String(4000);
+    const created4 = await sut.create<Account>(Account, account4);
+
+    // persist changes
+    await sut.commitBlock();
+
+    // sort by gny ASC, lockAmount ASC
+    const raw1 = await sut.findAll<Account>(Account, {
+      condition: {},
+      sort: {
+        gny: 1,
+        lockAmount: 1,
+      },
+    });
+    const result1 = raw1.map(x => x.username);
+    expect(result1).toEqual(['user_1', 'user_2', 'user_3', 'user_4']);
+
+    // sort by gny ASC, lockAmount DESC
+    const raw2 = await sut.findAll<Account>(Account, {
+      condition: {},
+      sort: {
+        gny: 1,
+        lockAmount: -1,
+      },
+    });
+    const result2 = raw2.map(x => x.username);
+    expect(result2).toEqual(['user_2', 'user_1', 'user_4', 'user_3']);
+  });
+
+  it('findAll() - search first by column y then by column x', async () => {
+    // expect.assertions(2);
+
+    await saveGenesisBlock(sut);
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    const account1 = createAccount('G3hARVY9s4SBvt74f7TevQG2ebtpu');
+    account1.username = 'user_1';
+    account1.gny = String(10);
+    account1.lockAmount = String(1000);
+    const created1 = await sut.create<Account>(Account, account1);
+
+    const account2 = createAccount('G3F2v2xUB8Ns4h174LssGNftvGoCY');
+    account2.username = 'user_2';
+    account2.gny = String(10);
+    account2.lockAmount = String(2000);
+    const created2 = await sut.create<Account>(Account, account2);
+
+    const account3 = createAccount('G2eEgoeCqAPVN5Q5b9SAsY6aYWr1U');
+    account3.username = 'user_3';
+    account3.gny = String(11);
+    account3.lockAmount = String(3000);
+    const created3 = await sut.create<Account>(Account, account3);
+
+    const account4 = createAccount('G4WRHX7Me93SJ52qrLAv5NY1AQgBk');
+    account4.username = 'user_4';
+    account4.gny = String(11);
+    account4.lockAmount = String(4000);
+    const created4 = await sut.create<Account>(Account, account4);
+
+    const account5 = createAccount('G5wdwoemU8w53nu7WvBmAi9qbSnH');
+    account5.username = 'user_5';
+    account5.gny = String(11);
+    account5.lockAmount = String(2000);
+    const created5 = await sut.create<Account>(Account, account5);
+
+    // persist changes
+    await sut.commitBlock();
+
+    // sort by lockAmount ASC, gny ASC
+    const raw1 = await sut.findAll<Account>(Account, {
+      condition: {},
+      sort: {
+        lockAmount: 1,
+        gny: 1,
+      },
+    });
+    const result1 = raw1.map(x => x.username);
+    expect(result1).toEqual(['user_1', 'user_2', 'user_5', 'user_3', 'user_4']);
+
+    // sort by lockAmount ASC, gny DESC
+    const raw2 = await sut.findAll<Account>(Account, {
+      condition: {},
+      sort: {
+        lockAmount: 1,
+        gny: -1,
+      },
+    });
+    const result2 = raw2.map(x => x.username);
+    expect(result2).toEqual(['user_1', 'user_5', 'user_2', 'user_3', 'user_4']);
+  });
+
   it('findAll() - search for a range of values with $gte and $lte', async () => {
     expect.assertions(1);
 
