@@ -44,7 +44,7 @@ async function send() {
   };
 
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     transData,
     config
   );
@@ -102,7 +102,7 @@ describe('transaction', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );

@@ -19,7 +19,7 @@ export const GENESIS = {
 };
 
 export async function apiGetAsync(gnyPort: number, endpoint: string) {
-  const result = await axios.get(`http://localhost:${gnyPort}/api${endpoint}`);
+  const result = await axios.get(`http://127.0.0.1:${gnyPort}/api${endpoint}`);
   return result.data;
 }
 
@@ -59,7 +59,7 @@ async function waitForLoaded(gnyPort: number) {
 }
 
 export async function stopOldInstances(dockerFile: string, env: string) {
-  const command = `${env} docker compose --file ${dockerFile} down`;
+  const command = `${env} docker compose --file ${dockerFile} down --timeout=0`;
 
   shellJS.exec(command, {
     silent: true,
