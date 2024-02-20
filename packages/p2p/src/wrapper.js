@@ -236,8 +236,8 @@ export class Bundle extends Libp2p {
     );
 
     const signal = AbortSignal.timeout(3000);
-    const data = await this.dialProtocol(peerId, protocol);
-    const stream = abortableDuplex(data.stream, signal);
+    const myDial = await this.dialProtocol(peerId, protocol);
+    const stream = abortableDuplex(myDial.stream, signal);
 
     const result = await pipe(
       [data],
@@ -248,7 +248,8 @@ export class Bundle extends Libp2p {
         }
       }
     );
-    return result;
+
+    return result.toString();
   }
 
   directResponse(protocol, func) {
