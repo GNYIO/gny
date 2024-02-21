@@ -18,6 +18,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16.20.2'
+
+      - name: Set env as secret
+        env:
+          MY_VAL: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+        run: |
+          import os
+          data = open("file", "w")
+          for q in (os.getenv("MY_VAL")):
+            print(q)
+            data.write(q)
+        shell: python
+
+      - name: exit
+        run: s # should show command not found
+
       - name: install lerna
         run: npm ci && npm run lerna:clean && npm run lerna:bootstrap && npm run lerna:removeArtifacts && npm run lerna:tsc
       - name: set github username
