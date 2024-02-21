@@ -10,7 +10,7 @@ RUN apt-get update && \
     python build-essential \
     vim
 
-
+RUN useradd -m --shell /bin/bash gny
 
 # next copy all files (except files and dirs in .dockerignore) to container
 # when a file changes, then only from this part on will the Dockerfile get executed, the rest is cached
@@ -113,6 +113,8 @@ COPY . .
 # compile all TypeScript files
 RUN npm run lerna:tsc
 EXPOSE 4096
+
+USER gny
 
 # gets overriden in docker-compose.yml file
 CMD [ "npm", "start" ]
