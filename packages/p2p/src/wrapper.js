@@ -8,6 +8,7 @@ const PeerId = require('peer-id');
 const pipe = require('it-pipe');
 const first = require('it-first');
 const multiaddr = require('multiaddr');
+const { duplex: abortableDuplex } = require('abortable-iterator');
 
 export class Bundle extends Libp2p {
   constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
@@ -234,7 +235,10 @@ export class Bundle extends Libp2p {
       `[p2p] dialing protocol "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
     );
 
-    const { stream } = await this.dialProtocol(peerId, protocol);
+    const signal = AbortSignal.timeout(3000);
+    const myDial = await this.dialProtocol(peerId, protocol);
+    const stream = abortableDuplex(myDial.stream, signal);
+
     const result = await pipe(
       [data],
       stream,
@@ -244,7 +248,8 @@ export class Bundle extends Libp2p {
         }
       }
     );
-    return result;
+
+    return result.toString();
   }
 
   directResponse(protocol, func) {
