@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';

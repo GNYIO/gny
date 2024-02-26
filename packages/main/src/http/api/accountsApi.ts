@@ -16,7 +16,7 @@ import {
   DelegatesWrapper,
   CountWrapper,
   PublicKeyWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import {
   getAccountByUsername,
   getAccountByAddress,
@@ -25,11 +25,11 @@ import {
 } from '../util.js';
 import Delegates from '../../core/delegates.js';
 import { StateHelper } from '../../core/StateHelper.js';
-import { Balance } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { Vote } from '@gny/database-postgres';
-import { Account } from '@gny/database-postgres';
-import { joi } from '@gny/extended-joi';
+import { Balance } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
+import { Vote } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { joi } from '@gnyio/extended-joi';
 
 interface BalanceCondition {
   address: string;

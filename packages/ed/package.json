@@ -1,5 +1,5 @@
 {
-  "name": "@gny/ed",
+  "name": "@gnyio/ed",
   "version": "1.0.153",
   "description": "",
   "scripts": {
@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
     "sodium": "^3.0.2"
   }
 }

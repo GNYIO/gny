@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { ApiSuccess, CountWrapper } from '@gny/interfaces';
+import { ApiSuccess, CountWrapper } from '@gnyio/interfaces';
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 
 const genesisSecret =

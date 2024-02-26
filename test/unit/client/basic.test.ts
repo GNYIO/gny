@@ -1,5 +1,5 @@
-import * as gnyClient from '@gny/client';
-import { joi } from '@gny/extended-joi';
+import * as gnyClient from '@gnyio/client';
+import { joi } from '@gnyio/extended-joi';
 
 describe('basic', () => {
   const basic = gnyClient.basic;

@@ -1,6 +1,6 @@
 import { Base } from '../api/base';
 import { uia, Connection } from '../';
-import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
+import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
 export class Uia {
   private base: Base;

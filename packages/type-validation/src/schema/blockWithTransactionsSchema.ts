@@ -1,4 +1,4 @@
-import { joi } from '@gny/extended-joi';
+import { joi } from '@gnyio/extended-joi';
 
 export const blockWithTransactionsSchema: any = joi.object().keys({
   id: joi.string(),

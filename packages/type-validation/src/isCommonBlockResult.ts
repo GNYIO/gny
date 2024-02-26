@@ -1,5 +1,5 @@
-import { CommonBlockResult } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { CommonBlockResult } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 import { blockWithoutTransactionsSchema } from './schema/blockWithoutTransactionsSchema.js';
 
 export function isCommonBlockResult(

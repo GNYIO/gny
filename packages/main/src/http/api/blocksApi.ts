@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { BlockReward } from '@gny/utils';
+import { BlockReward } from '@gnyio/utils';
 import {
   IScope,
   Next,
@@ -14,14 +14,14 @@ import {
   SupplyWrapper,
   Status,
   IBurn,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Request, Response, Router } from 'express';
-import { BlockBase } from '@gny/base';
+import { BlockBase } from '@gnyio/base';
 import { getBlocks as getBlocksFromApi } from '../util.js';
 import { StateHelper } from '../../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
-import { joi } from '@gny/extended-joi';
-import { Burn } from '@gny/database-postgres';
+import { joi } from '@gnyio/extended-joi';
+import { Burn } from '@gnyio/database-postgres';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;

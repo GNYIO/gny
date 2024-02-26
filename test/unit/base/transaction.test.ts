@@ -1,12 +1,12 @@
-import { TransactionBase, CreateTransactionType } from '@gny/base';
+import { TransactionBase, CreateTransactionType } from '@gnyio/base';
 import {
   ITransaction,
   Context,
   IAccount,
   UnconfirmedTransaction,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
+import * as ed from '@gnyio/ed';
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');

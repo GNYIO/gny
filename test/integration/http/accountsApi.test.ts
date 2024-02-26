@@ -1,9 +1,9 @@
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import * as lib from '../lib';
 import axios from 'axios';
 import * as crypto from 'crypto';
-import { generateAddress } from '@gny/utils';
-import * as ed from '@gny/ed';
+import { generateAddress } from '@gnyio/utils';
+import * as ed from '@gnyio/ed';
 
 const config = {
   headers: {

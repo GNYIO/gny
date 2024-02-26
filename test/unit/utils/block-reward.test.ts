@@ -1,4 +1,4 @@
-import { BlockReward } from '@gny/utils';
+import { BlockReward } from '@gnyio/utils';
 import { BigNumber } from 'bignumber.js';
 
 function range(start: number, end: number) {

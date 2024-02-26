@@ -1,5 +1,5 @@
-import { ManyVotes } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { ManyVotes } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isManyVotes(manyVotes: any): manyVotes is ManyVotes {
   const schema = joi.object().keys({

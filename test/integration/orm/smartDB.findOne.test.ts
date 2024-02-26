@@ -1,17 +1,17 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IAccount, IBalance } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IAccount, IBalance } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
 import {
   saveGenesisBlock,
   createBlock,
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { FindOneOptions } from '@gny/database-postgres';
+import { FindOneOptions } from '@gnyio/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.findOne', () => {
   const dbName = 'findonedb';

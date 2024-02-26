@@ -1,6 +1,6 @@
-import * as gnyClient from '@gny/client';
-import { joi } from '@gny/extended-joi';
-import { ITransaction, UnconfirmedTransaction } from '@gny/interfaces';
+import * as gnyClient from '@gnyio/client';
+import { joi } from '@gnyio/extended-joi';
+import { ITransaction, UnconfirmedTransaction } from '@gnyio/interfaces';
 
 const genesisSecret =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';

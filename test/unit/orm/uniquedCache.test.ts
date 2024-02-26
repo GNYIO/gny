@@ -1,7 +1,7 @@
-import { UniquedCache } from '@gny/database-postgres';
-import { LRUEntityCache } from '@gny/database-postgres';
-import { ModelSchema, MetaSchema } from '@gny/database-postgres';
-import { CustomCache } from '@gny/database-postgres';
+import { UniquedCache } from '@gnyio/database-postgres';
+import { LRUEntityCache } from '@gnyio/database-postgres';
+import { ModelSchema, MetaSchema } from '@gnyio/database-postgres';
+import { CustomCache } from '@gnyio/database-postgres';
 
 describe('orm UniquedCache', () => {
   let sut: UniquedCache;

@@ -1,4 +1,4 @@
-import { CustomCache } from '@gny/database-postgres';
+import { CustomCache } from '@gnyio/database-postgres';
 
 describe('orm - CustomCache', () => {
   let modelSchema: any;

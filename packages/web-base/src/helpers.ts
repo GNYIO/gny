@@ -1,7 +1,7 @@
 import lodash from 'lodash';
 import * as sha256 from 'fast-sha256';
-import * as webEd from '@gny/web-ed';
-import { UnconfirmedTransaction } from '@gny/interfaces';
+import * as webEd from '@gnyio/web-ed';
+import { UnconfirmedTransaction } from '@gnyio/interfaces';
 import { TransactionWebBase } from './transactionWebBase.js';
 import { Buffer } from 'buffer';
 

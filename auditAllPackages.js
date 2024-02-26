@@ -9,7 +9,7 @@ let errorOccured = false;
 
 function stripDependencies(packageJson) {
   lernaJSONFile.packages.map(lernaPkg => {
-    lernaPkg = lernaPkg.replace('packages', '@gny');
+    lernaPkg = lernaPkg.replace('packages', '@gnyio');
 
     if (lernaPkg in packageJson.dependencies) {
       delete packageJson.dependencies[lernaPkg];

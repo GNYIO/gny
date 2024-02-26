@@ -1,4 +1,4 @@
-import { BlocksHelper } from '@gny/main/blockshelper';
+import { BlocksHelper } from '@gnyio/main/blockshelper';
 import {
   ITransaction,
   IConfig,
@@ -6,15 +6,15 @@ import {
   KeyPair,
   BlockPropose,
   NewBlockMessage,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import * as crypto from 'crypto';
-import { generateAddress } from '@gny/utils';
-import * as ed from '@gny/ed';
-import { ConsensusHelper } from '@gny/main/consensushelper';
-import { slots } from '@gny/utils';
-import { StateHelper } from '@gny/main/statehelper';
+import { generateAddress } from '@gnyio/utils';
+import * as ed from '@gnyio/ed';
+import { ConsensusHelper } from '@gnyio/main/consensushelper';
+import { slots } from '@gnyio/utils';
+import { StateHelper } from '@gnyio/main/statehelper';
 import { BigNumber } from 'bignumber.js';
-import { getConfig } from '@gny/network';
+import { getConfig } from '@gnyio/network';
 
 const dummyLogger = {
   log: x => x,

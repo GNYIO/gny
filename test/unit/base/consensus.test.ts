@@ -1,13 +1,13 @@
-import { ConsensusBase } from '@gny/base';
+import { ConsensusBase } from '@gnyio/base';
 import {
   KeyPair,
   IBlock,
   ManyVotes,
   Signature,
   BlockPropose,
-} from '@gny/interfaces';
-import { BlockBase } from '@gny/base';
-import * as ed from '@gny/ed';
+} from '@gnyio/interfaces';
+import { BlockBase } from '@gnyio/base';
+import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
 
 function createRandomSignature() {

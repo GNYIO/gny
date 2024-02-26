@@ -1,5 +1,5 @@
 {
-  "name": "@gny/utils",
+  "name": "@gnyio/utils",
   "version": "1.0.153",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
     "@types/async": "^1.4.29",
     "@types/bs58": "^4.0.1",
     "@types/lodash": "^4.14.138",

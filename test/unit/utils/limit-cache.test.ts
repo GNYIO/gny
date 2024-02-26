@@ -1,4 +1,4 @@
-import { LimitCache } from '@gny/utils';
+import { LimitCache } from '@gnyio/utils';
 
 describe('LimitCache', () => {
   let sut: LimitCache<string, boolean>;

@@ -3,13 +3,13 @@ import {
   KeyPair,
   IBlockWithoutSignatureId,
   IBlockWithoutId,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import * as ed from '@gny/ed';
+import * as ed from '@gnyio/ed';
 import { copyObject } from './helpers.js';
 import { TransactionBase } from './transactionBase.js';
-import { isBlockWithTransactions } from '@gny/type-validation';
+import { isBlockWithTransactions } from '@gnyio/type-validation';
 import BigNumber from 'bignumber.js';
 
 export class BlockBase {

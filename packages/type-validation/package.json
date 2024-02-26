@@ -1,5 +1,5 @@
 {
-  "name": "@gny/type-validation",
+  "name": "@gnyio/type-validation",
   "version": "1.0.153",
   "description": "",
   "scripts": {
@@ -23,7 +23,7 @@
     }
   },
   "dependencies": {
-    "@gny/extended-joi": "1.0.153",
-    "@gny/interfaces": "1.0.153"
+    "@gnyio/extended-joi": "1.0.153",
+    "@gnyio/interfaces": "1.0.153"
   }
 }

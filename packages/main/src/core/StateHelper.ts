@@ -5,12 +5,12 @@ import {
   BlockAndVotes,
   UnconfirmedTransaction,
   IBlock,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
-import { TransactionPool } from '@gny/transaction-pool';
-import { LimitCache } from '@gny/utils';
+import { TransactionPool } from '@gnyio/transaction-pool';
+import { LimitCache } from '@gnyio/utils';
 import LRU from 'lru-cache';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 export class StateHelper {
   // state management

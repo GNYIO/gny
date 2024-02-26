@@ -14,7 +14,7 @@ import {
   DelegateError,
   CountWrapper,
   PublicKeyWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 interface OnlyAddress {

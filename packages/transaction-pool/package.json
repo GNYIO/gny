@@ -1,5 +1,5 @@
 {
-  "name": "@gny/transaction-pool",
+  "name": "@gnyio/transaction-pool",
   "private": true,
   "version": "1.0.153",
   "description": "",
@@ -16,6 +16,6 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gny/interfaces": "1.0.153"
+    "@gnyio/interfaces": "1.0.153"
   }
 }

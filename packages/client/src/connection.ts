@@ -1,7 +1,7 @@
 import { Api } from './api';
 import { Contract } from './contract';
-import { NetworkType } from '@gny/interfaces';
-import { getConfig } from '@gny/network';
+import { NetworkType } from '@gnyio/interfaces';
+import { getConfig } from '@gnyio/network';
 
 function isIpOrUrl(value: any): value is string {
   const ip = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;

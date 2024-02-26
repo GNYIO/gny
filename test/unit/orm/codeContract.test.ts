@@ -7,8 +7,8 @@ import {
   notNull,
   argument,
   verify,
-} from '@gny/database-postgres';
-import { PropertyChange } from '@gny/database-postgres';
+} from '@gnyio/database-postgres';
+import { PropertyChange } from '@gnyio/database-postgres';
 
 describe('codeContract', () => {
   describe('isPrimitiveKey', () => {

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as lib from '../lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 
 const genesisSecret =

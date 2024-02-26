@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import { MessageBus } from '@gny/utils';
-import { Modules, CoreApi, MethodActions } from '@gny/interfaces';
+import { MessageBus } from '@gnyio/utils';
+import { Modules, CoreApi, MethodActions } from '@gnyio/interfaces';
 
 describe('messageBus', () => {
   it('message() - event gets executed in all Modules and all registered CoreApi instances', done => {

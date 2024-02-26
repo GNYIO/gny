@@ -1,4 +1,4 @@
-import { isSimplePeerInfoArray } from '@gny/type-validation';
+import { isSimplePeerInfoArray } from '@gnyio/type-validation';
 
 function createPeerArray() {
   const peers = [

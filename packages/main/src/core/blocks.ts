@@ -1,7 +1,7 @@
 import { waterfall } from 'async';
-import { MAX_TXS_PER_BLOCK } from '@gny/utils';
-import { generateAddress } from '@gny/utils';
-import { BlockReward } from '@gny/utils';
+import { MAX_TXS_PER_BLOCK } from '@gnyio/utils';
+import { generateAddress } from '@gnyio/utils';
+import { BlockReward } from '@gnyio/utils';
 import {
   KeyPair,
   ProcessBlockOptions,
@@ -14,27 +14,27 @@ import {
   P2PMessage,
   BlocksWrapperParams,
   IBlockWithTransactions,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces.js';
 import pWhilst from 'p-whilst';
-import { BlockBase } from '@gny/base';
-import { TransactionBase } from '@gny/base';
-import { ConsensusBase } from '@gny/base';
+import { BlockBase } from '@gnyio/base';
+import { TransactionBase } from '@gnyio/base';
+import { ConsensusBase } from '@gnyio/base';
 import { BlocksHelper } from './BlocksHelper.js';
-import { Variable } from '@gny/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper.js';
 import { StateHelper } from './StateHelper.js';
 import Transactions from './transactions.js';
 import Peer from './peer.js';
 import Delegates from './delegates.js';
 import BigNumber from 'bignumber.js';
-import { Transaction } from '@gny/database-postgres';
-import { Round } from '@gny/database-postgres';
-import { Delegate } from '@gny/database-postgres';
-import { Account } from '@gny/database-postgres';
-import { slots } from '@gny/utils';
+import { Transaction } from '@gnyio/database-postgres';
+import { Round } from '@gnyio/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { slots } from '@gnyio/utils';
 import * as PeerId from 'peer-id';
-import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import pImmediate from 'p-immediate';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

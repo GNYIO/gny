@@ -1,14 +1,14 @@
-import { Context } from '@gny/interfaces';
-import { IDatMaker, IDat } from '@gny/interfaces';
+import { Context } from '@gnyio/interfaces';
+import { IDatMaker, IDat } from '@gnyio/interfaces';
 
-import { DatMaker } from '@gny/database-postgres';
-import { Dat } from '@gny/database-postgres';
+import { DatMaker } from '@gnyio/database-postgres';
+import { Dat } from '@gnyio/database-postgres';
 import {
   urlRegex,
   datMakerRegex,
   datNameRegex,
   datHashRegex,
-} from '@gny/utils';
+} from '@gnyio/utils';
 
 export default {
   async registerDatMaker(this: Context, name, desc) {

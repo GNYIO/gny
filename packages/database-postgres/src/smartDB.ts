@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection } from 'typeorm';
 import { loadConfig } from './config/loadConfig.js';
-import { ILogger, IBlock, SmartDBOptions } from '@gny/interfaces';
+import { ILogger, IBlock, SmartDBOptions } from '@gnyio/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract.js';

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 import { BigNumber } from 'bignumber.js';
 import * as shellJS from 'shelljs';
 

@@ -3,7 +3,7 @@ import {
   UnconfirmedTransaction,
   TransactionIdWrapper,
   ApiResult,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Transport {

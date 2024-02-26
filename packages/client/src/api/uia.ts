@@ -13,7 +13,7 @@ import {
   BalanceWrapper,
   BalanceError,
   AssetHoldersWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Uia {

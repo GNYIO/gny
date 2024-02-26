@@ -33,7 +33,7 @@ jobs:
         run: git remote set-url origin https://github.com/gnyio/gny-experiment.git
 
       - name: build gny client
-        run: node_modules/lerna/cli.js run --scope="@gny/client" web
+        run: node_modules/lerna/cli.js run --scope="@gnyio/client" web
 
       - name: npm set unsafe-perm
         run: npm set unsafe-perm true

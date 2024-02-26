@@ -1,5 +1,5 @@
 {
-  "name": "@gny/cli",
+  "name": "@gnyio/cli",
   "version": "1.0.153",
   "description": "gny command line tool",
   "scripts": {
@@ -73,10 +73,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@gny/interfaces": "1.0.153",
-    "@gny/utils": "1.0.153",
-    "@gny/web-base": "1.0.153",
-    "@gny/web-ed": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
+    "@gnyio/utils": "1.0.153",
+    "@gnyio/web-base": "1.0.153",
+    "@gnyio/web-ed": "1.0.153",
     "@types/node": "^12.6.8",
     "assert": "^2.0.0",
     "async": "^3.1.0",

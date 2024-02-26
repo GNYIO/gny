@@ -1,7 +1,7 @@
-import { TransactionPool } from '@gny/transaction-pool';
-import { ITransaction } from '@gny/interfaces';
+import { TransactionPool } from '@gnyio/transaction-pool';
+import { ITransaction } from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 
 function createRandomBytes(length: number) {
   return Buffer.from(randomBytes(length)).toString('hex');

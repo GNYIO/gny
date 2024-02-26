@@ -1,4 +1,4 @@
-import { urlRegex as re } from '@gny/utils';
+import { urlRegex as re } from '@gnyio/utils';
 
 describe('url', () => {
   it('validate urlRegex', () => {

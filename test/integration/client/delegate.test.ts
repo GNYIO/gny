@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 import {
   ApiSuccess,
@@ -11,7 +11,7 @@ import {
   DelegatesWrapperSimple,
   IBlock,
   SimpleAccountsWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 
 const GNY_PORT = 6096;
 const GNY_APP_NAME = 'app3';

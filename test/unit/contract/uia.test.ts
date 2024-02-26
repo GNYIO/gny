@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
-import uia from '@gny/main/uia';
+import uia from '@gnyio/main/uia';
 import { BigNumber } from 'bignumber.js';
-import { ILogger, IAccount, IBlock, ITransaction } from '@gny/interfaces';
-// import BalanceManager from '@gny/main/balance-manager';
-import { IApp } from '@gny/main/globalInterfaces';
-import { IConfig } from '@gny/interfaces';
+import { ILogger, IAccount, IBlock, ITransaction } from '@gnyio/interfaces';
+// import BalanceManager from '@gnyio/main/balance-manager';
+import { IApp } from '@gnyio/main/globalInterfaces';
+import { IConfig } from '@gnyio/interfaces';
 
 // mocking of ES modules currently not supported in jest
 // https://github.com/facebook/jest/issues/9430

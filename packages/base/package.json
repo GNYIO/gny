@@ -1,5 +1,5 @@
 {
-  "name": "@gny/base",
+  "name": "@gnyio/base",
   "version": "1.0.153",
   "description": "",
   "scripts": {
@@ -23,11 +23,11 @@
     }
   },
   "dependencies": {
-    "@gny/ed": "1.0.153",
-    "@gny/extended-joi": "1.0.153",
-    "@gny/interfaces": "1.0.153",
-    "@gny/type-validation": "1.0.153",
-    "@gny/utils": "1.0.153",
+    "@gnyio/ed": "1.0.153",
+    "@gnyio/extended-joi": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
+    "@gnyio/type-validation": "1.0.153",
+    "@gnyio/utils": "1.0.153",
     "@types/bytebuffer": "^5.0.39",
     "@types/ip": "0.0.32",
     "bignumber.js": "^8.1.1",

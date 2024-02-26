@@ -1,5 +1,5 @@
 {
-  "name": "@gny/web-base",
+  "name": "@gnyio/web-base",
   "version": "1.0.153",
   "description": "",
   "keywords": [],
@@ -21,9 +21,9 @@
     }
   },
   "dependencies": {
-    "@gny/interfaces": "1.0.153",
-    "@gny/utils": "1.0.153",
-    "@gny/web-ed": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
+    "@gnyio/utils": "1.0.153",
+    "@gnyio/web-ed": "1.0.153",
     "@types/bytebuffer": "^5.0.40",
     "buffer": "^5.4.3",
     "bytebuffer": "^5.0.1",

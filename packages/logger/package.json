@@ -1,5 +1,5 @@
 {
-  "name": "@gny/logger",
+  "name": "@gnyio/logger",
   "version": "1.0.153",
   "description": "",
   "scripts": {
@@ -22,9 +22,9 @@
     }
   },
   "dependencies": {
-    "@gny/ed": "1.0.153",
-    "@gny/interfaces": "1.0.153",
-    "@gny/utils": "1.0.153",
+    "@gnyio/ed": "1.0.153",
+    "@gnyio/interfaces": "1.0.153",
+    "@gnyio/utils": "1.0.153",
     "tracer": "^1.1.5",
     "winston": "^3.3.3"
   }

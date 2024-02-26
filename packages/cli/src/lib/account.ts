@@ -1,7 +1,7 @@
-import * as webEd from '@gny/web-ed';
+import * as webEd from '@gnyio/web-ed';
 import * as crypto from 'crypto';
-import { generateAddress } from '@gny/utils';
-import { KeyPair } from '@gny/interfaces';
+import { generateAddress } from '@gnyio/utils';
+import { KeyPair } from '@gnyio/interfaces';
 
 export type AccountType = {
   keypair: KeyPair;

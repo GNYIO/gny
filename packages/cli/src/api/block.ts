@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-import { BlockWebBase, TransactionWebBase } from '@gny/web-base';
-import { IBlock } from '@gny/interfaces';
+import { BlockWebBase, TransactionWebBase } from '@gnyio/web-base';
+import { IBlock } from '@gnyio/interfaces';
 import { getBaseUrl } from '../getBaseUrl';
 
 export async function getHeight() {

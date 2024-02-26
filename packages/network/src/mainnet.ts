@@ -1,4 +1,4 @@
-import { IBlockWithTransactions } from '@gny/interfaces';
+import { IBlockWithTransactions } from '@gnyio/interfaces';
 
 const hash: string = 'e6a8a4cd';
 const genesisBlock: IBlockWithTransactions = {

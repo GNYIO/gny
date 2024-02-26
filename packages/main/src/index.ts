@@ -1,6 +1,6 @@
 import initRuntime from './runtime.js';
 import initAlt from './init.js';
-import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gny/interfaces';
+import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gnyio/interfaces';
 import { StateHelper } from './core/StateHelper.js';
 import { verifyGenesisBlock } from './verifyGenesisBlock.js';
 

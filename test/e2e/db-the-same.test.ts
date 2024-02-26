@@ -1,5 +1,5 @@
 import * as lib from './lib';
-import * as gnyJS from '@gny/client';
+import * as gnyJS from '@gnyio/client';
 import axios from 'axios';
 import pkg from 'pg';
 const Client = pkg.Client;

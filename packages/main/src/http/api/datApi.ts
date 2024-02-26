@@ -8,14 +8,14 @@ import {
   DatWrapper,
   SingleDatWrapper,
   SingleDatMakerWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
-import { joi } from '@gny/extended-joi';
+import { joi } from '@gnyio/extended-joi';
 
-import { DatMaker } from '@gny/database-postgres';
-import { Dat } from '@gny/database-postgres';
+import { DatMaker } from '@gnyio/database-postgres';
+import { Dat } from '@gnyio/database-postgres';
 
-import { datMakerRegex, datNameRegex, datHashRegex } from '@gny/utils';
+import { datMakerRegex, datNameRegex, datHashRegex } from '@gnyio/utils';
 
 export default class DatApi implements IHttpApi {
   private library: IScope;

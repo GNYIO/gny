@@ -1,5 +1,5 @@
-import { SimplePeerInfo } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { SimplePeerInfo } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isSimplePeerInfoArray(peers: any): peers is SimplePeerInfo[] {
   const simplePeerInfoSchema = joi

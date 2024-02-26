@@ -14,18 +14,18 @@ import {
   ExtendedDelegatesWrapper,
   ForgingStatus,
   SimpleAccountsWrapper,
-} from '@gny/interfaces';
-import { BlockReward, isAddress } from '@gny/utils';
+} from '@gnyio/interfaces';
+import { BlockReward, isAddress } from '@gnyio/utils';
 import { StateHelper } from '../../core/StateHelper.js';
 import Delegates from '../../core/delegates.js';
-import { Vote } from '@gny/database-postgres';
-import { Account } from '@gny/database-postgres';
-import { Delegate } from '@gny/database-postgres';
-import { Block } from '@gny/database-postgres';
-import { joi } from '@gny/extended-joi';
+import { Vote } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
+import { Block } from '@gnyio/database-postgres';
+import { joi } from '@gnyio/extended-joi';
 import BigNumber from 'bignumber.js';
-import { slots } from '@gny/utils';
-import { RoundBase } from '@gny/base';
+import { slots } from '@gnyio/utils';
+import { RoundBase } from '@gnyio/base';
 
 async function getDelegateAccount(
   sliced: DelegateViewModel[]

@@ -4,15 +4,15 @@ import {
   IAccount,
   ICoreModule,
   UnconfirmedTransaction,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
-import { TransactionBase } from '@gny/base';
+import { TransactionBase } from '@gnyio/base';
 import { StateHelper } from './StateHelper.js';
 import BigNumber from 'bignumber.js';
-import { Account } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
-import { isAddress } from '@gny/utils';
-import { ISpan } from '@gny/tracer';
+import { Account } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
+import { isAddress } from '@gnyio/utils';
+import { ISpan } from '@gnyio/tracer';
 
 export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactionsAsync = async (

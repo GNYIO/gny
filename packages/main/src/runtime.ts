@@ -1,4 +1,4 @@
-import { SmartDB } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
 import BalanceManager from './smartdb/balance-manager.js';
 import loadContracts from './loadContracts.js';
 
@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
 import { StateHelper } from './core/StateHelper.js';
 import * as prom from 'prom-client';
-import { Account, Block, Transaction } from '@gny/database-postgres';
+import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
 

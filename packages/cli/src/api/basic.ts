@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
-import * as webEd from '@gny/web-ed';
+import * as webEd from '@gnyio/web-ed';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-import { TransactionWebBase } from '@gny/web-base';
-import { KeyPair } from '@gny/interfaces';
+import { TransactionWebBase } from '@gnyio/web-base';
+import { KeyPair } from '@gnyio/interfaces';
 import { getBaseUrl } from '../getBaseUrl';
 
 export async function setUserName(options) {

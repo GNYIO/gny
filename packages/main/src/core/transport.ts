@@ -12,16 +12,16 @@ import {
   BlockIdWrapper,
   P2PPeerIdAndMultiaddr,
   SimplePeerInfo,
-} from '@gny/interfaces';
-import { BlockBase } from '@gny/base';
-import { ConsensusBase } from '@gny/base';
-import { TransactionBase } from '@gny/base';
+} from '@gnyio/interfaces';
+import { BlockBase } from '@gnyio/base';
+import { ConsensusBase } from '@gnyio/base';
+import { TransactionBase } from '@gnyio/base';
 import {
   isBlockPropose,
   isNewBlockMessage,
   isBlockAndVotes,
   isP2PPeerIdAndMultiaddr,
-} from '@gny/type-validation';
+} from '@gnyio/type-validation';
 import { StateHelper } from './StateHelper.js';
 import { TransportHelper } from './TransportHelper.js';
 import Peer from './peer.js';
@@ -34,7 +34,7 @@ import {
   getSmallBlockHash,
   ISpan,
   ISerializedSpanContext,
-} from '@gny/tracer';
+} from '@gnyio/tracer';
 
 import * as PeerId from 'peer-id';
 import uint8Arrays from 'uint8arrays';

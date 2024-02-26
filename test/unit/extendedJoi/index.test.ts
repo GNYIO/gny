@@ -1,4 +1,4 @@
-import { joi } from '@gny/extended-joi';
+import { joi } from '@gnyio/extended-joi';
 
 describe('extendedJoi', () => {
   describe('publickey', () => {

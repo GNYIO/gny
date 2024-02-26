@@ -1,19 +1,19 @@
 import { jest } from '@jest/globals';
 
-import Blocks from '@gny/main/blocks';
-import { IBlock, KeyPair, ProcessBlockOptions } from '@gny/interfaces';
-import { IState, IStateSuccess } from '@gny/main/globalInterfaces';
-import { BlockBase } from '@gny/base';
-import { TransactionBase } from '@gny/base';
-import { Block as BlockModel } from '@gny/database-postgres';
+import Blocks from '@gnyio/main/blocks';
+import { IBlock, KeyPair, ProcessBlockOptions } from '@gnyio/interfaces';
+import { IState, IStateSuccess } from '@gnyio/main/globalInterfaces';
+import { BlockBase } from '@gnyio/base';
+import { TransactionBase } from '@gnyio/base';
+import { Block as BlockModel } from '@gnyio/database-postgres';
 import * as crypto from 'crypto';
-import { generateAddress } from '@gny/utils';
-import * as ed from '@gny/ed';
-import { slots } from '@gny/utils';
-import { BlocksHelper } from '@gny/main/blockshelper';
-import { StateHelper } from '@gny/main/statehelper';
-import { ISpan } from '@gny/tracer';
-import { getConfig } from '@gny/network';
+import { generateAddress } from '@gnyio/utils';
+import * as ed from '@gnyio/ed';
+import { slots } from '@gnyio/utils';
+import { BlocksHelper } from '@gnyio/main/blockshelper';
+import { StateHelper } from '@gnyio/main/statehelper';
+import { ISpan } from '@gnyio/tracer';
+import { getConfig } from '@gnyio/network';
 
 function loadGenesisBlock() {
   return getConfig('localnet').genesisBlock;
