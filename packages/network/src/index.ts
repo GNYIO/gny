@@ -1,4 +1,4 @@
-import { NetworkType } from '@gny/interfaces';
+import { NetworkType } from '@gnyio/interfaces';
 
 import { network as testnet } from './testnet.js';
 import { network as testnet_app } from './testnet_app.js';

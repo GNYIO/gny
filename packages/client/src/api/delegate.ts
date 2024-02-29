@@ -15,7 +15,7 @@ import {
   ForgingStatus,
   SimpleAccountsWrapper,
   DelegateAddressOrUsername,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Delegate {

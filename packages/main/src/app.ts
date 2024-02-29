@@ -1,8 +1,8 @@
 import program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createLogger, LogLevel } from '@gny/logger';
-import * as tracerpkg from '@gny/tracer';
+import { createLogger, LogLevel } from '@gnyio/logger';
+import * as tracerpkg from '@gnyio/tracer';
 
 import Application from './index.js';
 
@@ -22,10 +22,10 @@ const packageJson = JSON.parse(
   readFileSync(packageJSONPath, { encoding: 'utf8' })
 );
 
-import { IConfig, IBlock } from '@gny/interfaces';
+import { IConfig, IBlock } from '@gnyio/interfaces';
 import ip from 'ip';
-import { getConfig } from '@gny/network';
-import { createPeer2PeerHandlers } from '@gny/p2p';
+import { getConfig } from '@gnyio/network';
+import { createPeer2PeerHandlers } from '@gnyio/p2p';
 
 const version = packageJson.version;
 

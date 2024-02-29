@@ -3,11 +3,11 @@ import {
   CommonBlockResult,
   HeightWrapper,
   IBlock,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
-import { ISpan } from '@gny/tracer';
-import { Block } from '@gny/database-postgres';
+import { ISpan } from '@gnyio/tracer';
+import { Block } from '@gnyio/database-postgres';
 import Peer from './peer.js';
 import { StateHelper } from './StateHelper.js';
 import Blocks from './blocks.js';

@@ -1,9 +1,9 @@
 import * as crypto from 'crypto';
-import * as webEd from '@gny/web-ed';
-import { TransactionWebBase } from '@gny/web-base';
+import * as webEd from '@gnyio/web-ed';
+import { TransactionWebBase } from '@gnyio/web-base';
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-import { KeyPair } from '@gny/interfaces';
+import { KeyPair } from '@gnyio/interfaces';
 import { getBaseUrl } from '../getBaseUrl';
 
 export async function getIssuers(options) {

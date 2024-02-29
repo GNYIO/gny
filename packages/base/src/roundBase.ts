@@ -1,4 +1,4 @@
-import { DELEGATES } from '@gny/utils';
+import { DELEGATES } from '@gnyio/utils';
 import BigNumber from 'bignumber.js';
 
 export class RoundBase {

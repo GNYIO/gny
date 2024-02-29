@@ -1,5 +1,5 @@
-import { IConfig, ILogger } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { IConfig, ILogger } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
   const schema = joi

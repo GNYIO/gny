@@ -1,8 +1,8 @@
-import Delegates from '@gny/main/delegates';
-import { KeyPairsIndexer, IBlock, IDelegate } from '@gny/interfaces';
+import Delegates from '@gnyio/main/delegates';
+import { KeyPairsIndexer, IBlock, IDelegate } from '@gnyio/interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
-import { StateHelper } from '@gny/main/statehelper';
+import { StateHelper } from '@gnyio/main/statehelper';
 
 interface DelegateTestData {
   delegateList: string[];

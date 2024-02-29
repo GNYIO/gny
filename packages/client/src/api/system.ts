@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { ApiResult, VersionWrapper, ServerError } from '@gny/interfaces';
+import { ApiResult, VersionWrapper, ServerError } from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class System {

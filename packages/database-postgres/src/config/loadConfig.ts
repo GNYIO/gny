@@ -1,6 +1,6 @@
 import { createConnection } from 'typeorm';
 import { OrmLogger } from './ormLogger.js';
-import { ILogger, SmartDBOptions } from '@gny/interfaces';
+import { ILogger, SmartDBOptions } from '@gnyio/interfaces';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 import { Account } from '../entity/Account.js';

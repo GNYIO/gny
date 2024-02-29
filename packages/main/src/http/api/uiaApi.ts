@@ -1,4 +1,4 @@
-import { isAddress } from '@gny/utils';
+import { isAddress } from '@gnyio/utils';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
@@ -18,12 +18,12 @@ import {
   AssetHoldersWrapper,
   IAssetWithIssuer,
   IAsset,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
-import { Issuer } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { joi } from '@gny/extended-joi';
+import { Issuer } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { joi } from '@gnyio/extended-joi';
 
 export default class UiaApi implements IHttpApi {
   private library: IScope;

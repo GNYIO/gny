@@ -1,5 +1,5 @@
-import { UnconfirmedTransaction } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { UnconfirmedTransaction } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isUnconfirmedTransaction(
   unconfirmed: any

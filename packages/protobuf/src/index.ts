@@ -8,7 +8,7 @@ import {
   UnconfirmedTransaction,
   BlockIdWrapper,
   BlockAndVotes,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 
 export class Protobuf implements IProtobuf {
   public schema;

@@ -1,10 +1,10 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IBlock, IAccount, IDelegate, IBalance } from '@gny/interfaces';
-import { generateAddress } from '@gny/utils';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IBlock, IAccount, IDelegate, IBalance } from '@gnyio/interfaces';
+import { generateAddress } from '@gnyio/utils';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { Delegate } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
 import {
   createRandomBytes,
   saveGenesisBlock,
@@ -12,7 +12,7 @@ import {
   logger,
 } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('integration - SmartDB', () => {
   const dbName = 'smartdb';

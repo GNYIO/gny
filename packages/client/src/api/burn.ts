@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { ApiResult, ValidationError, BurnWrapper } from '@gny/interfaces';
+import { ApiResult, ValidationError, BurnWrapper } from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Burn {

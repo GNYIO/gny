@@ -1,4 +1,4 @@
-import { BlockBase } from '@gny/base';
+import { BlockBase } from '@gnyio/base';
 import {
   KeyPair,
   IBlock,

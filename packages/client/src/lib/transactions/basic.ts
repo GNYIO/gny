@@ -1,4 +1,4 @@
-import * as webBase from '@gny/web-base';
+import * as webBase from '@gnyio/web-base';
 import * as transaction from './transaction';
 
 function transfer(

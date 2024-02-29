@@ -1,4 +1,4 @@
-import { BufferList } from '@gny/interfaces';
+import { BufferList } from '@gnyio/interfaces';
 
 export type AsyncMapFuncCallback = (
   err: Error,

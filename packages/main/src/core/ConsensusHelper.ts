@@ -1,10 +1,10 @@
-import { ManyVotes, IBlock } from '@gny/interfaces';
+import { ManyVotes, IBlock } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
-import { ConsensusBase } from '@gny/base';
-import { slots } from '@gny/utils';
-import { copyObject } from '@gny/base';
+import { ConsensusBase } from '@gnyio/base';
+import { slots } from '@gnyio/utils';
+import { copyObject } from '@gnyio/base';
 import { StateHelper } from './StateHelper.js';
-import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 
 export class ConsensusHelper {
   public static createPendingBlockAndVotes(

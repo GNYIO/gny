@@ -1,5 +1,5 @@
-import { slots } from '@gny/utils';
-import { INTERVAL } from '@gny/utils';
+import { slots } from '@gnyio/utils';
+import { INTERVAL } from '@gnyio/utils';
 import * as lolex from 'lolex';
 
 describe('slots', () => {

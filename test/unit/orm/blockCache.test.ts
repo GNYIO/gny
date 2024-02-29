@@ -1,5 +1,5 @@
-import { BlockCache } from '@gny/database-postgres';
-import { Block } from '@gny/database-postgres';
+import { BlockCache } from '@gnyio/database-postgres';
+import { Block } from '@gnyio/database-postgres';
 import { randomBytes } from 'crypto';
 
 function createRandomBytes(length: number) {

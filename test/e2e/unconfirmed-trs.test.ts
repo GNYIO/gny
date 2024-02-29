@@ -1,10 +1,10 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
-import { getConfig } from '@gny/network';
-import { UnconfirmedTransaction } from '@gny/interfaces';
+import { getConfig } from '@gnyio/network';
+import { UnconfirmedTransaction } from '@gnyio/interfaces';
 import { log as consoleLog } from 'console';
 
 const DOCKER_COMPOSE_P2P =

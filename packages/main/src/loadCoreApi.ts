@@ -12,7 +12,7 @@ import ExchangeApi from './http/api/exchangeApi.js';
 import MetricsApi from './http/api/metricsApi.js';
 import DatApi from './http/api/datApi.js';
 import BurnApi from './http/api/burnApi.js';
-import { IScope, CoreApi } from '@gny/interfaces';
+import { IScope, CoreApi } from '@gnyio/interfaces';
 
 export default function loadCoreApi(scope: IScope) {
   const blocksApi = new BlocksApi(scope);

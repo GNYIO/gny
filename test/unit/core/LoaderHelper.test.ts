@@ -3,8 +3,8 @@ import {
   LoaderHelper,
   PeerIdCommonBlockHeight,
   createRandomPeerId,
-} from '@gny/main/loaderhelper';
-import { IBlock } from '@gny/interfaces';
+} from '@gnyio/main/loaderhelper';
+import { IBlock } from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
 
 describe('LoaderHelper', () => {

@@ -2,6 +2,16 @@ name: new release on testnet
 on:
   workflow_dispatch:
     inputs:
+      releaseType: # either patch(default),minor,major
+        type: choice
+        description: Which release should lerna execute?
+        required: true
+        default: 'patch'
+        options:
+        - patch
+        - minor
+        - major
+
     logLevel:
       description: 'Log level'
       required: true
@@ -33,7 +43,7 @@ jobs:
         run: git remote set-url origin https://github.com/gnyio/gny-experiment.git
 
       - name: build gny client
-        run: node_modules/lerna/cli.js run --scope="@gny/client" web
+        run: node_modules/lerna/cli.js run --scope="@gnyio/client" web
 
       - name: npm set unsafe-perm
         run: npm set unsafe-perm true
@@ -48,7 +58,7 @@ jobs:
         run: npm set email ${{ secrets.NPM_EMAIL }}
 
       - name: new release (no push)
-        run: node_modules/lerna/cli.js version patch --yes --exact --no-push
+        run: "node_modules/lerna/cli.js version ${{ github.event.inputs.releaseType }} --yes --exact --no-push"
 
       - name: push release commit
         run: git push origin testnet --force

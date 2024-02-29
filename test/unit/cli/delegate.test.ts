@@ -1,6 +1,6 @@
-import * as delegate from '@gny/cli/delegate';
+import * as delegate from '@gnyio/cli/delegate';
 import MockAdapter from 'axios-mock-adapter';
-import { http as axios } from '@gny/cli/api';
+import { http as axios } from '@gnyio/cli/api';
 import { jest } from '@jest/globals';
 
 function pretty(obj: any) {

@@ -1,8 +1,8 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '@gny/client';
-import { ApiSuccess } from '@gny/interfaces';
+import { Connection } from '@gnyio/client';
+import { ApiSuccess } from '@gnyio/interfaces';
 import * as lib from './lib';
 
 const GNY_PORT = 8096;

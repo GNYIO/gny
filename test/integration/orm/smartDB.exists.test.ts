@@ -1,14 +1,14 @@
-import { SmartDB } from '@gny/database-postgres';
-import { ITransaction, IVariable } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { ITransaction, IVariable } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
-import { Variable } from '@gny/database-postgres';
-import { Block } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
+import { Block } from '@gnyio/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.exists()', () => {
   const dbName = 'existsdb';

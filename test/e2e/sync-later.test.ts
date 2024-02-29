@@ -2,8 +2,8 @@ import * as lib from './lib';
 import * as helpers from './helpers';
 import { BigNumber } from 'bignumber.js';
 import axios from 'axios';
-import { getConfig } from '@gny/network';
-import * as gnyClient from '@gny/client';
+import { getConfig } from '@gnyio/network';
+import * as gnyClient from '@gnyio/client';
 import { log as consoleLog } from 'console';
 
 const config = {

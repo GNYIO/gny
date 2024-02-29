@@ -1,13 +1,13 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '@gny/client';
+import { Connection } from '@gnyio/client';
 import {
   ApiResult,
   ApiSuccess,
   BlockWrapper,
   SupplyWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import * as lib from './lib';
 
 const GNY_PORT = 5096;

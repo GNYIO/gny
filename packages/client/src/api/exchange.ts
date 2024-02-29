@@ -6,7 +6,7 @@ import {
   ServerError,
   AccountOpenModel,
   PublicKeyWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Exchange {

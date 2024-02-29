@@ -3,8 +3,8 @@ import {
   IBlockWithoutSignatureId,
   IBlockWithoutId,
   KeyPair,
-} from '@gny/interfaces';
-import * as webEd from '@gny/web-ed';
+} from '@gnyio/interfaces';
+import * as webEd from '@gnyio/web-ed';
 import * as ByteBuffer from 'bytebuffer';
 import { copyObject } from './helpers.js';
 import * as crypto from 'crypto';

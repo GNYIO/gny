@@ -1,12 +1,12 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IBalance } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IBalance } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
-import { Delegate } from '@gny/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.del', () => {
   const dbName = 'deldb';

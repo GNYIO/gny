@@ -1,7 +1,7 @@
-import { generateAddress } from '@gny/utils';
-export { getKeys } from '@gny/web-base';
-import * as webBase from '@gny/web-base';
-import { TransactionWebBase } from '@gny/web-base';
+import { generateAddress } from '@gnyio/utils';
+export { getKeys } from '@gnyio/web-base';
+import * as webBase from '@gnyio/web-base';
+import { TransactionWebBase } from '@gnyio/web-base';
 
 export const getAddress = generateAddress;
 export const verify = webBase.verify;

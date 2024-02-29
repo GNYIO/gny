@@ -1,5 +1,5 @@
 import 'jest-extended';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 
 describe('uia', () => {
   beforeEach(async () => {

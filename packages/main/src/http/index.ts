@@ -7,9 +7,9 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import methodOverride from 'method-override';
 import ip from 'ip';
-import { slots } from '@gny/utils';
+import { slots } from '@gnyio/utils';
 import queryParser from './express-query-int/index.js';
-import { IConfig, Modules, ILogger, INetwork } from '@gny/interfaces';
+import { IConfig, Modules, ILogger, INetwork } from '@gnyio/interfaces';
 import Peer from '../core/peer.js';
 import { StateHelper } from '../core/StateHelper.js';
 

@@ -1,5 +1,5 @@
-import { BlockIdWrapper } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { BlockIdWrapper } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isBlockIdWrapper(
   blockIdWrapper: any

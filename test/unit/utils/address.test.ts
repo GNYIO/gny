@@ -1,4 +1,4 @@
-import { generateAddress, isAddress } from '@gny/utils';
+import { generateAddress, isAddress } from '@gnyio/utils';
 
 describe('address', () => {
   describe('generateAddress', () => {

@@ -1,10 +1,10 @@
-import { ITransfer, IAsset, IIssuer, Context } from '@gny/interfaces';
-import { Issuer } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { Account } from '@gny/database-postgres';
-import { Transfer } from '@gny/database-postgres';
+import { ITransfer, IAsset, IIssuer, Context } from '@gnyio/interfaces';
+import { Issuer } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Transfer } from '@gnyio/database-postgres';
 import BigNumber from 'bignumber.js';
-import { isAddress } from '@gny/utils';
+import { isAddress } from '@gnyio/utils';
 
 export default {
   async registerIssuer(this: Context, name, desc) {

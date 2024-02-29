@@ -1,10 +1,10 @@
-import { SmartDB } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Variable } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.load()', () => {
   const dbName = 'loaddb';

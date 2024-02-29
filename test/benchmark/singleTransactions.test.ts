@@ -1,14 +1,14 @@
 /**
  * @jest-environment node
  */
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import * as lib from '../integration/lib';
 
 import si = require('systeminformation');
 import Benchmark = require('benchmark');
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 
 async function onStart() {
   console.log('Benchmark for single transaction started...');

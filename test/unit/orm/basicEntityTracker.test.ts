@@ -4,12 +4,12 @@ import {
   LoadChangesHistoryAction,
   BasicEntityTracker,
   EntityChanges,
-} from '@gny/database-postgres';
-import { LRUEntityCache } from '@gny/database-postgres';
-import { ModelSchema, MetaSchema } from '@gny/database-postgres';
-import { LogManager } from '@gny/database-postgres';
-import { ILogger, IAccount } from '@gny/interfaces';
-import { generateAddress } from '@gny/utils';
+} from '@gnyio/database-postgres';
+import { LRUEntityCache } from '@gnyio/database-postgres';
+import { ModelSchema, MetaSchema } from '@gnyio/database-postgres';
+import { LogManager } from '@gnyio/database-postgres';
+import { ILogger, IAccount } from '@gnyio/interfaces';
+import { generateAddress } from '@gnyio/utils';
 import { randomBytes } from 'crypto';
 
 function createEntityChanges(account: string, username: string) {

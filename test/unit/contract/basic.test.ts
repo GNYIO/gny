@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
-import basic from '@gny/main/basic';
-import { IApp } from '@gny/main/globalInterfaces';
+import basic from '@gnyio/main/basic';
+import { IApp } from '@gnyio/main/globalInterfaces';
 import {
   ILogger,
   IAccount,
@@ -10,8 +10,8 @@ import {
   Context,
   IVote,
   NetworkType,
-} from '@gny/interfaces';
-import { IConfig } from '@gny/interfaces';
+} from '@gnyio/interfaces';
+import { IConfig } from '@gnyio/interfaces';
 
 // mocking of ES modules currently not supported in jest
 // https://github.com/facebook/jest/issues/9430

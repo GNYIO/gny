@@ -2,7 +2,7 @@ import * as lib from '../lib';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import * as ed from '../../../packages/ed/src/index';
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 
 const config = {
   headers: {

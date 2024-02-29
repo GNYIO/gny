@@ -1,12 +1,12 @@
-import { IBlock, ManyVotes, ITransaction, ILogger } from '@gny/interfaces';
-import { ConsensusHelper } from '@gny/main/consensushelper';
-import * as ed from '@gny/ed';
+import { IBlock, ManyVotes, ITransaction, ILogger } from '@gnyio/interfaces';
+import { ConsensusHelper } from '@gnyio/main/consensushelper';
+import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '@gny/main/blockshelper';
-import { slots } from '@gny/utils';
-import { ConsensusBase } from '@gny/base';
-import { StateHelper } from '@gny/main/statehelper';
-import { ISpan } from '@gny/tracer';
+import { BlocksHelper } from '@gnyio/main/blockshelper';
+import { slots } from '@gnyio/utils';
+import { ConsensusBase } from '@gnyio/base';
+import { StateHelper } from '@gnyio/main/statehelper';
+import { ISpan } from '@gnyio/tracer';
 
 function createRandomBlock(
   height: string = String(6),

@@ -1,4 +1,4 @@
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 
 describe('uia', () => {
   const uia = gnyClient.uia;

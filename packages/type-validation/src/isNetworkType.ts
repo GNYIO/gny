@@ -1,5 +1,5 @@
-import { NetworkType } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { NetworkType } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isNetworkType(networkType: any): networkType is NetworkType {
   const schema = joi

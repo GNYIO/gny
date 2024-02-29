@@ -6,7 +6,7 @@ import {
   SingleDatMakerWrapper,
   DatWrapper,
   SingleDatWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 interface OnlyHash {

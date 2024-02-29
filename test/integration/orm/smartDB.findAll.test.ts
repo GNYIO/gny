@@ -1,11 +1,11 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IAsset, ITransaction, IBalance } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IAsset, ITransaction, IBalance } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
-import { FindAllOptions } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
+import { FindAllOptions } from '@gnyio/database-postgres';
 import {
   saveGenesisBlock,
   createBlock,
@@ -15,7 +15,7 @@ import {
   createTransaction,
 } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.findAll()', () => {
   const dbName = 'findalldb';

@@ -1,5 +1,5 @@
 import * as bip39 from 'bip39';
-import { isAddress, feeCalculators } from '@gny/utils';
+import { isAddress, feeCalculators } from '@gnyio/utils';
 import Joi from 'joi';
 import BigNumber from 'bignumber.js';
 import CID from 'cids';

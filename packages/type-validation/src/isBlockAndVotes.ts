@@ -1,5 +1,5 @@
-import { BlockAndVotes } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { BlockAndVotes } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 import { blockWithTransactionsSchema } from './schema/blockWithTransactionsSchema.js';
 
 export function isBlockAndVotes(

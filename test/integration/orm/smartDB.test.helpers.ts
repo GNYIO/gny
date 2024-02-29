@@ -1,15 +1,15 @@
-import { SmartDB } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
 import {
   IAccount,
   IAsset,
   IBlock,
   ITransaction,
   ILogger,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
-import { copyObject } from '@gny/base';
-import { generateAddress } from '@gny/utils';
+import { copyObject } from '@gnyio/base';
+import { generateAddress } from '@gnyio/utils';
 
 export const CUSTOM_GENESIS: IBlock = {
   version: 0,

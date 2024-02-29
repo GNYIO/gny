@@ -1,10 +1,10 @@
-import { IBlock, ICoreModule } from '@gny/interfaces';
+import { IBlock, ICoreModule } from '@gnyio/interfaces';
 import { StateHelper } from './StateHelper.js';
 import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper.js';
 import Blocks from './blocks.js';
 import Peer from './peer.js';
 import * as PeerId from 'peer-id';
-import { ISpan, getSmallBlockHash } from '@gny/tracer';
+import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocksFromPeerProxy(

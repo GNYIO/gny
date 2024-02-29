@@ -8,7 +8,7 @@ import {
   PeersWrapper,
   VersionWrapper,
   PeerInfoWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import Peer from '../../core/peer.js';
 import { StateHelper } from '../../core/StateHelper.js';
 

@@ -6,7 +6,7 @@ import {
   TransactionWebBase,
   BlockWebBase,
   CreateTransactionType,
-} from '@gny/web-base';
+} from '@gnyio/web-base';
 import {
   UnconfirmedTransaction,
   IBlock,
@@ -14,8 +14,8 @@ import {
   IBlockWithoutSignatureId,
   ITransaction,
   KeyPair,
-} from '@gny/interfaces';
-import * as addressHelper from '@gny/utils';
+} from '@gnyio/interfaces';
+import * as addressHelper from '@gnyio/utils';
 import { AccountType } from './account';
 
 interface DelegateAccount {

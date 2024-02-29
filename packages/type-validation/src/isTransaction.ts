@@ -1,5 +1,5 @@
-import { ITransaction } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { ITransaction } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isTransaction(transaction: any): transaction is ITransaction {
   // property height is required

@@ -1,5 +1,5 @@
 import { api as sodium } from 'sodium';
-import { KeyPair } from '@gny/interfaces';
+import { KeyPair } from '@gnyio/interfaces';
 
 export function generateKeyPair(hash: Buffer): KeyPair {
   const keypair = sodium.crypto_sign_seed_keypair(hash);

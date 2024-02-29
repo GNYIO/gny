@@ -1,4 +1,4 @@
-import { RoundBase } from '@gny/base';
+import { RoundBase } from '@gnyio/base';
 
 describe('base/round', () => {
   describe('calculateRound', () => {

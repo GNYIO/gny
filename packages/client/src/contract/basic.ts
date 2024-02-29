@@ -1,6 +1,6 @@
 import { Base } from '../api/base';
 import { basic, Connection } from '../';
-import { ApiResult, TransactionIdWrapper } from '@gny/interfaces';
+import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
 export class Basic {
   private base: Base;

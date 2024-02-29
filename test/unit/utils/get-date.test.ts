@@ -1,4 +1,4 @@
-import { getDate } from '@gny/utils';
+import { getDate } from '@gnyio/utils';
 
 describe('getDate()', () => {
   describe('currentHeight', () => {

@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
-import { slots, DELEGATES } from '@gny/utils';
-import { BlockReward } from '@gny/utils';
+import * as ed from '@gnyio/ed';
+import { slots, DELEGATES } from '@gnyio/utils';
+import { BlockReward } from '@gnyio/utils';
 import {
   KeyPairsIndexer,
   KeyPair,
@@ -13,16 +13,16 @@ import {
   IBlock,
   IVariable,
   ICoreModule,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
-import { RoundBase } from '@gny/base';
+import { RoundBase } from '@gnyio/base';
 import { ConsensusHelper } from './ConsensusHelper.js';
 import { StateHelper } from './StateHelper.js';
 import Blocks from './blocks.js';
 import BigNumber from 'bignumber.js';
-import { Variable } from '@gny/database-postgres';
-import { Delegate } from '@gny/database-postgres';
-import { getSmallBlockHash } from '@gny/tracer';
+import { Variable } from '@gnyio/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
+import { getSmallBlockHash } from '@gnyio/tracer';
 
 const blockReward = new BlockReward();
 
