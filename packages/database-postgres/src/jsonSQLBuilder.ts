@@ -1,4 +1,4 @@
-import sq from '@gny/json-sql';
+import sq from '@gnyio/json-sql';
 const jsonSQL = sq({
   dialect: 'postgresql',
   separatedValues: true,
