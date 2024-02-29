@@ -64,7 +64,7 @@ async function beforeUiaTransfer(uiaApi: any) {
     transaction: issue,
   };
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     issueTransData,
     config
   );
@@ -84,7 +84,7 @@ async function transferUiaTo(recipient: string) {
     transaction: transfer,
   };
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     transData,
     config
   );
@@ -134,7 +134,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
@@ -169,7 +169,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
@@ -202,7 +202,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
@@ -237,7 +237,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
@@ -255,7 +255,7 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
@@ -289,7 +289,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
@@ -307,7 +307,7 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
@@ -339,7 +339,7 @@ describe('uia', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           issuerTransData,
           config
         );
@@ -357,7 +357,7 @@ describe('uia', () => {
           transaction: assetTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           assetTransData,
           config
         );
@@ -392,7 +392,7 @@ describe('uia', () => {
           transaction: transfer,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
@@ -427,7 +427,7 @@ describe('uia', () => {
           transaction: transfer,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );

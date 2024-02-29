@@ -151,7 +151,7 @@ export class SmartDB extends EventEmitter {
     for (let i = 0; i < schemas.length; ++i) {
       const one = schemas[i].value;
       if (one.memCached) {
-        await this.blockSession.getMany(one, {}, true);
+        await this.blockSession.getMany(one, true);
       }
     }
   }
