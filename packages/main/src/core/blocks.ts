@@ -1330,6 +1330,7 @@ export default class Blocks implements ICoreModule {
               `[p2p] onReceivePropose. going to validate propose slot`
             );
 
+            // could throw
             Delegates.validateProposeSlot(propose, activeDelegates);
 
             span.log({
@@ -1420,7 +1421,8 @@ export default class Blocks implements ICoreModule {
             return [];
           },
         ],
-        (err: Error, [result]) => {
+        (err: Error, result) => {
+          // see issue #605
           if (err) {
             span.setTag('error', true);
             span.log({
