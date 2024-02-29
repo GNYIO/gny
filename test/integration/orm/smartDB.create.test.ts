@@ -7,6 +7,7 @@ import { Versioned } from '@gnyio/database-postgres';
 import { saveGenesisBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
 import { copyObject } from '@gnyio/base';
+import { createBlock } from './smartDB.test.helpers';
 
 describe('smartDB.create()', () => {
   const dbName = 'createdb';
