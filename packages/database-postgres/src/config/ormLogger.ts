@@ -1,4 +1,4 @@
-import { ILogger } from '@gny/interfaces';
+import { ILogger } from '@gnyio/interfaces';
 import { Logger, QueryRunner } from 'typeorm';
 
 /**

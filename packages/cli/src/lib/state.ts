@@ -5,8 +5,8 @@ import {
   PeerStateWrapper,
   DelegateViewModel,
   DelegateStateWrapper,
-} from '@gny/interfaces';
-import { slots } from '@gny/utils';
+} from '@gnyio/interfaces';
+import { slots } from '@gnyio/utils';
 import { getBaseUrl } from '../getBaseUrl';
 
 export async function peerstat() {

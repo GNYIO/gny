@@ -1,9 +1,9 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IHttpApi, IBurn } from '@gny/interfaces';
+import { IScope, Next, IHttpApi, IBurn } from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
-import { joi } from '@gny/extended-joi';
-import { Burn } from '@gny/database-postgres';
+import { joi } from '@gnyio/extended-joi';
+import { Burn } from '@gnyio/database-postgres';
 
 export default class Burnapi implements IHttpApi {
   private library: IScope;

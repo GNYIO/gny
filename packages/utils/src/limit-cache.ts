@@ -1,4 +1,4 @@
-import { ILimitCache } from '@gny/interfaces';
+import { ILimitCache } from '@gnyio/interfaces';
 
 const DEFAULT_LIMIT = 10000;
 

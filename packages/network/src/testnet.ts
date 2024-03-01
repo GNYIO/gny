@@ -1,4 +1,4 @@
-import { IBlockWithTransactions } from '@gny/interfaces';
+import { IBlockWithTransactions } from '@gnyio/interfaces';
 
 const genesis =
   'grow pencil ten junk bomb right describe trade rich valid tuna service';

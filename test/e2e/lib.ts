@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 import { BigNumber } from 'bignumber.js';
-import * as gnyJS from '@gny/client';
+import * as gnyJS from '@gnyio/client';
 import * as crypto from 'crypto';
 import shellJS from 'shelljs';
-import { IBlock, KeyPair } from '@gny/interfaces';
+import { IBlock, KeyPair } from '@gnyio/interfaces';
 // https://stackoverflow.com/a/70768410/5536304
 // jest is changeing the global console object
 import { log as consoleLog, error as consoleError } from 'console';

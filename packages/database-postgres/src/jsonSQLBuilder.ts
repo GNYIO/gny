@@ -1,8 +1,8 @@
-import { isArray, isNumber } from 'util';
-
-import sq from '@gny/json-sql';
+import sq from '@gnyio/json-sql';
 const jsonSQL = sq({
-  separatedValues: false,
+  dialect: 'postgresql',
+  separatedValues: true,
+  namedValues: false,
 });
 import lodash from 'lodash';
 import { ModelSchema } from './modelSchema.js';
@@ -18,12 +18,10 @@ export enum SqlType {
   Other = 9,
 }
 
-export type SqlParameters = Array<any> | ObjectLiteral;
-
 export type SqlAndParameters = {
   type: SqlType;
   query: string;
-  parameters?: SqlParameters;
+  values: []; // parameters
   expectEffected?: boolean;
 };
 
@@ -93,25 +91,26 @@ export class JsonSqlBuilder {
   public buildSelect(
     schema: ModelSchema,
     fields: string[] | ObjectLiteral,
-    where?: ObjectLiteral,
+    where?: ObjectLiteral, // even needed?
     resultRange?: any,
     sort?: any,
     join?: any
   ) {
     const tableName = this.getTableName(schema.modelName);
     let options = undefined;
-    if (isArray(fields)) {
+    if (Array.isArray(fields)) {
       const result =
         fields ||
         schema.properties.map(function(one) {
           // @ts-ignore
           return schema.schemaObject.table + '.' + one;
         });
-      const query = isNumber(resultRange)
-        ? {
-            limit: resultRange,
-          }
-        : resultRange || {};
+      const query =
+        typeof resultRange === 'number'
+          ? {
+              limit: resultRange,
+            }
+          : resultRange || {};
       const obj = sort || {};
       /** @type {boolean} */
       let _iteratorNormalCompletion3 = true;

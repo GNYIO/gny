@@ -1,6 +1,6 @@
-import { SmartDB, BlockHistory } from '@gny/database-postgres';
+import { SmartDB, BlockHistory } from '@gnyio/database-postgres';
 import * as lib from '../lib';
-import { Block } from '@gny/database-postgres';
+import { Block } from '@gnyio/database-postgres';
 import {
   saveGenesisBlock,
   createBlock,
@@ -8,11 +8,11 @@ import {
   createRandomBytes,
   createAccount,
 } from './smartDB.test.helpers';
-import { Delegate } from '@gny/database-postgres';
-import { IDelegate } from '@gny/interfaces';
-import { Account } from '@gny/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
+import { IDelegate } from '@gnyio/interfaces';
+import { Account } from '@gnyio/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('SmartDB.rollbackBlock()', () => {
   const dbName = 'rollbackblockdb';

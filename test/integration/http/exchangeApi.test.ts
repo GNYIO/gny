@@ -1,6 +1,6 @@
 import * as lib from '../lib';
 import axios from 'axios';
-import * as ed from '@gny/ed';
+import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
 
 const config = {

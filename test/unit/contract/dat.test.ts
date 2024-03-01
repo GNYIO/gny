@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 
-import dat from '@gny/main/dat';
-import { IApp } from '@gny/main/globalInterfaces';
-import { IAccount, ITransaction, Context, IBlock } from '@gny/interfaces';
-import { IConfig } from '@gny/interfaces';
+import dat from '@gnyio/main/dat';
+import { IApp } from '@gnyio/main/globalInterfaces';
+import { IAccount, ITransaction, Context, IBlock } from '@gnyio/interfaces';
+import { IConfig } from '@gnyio/interfaces';
 
 // mocking of ES modules currently not supported in jest
 // https://github.com/facebook/jest/issues/9430

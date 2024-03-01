@@ -1,9 +1,9 @@
-import { Variable } from '@gny/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import * as lib from '../lib';
-import { SmartDB } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB - use cases', () => {
   const dbName = 'usecasedb';

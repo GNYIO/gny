@@ -1,5 +1,5 @@
-import { ISpan } from '@gny/tracer';
-import { slots } from '@gny/utils';
+import { ISpan } from '@gnyio/tracer';
+import { slots } from '@gnyio/utils';
 import { parseOptions } from 'commander';
 
 export type TimeStampType = 'block-header' | 'propose';

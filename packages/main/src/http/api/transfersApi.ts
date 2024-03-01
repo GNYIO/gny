@@ -8,13 +8,13 @@ import {
   ApiResult,
   TransfersWrapper,
   AmountWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Merge } from 'type-fest';
 import { StateHelper } from '../../core/StateHelper.js';
-import { Transfer } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { joi } from '@gny/extended-joi';
+import { Transfer } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
+import { joi } from '@gnyio/extended-joi';
 
 export default class TransfersApi implements IHttpApi {
   private library: IScope;

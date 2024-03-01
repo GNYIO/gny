@@ -1,9 +1,13 @@
-import { ITransaction, UnconfirmedTransaction, KeyPair } from '@gny/interfaces';
-import * as addressHelper from '@gny/utils';
-import { slots } from '@gny/utils';
+import {
+  ITransaction,
+  UnconfirmedTransaction,
+  KeyPair,
+} from '@gnyio/interfaces';
+import * as addressHelper from '@gnyio/utils';
+import { slots } from '@gnyio/utils';
 import * as crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import * as webEd from '@gny/web-ed';
+import * as webEd from '@gnyio/web-ed';
 import { Buffer } from 'buffer';
 
 function toHex(buffer: Buffer) {

@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 import {
   ApiSuccess,
@@ -11,7 +11,7 @@ import {
   DelegatesWrapperSimple,
   IBlock,
   SimpleAccountsWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 
 const GNY_PORT = 6096;
 const GNY_APP_NAME = 'app3';
@@ -58,7 +58,7 @@ async function prepareDelegates(delegates: string[]) {
       transaction: nameTrs,
     };
     await axios.post(
-      `http://localhost:${GNY_PORT}/peer/transactions`,
+      `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
       nameTransData,
       config
     );
@@ -78,7 +78,7 @@ async function prepareDelegates(delegates: string[]) {
     };
 
     await axios.post(
-      `http://localhost:${GNY_PORT}/peer/transactions`,
+      `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
       nameTransData,
       config
     );
@@ -136,7 +136,7 @@ describe('delegate', () => {
           transaction: nameTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           nameTransData,
           config
         );
@@ -152,7 +152,7 @@ describe('delegate', () => {
           transaction: lockTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           lockTransData,
           config
         );
@@ -164,7 +164,7 @@ describe('delegate', () => {
           transaction: delegateTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           delegateTransData,
           config
         );
@@ -176,7 +176,7 @@ describe('delegate', () => {
           transaction: trsVote,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transVoteData,
           config
         );
@@ -205,7 +205,7 @@ describe('delegate', () => {
           transaction: lockTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           lockTransData,
           config
         );
@@ -225,7 +225,7 @@ describe('delegate', () => {
           transaction: trsVote,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transVoteData,
           config
         );
@@ -262,7 +262,7 @@ describe('delegate', () => {
           transaction: nameTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           nameTransData,
           config
         );
@@ -278,7 +278,7 @@ describe('delegate', () => {
           transaction: lockTrs,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           lockTransData,
           config
         );
@@ -298,7 +298,7 @@ describe('delegate', () => {
           transaction: trsVote,
         };
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transVoteData,
           config
         );
@@ -338,7 +338,7 @@ describe('delegate', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           nameTransData,
           config
         );
@@ -350,7 +350,7 @@ describe('delegate', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );

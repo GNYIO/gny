@@ -1,7 +1,7 @@
-import * as uia from '@gny/cli/uia';
+import * as uia from '@gnyio/cli/uia';
 import MockAdapter from 'axios-mock-adapter';
 // import axios from 'axios';
-import { http as axios } from '@gny/cli/api';
+import { http as axios } from '@gnyio/cli/api';
 import { jest } from '@jest/globals';
 
 function pretty(obj: any) {

@@ -1,5 +1,5 @@
 import * as nacl from 'tweetnacl';
-import { KeyPair } from '@gny/interfaces';
+import { KeyPair } from '@gnyio/interfaces';
 import { Buffer } from 'buffer';
 
 export function generateKeyPair(hash: Buffer): KeyPair {

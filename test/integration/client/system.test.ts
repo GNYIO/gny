@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { Connection } from '@gny/client';
+import { Connection } from '@gnyio/client';
 import * as lib from './lib';
-import { ApiSuccess } from '@gny/interfaces';
+import { ApiSuccess } from '@gnyio/interfaces';
 
 const GNY_PORT = 10096;
 const GNY_APP_NAME = 'app7';

@@ -1,18 +1,18 @@
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
-import * as ed from '@gny/ed';
-import { KeyPair, IAccount, UnconfirmedTransaction } from '@gny/interfaces';
+import * as ed from '@gnyio/ed';
+import { KeyPair, IAccount, UnconfirmedTransaction } from '@gnyio/interfaces';
 import { copyObject } from './helpers.js';
-import { ITransaction, Context } from '@gny/interfaces';
-import { slots } from '@gny/utils';
-import { feeCalculators } from '@gny/utils';
-import * as addressHelper from '@gny/utils';
+import { ITransaction, Context } from '@gnyio/interfaces';
+import { slots } from '@gnyio/utils';
+import { feeCalculators } from '@gnyio/utils';
+import * as addressHelper from '@gnyio/utils';
 import BigNumber from 'bignumber.js';
 import {
   isTransaction,
   isGenesisTransaction,
   isUnconfirmedTransaction,
-} from '@gny/type-validation';
+} from '@gnyio/type-validation';
 
 export interface CreateTransactionType {
   type: number;

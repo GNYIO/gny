@@ -11,10 +11,10 @@ import {
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
   TransactionConfirmationWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
-import { Transaction } from '@gny/database-postgres';
-import { joi } from '@gny/extended-joi';
+import { Transaction } from '@gnyio/database-postgres';
+import { joi } from '@gnyio/extended-joi';
 import { TransactionsHelper } from '../../core/TransactionsHelper.js';
 import BigNumber from 'bignumber.js';
 

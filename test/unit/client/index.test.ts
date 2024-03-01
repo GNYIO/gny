@@ -1,4 +1,4 @@
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 
 describe('GNY client', () => {
   it('should be object', () => {

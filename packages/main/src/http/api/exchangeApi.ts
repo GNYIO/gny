@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import * as ed from '@gny/ed';
+import * as ed from '@gnyio/ed';
 import * as express from 'express';
 import { Request, Response } from 'express';
 import {
@@ -14,11 +14,11 @@ import {
   AccountGenerateModel,
   ServerError,
   PublicKeyWrapper,
-} from '@gny/interfaces';
-import { TransactionBase } from '@gny/base';
+} from '@gnyio/interfaces';
+import { TransactionBase } from '@gnyio/base';
 import { StateHelper } from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
-import { joi } from '@gny/extended-joi';
+import { joi } from '@gnyio/extended-joi';
 import { generateAddressByPublicKey, getAccount } from '../util.js';
 import * as bip39 from 'bip39';
 

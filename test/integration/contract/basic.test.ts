@@ -1,4 +1,4 @@
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import * as lib from '../../e2e/lib';
 import axios from 'axios';
 import * as crypto from 'crypto';

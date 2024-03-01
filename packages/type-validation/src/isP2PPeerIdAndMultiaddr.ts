@@ -1,5 +1,5 @@
-import { P2PPeerIdAndMultiaddr, ILogger } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { P2PPeerIdAndMultiaddr, ILogger } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isP2PPeerIdAndMultiaddr(
   config: P2PPeerIdAndMultiaddr,

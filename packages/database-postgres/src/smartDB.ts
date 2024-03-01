@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Connection } from 'typeorm';
 import { loadConfig } from './config/loadConfig.js';
-import { ILogger, IBlock, SmartDBOptions } from '@gny/interfaces';
+import { ILogger, IBlock, SmartDBOptions } from '@gnyio/interfaces';
 import { EventEmitter } from 'events';
 import { isString } from 'util';
 import * as CodeContract from './codeContract.js';
@@ -151,7 +151,7 @@ export class SmartDB extends EventEmitter {
     for (let i = 0; i < schemas.length; ++i) {
       const one = schemas[i].value;
       if (one.memCached) {
-        await this.blockSession.getMany(one, {}, true);
+        await this.blockSession.getMany(one, true);
       }
     }
   }

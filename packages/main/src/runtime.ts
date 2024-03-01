@@ -1,4 +1,4 @@
-import { SmartDB } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
 import BalanceManager from './smartdb/balance-manager.js';
 import loadContracts from './loadContracts.js';
 
@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
 import { StateHelper } from './core/StateHelper.js';
 import * as prom from 'prom-client';
-import { Account, Block, Transaction } from '@gny/database-postgres';
+import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
 
@@ -42,8 +42,9 @@ export default async function runtime(options: IOptions) {
       name: 'gny_blocks',
       help: 'the number of blocks',
       collect: async function getBlocks() {
-        const data = await global.app.sdb.count<Block>(Block, {});
-        this.set(Number.parseInt(data));
+        const lastBlock = StateHelper.getState().lastBlock;
+        // +1, because height 0 is also a block
+        this.set(Number.parseInt(lastBlock.height) + 1);
       },
     }),
     transactions: new prom.Gauge<string>({

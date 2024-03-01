@@ -1,6 +1,6 @@
 import { ApiConfig } from '../lib/api';
 import Api from '../lib/api';
-import { AddressOrUsername } from '@gny/interfaces';
+import { AddressOrUsername } from '@gnyio/interfaces';
 import { getBaseUrl } from '../getBaseUrl';
 
 export async function openAccount(publicKey: string) {

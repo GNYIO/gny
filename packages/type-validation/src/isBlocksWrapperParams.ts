@@ -1,5 +1,5 @@
-import { BlocksWrapperParams } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { BlocksWrapperParams } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isBlocksWrapperParams(
   params: any

@@ -5,13 +5,13 @@ import {
   IDelegate,
   Context,
   IBurn,
-} from '@gny/interfaces';
-import { Vote } from '@gny/database-postgres';
-import { Account } from '@gny/database-postgres';
-import { Delegate } from '@gny/database-postgres';
-import { Transfer } from '@gny/database-postgres';
-import { Burn } from '@gny/database-postgres';
-import { isAddress } from '@gny/utils';
+} from '@gnyio/interfaces';
+import { Vote } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Delegate } from '@gnyio/database-postgres';
+import { Transfer } from '@gnyio/database-postgres';
+import { Burn } from '@gnyio/database-postgres';
+import { isAddress } from '@gnyio/utils';
 
 async function deleteCreatedVotesObsolete(account: IAccount) {
   const voteList = await global.app.sdb.findAll<Vote>(Vote, {

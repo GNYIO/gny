@@ -1,17 +1,17 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IAccount, IRound, IBalance, IVariable } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IAccount, IRound, IBalance, IVariable } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { Round } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { Round } from '@gnyio/database-postgres';
 import {
   saveGenesisBlock,
   logger,
   createAccount,
 } from './smartDB.test.helpers';
-import { Variable } from '@gny/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.createOrLoad()', () => {
   const dbName = 'createorloaddb';

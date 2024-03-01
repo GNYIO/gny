@@ -8,21 +8,21 @@ import {
   ILogger,
   UnconfirmedTransaction,
   IRound,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { IState, ISimpleCache } from '../globalInterfaces.js';
-import { TransactionBase } from '@gny/base';
-import { MAX_PAYLOAD_LENGTH } from '@gny/utils';
+import { TransactionBase } from '@gnyio/base';
+import { MAX_PAYLOAD_LENGTH } from '@gnyio/utils';
 import * as crypto from 'crypto';
-import { BlockReward } from '@gny/utils';
-import { BlockBase } from '@gny/base';
-import { ConsensusBase } from '@gny/base';
-import { slots } from '@gny/utils';
-import { copyObject } from '@gny/base';
+import { BlockReward } from '@gnyio/utils';
+import { BlockBase } from '@gnyio/base';
+import { ConsensusBase } from '@gnyio/base';
+import { slots } from '@gnyio/utils';
+import { copyObject } from '@gnyio/base';
 import { StateHelper } from './StateHelper.js';
 import BigNumber from 'bignumber.js';
-import { Block } from '@gny/database-postgres';
-import { Transaction } from '@gny/database-postgres';
-import { RoundBase } from '@gny/base';
+import { Block } from '@gnyio/database-postgres';
+import { Transaction } from '@gnyio/database-postgres';
+import { RoundBase } from '@gnyio/base';
 
 const blockReward = new BlockReward();
 

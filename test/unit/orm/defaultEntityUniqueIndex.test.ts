@@ -1,4 +1,4 @@
-import { DefaultEntityUniqueIndex } from '@gny/database-postgres';
+import { DefaultEntityUniqueIndex } from '@gnyio/database-postgres';
 
 describe('orm - defaultEntityUniqueIndex', () => {
   it('sets correct properties', done => {

@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IHttpApi } from '@gny/interfaces';
+import { IScope, Next, IHttpApi } from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { register } from 'prom-client';
 

@@ -1,4 +1,4 @@
-import { IBlockWithTransactions } from '@gny/interfaces';
+import { IBlockWithTransactions } from '@gnyio/interfaces';
 
 const genesis =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';

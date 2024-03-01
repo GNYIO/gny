@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-import { ApiSuccess, CountWrapper } from '@gny/interfaces';
+import { ApiSuccess, CountWrapper } from '@gnyio/interfaces';
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -36,7 +36,7 @@ async function registerIssuerAsync(
   };
 
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     issuerTransData,
     config
   );
@@ -61,7 +61,7 @@ async function registerAssetAsync(
     transaction: assetTrs,
   };
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     assetTransData,
     config
   );
@@ -146,7 +146,7 @@ describe('account', () => {
           };
 
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             transData,
             config
           );
@@ -191,7 +191,7 @@ describe('account', () => {
             transaction: nameTrs,
           };
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             nameTransData,
             config
           );
@@ -219,7 +219,7 @@ describe('account', () => {
             transaction: nameTrs,
           };
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             nameTransData,
             config
           );
@@ -235,7 +235,7 @@ describe('account', () => {
             transaction: lockTrs,
           };
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             lockTransData,
             config
           );
@@ -247,7 +247,7 @@ describe('account', () => {
             transaction: delegateTrs,
           };
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             delegateTransData,
             config
           );
@@ -260,7 +260,7 @@ describe('account', () => {
           };
 
           await axios.post(
-            `http://localhost:${GNY_PORT}/peer/transactions`,
+            `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
             transData,
             config
           );

@@ -16,6 +16,6 @@ module.exports = {
   },
 
   moduleNameMapper: {
-    '@gny/(.*)$': '<rootDir>/packages/$1',
+    '@gnyio/(.*)$': '<rootDir>/packages/$1',
   },
 };

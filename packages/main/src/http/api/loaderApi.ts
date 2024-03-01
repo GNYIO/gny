@@ -7,7 +7,7 @@ import {
   ApiResult,
   LoaderStatus,
   SyncStatus,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 
 export default class LoaderApi implements IHttpApi {

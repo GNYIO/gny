@@ -1,5 +1,5 @@
-import { CommonBlockParams } from '@gny/interfaces';
-import { joi } from '@gny/extended-joi';
+import { CommonBlockParams } from '@gnyio/interfaces';
+import { joi } from '@gnyio/extended-joi';
 
 export function isCommonBlockParams(
   commonBlock: any

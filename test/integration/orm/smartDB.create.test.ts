@@ -1,13 +1,12 @@
-import { SmartDB } from '@gny/database-postgres';
-import { IAccount, IAsset } from '@gny/interfaces';
+import { SmartDB } from '@gnyio/database-postgres';
+import { IAccount, IAsset } from '@gnyio/interfaces';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Asset } from '@gny/database-postgres';
-import { Balance } from '@gny/database-postgres';
-import { Versioned } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Balance } from '@gnyio/database-postgres';
+import { Versioned } from '@gnyio/database-postgres';
 import { saveGenesisBlock, logger, createBlock } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.create()', () => {
   const dbName = 'createdb';
@@ -176,5 +175,27 @@ describe('smartDB.create()', () => {
 
     const createPromise = sut.create<Account>(Account, account);
     return expect(createPromise).rejects.toEqual('not allowed');
+  });
+
+  it.skip('create() - throws if _version_ is provided', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    const block = createBlock(String(1));
+    sut.beginBlock(block);
+
+    const data = {
+      currency: 'ABC.ABC',
+      address: 'G3EviK1p98D9EoXUeb8K3bRTW5goT',
+      balance: String(10),
+      flag: 1,
+      _version_: 5,
+    };
+    const createPromise = sut.create<Balance>(Balance, data);
+
+    return expect(createPromise).rejects.toThrow(
+      '_version_ property not allowed'
+    );
   });
 });

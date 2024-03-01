@@ -1,10 +1,10 @@
-import { SmartDB } from '@gny/database-postgres';
+import { SmartDB } from '@gnyio/database-postgres';
 import * as lib from '../lib';
-import { Account } from '@gny/database-postgres';
-import { Variable } from '@gny/database-postgres';
+import { Account } from '@gnyio/database-postgres';
+import { Variable } from '@gnyio/database-postgres';
 import { saveGenesisBlock, createBlock, logger } from './smartDB.test.helpers';
 import { credentials as oldCredentials } from './databaseCredentials';
-import { copyObject } from '@gny/base';
+import { copyObject } from '@gnyio/base';
 
 describe('smartDB.load()', () => {
   const dbName = 'loaddb';
@@ -273,5 +273,30 @@ describe('smartDB.load()', () => {
       address: 'G3wzRRCWnPX4MCUjTkWBxjbqVSXLL',
     });
     expect(result).toBeUndefined();
+  });
+
+  it('load() - throws "no primary key of entity found" if queried by non-key property', async () => {
+    expect.assertions(1);
+
+    await saveGenesisBlock(sut);
+
+    const account1 = await sut.create<Account>(Account, {
+      address: 'G2DBTQMvpvJJ6y7DT9tga5ATmKT8j',
+      gny: String(10 * 1e8),
+      username: null,
+    });
+    const account2 = await sut.create<Account>(Account, {
+      address: 'Go8XouT43jS12w5EZ9FZrbcVTEC8',
+      gny: String(10 * 1e8),
+      username: null,
+    });
+
+    const loadPromise = sut.load<Account>(Account, {
+      gny: String(10 * 1e8),
+    });
+
+    return expect(loadPromise).rejects.toThrow(
+      'no primary key of entity found'
+    );
   });
 });

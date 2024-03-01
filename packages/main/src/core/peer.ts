@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { create } from '@gny/p2p';
-import { PeerNode, ICoreModule } from '@gny/interfaces';
+import { create } from '@gnyio/p2p';
+import { PeerNode, ICoreModule } from '@gnyio/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper.js';
 import Transport from './transport.js';
@@ -9,7 +9,7 @@ import multiaddr from 'multiaddr';
 import { StateHelper } from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
-import { serializedSpanContext } from '@gny/tracer';
+import { serializedSpanContext } from '@gnyio/tracer';
 import pMinDelay from 'p-min-delay';
 import { LoaderHelper } from './LoaderHelper.js';
 

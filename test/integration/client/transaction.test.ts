@@ -2,14 +2,14 @@
  * @jest-environment jsdom
  */
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 import {
   ApiSuccess,
   NewestTransactionWrapper,
   TransactionCountWrapper,
   TransactionsWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 
 const GNY_PORT = 11096;
 const GNY_APP_NAME = 'app8';
@@ -44,7 +44,7 @@ async function send() {
   };
 
   await axios.post(
-    `http://localhost:${GNY_PORT}/peer/transactions`,
+    `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
     transData,
     config
   );
@@ -102,7 +102,7 @@ describe('transaction', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );

@@ -1,5 +1,5 @@
 import jaegerClient from 'jaeger-client';
-import { ILogger } from '@gny/interfaces';
+import { ILogger } from '@gnyio/interfaces';
 import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;

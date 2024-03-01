@@ -1,8 +1,8 @@
 import * as lib from './lib';
 import * as helpers from './helpers';
-import * as gnyJS from '@gny/client';
+import * as gnyJS from '@gnyio/client';
 import axios from 'axios';
-import { getConfig } from '@gny/network';
+import { getConfig } from '@gnyio/network';
 
 interface IsTrsAvailable {
   transactionId: string;

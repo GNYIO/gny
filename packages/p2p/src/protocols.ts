@@ -1,4 +1,4 @@
-import { NetworkType, IPeer2PeerHandlers } from '@gny/interfaces';
+import { NetworkType, IPeer2PeerHandlers } from '@gnyio/interfaces';
 
 export function createPeer2PeerHandlers(
   protocol: string,

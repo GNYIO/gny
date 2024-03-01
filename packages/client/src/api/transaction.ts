@@ -11,7 +11,7 @@ import {
   UnconfirmedTransaction,
   UnconfirmedTransactionsWrapper,
   TransactionConfirmationWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 interface Query {

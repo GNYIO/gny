@@ -1,4 +1,4 @@
-import { ITransactionPool, UnconfirmedTransaction } from '@gny/interfaces';
+import { ITransactionPool, UnconfirmedTransaction } from '@gnyio/interfaces';
 
 export class TransactionPool implements ITransactionPool {
   private index: Map<string, number>;

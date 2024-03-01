@@ -1,4 +1,4 @@
-import { SmartDBOptions } from '@gny/interfaces';
+import { SmartDBOptions } from '@gnyio/interfaces';
 
 export const credentials: SmartDBOptions = {
   dbDatabase: 'postgres',

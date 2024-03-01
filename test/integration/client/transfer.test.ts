@@ -2,9 +2,9 @@
  * @jest-environment jsdom
  */
 import * as lib from './lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
-import { ApiSuccess } from '@gny/interfaces';
+import { ApiSuccess } from '@gnyio/interfaces';
 
 const GNY_PORT = 12096;
 const GNY_APP_NAME = 'app9';
@@ -71,7 +71,7 @@ describe('transfer', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
@@ -107,14 +107,14 @@ describe('transfer', () => {
         };
 
         await axios.post(
-          `http://localhost:${GNY_PORT}/peer/transactions`,
+          `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
           transData,
           config
         );
         await lib.onNewBlock(GNY_PORT);
 
         const trsData = await axios.get(
-          `http://localhost:${GNY_PORT}/api/transfers?ownerId=${senderId}`
+          `http://127.0.0.1:${GNY_PORT}/api/transfers?ownerId=${senderId}`
         );
 
         // get the amount

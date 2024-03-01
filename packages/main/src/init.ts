@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Sequence } from '@gny/utils';
-import { getSchema } from '@gny/protobuf';
+import { Sequence } from '@gnyio/utils';
+import { getSchema } from '@gnyio/protobuf';
 import loadedModules from './loadModules.js';
 import loadCoreApi from './loadCoreApi.js';
-import { IScope, IConfig } from '@gny/interfaces';
+import { IScope, IConfig } from '@gnyio/interfaces';
 import { IOptions } from './globalInterfaces';
-import { isConfig } from '@gny/type-validation';
-import { MessageBus } from '@gny/utils';
+import { isConfig } from '@gnyio/type-validation';
+import { MessageBus } from '@gnyio/utils';
 
 import { composeNetwork } from './http/index.js';
 

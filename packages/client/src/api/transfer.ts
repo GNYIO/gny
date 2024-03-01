@@ -4,7 +4,7 @@ import {
   TransfersWrapper,
   ValidationError,
   AmountWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 interface Query {

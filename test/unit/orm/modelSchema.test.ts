@@ -1,6 +1,6 @@
-import { ModelSchema, MetaSchema } from '@gny/database-postgres';
-import { IAccount, IBalance } from '@gny/interfaces';
-import { ModelIndex } from '@gny/database-postgres';
+import { ModelSchema, MetaSchema } from '@gnyio/database-postgres';
+import { IAccount, IBalance } from '@gnyio/interfaces';
+import { ModelIndex } from '@gnyio/database-postgres';
 
 describe('orm - ModelSchema', () => {
   let sut: ModelSchema;

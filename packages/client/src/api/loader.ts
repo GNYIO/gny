@@ -1,5 +1,5 @@
 import { Base } from './base';
-import { ApiResult, LoaderStatus, SyncStatus } from '@gny/interfaces';
+import { ApiResult, LoaderStatus, SyncStatus } from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Loader {

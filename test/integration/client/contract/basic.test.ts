@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import * as lib from '../lib';
-import * as gnyClient from '@gny/client';
+import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 
 const genesisSecret =
@@ -42,7 +42,7 @@ async function prepareDelegates(delegates: string[]) {
       transaction: nameTrs,
     };
     await axios.post(
-      `http://localhost:${GNY_PORT}/peer/transactions`,
+      `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
       nameTransData,
       config
     );
@@ -62,7 +62,7 @@ async function prepareDelegates(delegates: string[]) {
     };
 
     await axios.post(
-      `http://localhost:${GNY_PORT}/peer/transactions`,
+      `http://127.0.0.1:${GNY_PORT}/peer/transactions`,
       nameTransData,
       config
     );

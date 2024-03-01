@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { ILogger, P2PMessage, SimplePeerInfo } from '@gny/interfaces';
+import { ILogger, P2PMessage, SimplePeerInfo } from '@gnyio/interfaces';
 import * as PeerInfo from 'peer-info';
-import { create } from '@gny/p2p';
+import { create } from '@gnyio/p2p';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

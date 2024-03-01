@@ -1,5 +1,5 @@
-import * as webBase from '@gny/web-base';
-import { TransactionWebBase } from '@gny/web-base';
+import * as webBase from '@gnyio/web-base';
+import { TransactionWebBase } from '@gnyio/web-base';
 
 export interface Params {
   type: number;

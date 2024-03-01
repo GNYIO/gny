@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as dockerCompose from 'docker-compose';
 import { randomBytes } from 'crypto';
-import { generateAddress } from '@gny/utils';
+import { generateAddress } from '@gnyio/utils';
 import { BigNumber } from 'bignumber.js';
 import shellJS from 'shelljs';
 import { log as consoleLog } from 'console';
@@ -19,7 +19,7 @@ export const GENESIS = {
 };
 
 export async function apiGetAsync(gnyPort: number, endpoint: string) {
-  const result = await axios.get(`http://localhost:${gnyPort}/api${endpoint}`);
+  const result = await axios.get(`http://127.0.0.1:${gnyPort}/api${endpoint}`);
   return result.data;
 }
 
@@ -59,7 +59,7 @@ async function waitForLoaded(gnyPort: number) {
 }
 
 export async function stopOldInstances(dockerFile: string, env: string) {
-  const command = `${env} docker compose --file ${dockerFile} down`;
+  const command = `${env} docker compose --file ${dockerFile} down --timeout=0`;
 
   shellJS.exec(command, {
     silent: true,

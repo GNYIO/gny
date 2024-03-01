@@ -1,4 +1,4 @@
-import { SimplePushTypeCallback } from '@gny/p2p';
+import { SimplePushTypeCallback } from '@gnyio/p2p';
 import { StateHelper } from './StateHelper.js';
 import {
   BlockIdWrapper,
@@ -10,7 +10,7 @@ import {
   BlocksWrapperParams,
   BufferList,
   CommonBlockResult,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import {
   isCommonBlockParams,
   isBlocksWrapperParams,
@@ -20,17 +20,17 @@ import {
   isBlockIdWrapper,
   isCommonBlockResult,
   isSimplePeerInfoArray,
-} from '@gny/type-validation';
+} from '@gnyio/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
-import { TracerWrapper, getSmallBlockHash } from '@gny/tracer';
+import { TracerWrapper, getSmallBlockHash } from '@gnyio/tracer';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {
   ISpan,
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
-} from '@gny/tracer';
+} from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {

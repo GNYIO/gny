@@ -4,7 +4,7 @@ import {
   PeersWrapper,
   VersionWrapper,
   PeerInfoWrapper,
-} from '@gny/interfaces';
+} from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
 export class Peer {
