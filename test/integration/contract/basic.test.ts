@@ -447,7 +447,7 @@ describe('basic', () => {
     );
 
     it(
-      'two different accounts can not set the same account within one block',
+      'two different accounts can not set the same username within one block',
       async () => {
         // expect.assertions(4);
         await lib.waitForApiToBeReadyReady(4096);
