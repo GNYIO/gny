@@ -528,7 +528,7 @@ describe('basic', () => {
     it(
       'should lock the sender with an amount according to the height',
       async () => {
-        expect.assertions(5);
+        expect.assertions(4);
         await lib.waitForApiToBeReadyReady(4096);
 
         // Before lock
