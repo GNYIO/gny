@@ -10,6 +10,7 @@ import {
   Context,
   IVote,
   NetworkType,
+  IDelegate,
 } from '@gnyio/interfaces';
 import { IConfig } from '@gnyio/interfaces';
 
@@ -448,6 +449,7 @@ describe('basic', () => {
         lock: jest.fn().mockReturnValue(null),
         update: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue([]),
+        get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
       } as any;
 
       const unlocked = await basic.unlock.call(context);
@@ -552,6 +554,7 @@ describe('basic', () => {
         lock: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue([]),
         update: updateMock,
+        get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
       } as any;
 
       const unlocked = await basic.unlock.call(context);
@@ -636,13 +639,14 @@ describe('basic', () => {
 
         global.Config.netVersion = 'localnet';
 
-        const myVotes = [] as IVote[];
+        const myVotes: IVote[] = [];
         const findAllMock = jest.fn().mockReturnValue(myVotes);
 
         global.app.sdb = {
           lock: jest.fn().mockReturnValue(null),
           findAll: findAllMock,
           update: jest.fn().mockReturnValueOnce(null),
+          get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
         } as any;
 
         const unlocked = await basic.unlock.call(context);
@@ -705,12 +709,29 @@ describe('basic', () => {
 
           const updateMock = jest.fn().mockReturnValueOnce(null);
 
+          const delegate: IDelegate = {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            eligible: 0,
+            tid:
+              'd043119d9dbabaa10802c34c2c1fcf9c154cc927ca6ebb8acdf3bb0ccf8fb2b2',
+            fees: String(1 * 1e8),
+            missedBlocks: String(0),
+            producedBlocks: String(0),
+            rewards: String(0),
+            username: 'mydelegate',
+            publicKey:
+              'd396a415f0259d7e3cd294b22f7a4e0db0707d199897eda380de671e8be6fa93',
+            votes: String(0),
+          };
+          const getMock = jest.fn().mockReturnValueOnce(delegate);
+
           global.app.sdb = {
             lock: jest.fn().mockReturnValue(null),
             findAll: findAllMock,
             increase: increaseMock,
             del: delMock,
             update: updateMock,
+            get: getMock, // this mock will return a delegate because sender account is a delegate (isDelegate: 1)
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -761,6 +782,11 @@ describe('basic', () => {
               address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
             }
           );
+
+          expect(getMock).toHaveBeenCalledTimes(1);
+          expect(getMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          });
         }
       );
 
@@ -795,6 +821,7 @@ describe('basic', () => {
           global.app.sdb = {
             lock: jest.fn().mockReturnValue(null),
             update: updateMock,
+            get: jest.fn().mockReturnValueOnce(null), // mock is returning here null because sender is not a delegate
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -874,20 +901,17 @@ describe('basic', () => {
         }
       );
 
-      // isDelegate (last parameter) is not relevant, but we test it anyway
-      // too proof it does not make a difference
       test.each([
-        ['mainnet', String(8_000_000), String(8_200_000), 0],
-        ['mainnet', String(8_000_000), String(8_200_000), 1],
-        ['testnet', String(7_000_000), String(7_500_000), 0],
-        ['testnet', String(7_000_000), String(7_500_000), 1],
+        ['mainnet', String(8_000_000), String(8_200_000)],
+        ['mainnet', String(8_000_000), String(8_200_000)],
+        ['testnet', String(7_000_000), String(7_500_000)],
+        ['testnet', String(7_000_000), String(7_500_000)],
       ])(
         'above switch, created 0 votes, should unlock (param %p)',
         async (
           network: NetworkType,
           lockHeight: string,
-          heightAboveSwitch: string,
-          isDelegate: number
+          heightAboveSwitch: string
         ) => {
           const context = {
             sender: {
@@ -896,7 +920,7 @@ describe('basic', () => {
               isLocked: 1,
               lockHeight: lockHeight,
               lockAmount: String(100 * 1e8),
-              isDelegate: isDelegate, // is for this case not relevant
+              isDelegate: 0,
             } as IAccount,
             block: {
               height: heightAboveSwitch, // higher than "lockHeight"
@@ -912,6 +936,7 @@ describe('basic', () => {
             lock: jest.fn().mockReturnValue(null),
             findAll: findAllMock,
             update: updateMock,
+            get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -926,7 +951,7 @@ describe('basic', () => {
             {
               address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
               gny: String(150 * 1e8),
-              isDelegate: isDelegate, // is dynamic
+              isDelegate: 0,
               isLocked: 0,
               lockAmount: String(0),
               lockHeight: String(0),
@@ -945,6 +970,8 @@ describe('basic', () => {
       delete (basic as any).sender;
       delete (basic as any).block;
       delete (basic as any).trs;
+
+      // delete global.Config.netVersion;
 
       jest.restoreAllMocks();
 
