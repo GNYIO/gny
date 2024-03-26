@@ -2,6 +2,7 @@ import { SmartDB } from '@gnyio/database-postgres';
 import { IAccount, IAsset } from '@gnyio/interfaces';
 import * as lib from '../lib';
 import { Account } from '@gnyio/database-postgres';
+import { Asset } from '@gnyio/database-postgres';
 import { Balance } from '@gnyio/database-postgres';
 import { Versioned } from '@gnyio/database-postgres';
 import { saveGenesisBlock, logger, createBlock } from './smartDB.test.helpers';
@@ -28,7 +29,7 @@ describe('smartDB.create()', () => {
 
     sut = new SmartDB(logger, credentials);
     await sut.init();
-  }, lib.tenSeconds);
+  }, lib.tenSeconds * 5);
 
   afterEach(async () => {
     await sut.close();

@@ -28,7 +28,7 @@ describe('smartDB.increase', () => {
 
     sut = new SmartDB(logger, credentials);
     await sut.init();
-  }, lib.tenSeconds);
+  }, lib.tenSeconds * 5);
 
   afterEach(async () => {
     await sut.close();
