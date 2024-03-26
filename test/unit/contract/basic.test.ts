@@ -29,16 +29,6 @@ declare global {
 
 describe('basic', () => {
   beforeEach(done => {
-    const logger: ILogger = {
-      log: x => x,
-      trace: x => x,
-      debug: x => x,
-      info: x => x,
-      warn: x => x,
-      error: x => x,
-      fatal: x => x,
-    };
-
     global.app = {
       validate: jest.fn((type, value) => null),
     };
@@ -57,30 +47,15 @@ describe('basic', () => {
     jest.clearAllMocks();
     delete (basic as any).sdb;
 
+    delete global.app.sdb;
+
+    // @ts-ignore
     delete global.Config;
 
     done();
   });
 
   describe('transfer', () => {
-    // let amount: string;
-    // let recipient: string;
-    // beforeEach(done => {
-    //   amount = String(100000);
-    //   recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
-    //   done();
-    // });
-    // afterEach(done => {
-    //   delete (basic as any).sender;
-    //   delete (basic as any).block;
-    //   delete (basic as any).trs;
-
-    //   amount = undefined;
-    //   recipient = undefined;
-
-    //   done();
-    // });
-
     it('should transfer to a recipient account', async () => {
       const amount = String(100000);
       const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
@@ -250,7 +225,7 @@ describe('basic', () => {
   });
 
   describe('lock', () => {
-    it('should lock the account by height and amout', async () => {
+    it('should lock the account by height and amount', async () => {
       const height = 5760 * 30 + 2;
       const amount = 99;
 
@@ -301,7 +276,7 @@ describe('basic', () => {
       expect(locked).toBe('Insufficient balance');
     });
 
-    it('should return Invalid lock height if (sender.isLocked = 1)', async () => {
+    it('should return "Invalid lock height" if (sender already locked)', async () => {
       const height = 2;
       const amount = 99;
 
@@ -326,7 +301,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid lock height');
     });
 
-    it('should return Invalid height or amount if (sender.isLocked = 1)', async () => {
+    it('should return "Invalid amount" if passed in 0 GNY to lock (sender already locked)', async () => {
       const height = 5760 * 30 + 2;
       const amount = 0;
 
@@ -351,7 +326,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid amount');
     });
 
-    it('should return Invalid lock height if (sender.isLocked = 0)', async () => {
+    it('should return "Invalid lock height" if tried to lock to height 2', async () => {
       const height = 2;
       const amount = 0;
 
@@ -376,7 +351,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid lock height');
     });
 
-    it('should return Invalid height or amount if (sender.isLocked = 0)', async () => {
+    it('should return "Invalid amount" if trying to lock 0 GNY', async () => {
       const height = 5760 * 30 + 2;
       const amount = 0;
 
@@ -465,7 +440,7 @@ describe('basic', () => {
       expect(unlocked).toBe('Account not found');
     });
 
-    it('should return "Account is not locked" if account is not locked', async () => {
+    it('should return "Account is not locked" if account is not locked and somebody tries to unlock', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -531,7 +506,7 @@ describe('basic', () => {
       expect(unlocked).toBe('Account cannot unlock');
     });
 
-    it('should increase gny (balance) field with lockedAmount value', async () => {
+    it('unlock should increase gny (balance) field with lockedAmount value', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -562,7 +537,7 @@ describe('basic', () => {
 
       // expect "isLocked" to 0
       // expect "lockHeight" to String(0)
-      // expect "gny" to increase by value of "lockedAmount"
+      // expect "gny" to increase by value of "lockedAmount" (50 + 100)
       // expect "lockAmount" to String(0)
       // expect a call to sdb.update<Account>(Account) with correct arguments
       expect(updateMock).toBeCalledTimes(1);
@@ -581,6 +556,8 @@ describe('basic', () => {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         }
       );
+
+      expect(context.sender.gny).toEqual(String(150 * 1e8));
     });
 
     describe('unlock (localnet)', () => {
