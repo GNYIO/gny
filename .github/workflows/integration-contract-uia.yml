@@ -1,10 +1,26 @@
 name: integration-contract-uia-tests
-on: [push]
+on:
+  push
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
 jobs:
   integration-contract-uia-tests:
     timeout-minutes: 75
     runs-on: ubuntu-latest
     steps:
+      # Enable tmate debugging of manually-triggered workflows if the input option was provided
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          limit-access-to-actor: true
+
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
         with:
