@@ -280,16 +280,20 @@ export default {
       return 'Account cannot unlock';
     }
 
-    const mainnetSwitchHeight = 8200000;
-    const testnetSwitchHeight = 7500000;
+    const DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT = 8_200_000;
+    const DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT = 7_500_000;
     // keep running the bug below height x for mainnet and y for testnet
     // issue: #582
     if (
       (global.Config.netVersion === 'mainnet' &&
-        new BigNumber(this.block.height).isLessThan(mainnetSwitchHeight) &&
+        new BigNumber(this.block.height).isLessThan(
+          DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT
+        ) &&
         this.sender.isDelegate) ||
       (global.Config.netVersion === 'testnet' &&
-        new BigNumber(this.block.height).isLessThan(testnetSwitchHeight) &&
+        new BigNumber(this.block.height).isLessThan(
+          DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT
+        ) &&
         this.sender.isDelegate)
     ) {
       await deleteCreatedVotesObsolete(this.sender);
@@ -304,11 +308,11 @@ export default {
       global.Config.netVersion === 'localnet' ||
       (global.Config.netVersion === 'mainnet' &&
         new BigNumber(this.block.height).isGreaterThanOrEqualTo(
-          mainnetSwitchHeight
+          DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT
         )) ||
       (global.Config.netVersion === 'testnet' &&
         new BigNumber(this.block.height).isGreaterThanOrEqualTo(
-          testnetSwitchHeight
+          DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT
         ))
     ) {
       const myVotes = await global.app.sdb.findAll<Vote>(Vote, {
