@@ -1,7 +1,11 @@
 import * as crypto from 'crypto';
 import * as ed from '@gnyio/ed';
 import { slots, DELEGATES } from '@gnyio/utils';
-import { BlockReward } from '@gnyio/utils';
+import {
+  BlockReward,
+  DELEGATE_VOTING_BUG_2_MAINNET_HEIGHT,
+  DELEGATE_VOTING_BUG_2_TESTNET_HEIGHT,
+} from '@gnyio/utils';
 import {
   KeyPairsIndexer,
   KeyPair,
@@ -414,9 +418,23 @@ export default class Delegates implements ICoreModule {
       return undefined;
     }
 
-    delegates = delegates.sort(Delegates.compare);
-
     const lastBlock = StateHelper.getState().lastBlock;
+
+    if (
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(lastBlock.height).isLessThan(
+          DELEGATE_VOTING_BUG_2_MAINNET_HEIGHT
+        )) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(lastBlock.height).isLessThan(
+          DELEGATE_VOTING_BUG_2_TESTNET_HEIGHT
+        ))
+    ) {
+      delegates = delegates.sort(Delegates.compare);
+    } else {
+      delegates = delegates.sort(Delegates.compareStrict);
+    }
+
     const totalSupply = blockReward.calculateSupply(lastBlock.height);
 
     for (let i = 0; i < delegates.length; ++i) {
@@ -473,11 +491,31 @@ export default class Delegates implements ICoreModule {
 
   public static getTopDelegates = async () => {
     const allDelegates = await global.app.sdb.getAll<Delegate>(Delegate);
-    const sortedPublicKeys = allDelegates
-      .sort(Delegates.compare)
-      .map(d => d.publicKey)
-      .slice(0, 101);
-    return sortedPublicKeys;
+
+    const lastBlock = StateHelper.getState().lastBlock;
+
+    if (
+      (global.Config.netVersion === 'mainnet' &&
+        new BigNumber(lastBlock.height).isLessThan(
+          DELEGATE_VOTING_BUG_2_MAINNET_HEIGHT
+        )) ||
+      (global.Config.netVersion === 'testnet' &&
+        new BigNumber(lastBlock.height).isLessThan(
+          DELEGATE_VOTING_BUG_2_TESTNET_HEIGHT
+        ))
+    ) {
+      const temp = allDelegates
+        .sort(Delegates.compare)
+        .map(d => d.publicKey)
+        .slice(0, 101);
+      return temp;
+    } else {
+      const temp = allDelegates
+        .sort(Delegates.compareStrict)
+        .map(d => d.publicKey)
+        .slice(0, 101);
+      return temp;
+    }
   };
 
   private static getBookkeeper = async () => {

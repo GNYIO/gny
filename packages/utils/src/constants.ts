@@ -41,3 +41,6 @@ export const INITIAL_AMOUNT: string = '40000000000000000';
 export const SAVE_PEERS_INTERVAL: number = 1 * 60 * 1000;
 export const CHECK_BUCKET_OUTDATE: number = 1 * 60 * 1000;
 export const MAX_BOOTSTRAP_PEERS: number = 25;
+
+export const DELEGATE_VOTING_BUG_2_MAINNET_HEIGHT = 9_500_000;
+export const DELEGATE_VOTING_BUG_2_TESTNET_HEIGHT = 8_800_000;
