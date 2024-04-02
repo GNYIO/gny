@@ -13,6 +13,13 @@ import {
 export default {
   async registerDatMaker(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!datMakerRegex.test(name)) return 'Invalid dat maker name';
     global.app.validate('description', desc);
     if (desc.length > 100) return 'Invalid description';
@@ -38,6 +45,12 @@ export default {
 
   async createDat(this: Context, name, hash, makerId, url) {
     if (arguments.length !== 4) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
 
     if (!datNameRegex.test(name)) return 'Invalid dat name';
 
