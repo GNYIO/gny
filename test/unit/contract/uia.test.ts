@@ -21,16 +21,6 @@ declare global {
 
 describe('uia', () => {
   beforeEach(done => {
-    const logger: ILogger = {
-      log: x => x,
-      trace: x => x,
-      debug: x => x,
-      info: x => x,
-      warn: x => x,
-      error: x => x,
-      fatal: x => x,
-    };
-
     global.app = {
       validate: jest.fn((type, value) => null),
     };
@@ -51,23 +41,9 @@ describe('uia', () => {
   });
 
   describe('registerIssuer', () => {
-    let name: string;
-    let desc;
-
-    afterEach(done => {
-      delete (uia as any).sender;
-      delete (uia as any).block;
-      delete (uia as any).trs;
-
-      name = undefined;
-      desc = undefined;
-
-      done();
-    });
-
     it('should register the issuer', async () => {
-      name = 'xpgeng';
-      desc = { name: 'xpgeng' };
+      const name = 'xpgeng';
+      const desc = { name: 'xpgeng' };
 
       const context = {
         sender: {
@@ -92,7 +68,8 @@ describe('uia', () => {
     });
 
     it('should return Invalid issuer name', async () => {
-      name = '!@#xpgeng';
+      const name = '!@#xpgeng';
+      const desc = undefined;
 
       const context = {
         sender: {},
@@ -103,8 +80,8 @@ describe('uia', () => {
     });
 
     it('should return No issuer description was provided', async () => {
-      name = 'xpgeng';
-      desc = null;
+      const name = 'xpgeng';
+      const desc = null;
       const context = {
         sender: {},
       };
@@ -120,8 +97,8 @@ describe('uia', () => {
     });
 
     it('should return Issuer name already exists', async () => {
-      name = 'xpgeng';
-      desc = { name: 'xpgeng' };
+      const name = 'xpgeng';
+      const desc = { name: 'xpgeng' };
 
       const context = {
         sender: {
@@ -143,8 +120,8 @@ describe('uia', () => {
     });
 
     it('should return Account is already an issuer', async () => {
-      name = 'xpgeng';
-      desc = { name: 'xpgeng' };
+      const name = 'xpgeng';
+      const desc = { name: 'xpgeng' };
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -187,10 +164,10 @@ describe('uia', () => {
     });
 
     it('should register the asset', async () => {
-      symbol = 'GNY';
-      desc = { symbol: 'GNY' };
-      maximum = 1000000;
-      precision = 8;
+      const symbol = 'GNY';
+      const desc = { symbol: 'GNY' };
+      const maximum = 1000000;
+      const precision = 8;
 
       const context = {
         sender: {
@@ -222,7 +199,7 @@ describe('uia', () => {
     });
 
     it('should return Invalid symbol', async () => {
-      symbol = '!@#xpgeng';
+      const symbol = '!@#xpgeng';
       const context = {
         sender: {},
       };
@@ -238,10 +215,10 @@ describe('uia', () => {
     });
 
     it('should return Precision should be positive integer', async () => {
-      symbol = 'GNY';
-      desc = { symbol: 'GNY' };
-      maximum = 1000000;
-      precision = 0.8;
+      const symbol = 'GNY';
+      const desc = { symbol: 'GNY' };
+      const maximum = 1000000;
+      const precision = 0.8;
       const context = {
         sender: {},
       };
@@ -257,10 +234,10 @@ describe('uia', () => {
     });
 
     it('should return Invalid asset precision', async () => {
-      symbol = 'GNY';
-      desc = { symbol: 'GNY' };
-      maximum = 1000000;
-      precision = 17;
+      const symbol = 'GNY';
+      const desc = { symbol: 'GNY' };
+      const maximum = 1000000;
+      const precision = 17;
       const context = {
         sender: {},
       };
@@ -283,10 +260,10 @@ describe('uia', () => {
         } as IAccount,
       };
 
-      symbol = 'GNY';
-      desc = { symbol: 'GNY' };
-      maximum = 1000000;
-      precision = 15;
+      const symbol = 'GNY';
+      const desc = { symbol: 'GNY' };
+      const maximum = 1000000;
+      const precision = 15;
 
       global.app.sdb = {
         findOne: jest.fn().mockReturnValue(null),
@@ -310,10 +287,10 @@ describe('uia', () => {
         } as IAccount,
       };
 
-      symbol = 'GNY';
-      desc = { symbol: 'GNY' };
-      maximum = 1000000;
-      precision = 15;
+      const symbol = 'GNY';
+      const desc = { symbol: 'GNY' };
+      const maximum = 1000000;
+      const precision = 15;
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
@@ -333,19 +310,6 @@ describe('uia', () => {
   });
 
   describe('issue', () => {
-    let name;
-    let amount;
-
-    afterEach(done => {
-      delete (uia as any).sender;
-      delete (uia as any).block;
-      delete (uia as any).trs;
-
-      name = undefined;
-      amount = undefined;
-      done();
-    });
-
     it('should update asset and balances by name and amount', async () => {
       const context = {
         sender: {
@@ -354,8 +318,8 @@ describe('uia', () => {
         } as IAccount,
       };
 
-      name = 'xpgeng.GNY';
-      amount = 10000;
+      const name = 'xpgeng.GNY';
+      const amount = 10000;
 
       const asset = {
         issuerId: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -379,8 +343,8 @@ describe('uia', () => {
     });
 
     it('should return Asset not exists', async () => {
-      name = 'xpgeng.GNY';
-      amount = 10000;
+      const name = 'xpgeng.GNY';
+      const amount = 10000;
       const context = {
         sender: {},
       };
@@ -395,8 +359,8 @@ describe('uia', () => {
     });
 
     it('should return Permission denied', async () => {
-      name = 'xpgeng.GNY';
-      amount = 10000;
+      const name = 'xpgeng.GNY';
+      const amount = 10000;
 
       const context = {
         sender: {
@@ -421,8 +385,8 @@ describe('uia', () => {
     });
 
     it('should return Exceed issue limit', async () => {
-      name = 'xpgeng.GNY';
-      amount = 1000000000;
+      const name = 'xpgeng.GNY';
+      const amount = 1000000000;
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -447,31 +411,11 @@ describe('uia', () => {
   });
 
   describe('transfer', () => {
-    let currency: string;
-    let amount: number;
-    let recipient: string;
-
-    beforeEach(done => {
-      currency = 'gny';
-      amount = 100000;
-      recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
-      done();
-    });
-
-    afterEach(done => {
-      delete (uia as any).sender;
-      delete (uia as any).block;
-      delete (uia as any).trs;
-
-      currency = undefined;
-      amount = undefined;
-      recipient = undefined;
-
-      delete global.app.sdb;
-      done();
-    });
-
     it('should transfer some amount of currency to a recipient', async () => {
+      const currency = 'gny';
+      const amount = 100000;
+      const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
+
       const balance = new BigNumber(100000000);
 
       const context = {
@@ -509,8 +453,10 @@ describe('uia', () => {
     });
 
     it('should return Invalid currency', async () => {
-      currency = 'gnyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy';
-      amount = 100000;
+      const currency = 'gnyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy';
+      const amount = 100000;
+      const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
+
       const context = {
         sender: {},
       };
@@ -525,9 +471,9 @@ describe('uia', () => {
     });
 
     it('should return Invalid recipient', async () => {
-      currency = 'gny';
-      amount = 100000;
-      recipient =
+      const currency = 'gny';
+      const amount = 100000;
+      const recipient =
         'Gsdsdsdfsdflklkjljlk123123kjkj238kj2k3jhkhei32hsjdflkjsldji12k3nkhefi2uh3knkenf';
       const context = {
         sender: {},
@@ -543,6 +489,10 @@ describe('uia', () => {
     });
 
     it('should return Insufficient balance', async () => {
+      const currency = 'gny';
+      const amount = 100000;
+      const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
+
       const context = {
         sender: {
           address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -567,6 +517,10 @@ describe('uia', () => {
     });
 
     it('should return Recipient name not exist', async () => {
+      const currency = 'gny';
+      const amount = 100000;
+      const recipient = 'xpgeng';
+
       const context = {
         sender: {
           address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
@@ -574,7 +528,6 @@ describe('uia', () => {
         } as IAccount,
       };
 
-      recipient = 'xpgeng';
       const balance = new BigNumber(1000000000);
 
       // balance manager
