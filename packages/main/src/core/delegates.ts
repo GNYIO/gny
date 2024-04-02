@@ -495,6 +495,7 @@ export default class Delegates implements ICoreModule {
     const lastBlock = StateHelper.getState().lastBlock;
 
     if (
+      !lastBlock || // on height 0 before DB is initialized the lastBlock is undefined
       (global.Config.netVersion === 'mainnet' &&
         new BigNumber(lastBlock.height).isLessThan(
           DELEGATE_VOTING_BUG_2_MAINNET_HEIGHT
