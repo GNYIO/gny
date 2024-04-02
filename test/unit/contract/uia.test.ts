@@ -94,7 +94,9 @@ describe('uia', () => {
     it('should return Invalid issuer name', async () => {
       name = '!@#xpgeng';
 
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.registerIssuer.call(context, name, desc);
       expect(transfered).toBe('Invalid issuer name');
@@ -103,7 +105,9 @@ describe('uia', () => {
     it('should return No issuer description was provided', async () => {
       name = 'xpgeng';
       desc = null;
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       global.app = {
         validate: jest.fn().mockImplementation(() => {
@@ -219,7 +223,9 @@ describe('uia', () => {
 
     it('should return Invalid symbol', async () => {
       symbol = '!@#xpgeng';
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.registerAsset.call(
         context,
@@ -236,7 +242,9 @@ describe('uia', () => {
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 0.8;
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.registerAsset.call(
         context,
@@ -253,7 +261,9 @@ describe('uia', () => {
       desc = { symbol: 'GNY' };
       maximum = 1000000;
       precision = 17;
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.registerAsset.call(
         context,
@@ -371,7 +381,9 @@ describe('uia', () => {
     it('should return Asset not exists', async () => {
       name = 'xpgeng.GNY';
       amount = 10000;
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       global.app.sdb = {
         lock: jest.fn().mockReturnValue(null),
@@ -499,7 +511,9 @@ describe('uia', () => {
     it('should return Invalid currency', async () => {
       currency = 'gnyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy';
       amount = 100000;
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.transfer.call(
         context,
@@ -515,7 +529,9 @@ describe('uia', () => {
       amount = 100000;
       recipient =
         'Gsdsdsdfsdflklkjljlk123123kjkj238kj2k3jhkhei32hsjdflkjsldji12k3nkhefi2uh3knkenf';
-      const context = {};
+      const context = {
+        sender: {},
+      };
 
       const transfered = await uia.transfer.call(
         context,

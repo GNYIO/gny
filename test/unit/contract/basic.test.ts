@@ -80,6 +80,7 @@ describe('basic', () => {
     //   done();
     // });
 
+    // todo, add expect call
     it('should transfer to a recipient account', async () => {
       const amount = String(100000);
       const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
@@ -109,6 +110,7 @@ describe('basic', () => {
         increase: jest.fn().mockReturnValue(recipientAccount),
         load: jest.fn().mockReturnValue(recipientAccount),
         create: jest.fn(),
+        update: jest.fn(),
       } as any;
 
       const transfered = await basic.transfer.call(context, amount, recipient);

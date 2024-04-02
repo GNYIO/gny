@@ -272,6 +272,10 @@ export default {
 
   async unlock(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
+    const sender = this.sender;
+    if (!sender) return 'Account not found';
+
     if (
       this.sender.publicKey &&
       this.sender.publicKey !== this.trs.senderPublicKey
@@ -279,8 +283,6 @@ export default {
       return 'collission attack attempt';
     }
 
-    const sender = this.sender;
-    if (!sender) return 'Account not found';
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
@@ -343,15 +345,16 @@ export default {
 
   async registerDelegate(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
+    const sender = this.sender;
+    if (!sender) return 'Account not found';
+
     if (
       this.sender.publicKey &&
       this.sender.publicKey !== this.trs.senderPublicKey
     ) {
       return 'collission attack attempt';
     }
-
-    const sender = this.sender;
-    if (!sender) return 'Account not found';
 
     const senderId = this.sender.address;
     if (new BigNumber(this.block.height).isGreaterThan(0))

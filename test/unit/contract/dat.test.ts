@@ -70,16 +70,26 @@ describe('dat contract', () => {
       it('registerDatMaker() - throws if invaild maker name', async () => {
         const param1 = 1;
         const param2 = 'description';
+
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.registerDatMaker(param1, param2);
+        const result = await dat.registerDatMaker.call(context, param1, param2);
         expect(result).toEqual('Invalid dat maker name');
       });
 
       it('registerDatMaker() - throws if maker name too short (zero length)', async () => {
         const param1 = '';
         const param2 = 'description';
+
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.registerDatMaker(param1, param2);
+        const result = await dat.registerDatMaker.call(context, param1, param2);
         expect(result).toEqual('Invalid dat maker name');
       });
 
@@ -87,8 +97,12 @@ describe('dat contract', () => {
         const param1 = 'A'.repeat(31);
         const param2 = 'description';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.registerDatMaker(param1, param2);
+        const result = await dat.registerDatMaker.call(context, param1, param2);
         expect(result).toEqual('Invalid dat maker name');
       });
     });
@@ -98,8 +112,16 @@ describe('dat contract', () => {
         const name = 'ABC';
         const description = 'a'.repeat(101);
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.registerDatMaker(name, description);
+        const result = await dat.registerDatMaker.call(
+          context,
+          name,
+          description
+        );
         expect(result).toEqual('Invalid description');
       });
     });
@@ -226,8 +248,18 @@ describe('dat contract', () => {
         const param3 = '';
         const param4 = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, param2, param3, param4);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          param2,
+          param3,
+          param4
+        );
         expect(result).toEqual('Invalid dat name');
       });
 
@@ -237,8 +269,18 @@ describe('dat contract', () => {
         const param3 = '';
         const param4 = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, param2, param3, param4);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          param2,
+          param3,
+          param4
+        );
         expect(result).toEqual('Invalid dat name');
       });
     });
@@ -250,8 +292,18 @@ describe('dat contract', () => {
         const makerId = '';
         const url = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Invalid dat hash');
       });
 
@@ -261,8 +313,18 @@ describe('dat contract', () => {
         const makerId = '';
         const url = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Invalid dat hash');
       });
 
@@ -272,8 +334,18 @@ describe('dat contract', () => {
         const makerId = '';
         const url = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Invalid dat hash');
       });
     });
@@ -333,8 +405,18 @@ describe('dat contract', () => {
         const makerId = {};
         const param4 = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, param4);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          param4
+        );
         expect(result).toEqual('Invalid dat maker name');
       });
 
@@ -344,8 +426,18 @@ describe('dat contract', () => {
         const makerId = [];
         const param4 = '';
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, param4);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          param4
+        );
         expect(result).toEqual('Invalid dat maker name');
       });
     });
@@ -357,8 +449,18 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = {};
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Invalid dat url type');
       });
 
@@ -368,8 +470,18 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = [];
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Invalid dat url type');
       });
 
@@ -379,8 +491,18 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = 'http://test.com/' + 'a'.repeat(255);
 
+        const context = {
+          sender: {},
+        } as Context;
+
         // @ts-ignore
-        const result = await dat.createDat(name, hash, makerId, url);
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
         expect(result).toEqual('Dat url too long');
       });
     });
@@ -392,7 +514,9 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = 'https://test.com';
 
-        const context = {} as Context;
+        const context = {
+          sender: {},
+        } as Context;
 
         const existMock = jest.fn().mockReturnValueOnce(true);
 
@@ -422,7 +546,9 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = 'https://test.com';
 
-        const context = {} as Context;
+        const context = {
+          sender: {},
+        } as Context;
 
         const existsMock = jest
           .fn()
@@ -459,7 +585,9 @@ describe('dat contract', () => {
         const makerId = 'NFT_MAKER';
         const url = 'https://test.com';
 
-        const context = {} as Context;
+        const context = {
+          sender: {},
+        } as Context;
 
         const existsMock = jest
           .fn()
