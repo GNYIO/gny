@@ -43,6 +43,23 @@ describe('dat contract', () => {
 
   describe('registerDatMaker', () => {
     describe('generic', () => {
+      it('registerDatMaker() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+        const param1 = 1;
+        const param2 = 'description';
+
+        const context = {
+          sender: {
+            publicKey: 'one',
+          },
+          trs: {
+            senderPublicKey: 'two',
+          },
+        };
+
+        const result = await dat.registerDatMaker.call(context, param1, param2);
+        expect(result).toEqual('collission attack attempt');
+      });
+
       it('registerDatMaker() - zero arguments - returns Invalid arguments length', async () => {
         // @ts-ignore
         const result = await dat.registerDatMaker();
@@ -198,6 +215,31 @@ describe('dat contract', () => {
 
   describe('createDat', () => {
     describe('generic', () => {
+      it('createDat() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+        const name = 'NFTdat';
+        const hash = 'a'.repeat(30);
+        const makerId = 'NFT_MAKER';
+        const url = 'https://test.com';
+
+        const context = {
+          sender: {
+            publicKey: 'one',
+          },
+          trs: {
+            senderPublicKey: 'two',
+          },
+        };
+
+        const result = await dat.createDat.call(
+          context,
+          name,
+          hash,
+          makerId,
+          url
+        );
+        expect(result).toEqual('collission attack attempt');
+      });
+
       it('createDat() - zero arguments - returns Invalid arguments length', async () => {
         // @ts-ignore
         const result = await dat.createDat();
