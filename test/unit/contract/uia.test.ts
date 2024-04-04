@@ -41,6 +41,23 @@ describe('uia', () => {
   });
 
   describe('registerIssuer', () => {
+    it('registerIssuer() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const name = 'xpgeng';
+      const desc = 'description';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await uia.registerIssuer.call(context, name, desc);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should register the issuer', async () => {
       const name = 'xpgeng';
       const desc = { name: 'xpgeng' };
@@ -304,6 +321,23 @@ describe('uia', () => {
   });
 
   describe('issue', () => {
+    it('issue() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const name = 'xpgeng.GNY';
+      const amount = 10000;
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await uia.issue.call(context, name, amount);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should update asset and balances by name and amount', async () => {
       const context = {
         sender: {
@@ -405,6 +439,29 @@ describe('uia', () => {
   });
 
   describe('transfer', () => {
+    it('transfer() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const currency = 'gny';
+      const amount = 100000;
+      const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await uia.transfer.call(
+        context,
+        currency,
+        amount,
+        recipient
+      );
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should transfer some amount of currency to a recipient', async () => {
       const currency = 'gny';
       const amount = 100000;
