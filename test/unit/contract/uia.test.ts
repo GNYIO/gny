@@ -143,22 +143,12 @@ describe('uia', () => {
   });
 
   describe('registerAsset', () => {
-    let symbol: string;
-    let desc;
-    let maximum: number;
-    let precision: number;
-
     afterEach(done => {
       delete (uia as any).sender;
       delete (uia as any).block;
       delete (uia as any).trs;
 
       delete global.app.sdb;
-
-      symbol = undefined;
-      desc = undefined;
-      maximum = undefined;
-      precision = undefined;
 
       done();
     });
@@ -200,6 +190,10 @@ describe('uia', () => {
 
     it('should return Invalid symbol', async () => {
       const symbol = '!@#xpgeng';
+      const desc = undefined;
+      const maximum = undefined;
+      const precision = undefined;
+
       const context = {
         sender: {},
       };
