@@ -9,7 +9,7 @@ import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
-import { usernameRegex } from '@gnyio/utils';
+import { isUsername } from '@gnyio/utils';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -96,8 +96,7 @@ export default async function runtime(options: IOptions) {
       return null;
     },
     name: value => {
-      const regname = usernameRegex;
-      if (!regname.test(value)) return 'Invalid name';
+      if (!isUsername(value)) return 'Invalid name';
       return null;
     },
     publickey: value => {
