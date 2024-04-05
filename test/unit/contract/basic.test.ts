@@ -375,6 +375,115 @@ describe('basic', () => {
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid amount');
     });
+
+    // at the beginning account is not locked
+    // first "lock" call makes it lock 50,000 GNY (delegate not eligible)
+    // second "lock" call makes it lock again 50,000 GNY (delegate still not eligible)
+    it('lock() - 50,000 + re-locking 50,000 will not make delegate eligible', async () => {
+      // first call to "lock"
+      // this time we lock 100 GNY
+      const height1 = 5760 * 30 + 2;
+      const amount1 = String(100 * 1e8);
+
+      const context1 = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(150 * 1e8),
+          isLocked: 0,
+          lockHeight: String(0),
+          lockAmount: String(0),
+          isDelegate: 1, // is delegate
+          username: 'xpgeng',
+        } as IAccount,
+        block: {
+          height: String(1),
+        },
+      } as Context;
+
+      const updateMock = jest
+        .fn()
+        .mockReturnValueOnce(Promise.resolve(null)) // returns null
+        .mockReturnValueOnce(Promise.resolve(null)); // returns null
+
+      const findAllMock = jest
+        .fn()
+        .mockReturnValueOnce(Promise.resolve([])) // returns own votes (no votes in this case)
+        .mockReturnValueOnce(Promise.resolve([])); // returns own votes (no votes in this case)
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: updateMock,
+        findAll: findAllMock,
+      } as any;
+
+      // first call to "lock"
+      const locked1 = await basic.lock.call(context1, height1, amount1);
+      expect(locked1).toBeNull();
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(50 * 1e8),
+          isDelegate: 1,
+          isLocked: 1, // newly locked
+          lockAmount: String(100 * 1e8), // increases from "0"
+          lockHeight: String(5760 * 30 + 2), // increases from "0"
+          username: 'xpgeng',
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+
+      // second call to "lock"
+      // tihs time we lock 40 GNY
+      const height2 = 2 * 5760 * 30 + 2;
+      const amount2 = String(40 * 1e8);
+
+      const context2 = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(50 * 1e8),
+          isDelegate: 1,
+          isLocked: 1,
+          lockAmount: String(100 * 1e8),
+          lockHeight: String(5760 * 30 + 2),
+          username: 'xpgeng',
+        } as IAccount,
+        block: {
+          height: String(1),
+        },
+      } as Context;
+
+      // call second time
+      const locked2 = await basic.lock.call(context2, height2, amount2);
+      expect(locked2).toBeNull();
+
+      expect(updateMock).toHaveBeenCalledTimes(2);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        2,
+        expect.any(Function),
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(10 * 1e8),
+          isDelegate: 1,
+          isLocked: 1, // still locked
+          lockAmount: String(140 * 1e8), // increases from "0"
+          lockHeight: String(2 * 5760 * 30 + 2), // increases from "0"
+          username: 'xpgeng',
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+    });
+
+    it.skip('lock() - 50,000 + re-locking 150,000 will make delegate eligible', () => {});
+
+    it.skip('lock() - 30,000 + re-locking 40,000 will normal account not eligible (not delegate)', () => {});
   });
 
   describe('unlock', () => {
