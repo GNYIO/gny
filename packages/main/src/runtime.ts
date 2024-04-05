@@ -9,6 +9,7 @@ import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
+import { usernameRegex } from '@gnyio/utils';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -95,7 +96,7 @@ export default async function runtime(options: IOptions) {
       return null;
     },
     name: value => {
-      const regname = /^[a-z0-9_]{2,20}$/;
+      const regname = usernameRegex;
       if (!regname.test(value)) return 'Invalid name';
       return null;
     },

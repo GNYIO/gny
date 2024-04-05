@@ -1,5 +1,5 @@
 import * as bip39 from 'bip39';
-import { isAddress, feeCalculators } from '@gnyio/utils';
+import { isAddress, feeCalculators, usernameRegex } from '@gnyio/utils';
 import Joi from 'joi';
 import BigNumber from 'bignumber.js';
 import CID from 'cids';
@@ -126,7 +126,7 @@ const stringExtensions: Joi.Extension = {
     {
       name: 'username',
       validate(params, value, state, options) {
-        const regname = /^[a-z0-9_]{2,20}$/;
+        const regname = usernameRegex;
         if (!regname.test(value))
           return this.createError(
             'string.username',
