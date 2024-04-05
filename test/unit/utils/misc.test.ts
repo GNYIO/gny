@@ -1,6 +1,62 @@
 import { isUsername } from '@gnyio/utils';
 
-describe('url', () => {
+describe('isUsername()', () => {
+  it('isUsername() - three characters "aaa" succeed', () => {
+    const value = 'aaa';
+
+    const result = isUsername(value);
+    expect(result).toEqual(true);
+  });
+
+  it('isUsername() - one character "A" fails', () => {
+    const value = 'A';
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isUsername() - one number "1" fails', () => {
+    const value = '1';
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isUsername() - three letters all upper cap fails', () => {
+    const value = 'AAA';
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isUsername() - two letters succeed', () => {
+    const value = 'aa';
+
+    const result = isUsername(value);
+    expect(result).toEqual(true);
+  });
+
+  it('isUsername() - two numbers fail', () => {
+    const value = '22';
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isUsername() - 21 letters fail', () => {
+    const value = 'a'.repeat(21);
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isUsername() - three numbers fial', () => {
+    const value = '111';
+
+    const result = isUsername(value);
+    expect(result).toEqual(false);
+  });
+
   it('validate isUsername() (mainnet)', () => {
     const mainnetDelegates = [
       '7of9',
