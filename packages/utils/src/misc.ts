@@ -1,7 +1,6 @@
 // we don't want a delegate name with only numbers
-// therefore we force at least one letter in the middle
-// the delegate name still can begin with a number
-// limiitations: only one number allowed at start of string
+// therefore we also check that there is at least one lower case
+// character somwherein the string
 export function isUsername(input: any) {
   const usernameRegex = new RegExp(/^[a-z0-9_]{2,20}$/);
 
