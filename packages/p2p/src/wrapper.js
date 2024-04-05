@@ -80,16 +80,8 @@ export class Bundle extends Libp2p {
 
     const allConnectedPeers = connections.map(x => {
       const peerId = PeerId.createFromB58String(x);
-      const first = this.peerStore.addressBook.get(peerId);
-
-      if (!first) {
-        this.logger.info(
-          `[p2p][getAllConnectedPeersPeerInfo] no peerId for peer: ${x}`
-        );
-        return null;
-      }
-
-      const addresses = first
+      const addresses = this.peerStore.addressBook
+        .get(peerId)
         .map(x => multiaddr(x.multiaddr))
         .map(x => x.encapsulate(`/p2p/${peerId.toB58String()}`));
 
