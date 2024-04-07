@@ -163,6 +163,14 @@ export default class Peer implements ICoreModule {
     );
 
     Peer.p2p.pubsub.on(
+      global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS,
+      Transport.receivePeer_many_Transactions
+    );
+    await Peer.p2p.pubsub.subscribe(
+      global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS
+    );
+
+    Peer.p2p.pubsub.on(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
       Transport.receivePeers_from_rendezvous_Broadcast
     );

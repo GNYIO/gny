@@ -140,6 +140,7 @@ export interface IPeer2PeerHandlers {
   V1_GET_PEERS: string;
   V1_BROADCAST_NEW_BLOCK_HEADER: string;
   V1_BROADCAST_TRANSACTION: string;
+  V1_BROADCAST_MANY_TRANSACTIONS: string;
   V1_BROADCAST_PROPOSE: string;
   V1_RENDEZVOUS_BROADCAST: string;
 }
