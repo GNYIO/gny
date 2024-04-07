@@ -12,7 +12,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "esModuleInterop": true
   },
   "include": ["src/**/**.ts"]
 }
