@@ -51,6 +51,7 @@ jobs:
             packages/protobuf/node_modules
             packages/tracer/node_modules
             packages/transaction-pool/node_modules
+            packages/transaction-pool-persistent/node_modules
             packages/type-validation/node_modules
             packages/utils/node_modules
             packages/web-base/node_modules

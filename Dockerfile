@@ -39,6 +39,8 @@ COPY packages/base/package-lock.json ./packages/base/package-lock.json
 RUN true
 COPY packages/database-postgres/package-lock.json ./packages/database-postgres/package-lock.json
 RUN true
+COPY packages/transaction-pool-persistent/package-lock.json ./packages/transaction-pool-persistent/package-lock.json
+RUN true
 COPY packages/logger/package-lock.json ./packages/logger/package-lock.json
 RUN true
 COPY packages/protobuf/package-lock.json ./packages/protobuf/package-lock.json
@@ -81,6 +83,8 @@ RUN true
 COPY packages/database-postgres/package.json ./packages/database-postgres/package.json
 RUN true
 COPY packages/transaction-pool/package.json ./packages/transaction-pool/package.json
+RUN true
+COPY packages/transaction-pool-persistent/package.json ./packages/transaction-pool-persistent/package.json
 RUN true
 COPY packages/logger/package.json ./packages/logger/package.json
 RUN true
