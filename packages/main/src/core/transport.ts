@@ -58,6 +58,7 @@ export default class Transport implements ICoreModule {
       unconfirmedTransaction: transaction,
     });
 
+    // clean for multiple transactions in the future
     const obj = cloneDeep(transaction);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
@@ -68,11 +69,11 @@ export default class Transport implements ICoreModule {
 
     const raw: TracerWrapper<UnconfirmedTransaction> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: obj,
+      data: [obj],
     };
 
     const encodedTransaction = uint8Arrays.fromString(JSON.stringify(raw));
-    await Peer.p2p.broadcastTransactionAsync(encodedTransaction);
+    await Peer.p2p.broadcastManyTransactionsAsync(encodedTransaction);
 
     span.finish();
   };
@@ -780,17 +781,16 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    // span.setTag('transactionId', unconfirmedTrs.id);
-    span.setTag('senderId', unconfirmedTrs.senderId);
+    // currently we are only taking the first trs of the array
+    const first = result[0];
 
-    // global.library.logger.info(
-    //   `[p2p] received from "${message.from}" many transactionId: ${
-    //     unconfirmedTrs.id
-    //   }`
-    // );
+    span.setTag('senderId', first.senderId);
 
-    // todo
-    // global.library.bus.message('onReceiveTransaction', unconfirmedTrs, span);
+    global.library.logger.info(
+      `[p2p] received from "${message.from}" many transactionId: (${first})`
+    );
+
+    global.library.bus.message('onReceiveTransaction', first, span);
 
     span.finish();
   };
