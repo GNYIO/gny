@@ -9,6 +9,10 @@ export class TransactionPool implements ITransactionPool {
   }
 
   public add(trs: UnconfirmedTransaction) {
+    // don't add transaction a second time if transaction is already in pool
+    if (this.has(trs.id)) {
+      return;
+    }
     this.unConfirmed.push(trs);
     this.index.set(trs.id, this.unConfirmed.length - 1);
   }

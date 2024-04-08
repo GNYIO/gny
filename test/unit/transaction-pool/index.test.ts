@@ -94,6 +94,20 @@ describe('TransactionPool', () => {
     done();
   });
 
+  it('add() - add two times same transaction does not throw an error', done => {
+    const trans = createTransaction(
+      'c4c1e34f4160e1d12e402a280398be7d16bf168166b27a5d8fff0deed6f8b7fe'
+    );
+
+    sut.add(trans);
+    sut.add(trans);
+
+    const res = sut.getUnconfirmed();
+    expect(res.length).toEqual(1);
+
+    done();
+  });
+
   it('getUnconfirmed() - returns all transactions in pool', done => {
     const trans1 = createTransaction('trans1');
     const trans2 = createTransaction('trans2');
