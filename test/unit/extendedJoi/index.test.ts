@@ -85,6 +85,19 @@ describe('extendedJoi', () => {
   });
 
   describe('username', () => {
+    it('"22" is valid username', () => {
+      const username = '22';
+
+      const schema = joi
+        .string()
+        .username()
+        .required();
+
+      const report = joi.validate(username, schema);
+      expect(report.error).toBeNull();
+      expect(report.value).toBe(username);
+    });
+
     it('should return a report with null error', () => {
       const username = 'liang_peili';
 

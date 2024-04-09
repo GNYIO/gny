@@ -8,6 +8,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
   secret(): this;
   address(): this;
+  username(): this;
   newUsername(): this;
   partialUsername(): this;
   issuer(): this;
@@ -59,6 +60,7 @@ const stringExtensions: Joi.Extension = {
     secret: 'is not BIP39 complient',
     address: 'is not a GNY address',
     username: 'is not an GNY username',
+    newUsername: 'is not new GNY username',
     issuer: 'is not a valid GNY issuer name',
     asset: 'is not a valid GNY asset name',
     signature: 'is not a valid GNY signature',
@@ -120,6 +122,20 @@ const stringExtensions: Joi.Extension = {
             options
           );
         }
+        return value;
+      },
+    },
+    {
+      name: 'username',
+      validate(params, value, state, options) {
+        const regname = /^[a-z0-9_]{2,20}$/;
+        if (!regname.test(value))
+          return this.createError(
+            'string.username',
+            { v: value },
+            state,
+            options
+          );
         return value;
       },
     },
