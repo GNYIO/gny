@@ -803,4 +803,93 @@ describe('extendedJoi', () => {
       }).toThrowError();
     });
   });
+
+  describe('stringIntOrZero', () => {
+    it('stringIntOrZero - should return a report with error when a stringIntOrZero is empty', () => {
+      const value = '';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - is by default optional, null should succeed', () => {
+      const value = null;
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - is by default optional, undefined should succeed', () => {
+      const value = undefined;
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('stringIntOrZero - "" empty string should fail', () => {
+      const value = '';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - "-1" should fail', () => {
+      const value = '-1';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - "1e8" should fail (exponent notation not allowed)', () => {
+      const value = '1e8';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - Number(2) should fail, should only accept strings', () => {
+      const value = '1e8';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('stringIntOrZero - "1.2" should fail (decimal places not allowed)', () => {
+      const value = '1.2';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it.skip('stringIntOrZero - ".2" should fail (decimal places not allowed)', () => {
+      const value = '.2';
+
+      const schema = joi.stringIntOrZero();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it.skip('stringIntOrZero - "0" should succeed', () => {});
+    it.skip('stringIntOrZero  - "1" should succeed', () => {});
+    // > Number.MAX_SAFE_INTEGER
+    // 9007199254740991
+    it.skip('stringIntOrZero - "1000000000000000000002" should fail because is bigger than biggest JavaScript number', () => {});
+  });
 });
