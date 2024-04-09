@@ -26,6 +26,7 @@ export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
   transactionMessage(): this;
   partialUsername(): this;
+  stringIntOrZero(): this;
 }
 
 const transactionMessageExtension: Joi.Extension = {
@@ -49,6 +50,16 @@ const partialUsernameExtension: Joi.Extension = {
     )
     .required(),
   name: 'partialUsername',
+};
+
+// #567
+// currently joi accepts "1e8" a valid int-string
+// the following regex only allows 0 or positive int like strings
+const stringIntOrZero: Joi.Extension = {
+  base: Joi.string()
+    .regex(/^(0|[1-9][0-9]*)$/)
+    .optional(),
+  name: 'stringIntOrZero',
 };
 
 const stringExtensions: Joi.Extension = {
@@ -418,4 +429,5 @@ export const joi: ExtendedJoi = Joi.extend([
   stringExtensions,
   transactionMessageExtension,
   partialUsernameExtension,
+  stringIntOrZero,
 ]);
