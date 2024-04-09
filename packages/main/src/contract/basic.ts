@@ -53,6 +53,13 @@ function isUniq(arr) {
 export default {
   async transfer(this: Context, amount, recipient) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!recipient) return 'Invalid recipient';
     // Verify amount should be positive integer
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
@@ -108,6 +115,15 @@ export default {
       { address: sender.address }
     );
 
+    // if public key not set, set it
+    if (!this.sender.publicKey) {
+      await global.app.sdb.update<Account>(
+        Account,
+        { publicKey: this.trs.senderPublicKey },
+        { address: this.sender.address }
+      );
+    }
+
     const transfer: ITransfer = {
       tid: this.trs.id,
       height: String(this.block.height),
@@ -124,6 +140,12 @@ export default {
 
   async setUserName(this: Context, username) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
     global.app.validate('name', username);
 
     const senderId = this.sender.address;
@@ -147,6 +169,12 @@ export default {
 
   async setSecondPassphrase(this: Context, publicKey) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
     global.app.validate('publickey', publicKey);
 
     if (!isAddress(this.sender.address)) {
@@ -166,6 +194,12 @@ export default {
 
   async lock(this: Context, height: BigNumber, amount: BigNumber) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
 
     global.app.validate('amount', String(height));
     global.app.validate('amount', String(amount));
@@ -238,8 +272,17 @@ export default {
 
   async unlock(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
     const sender = this.sender;
     if (!sender) return 'Account not found';
+
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
@@ -302,8 +345,16 @@ export default {
 
   async registerDelegate(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
     const sender = this.sender;
     if (!sender) return 'Account not found';
+
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
 
     const senderId = this.sender.address;
     if (new BigNumber(this.block.height).isGreaterThan(0))
@@ -336,6 +387,13 @@ export default {
 
   async vote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
@@ -421,6 +479,13 @@ export default {
 
   async unvote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
@@ -473,6 +538,13 @@ export default {
 
   async burn(this: Context, amount) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     global.app.validate('amount', String(amount));
 
     const sender = this.sender;
