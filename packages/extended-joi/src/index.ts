@@ -1,5 +1,5 @@
 import * as bip39 from 'bip39';
-import { isAddress, feeCalculators, isUsername } from '@gnyio/utils';
+import { isAddress, feeCalculators, isNewUsername } from '@gnyio/utils';
 import Joi from 'joi';
 import BigNumber from 'bignumber.js';
 import CID from 'cids';
@@ -8,7 +8,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   publicKey(): this;
   secret(): this;
   address(): this;
-  username(): this;
+  newUsername(): this;
   partialUsername(): this;
   issuer(): this;
   asset(): this;
@@ -124,11 +124,11 @@ const stringExtensions: Joi.Extension = {
       },
     },
     {
-      name: 'username',
+      name: 'newUsername',
       validate(params, value, state, options) {
-        if (!isUsername(value))
+        if (!isNewUsername(value))
           return this.createError(
-            'string.username',
+            'string.newUsername',
             { v: value },
             state,
             options

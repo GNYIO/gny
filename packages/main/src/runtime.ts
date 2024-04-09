@@ -9,7 +9,7 @@ import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
-import { isUsername } from '@gnyio/utils';
+import { isNewUsername } from '@gnyio/utils';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -101,7 +101,7 @@ export default async function runtime(options: IOptions) {
     // on testnet we thave a username that only consists of numbers
     newName: value => {
       // can only be used on localnet
-      if (!isUsername(value)) return 'Invalid name';
+      if (!isNewUsername(value)) return 'Invalid name';
       return null;
     },
 
