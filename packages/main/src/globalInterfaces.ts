@@ -55,6 +55,7 @@ export interface ISimpleCache<VALUE_TYPE> {
 interface IValidators {
   amount: (amount: string) => string;
   name: (amount: string) => string;
+  newName: (amount: string) => string;
   publickey: (value: string) => string;
   description: (value: string) => string;
 }

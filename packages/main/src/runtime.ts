@@ -9,7 +9,7 @@ import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';
 import { Mutex } from 'async-mutex';
-import { isUsername } from '@gnyio/utils';
+import { isNewUsername } from '@gnyio/utils';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -95,10 +95,22 @@ export default async function runtime(options: IOptions) {
         return 'Invalid amount range';
       return null;
     },
-    name: value => {
-      if (!isUsername(value)) return 'Invalid name';
+
+    // can currently only be used on localnet
+    // on mainnet we have a username that only consists of numbers
+    // on testnet we thave a username that only consists of numbers
+    newName: value => {
+      // can only be used on localnet
+      if (!isNewUsername(value)) return 'Invalid name';
       return null;
     },
+
+    name: value => {
+      const regname = /^[a-z0-9_]{2,20}$/;
+      if (!regname.test(value)) return 'Invalid name';
+      return null;
+    },
+
     publickey: value => {
       const reghex = /^[0-9a-fA-F]{64}$/;
       if (!reghex.test(value)) return 'Invalid public key';

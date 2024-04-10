@@ -1,63 +1,63 @@
-import { isUsername } from '@gnyio/utils';
+import { isNewUsername } from '@gnyio/utils';
 
-describe('isUsername()', () => {
-  it('isUsername() - three characters "aaa" succeed', () => {
+describe('isNewUsername()', () => {
+  it('isNewUsername() - three characters "aaa" succeed', () => {
     const value = 'aaa';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(true);
   });
 
-  it('isUsername() - one character "A" fails', () => {
+  it('isNewUsername() - one character "A" fails', () => {
     const value = 'A';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('isUsername() - one number "1" fails', () => {
+  it('isNewUsername() - one number "1" fails', () => {
     const value = '1';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('isUsername() - three letters all upper cap fails', () => {
+  it('isNewUsername() - three letters all upper cap fails', () => {
     const value = 'AAA';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('isUsername() - two letters succeed', () => {
+  it('isNewUsername() - two letters succeed', () => {
     const value = 'aa';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(true);
   });
 
-  it('isUsername() - two numbers fail', () => {
+  it('isNewUsername() - two numbers fail', () => {
     const value = '22';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('isUsername() - 21 letters fail', () => {
+  it('isNewUsername() - 21 letters fail', () => {
     const value = 'a'.repeat(21);
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('isUsername() - three numbers fial', () => {
+  it('isNewUsername() - three numbers fial', () => {
     const value = '111';
 
-    const result = isUsername(value);
+    const result = isNewUsername(value);
     expect(result).toEqual(false);
   });
 
-  it('validate isUsername() (mainnet)', () => {
+  it('validate isNewUsername() (mainnet)', () => {
     const mainnetDelegates = [
       '7of9',
       'ai_eagle',
@@ -367,11 +367,11 @@ describe('isUsername()', () => {
     ];
 
     for (const oneUsername of mainnetDelegates) {
-      expect(isUsername(oneUsername)).toEqual(true);
+      expect(isNewUsername(oneUsername)).toEqual(true);
     }
   });
 
-  it('validate isUsername() (testnet)', () => {
+  it('validate isNewUsername() (testnet)', () => {
     const testnetDelegates = [
       '1glance3',
       '7of9',
@@ -583,7 +583,7 @@ describe('isUsername()', () => {
     ];
 
     for (const oneUsername of testnetDelegates) {
-      expect(isUsername(oneUsername)).toEqual(true);
+      expect(isNewUsername(oneUsername)).toEqual(true);
     }
   });
 });
