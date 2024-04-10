@@ -168,4 +168,6 @@ export default async function runtime(options: IOptions) {
 
   global.app.contractTypeMapping[300] = 'dat.registerDatMaker';
   global.app.contractTypeMapping[301] = 'dat.createDat';
+
+  global.app.contractTypeMapping[400] = 'verify.verify';
 }
