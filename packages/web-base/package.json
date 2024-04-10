@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/web-base",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -21,9 +21,9 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.2.0",
-    "@gnyio/utils": "2.2.0",
-    "@gnyio/web-ed": "2.2.0",
+    "@gnyio/interfaces": "2.2.1",
+    "@gnyio/utils": "2.2.1",
+    "@gnyio/web-ed": "2.2.1",
     "@types/bytebuffer": "^5.0.40",
     "buffer": "^5.4.3",
     "bytebuffer": "^5.0.1",

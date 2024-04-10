@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/database-postgres",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
@@ -20,8 +20,8 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.2.0",
-    "@gnyio/json-sql": "2.2.0",
+    "@gnyio/interfaces": "2.2.1",
+    "@gnyio/json-sql": "2.2.1",
     "@types/lodash": "^4.14.175",
     "@types/lru-cache": "^5.1.0",
     "bignumber.js": "^8.1.1",
