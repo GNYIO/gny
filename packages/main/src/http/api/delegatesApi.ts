@@ -622,6 +622,10 @@ export default class DelegatesApi implements IHttpApi {
       return next('delegate not found');
     }
 
+    const count = await global.app.sdb.count<Block>(Block, {
+      delegate: delegate.publicKey,
+    });
+
     const blocks = await global.app.sdb.findAll<Block>(Block, {
       limit: query.limit || 100,
       offset: query.offset || 0,
@@ -643,6 +647,7 @@ export default class DelegatesApi implements IHttpApi {
       success: true,
       delegate: delegate,
       blocks: blocks,
+      count,
     });
   };
 
