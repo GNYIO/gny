@@ -15,6 +15,7 @@ interface ExtendedStringSchema extends Joi.StringSchema {
   signature(): this;
   hex(bufferLength?: any): this;
   ipv4PlusPort(): this;
+  positiveOrZeroIntString(): this;
   positiveOrZeroBigInt(): this;
   networkType(): this;
   multiaddr(): this;
@@ -26,7 +27,6 @@ export interface ExtendedJoi extends Joi.Root {
   string(): ExtendedStringSchema;
   transactionMessage(): this;
   partialUsername(): this;
-  stringIntOrZero(): this;
 }
 
 const transactionMessageExtension: Joi.Extension = {
@@ -52,16 +52,6 @@ const partialUsernameExtension: Joi.Extension = {
   name: 'partialUsername',
 };
 
-// #567
-// currently joi accepts "1e8" a valid int-string
-// the following regex only allows 0 or positive int like strings
-const stringIntOrZero: Joi.Extension = {
-  base: Joi.string()
-    .regex(/^(0|[1-9][0-9]*)$/)
-    .optional(),
-  name: 'stringIntOrZero',
-};
-
 const stringExtensions: Joi.Extension = {
   base: Joi.string(),
   name: 'string',
@@ -75,6 +65,7 @@ const stringExtensions: Joi.Extension = {
     signature: 'is not a valid GNY signature',
     hex: 'is not a hex string{{q}}',
     ipv4PlusPort: 'is not a ipv4:port',
+    positiveOrZeroIntString: 'is not a positive or zero integer string',
     positiveOrZeroBigInt: 'is not a positive or zero big integer amount',
     networkType: 'is not a networkType',
     multiaddr: 'is not a multiaddr',
@@ -256,6 +247,45 @@ const stringExtensions: Joi.Extension = {
         return value;
       },
     },
+
+    // #567
+    // currently joi accepts "1e8" a valid int-string
+    // the following regex only allows 0 or positive int like strings
+    {
+      name: 'positiveOrZeroIntString',
+      validate(params, value, state, options) {
+        if (!/^(0|[1-9][0-9]*)$/.test(value)) {
+          return this.createError(
+            'string.positiveOrZeroIntString',
+            { v: value },
+            state,
+            options
+          );
+        }
+
+        let bnAmount;
+        try {
+          bnAmount = new BigNumber(value);
+        } catch (e) {
+          return this.createError(
+            'string.positiveOrZeroIntString',
+            { v: value },
+            state,
+            options
+          );
+        }
+
+        if (bnAmount.lt(0) || bnAmount.gt('9007199254740991')) {
+          return this.createError(
+            'string.positiveOrZeroIntString',
+            { v: value },
+            state,
+            options
+          );
+        }
+        return value;
+      },
+    },
     {
       name: 'positiveOrZeroBigInt',
       validate(params, value, state, options) {
@@ -429,5 +459,4 @@ export const joi: ExtendedJoi = Joi.extend([
   stringExtensions,
   transactionMessageExtension,
   partialUsernameExtension,
-  stringIntOrZero,
 ]);

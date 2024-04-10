@@ -804,92 +804,166 @@ describe('extendedJoi', () => {
     });
   });
 
-  describe('stringIntOrZero', () => {
-    it('stringIntOrZero - should return a report with error when a stringIntOrZero is empty', () => {
+  describe('positiveOrZeroIntString', () => {
+    it('positiveOrZeroIntString - should return a report with error when an empty string ("") is passed in', () => {
       const value = '';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - is by default optional, null should succeed', () => {
+    it('positiveOrZeroIntString - is by default optional, null should succeed', () => {
       const value = null;
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - is by default optional, undefined should succeed', () => {
+    it('positiveOrZeroIntString - is by default optional, undefined should succeed', () => {
       const value = undefined;
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error).toBeNull();
     });
 
-    it('stringIntOrZero - "" empty string should fail', () => {
+    it('positiveOrZeroIntString - "" empty string should fail', () => {
       const value = '';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - "-1" should fail', () => {
+    it('positiveOrZeroIntString - "-1" should fail', () => {
       const value = '-1';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - "1e8" should fail (exponent notation not allowed)', () => {
+    it('positiveOrZeroIntString - "1e8" should fail (exponent notation not allowed)', () => {
       const value = '1e8';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - Number(2) should fail, should only accept strings', () => {
+    it('positiveOrZeroIntString - Number(2) should fail, should only accept strings', () => {
       const value = '1e8';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it('stringIntOrZero - "1.2" should fail (decimal places not allowed)', () => {
+    it('positiveOrZeroIntString - "1.2" should fail (decimal places not allowed)', () => {
       const value = '1.2';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it.skip('stringIntOrZero - ".2" should fail (decimal places not allowed)', () => {
+    it('positiveOrZeroIntString - ".2" should fail (decimal places not allowed)', () => {
       const value = '.2';
 
-      const schema = joi.stringIntOrZero();
+      const schema = joi.string().positiveOrZeroIntString();
 
       const report = joi.validate(value, schema);
       expect(report.error.name).toBe('ValidationError');
     });
 
-    it.skip('stringIntOrZero - "0" should succeed', () => {});
-    it.skip('stringIntOrZero  - "1" should succeed', () => {});
-    // > Number.MAX_SAFE_INTEGER
-    // 9007199254740991
-    it.skip('stringIntOrZero - "1000000000000000000002" should fail because is bigger than biggest JavaScript number', () => {});
+    it('positiveOrZeroIntString - "0" should succeed', () => {
+      const value = '0';
+
+      const schema = joi.string().positiveOrZeroIntString();
+
+      const report = joi.validate(value, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('positiveOrZeroIntString - "00" should fail', () => {
+      const value = '00';
+
+      const schema = joi.string().positiveOrZeroIntString();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('positiveOrZeroIntString - "1" should succeed', () => {
+      const value = '1';
+
+      const schema = joi.string().positiveOrZeroIntString();
+
+      const report = joi.validate(value, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('positiveOrZeroIntString - "1000000000000000000002" should fail because is bigger than biggest JavaScript number', () => {
+      // Number.MAX_SAFE_INTEGER (9007199254740991)
+      // plus a few extra zeros at the end
+      const value = '90071992547409910000';
+
+      const schema = joi.string().positiveOrZeroIntString();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
+
+    it('positiveOrZeroIntString - when combined with "optional" key a missing key should pass', () => {
+      const value = {
+        // does not have the property x
+      };
+
+      const schema = joi
+        .object({
+          x: joi
+            .string()
+            .positiveOrZeroIntString()
+            .optional(),
+        })
+        .required();
+
+      const report = joi.validate(value, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('positiveOrZeroIntString - when combined with "optional" an undefined value should pass', () => {
+      const value = undefined;
+
+      const schema = joi
+        .string()
+        .positiveOrZeroIntString()
+        .optional();
+
+      const report = joi.validate(value, schema);
+      expect(report.error).toBeNull();
+    });
+
+    it('positiveOrZeroIntString - when combined with "optional" an null value will NOT pass', () => {
+      const value = null;
+
+      const schema = joi
+        .string()
+        .positiveOrZeroIntString()
+        .optional();
+
+      const report = joi.validate(value, schema);
+      expect(report.error.name).toBe('ValidationError');
+    });
   });
 });
