@@ -1,6 +1,7 @@
 import { Context, IVerification } from '@gnyio/interfaces';
 
 import { Verification } from '@gnyio/database-postgres';
+import { Account } from '@gnyio/database-postgres';
 
 export default {
   async verify(this: Context, identifier, signature) {
@@ -11,6 +12,8 @@ export default {
     ) {
       return 'collission attack attempt';
     }
+
+    const sender = this.sender;
 
     const identifierRegex = /^[A-Z_]+$/;
     if (!identifierRegex.test(identifier)) {
@@ -34,16 +37,26 @@ export default {
     });
     if (exists) return 'Dat maker name already exists';
 
-    const senderId = this.sender.address;
-
     const verification: IVerification = {
       identifier,
       tid: this.trs.id,
-      senderId,
+      senderId: sender.address,
       signature,
+      // @ts-ignore
       timestamp: this.block.timestamp, // better than this.trs.timestamp
     };
     await global.app.sdb.create<Verification>(Verification, verification);
+
+    // set publicKey on account if not set
+    // if public key not set, set it
+    if (!this.sender.publicKey) {
+      await global.app.sdb.update<Account>(
+        Account,
+        { publicKey: this.trs.senderPublicKey },
+        { address: this.sender.address }
+      );
+    }
+
     return null;
   },
 };
