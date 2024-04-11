@@ -23,4 +23,7 @@ export const feeCalculators: FeeCalculatorIndexer = {
   // dat (nft)
   300: () => 100,
   301: () => 0.1,
+
+  // verify
+  400: () => 0.1,
 };
