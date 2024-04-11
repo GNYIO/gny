@@ -988,3 +988,12 @@ export interface IIVerification {
   timestamp: number;
   _version_?: number;
 }
+
+export interface SingleVerificationWrapper {
+  verification: IIVerification;
+}
+
+export interface VerificationWrapper {
+  verifications: IIVerification[];
+  count: number;
+}

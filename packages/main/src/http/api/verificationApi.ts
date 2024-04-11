@@ -1,6 +1,13 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { IScope, Next, IHttpApi, IBurn } from '@gnyio/interfaces';
+import {
+  IScope,
+  Next,
+  IHttpApi,
+  SingleVerification,
+  VerificationWrapper,
+  ApiResult,
+} from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 import { Verification } from '@gnyio/database-postgres';
@@ -90,10 +97,12 @@ export default class VerificationApi implements IHttpApi {
       return next('verification could not be found');
     }
 
-    return res.json({
+    const result: ApiResult<SingleVerification> = {
       success: true,
       verification,
-    });
+    };
+
+    return res.json(result);
   };
 
   public getVerifications = async (req: Request, res: Response, next: Next) => {
@@ -158,7 +167,7 @@ export default class VerificationApi implements IHttpApi {
       condition
     );
 
-    const verification = await global.app.sdb.findAll<Verification>(
+    const verifications = await global.app.sdb.findAll<Verification>(
       Verification,
       {
         condition,
@@ -167,10 +176,12 @@ export default class VerificationApi implements IHttpApi {
       }
     );
 
-    return res.json({
+    const result: ApiResult<VerificationWrapper> = {
       success: true,
       count,
-      verification,
-    });
+      verifications,
+    };
+
+    return res.json(result);
   };
 }
