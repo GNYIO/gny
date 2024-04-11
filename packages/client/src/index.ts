@@ -1,6 +1,7 @@
 import * as basic from './lib/transactions/basic';
 import * as crypto from './lib/transactions/crypto';
 import * as dat from './lib/transactions/dat';
+import * as verification from './lib/transactions/verification';
 
 import * as transaction from './lib/transactions/transaction';
 import * as uia from './lib/transactions/uia';
@@ -11,4 +12,13 @@ const utils = {
   format: format,
 };
 
-export { basic, crypto, transaction, uia, utils, Connection, dat };
+export {
+  basic,
+  crypto,
+  transaction,
+  uia,
+  utils,
+  Connection,
+  dat,
+  verification,
+};
