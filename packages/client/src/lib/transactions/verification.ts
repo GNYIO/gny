@@ -1,4 +1,5 @@
 import * as transaction from './transaction';
+export { MessageWebBase } from '@gnyio/web-base';
 
 function createVerification(
   identifier: string,
