@@ -63,6 +63,10 @@
       "types": "./dist/contract/dat.d.ts",
       "import": "./dist/contract/dat.js"
     },
+    "./verification": {
+      "types": "./dist/contract/verification.d.ts",
+      "import": "./dist/contract/verification.js"
+    },
     "./balance-manager": {
       "types": "./dist/smartdb/balance-manager.d.ts",
       "import": "./dist/smartdb/balance-manager.js"

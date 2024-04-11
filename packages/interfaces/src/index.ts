@@ -978,3 +978,12 @@ export interface BurnWrapper {
   burn: IBurn[];
   count: number;
 }
+
+export interface IIVerification {
+  identifier: string;
+  tid: string;
+  senderId: string;
+  signature: string;
+  timestamp: number;
+  _version_?: number;
+}
