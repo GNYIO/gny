@@ -54,13 +54,9 @@ export default class Transactions implements ICoreModule {
     span: ISpan
   ) => {
     try {
-      if (!transaction.id) {
-        transaction.id = TransactionBase.getId(transaction);
-      } else {
-        const id = TransactionBase.getId(transaction);
-        if (transaction.id !== id) {
-          throw new Error('Invalid transaction id');
-        }
+      const id = TransactionBase.getId(transaction);
+      if (transaction.id !== id) {
+        throw new Error('Invalid transaction id');
       }
 
       if (state.privIsCollectingVotes) {

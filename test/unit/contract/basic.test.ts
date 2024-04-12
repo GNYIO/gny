@@ -56,6 +56,42 @@ describe('basic', () => {
   });
 
   describe('transfer', () => {
+    // let amount: string;
+    // let recipient: string;
+    // beforeEach(done => {
+    //   amount = String(100000);
+    //   recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+    //   done();
+    // });
+    // afterEach(done => {
+    //   delete (basic as any).sender;
+    //   delete (basic as any).block;
+    //   delete (basic as any).trs;
+
+    //   amount = undefined;
+    //   recipient = undefined;
+
+    //   done();
+    // });
+
+    it('transfer() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const amount = String(100000);
+      const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.transfer.call(context, amount, recipient);
+      expect(result).toEqual('collission attack attempt');
+    });
+
+    // todo, add expect call
     it('should transfer to a recipient account', async () => {
       const amount = String(100000);
       const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
@@ -85,6 +121,7 @@ describe('basic', () => {
         increase: jest.fn().mockReturnValue(recipientAccount),
         load: jest.fn().mockReturnValue(recipientAccount),
         create: jest.fn(),
+        update: jest.fn(),
       } as any;
 
       const transfered = await basic.transfer.call(context, amount, recipient);
@@ -93,6 +130,22 @@ describe('basic', () => {
   });
 
   describe('setUserName', () => {
+    it('setUserName() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const username = 'xpgeng';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.setUserName.call(context, username);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should set the user name with returning null', async () => {
       // Assume the sender's username is null
       const username = 'xpgeng';
@@ -225,6 +278,23 @@ describe('basic', () => {
   });
 
   describe('lock', () => {
+    it('lock() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const height = 5760 * 30 + 2;
+      const amount = 99;
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.lock.call(context, height, amount);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should lock the account by height and amount', async () => {
       const height = 5760 * 30 + 2;
       const amount = 99;
@@ -670,6 +740,20 @@ describe('basic', () => {
     });
 
     describe('unlock (localnet)', () => {
+      it('unlock() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+        const context = {
+          sender: {
+            publicKey: 'one',
+          },
+          trs: {
+            senderPublicKey: 'two',
+          },
+        };
+
+        const result = await basic.unlock.call(context);
+        expect(result).toEqual('collission attack attempt');
+      });
+
       it('should return "delete first all of your votes before unlocking" if account has still has votes (localnet)', async () => {
         const context = {
           sender: {
@@ -1064,6 +1148,20 @@ describe('basic', () => {
       done();
     });
 
+    it('registerDelegate() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.registerDelegate.call(context);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should return null', async () => {
       const context = {
         sender: {
@@ -1409,6 +1507,20 @@ describe('basic', () => {
     afterEach(done => {
       jest.resetAllMocks();
       done();
+    });
+
+    it('unvote() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.unvote.call(context, delegates);
+      expect(result).toEqual('collission attack attempt');
     });
 
     it('should return null', async () => {

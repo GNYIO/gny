@@ -53,7 +53,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         })
         .required(),
       ssl: joi.object().keys({
-        enabled: joi.boolean(),
+        enabled: joi.boolean().strict(),
         options: joi.object().keys({
           port: joi
             .number()

@@ -9,6 +9,13 @@ import { isAddress } from '@gnyio/utils';
 export default {
   async registerIssuer(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!/^[A-Za-z]{1,16}$/.test(name)) return 'Invalid issuer name';
     global.app.validate('description', desc);
     if (desc.length > 4096) return 'Invalid description';
@@ -35,6 +42,13 @@ export default {
 
   async registerAsset(this: Context, symbol, desc, maximum, precision) {
     if (arguments.length !== 4) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!/^[A-Z]{3,6}$/.test(symbol)) return 'Invalid symbol';
     global.app.validate('description', desc);
     if (desc.length > 4096) return 'Invalid asset description';
@@ -72,6 +86,13 @@ export default {
 
   async issue(this: Context, name, amount) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name)) return 'Invalid currency';
     global.app.validate('amount', amount);
 
@@ -101,6 +122,13 @@ export default {
 
   async transfer(this: Context, currency, amount, recipient) {
     if (arguments.length !== 3) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (currency.length > 30) return 'Invalid currency';
     if (!recipient || recipient.length > 50) return 'Invalid recipient';
     // if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(currency)) return 'Invalid currency'
