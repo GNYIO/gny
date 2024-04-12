@@ -27,6 +27,7 @@ import {
   AddBurnTable1691572220932,
   AddBlockDelegateIndex1694943715000,
   CreateDat1700423861000,
+  AddEligibleColumnToDelegate1701104571000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -49,6 +50,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       AddBurnTable1691572220932,
       AddBlockDelegateIndex1694943715000,
       CreateDat1700423861000,
+      AddEligibleColumnToDelegate1701104571000,
     ],
   };
 

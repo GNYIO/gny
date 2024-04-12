@@ -104,7 +104,7 @@ describe('delegate', () => {
 
   beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-  }, lib.oneMinute);
+  }, lib.oneMinute * 3);
 
   afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);

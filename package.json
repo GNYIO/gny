@@ -82,7 +82,7 @@
     "@types/lodash": "^4.14.118",
     "@types/pg": "^7.14.9",
     "@types/shelljs": "^0.8.11",
-    "axios": "^1.2.2",
+    "axios": "^1.6.8",
     "babel-eslint": "^9.0.0",
     "benchmark": "^2.1.4",
     "docker-compose": "^0.17.5",

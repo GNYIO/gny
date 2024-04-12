@@ -8,7 +8,7 @@ import * as CodeContract from './codeContract.js';
 import { DbSession } from './dbSession.js';
 import { LogManager, LoggerWrapper } from './logger.js';
 import { BlockCache } from './blockCache.js';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { ModelSchema } from './modelSchema.js';
 import {
   LoadChangesHistoryAction,

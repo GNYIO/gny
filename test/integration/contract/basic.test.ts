@@ -445,6 +445,83 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'two different accounts can not set the same username within one block',
+      async () => {
+        // expect.assertions(4);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        const secret1 =
+          'young burger certain exchange alley control link cry tide fluid confirm air';
+        const address1 = 'G3DYQjmTbC1Rg24c5hLjQva4Chd5H';
+
+        const secret2 =
+          'recipe exercise fit caught mesh recycle garment raven sun urge lava point';
+        const address2 = 'GmrEvrJ8bPG6KS3pcXXMXN2NJH71';
+
+        // send 200 GNY to both of theses addresses
+        const basicTransfer1 = gnyClient.basic.transfer(
+          address1,
+          String(200 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData1 = {
+          transaction: basicTransfer1,
+        };
+
+        const basicTransfer2 = gnyClient.basic.transfer(
+          address2,
+          String(200 * 1e8),
+          undefined,
+          genesisSecret
+        );
+        const transData2 = {
+          transaction: basicTransfer2,
+        };
+
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData1,
+          config
+        );
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          transData2,
+          config
+        );
+        await lib.onNewBlock();
+        await lib.onNewBlock();
+
+        const setUsernameTrs1 = gnyClient.basic.setUserName('a1300', secret1);
+        const setUsernameData1 = {
+          transaction: setUsernameTrs1,
+        };
+        const setUsernameTrs2 = gnyClient.basic.setUserName('a1300', secret2);
+        const setUsernameData2 = {
+          transaction: setUsernameTrs2,
+        };
+
+        const promise1 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          setUsernameData1,
+          config
+        );
+        await expect(promise1).resolves.toHaveProperty('data.transactionId');
+
+        const promise2 = axios.post(
+          'http://localhost:4096/peer/transactions',
+          setUsernameData2,
+          config
+        );
+        return expect(promise2).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Name already registered',
+        });
+      },
+      lib.oneMinute
+    );
   });
 
   describe('lock', () => {
@@ -485,10 +562,10 @@ describe('basic', () => {
 
         // After lock
         await lib.onNewBlock();
-        const afterLock = await axios.get(
+        const accountAfterLock = await axios.get(
           'http://localhost:4096/api/accounts?address=' + trs.senderId
         );
-        expect(afterLock.data.lockHeight).toBe(String(173000));
+        expect(accountAfterLock.data.lockHeight).toBe(String(173000));
       },
       lib.oneMinute
     );
@@ -756,6 +833,193 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    it(
+      'locking 187,500 GNY for account that is a already a delegate should set delegate.eligible=1',
+      async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        // set username
+        const usernameTrs = gnyClient.basic.setUserName('a1300', genesisSecret);
+        const usernameData = {
+          transaction: usernameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          usernameData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register as delegate
+        const registerTrs = gnyClient.basic.registerDelegate(genesisSecret);
+        const registerData = {
+          transaction: registerTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          registerData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate before
+        const delegateBefore = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' +
+            usernameTrs.senderId
+        );
+        expect(delegateBefore.data.delegate.eligible).toEqual(0);
+
+        // lock
+        const lockTrs = gnyClient.basic.lock(
+          String(200000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
+        const lockData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate after
+        const delegateAfter = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' +
+            usernameTrs.senderId
+        );
+        expect(delegateAfter.data.delegate.eligible).toEqual(1);
+      },
+      lib.oneMinute * 2
+    );
+
+    it(
+      'as a delegate locking first 100,000 GNY should not make me "eligible", locking again 100,000 (goes over threshold of 187,500) should make me "eligible"',
+      async () => {
+        expect.assertions(3);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        // set username
+        const usernameTrs = gnyClient.basic.setUserName('a1300', genesisSecret);
+        const usernameData = {
+          transaction: usernameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          usernameData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register as delegate
+        const registerTrs = gnyClient.basic.registerDelegate(genesisSecret);
+        const registerData = {
+          transaction: registerTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          registerData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate before
+        const delegateBefore = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' +
+            usernameTrs.senderId
+        );
+        expect(delegateBefore.data.delegate.eligible).toEqual(0);
+
+        // lock
+        const lockTrs = gnyClient.basic.lock(
+          String(200000),
+          String(100000 * 1e8),
+          genesisSecret
+        );
+        const lockData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate after (1)
+        const delegateAfter1 = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' +
+            usernameTrs.senderId
+        );
+        expect(delegateAfter1.data.delegate.eligible).toEqual(0);
+
+        // lock again
+        const lockAgainTrs = gnyClient.basic.lock(
+          String(400000),
+          String(100000 * 1e8),
+          genesisSecret
+        );
+        const lockAgainData = {
+          transaction: lockAgainTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockAgainData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate after (1)
+        const delegateAfter2 = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' +
+            usernameTrs.senderId
+        );
+        expect(delegateAfter2.data.delegate.eligible).toEqual(1);
+      },
+      lib.oneMinute * 2
+    );
+
+    it(
+      'locking 187,500 GNY with account that is not an delegate should not register a delegate',
+      async () => {
+        expect.assertions(1);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        // lock
+        const lockTrs = gnyClient.basic.lock(
+          String(200000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
+        const lockData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate after (1)
+        const delegateAfterPromise = axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + lockTrs.senderId
+        );
+
+        return expect(delegateAfterPromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Can not find delegate',
+          }
+        );
+      },
+      lib.oneMinute
+    );
   });
 
   describe('unlock', () => {
@@ -832,9 +1096,159 @@ describe('basic', () => {
       },
       lib.oneMinute
     );
+
+    // can't be run because we can't unlock during integration tests
+    it.skip(
+      'unlocking should keeps eligible=0 when less 150,000 (less than 187,500) GNY are locked',
+      async () => {},
+      lib.oneMinute
+    );
+
+    // can't be run because we can't unlock during integration tests
+    it.skip(
+      'unlocking sets eligible=0 when it was before eligible=1',
+      async () => {},
+      lib.oneMinute
+    );
   });
 
   describe('registerDelegate', () => {
+    it(
+      'if account has already locked 187,500 and registers delegate eligible=1 should be set',
+      async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        // lock
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(187500 * 1e8),
+          genesisSecret
+        );
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check before that delegate entry does not exists
+        const delegateBeforePromise = axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + lockTrs.senderId
+        );
+        await expect(delegateBeforePromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Can not find delegate',
+          }
+        );
+
+        // set username otherwise we can't register a delegate
+        const usernameTrs = gnyClient.basic.setUserName('a1300', genesisSecret);
+        const usernameData = {
+          transaction: usernameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          usernameData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register delegate
+        const registerTrs = gnyClient.basic.registerDelegate(genesisSecret);
+        const registerData = {
+          transaction: registerTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          registerData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate
+        const delegateAfter = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + lockTrs.senderId
+        );
+        console.log(delegateAfter.data);
+        expect(delegateAfter.data.delegate.eligible).toEqual(1);
+      },
+      lib.oneMinute * 2
+    );
+
+    it(
+      'if account has locked only 150,000 and registers delegate eligible=0 will be set',
+      async () => {
+        expect.assertions(2);
+        await lib.waitForApiToBeReadyReady(4096);
+
+        // lock
+        const lockTrs = gnyClient.basic.lock(
+          String(173000),
+          String(150000 * 1e8),
+          genesisSecret
+        );
+        const lockTransData = {
+          transaction: lockTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          lockTransData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check before that delegate entry does not exists
+        const delegateBeforePromise = axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + lockTrs.senderId
+        );
+        await expect(delegateBeforePromise).rejects.toHaveProperty(
+          'response.data',
+          {
+            success: false,
+            error: 'Can not find delegate',
+          }
+        );
+
+        // set username otherwise we can't register a delegate
+        const usernameTrs = gnyClient.basic.setUserName('a1300', genesisSecret);
+        const usernameData = {
+          transaction: usernameTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          usernameData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // register delegate
+        const registerTrs = gnyClient.basic.registerDelegate(genesisSecret);
+        const registerData = {
+          transaction: registerTrs,
+        };
+        await axios.post(
+          'http://localhost:4096/peer/transactions',
+          registerData,
+          config
+        );
+        await lib.onNewBlock();
+
+        // check delegate
+        const delegateAfter = await axios.get(
+          'http://localhost:4096/api/delegates/get?address=' + lockTrs.senderId
+        );
+        console.log(delegateAfter.data);
+        expect(delegateAfter.data.delegate.eligible).toEqual(0);
+      },
+      lib.oneMinute * 2
+    );
+
     it(
       'should register the delegate',
       async () => {
@@ -1428,11 +1842,9 @@ describe('basic', () => {
 
         // vote
         const trs = gnyClient.basic.vote(['xpgeng'], genesisSecret);
-
         const transData = {
           transaction: trs,
         };
-
         const votePromise = axios.post(
           'http://localhost:4096/peer/transactions',
           transData,

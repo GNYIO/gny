@@ -640,3 +640,25 @@ export class CreateDat1700423861000 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class AddEligibleColumnToDelegate1701104571000
+  implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    // add eligible column
+    await queryRunner.query(`
+      ALTER TABLE public."delegate" ADD COLUMN eligible integer DEFAULT 0 NOT NULL;
+    `);
+
+    // set eligible column to 1 for every account that has
+    // at least 187,500 GNY locked
+    await queryRunner.query(`
+        UPDATE public."delegate" d
+        SET eligible = 1
+        FROM public."account" a
+        WHERE a.address = d.address
+          AND a."lockAmount" >= 18750000000000;
+    `);
+  }
+
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
