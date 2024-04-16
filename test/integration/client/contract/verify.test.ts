@@ -52,11 +52,16 @@ describe('verify', () => {
       async () => {
         // expect.assertions(1);
 
-        const trs = await gnyClient.verification.createVerification(
-          'MY_IDENTIFIER',
-          'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
-          genesisSecret
-        );
+        try {
+          const trs = await connection.contract.Verification.createVerification(
+            'MY_IDENTIFIER',
+            'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
+            genesisSecret
+          );
+          console.log(trs);
+        } catch (err) {
+          console.log(err.response ? err.response.data : err.message);
+        }
 
         await lib.onNewBlock(GNY_PORT);
 

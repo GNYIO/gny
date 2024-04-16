@@ -1,6 +1,7 @@
 import { Basic } from './basic';
 import { Uia } from './uia';
 import { Dat } from './dat';
+import { Verification } from './verification';
 
 import { Connection } from '../connection';
 
@@ -9,5 +10,6 @@ export const Contract = (connection: Connection) => {
     Basic: new Basic(connection),
     Uia: new Uia(connection),
     Dat: new Dat(connection),
+    Verification: new Verification(connection),
   };
 };

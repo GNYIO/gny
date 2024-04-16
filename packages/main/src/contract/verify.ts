@@ -23,7 +23,7 @@ export default {
       return 'argument key not valid';
     }
 
-    const signatureRegex = /^[a-z09]+$/;
+    const signatureRegex = /^[a-z0-9]+$/;
     if (!signatureRegex.test(signature)) {
       return 'argument signature not valid';
     }
@@ -42,9 +42,8 @@ export default {
       tid: this.trs.id,
       senderId: sender.address,
       signature,
-      timestamp: this.block.timestamp, // better than this.trs.timestamp
+      timestamp: this.trs.timestamp,
     };
-    console.log(verification);
     await global.app.sdb.create<Verification>(Verification, verification);
 
     // set publicKey on account if not set

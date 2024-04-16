@@ -2,7 +2,7 @@ import { Base } from '../api/base';
 import { verification, Connection } from '../';
 import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
-export class Dat {
+export class Verification {
   private base: Base;
 
   constructor(connection: Connection) {
