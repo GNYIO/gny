@@ -52,7 +52,7 @@ describe('verify', () => {
     it(
       'query single verification after creation of a verification (/api/verification/get)',
       async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const trs = await connection.contract.Verification.createVerification(
           'MY_IDENTIFIER',
@@ -86,6 +86,8 @@ describe('verify', () => {
     it(
       'sets public key if not set',
       async () => {
+        expect.assertions(2);
+
         // query account before hand, no public key
         const accountBefore = await connection.api.Account.getAccountByAddress(
           address
@@ -100,6 +102,8 @@ describe('verify', () => {
           genesisSecret
         );
 
+        await lib.onNewBlock(GNY_PORT);
+
         // query account after
         const accountAfter = await connection.api.Account.getAccountByAddress(
           address
@@ -112,7 +116,29 @@ describe('verify', () => {
 
     it(
       'throws if identifier already used prior',
-      async () => {},
+      async () => {
+        expect.assertions(1);
+
+        // create verification
+        await connection.contract.Verification.createVerification(
+          'MY_VERIFICATION',
+          'hashhashhash',
+          genesisSecret
+        );
+
+        await lib.onNewBlock(GNY_PORT);
+
+        // calling second time should return an error
+        const promise = connection.contract.Verification.createVerification(
+          'MY_VERIFICATION',
+          'hashhashhash',
+          genesisSecret
+        );
+        return expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'Error: Verification already exists',
+        });
+      },
       lib.oneMinute
     );
 
