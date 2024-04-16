@@ -530,7 +530,7 @@ export interface CommonBlockResult {
 
 export interface Context {
   trs: UnconfirmedTransaction;
-  block: Pick<IBlock, 'height'>;
+  block: Pick<IBlock, 'height' | 'timestamp'>;
   sender: IAccount;
 }
 

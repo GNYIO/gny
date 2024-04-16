@@ -35,16 +35,16 @@ export default {
     const exists = await global.app.sdb.exists<Verification>(Verification, {
       identifier,
     });
-    if (exists) return 'Dat maker name already exists';
+    if (exists) return 'Verification already exists';
 
     const verification: IVerification = {
       identifier,
       tid: this.trs.id,
       senderId: sender.address,
       signature,
-      // @ts-ignore
       timestamp: this.block.timestamp, // better than this.trs.timestamp
     };
+    console.log(verification);
     await global.app.sdb.create<Verification>(Verification, verification);
 
     // set publicKey on account if not set
