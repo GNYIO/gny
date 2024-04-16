@@ -19,7 +19,11 @@ export default {
     if (!identifierRegex.test(identifier)) {
       return 'argument key not valid';
     }
-    if (typeof identifier !== 'string' || identifier.length > 64) {
+    if (
+      typeof identifier !== 'string' ||
+      identifier.length > 64 ||
+      identifier.length < 5
+    ) {
       return 'argument key not valid';
     }
 
@@ -27,7 +31,11 @@ export default {
     if (!signatureRegex.test(signature)) {
       return 'argument signature not valid';
     }
-    if (typeof signature !== 'string' || signature.length > 128) {
+    if (
+      typeof signature !== 'string' ||
+      signature.length > 128 ||
+      signature.length < 10
+    ) {
       return 'argument signature not valid';
     }
 
