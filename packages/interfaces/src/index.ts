@@ -993,7 +993,7 @@ export interface SingleVerificationWrapper {
   verification: IIVerification;
 }
 
-export interface VerificationWrapper {
+export interface VerificationsWrapper {
   verifications: IIVerification[];
   count: number;
 }

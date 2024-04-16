@@ -4,8 +4,8 @@ import {
   IScope,
   Next,
   IHttpApi,
-  SingleVerification,
-  VerificationWrapper,
+  VerificationsWrapper,
+  SingleVerificationWrapper,
   ApiResult,
 } from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
@@ -97,7 +97,7 @@ export default class VerificationApi implements IHttpApi {
       return next('verification could not be found');
     }
 
-    const result: ApiResult<SingleVerification> = {
+    const result: ApiResult<SingleVerificationWrapper> = {
       success: true,
       verification,
     };
@@ -176,7 +176,7 @@ export default class VerificationApi implements IHttpApi {
       }
     );
 
-    const result: ApiResult<VerificationWrapper> = {
+    const result: ApiResult<VerificationsWrapper> = {
       success: true,
       count,
       verifications,

@@ -3,7 +3,7 @@ import {
   ApiResult,
   ValidationError,
   IIVerification,
-  VerificationWrapper,
+  VerificationsWrapper,
   SingleVerificationWrapper,
 } from '@gnyio/interfaces';
 import { Connection } from '../connection';
@@ -32,14 +32,14 @@ export class Verification {
     limit: number,
     offset: number,
     senderId?: string
-  ): Promise<ApiResult<VerificationWrapper, ValidationError | string>> {
+  ): Promise<ApiResult<VerificationsWrapper, ValidationError | string>> {
     const params = {
       limit: limit,
       offset: offset,
       senderId: senderId,
     };
     const res = await this.base.get('/api/verification/', params);
-    const result: ApiResult<VerificationWrapper, ValidationError | string> =
+    const result: ApiResult<VerificationsWrapper, ValidationError | string> =
       res.data;
     return result;
   }
