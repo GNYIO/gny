@@ -10,6 +10,14 @@ const genesisSecret =
 const publicKey = gnyClient.crypto.getKeys(genesisSecret).publicKey;
 const address = gnyClient.crypto.getAddress(publicKey);
 
+const secondAccount =
+  'garbage device lazy spring train enter behave flip round struggle cash suffer';
+const secondAccountPublicKey = gnyClient.crypto.getKeys(secondAccount)
+  .publicKey;
+const secondAccountAddress = gnyClient.crypto.getAddress(
+  secondAccountPublicKey
+);
+
 const GNY_PORT = 20096;
 const GNY_APP_NAME = 'app20';
 const NETWORK_PREFIX = '172.56';
@@ -142,15 +150,48 @@ describe('verify', () => {
       lib.oneMinute
     );
 
-    it.skip(
+    it(
       'query /api/verification/ filter by senderId',
-      async () => {},
-      lib.oneMinute
-    );
+      async () => {
+        await connection.contract.Basic.send(
+          secondAccount,
+          String(2000 * 1e8),
+          genesisSecret
+        );
 
-    it.skip(
-      'query /api/verification/get by identifier',
-      async () => {},
+        await connection.contract.Verification.createVerification(
+          'GENESIS_VERIFICATION',
+          'hashhashhash',
+          genesisSecret
+        );
+
+        await lib.onNewBlock(GNY_PORT);
+
+        await connection.contract.Verification.createVerification(
+          'SECOND_VERIFICATION',
+          'hashhashhash',
+          secondAccount
+        );
+
+        await lib.onNewBlock(GNY_PORT);
+
+        const all = await connection.api.Verification.getAll(100, 0);
+        expect(all).toMatchObject({});
+
+        const filterByGenesis = await connection.api.Verification.getAll(
+          100,
+          0,
+          address
+        );
+        expect(filterByGenesis).toEqual({});
+
+        const filterByAddress = await connection.api.Verification.getAll(
+          100,
+          0,
+          secondAccountAddress
+        );
+        expect(filterByAddress).toEqual({});
+      },
       lib.oneMinute
     );
 
