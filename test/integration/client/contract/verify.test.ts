@@ -7,6 +7,8 @@ import axios from 'axios';
 
 const genesisSecret =
   'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+const publicKey = gnyClient.crypto.getKeys(genesisSecret).publicKey;
+const address = gnyClient.crypto.getAddress(publicKey);
 
 const GNY_PORT = 20096;
 const GNY_APP_NAME = 'app20';
@@ -48,44 +50,87 @@ describe('verify', () => {
 
   describe('Create verification', () => {
     it(
-      'should set username',
+      'query single verification after creation of a verification (/api/verification/get)',
       async () => {
-        // expect.assertions(1);
+        expect.assertions(1);
 
-        try {
-          const trs = await connection.contract.Verification.createVerification(
-            'MY_IDENTIFIER',
-            'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
-            genesisSecret
-          );
-          console.log(trs);
-        } catch (err) {
-          console.log(err.response ? err.response.data : err.message);
-        }
+        const trs = await connection.contract.Verification.createVerification(
+          'MY_IDENTIFIER',
+          'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
+          genesisSecret
+        );
+        expect(trs).toHaveProperty('transactionId');
 
         await lib.onNewBlock(GNY_PORT);
 
-        try {
-          const oneVerification = await connection.api.Verification.get(
-            'MY_IDENTIFIER'
-          );
-          console.log(oneVerification);
-        } catch (err) {
-          console.log(err.response ? err.response.data : err.message);
-        }
-
-        try {
-          const allVerifications = await connection.api.Verification.getAll(
-            100,
-            0
-          );
-          console.log(allVerifications);
-        } catch (err) {
-          console.log(err.response ? err.response.data : err.message);
-        }
-
-        // expect(response).toHaveProperty('transactionId');
+        const oneVerification = await connection.api.Verification.get(
+          'MY_IDENTIFIER'
+        );
+        expect(oneVerification).toMatchObject({
+          success: true,
+          verification: {
+            identifier: 'MY_IDENTIFIER',
+            tid: expect.any(String),
+            senderId: address,
+            signature:
+              'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
+            timestamp: expect.any(Number),
+            _version_: expect.any(Number),
+          },
+        });
+        console.log(oneVerification);
       },
+      lib.oneMinute
+    );
+
+    it(
+      'sets public key if not set',
+      async () => {
+        // query account before hand, no public key
+        const accountBefore = await connection.api.Account.getAccountByAddress(
+          address
+        );
+        // @ts-ignore
+        expect(accountBefore.publicKey).toBeNull();
+
+        // create verification
+        await connection.contract.Verification.createVerification(
+          'MY_VERIFICATION',
+          'hashhashhash',
+          genesisSecret
+        );
+
+        // query account after
+        const accountAfter = await connection.api.Account.getAccountByAddress(
+          address
+        );
+        // @ts-ignore
+        expect(accountAfter.publicKey).toEqual(publicKey);
+      },
+      lib.oneMinute
+    );
+
+    it(
+      'throws if identifier already used prior',
+      async () => {},
+      lib.oneMinute
+    );
+
+    it.skip(
+      'query /api/verification/ filter by senderId',
+      async () => {},
+      lib.oneMinute
+    );
+
+    it.skip(
+      'query /api/verification/get by identifier',
+      async () => {},
+      lib.oneMinute
+    );
+
+    it.skip(
+      'test /api/verification/ pagination',
+      async () => {},
       lib.oneMinute
     );
   });
