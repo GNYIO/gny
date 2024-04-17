@@ -650,6 +650,7 @@ export class Verification1712752540000 implements MigrationInterface {
         "senderId" character varying(50) NOT NULL,
         signature character varying(128) NOT NULL,
         "timestamp" integer NOT NULL,
+        height bigint NOT NULL,
         _version_ integer DEFAULT 0 NOT NULL
       );
 
@@ -664,6 +665,8 @@ export class Verification1712752540000 implements MigrationInterface {
           ON public.verification USING btree ("senderId");
       CREATE INDEX "verification_timestamp_idx"
           ON public.verification USING btree (timestamp);
+      CREATE INDEX "verification_height_idx"
+          ON public.verification USING btree (height);
     `);
   }
 

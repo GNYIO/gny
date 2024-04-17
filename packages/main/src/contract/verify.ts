@@ -51,6 +51,7 @@ export default {
       senderId: sender.address,
       signature,
       timestamp: this.trs.timestamp,
+      height: this.block.height,
     };
     await global.app.sdb.create<Verification>(Verification, verification);
 

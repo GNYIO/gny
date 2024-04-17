@@ -986,6 +986,7 @@ export interface IIVerification {
   senderId: string;
   signature: string;
   timestamp: number;
+  height: string;
   _version_?: number;
 }
 

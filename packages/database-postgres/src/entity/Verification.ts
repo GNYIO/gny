@@ -43,6 +43,13 @@ export class Verification implements Versioned {
   public timestamp: number;
 
   @Column({
+    type: 'bigint',
+    nullable: false,
+  })
+  @Index()
+  public height: string;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,
