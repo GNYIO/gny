@@ -167,12 +167,19 @@ export default class VerificationApi implements IHttpApi {
       condition
     );
 
+    // sort first by height and then by timestamp
+    // because timestamps are not necessary in order
+    // sorting first by height is more reliable
     const verifications = await global.app.sdb.findAll<Verification>(
       Verification,
       {
         condition,
         offset,
         limit,
+        sort: {
+          height: 1,
+          timestamp: 1,
+        },
       }
     );
 
