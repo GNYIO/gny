@@ -164,5 +164,74 @@ describe('verify contract', () => {
         expect(result).toEqual('argument signature not valid');
       });
     });
+
+    describe('execution', () => {
+      it('verify() - throws if verification with same identifier already exists', async () => {
+        expect.assertions(2);
+
+        const identifier = 'SOME_IDENTIFIER';
+        const signature = 'superlongsignature';
+
+        const context = {
+          sender: {
+            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          } as IAccount,
+          trs: {
+            id: 'sometransactionid',
+          },
+        } as Context;
+
+        const existsMock = jest.fn().mockReturnValueOnce(true);
+
+        global.app.sdb = {
+          lock: jest.fn(),
+          exists: existsMock,
+        } as any;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('Verification already exists');
+        expect(existsMock).toBeCalledTimes(1);
+      });
+
+      it('verify() - creates verification in db', async () => {
+        expect.assertions(2);
+
+        const identifier = 'SOME_IDENTIFIER';
+        const signature = 'superlongsignature';
+
+        const context = {
+          sender: {
+            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+            publicKey: 'somepublickey',
+          } as IAccount,
+          trs: {
+            id: 'somerandomid',
+            senderPublicKey: 'somepublickey',
+          },
+          block: {
+            height: String(25),
+          },
+        } as Context;
+
+        const createMock = jest.fn().mockReturnValueOnce({});
+
+        global.app.sdb = {
+          lock: jest.fn(),
+          exists: jest.fn().mockReturnValueOnce(Promise.resolve(false)),
+          create: createMock,
+        } as any;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toBeNull();
+
+        expect(createMock).toHaveBeenCalledTimes(1);
+      });
+
+      it.skip('verify() - sets publicKey for account when not set', async () => {});
+
+      it.skip('verify() - sets publicKey for account when not set', async () => {});
+    });
   });
 });
