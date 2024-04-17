@@ -39,6 +39,7 @@ export default {
       return 'argument signature not valid';
     }
 
+    // can't create two verifications with same identifier in one block
     await global.app.sdb.lock(`verify.verify@${identifier}`);
     const exists = await global.app.sdb.exists<Verification>(Verification, {
       identifier,
