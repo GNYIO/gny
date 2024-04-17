@@ -83,7 +83,7 @@ describe('verify', () => {
             signature:
               'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
             timestamp: expect.any(Number),
-            height: expect.stringMatching(/^0-9]+$/),
+            height: expect.stringMatching(/^[0-9]+$/),
             _version_: expect.any(Number),
           },
         });
@@ -189,7 +189,7 @@ describe('verify', () => {
               senderId: address,
               signature: 'aaaaaaaaaaaaaaaaaaaa',
               timestamp: expect.any(Number),
-              height: expect.stringMatching(/^0-9]+$/),
+              height: expect.stringMatching(/^[0-9]+$/),
               _version_: expect.any(Number),
             },
             {
@@ -198,7 +198,7 @@ describe('verify', () => {
               senderId: secondAccountAddress,
               signature: 'bbbbbbbbbbbbbbbbbbb',
               timestamp: expect.any(Number),
-              height: expect.stringMatching(/^0-9]+$/),
+              height: expect.stringMatching(/^[0-9]+$/),
               _version_: expect.any(Number),
             },
           ],
@@ -220,7 +220,7 @@ describe('verify', () => {
               senderId: address,
               signature: 'aaaaaaaaaaaaaaaaaaaa',
               timestamp: expect.any(Number),
-              height: expect.stringMatching(/^0-9]+$/),
+              height: expect.stringMatching(/^[0-9]+$/),
               _version_: expect.any(Number),
             },
           ],
@@ -242,7 +242,7 @@ describe('verify', () => {
               senderId: secondAccountAddress,
               signature: 'bbbbbbbbbbbbbbbbbbb',
               timestamp: expect.any(Number),
-              height: expect.stringMatching(/^0-9]+$/),
+              height: expect.stringMatching(/^[0-9]+$/),
               _version_: expect.any(Number),
             },
           ],
@@ -277,7 +277,7 @@ describe('verify', () => {
           genesisSecret
         );
 
-        lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
 
         const first = {
           identifier: 'FIRST_VERIFICATION',
@@ -285,7 +285,7 @@ describe('verify', () => {
           senderId: address,
           signature: 'a'.repeat(10),
           timestamp: expect.any(Number),
-          height: expect.stringMatching(/^0-9]+$/),
+          height: expect.stringMatching(/^[0-9]+$/),
           _version_: expect.any(Number),
         };
         const second = {
@@ -294,7 +294,7 @@ describe('verify', () => {
           senderId: address,
           signature: 'b'.repeat(10),
           timestamp: expect.any(Number),
-          height: expect.stringMatching(/^0-9]+$/),
+          height: expect.stringMatching(/^[0-9]+$/),
           _version_: expect.any(Number),
         };
         const third = {
@@ -303,7 +303,7 @@ describe('verify', () => {
           senderId: address,
           signature: 'c'.repeat(10),
           timestamp: expect.any(Number),
-          height: expect.stringMatching(/^0-9]+$/),
+          height: expect.stringMatching(/^[0-9]+$/),
           _version_: expect.any(Number),
         };
         const fourth = {
@@ -312,7 +312,7 @@ describe('verify', () => {
           senderId: address,
           signature: 'd'.repeat(10),
           timestamp: expect.any(Number),
-          height: expect.stringMatching(/^0-9]+$/),
+          height: expect.stringMatching(/^[0-9]+$/),
           _version_: expect.any(Number),
         };
 
@@ -345,7 +345,7 @@ describe('verify', () => {
           verifications: [third],
         });
 
-        const onlyFourth = await connection.api.Verification.getAll(1, 2);
+        const onlyFourth = await connection.api.Verification.getAll(1, 3);
         expect(onlyFourth).toEqual({
           success: true,
           count: 4,
