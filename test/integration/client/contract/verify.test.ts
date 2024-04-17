@@ -251,9 +251,107 @@ describe('verify', () => {
       lib.oneMinute
     );
 
-    it.skip(
+    it(
       'test /api/verification/ pagination',
-      async () => {},
+      async () => {
+        // expect.assertions(3);
+
+        await connection.contract.Verification.createVerification(
+          'FIRST_VERIFICATION',
+          'a'.repeat(10),
+          genesisSecret
+        );
+        await connection.contract.Verification.createVerification(
+          'SECOND_VERIFICATION',
+          'b'.repeat(10),
+          genesisSecret
+        );
+        await connection.contract.Verification.createVerification(
+          'THIRD_VERIFICATION',
+          'c'.repeat(10),
+          genesisSecret
+        );
+        await connection.contract.Verification.createVerification(
+          'FOURTH_VERIFICATION',
+          'd'.repeat(10),
+          genesisSecret
+        );
+
+        lib.onNewBlock(GNY_PORT);
+
+        const first = {
+          identifier: 'FIRST_VERIFICATION',
+          tid: expect.any(String),
+          senderId: address,
+          signature: 'a'.repeat(10),
+          timestamp: expect.any(Number),
+          height: expect.stringMatching(/^0-9]+$/),
+          _version_: expect.any(Number),
+        };
+        const second = {
+          identifier: 'SECOND_VERIFICATION',
+          tid: expect.any(String),
+          senderId: address,
+          signature: 'b'.repeat(10),
+          timestamp: expect.any(Number),
+          height: expect.stringMatching(/^0-9]+$/),
+          _version_: expect.any(Number),
+        };
+        const third = {
+          identifier: 'THIRD_VERIFICATION',
+          tid: expect.any(String),
+          senderId: address,
+          signature: 'c'.repeat(10),
+          timestamp: expect.any(Number),
+          height: expect.stringMatching(/^0-9]+$/),
+          _version_: expect.any(Number),
+        };
+        const fourth = {
+          identifier: 'FOURTH_VERIFICATION',
+          tid: expect.any(String),
+          senderId: address,
+          signature: 'd'.repeat(10),
+          timestamp: expect.any(Number),
+          height: expect.stringMatching(/^0-9]+$/),
+          _version_: expect.any(Number),
+        };
+
+        // query
+        const result = await connection.api.Verification.getAll(100, 0);
+        expect(result).toEqual({
+          success: true,
+          count: 4,
+          verifications: [first, second, third, fourth],
+        });
+
+        const onlyFirst = await connection.api.Verification.getAll(1, 0);
+        expect(onlyFirst).toEqual({
+          success: true,
+          count: 4,
+          verifications: [first],
+        });
+
+        const onlySecond = await connection.api.Verification.getAll(1, 1);
+        expect(onlySecond).toEqual({
+          success: true,
+          count: 4,
+          verifications: [second],
+        });
+
+        const onlyThird = await connection.api.Verification.getAll(1, 2);
+        expect(onlyThird).toEqual({
+          success: true,
+          count: 4,
+          verifications: [third],
+        });
+
+        const onlyFourth = await connection.api.Verification.getAll(1, 2);
+        expect(onlyFourth).toEqual({
+          success: true,
+          count: 4,
+          verifications: [fourth],
+        });
+      },
       lib.oneMinute
     );
 
