@@ -17,14 +17,14 @@ export default {
 
     const identifierRegex = /^[A-Z_]+$/;
     if (!identifierRegex.test(identifier)) {
-      return 'argument key not valid';
+      return 'argument identifier not valid';
     }
     if (
       typeof identifier !== 'string' ||
       identifier.length > 64 ||
       identifier.length < 5
     ) {
-      return 'argument key not valid';
+      return 'argument identifier not valid';
     }
 
     const signatureRegex = /^[a-z0-9]+$/;
