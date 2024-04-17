@@ -10,9 +10,9 @@ const genesisSecret =
 const publicKey = gnyClient.crypto.getKeys(genesisSecret).publicKey;
 const address = gnyClient.crypto.getAddress(publicKey);
 
-const secondAccount =
+const secondAccountSecret =
   'garbage device lazy spring train enter behave flip round struggle cash suffer';
-const secondAccountPublicKey = gnyClient.crypto.getKeys(secondAccount)
+const secondAccountPublicKey = gnyClient.crypto.getKeys(secondAccountSecret)
   .publicKey;
 const secondAccountAddress = gnyClient.crypto.getAddress(
   secondAccountPublicKey
@@ -153,15 +153,17 @@ describe('verify', () => {
     it(
       'query /api/verification/ filter by senderId',
       async () => {
+        expect.assertions(3);
+
         await connection.contract.Basic.send(
-          secondAccount,
+          secondAccountAddress,
           String(2000 * 1e8),
           genesisSecret
         );
 
         await connection.contract.Verification.createVerification(
           'GENESIS_VERIFICATION',
-          'hashhashhash',
+          'aaaaaaaaaaaaaaaaaaaa',
           genesisSecret
         );
 
@@ -169,28 +171,77 @@ describe('verify', () => {
 
         await connection.contract.Verification.createVerification(
           'SECOND_VERIFICATION',
-          'hashhashhash',
-          secondAccount
+          'bbbbbbbbbbbbbbbbbbb',
+          secondAccountSecret
         );
 
         await lib.onNewBlock(GNY_PORT);
 
         const all = await connection.api.Verification.getAll(100, 0);
-        expect(all).toMatchObject({});
+        expect(all).toEqual({
+          success: true,
+          count: 2,
+          verifications: [
+            {
+              identifier: 'GENESIS_VERIFICATION',
+              tid: expect.any(String),
+              senderId: address,
+              signature: 'aaaaaaaaaaaaaaaaaaaa',
+              timestamp: expect.any(Number),
+              _version_: expect.any(Number),
+            },
+            {
+              identifier: 'SECOND_VERIFICATION',
+              tid: expect.any(String),
+              senderId: secondAccountAddress,
+              signature: 'bbbbbbbbbbbbbbbbbbb',
+              timestamp: expect.any(Number),
+              _version_: expect.any(Number),
+            },
+          ],
+        });
 
+        // should return only verifications created by genesis account
         const filterByGenesis = await connection.api.Verification.getAll(
           100,
           0,
           address
         );
-        expect(filterByGenesis).toEqual({});
+        expect(filterByGenesis).toEqual({
+          success: true,
+          count: 1,
+          verifications: [
+            {
+              identifier: 'GENESIS_VERIFICATION',
+              tid: expect.any(String),
+              senderId: address,
+              signature: 'aaaaaaaaaaaaaaaaaaaa',
+              timestamp: expect.any(Number),
+              _version_: expect.any(Number),
+            },
+          ],
+        });
 
+        // should return only verifications created by second account
         const filterByAddress = await connection.api.Verification.getAll(
           100,
           0,
           secondAccountAddress
         );
-        expect(filterByAddress).toEqual({});
+        expect(filterByAddress).toEqual({
+          success: true,
+          count: 1,
+          verifications: [
+            {
+              identifier: 'SECOND_VERIFICATION',
+              tid: expect.any(String),
+              senderId: secondAccountAddress,
+              signature: 'bbbbbbbbbbbbbbbbbbb',
+              timestamp: expect.any(Number),
+              _version_: expect.any(Number),
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -198,6 +249,22 @@ describe('verify', () => {
     it.skip(
       'test /api/verification/ pagination',
       async () => {},
+      lib.oneMinute
+    );
+
+    it(
+      'returns error if verification can not be found /api/verification/get',
+      async () => {
+        expect.assertions(1);
+
+        const identifier = 'DOES_NOT_EXIST';
+
+        const promise = connection.api.Verification.get(identifier);
+        return expect(promise).rejects.toHaveProperty('response.data', {
+          success: false,
+          error: 'verification could not be found',
+        });
+      },
       lib.oneMinute
     );
   });
