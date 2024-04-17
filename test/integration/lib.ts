@@ -203,6 +203,7 @@ export async function resetDb(dbName: string) {
     DROP TABLE IF EXISTS "burn";
     DROP TABLE IF EXISTS "dat_maker";
     DROP TABLE IF EXISTS "dat";
+    DROP TABLE IF EXISTS "verification";
 
     DROP TABLE IF EXISTS migrations;
     DROP SEQUENCE IF EXISTS migrations_id_seq;
