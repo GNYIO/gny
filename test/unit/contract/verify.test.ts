@@ -85,19 +85,84 @@ describe('verify contract', () => {
 
     describe('identifier', () => {
       it('verify() - throws if identifier is too short (zero length)', async () => {
-        const param1 = '';
-        const param2 = 'description';
+        const identifier = '';
+        const signature = 'superlongsignature';
 
         const context = {
           sender: {},
         } as Context;
 
         // @ts-ignore
-        const result = await verify.verify.call(context, param1, param2);
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('argument identifier not valid');
+      });
+
+      it('verify() - throws if identifier length is less than 5', async () => {
+        const identifier = 'A'.repeat(4);
+        const signature = '';
+
+        const context = {
+          sender: {},
+        } as Context;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('argument identifier not valid');
+      });
+
+      it('verify() - throws if length is greater than 64', async () => {
+        const identifier = 'A'.repeat(65);
+        const signature = '';
+
+        const context = {
+          sender: {},
+        } as Context;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
         expect(result).toEqual('argument identifier not valid');
       });
     });
 
-    describe('signature', () => {});
+    describe('signature', () => {
+      it('verify() - throws if signature is too short (zero length)', async () => {
+        const identifier = 'A'.repeat(10);
+        const signature = '';
+
+        const context = {
+          sender: {},
+        } as Context;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('argument signature not valid');
+      });
+
+      it('verify() - throws if signature length is less than 10', async () => {
+        const identifier = 'A'.repeat(15);
+        const signature = 'a'.repeat(9);
+
+        const context = {
+          sender: {},
+        } as Context;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('argument signature not valid');
+      });
+
+      it('verify() - throws if length is greater than 128', async () => {
+        const identifier = 'A'.repeat(15);
+        const signature = 'a'.repeat(129);
+
+        const context = {
+          sender: {},
+        } as Context;
+
+        // @ts-ignore
+        const result = await verify.verify.call(context, identifier, signature);
+        expect(result).toEqual('argument signature not valid');
+      });
+    });
   });
 });
