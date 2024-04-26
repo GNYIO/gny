@@ -1267,6 +1267,100 @@ describe('basic', () => {
       const registered = await basic.registerDelegate.call(context);
       expect(registered).toBe('Account is already Delegate');
     });
+
+    it('correctly calls update Account (alread has public key set)', async () => {
+      expect.assertions(3);
+
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000100),
+          isLocked: 1,
+          lockHeight: String(3),
+          lockAmount: String(0),
+          isDelegate: 0,
+          username: 'xpgeng',
+          publicKey: 'some-public-key',
+        } as IAccount,
+        block: {
+          height: String(2),
+        },
+        trs: {
+          senderPublicKey: 'some-public-key',
+        },
+      } as Context;
+
+      const updateMock = jest.fn().mockReturnValueOnce(null);
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValueOnce(null),
+        update: updateMock,
+      } as any;
+
+      const registered = await basic.registerDelegate.call(context);
+      expect(registered).toBeNull();
+
+      expect(updateMock).toBeCalledTimes(1);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        {
+          isDelegate: 1,
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+    });
+
+    it('correctly calls update Account (set public key)', async () => {
+      expect.assertions(3);
+
+      const context = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(100000100),
+          isLocked: 1,
+          lockHeight: String(3),
+          lockAmount: String(0),
+          isDelegate: 0,
+          username: 'xpgeng',
+          // @ts-ignore
+          senderPublicKey: null,
+        } as IAccount,
+        block: {
+          height: String(2),
+        },
+        trs: {
+          senderPublicKey: 'new-public-key',
+        },
+      } as Context;
+
+      const updateMock = jest.fn().mockReturnValueOnce(null);
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        create: jest.fn().mockReturnValueOnce(null),
+        update: updateMock,
+      } as any;
+
+      const registered = await basic.registerDelegate.call(context);
+      expect(registered).toBeNull();
+
+      expect(updateMock).toBeCalledTimes(1);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        {
+          isDelegate: 1,
+          publicKey: 'new-public-key',
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+    });
   });
 
   describe('vote', () => {
