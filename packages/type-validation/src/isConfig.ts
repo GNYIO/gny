@@ -118,6 +118,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .boolean()
         .strict()
         .required(),
+      activateVerification: joi
+        .boolean()
+        .strict()
+        .required(),
     })
     .required();
 

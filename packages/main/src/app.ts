@@ -244,11 +244,16 @@ function main() {
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
 
-  (appConfig.activateDat = JSON.parse(
+  appConfig.activateDat = JSON.parse(
+    // @ts-ignore
     process.env['GNY_ACTIVATE_DAT'] || false
-  )),
-    // asign config to global variable
-    (global.Config = appConfig);
+  );
+  appConfig.activateVerification = JSON.parse(
+    // @ts-ignore
+    process.env['GNY_ACTIVATE_VERIFICATION'] || false
+  );
+  // assign config to global variable
+  global.Config = appConfig;
 
   const options = {
     appConfig,

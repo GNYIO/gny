@@ -23,5 +23,7 @@ export default async function loadContracts() {
     addContract({ module: dat, name: 'dat' });
   }
 
-  addContract({ module: verification, name: 'verify' });
+  if (global.Config.activateVerification === true) {
+    addContract({ module: verification, name: 'verify' });
+  }
 }

@@ -29,7 +29,6 @@ export default function loadCoreApi(scope: IScope) {
   const exchangeApi = new ExchangeApi(scope);
   const metricsApi = new MetricsApi(scope);
   const burnApi = new BurnApi(scope);
-  const verificationApi = new VerificationApi(scope);
 
   const coreApi: CoreApi = {
     blocksApi,
@@ -45,12 +44,16 @@ export default function loadCoreApi(scope: IScope) {
     exchangeApi,
     metricsApi,
     burnApi,
-    verificationApi,
   };
 
   if (global.Config.activateDat === true) {
     const datApi = new DatApi(scope);
     coreApi['datApi'] = datApi;
+  }
+
+  if (global.Config.activateVerification === true) {
+    const verificationApi = new VerificationApi(scope);
+    coreApi['verificationApi'] = verificationApi;
   }
 
   return coreApi;
