@@ -2,7 +2,6 @@ import { Base } from './base';
 import {
   ApiResult,
   ValidationError,
-  IIVerification,
   VerificationsWrapper,
   SingleVerificationWrapper,
 } from '@gnyio/interfaces';
@@ -23,8 +22,10 @@ export class Verification {
     };
 
     const res = await this.base.get('/api/verification/get', params);
-    const result: ApiResult<IIVerification, ValidationError | string> =
-      res.data;
+    const result: ApiResult<
+      SingleVerificationWrapper,
+      ValidationError | string
+    > = res.data;
     return result;
   }
 
