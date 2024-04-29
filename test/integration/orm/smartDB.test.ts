@@ -34,7 +34,7 @@ describe('integration - SmartDB', () => {
 
     sut = new SmartDB(logger, credentials);
     await sut.init();
-  }, lib.tenSeconds);
+  }, lib.tenSeconds * 5);
 
   afterEach(async () => {
     await sut.close();
@@ -182,6 +182,7 @@ describe('integration - SmartDB', () => {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: 0,
     };
     await sut.create<Delegate>(Delegate, delegate);
 
@@ -220,6 +221,7 @@ describe('integration - SmartDB', () => {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: 0,
     };
     const created = sut.create<Delegate>(Delegate, data);
     sut.commitContract(); // end first contract

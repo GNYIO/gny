@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/client",
-  "version": "2.2.1",
+  "version": "2.3.3",
   "description": "GNY JavaScript Client Library",
   "browser": "browser/browser.js",
   "license": "MIT",
@@ -29,12 +29,12 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.2.1",
-    "@gnyio/network": "2.2.1",
-    "@gnyio/utils": "2.2.1",
-    "@gnyio/web-base": "2.2.1",
+    "@gnyio/interfaces": "2.3.3",
+    "@gnyio/network": "2.3.3",
+    "@gnyio/utils": "2.3.3",
+    "@gnyio/web-base": "2.3.3",
     "@types/bs58": "^3.0.32",
-    "axios": "0.22.0",
+    "axios": "^1.6.8",
     "bs58": "^3.1.0",
     "bytebuffer": "^5.0.1",
     "fast-sha256": "^1.1.0",

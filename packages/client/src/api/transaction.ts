@@ -157,7 +157,7 @@ export class Transaction {
       id,
     };
     const res = await this.base.get('/api/transactions/confirmations', params);
-    const result: ApiResult<UnconfirmedTransactionsWrapper, ValidationError> =
+    const result: ApiResult<TransactionConfirmationWrapper, ValidationError> =
       res.data;
     return result;
   }

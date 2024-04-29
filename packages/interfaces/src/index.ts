@@ -437,6 +437,7 @@ export interface IDelegate {
   missedBlocks: string;
   fees: string;
   rewards: string;
+  eligible: number;
   _version_?: number;
 }
 

@@ -34,7 +34,7 @@ describe('SmartDB.rollbackBlock()', () => {
 
     sut = new SmartDB(logger, credentials);
     await sut.init();
-  }, lib.tenSeconds);
+  }, lib.tenSeconds * 5);
 
   afterEach(async () => {
     await sut.close();
@@ -192,6 +192,7 @@ describe('SmartDB.rollbackBlock()', () => {
       missedBlocks: String(0),
       rewards: String(0),
       fees: String(0),
+      eligible: 0,
     };
     const createdDelegate: IDelegate = await sut.create<Delegate>(
       Delegate,
@@ -242,6 +243,7 @@ describe('SmartDB.rollbackBlock()', () => {
       missedBlocks: String(0),
       rewards: String(0),
       fees: String(0),
+      eligible: 0,
     };
     const createdDelegate = await sut.create<Delegate>(Delegate, delegate);
 
@@ -510,5 +512,245 @@ describe('SmartDB.rollbackBlock()', () => {
       address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
     });
     expect(inCache0After).toEqual(undefined);
+  });
+
+  it('rollbackBlock() - 2 increase calls within one block - should correctly rollback ', async () => {
+    expect.assertions(6);
+    await saveGenesisBlock(sut);
+
+    // block 1
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    // create account
+    const account = createAccount('G34VFMsS5TuiMNPnQ2YbczXvQpJE2');
+    const createdAccount = await sut.create<Account>(Account, account);
+    expect(createdAccount.gny).toEqual(String(0));
+    expect(createdAccount._version_).toEqual(1);
+
+    // persist block 1
+    await sut.commitBlock();
+
+    // block 2
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+
+    await sut.increase<Account>(
+      Account,
+      {
+        gny: String(10),
+      },
+      {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      }
+    );
+    await sut.increase<Account>(
+      Account,
+      {
+        gny: String(15),
+      },
+      {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      }
+    );
+
+    // persist block 2
+    await sut.commitBlock();
+
+    const fromDb1 = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(fromDb1.gny).toEqual(String(0 + 10 + 15));
+    expect(fromDb1._version_).toEqual(3);
+
+    // rollback to height 0, then check cache
+    await sut.rollbackBlock(String(1));
+
+    const fromDb2 = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(fromDb2.gny).toEqual(String(0));
+    expect(fromDb2._version_).toEqual(1);
+  });
+
+  it('rollbackBlock() - delete entity, rollback should re-instate it', async () => {
+    expect.assertions(3);
+
+    await saveGenesisBlock(sut);
+
+    // block 1
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+    await sut.commitBlock();
+
+    // block 2
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+
+    // create account
+    const account = createAccount('G34VFMsS5TuiMNPnQ2YbczXvQpJE2');
+    const createdAccount = await sut.create<Account>(Account, account);
+
+    await sut.commitBlock();
+
+    const expected = {
+      _version_: 1,
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      gny: '0',
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: '0',
+      lockHeight: '0',
+      publicKey: null,
+      secondPublicKey: null,
+      username: null,
+    };
+
+    const findAccountInDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(findAccountInDb).toEqual(expected);
+
+    // block 3
+    const block3 = createBlock(String(3));
+    sut.beginBlock(block3);
+
+    // act
+    await sut.del<Account>(Account, {
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+    });
+
+    await sut.commitBlock();
+
+    // account should not be any longer in db
+    const findAccountInDbAfterDelete = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(findAccountInDbAfterDelete).toEqual(undefined);
+
+    await sut.rollbackBlock(String(2));
+
+    const findAccountInDbAfterRollback = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(findAccountInDbAfterRollback).toEqual(expected);
+  });
+
+  it('rollbackBlock() - create an entity, rollback, entity should not longer be in db', async () => {
+    expect.assertions(2);
+    await saveGenesisBlock(sut);
+
+    // block 1
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    // create account
+    const account = createAccount('G34VFMsS5TuiMNPnQ2YbczXvQpJE2');
+    const createdAccount = await sut.create<Account>(Account, account);
+
+    await sut.commitBlock();
+
+    const findInDb = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(findInDb).toEqual({
+      address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      gny: '0',
+      isDelegate: 0,
+      isLocked: 0,
+      lockAmount: '0',
+      lockHeight: '0',
+      publicKey: null,
+      secondPublicKey: null,
+      username: null,
+      _version_: 1,
+    });
+
+    // rollback
+    await sut.rollbackBlock(String(0));
+
+    const findInDbAfterRollback = await sut.findOne<Account>(Account, {
+      condition: {
+        address: 'G34VFMsS5TuiMNPnQ2YbczXvQpJE2',
+      },
+    });
+    expect(findInDbAfterRollback).toEqual(undefined);
+  });
+
+  it('rollback - memory model, create, new block, delete, new block, rollback, memory model should be loaded again in memory (use memory load methods get() and getall())', async () => {
+    expect.assertions(4);
+    await saveGenesisBlock(sut);
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    // first save a new entity
+    const delegate: IDelegate = {
+      address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+      tid: createRandomBytes(32),
+      username: 'a1300',
+      publicKey: createRandomBytes(32),
+      votes: String(0),
+      producedBlocks: String(0),
+      missedBlocks: String(0),
+      rewards: String(0),
+      fees: String(0),
+      eligible: 0,
+    };
+    const createdDelegate: IDelegate = await sut.create<Delegate>(
+      Delegate,
+      delegate
+    );
+
+    await sut.commitBlock();
+
+    const block2 = createBlock(String(2));
+    sut.beginBlock(block2);
+
+    // delete
+    await sut.del<Delegate>(Delegate, {
+      address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+    });
+
+    await sut.commitBlock();
+
+    // rollbackBlock
+    await sut.rollbackBlock(String(1));
+
+    const expectToLoad = {
+      ...delegate,
+      _version_: 1,
+    };
+
+    // delegate should be again in db
+    const inDb = await sut.findOne<Delegate>(Delegate, {
+      condition: {
+        address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+      },
+    });
+    expect(inDb).toEqual(expectToLoad);
+
+    // delegate should be again in memory (as memory model)
+    const inCache1 = await sut.get<Delegate>(Delegate, {
+      address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+    });
+    expect(inCache1).toEqual(expectToLoad);
+
+    // delegate should be again in memory (as memory model)
+    const inCache2 = await sut.getAll<Delegate>(Delegate);
+    expect(inCache2).toHaveLength(1);
+    expect(inCache2[0]).toEqual(expectToLoad);
   });
 });

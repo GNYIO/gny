@@ -651,4 +651,145 @@ describe('core/delegates', () => {
       done();
     });
   });
+
+  describe('compareStrict', () => {
+    function deepCopy(array) {
+      return JSON.parse(JSON.stringify(array));
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+      }
+    }
+
+    it('compareStrict() - 10,000 random tests - sorts delegates including "eligible" column/property', done => {
+      expect.assertions(10000);
+
+      const delegates = [
+        {
+          publicKey: 'aaa',
+          votes: String(10),
+          eligible: 0,
+        },
+        {
+          publicKey: 'bbb',
+          votes: String(10),
+          eligible: 0,
+        },
+        {
+          publicKey: 'ccc',
+          votes: String(11),
+          eligible: 0,
+        },
+        {
+          publicKey: 'ccc',
+          votes: String(9),
+          eligible: 0,
+        },
+        {
+          publicKey: 'xxx',
+          votes: String(5),
+          eligible: 1,
+        },
+        {
+          publicKey: 'yyy',
+          votes: String(6),
+          eligible: 1,
+        },
+        {
+          publicKey: 'zzz',
+          votes: String(6),
+          eligible: 1,
+        },
+      ] as IDelegate[];
+
+      const expected = [
+        {
+          eligible: 1,
+          publicKey: 'zzz',
+          votes: String(6),
+        },
+        {
+          eligible: 1,
+          publicKey: 'yyy',
+          votes: String(6),
+        },
+        {
+          eligible: 1,
+          publicKey: 'xxx',
+          votes: String(5),
+        },
+        {
+          eligible: 0,
+          publicKey: 'ccc',
+          votes: String(11),
+        },
+        {
+          eligible: 0,
+          publicKey: 'bbb',
+          votes: String(10),
+        },
+        {
+          eligible: 0,
+          publicKey: 'aaa',
+          votes: String(10),
+        },
+        {
+          eligible: 0,
+          publicKey: 'ccc',
+          votes: String(9),
+        },
+      ];
+
+      for (let i = 0; i < 10000; ++i) {
+        // make copy of delegates array
+        const copy = deepCopy(delegates);
+
+        // random array shuffle
+        shuffleArray(copy);
+
+        const result = copy.sort(Delegates.compareStrict);
+        expect(result).toEqual(expected);
+      }
+
+      done();
+    });
+
+    it('compareStrict() - sorts delegates after votes', done => {
+      const delegates = [
+        {
+          eligible: 0,
+          publicKey: 'aaa',
+          votes: String(5),
+        },
+        {
+          eligible: 1,
+          publicKey: 'aaa',
+          votes: String(5),
+        },
+      ];
+
+      const expected = [
+        {
+          eligible: 1,
+          publicKey: 'aaa',
+          votes: String(5),
+        },
+        {
+          eligible: 0,
+          publicKey: 'aaa',
+          votes: String(5),
+        },
+      ];
+
+      const result = delegates.sort(Delegates.compareStrict);
+      expect(result).toEqual(expected);
+
+      return done();
+    });
+  });
 });

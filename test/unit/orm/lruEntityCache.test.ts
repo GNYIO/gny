@@ -169,6 +169,7 @@ function createDelegate(username: string) {
     missedBlocks: String(0),
     fees: String(0),
     rewards: String(0),
+    eligible: 0,
   };
   return delegate;
 }
