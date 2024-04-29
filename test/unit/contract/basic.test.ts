@@ -109,6 +109,7 @@ describe('basic', () => {
         } as IAccount,
         block: {
           height: String(1),
+          timestamp: 1000,
         },
         trs: {
           id:

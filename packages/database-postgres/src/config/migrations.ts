@@ -662,3 +662,34 @@ export class AddEligibleColumnToDelegate1701104571000
 
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class Verification1712752540000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    await queryRunner.query(`
+      CREATE TABLE public.verification (
+        identifier character varying(128) NOT NULL,
+        tid character varying(64) NOT NULL,
+        "senderId" character varying(50) NOT NULL,
+        signature character varying(128) NOT NULL,
+        "timestamp" integer NOT NULL,
+        height bigint NOT NULL,
+        _version_ integer DEFAULT 0 NOT NULL
+      );
+
+      ALTER TABLE public.verification OWNER TO postgres;
+
+      ALTER TABLE ONLY public.verification
+          ADD CONSTRAINT "verification_identifier_pkey" PRIMARY KEY (identifier);
+
+      CREATE INDEX "verification_tid_idx"
+          ON public.verification USING btree (tid);
+      CREATE INDEX "verification_senderId_idx"
+          ON public.verification USING btree ("senderId");
+      CREATE INDEX "verification_timestamp_idx"
+          ON public.verification USING btree (timestamp);
+      CREATE INDEX "verification_height_idx"
+          ON public.verification USING btree (height);
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

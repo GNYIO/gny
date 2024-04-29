@@ -12,6 +12,7 @@ import ExchangeApi from './http/api/exchangeApi.js';
 import MetricsApi from './http/api/metricsApi.js';
 import DatApi from './http/api/datApi.js';
 import BurnApi from './http/api/burnApi.js';
+import VerificationApi from './http/api/verificationApi.js';
 import { IScope, CoreApi } from '@gnyio/interfaces';
 
 export default function loadCoreApi(scope: IScope) {
@@ -48,6 +49,11 @@ export default function loadCoreApi(scope: IScope) {
   if (global.Config.activateDat === true) {
     const datApi = new DatApi(scope);
     coreApi['datApi'] = datApi;
+  }
+
+  if (global.Config.activateVerification === true) {
+    const verificationApi = new VerificationApi(scope);
+    coreApi['verificationApi'] = verificationApi;
   }
 
   return coreApi;

@@ -45,6 +45,7 @@ export * from './entity/Prediction.js';
 export * from './entity/DatMaker.js';
 export * from './entity/Dat.js';
 export * from './entity/Burn.js';
+export * from './entity/Verification.js';
 
 export * from './basicEntityTracker.js';
 export * from './lruEntityCache.js';

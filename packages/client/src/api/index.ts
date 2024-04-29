@@ -12,6 +12,7 @@ import { Exchange } from './exchange';
 import { Burn } from './burn';
 import { Connection } from '../connection';
 import { Dat } from './dat';
+import { Verification } from './verification';
 
 export const Api = (connection: Connection) => {
   return {
@@ -28,5 +29,6 @@ export const Api = (connection: Connection) => {
     Exchange: new Exchange(connection),
     Dat: new Dat(connection),
     Burn: new Burn(connection),
+    Verification: new Verification(connection),
   };
 };
