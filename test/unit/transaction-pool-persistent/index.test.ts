@@ -1,5 +1,5 @@
-import { TransactionPool } from '@gnyio/transaction-pool';
-import { ITransaction } from '@gnyio/interfaces';
+import { TransactionPoolPersistent } from '@gnyio/transaction-pool-persistent';
+import { UnconfirmedTransaction } from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
 import { generateAddress } from '@gnyio/utils';
 
@@ -11,7 +11,7 @@ function createTransaction(id: string) {
   const receiver = generateAddress(createRandomBytes(32));
   const senderPublicKey = createRandomBytes(32);
   const senderId = generateAddress(senderPublicKey);
-  const transaction: ITransaction = {
+  const transaction: UnconfirmedTransaction = {
     id,
     args: [12412524, receiver],
     type: 0,
@@ -19,20 +19,20 @@ function createTransaction(id: string) {
     senderPublicKey,
     signatures: createRandomBytes(64),
     fee: String(0),
-    height: String(1),
     message: undefined,
     timestamp: 0,
   };
   return transaction;
 }
 
-describe('TransactionPool', () => {
-  let sut: TransactionPool; // system under test
+describe('TransactionPoolPersistent', () => {
+  let sut: TransactionPoolPersistent; // system under test
   beforeEach(done => {
-    sut = new TransactionPool();
+    sut = new TransactionPoolPersistent(':memory:');
     done();
   });
   afterEach(done => {
+    // @ts-ignore
     sut = undefined;
     done();
   });

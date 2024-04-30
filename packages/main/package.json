@@ -74,7 +74,7 @@
   },
   "dependencies": {
     "@gnyio/base": "2.4.0",
-    "@gnyio/database-postgres": "2.4.0",
+    "@gnyio/database-postgres": "*",
     "@gnyio/ed": "2.4.0",
     "@gnyio/extended-joi": "2.4.0",
     "@gnyio/interfaces": "2.4.0",
@@ -84,7 +84,7 @@
     "@gnyio/p2p": "2.4.0",
     "@gnyio/protobuf": "2.4.0",
     "@gnyio/tracer": "2.4.0",
-    "@gnyio/transaction-pool": "2.4.0",
+    "@gnyio/transaction-pool-persistent": "2.4.0",
     "@gnyio/type-validation": "2.4.0",
     "@gnyio/utils": "2.4.0",
     "@types/async": "^3.2.16",

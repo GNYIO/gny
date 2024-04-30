@@ -58,6 +58,7 @@ export default class Transport implements ICoreModule {
       unconfirmedTransaction: transaction,
     });
 
+    // clean for multiple transactions in the future
     const obj = cloneDeep(transaction);
     if (typeof obj.signatures !== 'string') {
       obj.signatures = JSON.stringify(obj.signatures);
@@ -68,11 +69,11 @@ export default class Transport implements ICoreModule {
 
     const raw: TracerWrapper<UnconfirmedTransaction> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: obj,
+      data: [obj],
     };
 
     const encodedTransaction = uint8Arrays.fromString(JSON.stringify(raw));
-    await Peer.p2p.broadcastTransactionAsync(encodedTransaction);
+    await Peer.p2p.broadcastManyTransactionsAsync(encodedTransaction);
 
     span.finish();
   };
@@ -720,6 +721,78 @@ export default class Transport implements ICoreModule {
         );
       }
     }
+  };
+
+  public static receivePeer_many_Transactions = (message: P2PMessage) => {
+    if (StateHelper.IsSyncing()) {
+      global.library.logger.info(
+        `[p2p] ignoring many transaction because we are syncing`
+      );
+      return;
+    }
+
+    // multiple transactions
+    let wrapper: TracerWrapper<UnconfirmedTransaction[]>;
+    try {
+      wrapper = JSON.parse(message.data.toString());
+    } catch (e) {
+      global.library.logger.warn(
+        `could not decode ManyTransaction with protobuf from ${message.from}`
+      );
+      return;
+    }
+
+    const parentReference = createReferenceFromSerializedParentContext(
+      global.library.tracer,
+      wrapper.spanId
+    );
+    const span = global.library.tracer.startSpan(
+      'received many trs broadcast',
+      {
+        references: [parentReference],
+      }
+    );
+
+    const unconfirmedTrs = wrapper.data;
+    const result = [];
+    try {
+      for (const one of wrapper.data) {
+        // normalize and validate
+        const temp = TransactionBase.normalizeUnconfirmedTransaction(one);
+        result.push(temp);
+      }
+    } catch (e) {
+      span.setTag('error', true);
+      span.log({
+        message: message,
+        value: e.toString(),
+      });
+      span.finish();
+
+      global.library.logger.error(
+        `Received many transaction parse error: ${JSON.stringify(
+          message,
+          null,
+          2
+        )}`
+      );
+      global.library.logger.error(e);
+
+      return;
+    }
+
+    // currently we are only taking the first trs of the array
+    const first = result[0];
+
+    span.setTag('senderId', first.senderId);
+
+    global.library.logger.info(
+      `[p2p] received from "${message.from}" many transactionId: (${first})`
+    );
+
+    global.library.bus.message('onReceiveTransaction', first, span);
+
+    span.finish();
   };
 
   public static receivePeer_Transaction = (message: P2PMessage) => {

@@ -20,6 +20,7 @@
     "@gnyio/p2p": "2.4.0",
     "@gnyio/tracer": "2.4.0",
     "@gnyio/transaction-pool": "2.4.0",
+    "@gnyio/transaction-pool-persistent": "2.4.0",
     "@gnyio/type-validation": "2.4.0",
     "@gnyio/utils": "2.4.0"
   },

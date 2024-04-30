@@ -277,6 +277,13 @@ export class Bundle extends Libp2p {
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_TRANSACTION, data);
   }
 
+  async broadcastManyTransactionsAsync(data) {
+    await this.pubsub.publish(
+      this.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS,
+      data
+    );
+  }
+
   async broadcastNewBlockHeaderAsync(data) {
     await this.pubsub.publish(
       this.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,

@@ -1,0 +1,23 @@
+{
+  "name": "@gnyio/transaction-pool-persistent",
+  "private": true,
+  "version": "2.4.0",
+  "description": "",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index",
+  "types": "dist/index",
+  "dependencies": {
+    "@gnyio/interfaces": "2.4.0",
+    "@types/better-sqlite3": "^7.6.9",
+    "better-sqlite3": "^9.4.5"
+  }
+}

@@ -110,6 +110,7 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
 
           V1_BROADCAST_NEW_BLOCK_HEADER: joi.string().required(),
           V1_BROADCAST_TRANSACTION: joi.string().required(),
+          V1_BROADCAST_MANY_TRANSACTIONS: joi.string().required(),
           V1_BROADCAST_PROPOSE: joi.string().required(),
           V1_RENDEZVOUS_BROADCAST: joi.string().required(),
         })

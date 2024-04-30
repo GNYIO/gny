@@ -7,7 +7,7 @@ import {
   IBlock,
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
-import { TransactionPool } from '@gnyio/transaction-pool';
+import { TransactionPoolPersistent } from '@gnyio/transaction-pool-persistent';
 import { LimitCache } from '@gnyio/utils';
 import LRU from 'lru-cache';
 import { copyObject } from '@gnyio/base';
@@ -114,7 +114,7 @@ export class StateHelper {
 
   // Transaction Pool
   public static InitializeTransactionPool() {
-    global.transactionPool = new TransactionPool();
+    global.transactionPool = new TransactionPoolPersistent(':memory:');
   }
   public static GetUnconfirmedTransaction(id: string) {
     return global.transactionPool.get(id);

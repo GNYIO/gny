@@ -15,6 +15,7 @@
     "packages/p2p",
     "packages/protobuf",
     "packages/transaction-pool",
+    "packages/transaction-pool-persistent",
     "packages/type-validation",
     "packages/utils",
     "packages/web-base",
