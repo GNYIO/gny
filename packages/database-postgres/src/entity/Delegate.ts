@@ -70,6 +70,12 @@ export class Delegate implements Versioned {
   @Column({
     default: 0,
     type: 'integer',
+  })
+  public eligible: number;
+
+  @Column({
+    default: 0,
+    type: 'integer',
     nullable: false,
   })
   public _version_?: number;

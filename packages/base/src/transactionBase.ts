@@ -4,9 +4,8 @@ import * as ed from '@gnyio/ed';
 import { KeyPair, IAccount, UnconfirmedTransaction } from '@gnyio/interfaces';
 import { copyObject } from './helpers.js';
 import { ITransaction, Context } from '@gnyio/interfaces';
-import { slots } from '@gnyio/utils';
-import { feeCalculators } from '@gnyio/utils';
-import * as addressHelper from '@gnyio/utils';
+import { slots, feeCalculators } from '@gnyio/utils';
+import * as utils from '@gnyio/utils';
 import BigNumber from 'bignumber.js';
 import {
   isTransaction,
@@ -174,6 +173,12 @@ export class TransactionBase {
     } catch (e) {
       return 'Failed to verify signature';
     }
+
+    const address = utils.generateAddress(context.trs.senderPublicKey);
+    if (address !== context.trs.senderId) {
+      return 'senderId and senderPublicKey do not match';
+    }
+
     return undefined;
   }
 
@@ -183,9 +188,7 @@ export class TransactionBase {
       'id' | 'signatures' | 'secondSignature' | 'height'
     > = {
       type: data.type,
-      senderId: addressHelper.generateAddress(
-        data.keypair.publicKey.toString('hex')
-      ),
+      senderId: utils.generateAddress(data.keypair.publicKey.toString('hex')),
       senderPublicKey: data.keypair.publicKey.toString('hex'),
       timestamp: slots.getEpochTime(),
       message: data.message,

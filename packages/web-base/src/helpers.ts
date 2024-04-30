@@ -9,7 +9,7 @@ export function copyObject<T>(obj: T) {
   return lodash.cloneDeep<T>(obj);
 }
 
-function sha256Bytes(data: Buffer): Buffer {
+export function sha256Bytes(data: Buffer): Buffer {
   const uintBuffer = Uint8Array.from(data);
   const hash = sha256.hash(uintBuffer);
   return Buffer.from(hash);

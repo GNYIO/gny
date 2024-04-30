@@ -10,6 +10,7 @@ import {
   Context,
   IVote,
   NetworkType,
+  IDelegate,
 } from '@gnyio/interfaces';
 import { IConfig } from '@gnyio/interfaces';
 
@@ -28,16 +29,6 @@ declare global {
 
 describe('basic', () => {
   beforeEach(done => {
-    const logger: ILogger = {
-      log: x => x,
-      trace: x => x,
-      debug: x => x,
-      info: x => x,
-      warn: x => x,
-      error: x => x,
-      fatal: x => x,
-    };
-
     global.app = {
       validate: jest.fn((type, value) => null),
     };
@@ -56,6 +47,9 @@ describe('basic', () => {
     jest.clearAllMocks();
     delete (basic as any).sdb;
 
+    delete global.app.sdb;
+
+    // @ts-ignore
     delete global.Config;
 
     done();
@@ -80,6 +74,24 @@ describe('basic', () => {
     //   done();
     // });
 
+    it('transfer() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const amount = String(100000);
+      const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.transfer.call(context, amount, recipient);
+      expect(result).toEqual('collission attack attempt');
+    });
+
+    // todo, add expect call
     it('should transfer to a recipient account', async () => {
       const amount = String(100000);
       const recipient = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
@@ -97,6 +109,7 @@ describe('basic', () => {
         } as IAccount,
         block: {
           height: String(1),
+          timestamp: 1000,
         },
         trs: {
           id:
@@ -109,6 +122,7 @@ describe('basic', () => {
         increase: jest.fn().mockReturnValue(recipientAccount),
         load: jest.fn().mockReturnValue(recipientAccount),
         create: jest.fn(),
+        update: jest.fn(),
       } as any;
 
       const transfered = await basic.transfer.call(context, amount, recipient);
@@ -117,6 +131,22 @@ describe('basic', () => {
   });
 
   describe('setUserName', () => {
+    it('setUserName() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const username = 'xpgeng';
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.setUserName.call(context, username);
+      expect(result).toEqual('collission attack attempt');
+    });
+
     it('should set the user name with returning null', async () => {
       // Assume the sender's username is null
       const username = 'xpgeng';
@@ -249,7 +279,24 @@ describe('basic', () => {
   });
 
   describe('lock', () => {
-    it('should lock the account by height and amout', async () => {
+    it('lock() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const height = 5760 * 30 + 2;
+      const amount = 99;
+
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.lock.call(context, height, amount);
+      expect(result).toEqual('collission attack attempt');
+    });
+
+    it('should lock the account by height and amount', async () => {
       const height = 5760 * 30 + 2;
       const amount = 99;
 
@@ -300,7 +347,7 @@ describe('basic', () => {
       expect(locked).toBe('Insufficient balance');
     });
 
-    it('should return Invalid lock height if (sender.isLocked = 1)', async () => {
+    it('should return "Invalid lock height" if (sender already locked)', async () => {
       const height = 2;
       const amount = 99;
 
@@ -325,7 +372,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid lock height');
     });
 
-    it('should return Invalid height or amount if (sender.isLocked = 1)', async () => {
+    it('should return "Invalid amount" if passed in 0 GNY to lock (sender already locked)', async () => {
       const height = 5760 * 30 + 2;
       const amount = 0;
 
@@ -350,7 +397,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid amount');
     });
 
-    it('should return Invalid lock height if (sender.isLocked = 0)', async () => {
+    it('should return "Invalid lock height" if tried to lock to height 2', async () => {
       const height = 2;
       const amount = 0;
 
@@ -375,7 +422,7 @@ describe('basic', () => {
       expect(locked).toBe('Invalid lock height');
     });
 
-    it('should return Invalid height or amount if (sender.isLocked = 0)', async () => {
+    it('should return "Invalid amount" if trying to lock 0 GNY', async () => {
       const height = 5760 * 30 + 2;
       const amount = 0;
 
@@ -399,6 +446,115 @@ describe('basic', () => {
       const locked = await basic.lock.call(context, height, amount);
       expect(locked).toBe('Invalid amount');
     });
+
+    // at the beginning account is not locked
+    // first "lock" call makes it lock 50,000 GNY (delegate not eligible)
+    // second "lock" call makes it lock again 50,000 GNY (delegate still not eligible)
+    it('lock() - 50,000 + re-locking 50,000 will not make delegate eligible', async () => {
+      // first call to "lock"
+      // this time we lock 100 GNY
+      const height1 = 5760 * 30 + 2;
+      const amount1 = String(100 * 1e8);
+
+      const context1 = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(150 * 1e8),
+          isLocked: 0,
+          lockHeight: String(0),
+          lockAmount: String(0),
+          isDelegate: 1, // is delegate
+          username: 'xpgeng',
+        } as IAccount,
+        block: {
+          height: String(1),
+        },
+      } as Context;
+
+      const updateMock = jest
+        .fn()
+        .mockReturnValueOnce(Promise.resolve(null)) // returns null
+        .mockReturnValueOnce(Promise.resolve(null)); // returns null
+
+      const findAllMock = jest
+        .fn()
+        .mockReturnValueOnce(Promise.resolve([])) // returns own votes (no votes in this case)
+        .mockReturnValueOnce(Promise.resolve([])); // returns own votes (no votes in this case)
+
+      global.app.sdb = {
+        lock: jest.fn().mockReturnValue(null),
+        update: updateMock,
+        findAll: findAllMock,
+      } as any;
+
+      // first call to "lock"
+      const locked1 = await basic.lock.call(context1, height1, amount1);
+      expect(locked1).toBeNull();
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(50 * 1e8),
+          isDelegate: 1,
+          isLocked: 1, // newly locked
+          lockAmount: String(100 * 1e8), // increases from "0"
+          lockHeight: String(5760 * 30 + 2), // increases from "0"
+          username: 'xpgeng',
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+
+      // second call to "lock"
+      // tihs time we lock 40 GNY
+      const height2 = 2 * 5760 * 30 + 2;
+      const amount2 = String(40 * 1e8);
+
+      const context2 = {
+        sender: {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(50 * 1e8),
+          isDelegate: 1,
+          isLocked: 1,
+          lockAmount: String(100 * 1e8),
+          lockHeight: String(5760 * 30 + 2),
+          username: 'xpgeng',
+        } as IAccount,
+        block: {
+          height: String(1),
+        },
+      } as Context;
+
+      // call second time
+      const locked2 = await basic.lock.call(context2, height2, amount2);
+      expect(locked2).toBeNull();
+
+      expect(updateMock).toHaveBeenCalledTimes(2);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        2,
+        expect.any(Function),
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          gny: String(10 * 1e8),
+          isDelegate: 1,
+          isLocked: 1, // still locked
+          lockAmount: String(140 * 1e8), // increases from "0"
+          lockHeight: String(2 * 5760 * 30 + 2), // increases from "0"
+          username: 'xpgeng',
+        },
+        {
+          address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+        }
+      );
+    });
+
+    it.skip('lock() - 50,000 + re-locking 150,000 will make delegate eligible', () => {});
+
+    it.skip('lock() - 30,000 + re-locking 40,000 will normal account not eligible (not delegate)', () => {});
   });
 
   describe('unlock', () => {
@@ -448,6 +604,7 @@ describe('basic', () => {
         lock: jest.fn().mockReturnValue(null),
         update: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue([]),
+        get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
       } as any;
 
       const unlocked = await basic.unlock.call(context);
@@ -463,7 +620,7 @@ describe('basic', () => {
       expect(unlocked).toBe('Account not found');
     });
 
-    it('should return "Account is not locked" if account is not locked', async () => {
+    it('should return "Account is not locked" if account is not locked and somebody tries to unlock', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -529,7 +686,7 @@ describe('basic', () => {
       expect(unlocked).toBe('Account cannot unlock');
     });
 
-    it('should increase gny (balance) field with lockedAmount value', async () => {
+    it('unlock should increase gny (balance) field with lockedAmount value', async () => {
       const context = {
         sender: {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
@@ -552,6 +709,7 @@ describe('basic', () => {
         lock: jest.fn().mockReturnValue(null),
         findAll: jest.fn().mockReturnValue([]),
         update: updateMock,
+        get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
       } as any;
 
       const unlocked = await basic.unlock.call(context);
@@ -559,7 +717,7 @@ describe('basic', () => {
 
       // expect "isLocked" to 0
       // expect "lockHeight" to String(0)
-      // expect "gny" to increase by value of "lockedAmount"
+      // expect "gny" to increase by value of "lockedAmount" (50 + 100)
       // expect "lockAmount" to String(0)
       // expect a call to sdb.update<Account>(Account) with correct arguments
       expect(updateMock).toBeCalledTimes(1);
@@ -578,9 +736,25 @@ describe('basic', () => {
           address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
         }
       );
+
+      expect(context.sender.gny).toEqual(String(150 * 1e8));
     });
 
     describe('unlock (localnet)', () => {
+      it('unlock() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+        const context = {
+          sender: {
+            publicKey: 'one',
+          },
+          trs: {
+            senderPublicKey: 'two',
+          },
+        };
+
+        const result = await basic.unlock.call(context);
+        expect(result).toEqual('collission attack attempt');
+      });
+
       it('should return "delete first all of your votes before unlocking" if account has still has votes (localnet)', async () => {
         const context = {
           sender: {
@@ -636,13 +810,14 @@ describe('basic', () => {
 
         global.Config.netVersion = 'localnet';
 
-        const myVotes = [] as IVote[];
+        const myVotes: IVote[] = [];
         const findAllMock = jest.fn().mockReturnValue(myVotes);
 
         global.app.sdb = {
           lock: jest.fn().mockReturnValue(null),
           findAll: findAllMock,
           update: jest.fn().mockReturnValueOnce(null),
+          get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
         } as any;
 
         const unlocked = await basic.unlock.call(context);
@@ -705,12 +880,29 @@ describe('basic', () => {
 
           const updateMock = jest.fn().mockReturnValueOnce(null);
 
+          const delegate: IDelegate = {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+            eligible: 0,
+            tid:
+              'd043119d9dbabaa10802c34c2c1fcf9c154cc927ca6ebb8acdf3bb0ccf8fb2b2',
+            fees: String(1 * 1e8),
+            missedBlocks: String(0),
+            producedBlocks: String(0),
+            rewards: String(0),
+            username: 'mydelegate',
+            publicKey:
+              'd396a415f0259d7e3cd294b22f7a4e0db0707d199897eda380de671e8be6fa93',
+            votes: String(0),
+          };
+          const getMock = jest.fn().mockReturnValueOnce(delegate);
+
           global.app.sdb = {
             lock: jest.fn().mockReturnValue(null),
             findAll: findAllMock,
             increase: increaseMock,
             del: delMock,
             update: updateMock,
+            get: getMock, // this mock will return a delegate because sender account is a delegate (isDelegate: 1)
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -761,6 +953,11 @@ describe('basic', () => {
               address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
             }
           );
+
+          expect(getMock).toHaveBeenCalledTimes(1);
+          expect(getMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
+            address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
+          });
         }
       );
 
@@ -795,6 +992,7 @@ describe('basic', () => {
           global.app.sdb = {
             lock: jest.fn().mockReturnValue(null),
             update: updateMock,
+            get: jest.fn().mockReturnValueOnce(null), // mock is returning here null because sender is not a delegate
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -874,20 +1072,17 @@ describe('basic', () => {
         }
       );
 
-      // isDelegate (last parameter) is not relevant, but we test it anyway
-      // too proof it does not make a difference
       test.each([
-        ['mainnet', String(8_000_000), String(8_200_000), 0],
-        ['mainnet', String(8_000_000), String(8_200_000), 1],
-        ['testnet', String(7_000_000), String(7_500_000), 0],
-        ['testnet', String(7_000_000), String(7_500_000), 1],
+        ['mainnet', String(8_000_000), String(8_200_000)],
+        ['mainnet', String(8_000_000), String(8_200_000)],
+        ['testnet', String(7_000_000), String(7_500_000)],
+        ['testnet', String(7_000_000), String(7_500_000)],
       ])(
         'above switch, created 0 votes, should unlock (param %p)',
         async (
           network: NetworkType,
           lockHeight: string,
-          heightAboveSwitch: string,
-          isDelegate: number
+          heightAboveSwitch: string
         ) => {
           const context = {
             sender: {
@@ -896,7 +1091,7 @@ describe('basic', () => {
               isLocked: 1,
               lockHeight: lockHeight,
               lockAmount: String(100 * 1e8),
-              isDelegate: isDelegate, // is for this case not relevant
+              isDelegate: 0,
             } as IAccount,
             block: {
               height: heightAboveSwitch, // higher than "lockHeight"
@@ -912,6 +1107,7 @@ describe('basic', () => {
             lock: jest.fn().mockReturnValue(null),
             findAll: findAllMock,
             update: updateMock,
+            get: jest.fn().mockReturnValueOnce(null), // mock returns null because sender is not a delegate
           } as any;
 
           const unlocked = await basic.unlock.call(context);
@@ -926,7 +1122,7 @@ describe('basic', () => {
             {
               address: 'GBR31pwhxvsgtrQDfzRxjfoPB62r',
               gny: String(150 * 1e8),
-              isDelegate: isDelegate, // is dynamic
+              isDelegate: 0,
               isLocked: 0,
               lockAmount: String(0),
               lockHeight: String(0),
@@ -946,9 +1142,25 @@ describe('basic', () => {
       delete (basic as any).block;
       delete (basic as any).trs;
 
+      // delete global.Config.netVersion;
+
       jest.restoreAllMocks();
 
       done();
+    });
+
+    it('registerDelegate() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.registerDelegate.call(context);
+      expect(result).toEqual('collission attack attempt');
     });
 
     it('should return null', async () => {
@@ -1296,6 +1508,20 @@ describe('basic', () => {
     afterEach(done => {
       jest.resetAllMocks();
       done();
+    });
+
+    it('unvote() - throws if wrong publicKey is set (collision attack attempt)', async () => {
+      const context = {
+        sender: {
+          publicKey: 'one',
+        },
+        trs: {
+          senderPublicKey: 'two',
+        },
+      };
+
+      const result = await basic.unvote.call(context, delegates);
+      expect(result).toEqual('collission attack attempt');
     });
 
     it('should return null', async () => {

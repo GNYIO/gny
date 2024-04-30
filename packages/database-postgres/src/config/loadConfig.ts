@@ -20,6 +20,7 @@ import { Prediction } from '../entity/Prediction.js';
 import { DatMaker } from '../entity/DatMaker.js';
 import { Dat } from '../entity/Dat.js';
 import { Burn } from '../entity/Burn.js';
+import { Verification } from '../entity/Verification.js';
 
 import {
   InitMigration1605362544330,
@@ -27,6 +28,8 @@ import {
   AddBurnTable1691572220932,
   AddBlockDelegateIndex1694943715000,
   CreateDat1700423861000,
+  AddEligibleColumnToDelegate1701104571000,
+  Verification1712752540000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -49,6 +52,8 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       AddBurnTable1691572220932,
       AddBlockDelegateIndex1694943715000,
       CreateDat1700423861000,
+      AddEligibleColumnToDelegate1701104571000,
+      Verification1712752540000,
     ],
   };
 
@@ -71,6 +76,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Burn,
       DatMaker,
       Dat,
+      Verification,
     ],
   });
   Object.assign(options, {

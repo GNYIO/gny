@@ -2,6 +2,7 @@
 import basic from './contract/basic.js';
 import uia from './contract/uia.js';
 import dat from './contract/dat.js';
+import verification from './contract/verify.js';
 
 interface ModuleWrapper {
   module: any;
@@ -20,5 +21,9 @@ export default async function loadContracts() {
 
   if (global.Config.activateDat === true) {
     addContract({ module: dat, name: 'dat' });
+  }
+
+  if (global.Config.activateVerification === true) {
+    addContract({ module: verification, name: 'verify' });
   }
 }

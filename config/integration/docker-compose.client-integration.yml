@@ -42,6 +42,7 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_ACTIVATE_DAT=true
+      - GNY_ACTIVATE_VERIFICATION=true
       - EXCHANGE_API=$EXCHANGE_FEATURE
       - GNY_NETWORK=localnet
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces

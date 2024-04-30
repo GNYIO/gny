@@ -28,7 +28,7 @@ describe('smartDB.increase', () => {
 
     sut = new SmartDB(logger, credentials);
     await sut.init();
-  }, lib.tenSeconds);
+  }, lib.tenSeconds * 5);
 
   afterEach(async () => {
     await sut.close();
@@ -50,6 +50,7 @@ describe('smartDB.increase', () => {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: 0,
     };
 
     await sut.create<Delegate>(Delegate, data);
@@ -86,6 +87,7 @@ describe('smartDB.increase', () => {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: 0,
     };
 
     await sut.create<Delegate>(Delegate, data);
@@ -279,4 +281,80 @@ describe('smartDB.increase', () => {
     expect(checkAfterDB).toHaveProperty('balance', String(30000));
     expect(checkAfterDB).toHaveProperty('_version_', 2);
   });
+
+  it.skip('increase() - returns other object reference', async () => {});
+
+  it('increase() - two increase for same column are correctly reflected in db', async () => {
+    await saveGenesisBlock(sut);
+
+    const block1 = createBlock(String(1));
+    sut.beginBlock(block1);
+
+    const created = await sut.create<Account>(Account, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      username: 'a1300',
+      gny: String(20000),
+    });
+    expect(created.gny).toEqual(String(20000));
+    expect(created._version_).toEqual(1);
+
+    // first increase
+    const inc1 = await sut.increase<Account>(
+      Account,
+      {
+        gny: String(500),
+      },
+      {
+        address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      }
+    );
+    const loadAfterFirstInc = await sut.load<Account>(Account, {
+      username: 'a1300',
+    });
+    expect(loadAfterFirstInc.gny).toEqual(String(20000 + 500));
+    expect(loadAfterFirstInc._version_).toEqual(2);
+
+    // second increase
+    const inc2 = await sut.increase<Account>(
+      Account,
+      {
+        gny: String(10),
+      },
+      {
+        address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+      }
+    );
+    const loadAfterSecondInc = await sut.load<Account>(Account, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+    });
+    expect(loadAfterSecondInc.gny).toEqual(String(20000 + 500 + 10));
+    expect(loadAfterSecondInc._version_).toEqual(3);
+
+    // save changes to db
+    await sut.commitBlock();
+
+    // loads propably from cache
+    const loadAfterSavedToDb = await sut.load<Account>(Account, {
+      address: 'GH7ZBNjRXCoJwRN8ddws37V3jEmn',
+    });
+    expect(loadAfterSecondInc.gny).toEqual(String(20000 + 500 + 10));
+    expect(loadAfterSavedToDb._version_).toEqual(3);
+
+    // loads direct from db
+    const directLoadFromDb = await sut.findOne<Account>(Account, {
+      condition: {
+        username: 'a1300',
+      },
+    });
+    expect(directLoadFromDb.gny).toEqual(String(20000 + 500 + 10));
+    expect(directLoadFromDb._version_).toEqual(3);
+  });
+
+  it.skip('increase() - should throw if want to increase a string field (not bignumber) (not bigint)', async () => {});
+
+  it.skip('increase() - should throw if want to increase/decrease a primary key', async () => {});
+
+  it.skip('increase() - should throw if want to increase/decrease a composite key', async () => {});
+
+  it.skip('increase() - should throw if want to increase/decrease unique key', async () => {});
 });

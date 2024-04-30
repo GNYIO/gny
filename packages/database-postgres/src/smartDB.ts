@@ -8,7 +8,7 @@ import * as CodeContract from './codeContract.js';
 import { DbSession } from './dbSession.js';
 import { LogManager, LoggerWrapper } from './logger.js';
 import { BlockCache } from './blockCache.js';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { ModelSchema } from './modelSchema.js';
 import {
   LoadChangesHistoryAction,
@@ -45,6 +45,7 @@ export * from './entity/Prediction.js';
 export * from './entity/DatMaker.js';
 export * from './entity/Dat.js';
 export * from './entity/Burn.js';
+export * from './entity/Verification.js';
 
 export * from './basicEntityTracker.js';
 export * from './lruEntityCache.js';

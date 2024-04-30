@@ -24,6 +24,7 @@ import { Prediction } from './entity/Prediction.js';
 import { DatMaker } from './entity/DatMaker.js';
 import { Dat } from './entity/Dat.js';
 import { Burn } from './entity/Burn.js';
+import { Verification } from './entity/Verification.js';
 
 export function transform(entity: any) {
   const ormMetaData: EntityMetadata = getConnection().getMetadata(entity);
@@ -97,6 +98,7 @@ export function createMetaSchema() {
   const datMaker = transform(DatMaker);
   const dat = transform(Dat);
   const burn = transform(Burn);
+  const verification = transform(Verification);
 
   result.set('Account', account);
   result.set('Asset', asset);
@@ -115,6 +117,7 @@ export function createMetaSchema() {
   result.set('DatMaker', datMaker);
   result.set('Dat', dat);
   result.set('Burn', burn);
+  result.set('Verification', verification);
 
   return result;
 }

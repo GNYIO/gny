@@ -93,6 +93,7 @@ export interface CoreApi {
   metricsApi: IHttpApi;
   datApi: IHttpApi;
   burnApi: IHttpApi;
+  verificationApi: IHttpApi;
 }
 
 export interface ITransactionPool {
@@ -437,6 +438,7 @@ export interface IDelegate {
   missedBlocks: string;
   fees: string;
   rewards: string;
+  eligible: number;
   _version_?: number;
 }
 
@@ -530,7 +532,7 @@ export interface CommonBlockResult {
 
 export interface Context {
   trs: UnconfirmedTransaction;
-  block: Pick<IBlock, 'height'>;
+  block: Pick<IBlock, 'height' | 'timestamp'>;
   sender: IAccount;
 }
 
@@ -977,5 +979,24 @@ export interface IBurn {
 
 export interface BurnWrapper {
   burn: IBurn[];
+  count: number;
+}
+
+export interface IIVerification {
+  identifier: string;
+  tid: string;
+  senderId: string;
+  signature: string;
+  timestamp: number;
+  height: string;
+  _version_?: number;
+}
+
+export interface SingleVerificationWrapper {
+  verification: IIVerification;
+}
+
+export interface VerificationsWrapper {
+  verifications: IIVerification[];
   count: number;
 }

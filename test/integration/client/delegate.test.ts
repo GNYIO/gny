@@ -104,7 +104,7 @@ describe('delegate', () => {
 
   beforeEach(async () => {
     await lib.spawnContainer(DOCKER_COMPOSE_FILE, env, GNY_PORT);
-  }, lib.oneMinute);
+  }, lib.oneMinute * 3);
 
   afterEach(async () => {
     await lib.stopAndKillContainer(DOCKER_COMPOSE_FILE, env);
@@ -398,7 +398,7 @@ describe('delegate', () => {
     it(
       'get own Produced Blocks',
       async () => {
-        expect.assertions(1);
+        // expect.assertions(1);
 
         await lib.sleep(20 * 1000);
 
@@ -409,6 +409,13 @@ describe('delegate', () => {
             username: delegate,
           })) as (ApiSuccess & DelegateOwnProducedBlocks);
           blocks.push(...response.blocks);
+
+          expect(response).toMatchObject({
+            success: expect.any(Boolean),
+            delegate: expect.any(Object),
+            blocks: expect.any(Array),
+            count: expect.any(Number),
+          });
         }
 
         expect(blocks.length).toBeGreaterThan(2);

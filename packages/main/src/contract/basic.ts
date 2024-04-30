@@ -53,6 +53,13 @@ function isUniq(arr) {
 export default {
   async transfer(this: Context, amount, recipient) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     if (!recipient) return 'Invalid recipient';
     // Verify amount should be positive integer
     // if (!Number.isInteger(amount) || amount <= 0) return 'Amount should be positive integer'
@@ -108,6 +115,15 @@ export default {
       { address: sender.address }
     );
 
+    // if public key not set, set it
+    if (!this.sender.publicKey) {
+      await global.app.sdb.update<Account>(
+        Account,
+        { publicKey: this.trs.senderPublicKey },
+        { address: this.sender.address }
+      );
+    }
+
     const transfer: ITransfer = {
       tid: this.trs.id,
       height: String(this.block.height),
@@ -124,11 +140,19 @@ export default {
 
   async setUserName(this: Context, username) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
     global.app.validate('name', username);
 
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
+    // because we are using load() we can make sure that within one block
+    // not two accounts set the same username
     const exists = await global.app.sdb.load<Account>(Account, {
       username: username,
     });
@@ -147,6 +171,12 @@ export default {
 
   async setSecondPassphrase(this: Context, publicKey) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
     global.app.validate('publickey', publicKey);
 
     if (!isAddress(this.sender.address)) {
@@ -166,6 +196,12 @@ export default {
 
   async lock(this: Context, height: BigNumber, amount: BigNumber) {
     if (arguments.length !== 2) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
 
     global.app.validate('amount', String(height));
     global.app.validate('amount', String(amount));
@@ -233,13 +269,51 @@ export default {
         }
       }
     }
+
+    // in order to become eligible=1 (true)
+    // 1. sender must be delegate
+    // 2. sender needs to have 187,500 GNY locked
+    // 3. sender can't be already "eligible"
+    // FYI: it is possible that this account is not a delegate and only wants to
+    // lock its account for voting
+    if (
+      sender.isDelegate &&
+      new BigNumber(sender.lockAmount).isGreaterThanOrEqualTo(187500 * 1e8)
+    ) {
+      const myDelegate = await global.app.sdb.get<Delegate>(Delegate, {
+        address: senderId,
+      });
+
+      // only set if not set before
+      if (!myDelegate.eligible) {
+        await global.app.sdb.update<Delegate>(
+          Delegate,
+          {
+            eligible: 1,
+          },
+          {
+            address: senderId,
+          }
+        );
+      }
+    }
+
     return null;
   },
 
   async unlock(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
     const sender = this.sender;
     if (!sender) return 'Account not found';
+
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
     if (!sender.isLocked) return 'Account is not locked';
@@ -249,16 +323,20 @@ export default {
       return 'Account cannot unlock';
     }
 
-    const mainnetSwitchHeight = 8200000;
-    const testnetSwitchHeight = 7500000;
+    const DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT = 8_200_000;
+    const DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT = 7_500_000;
     // keep running the bug below height x for mainnet and y for testnet
     // issue: #582
     if (
       (global.Config.netVersion === 'mainnet' &&
-        new BigNumber(this.block.height).isLessThan(mainnetSwitchHeight) &&
+        new BigNumber(this.block.height).isLessThan(
+          DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT
+        ) &&
         this.sender.isDelegate) ||
       (global.Config.netVersion === 'testnet' &&
-        new BigNumber(this.block.height).isLessThan(testnetSwitchHeight) &&
+        new BigNumber(this.block.height).isLessThan(
+          DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT
+        ) &&
         this.sender.isDelegate)
     ) {
       await deleteCreatedVotesObsolete(this.sender);
@@ -273,11 +351,11 @@ export default {
       global.Config.netVersion === 'localnet' ||
       (global.Config.netVersion === 'mainnet' &&
         new BigNumber(this.block.height).isGreaterThanOrEqualTo(
-          mainnetSwitchHeight
+          DELEGATE_VOTING_BUG_1_MAINNET_HEIGHT
         )) ||
       (global.Config.netVersion === 'testnet' &&
         new BigNumber(this.block.height).isGreaterThanOrEqualTo(
-          testnetSwitchHeight
+          DELEGATE_VOTING_BUT_1_TESTNET_HEIGHT
         ))
     ) {
       const myVotes = await global.app.sdb.findAll<Vote>(Vote, {
@@ -297,13 +375,37 @@ export default {
       address: senderId,
     });
 
+    // set eligible to 0 (false) if set to 1 (true)
+    const delegate = await global.app.sdb.get<Delegate>(Delegate, {
+      address: senderId,
+    });
+    if (delegate && delegate.eligible) {
+      await global.app.sdb.update<Delegate>(
+        Delegate,
+        {
+          eligible: 0,
+        },
+        {
+          address: senderId,
+        }
+      );
+    }
+
     return null;
   },
 
   async registerDelegate(this: Context) {
     if (arguments.length !== 0) return 'Invalid arguments length';
+
     const sender = this.sender;
     if (!sender) return 'Account not found';
+
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
 
     const senderId = this.sender.address;
     if (new BigNumber(this.block.height).isGreaterThan(0))
@@ -311,6 +413,16 @@ export default {
 
     if (!sender.username) return 'Account has not a name';
     if (sender.isDelegate) return 'Account is already Delegate';
+
+    // todo set eligible flag to true if has 187500 locked
+    // should set for mainnet only above height x ?
+    // this needs to be done in case a account that has locked GNY before
+    // but was not a delegate suddenly becomes a delegate
+    const isEligible = new BigNumber(sender.lockAmount).isGreaterThanOrEqualTo(
+      187500 * 1e8
+    )
+      ? 1
+      : 0;
 
     const delegate: IDelegate = {
       address: senderId,
@@ -322,6 +434,7 @@ export default {
       missedBlocks: String(0),
       fees: String(0),
       rewards: String(0),
+      eligible: isEligible,
     };
     await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
@@ -336,6 +449,13 @@ export default {
 
   async vote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
@@ -421,6 +541,13 @@ export default {
 
   async unvote(this: Context, delegates) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     const senderId = this.sender.address;
     await global.app.sdb.lock(`basic.account@${senderId}`);
 
@@ -473,6 +600,13 @@ export default {
 
   async burn(this: Context, amount) {
     if (arguments.length !== 1) return 'Invalid arguments length';
+    if (
+      this.sender.publicKey &&
+      this.sender.publicKey !== this.trs.senderPublicKey
+    ) {
+      return 'collission attack attempt';
+    }
+
     global.app.validate('amount', String(amount));
 
     const sender = this.sender;
