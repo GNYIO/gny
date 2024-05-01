@@ -438,11 +438,17 @@ export default {
     };
     await global.app.sdb.create<Delegate>(Delegate, delegate);
     sender.isDelegate = 1;
-    await global.app.sdb.update<Account>(
-      Account,
-      { isDelegate: 1 },
-      { address: senderId }
-    );
+
+    const updateAccount: Partial<IAccount> = {
+      isDelegate: 1,
+    };
+    if (!this.sender.publicKey) {
+      // if public key not set, set it
+      updateAccount.publicKey = this.trs.senderPublicKey;
+    }
+    await global.app.sdb.update<Account>(Account, updateAccount, {
+      address: senderId,
+    });
 
     return null;
   },
