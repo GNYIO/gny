@@ -24,6 +24,10 @@ function cleanUp(result: any) {
     result.args = JSON.parse(result.args);
   }
 
+  if (typeof result.signatures === 'string') {
+    result.signatures = JSON.parse(result.signatures);
+  }
+
   if (result.message === null) {
     result.message = undefined;
   }
@@ -72,7 +76,7 @@ export class TransactionPoolPersistent implements ITransactionPool {
           trs.senderId,
           trs.senderPublicKey,
           trs.fee,
-          trs.signatures,
+          JSON.stringify(trs.signatures),
           trs.secondSignature,
           JSON.stringify(trs.args),
           trs.message

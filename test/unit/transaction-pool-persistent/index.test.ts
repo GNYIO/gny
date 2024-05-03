@@ -17,7 +17,7 @@ function createTransaction(id: string) {
     type: 0,
     senderId,
     senderPublicKey,
-    signatures: createRandomBytes(64),
+    signatures: [createRandomBytes(64)],
     fee: String(0),
     message: undefined,
     timestamp: 0,
@@ -315,5 +315,23 @@ describe('TransactionPoolPersistent', () => {
     sut.remove('trans1');
 
     done();
+  });
+
+  it('add transaction with signatures array returns it also again', () => {
+    const trans1 = createTransaction('trans1');
+    sut.add(trans1);
+    console.log(`trans1: ${JSON.stringify(trans1, null, 2)}`);
+
+    // check before
+    expect(Array.isArray(trans1.signatures)).toEqual(true);
+    expect(Array.isArray(trans1.args)).toEqual(true);
+
+    const result = (sut.get('trans1') as unknown) as UnconfirmedTransaction;
+    console.log(`result: ${JSON.stringify(result, null, 2)}`);
+    expect(trans1).toEqual(result);
+
+    // check after
+    expect(Array.isArray(result.signatures)).toEqual(true);
+    expect(Array.isArray(result.args)).toEqual(true);
   });
 });
