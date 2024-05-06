@@ -6,7 +6,7 @@ import { Dat } from '@gnyio/database-postgres';
 import {
   urlRegex,
   datMakerRegex,
-  datNameRegex,
+  datNameOnlyRegex,
   datHashRegex,
 } from '@gnyio/utils';
 
@@ -52,7 +52,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (!datNameRegex.test(name)) return 'Invalid dat name';
+    if (!datNameOnlyRegex.test(name)) return 'Invalid dat name';
 
     if (!datHashRegex.test(hash)) return 'Invalid dat hash';
 

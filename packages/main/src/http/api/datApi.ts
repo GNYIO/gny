@@ -15,7 +15,7 @@ import { joi } from '@gnyio/extended-joi';
 import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
 
-import { datMakerRegex, datNameRegex, datHashRegex } from '@gnyio/utils';
+import { datMakerRegex, datNameOnlyRegex, datHashRegex } from '@gnyio/utils';
 
 export default class DatApi implements IHttpApi {
   private library: IScope;
@@ -250,7 +250,7 @@ export default class DatApi implements IHttpApi {
       .object()
       .keys({
         hash: joi.string().regex(datHashRegex),
-        name: joi.string().regex(datNameRegex),
+        name: joi.string().regex(datNameOnlyRegex),
       })
       .xor('hash', 'name')
       .required();
