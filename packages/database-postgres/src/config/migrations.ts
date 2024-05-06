@@ -606,7 +606,7 @@ export class CreateDat1700423861000 implements MigrationInterface {
 
 
       CREATE TABLE public.dat (
-        name character varying(40) NOT NULL,
+        name character varying(71) NOT NULL,
         hash character varying(64) NOT NULL,
         "previousHash" character varying(64) NULL,
         tid character varying(64) NOT NULL,
