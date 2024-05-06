@@ -617,7 +617,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         });
         expect(existsMock).toHaveBeenNthCalledWith(2, expect.any(Function), {
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
         });
       });
 
@@ -656,7 +656,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         });
         expect(existsMock).toHaveBeenNthCalledWith(2, expect.any(Function), {
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
         });
         expect(existsMock).toHaveBeenNthCalledWith(3, expect.any(Function), {
           name: 'NFT_MAKER',
@@ -776,7 +776,7 @@ describe('dat contract', () => {
         expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
           counter: '1',
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
           datMakerId: 'NFT_MAKER',
           ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
           previousHash: null,
@@ -864,7 +864,7 @@ describe('dat contract', () => {
         expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
           counter: '2',
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          name: 'NFTdatsecond',
+          name: 'NFT_MAKER.NFTdatsecond',
           datMakerId: 'NFT_MAKER',
           ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
           previousHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',

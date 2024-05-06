@@ -62,10 +62,14 @@ export default {
     if (url.length > 255) return 'Dat url too long';
     if (!urlRegex.test(url)) return 'Invalid dat url';
 
+    const fullName = `${makerId}.${name}`;
+
     const existsHash = await global.app.sdb.exists<Dat>(Dat, { hash: hash });
     if (existsHash) return 'Dat with hash already exists';
 
-    const existsName = await global.app.sdb.exists<Dat>(Dat, { name: name });
+    const existsName = await global.app.sdb.exists<Dat>(Dat, {
+      name: fullName,
+    });
     if (existsName) return 'Dat with name already exists';
 
     const existsMakerId = await global.app.sdb.exists<DatMaker>(DatMaker, {
@@ -97,14 +101,14 @@ export default {
       previousHash = previousDat.hash;
     }
 
-    await global.app.sdb.lock(`dat.createDat@${name}`);
+    await global.app.sdb.lock(`dat.createDat@${fullName}`);
     await global.app.sdb.lock(`dat.createDat@${hash}`);
     // should not be possible that the same maker is creating multiple dats
     // in one block, otherwise the counter would be wrong
     await global.app.sdb.lock(`dat.createDat@${makerId}`);
 
     const dat: IDat = {
-      name,
+      name: fullName,
       hash,
       previousHash: previousHash,
       tid: this.trs.id,
