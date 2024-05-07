@@ -693,3 +693,28 @@ export class Verification1712752540000 implements MigrationInterface {
   }
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class AugmentDATs1715108311000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    // https://stackoverflow.com/questions/512451/how-can-i-add-a-column-that-doesnt-allow-nulls-in-a-postgresql-database
+    // we can safely add those columns because there are no tuples yet in any
+    // production database yet
+    await queryRunner.query(`
+      ALTER TABLE public.dat_maker ADD COLUMN height bigint NOT NULL DEFAULT '-1'::bigint;
+      ALTER TABLE public.dat       ADD COLUMN height bigint NOT NULL DEFAULT '-1'::bigint;
+
+      ALTER TABLE public.dat_maker ALTER COLUMN height DROP DEFAULT;
+      ALTER TABLE public.dat       ALTER COLUMN height DROP DEFAULT;
+
+      ALTER TABLE public.dat_maker ADD COLUMN timestamp integer NOT NULL DEFAULT -2::int;
+      ALTER TABLE public.dat_maker ALTER COLUMN timestamp DROP DEFAULT;
+
+      CREATE INDEX "dat_maker_height_idx" ON public.dat_maker USING btree (height);
+      CREATE INDEX "dat_height_idx" ON public.dat USING btree (height);
+
+
+    `);
+  }
+
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

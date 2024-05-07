@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn, Index } from 'typeorm';
 import { Config } from '../decorator/config.js';
 import { Versioned } from '../searchTypes.js';
 
@@ -41,6 +41,18 @@ export class DatMaker implements Versioned {
     nullable: false,
   })
   public datCounter: string;
+
+  @Column({
+    nullable: false,
+    type: 'bigint',
+  })
+  public height: string;
+
+  @Column({
+    nullable: false,
+    type: 'int',
+  })
+  public timestamp: number;
 
   @Column({
     default: 0,
