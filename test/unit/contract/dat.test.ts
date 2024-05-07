@@ -485,7 +485,7 @@ describe('dat contract', () => {
     });
 
     describe('url', () => {
-      it('createDat() - object as dat url - returns Invalid dat url type', async () => {
+      it('createDat() - object as dat url - returns Invalid dat url', async () => {
         const name = 'NFTdat';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -503,7 +503,7 @@ describe('dat contract', () => {
           makerId,
           url
         );
-        expect(result).toEqual('Invalid dat url type');
+        expect(result).toEqual('Invalid dat url');
       });
 
       it('createDat() - array as dat url - returns Invalid dat url', async () => {
@@ -524,7 +524,7 @@ describe('dat contract', () => {
           makerId,
           url
         );
-        expect(result).toEqual('Invalid dat url type');
+        expect(result).toEqual('Invalid dat url');
       });
 
       it('createDat() - url longer than 255 - returns Invalid dat url', async () => {

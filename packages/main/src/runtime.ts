@@ -107,6 +107,8 @@ export default async function runtime(options: IOptions) {
 
     name: value => {
       const regname = /^[a-z0-9_]{2,20}$/;
+      // https://stackoverflow.com/questions/27359464/javascript-regex-null-argument-makes-the-regex-match
+      if (typeof value !== 'string') return 'Invalid name';
       if (!regname.test(value)) return 'Invalid name';
       return null;
     },
@@ -118,6 +120,7 @@ export default async function runtime(options: IOptions) {
     },
     description: value => {
       const msg = 'Invalid description';
+      if (typeof value !== 'string') return msg;
       if (value == null || value == undefined) return msg;
       if (typeof value !== 'string') return msg;
       const regex = /^([A-Za-z]+ )+[A-Za-z]+$|^[A-Za-z]+$/;

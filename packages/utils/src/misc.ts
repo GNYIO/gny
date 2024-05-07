@@ -9,7 +9,11 @@ export function isNewUsername(input: any) {
   // appears
   const atLeastOneSmallCharacterRegex = new RegExp(/[a-z]/);
 
-  if (usernameRegex.test(input) && atLeastOneSmallCharacterRegex.test(input)) {
+  if (
+    typeof input === 'string' &&
+    usernameRegex.test(input) &&
+    atLeastOneSmallCharacterRegex.test(input)
+  ) {
     return true;
   } else {
     return false;

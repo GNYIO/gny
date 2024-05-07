@@ -3,12 +3,7 @@ import { IDatMaker, IDat } from '@gnyio/interfaces';
 
 import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
-import {
-  urlRegex,
-  datMakerRegex,
-  datNameOnlyRegex,
-  datHashRegex,
-} from '@gnyio/utils';
+import { isUrl, isDatMaker, isDatNameOnly, isDatHash } from '@gnyio/utils';
 
 export default {
   async registerDatMaker(this: Context, name, desc) {
@@ -20,7 +15,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (!datMakerRegex.test(name)) return 'Invalid dat maker name';
+    if (!isDatMaker(name)) return 'Invalid dat maker name';
     global.app.validate('description', desc);
     if (desc.length > 100) return 'Invalid description';
 
@@ -52,15 +47,14 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (!datNameOnlyRegex.test(name)) return 'Invalid dat name';
+    if (!isDatNameOnly(name)) return 'Invalid dat name';
 
-    if (!datHashRegex.test(hash)) return 'Invalid dat hash';
+    if (!isDatHash(hash)) return 'Invalid dat hash';
 
-    if (!datMakerRegex.test(makerId)) return 'Invalid dat maker name';
+    if (!isDatMaker(makerId)) return 'Invalid dat maker name';
 
-    if (typeof url !== 'string') return 'Invalid dat url type';
     if (url.length > 255) return 'Dat url too long';
-    if (!urlRegex.test(url)) return 'Invalid dat url';
+    if (!isUrl(url)) return 'Invalid dat url';
 
     const fullName = `${makerId}.${name}`;
 
