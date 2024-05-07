@@ -10,3 +10,4 @@ export * from './get-date.js';
 export * from './url.js';
 export * from './misc.js';
 export * from './signature.js';
+export * from './uia.js';

@@ -4,7 +4,12 @@ import { Asset } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';
 import { Transfer } from '@gnyio/database-postgres';
 import BigNumber from 'bignumber.js';
-import { isAddress } from '@gnyio/utils';
+import {
+  isAddress,
+  isUiaIssuer,
+  isUiaSymbol,
+  isUiaCurrency,
+} from '@gnyio/utils';
 
 export default {
   async registerIssuer(this: Context, name, desc) {
@@ -16,8 +21,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (typeof name !== 'string' || !/^[A-Za-z]{1,16}$/.test(name))
-      return 'Invalid issuer name';
+    if (!isUiaIssuer(name)) return 'Invalid issuer name';
     global.app.validate('description', desc);
     if (desc.length > 4096) return 'Invalid description';
 
@@ -50,8 +54,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (typeof symbol !== 'string' || !/^[A-Z]{3,6}$/.test(symbol))
-      return 'Invalid symbol';
+    if (!isUiaSymbol(symbol)) return 'Invalid symbol';
     global.app.validate('description', desc);
     if (desc.length > 4096) return 'Invalid asset description';
     if (!Number.isInteger(precision) || precision <= 0)
@@ -95,8 +98,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (typeof name !== 'string' || !/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(name))
-      return 'Invalid currency';
+    if (!isUiaCurrency(name)) return 'Invalid currency';
     global.app.validate('amount', amount);
 
     // Move the lock above the findOne so that first judging if it is in use in lock,
@@ -132,12 +134,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (
-      typeof currency !== 'string' ||
-      currency.length > 30 ||
-      !/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(currency)
-    )
-      return 'Invalid currency';
+    if (!isUiaCurrency(currency)) return 'Invalid currency';
     if (typeof recipient !== 'string' || recipient.length > 50)
       return 'Invalid recipient';
     // if (!/^[A-Za-z]{1,16}.[A-Z]{3,6}$/.test(currency)) return 'Invalid currency'
