@@ -463,7 +463,7 @@ describe('uia', () => {
     });
 
     it('should transfer some amount of currency to a recipient', async () => {
-      const currency = 'gny';
+      const currency = 'AAA.BBB';
       const amount = 100000;
       const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
 
@@ -522,7 +522,7 @@ describe('uia', () => {
     });
 
     it('should return Invalid recipient', async () => {
-      const currency = 'gny';
+      const currency = 'AAA.BBB';
       const amount = 100000;
       const recipient =
         'Gsdsdsdfsdflklkjljlk123123kjkj238kj2k3jhkhei32hsjdflkjsldji12k3nkhefi2uh3knkenf';
@@ -540,7 +540,7 @@ describe('uia', () => {
     });
 
     it('should return Insufficient balance', async () => {
-      const currency = 'gny';
+      const currency = 'AAA.BBB';
       const amount = 100000;
       const recipient = 'GBR31pwhxvsgtrQDfzRxjfoPB62r';
 
@@ -568,7 +568,7 @@ describe('uia', () => {
     });
 
     it('should return Recipient name not exist', async () => {
-      const currency = 'gny';
+      const currency = 'AAA.BBB';
       const amount = 100000;
       const recipient = 'xpgeng';
 
