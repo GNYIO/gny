@@ -246,21 +246,24 @@ export default class AccountsApi implements IHttpApi {
   private getBalance = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
-    const hasAddress = joi.object().keys({
-      address: joi
-        .string()
-        .address()
-        .required(),
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-    });
+    const hasAddress = joi
+      .object()
+      .keys({
+        address: joi
+          .string()
+          .address()
+          .required(),
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
+      })
+      .required();
     const report = joi.validate(query, hasAddress);
     if (report.error) {
       global.app.prom.requests.inc({

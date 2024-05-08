@@ -494,13 +494,20 @@ export default class UiaApi implements IHttpApi {
     }
 
     const { query } = req;
-    const limitOffset = joi.object().keys({
-      limit: joi
-        .number()
-        .min(0)
-        .max(100),
-      offset: joi.number().min(0),
-    });
+    const limitOffset = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .min(0)
+          .max(100)
+          .optional(),
+        offset: joi
+          .number()
+          .min(0)
+          .optional(),
+      })
+      .required();
     const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
@@ -509,13 +516,16 @@ export default class UiaApi implements IHttpApi {
       });
     }
 
+    const limit = query.limit ? Number(query.limit) : 100;
+    const offset = query.offset ? Number(query.offset) : 0;
+
     try {
       const condition = { address: req.params.address };
       const count = await global.app.sdb.count<Balance>(Balance, condition);
       const balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
-        limit: query.limit,
-        offset: query.offset,
+        limit,
+        offset,
       });
       const result: ApiResult<BalancesWrapper> = {
         success: true,

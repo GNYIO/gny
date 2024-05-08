@@ -61,11 +61,6 @@ export default class TransfersApi implements IHttpApi {
 
     const ownerId = req.query.ownerId;
     const currency = req.query.currency;
-    const limit = Number(req.query.limit) || 10;
-    const offset = Number(req.query.offset) || 0;
-
-    req.query.limit = limit;
-    req.query.offset = offset;
 
     const schema = joi
       .object()
@@ -74,11 +69,13 @@ export default class TransfersApi implements IHttpApi {
           .number()
           .integer()
           .min(0)
-          .max(100),
+          .max(100)
+          .optional(),
         offset: joi
           .number()
           .integer()
-          .min(0),
+          .min(0)
+          .optional(),
         ownerId: joi.string().address(),
         currency: joi.string().asset(),
         senderId: joi.string().address(),
@@ -99,6 +96,9 @@ export default class TransfersApi implements IHttpApi {
         error: report.error.message,
       });
     }
+
+    const limit = req.query.limit ? Number(req.query.limit) : 100;
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
 
     if (ownerId) {
       condition.$or = {
@@ -164,6 +164,7 @@ export default class TransfersApi implements IHttpApi {
   };
 
   private getAmount = async (req: Request, res: Response, next: Next) => {
+    // todo
     const startTimestamp = req.query.startTimestamp;
     const endTimestamp = req.query.endTimestamp;
     const condition = {} as { currency: string; timestamp: any };

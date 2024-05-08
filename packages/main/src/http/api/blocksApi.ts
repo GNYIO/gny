@@ -160,28 +160,27 @@ export default class BlocksApi implements IHttpApi {
   private getBlocks = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
 
-    query.offset = query.offset ? Number(query.offset) : 0;
-    query.limit = query.limit ? Number(query.limit) : 20;
-
-    // limit and offset required because already set above
-    const schema = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100)
-        .required(),
-      offset: joi
-        .number()
-        .integer()
-        .min(0)
-        .required(),
-      orderBy: joi
-        .string()
-        .valid(['height:asc', 'height:desc'])
-        .optional(),
-      transactions: joi.any().optional(),
-    });
+    const schema = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100)
+          .optional(),
+        offset: joi
+          .number()
+          .integer()
+          .min(0)
+          .optional(),
+        orderBy: joi
+          .string()
+          .valid(['height:asc', 'height:desc'])
+          .optional(),
+        transactions: joi.any().optional(),
+      })
+      .required();
 
     const report = joi.validate(query, schema);
     if (report.error) {
@@ -197,8 +196,8 @@ export default class BlocksApi implements IHttpApi {
       });
     }
 
-    const offset = query.offset;
-    const limit = query.limit;
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 100;
 
     let minHeight: string;
     let maxHeight: string;
