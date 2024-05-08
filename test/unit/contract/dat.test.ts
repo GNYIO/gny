@@ -180,8 +180,11 @@ describe('dat contract', () => {
           } as IAccount,
           trs: {
             id: 'ididididididididididididididididididididid',
+            timestamp: 11111111,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '11',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest.fn().mockReturnValueOnce(false); // maker with same name does not exist
@@ -208,6 +211,8 @@ describe('dat contract', () => {
           name: 'MY_NFT_MAKER',
           datCounter: String(0),
           tid: 'ididididididididididididididididididididid',
+          height: '11',
+          timestamp: 11111111,
         });
       });
     });
@@ -403,7 +408,9 @@ describe('dat contract', () => {
             trs: {
               id: 'idididididididididididididid',
             } as ITransaction,
-            block: {} as IBlock,
+            block: {
+              height: '12',
+            } as IBlock,
           } as Context;
 
           const datName = 'NFTdat';
@@ -724,7 +731,9 @@ describe('dat contract', () => {
             id: 'idididididididididididididid',
             timestamp: 1234000000,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '13',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest
@@ -783,6 +792,7 @@ describe('dat contract', () => {
           tid: 'idididididididididididididid',
           timestamp: 1234000000,
           url: 'https://test.com',
+          height: '13',
         });
 
         // update datMaker was called 1 times
@@ -814,7 +824,9 @@ describe('dat contract', () => {
             id: 'idididididididididididididid',
             timestamp: 1234000000,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '10',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest
@@ -871,6 +883,7 @@ describe('dat contract', () => {
           tid: 'idididididididididididididid',
           timestamp: 1234000000,
           url: 'https://test.com',
+          height: '10',
         });
 
         // update datMaker was called 1 times
