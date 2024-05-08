@@ -414,7 +414,7 @@ describe('dat', () => {
               {
                 hash:
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
-                name: firstDat,
+                name: 'mydatmaker.firstdat',
                 counter: String(1),
                 datMakerId: 'mydatmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
@@ -430,7 +430,7 @@ describe('dat', () => {
               {
                 hash:
                   'bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
-                name: secondDat,
+                name: 'mydatmaker.seconddat',
                 counter: String(2),
                 datMakerId: 'mydatmaker',
                 ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
@@ -506,7 +506,7 @@ describe('dat', () => {
           // @ts-ignore
           expect(res0_by_hash.dat).toEqual(expected0);
           const res0_by_name = await connection.api.Dat.getSingleDat({
-            name: 'ONEONE',
+            name: 'one.ONEONE',
           });
           // @ts-ignore
           expect(res0_by_name.dat).toEqual(expected0);
