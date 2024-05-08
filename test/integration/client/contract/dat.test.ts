@@ -16,12 +16,6 @@ const env = lib.createEnvironmentVariables(
 const DOCKER_COMPOSE_FILE =
   'config/integration/docker-compose.client-integration.yml';
 
-const config = {
-  headers: {
-    magic: '594fe0f3',
-  },
-};
-
 const connection = new gnyClient.Connection('127.0.0.1', GNY_PORT, 'localnet');
 
 async function registerDatMaker(
@@ -112,6 +106,8 @@ describe('dat', () => {
             datCounter: String(0),
             // @ts-ignore
             tid: response.transactionId,
+            height: expect.stringMatching(/^[0-9]+$/),
+            timestamp: expect.any(Number),
           });
 
           const singleResponse = await connection.api.Dat.getSingleDatMaker(
@@ -126,6 +122,8 @@ describe('dat', () => {
             datCounter: String(0),
             // @ts-ignore
             tid: response.transactionId,
+            height: expect.stringMatching(/^[0-9]+$/),
+            timestamp: expect.any(Number),
           });
         },
         lib.oneMinute
@@ -152,6 +150,8 @@ describe('dat', () => {
             tid: response1.transactionId,
             datCounter: String(0),
             _version_: 1,
+            height: expect.stringMatching(/^[0-9]+$/),
+            timestamp: expect.any(Number),
           });
 
           // @ts-ignore
@@ -163,6 +163,8 @@ describe('dat', () => {
             tid: response2.transactionId,
             datCounter: String(0),
             _version_: 1,
+            height: expect.stringMatching(/^[0-9]+$/),
+            timestamp: expect.any(Number),
           });
         },
         lib.oneMinute
@@ -379,10 +381,11 @@ describe('dat', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: datOne.transactionId,
-                timestamp: expect.toBeNumber(),
+                timestamp: expect.any(Number),
                 url:
                   'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 _version_: 1,
+                height: expect.stringMatching(/^[0-9]+$/),
               },
             ],
           });
@@ -418,10 +421,11 @@ describe('dat', () => {
                 previousHash: null,
                 // @ts-ignore
                 tid: datOne.transactionId,
-                timestamp: expect.toBeNumber(),
+                timestamp: expect.any(Number),
                 url:
                   'https://test.com/bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 _version_: 1,
+                height: expect.stringMatching(/^[0-9]+$/),
               },
               {
                 hash:
@@ -434,10 +438,11 @@ describe('dat', () => {
                   'bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku',
                 // @ts-ignore
                 tid: datTwo.transactionId,
-                timestamp: expect.toBeNumber(),
+                timestamp: expect.any(Number),
                 url:
                   'https://test.com/bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze',
                 _version_: 1,
+                height: expect.stringMatching(/^[0-9]+$/),
               },
             ],
           });
@@ -494,8 +499,9 @@ describe('dat', () => {
             previousHash: null,
             // @ts-ignore
             tid: dat0.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/bc21e6484530fc9d0313cb816b733396',
+            height: expect.stringMatching(/^[0-9]+$/),
           };
           // @ts-ignore
           expect(res0_by_hash.dat).toEqual(expected0);
@@ -519,8 +525,9 @@ describe('dat', () => {
             previousHash: 'bc21e6484530fc9d0313cb816b733396',
             // @ts-ignore
             tid: dat1.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/0f82d86afa0f5dc965c5c15aca58dcfb',
+            height: expect.stringMatching(/^[0-9]+$/),
           };
           // @ts-ignore
           expect(res1_by_hash.dat).toEqual(expected1);
@@ -603,8 +610,9 @@ describe('dat', () => {
             previousHash: null,
             // @ts-ignore
             tid: dat0.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
+            height: expect.stringMatching(/^[0-9]+$/),
           });
 
           const datTwo = await connection.api.Dat.getSingleDat({
@@ -621,8 +629,9 @@ describe('dat', () => {
             previousHash: null,
             // @ts-ignore
             tid: dat1.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
+            height: expect.stringMatching(/^[0-9]+$/),
           });
 
           const datThree = await connection.api.Dat.getSingleDat({
@@ -639,8 +648,9 @@ describe('dat', () => {
             previousHash: '4beea259c4a1e6fe982e32a9988bee3d',
             // @ts-ignore
             tid: dat2.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
+            height: expect.stringMatching(/^[0-9]+$/),
           });
 
           const datFour = await connection.api.Dat.getSingleDat({
@@ -657,8 +667,9 @@ describe('dat', () => {
             previousHash: 'fceda27fd75e3fa76467646b8d3e7656',
             // @ts-ignore
             tid: dat3.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
+            height: expect.stringMatching(/^[0-9]+$/),
           });
 
           // check that the counter has increased maker
@@ -695,6 +706,7 @@ describe('dat', () => {
               tid: dat0.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/4beea259c4a1e6fe982e32a9988bee3d',
+              height: expect.stringMatching(/^[0-9]+$/),
             },
             {
               _version_: 1,
@@ -708,6 +720,7 @@ describe('dat', () => {
               tid: dat2.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/f1cd9cc9830ae4ab330a7d7175032b10',
+              height: expect.stringMatching(/^[0-9]+$/),
             },
           ]);
 
@@ -730,6 +743,7 @@ describe('dat', () => {
               tid: dat1.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/fceda27fd75e3fa76467646b8d3e7656',
+              height: expect.stringMatching(/^[0-9]+$/),
             },
             {
               _version_: 1,
@@ -743,6 +757,7 @@ describe('dat', () => {
               tid: dat3.transactionId,
               timestamp: expect.any(Number),
               url: 'https://test.com/0b719b7df84b7846237101b23bb9b91e',
+              height: expect.stringMatching(/^[0-9]+$/),
             },
           ]);
         },
@@ -810,8 +825,9 @@ describe('dat', () => {
             previousHash: null,
             // @ts-ignore
             tid: res.transactionId,
-            timestamp: expect.toBeNumber(),
+            timestamp: expect.any(Number),
             url: 'https://test.com/2c2624a5059934a947d6e25fe8332ade',
+            height: expect.stringMatching(/^[0-9]+$/),
           });
 
           const maker = await connection.api.Dat.getSingleDatMaker('one');
@@ -824,6 +840,8 @@ describe('dat', () => {
             datCounter: '1',
             // @ts-ignore
             tid: reg1.transactionId,
+            height: expect.stringMatching(/^[0-9]+$/),
+            timestamp: expect.any(Number),
           });
         },
         lib.oneMinute
