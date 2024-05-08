@@ -33,6 +33,8 @@ export default {
       address: senderId,
       tid: this.trs.id,
       datCounter: String(0),
+      height: this.block.height,
+      timestamp: this.trs.timestamp,
     };
     await global.app.sdb.create<DatMaker>(DatMaker, maker);
     return null;
@@ -111,6 +113,7 @@ export default {
       ownerAddress: maker.address,
       timestamp: this.trs.timestamp,
       url,
+      height: this.block.height,
     };
     await global.app.sdb.create<Dat>(Dat, dat);
 
