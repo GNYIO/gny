@@ -15,12 +15,7 @@ import { joi } from '@gnyio/extended-joi';
 import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
 
-import {
-  datMakerRegex,
-  datNameRegex,
-  datNameOnlyRegex,
-  datHashRegex,
-} from '@gnyio/utils';
+import { datMakerRegex, datNameRegex, datHashRegex } from '@gnyio/utils';
 
 export default class DatApi implements IHttpApi {
   private library: IScope;
@@ -120,11 +115,15 @@ export default class DatApi implements IHttpApi {
       query.address !== undefined ? { address: query.address } : {};
 
     const count = await global.app.sdb.count<DatMaker>(DatMaker, condition);
-
+    // sort first by height and then by timestamp
     const datMakers = await global.app.sdb.findAll<DatMaker>(DatMaker, {
       condition,
-      limit,
-      offset,
+      limit: Number(limit),
+      offset: Number(offset),
+      sort: {
+        height: 1,
+        timestamp: 1,
+      },
     });
 
     const result: ApiResult<DatMakerWrapper> = {
@@ -235,11 +234,15 @@ export default class DatApi implements IHttpApi {
     }
 
     const count = await global.app.sdb.count<Dat>(Dat, condition);
+    // sort first by height and then by timestamp
     const dats = await global.app.sdb.findAll<Dat>(Dat, {
       condition,
-      limit,
-      offset,
-      sort: { timestamp: 1 },
+      limit: Number(limit),
+      offset: Number(offset),
+      sort: {
+        height: 1,
+        timestamp: 1,
+      },
     });
 
     const result: ApiResult<DatWrapper> = {
