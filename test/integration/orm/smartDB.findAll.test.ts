@@ -267,7 +267,7 @@ describe('smartDB.findAll()', () => {
   });
 
   it('findAll() - limit and offset', async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
     await saveGenesisBlock(sut);
 
@@ -287,14 +287,33 @@ describe('smartDB.findAll()', () => {
       limit: 1,
       offset: 0,
     });
+    const loadFirstAgain = await sut.findAll<Asset>(Asset, {
+      condition: {},
+
+      // @ts-ignore
+      limit: String(1),
+      // @ts-ignore
+      offset: String(0),
+    });
+
     const loadSecond = await sut.findAll<Asset>(Asset, {
       condition: {},
       limit: 1,
       offset: 1,
     });
+    const loadSecondAgain = await sut.findAll<Asset>(Asset, {
+      condition: {},
+      // @ts-ignore
+      limit: String(1),
+      // @ts-ignore
+      offset: String(1),
+    });
 
     expect(loadFirst).toEqual([createdABC]);
+    expect(loadFirstAgain).toEqual([createdABC]);
+
     expect(loadSecond).toEqual([createdTEC]);
+    expect(loadSecondAgain).toEqual([createdTEC]);
   });
 
   it('findAll() - sort results ASCENDING', async () => {
