@@ -164,9 +164,39 @@ export default class TransfersApi implements IHttpApi {
   };
 
   private getAmount = async (req: Request, res: Response, next: Next) => {
-    // todo
-    const startTimestamp = req.query.startTimestamp;
-    const endTimestamp = req.query.endTimestamp;
+    const { query } = req;
+    const schema = joi
+      .object()
+      .keys({
+        startTimestamp: joi
+          .number()
+          .integer()
+          .min(0)
+          .required(),
+        endTimestamp: joi
+          .number()
+          .integer()
+          .min(0)
+          .required(),
+      })
+      .required();
+
+    const report = joi.validate(req.query, schema);
+    if (report.error) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/transfers/amount',
+        statusCode: '422',
+      });
+
+      return res.status(422).send({
+        success: false,
+        error: report.error.message,
+      });
+    }
+
+    const startTimestamp = Number(req.query.startTimestamp);
+    const endTimestamp = Number(req.query.endTimestamp);
     const condition = {} as { currency: string; timestamp: any };
     if (startTimestamp && endTimestamp) {
       condition.timestamp = { $between: [startTimestamp, endTimestamp] };
