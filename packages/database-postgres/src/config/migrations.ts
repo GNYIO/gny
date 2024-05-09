@@ -606,7 +606,7 @@ export class CreateDat1700423861000 implements MigrationInterface {
 
 
       CREATE TABLE public.dat (
-        name character varying(40) NOT NULL,
+        name character varying(71) NOT NULL,
         hash character varying(64) NOT NULL,
         "previousHash" character varying(64) NULL,
         tid character varying(64) NOT NULL,
@@ -691,5 +691,52 @@ export class Verification1712752540000 implements MigrationInterface {
           ON public.verification USING btree (height);
     `);
   }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
+
+export class AugmentDATs1715108311000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    // https://stackoverflow.com/questions/512451/how-can-i-add-a-column-that-doesnt-allow-nulls-in-a-postgresql-database
+    await queryRunner.query(`
+
+      /* add column height to public.dat_maker table */
+      ALTER TABLE public.dat_maker ADD COLUMN height bigint NOT NULL DEFAULT '-1'::bigint;
+
+      /* update newly created height column on public.dat_maker table */
+      UPDATE public.dat_maker d
+      SET height = t.height
+      FROM public.transaction t
+        WHERE t.id = d.tid;
+
+      /* every row has a value, now drop default */
+      ALTER TABLE public.dat_maker ALTER COLUMN height DROP DEFAULT;
+
+
+
+
+
+      ALTER TABLE public.dat ADD COLUMN height bigint NOT NULL DEFAULT '-1'::bigint;
+      UPDATE public.dat d
+      SET height = t.height
+      FROM public.transaction t
+        WHERE t.id = d.tid;
+      ALTER TABLE public.dat ALTER COLUMN height DROP DEFAULT;
+
+
+
+
+
+      ALTER TABLE public.dat_maker ADD COLUMN timestamp integer NOT NULL DEFAULT -2::int;
+      UPDATE public.dat_maker d
+      SET timestamp = t.timestamp
+      FROM public.transaction t
+        WHERE t.id = d.tid;
+      ALTER TABLE public.dat_maker ALTER COLUMN timestamp DROP DEFAULT;
+
+      CREATE INDEX "dat_maker_height_idx" ON public.dat_maker USING btree (height);
+      CREATE INDEX "dat_height_idx" ON public.dat USING btree (height);
+    `);
+  }
+
   async down(queryRunner: QueryRunner): Promise<any> {}
 }

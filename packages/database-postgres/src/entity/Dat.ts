@@ -72,6 +72,12 @@ export class Dat implements Versioned {
   public url: string;
 
   @Column({
+    nullable: false,
+    type: 'bigint',
+  })
+  public height: string;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,

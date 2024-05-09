@@ -108,18 +108,22 @@ export default class DatApi implements IHttpApi {
       });
     }
 
-    const limit = query.limit || 100;
-    const offset = query.offset || 0;
+    const limit = query.limit ? Number(query.limit) : 100;
+    const offset = query.offset ? Number(query.offset) : 0;
 
     const condition =
       query.address !== undefined ? { address: query.address } : {};
 
     const count = await global.app.sdb.count<DatMaker>(DatMaker, condition);
-
+    // sort first by height and then by timestamp
     const datMakers = await global.app.sdb.findAll<DatMaker>(DatMaker, {
       condition,
       limit,
       offset,
+      sort: {
+        height: 1,
+        timestamp: 1,
+      },
     });
 
     const result: ApiResult<DatMakerWrapper> = {
@@ -215,8 +219,8 @@ export default class DatApi implements IHttpApi {
       });
     }
 
-    const limit = query.limit || 100;
-    const offset = query.offset || 0;
+    const limit = query.limit ? Number(query.limit) : 100;
+    const offset = query.offset ? Number(query.offset) : 0;
 
     // condition can never have both "maker" and "ownerAddress" because
     // with .oxor() only can be present
@@ -230,11 +234,15 @@ export default class DatApi implements IHttpApi {
     }
 
     const count = await global.app.sdb.count<Dat>(Dat, condition);
+    // sort first by height and then by timestamp
     const dats = await global.app.sdb.findAll<Dat>(Dat, {
       condition,
       limit,
       offset,
-      sort: { timestamp: 1 },
+      sort: {
+        height: 1,
+        timestamp: 1,
+      },
     });
 
     const result: ApiResult<DatWrapper> = {

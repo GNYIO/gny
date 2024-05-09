@@ -131,13 +131,14 @@ const stringExtensions: Joi.Extension = {
       name: 'username',
       validate(params, value, state, options) {
         const regname = /^[a-z0-9_]{2,20}$/;
-        if (!regname.test(value))
+        if (typeof value !== 'string' || !regname.test(value)) {
           return this.createError(
             'string.username',
             { v: value },
             state,
             options
           );
+        }
         return value;
       },
     },
@@ -158,13 +159,14 @@ const stringExtensions: Joi.Extension = {
       name: 'issuer',
       validate(params, value, state, options) {
         const regname = /^[A-Za-z]{1,16}$/;
-        if (!regname.test(value))
+        if (typeof value !== 'string' || !regname.test(value)) {
           return this.createError(
             'string.issuer',
             { v: value },
             state,
             options
           );
+        }
         return value;
       },
     },
@@ -172,8 +174,9 @@ const stringExtensions: Joi.Extension = {
       name: 'asset',
       validate(params, value, state, options) {
         const regname = /^[A-Za-z]{1,16}\.[A-Z]{3,6}$/;
-        if (!regname.test(value))
+        if (typeof value !== 'string' || !regname.test(value)) {
           return this.createError('string.asset', { v: value }, state, options);
+        }
         return value;
       },
     },

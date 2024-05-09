@@ -3,6 +3,8 @@ import { Context, IVerification } from '@gnyio/interfaces';
 import { Verification } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';
 
+import { isSignature, isIdentifier } from '@gnyio/utils';
+
 export default {
   async verify(this: Context, identifier, signature) {
     if (arguments.length !== 2) return 'Invalid arguments length';
@@ -15,27 +17,11 @@ export default {
 
     const sender = this.sender;
 
-    const identifierRegex = /^[A-Z_]+$/;
-    if (!identifierRegex.test(identifier)) {
-      return 'argument identifier not valid';
-    }
-    if (
-      typeof identifier !== 'string' ||
-      identifier.length > 64 ||
-      identifier.length < 5
-    ) {
+    if (!isIdentifier(identifier)) {
       return 'argument identifier not valid';
     }
 
-    const signatureRegex = /^[a-z0-9]+$/;
-    if (!signatureRegex.test(signature)) {
-      return 'argument signature not valid';
-    }
-    if (
-      typeof signature !== 'string' ||
-      signature.length > 128 ||
-      signature.length < 10
-    ) {
+    if (!isSignature(signature)) {
       return 'argument signature not valid';
     }
 

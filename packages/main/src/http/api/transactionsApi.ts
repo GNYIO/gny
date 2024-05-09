@@ -66,11 +66,13 @@ export default class TransactionsApi implements IHttpApi {
         .number()
         .integer()
         .min(0)
-        .max(100),
+        .max(100)
+        .optional(),
       offset: joi
         .number()
         .integer()
-        .min(0),
+        .min(0)
+        .optional(),
       id: joi
         .string()
         .min(1)
@@ -136,6 +138,9 @@ export default class TransactionsApi implements IHttpApi {
       condition.height = query.height;
     }
 
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 100;
+
     try {
       let block: IBlock;
       let result: ApiResult<TransactionsWrapper>;
@@ -165,8 +170,8 @@ export default class TransactionsApi implements IHttpApi {
         Transaction,
         {
           condition,
-          limit: (query.limit as number) || 100,
-          offset: (query.offset as number) || 0,
+          limit,
+          offset,
         }
       );
       if (!transactions) transactions = [];
@@ -286,9 +291,9 @@ export default class TransactionsApi implements IHttpApi {
       });
     }
 
-    const limit: number = ((query.limit as unknown) as number) || 100;
-    const offset: number = ((query.offset as unknown) as number) || 0;
-    const count = (query.count as unknown) as number;
+    const limit = query.limit ? Number(query.limit) : 100;
+    const offset = query.offset ? Number(query.offset) : 0;
+    const count = Number(query.count); // is required
 
     const condition = {};
     if (query.senderId) {

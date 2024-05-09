@@ -66,7 +66,11 @@ export default class VerificationApi implements IHttpApi {
     const schema = joi
       .object()
       .keys({
-        identifier: joi.string().regex(/^[A-Z_]+$/),
+        identifier: joi
+          .string()
+          .min(5)
+          .max(64)
+          .regex(/^[A-Z_]+$/),
       })
       .required();
 
@@ -114,10 +118,6 @@ export default class VerificationApi implements IHttpApi {
 
     const { query } = req;
 
-    query.offset = query.offset ? Number(query.offset) : 0;
-    query.limit = query.limit ? Number(query.limit) : 100;
-
-    // limit and offset required because already set above
     const schema = joi
       .object()
       .keys({
@@ -126,12 +126,12 @@ export default class VerificationApi implements IHttpApi {
           .integer()
           .min(0)
           .max(100)
-          .required(),
+          .optional(),
         offset: joi
           .number()
           .integer()
           .min(0)
-          .required(),
+          .optional(),
         senderId: joi
           .string()
           .address()
@@ -153,8 +153,9 @@ export default class VerificationApi implements IHttpApi {
       });
     }
 
-    const offset = query.offset;
-    const limit = query.limit;
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 100;
+
     let condition = {};
     if (typeof query.senderId === 'string') {
       condition = {

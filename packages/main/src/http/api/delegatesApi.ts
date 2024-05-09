@@ -480,34 +480,25 @@ export default class DelegatesApi implements IHttpApi {
 
   private getDelegates = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const offset = Number(query.offset || 0);
-    const limit = Number(query.limit || 10);
-    if (Number.isNaN(limit) || Number.isNaN(offset)) {
-      global.app.prom.requests.inc({
-        method: 'GET',
-        endpoint: '/api/delegates',
-        statusCode: '422',
-      });
 
-      return res.status(422).send({
-        success: false,
-        error: 'Invalid params',
-      });
-    }
+    const schema = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(101)
+          .optional(),
+        offset: joi
+          .number()
+          .integer()
+          .min(0)
+          .optional(),
+      })
+      .required();
 
-    const schema = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(101),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-    });
-
-    const report = joi.validate({ limit, offset }, schema);
+    const report = joi.validate(query, schema);
     if (report.error) {
       global.app.prom.requests.inc({
         method: 'GET',
@@ -520,6 +511,9 @@ export default class DelegatesApi implements IHttpApi {
         error: report.error.message,
       });
     }
+
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 101;
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
@@ -566,11 +560,13 @@ export default class DelegatesApi implements IHttpApi {
           .number()
           .integer()
           .min(0)
-          .max(100),
+          .max(100)
+          .optional(),
         offset: joi
           .number()
           .integer()
-          .min(0),
+          .min(0)
+          .optional(),
       })
       .xor('publicKey', 'username', 'address')
       .required();
@@ -587,6 +583,9 @@ export default class DelegatesApi implements IHttpApi {
         error: report.error.message,
       });
     }
+
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 100;
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
@@ -627,8 +626,8 @@ export default class DelegatesApi implements IHttpApi {
     });
 
     const blocks = await global.app.sdb.findAll<Block>(Block, {
-      limit: query.limit || 100,
-      offset: query.offset || 0,
+      limit,
+      offset,
       condition: {
         delegate: delegate.publicKey,
       },

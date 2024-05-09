@@ -30,6 +30,7 @@ import {
   CreateDat1700423861000,
   AddEligibleColumnToDelegate1701104571000,
   Verification1712752540000,
+  AugmentDATs1715108311000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -54,6 +55,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       CreateDat1700423861000,
       AddEligibleColumnToDelegate1701104571000,
       Verification1712752540000,
+      AugmentDATs1715108311000,
     ],
   };
 

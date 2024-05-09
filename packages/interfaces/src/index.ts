@@ -934,6 +934,8 @@ export interface IDatMaker {
   address: string;
   tid: string;
   datCounter: string;
+  height: string;
+  timestamp: number;
   _version_?: number;
 }
 
@@ -956,6 +958,7 @@ export interface IDat {
   ownerAddress: string;
   timestamp: number;
   url: string;
+  height: string;
   _version_?: number;
 }
 

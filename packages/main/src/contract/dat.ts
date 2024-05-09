@@ -3,12 +3,7 @@ import { IDatMaker, IDat } from '@gnyio/interfaces';
 
 import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
-import {
-  urlRegex,
-  datMakerRegex,
-  datNameRegex,
-  datHashRegex,
-} from '@gnyio/utils';
+import { isUrl, isDatMaker, isDatNameOnly, isDatHash } from '@gnyio/utils';
 
 export default {
   async registerDatMaker(this: Context, name, desc) {
@@ -20,7 +15,7 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (!datMakerRegex.test(name)) return 'Invalid dat maker name';
+    if (!isDatMaker(name)) return 'Invalid dat maker name';
     global.app.validate('description', desc);
     if (desc.length > 100) return 'Invalid description';
 
@@ -38,6 +33,8 @@ export default {
       address: senderId,
       tid: this.trs.id,
       datCounter: String(0),
+      height: this.block.height,
+      timestamp: this.trs.timestamp,
     };
     await global.app.sdb.create<DatMaker>(DatMaker, maker);
     return null;
@@ -52,20 +49,23 @@ export default {
       return 'collission attack attempt';
     }
 
-    if (!datNameRegex.test(name)) return 'Invalid dat name';
+    if (!isDatNameOnly(name)) return 'Invalid dat name';
 
-    if (!datHashRegex.test(hash)) return 'Invalid dat hash';
+    if (!isDatHash(hash)) return 'Invalid dat hash';
 
-    if (!datMakerRegex.test(makerId)) return 'Invalid dat maker name';
+    if (!isDatMaker(makerId)) return 'Invalid dat maker name';
 
-    if (typeof url !== 'string') return 'Invalid dat url type';
     if (url.length > 255) return 'Dat url too long';
-    if (!urlRegex.test(url)) return 'Invalid dat url';
+    if (!isUrl(url)) return 'Invalid dat url';
+
+    const fullName = `${makerId}.${name}`;
 
     const existsHash = await global.app.sdb.exists<Dat>(Dat, { hash: hash });
     if (existsHash) return 'Dat with hash already exists';
 
-    const existsName = await global.app.sdb.exists<Dat>(Dat, { name: name });
+    const existsName = await global.app.sdb.exists<Dat>(Dat, {
+      name: fullName,
+    });
     if (existsName) return 'Dat with name already exists';
 
     const existsMakerId = await global.app.sdb.exists<DatMaker>(DatMaker, {
@@ -97,14 +97,14 @@ export default {
       previousHash = previousDat.hash;
     }
 
-    await global.app.sdb.lock(`dat.createDat@${name}`);
+    await global.app.sdb.lock(`dat.createDat@${fullName}`);
     await global.app.sdb.lock(`dat.createDat@${hash}`);
     // should not be possible that the same maker is creating multiple dats
     // in one block, otherwise the counter would be wrong
     await global.app.sdb.lock(`dat.createDat@${makerId}`);
 
     const dat: IDat = {
-      name,
+      name: fullName,
       hash,
       previousHash: previousHash,
       tid: this.trs.id,
@@ -113,6 +113,7 @@ export default {
       ownerAddress: maker.address,
       timestamp: this.trs.timestamp,
       url,
+      height: this.block.height,
     };
     await global.app.sdb.create<Dat>(Dat, dat);
 

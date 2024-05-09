@@ -1,6 +1,20 @@
 import { isNewUsername } from '@gnyio/utils';
 
 describe('isNewUsername()', () => {
+  it('isNewUsername() - "undefined" fails', () => {
+    const value = undefined;
+
+    const result = isNewUsername(value);
+    expect(result).toEqual(false);
+  });
+
+  it('isNewUsername() - "null" fails', () => {
+    const value = null;
+
+    const result = isNewUsername(value);
+    expect(result).toEqual(false);
+  });
+
   it('isNewUsername() - three characters "aaa" succeed', () => {
     const value = 'aaa';
 

@@ -180,8 +180,11 @@ describe('dat contract', () => {
           } as IAccount,
           trs: {
             id: 'ididididididididididididididididididididid',
+            timestamp: 11111111,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '11',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest.fn().mockReturnValueOnce(false); // maker with same name does not exist
@@ -208,6 +211,8 @@ describe('dat contract', () => {
           name: 'MY_NFT_MAKER',
           datCounter: String(0),
           tid: 'ididididididididididididididididididididid',
+          height: '11',
+          timestamp: 11111111,
         });
       });
     });
@@ -403,7 +408,9 @@ describe('dat contract', () => {
             trs: {
               id: 'idididididididididididididid',
             } as ITransaction,
-            block: {} as IBlock,
+            block: {
+              height: '12',
+            } as IBlock,
           } as Context;
 
           const datName = 'NFTdat';
@@ -485,7 +492,7 @@ describe('dat contract', () => {
     });
 
     describe('url', () => {
-      it('createDat() - object as dat url - returns Invalid dat url type', async () => {
+      it('createDat() - object as dat url - returns Invalid dat url', async () => {
         const name = 'NFTdat';
         const hash = 'a'.repeat(30);
         const makerId = 'NFT_MAKER';
@@ -503,7 +510,7 @@ describe('dat contract', () => {
           makerId,
           url
         );
-        expect(result).toEqual('Invalid dat url type');
+        expect(result).toEqual('Invalid dat url');
       });
 
       it('createDat() - array as dat url - returns Invalid dat url', async () => {
@@ -524,7 +531,7 @@ describe('dat contract', () => {
           makerId,
           url
         );
-        expect(result).toEqual('Invalid dat url type');
+        expect(result).toEqual('Invalid dat url');
       });
 
       it('createDat() - url longer than 255 - returns Invalid dat url', async () => {
@@ -617,7 +624,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         });
         expect(existsMock).toHaveBeenNthCalledWith(2, expect.any(Function), {
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
         });
       });
 
@@ -656,7 +663,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         });
         expect(existsMock).toHaveBeenNthCalledWith(2, expect.any(Function), {
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
         });
         expect(existsMock).toHaveBeenNthCalledWith(3, expect.any(Function), {
           name: 'NFT_MAKER',
@@ -724,7 +731,9 @@ describe('dat contract', () => {
             id: 'idididididididididididididid',
             timestamp: 1234000000,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '13',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest
@@ -776,13 +785,14 @@ describe('dat contract', () => {
         expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
           counter: '1',
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          name: 'NFTdat',
+          name: 'NFT_MAKER.NFTdat',
           datMakerId: 'NFT_MAKER',
           ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
           previousHash: null,
           tid: 'idididididididididididididid',
           timestamp: 1234000000,
           url: 'https://test.com',
+          height: '13',
         });
 
         // update datMaker was called 1 times
@@ -814,7 +824,9 @@ describe('dat contract', () => {
             id: 'idididididididididididididid',
             timestamp: 1234000000,
           } as ITransaction,
-          block: {} as IBlock,
+          block: {
+            height: '10',
+          } as IBlock,
         } as Context;
 
         const existsMock = jest
@@ -864,13 +876,14 @@ describe('dat contract', () => {
         expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
           counter: '2',
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          name: 'NFTdatsecond',
+          name: 'NFT_MAKER.NFTdatsecond',
           datMakerId: 'NFT_MAKER',
           ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
           previousHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           tid: 'idididididididididididididid',
           timestamp: 1234000000,
           url: 'https://test.com',
+          height: '10',
         });
 
         // update datMaker was called 1 times

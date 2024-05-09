@@ -69,12 +69,16 @@ export default class UiaApi implements IHttpApi {
 
   private isIssuer = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const addressValidation = joi.object().keys({
-      address: joi
-        .string()
-        .address()
-        .required(),
-    });
+    const addressValidation = joi
+      .object()
+      .keys({
+        address: joi
+          .string()
+          .address()
+          .required(),
+      })
+      .required();
+
     const report = joi.validate(query, addressValidation);
     if (report.error) {
       global.app.prom.requests.inc({
@@ -120,17 +124,21 @@ export default class UiaApi implements IHttpApi {
 
   private getIssuers = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const limitOffset = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-    });
+    const limitOffset = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
+      })
+      .required();
+
     const report = joi.validate(query, limitOffset);
     if (report.error) {
       global.app.prom.requests.inc({
@@ -144,12 +152,16 @@ export default class UiaApi implements IHttpApi {
         error: report.error.message,
       });
     }
+
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 100;
+
     try {
       const count = await global.app.sdb.count<Issuer>(Issuer, {});
       const issues = await global.app.sdb.findAll<Issuer>(Issuer, {
         condition: {},
-        limit: query.limit || 100,
-        offset: query.offset || 0,
+        limit,
+        offset,
       });
 
       global.app.prom.requests.inc({
@@ -285,17 +297,21 @@ export default class UiaApi implements IHttpApi {
     }
 
     const { query } = req;
-    const limitOffset = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-    });
+    const limitOffset = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
+      })
+      .required();
+
     const report = joi.validate(query, limitOffset);
     if (report.error) {
       global.app.prom.requests.inc({
@@ -309,6 +325,9 @@ export default class UiaApi implements IHttpApi {
         error: report.error.message,
       });
     }
+
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 100;
 
     try {
       const issuerName = req.params.name;
@@ -329,8 +348,8 @@ export default class UiaApi implements IHttpApi {
       const count = await global.app.sdb.count<Asset>(Asset, condition);
       const assetsQuery = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
-        limit: query.limit || 100,
-        offset: query.offset || 0,
+        limit,
+        offset,
       });
 
       const assets: IAssetWithIssuer[] = assetsQuery.map(x => {
@@ -366,17 +385,21 @@ export default class UiaApi implements IHttpApi {
 
   private getAssets = async (req: Request, res: Response, next: Next) => {
     const { query } = req;
-    const limitOffset = joi.object().keys({
-      limit: joi
-        .number()
-        .integer()
-        .min(0)
-        .max(100),
-      offset: joi
-        .number()
-        .integer()
-        .min(0),
-    });
+    const limitOffset = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .integer()
+          .min(0)
+          .max(100),
+        offset: joi
+          .number()
+          .integer()
+          .min(0),
+      })
+      .required();
+
     const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
@@ -385,13 +408,16 @@ export default class UiaApi implements IHttpApi {
       });
     }
 
+    const offset = req.query.offset ? Number(query.offset) : 0;
+    const limit = req.query.limit ? Number(query.limit) : 100;
+
     try {
       const condition = {};
       const count = await global.app.sdb.count<Asset>(Asset, condition);
       const assets = await global.app.sdb.findAll<Asset>(Asset, {
         condition,
-        limit: query.limit || 100,
-        offset: query.offset || 0,
+        limit,
+        offset,
       });
 
       const issuerNames = assets.map(x => x.issuerId);
@@ -429,12 +455,16 @@ export default class UiaApi implements IHttpApi {
 
   private getAsset = async (req: Request, res: Response, next: Next) => {
     const query = req.params;
-    const nameSchema = joi.object().keys({
-      name: joi
-        .string()
-        .asset()
-        .required(),
-    });
+    const nameSchema = joi
+      .object()
+      .keys({
+        name: joi
+          .string()
+          .asset()
+          .required(),
+      })
+      .required();
+
     const report = joi.validate(query, nameSchema);
     if (report.error) {
       return res.status(422).send({
@@ -479,12 +509,16 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getBalances = async (req: Request, res: Response, next: Next) => {
-    const addressSchema = joi.object().keys({
-      address: joi
-        .string()
-        .address()
-        .required(),
-    });
+    const addressSchema = joi
+      .object()
+      .keys({
+        address: joi
+          .string()
+          .address()
+          .required(),
+      })
+      .required();
+
     const addressReport = joi.validate(req.params, addressSchema);
     if (addressReport.error) {
       return res.status(422).send({
@@ -494,13 +528,20 @@ export default class UiaApi implements IHttpApi {
     }
 
     const { query } = req;
-    const limitOffset = joi.object().keys({
-      limit: joi
-        .number()
-        .min(0)
-        .max(100),
-      offset: joi.number().min(0),
-    });
+    const limitOffset = joi
+      .object()
+      .keys({
+        limit: joi
+          .number()
+          .min(0)
+          .max(100)
+          .optional(),
+        offset: joi
+          .number()
+          .min(0)
+          .optional(),
+      })
+      .required();
     const report = joi.validate(query, limitOffset);
     if (report.error) {
       return res.status(422).send({
@@ -509,13 +550,16 @@ export default class UiaApi implements IHttpApi {
       });
     }
 
+    const limit = query.limit ? Number(query.limit) : 100;
+    const offset = query.offset ? Number(query.offset) : 0;
+
     try {
       const condition = { address: req.params.address };
       const count = await global.app.sdb.count<Balance>(Balance, condition);
       const balances = await global.app.sdb.findAll<Balance>(Balance, {
         condition,
-        limit: query.limit,
-        offset: query.offset,
+        limit,
+        offset,
       });
       const result: ApiResult<BalancesWrapper> = {
         success: true,
@@ -529,16 +573,20 @@ export default class UiaApi implements IHttpApi {
   };
 
   private getBalance = async (req: Request, res: Response, next: Next) => {
-    const schema = joi.object().keys({
-      address: joi
-        .string()
-        .address()
-        .required(),
-      currency: joi
-        .string()
-        .asset()
-        .required(),
-    });
+    const schema = joi
+      .object()
+      .keys({
+        address: joi
+          .string()
+          .address()
+          .required(),
+        currency: joi
+          .string()
+          .asset()
+          .required(),
+      })
+      .required();
+
     const report = joi.validate(req.params, schema);
     if (report.error) {
       return res.status(422).send({
@@ -571,17 +619,24 @@ export default class UiaApi implements IHttpApi {
     const { query } = req;
     query.currency = req.params.currency;
 
-    const schema = joi.object().keys({
-      currency: joi
-        .string()
-        .asset()
-        .required(),
-      limit: joi
-        .number()
-        .min(0)
-        .max(100),
-      offset: joi.number().min(0),
-    });
+    const schema = joi
+      .object()
+      .keys({
+        currency: joi
+          .string()
+          .asset()
+          .required(),
+        limit: joi
+          .number()
+          .min(0)
+          .max(100)
+          .optional(),
+        offset: joi
+          .number()
+          .min(0)
+          .optional(),
+      })
+      .required();
     const report = joi.validate(query, schema);
     if (report.error) {
       return res.status(422).send({
@@ -591,6 +646,8 @@ export default class UiaApi implements IHttpApi {
     }
 
     const currency = query.currency as string;
+    const offset = query.offset ? Number(query.offset) : 0;
+    const limit = query.limit ? Number(query.limit) : 100;
 
     try {
       const dbCurrency = await global.app.sdb.findOne<Asset>(Asset, {
@@ -613,8 +670,8 @@ export default class UiaApi implements IHttpApi {
         condition: {
           currency,
         },
-        limit: Number(query.limit || 100),
-        offset: Number(query.offset || 0),
+        limit,
+        offset,
         sort: {
           balance: -1,
         },
