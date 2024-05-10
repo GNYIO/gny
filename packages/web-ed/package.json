@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/web-ed",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -14,7 +14,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gnyio/interfaces": "2.5.3",
+    "@gnyio/interfaces": "2.5.4",
     "buffer": "^5.4.3",
     "tweetnacl": "^1.0.1"
   }
