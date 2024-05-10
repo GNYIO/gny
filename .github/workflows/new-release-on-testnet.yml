@@ -48,9 +48,6 @@ jobs:
       - name: npm set auth token
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
-      - name: npm set username
-        run: npm set username ${{ secrets.NPM_USERNAME }}
-
       - name: new release (no push)
         run: "node_modules/lerna/cli.js version ${{ github.event.inputs.releaseType }} --yes --exact --no-push"
 
