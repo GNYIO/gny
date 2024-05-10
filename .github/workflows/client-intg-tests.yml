@@ -3,12 +3,12 @@ on: [push]
 jobs:
   client-integration-tests:
     timeout-minutes: 45
-    runs-on: ubuntu-latest
+    runs-on: ubuntu22.04-16gb-runner
     steps:
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 4
+          swap-size-gb: 8
 
       - name: Remove unnecessary tools
         run: |
