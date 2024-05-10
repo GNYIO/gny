@@ -45,9 +45,6 @@ jobs:
       - name: build gny client
         run: node_modules/lerna/cli.js run --scope="@gnyio/client" web
 
-      - name: npm set unsafe-perm
-        run: npm set unsafe-perm true
-
       - name: npm set auth token
         run: npm set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
