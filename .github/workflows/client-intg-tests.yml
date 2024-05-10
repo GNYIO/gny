@@ -9,7 +9,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '18.20.2'
+          node-version: '20.13.1'
 
 
       - name: md5sum of all package.json and package-lock.json files

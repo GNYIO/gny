@@ -52,7 +52,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "18.20.2",
+      "runtimeVersion": "20.13.1",
       "request": "launch",
       "name": "Unit Tests",
       "args": [
@@ -76,7 +76,7 @@
     },
     {
       "type": "node",
-      "runtimeVersion": "18.20.2",
+      "runtimeVersion": "20.13.1",
       "request": "launch",
       "name": "Integration Tests",
       "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
