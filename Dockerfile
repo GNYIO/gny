@@ -1,4 +1,4 @@
-FROM node:16.20.2
+FROM node:18.20.2
 WORKDIR /usr/src/app
 
 # first install all dependencies (this step gets cached)
@@ -7,7 +7,7 @@ RUN apt-get update && \
     build-essential \
     curl ntp wget git libssl-dev openssl \
     make gcc g++ autoconf automake \
-    python build-essential \
+    python3 build-essential \
     vim
 
 RUN useradd -m --shell /bin/bash gny

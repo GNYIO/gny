@@ -6,6 +6,10 @@ module.exports = {
   setupFiles: ['./jest.polyfills.js'],
   setupFilesAfterEnv: ['jest-extended/all'],
 
+  // https://github.com/prisma/prisma/issues/17171#issuecomment-1643931883
+  // was hitting out of memory errors when running unit tests
+  workerIdleMemoryLimit: '512MB',
+
   extensionsToTreatAsEsm: ['.ts', '.tsx', '.mts'],
   transform: {
     '^.+\\.tsx?$': [
