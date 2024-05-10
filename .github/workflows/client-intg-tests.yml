@@ -5,25 +5,11 @@ jobs:
     timeout-minutes: 45
     runs-on: ubuntu22.04-16gb-runner
     steps:
-      - name: Set Swap Space
-        uses: pierotofy/set-swap-space@master
-        with:
-          swap-size-gb: 8
-
-      - name: Remove unnecessary tools
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -h
-
       - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v2
         with:
           node-version: '18.20.2'
-
 
 
       - name: md5sum of all package.json and package-lock.json files
