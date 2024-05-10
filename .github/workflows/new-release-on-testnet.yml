@@ -51,9 +51,6 @@ jobs:
       - name: npm set username
         run: npm set username ${{ secrets.NPM_USERNAME }}
 
-      - name: npm set email
-        run: npm set email ${{ secrets.NPM_EMAIL }}
-
       - name: new release (no push)
         run: "node_modules/lerna/cli.js version ${{ github.event.inputs.releaseType }} --yes --exact --no-push"
 
