@@ -7,9 +7,14 @@ import * as transaction from './lib/transactions/transaction';
 import * as uia from './lib/transactions/uia';
 import * as format from './lib/time/format';
 import { Connection } from './connection';
+import * as datSchema from './lib/schema/dat-schema';
 
 const utils = {
   format: format,
+};
+
+const schemas = {
+  datSchema,
 };
 
 export {
@@ -21,4 +26,5 @@ export {
   Connection,
   dat,
   verification,
+  schemas,
 };

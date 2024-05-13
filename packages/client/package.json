@@ -34,6 +34,7 @@
     "@gnyio/utils": "2.6.1",
     "@gnyio/web-base": "2.6.1",
     "@types/bs58": "^3.0.32",
+    "ajv": "^8.13.0",
     "axios": "^1.6.8",
     "bs58": "^3.1.0",
     "bytebuffer": "^5.0.1",
