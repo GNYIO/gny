@@ -1,6 +1,7 @@
 import * as nacl from 'tweetnacl';
 import { KeyPair } from '@gnyio/interfaces';
 import { Buffer } from 'buffer';
+import * as crypto from 'crypto';
 
 export function generateKeyPair(hash: Buffer): KeyPair {
   const uint = Uint8Array.from(hash);
@@ -33,4 +34,13 @@ export function verify(
 
   const res = nacl.sign.detached.verify(uintHash, uintSignature, uintPublicKey);
   return res;
+}
+
+export function createSha256Hash(input: string) {
+  const result = crypto
+    .createHash('sha256')
+    .update(Buffer.from(input))
+    .digest()
+    .toString('hex');
+  return result;
 }
