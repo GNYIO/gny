@@ -4,7 +4,7 @@ import * as webEd from '@gnyio/web-ed';
 // to sign and verify custom verifications
 export class MessageWebBase {
   // signs with private key
-  public static sign(message: string, keypair: KeyPair) {
+  public static sign(message: Buffer, keypair: KeyPair) {
     return webEd.sign(message, keypair.privateKey).toString('hex');
   }
 
