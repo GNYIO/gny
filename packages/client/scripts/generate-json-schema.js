@@ -14,21 +14,13 @@ const schema = {
       title: 'DATEd25519',
       description: 'A DAT that was signed with a private key',
       properties: {
-        version: {
-          const: 1,
-        },
+        version: { const: 1 },
         data: {
-          type: 'string',
+          type: ['string', 'array', 'object'],
         },
-        publicKey: {
-          type: 'string',
-        },
-        signature: {
-          type: 'string',
-        },
-        cipher: {
-          const: 'ed25519',
-        },
+        publicKey: { type: 'string' },
+        signature: { type: 'string' },
+        cipher: { const: 'ed25519' },
       },
       required: ['version', 'data', 'publicKey', 'signature', 'cipher'],
       additionalProperties: false,
@@ -37,18 +29,12 @@ const schema = {
       title: 'DATsha256',
       description: 'A DAT that was hashed by sha256',
       properties: {
-        version: {
-          const: 1,
-        },
+        version: { const: 1 },
         data: {
-          type: 'string',
+          type: ['string', 'array', 'object'],
         },
-        hash: {
-          type: 'string',
-        },
-        hash_algo: {
-          const: 'sha256',
-        },
+        hash: { type: 'string' },
+        hash_algo: { const: 'sha256' },
         additionalProperties: false,
       },
       required: ['version', 'data', 'hash', 'hash_algo'],

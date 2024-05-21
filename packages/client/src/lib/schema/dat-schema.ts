@@ -3,7 +3,7 @@
 
 export interface DATed25519 {
   version: 1;
-  data: string;
+  data: any;
   publicKey: string;
   signature: string;
   cipher: 'ed25519';
@@ -11,7 +11,7 @@ export interface DATed25519 {
 
 export interface DATsha256 {
   version: 1;
-  data: string;
+  data: any;
   hash: string;
   hash_algo: 'sha256';
 }
@@ -45,14 +45,14 @@ export function validate(input: any) {
  *  You can auto-generate your schema if you simply paste your
  *  JSON schema into the file mentioned above
  */
-export const schema = {
+const schema11 = {
   oneOf: [
     {
       title: 'DATEd25519',
       description: 'A DAT that was signed with a private key',
       properties: {
         version: { const: 1 },
-        data: { type: 'string' },
+        data: { type: ['string', 'array', 'object'] },
         publicKey: { type: 'string' },
         signature: { type: 'string' },
         cipher: { const: 'ed25519' },
@@ -65,7 +65,7 @@ export const schema = {
       description: 'A DAT that was hashed by sha256',
       properties: {
         version: { const: 1 },
-        data: { type: 'string' },
+        data: { type: ['string', 'array', 'object'] },
         hash: { type: 'string' },
         hash_algo: { const: 'sha256' },
         additionalProperties: false,
@@ -75,6 +75,8 @@ export const schema = {
     },
   ],
 };
+export const schema = schema11;
+
 function validate10(
   data,
   // @ts-ignore
@@ -160,14 +162,18 @@ function validate10(
         }
         if (valid1) {
           if (data.data !== undefined) {
+            let data1 = data.data;
             const _errs4 = errors;
-            if (typeof data.data !== 'string') {
+            if (
+              (!data1 || typeof data1 != 'object') &&
+              typeof data1 !== 'string'
+            ) {
               const err3 = {
                 instancePath: instancePath + '/data',
                 schemaPath: '#/oneOf/0/properties/data/type',
                 keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
+                params: { type: schema11.oneOf[0].properties.data.type },
+                message: 'must be string,array,object',
               };
               if (vErrors === null) {
                 vErrors = [err3];
@@ -332,14 +338,18 @@ function validate10(
         }
         if (valid2) {
           if (data.data !== undefined) {
+            let data6 = data.data;
             const _errs14 = errors;
-            if (typeof data.data !== 'string') {
+            if (
+              (!data6 || typeof data6 != 'object') &&
+              typeof data6 !== 'string'
+            ) {
               const err10 = {
                 instancePath: instancePath + '/data',
                 schemaPath: '#/oneOf/1/properties/data/type',
                 keyword: 'type',
-                params: { type: 'string' },
-                message: 'must be string',
+                params: { type: schema11.oneOf[1].properties.data.type },
+                message: 'must be string,array,object',
               };
               if (vErrors === null) {
                 vErrors = [err10];
