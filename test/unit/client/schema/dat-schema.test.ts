@@ -64,11 +64,120 @@ describe('schemas', () => {
           data: 'some data',
           hash:
             '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+          // hash_algo: 'sha256',
         };
 
         const result = gnyClient.schemas.datSchema.validate(datHash);
         expect(result).toMatchObject({
           result: false,
+        });
+      });
+
+      describe('data', () => {
+        it('DATsha256 - fails if "data" property is null', () => {
+          const datHash = {
+            version: 1,
+            data: null,
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATsha256 - fails if "data" property is undefined', () => {
+          const datHash = {
+            version: 1,
+            data: undefined,
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATsha256 - fails if "data" property is missing', () => {
+          const datHash = {
+            version: 1,
+            // data: 'some data',
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATsha256 - succeeds if "data" property is object', () => {
+          const datHash = {
+            version: 1,
+            data: {},
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: true,
+          });
+        });
+
+        // wrong, fix test
+        it('DATsha256 - fails if "data" property is number', () => {
+          const datHash = {
+            version: 1,
+            data: 99,
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATsha256 - succeeds if "data" property is string', () => {
+          const datHash = {
+            version: 1,
+            data: 'some string',
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: true,
+          });
+        });
+
+        it('DATsha256 - succeeds if "data" property is array', () => {
+          const datHash = {
+            version: 1,
+            data: [],
+            hash:
+              '1307990e6ba5ca145eb35e99182a9bec46531bc54ddf656a602c780fa0240dee',
+            hash_algo: 'sha256',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datHash);
+          expect(result).toMatchObject({
+            result: true,
+          });
         });
       });
     });
