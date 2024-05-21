@@ -73,7 +73,7 @@ describe('schemas', () => {
         });
       });
 
-      describe('data', () => {
+      describe('DATsha256 - data', () => {
         it('DATsha256 - fails if "data" property is null', () => {
           const datHash = {
             version: 1,
@@ -257,6 +257,127 @@ describe('schemas', () => {
         const result = gnyClient.schemas.datSchema.validate(datEd25519);
         expect(result).toMatchObject({
           result: false,
+        });
+      });
+
+      describe('DATed25519 - data', () => {
+        it('DATed25519 - fails if property "data" is null', () => {
+          const datEd25519 = {
+            version: 1,
+            data: null,
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATed25519 - fails if property "data" is undefined', () => {
+          const datEd25519 = {
+            version: 1,
+            data: undefined,
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATed25519 - fails if property "data" is missing', () => {
+          const datEd25519 = {
+            version: 1,
+            // data: 'some data',
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATed25519 - fails if property "data" is number', () => {
+          const datEd25519 = {
+            version: 1,
+            data: 100,
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: false,
+          });
+        });
+
+        it('DATed25519 - succeeds if property "data" is object', () => {
+          const datEd25519 = {
+            version: 1,
+            data: {},
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: true,
+          });
+        });
+
+        it('DATed25519 - succeeds if property "data" is array', () => {
+          const datEd25519 = {
+            version: 1,
+            data: [],
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: true,
+          });
+        });
+
+        it('DATed25519 - succeeds if property "data" is string', () => {
+          const datEd25519 = {
+            version: 1,
+            data: 'aaaaaaaaaaaa',
+            publicKey:
+              'D83C80D63CBAABF0410DD2F3E9FD167D09F91C94D154C4DF6B0D6DF4EEB81F2C',
+            signature:
+              'd7f2ad8343b413509ae850cade71083d25d42c4423d46bc0610441ff9b9b723f27e909b8629b154af847196ad8c4eb1a1f49803c1254c23346c5f00c4d16b30c',
+            cipher: 'ed25519',
+          };
+
+          const result = gnyClient.schemas.datSchema.validate(datEd25519);
+          expect(result).toMatchObject({
+            result: true,
+          });
         });
       });
     });
