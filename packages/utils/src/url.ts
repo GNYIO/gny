@@ -1,9 +1,10 @@
 // should only be used with joi
-export const urlRegex = new RegExp(
-  /^https:\/\/(?:[-a-zA-Z0-9]{1,256}\.)+?[a-zA-Z0-9]{1,15}(?:\/[-a-zA-Z0-9.()*+$!_%]*?)*?(?:(?:\?([-a-zA-Z0-9.()*+$!_%]+?)=[-a-zA-Z0-9.()*+$!_%]+?)(&[-a-zA-Z0-9.()*+$!_%]+?=[-a-zA-Z0-9.()*+$!_%]+?)*)?$/
+const urlRegex = new RegExp(
+  /^https:\/\/(?:[-a-zA-Z0-9]+\.)+?[a-zA-Z0-9]{1,15}(?:\/[-a-zA-Z0-9.()*+$!_%]*?)*?(?:(?:\?([-a-zA-Z0-9.()*+$!_%]+?)=[-a-zA-Z0-9.()*+$!_%]+?)(&[-a-zA-Z0-9.()*+$!_%]+?=[-a-zA-Z0-9.()*+$!_%]+?)*)?$/
 );
 export function isUrl(input: any) {
-  const result = typeof input === 'string' && urlRegex.test(input);
+  const result =
+    typeof input === 'string' && urlRegex.test(input) && input.length <= 255;
   return result;
 }
 

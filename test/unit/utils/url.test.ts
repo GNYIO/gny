@@ -28,6 +28,11 @@ describe('url', () => {
     expect(isUrl('https://test.com/api/?abc=def&xyz=def')).toEqual(true);
     expect(isUrl('https://test.com/api/?abc=def&xyz=d%20f')).toEqual(true);
 
+    // 255 length (should pass)
+    const value255 =
+      'https://test.com/?x=' + 'a'.repeat(255 - 'https://test.com/?x='.length);
+    expect(isUrl(value255)).toEqual(true);
+
     /* sad path */
     expect(isUrl('test.com')).toEqual(false);
     expect(isUrl('com')).toEqual(false);
@@ -51,6 +56,11 @@ describe('url', () => {
     expect(isUrl('https://test.com/?x=x&')).toEqual(false);
     expect(isUrl('https://test.com/?x=x&a')).toEqual(false);
     expect(isUrl('https://test.com/?x=x=')).toEqual(false);
+
+    // 256 length (should fail)
+    const value256 =
+      'https://test.com/?x=' + 'a'.repeat(256 - 'https://test.com/?x='.length);
+    expect(isUrl(value256)).toEqual(false);
   });
 
   it('validate datMakerRegex', () => {
