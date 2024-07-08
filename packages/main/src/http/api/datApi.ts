@@ -17,6 +17,29 @@ import { Dat } from '@gnyio/database-postgres';
 
 import { datMakerRegex, datNameRegex, datHashRegex } from '@gnyio/utils';
 
+export function isDatNameOrDatHash(arr: any) {
+  const eitherHashOrName = joi
+    .alternatives(
+      joi.string().regex(datHashRegex),
+      joi.string().regex(datNameRegex)
+    )
+    .required();
+
+  const schema = joi
+    .array()
+    .items(eitherHashOrName)
+    .min(1) // at least 1 item
+    .max(100) // max 30 items
+    .required();
+
+  const report = joi.validate(arr, schema);
+  if (report.error) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 export default class DatApi implements IHttpApi {
   private library: IScope;
 
@@ -40,6 +63,7 @@ export default class DatApi implements IHttpApi {
     router.get('/makers/:maker', this.getMakerByName);
     router.get('/', this.getDats);
     router.get('/getDat', this.getDat);
+    router.post('/getMultipleDats', this.getMultipleDats);
 
     // Configuration
     router.use((req: Request, res: Response) => {
@@ -295,5 +319,43 @@ export default class DatApi implements IHttpApi {
       dat: dat,
     };
     return res.json(result);
+  };
+
+  private getMultipleDats = async (req: Request, res: Response, next: Next) => {
+    const { body } = req;
+
+    if (!isDatNameOrDatHash(body)) {
+      global.app.prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/dat/getMultipleDats',
+        statusCode: '422',
+      });
+
+      return res.status(422).send({
+        success: false,
+        error: 'wrong array',
+      });
+    }
+
+    const onlyDatHashes = [];
+    const onlyDatNames = [];
+
+    const hashes = await global.app.sdb.findAll<Dat>(Dat, {
+      condition: {
+        hash: {
+          $in: onlyDatHashes,
+        },
+      },
+    });
+
+    const names = await global.app.sdb.findAll<Dat>(Dat, {
+      condition: {
+        name: {
+          $in: onlyDatNames,
+        },
+      },
+    });
+
+    return res.json([...hashes, ...names]);
   };
 }

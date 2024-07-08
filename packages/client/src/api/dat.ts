@@ -72,4 +72,10 @@ export class Dat {
     const result: ApiResult<SingleDatWrapper, ValidationError> = res.data;
     return result;
   }
+
+  public async getMultipleDats(postParams: any): Promise<ApiResult<any>> {
+    const res = await this.base.post(`/api/dat/getMultipleDats`, postParams);
+    const result = res.data;
+    return result;
+  }
 }
