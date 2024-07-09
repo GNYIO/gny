@@ -6,6 +6,7 @@ import {
   SingleDatMakerWrapper,
   DatWrapper,
   SingleDatWrapper,
+  MultipleDats,
 } from '@gnyio/interfaces';
 import { Connection } from '../connection';
 
@@ -70,6 +71,14 @@ export class Dat {
   ): Promise<ApiResult<SingleDatWrapper>> {
     const res = await this.base.get(`/api/dat/getDat`, query);
     const result: ApiResult<SingleDatWrapper, ValidationError> = res.data;
+    return result;
+  }
+
+  public async getMultipleDats(
+    postParams: string[]
+  ): Promise<ApiResult<MultipleDats>> {
+    const res = await this.base.post(`/api/dat/getMultipleDats`, postParams);
+    const result = res.data;
     return result;
   }
 }

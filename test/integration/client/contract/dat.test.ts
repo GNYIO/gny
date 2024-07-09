@@ -846,6 +846,47 @@ describe('dat', () => {
         },
         lib.oneMinute
       );
+
+      it(
+        'query multiple dats',
+        async () => {
+          const genesisSecret =
+            'summer produce nation depth home scheme trade pitch marble season crumble autumn';
+          const genesisAddress = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
+
+          const reg1 = await registerDatMaker('one', 'desc', genesisSecret);
+          // @ts-ignore
+          expect(reg1).toHaveProperty('transactionId');
+
+          await registerDat(
+            'FIRST',
+            '2c2624a5059934a947d6e25fe8332ade',
+            'one',
+            'https://test.com/2c2624a5059934a947d6e25fe8332ade',
+            genesisSecret
+          );
+          await lib.onNewBlock(GNY_PORT);
+
+          await registerDat(
+            'SECOND',
+            '2200becb80f0019c4a2ccecec350d0db',
+            'one',
+            'https://test.com/2200becb80f0019c4a2ccecec350d0db',
+            genesisSecret
+          );
+          await lib.onNewBlock(GNY_PORT);
+
+          const postParams = [
+            '2c2624a5059934a947d6e25fe8332ade',
+            '2200becb80f0019c4a2ccecec350d0db',
+            'DAT_MAKER.FIRST_DAT_20240709', // wasn't registered, will return null
+          ];
+          const dats = await connection.api.Dat.getMultipleDats(postParams);
+
+          console.log(JSON.stringify(dats, null, 2));
+        },
+        lib.oneMinute
+      );
     });
   });
 });

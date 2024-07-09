@@ -971,6 +971,11 @@ export interface DatWrapper {
   dats: IDat[];
 }
 
+export interface MultipleDats {
+  requested: string[];
+  result: IDat[];
+}
+
 export interface IBurn {
   tid: string;
   senderId: string;
