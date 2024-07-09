@@ -8,6 +8,7 @@ import {
   DatWrapper,
   SingleDatWrapper,
   SingleDatMakerWrapper,
+  MultipleDats,
 } from '@gnyio/interfaces';
 import { StateHelper } from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
@@ -358,7 +359,7 @@ export default class DatApi implements IHttpApi {
 
     // make sure that the "result" array is in the same order as the
     // request array
-    const result = [];
+    const result: Dat[] = [];
     for (const one of body) {
       const found1 = hashes.find(x => x.hash === one);
       if (found1 !== undefined) {
@@ -376,10 +377,11 @@ export default class DatApi implements IHttpApi {
       result.push(null);
     }
 
-    return res.json({
+    const apiResult: ApiResult<MultipleDats> = {
       success: true,
       requested: body,
       result,
-    });
+    };
+    return res.json(apiResult);
   };
 }
