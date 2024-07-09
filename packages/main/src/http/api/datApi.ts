@@ -337,8 +337,8 @@ export default class DatApi implements IHttpApi {
       });
     }
 
-    const onlyDatHashes = [];
-    const onlyDatNames = [];
+    const onlyDatHashes = body.filter(x => datHashRegex.test(x));
+    const onlyDatNames = body.filter(x => datNameRegex.test(x));
 
     const hashes = await global.app.sdb.findAll<Dat>(Dat, {
       condition: {
@@ -356,6 +356,30 @@ export default class DatApi implements IHttpApi {
       },
     });
 
-    return res.json([...hashes, ...names]);
+    // make sure that the "result" array is in the same order as the
+    // request array
+    const result = [];
+    for (const one of body) {
+      const found1 = hashes.find(x => x.hash === one);
+      if (found1 !== undefined) {
+        result.push(found1);
+        continue;
+      }
+
+      const found2 = names.find(x => x.name === one);
+      if (found2 !== undefined) {
+        result.push(found2);
+        continue;
+      }
+
+      // value not found
+      result.push(null);
+    }
+
+    return res.json({
+      success: true,
+      requested: body,
+      result,
+    });
   };
 }
