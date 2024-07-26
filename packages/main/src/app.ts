@@ -252,6 +252,11 @@ function main() {
     // @ts-ignore
     process.env['GNY_ACTIVATE_VERIFICATION'] || false
   );
+  appConfig.singleBlockOnly = JSON.parse(
+    // @ts-ignore
+    process.env['GNY_SINGLE_BLOCK_ONLY'] || false
+  );
+
   // assign config to global variable
   global.Config = appConfig;
 
