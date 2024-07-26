@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/logger",
-  "version": "2.6.5",
+  "version": "2.6.6",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -22,9 +22,9 @@
     }
   },
   "dependencies": {
-    "@gnyio/ed": "2.6.5",
-    "@gnyio/interfaces": "2.6.5",
-    "@gnyio/utils": "2.6.5",
+    "@gnyio/ed": "2.6.6",
+    "@gnyio/interfaces": "2.6.6",
+    "@gnyio/utils": "2.6.6",
     "tracer": "^1.1.5",
     "winston": "^3.3.3"
   }
