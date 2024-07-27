@@ -21,7 +21,6 @@ import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
 import { BlocksHelper } from './BlocksHelper.js';
-import { Variable } from '@gnyio/database-postgres';
 import { ConsensusHelper } from './ConsensusHelper.js';
 import { StateHelper } from './StateHelper.js';
 import Transactions from './transactions.js';
@@ -32,7 +31,6 @@ import { Transaction } from '@gnyio/database-postgres';
 import { Round } from '@gnyio/database-postgres';
 import { Delegate } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';
-import { slots } from '@gnyio/utils';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import pImmediate from 'p-immediate';
@@ -840,7 +838,10 @@ export default class Blocks implements ICoreModule {
 
     const localVotes = ConsensusBase.createVotes(activeDelegates, newBlock);
 
-    if (ConsensusBase.hasEnoughVotes(localVotes)) {
+    if (
+      global.Config.singleBlockOnly === true &&
+      ConsensusBase.hasEnoughVotes(localVotes)
+    ) {
       span.log({
         value: `[votes] we got enough local votes ("${
           localVotes.signatures.length

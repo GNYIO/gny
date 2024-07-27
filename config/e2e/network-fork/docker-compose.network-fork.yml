@@ -45,6 +45,7 @@ services:
     command: bash -c 'sleep 5s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config="config/e2e/network-fork/node1.json"'
     environment:
       - NODE_ENV=production
+      - GNY_SINGLE_BLOCK_ONLY=true
       - GNY_NETWORK=localnet
       - GNY_DISABLE_JAEGER=false
       - GNY_JAEGER_HOST=http://jaeger.local:14268/api/traces

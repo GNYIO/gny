@@ -43,6 +43,7 @@ services:
     command: bash -c 'sleep 10s; node --experimental-vm-modules --no-warnings packages/main/dist/app --config "config/e2e/sync-later/forger.json"'
     environment:
       - GNY_LOG_LEVEL=log
+      - GNY_SINGLE_BLOCK_ONLY=true
       - GNY_NETWORK=localnet
       - NODE_ENV=production
       - GNY_PUBLIC_IP=172.20.0.3

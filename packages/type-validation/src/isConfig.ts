@@ -123,6 +123,10 @@ export function isConfig(config: IConfig, logger: ILogger): config is IConfig {
         .boolean()
         .strict()
         .required(),
+      singleBlockOnly: joi
+        .boolean()
+        .strict()
+        .required(),
     })
     .required();
 
