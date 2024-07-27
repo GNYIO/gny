@@ -41,6 +41,7 @@ services:
     command: bash -c 'while !</dev/tcp/db1/5432; do sleep 0.5; done; node packages/main/dist/app'
     environment:
       - NODE_ENV=production
+      - GNY_SINGLE_BLOCK_ONLY=true
       - GNY_ACTIVATE_DAT=true
       - GNY_ACTIVATE_VERIFICATION=true
       - EXCHANGE_API=$EXCHANGE_FEATURE
