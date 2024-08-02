@@ -1,20 +1,16 @@
 import jaegerClient from 'jaeger-client';
-import { ILogger } from '@gnyio/interfaces';
+import { ILogger, BlockHeightId } from '@gnyio/interfaces';
 import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;
 
-export interface HeightAndId {
-  height: string;
-  id: string;
-}
-export function getSmallBlockHash(heightAndId: HeightAndId) {
+export function getSmallBlockHash(blockAndId: BlockHeightId) {
   if (
-    typeof heightAndId === 'object' &&
-    typeof heightAndId.id === 'string' &&
-    typeof heightAndId.height === 'string'
+    typeof blockAndId === 'object' &&
+    typeof blockAndId.id === 'string' &&
+    typeof blockAndId.height === 'string'
   ) {
-    return `${heightAndId.height}:${heightAndId.id.substr(0, 7)}`;
+    return `${blockAndId.height}:${blockAndId.id.substr(0, 7)}`;
   }
   return '';
 }
