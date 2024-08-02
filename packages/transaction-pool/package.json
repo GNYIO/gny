@@ -1,7 +1,7 @@
 {
   "name": "@gnyio/transaction-pool",
   "private": true,
-  "version": "2.6.7",
+  "version": "2.7.0",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -16,6 +16,6 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gnyio/interfaces": "2.6.7"
+    "@gnyio/interfaces": "2.7.0"
   }
 }
