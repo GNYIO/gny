@@ -1,6 +1,5 @@
 {
   "name": "@gnyio/tracer",
-  "private": true,
   "version": "2.7.1",
   "description": "",
   "files": [
