@@ -17,3 +17,4 @@ export * from './isManyVotes.js';
 export * from './isBlockIdWrapper.js';
 export * from './isP2PPeerIdAndMultiaddr.js';
 export * from './isSimplePeerInfoArray.js';
+export * from './isTracerWrapper.js';

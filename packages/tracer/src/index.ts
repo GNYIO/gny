@@ -1,5 +1,9 @@
 import jaegerClient from 'jaeger-client';
-import { ILogger, BlockHeightId } from '@gnyio/interfaces';
+import {
+  ILogger,
+  BlockHeightId,
+  ISerializedSpanContext,
+} from '@gnyio/interfaces';
 import * as opentracing from 'opentracing';
 
 const initJaegerTracer = jaegerClient.initTracer;
@@ -13,15 +17,6 @@ export function getSmallBlockHash(blockAndId: BlockHeightId) {
     return `${blockAndId.height}:${blockAndId.id.substr(0, 7)}`;
   }
   return '';
-}
-
-export interface ISerializedSpanContext {
-  'uber-trace-id': string;
-}
-
-export interface TracerWrapper<T> {
-  spanId: ISerializedSpanContext;
-  data: T;
 }
 
 export interface IKeyValuePair {

@@ -12,6 +12,8 @@ import {
   BlockIdWrapper,
   P2PPeerIdAndMultiaddr,
   SimplePeerInfo,
+  ISerializedSpanContext,
+  TracerWrapper,
 } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
@@ -30,10 +32,8 @@ import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
   createReferenceFromSerializedParentContext,
-  TracerWrapper,
   getSmallBlockHash,
   ISpan,
-  ISerializedSpanContext,
 } from '@gnyio/tracer';
 
 import * as PeerId from 'peer-id';
@@ -67,7 +67,7 @@ export default class Transport implements ICoreModule {
       obj.args = JSON.stringify(obj.args);
     }
 
-    const raw: TracerWrapper<UnconfirmedTransaction> = {
+    const raw: TracerWrapper<UnconfirmedTransaction[]> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: [obj],
     };

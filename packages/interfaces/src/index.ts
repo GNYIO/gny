@@ -1008,3 +1008,13 @@ export interface VerificationsWrapper {
   verifications: IIVerification[];
   count: number;
 }
+
+// moved from @gnyio/tracer
+export interface ISerializedSpanContext {
+  'uber-trace-id': string;
+}
+// moved from @gnyio/tracer
+export interface TracerWrapper<T> {
+  spanId: ISerializedSpanContext;
+  data: T;
+}

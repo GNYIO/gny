@@ -10,6 +10,7 @@ import {
   BlocksWrapperParams,
   BufferList,
   CommonBlockResult,
+  TracerWrapper,
 } from '@gnyio/interfaces';
 import {
   isCommonBlockParams,
@@ -20,10 +21,11 @@ import {
   isBlockIdWrapper,
   isCommonBlockResult,
   isSimplePeerInfoArray,
+  isTracerWrapper,
 } from '@gnyio/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
-import { TracerWrapper, getSmallBlockHash } from '@gnyio/tracer';
+import { getSmallBlockHash } from '@gnyio/tracer';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {
@@ -57,7 +59,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     const result: TracerWrapper<BlockAndVotes> = JSON.parse(
       resultRaw.toString()
     );
-    if (!isBlockAndVotes(result.data)) {
+    if (!isTracerWrapper(result) || !isBlockAndVotes(result.data)) {
       throw new Error('[p2p] validation for requested isBlockPropose failed');
     }
 
@@ -86,7 +88,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     );
 
     // validate id
-    if (!isBlockIdWrapper(body)) {
+    if (!isTracerWrapper(wrapper) || !isBlockIdWrapper(body)) {
       global.library.logger.info('[p2p] validaion for blockIdWrapper failed');
 
       span.setTag('error', true);
@@ -182,7 +184,7 @@ function V1_VOTES_HANDLER(bundle) {
 
     const votes: ManyVotes = wrapper.data;
 
-    if (!isManyVotes(votes)) {
+    if (!isTracerWrapper(wrapper) || !isManyVotes(votes)) {
       global.library.logger.info(
         `[p2p] validation for ManyVotes failed: ${JSON.stringify(votes)}`
       );
@@ -274,7 +276,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 
     const body = raw.data;
 
-    if (!isCommonBlockParams(body)) {
+    if (!isTracerWrapper(raw) || !isCommonBlockParams(body)) {
       span.setTag('error', true);
       span.log({
         value: 'commonBlock params validation failed',
@@ -433,6 +435,10 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     }
     const body: TracerWrapper<string> = JSON.parse(temp.toString());
 
+    if (!isTracerWrapper(body)) {
+      throw new Error('[p2p] validation for getHeight isTracerWrapper failed');
+    }
+
     const span = global.library.tracer.startSpan('receive height request', {
       childOf: createSpanContextFromSerializedParentContext(
         global.library.tracer,
@@ -479,6 +485,7 @@ function V1_BLOCKS_HANDLER(bundle) {
     );
 
     const result: IBlock[] = JSON.parse(resultRaw.toString());
+    // TODO validate
     return result;
   };
 
@@ -502,7 +509,7 @@ function V1_BLOCKS_HANDLER(bundle) {
 
     body.limit = body.limit || 200;
 
-    if (!isBlocksWrapperParams(body)) {
+    if (!isTracerWrapper(raw) || !isBlocksWrapperParams(body)) {
       span.setTag('error', true);
       span.log({
         value: 'blocksync params validation failed',
