@@ -1,6 +1,5 @@
 import { ISpan } from '@gnyio/tracer';
 import { slots } from '@gnyio/utils';
-import { parseOptions } from 'commander';
 
 export type TimeStampType = 'block-header' | 'propose';
 
@@ -17,7 +16,7 @@ export class TransportHelper {
     const diff = slots.secondsAfterTimestamp(incomingEpoch);
     const currentEpoch = slots.getEpochTime();
 
-    if (diff >= 3) {
+    if (diff >= 6) {
       const diffSpan = global.library.tracer.startSpan(
         'block header too late',
         {
