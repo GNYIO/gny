@@ -67,7 +67,7 @@ export default class Transport implements ICoreModule {
       obj.args = JSON.stringify(obj.args);
     }
 
-    const raw: TracerWrapper<UnconfirmedTransaction> = {
+    const raw: TracerWrapper<UnconfirmedTransaction[]> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: [obj],
     };
