@@ -10,6 +10,7 @@ import {
   BlocksWrapperParams,
   BufferList,
   CommonBlockResult,
+  TracerWrapper,
 } from '@gnyio/interfaces';
 import {
   isCommonBlockParams,
@@ -23,7 +24,7 @@ import {
 } from '@gnyio/type-validation';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
-import { TracerWrapper, getSmallBlockHash } from '@gnyio/tracer';
+import { getSmallBlockHash } from '@gnyio/tracer';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {

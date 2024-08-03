@@ -12,6 +12,8 @@ import {
   BlockIdWrapper,
   P2PPeerIdAndMultiaddr,
   SimplePeerInfo,
+  ISerializedSpanContext,
+  TracerWrapper,
 } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
@@ -30,10 +32,8 @@ import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
   createReferenceFromSerializedParentContext,
-  TracerWrapper,
   getSmallBlockHash,
   ISpan,
-  ISerializedSpanContext,
 } from '@gnyio/tracer';
 
 import * as PeerId from 'peer-id';
