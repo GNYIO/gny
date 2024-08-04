@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
 import * as ed from '@gnyio/ed';
 import assert from 'assert';
-import { joi } from '@gnyio/extended-joi';
 import ip from 'ip';
 import {
   IBlock,
@@ -69,34 +68,6 @@ export class ConsensusBase {
     return ConsensusBase.hasEnoughVotes(votes);
   }
 
-  private static calculateProposeHash(propose: BlockPropose) {
-    const byteBuffer = new ByteBuffer();
-    byteBuffer.writeInt64((propose.height as unknown) as number);
-    byteBuffer.writeString(propose.id);
-
-    const generatorPublicKeyBuffer = Buffer.from(
-      propose.generatorPublicKey,
-      'hex'
-    );
-    for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-      byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
-    }
-
-    byteBuffer.writeInt(propose.timestamp);
-
-    const parts = propose.address.split(':');
-    assert(parts.length === 2);
-    byteBuffer.writeInt(ip.toLong(parts[0]));
-    byteBuffer.writeInt(Number(parts[1]));
-
-    byteBuffer.flip();
-    const buffer = byteBuffer.toBuffer();
-    return crypto
-      .createHash('sha256')
-      .update(buffer)
-      .digest();
-  }
-
   public static createPropose(
     keypair: KeyPair,
     block: IBlock,
@@ -129,30 +100,36 @@ export class ConsensusBase {
     return finalPropose;
   }
 
-  private static getProposeHash(
+  // When "hex" encoding is used:
+  // Then always a pair get interpreted "7fa5" becomes "7f" and "7e"
+  // 7f is 127 in decimal
+  // 7e is 127 in decimal
+  // 00 is 0 in decimal
+  // ff is 255 in decimal
+  public static getProposeHash(
     propose: Pick<
       BlockPropose,
-      'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'
+      'height' | 'id' | 'generatorPublicKey' | 'timestamp' | 'address' // correct order
     >
   ) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64((propose.height as unknown) as number);
-    byteBuffer.writeString(propose.id);
+    byteBuffer.writeString(propose.id); // writeUTF8String
 
     const generatorPublicKeyBuffer = Buffer.from(
       propose.generatorPublicKey,
       'hex'
     );
     for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
-      byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
+      byteBuffer.writeByte(generatorPublicKeyBuffer[i]); // writeInt8
     }
 
-    byteBuffer.writeInt(propose.timestamp);
+    byteBuffer.writeInt(propose.timestamp); // writeInt32
 
     const parts = propose.address.split(':');
     assert(parts.length === 2);
-    byteBuffer.writeInt(ip.toLong(parts[0]));
-    byteBuffer.writeInt(Number(parts[1]));
+    byteBuffer.writeInt(ip.toLong(parts[0])); // writeInt32
+    byteBuffer.writeInt(Number(parts[1])); // writeInt32
 
     byteBuffer.flip();
     const buffer = byteBuffer.toBuffer();
@@ -165,7 +142,7 @@ export class ConsensusBase {
   public static acceptPropose(propose: BlockPropose) {
     let hash: Buffer;
     try {
-      hash = ConsensusBase.calculateProposeHash(propose);
+      hash = ConsensusBase.getProposeHash(propose);
     } catch (err) {
       return false;
     }
