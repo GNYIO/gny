@@ -84,7 +84,8 @@ function createRandomBlockPropose(
     hash: randomHex(64),
     height,
     generatorPublicKey,
-    id,
+    id: `id_${height}`,
+    prevBlockId: `id_${Number(height) - 1}`,
     signature: randomHex(64),
     timestamp: 124242243693,
   };
@@ -716,7 +717,8 @@ describe('BlocksHelper', () => {
         height: String(3),
         timestamp: Date.now() - 20000,
         hash: randomHex(64),
-        id: randomHex(32),
+        id: `id_3`,
+        prevBlockId: `id_2`,
         signature: randomHex(32),
       };
       const result = BlocksHelper.SetLastPropose(state, lastVoteTime, propose);
