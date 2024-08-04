@@ -259,7 +259,7 @@ describe('Consensus', () => {
       propose.hash = Buffer.from('wrong hash').toString('hex');
 
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toBeFalsy();
+      expect(accepted).toEqual(false);
     });
 
     it('acceptPropose() - returns false when "height" property was manipulated', () => {
@@ -271,7 +271,7 @@ describe('Consensus', () => {
       propose.height = String(2);
 
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toBeFalsy();
+      expect(accepted).toEqual(false);
     });
 
     it('acceptPropose() - returns false when "address" property was manipulated', () => {
@@ -283,7 +283,7 @@ describe('Consensus', () => {
       propose.address = '49.1.91.33:1234';
 
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toBeFalsy();
+      expect(accepted).toEqual(false);
     });
 
     it('acceptPropose() - returns false when "generatorPublicKey" property was manipulated', () => {
@@ -293,7 +293,7 @@ describe('Consensus', () => {
       propose.generatorPublicKey = randomHex(32);
 
       const accepted = ConsensusBase.acceptPropose(propose);
-      expect(accepted).toBeFalsy();
+      expect(accepted).toEqual(false);
     });
   });
 
@@ -331,8 +331,8 @@ describe('Consensus', () => {
       );
     });
 
-    it('getProposeHash() - throws if not ip:port has no colon (:)', () => {
-      // expect.assertions(1);
+    it('getProposeHash() - throws if not ip has no colon', () => {
+      expect.assertions(1);
 
       const keypair = createKeypair();
       const block = createBlock(String(1), keypair);
@@ -342,9 +342,15 @@ describe('Consensus', () => {
 
       const propose = ConsensusBase.createPropose(keypair, block, address);
 
-      return expect(() => ConsensusBase.getProposeHash(propose)).toThrowError(
-        'ip:port not correct'
-      );
+      // jest can't assert. See: https://github.com/jestjs/jest/issues/7547
+      let threw = false;
+      try {
+        ConsensusBase.getProposeHash(propose);
+      } catch (err) {
+        threw = true;
+      }
+
+      expect(threw).toEqual(true);
     });
   });
 });

@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import ByteBuffer from 'bytebuffer';
 import * as ed from '@gnyio/ed';
-import assert from 'assert';
 import ip from 'ip';
 import {
   IBlock,
@@ -73,10 +72,9 @@ export class ConsensusBase {
     block: IBlock,
     address: string
   ) {
-    assert(
-      keypair.publicKey.toString('hex') === block.delegate,
-      'delegate public keys do not match'
-    );
+    if (keypair.publicKey.toString('hex') !== block.delegate) {
+      throw new Error('delegate public keys do not match');
+    }
 
     const basePropose: Pick<
       BlockPropose,
@@ -127,7 +125,10 @@ export class ConsensusBase {
     byteBuffer.writeInt(propose.timestamp); // writeInt32
 
     const parts = propose.address.split(':');
-    assert(parts.length === 2, 'ip:port not correct');
+    if (parts.length !== 2) {
+      throw new Error('something is wrong');
+    }
+
     byteBuffer.writeInt(ip.toLong(parts[0])); // writeInt32
     byteBuffer.writeInt(Number(parts[1])); // writeInt32
 
