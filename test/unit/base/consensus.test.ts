@@ -331,26 +331,23 @@ describe('Consensus', () => {
       );
     });
 
-    it('getProposeHash() - throws if not ip has no colon', () => {
+    it('getProposeHash() - throws if address not in correct format', () => {
       expect.assertions(1);
 
-      const keypair = createKeypair();
-      const block = createBlock(String(1), keypair);
-      block.signature = BlockBase.sign(block, keypair);
-      block.id = BlockBase.getId(block);
-      const address = '127.0.0.1_6379'; // no colon (:)
+      const propose: Pick<
+        BlockPropose,
+        'height' | 'id' | 'generatorPublicKey' | 'timestamp' | 'address' // correct order
+      > = {
+        address: 'wrongaddress', // this is wrong
+        height: String(1),
+        id: 'ab',
+        generatorPublicKey: 'cd',
+        timestamp: 22222,
+      };
 
-      const propose = ConsensusBase.createPropose(keypair, block, address);
-
-      // jest can't assert. See: https://github.com/jestjs/jest/issues/7547
-      let threw = false;
-      try {
-        ConsensusBase.getProposeHash(propose);
-      } catch (err) {
-        threw = true;
-      }
-
-      expect(threw).toEqual(true);
+      expect(() => ConsensusBase.getProposeHash(propose)).toThrow(
+        'something is wrong'
+      );
     });
   });
 });
