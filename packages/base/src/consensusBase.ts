@@ -127,7 +127,7 @@ export class ConsensusBase {
     byteBuffer.writeInt(propose.timestamp); // writeInt32
 
     const parts = propose.address.split(':');
-    assert(parts.length === 2);
+    assert(parts.length === 2, 'ip:port not correct');
     byteBuffer.writeInt(ip.toLong(parts[0])); // writeInt32
     byteBuffer.writeInt(Number(parts[1])); // writeInt32
 
