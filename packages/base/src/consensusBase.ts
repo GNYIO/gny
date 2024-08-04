@@ -69,10 +69,10 @@ export class ConsensusBase {
 
   public static createPropose(
     keypair: KeyPair,
-    block: IBlock,
+    newBlock: IBlock,
     address: string
   ) {
-    if (keypair.publicKey.toString('hex') !== block.delegate) {
+    if (keypair.publicKey.toString('hex') !== newBlock.delegate) {
       throw new Error('delegate public keys do not match');
     }
 
@@ -85,11 +85,11 @@ export class ConsensusBase {
       | 'generatorPublicKey'
       | 'address'
     > = {
-      height: block.height,
-      id: block.id,
-      prevBlockId: block.prevBlockId,
-      timestamp: block.timestamp,
-      generatorPublicKey: block.delegate,
+      height: newBlock.height,
+      id: newBlock.id,
+      prevBlockId: newBlock.prevBlockId,
+      timestamp: newBlock.timestamp,
+      generatorPublicKey: newBlock.delegate,
       address,
     };
 
