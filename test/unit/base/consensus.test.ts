@@ -54,35 +54,6 @@ function createRandomBytes(length: number) {
 }
 
 describe('Consensus', () => {
-  describe('normalizeVotes', () => {
-    let block: IBlock;
-    let keypairs: KeyPair[];
-    let votes: ManyVotes;
-
-    beforeEach(done => {
-      const keypair = createKeypair();
-      keypairs = [keypair];
-      block = createBlock(String(1), keypair);
-      block.signature = BlockBase.sign(block, keypair);
-      block.id = BlockBase.getId(block);
-      votes = ConsensusBase.createVotes(keypairs, block);
-      done();
-    });
-
-    afterEach(done => {
-      block = undefined;
-      keypairs = undefined;
-      votes = undefined;
-      done();
-    });
-
-    it('should return the validated votes', done => {
-      const validatedVotes = ConsensusBase.normalizeVotes(votes);
-      expect(validatedVotes).toBe(votes);
-      done();
-    });
-  });
-
   describe('createVotes', () => {
     let block: IBlock;
     let keypairs: KeyPair[];

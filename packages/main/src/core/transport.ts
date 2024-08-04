@@ -16,13 +16,13 @@ import {
   TracerWrapper,
 } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
-import { ConsensusBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
 import {
   isBlockPropose,
   isNewBlockMessage,
   isBlockAndVotes,
   isP2PPeerIdAndMultiaddr,
+  isManyVotes,
 } from '@gnyio/type-validation';
 import { StateHelper } from './StateHelper.js';
 import { TransportHelper } from './TransportHelper.js';
@@ -368,7 +368,9 @@ export default class Transport implements ICoreModule {
         Buffer.from(result.data.votes, 'base64')
       );
       block = BlockBase.normalizeBlock(block);
-      votes = ConsensusBase.normalizeVotes(votes);
+      if (!isManyVotes(votes)) {
+        throw new Error('votes validation failed');
+      }
 
       global.library.logger.info(
         `[p2p] got "${

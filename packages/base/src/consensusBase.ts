@@ -29,34 +29,6 @@ export class ConsensusBase {
       .digest();
   }
 
-  public static normalizeVotes(votes: any): ManyVotes {
-    const schema = joi.object().keys({
-      height: joi
-        .string()
-        .positiveOrZeroBigInt()
-        .required(),
-      id: joi.string().required(),
-      signatures: joi
-        .array()
-        .items({
-          publicKey: joi
-            .string()
-            .publicKey()
-            .required(),
-          signature: joi
-            .string()
-            .signature()
-            .required(),
-        })
-        .required(),
-    });
-    const report = joi.validate(votes, schema);
-    if (report.error) {
-      throw new Error(report.error.message);
-    }
-    return votes;
-  }
-
   public static createVotes(keypairs: KeyPair[], heightAndId: BlockHeightId) {
     const hash = ConsensusBase.calculateVoteHash(
       heightAndId.height,
