@@ -10,14 +10,6 @@ import { BlockBase } from '@gnyio/base';
 import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
 
-function createRandomSignature() {
-  const signature: Signature = {
-    publicKey: randomHex(32),
-    signature: randomHex(32),
-  };
-  return signature;
-}
-
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');
 }
@@ -309,6 +301,29 @@ describe('Consensus', () => {
       const accepted = ConsensusBase.acceptPropose(propose);
       expect(accepted).toBeFalsy();
       done();
+    });
+  });
+
+  describe('getProposeHash', () => {
+    it('getProposeHash() - get hash of propose', () => {
+      expect.assertions(2);
+
+      const keypair = createKeypair();
+      const block = createBlock(String(1), keypair);
+      block.signature = BlockBase.sign(block, keypair);
+      block.id = BlockBase.getId(block);
+      const address = '127.0.0.1:6379';
+
+      const propose = ConsensusBase.createPropose(keypair, block, address);
+
+      // act
+      const hash = ConsensusBase.getProposeHash(propose);
+      expect(Buffer.isBuffer(hash)).toEqual(true);
+
+      console.log(`hash: ${hash.toString('hex')}`);
+      expect(hash.toString('hex')).toEqual(
+        '6a4fe2650b198273ea7fc7252cd95b671610ff9c1f48a9897c9ef8cb85134c06'
+      );
     });
   });
 });
