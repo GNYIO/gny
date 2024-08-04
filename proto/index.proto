@@ -51,11 +51,12 @@ message Transaction {
 message BlockPropose {
   required string height = 1;
   required string id = 2;
-  required int32 timestamp = 3;
-  required string generatorPublicKey = 4;
-  required string address = 5;
-  required string hash = 6;
-  required string signature = 7;
+  required string prevBlockId = 3;
+  required int32 timestamp = 4;
+  required string generatorPublicKey = 5;
+  required string address = 6;
+  required string hash = 7;
+  required string signature = 8;
 }
 
 message BlockVotes {

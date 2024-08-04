@@ -3,7 +3,6 @@ import { KeyPair, IBlock, ManyVotes, BlockPropose } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
 import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
-import assert from 'assert';
 
 function randomHex(length: number) {
   return crypto.randomBytes(length).toString('hex');

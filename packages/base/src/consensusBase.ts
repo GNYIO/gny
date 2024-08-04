@@ -78,10 +78,16 @@ export class ConsensusBase {
 
     const basePropose: Pick<
       BlockPropose,
-      'height' | 'id' | 'timestamp' | 'generatorPublicKey' | 'address'
+      | 'height'
+      | 'id'
+      | 'prevBlockId'
+      | 'timestamp'
+      | 'generatorPublicKey'
+      | 'address'
     > = {
       height: block.height,
       id: block.id,
+      prevBlockId: block.prevBlockId,
       timestamp: block.timestamp,
       generatorPublicKey: block.delegate,
       address,
@@ -107,12 +113,18 @@ export class ConsensusBase {
   public static getProposeHash(
     propose: Pick<
       BlockPropose,
-      'height' | 'id' | 'generatorPublicKey' | 'timestamp' | 'address' // correct order
+      | 'height'
+      | 'id'
+      | 'prevBlockId'
+      | 'generatorPublicKey'
+      | 'timestamp'
+      | 'address' // correct order
     >
   ) {
     const byteBuffer = new ByteBuffer();
     byteBuffer.writeInt64((propose.height as unknown) as number);
     byteBuffer.writeString(propose.id); // writeUTF8String
+    byteBuffer.writeString(propose.prevBlockId); // writeUTF8String
 
     const generatorPublicKeyBuffer = Buffer.from(
       propose.generatorPublicKey,

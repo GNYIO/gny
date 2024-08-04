@@ -157,6 +157,7 @@ export default class Transport implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
+    span.setTag('prevBlockId', propose.prevBlockId);
     span.setTag('proposeHash', propose.hash);
 
     const totalVotes = StateHelper.getState().pendingVotes;
@@ -493,6 +494,7 @@ export default class Transport implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
+    span.setTag('prevBlockId', propose.prevBlockId);
     span.setTag('proposeHash', propose.hash);
     span.log({
       receivedPropose: propose,

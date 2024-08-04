@@ -25,6 +25,14 @@ export function isBlockPropose(propose: any): propose is BlockPropose {
         .string()
         .hex()
         .required(),
+
+      // TODO: write unit tests
+      // has always a value, because we don't need a BlockPropose for height 0
+      prevBlockId: joi
+        .string()
+        .hex()
+        .required(),
+
       signature: joi
         .string()
         .hex()
