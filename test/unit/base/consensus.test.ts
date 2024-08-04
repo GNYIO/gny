@@ -26,7 +26,8 @@ export function createBlock(height: string, keypair: KeyPair) {
     fees: String(0),
     reward: String(0),
     signature: null,
-    id: null,
+    id: 'id_2',
+    prevBlockId: 'id_1',
     transactions: [],
     delegate: keypair.publicKey.toString('hex'),
     payloadHash: createRandomBytes(32),
@@ -182,7 +183,7 @@ describe('Consensus', () => {
       address = undefined;
     });
 
-    it('createPropose() - should return a propse', () => {
+    it('createPropose() - should return a propose', () => {
       expect.assertions(1);
 
       const propose = ConsensusBase.createPropose(keypair, block, address);
@@ -199,6 +200,40 @@ describe('Consensus', () => {
       return expect(() =>
         ConsensusBase.createPropose(keypair, block, address)
       ).toThrow('delegate public keys do not match');
+    });
+
+    it('createPropose() - BlockPropose should have same prevBlockId as new block', () => {
+      expect.assertions(2);
+
+      const keypair: KeyPair = {
+        publicKey: Buffer.from(
+          '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3',
+          'hex'
+        ),
+        privateKey: Buffer.from(
+          'f0393febe8baaa55e32f7be2a7cc180bf34e52137d99e056c817a9c07b8f239a137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3',
+          'hex'
+        ),
+      };
+
+      const newBlock = {
+        height: String(1000),
+        id: 'id_1000',
+        prevBlockId: 'id_999', // height 999
+        delegate:
+          '137a93f7f0937ab9f100fa053de988363aac710ccda3402fef073cbcb92748b3',
+        timestamp: 20000,
+      } as IBlock;
+
+      const address = '2.2.2.2:3322';
+
+      const newPropose = ConsensusBase.createPropose(
+        keypair,
+        newBlock,
+        address
+      );
+      expect(newPropose).toHaveProperty('prevBlockId');
+      expect(newPropose.prevBlockId).toEqual('id_999');
     });
   });
 
@@ -326,7 +361,7 @@ describe('Consensus', () => {
       expect(Buffer.isBuffer(hash)).toEqual(true);
 
       expect(hash.toString('hex')).toEqual(
-        '3003acdfc8b55001e40235cb8cb84c84fa7c58cdd65e0bcfaa76934f2c8ebb81'
+        '71f0e6289f465942b5d78aa6d25598547d24b8ff2a4510b798ad8e53bf179e3f'
       );
     });
 
@@ -335,11 +370,17 @@ describe('Consensus', () => {
 
       const propose: Pick<
         BlockPropose,
-        'height' | 'id' | 'generatorPublicKey' | 'timestamp' | 'address' // correct order
+        | 'height'
+        | 'id'
+        | 'prevBlockId'
+        | 'generatorPublicKey'
+        | 'timestamp'
+        | 'address' // correct order
       > = {
         address: 'wrongaddress', // this is wrong
         height: String(1),
         id: 'ab',
+        prevBlockId: 'bbbbb', // before
         generatorPublicKey: 'cd',
         timestamp: 22222,
       };
