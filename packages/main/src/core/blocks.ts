@@ -1112,6 +1112,7 @@ export default class Blocks implements ICoreModule {
     });
     span.setTag('height', propose.height);
     span.setTag('id', propose.id);
+    span.setTag('prevBlockid', propose.prevBlockId);
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
@@ -1190,11 +1191,18 @@ export default class Blocks implements ICoreModule {
       const lastBlockPlus1 = new BigNumber(state.lastBlock.height)
         .plus(1)
         .toFixed();
-      if (!new BigNumber(propose.height).isEqualTo(lastBlockPlus1)) {
+      if (
+        !new BigNumber(propose.height).isEqualTo(lastBlockPlus1) ||
+        propose.prevBlockId !== state.lastBlock.id
+      ) {
         global.library.logger.info(
           `received block propose (${
             propose.height
-          }) that is not in line with block ${state.lastBlock.height}`
+          }) that is not in line with block ${
+            state.lastBlock.height
+          }. Or incoming prevBlockId ${
+            propose.prevBlockId
+          } is not in line with previous blockid ${state.lastBlock.id}`
         );
         span.log({
           log: `received block propose that is not in line`,

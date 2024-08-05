@@ -510,6 +510,7 @@ export interface BlockPropose {
   hash: string;
   height: string;
   id: string;
+  prevBlockId: string; // new property
   signature: string;
   timestamp: number;
 }

@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 import * as protocolBuffers from 'protocol-buffers';
 import {
   NewBlockMessage,
-  BlockPropose,
   IProtobuf,
   UnconfirmedTransaction,
   BlockIdWrapper,

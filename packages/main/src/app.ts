@@ -223,7 +223,7 @@ function main() {
   );
 
   const p2pConfig = createPeer2PeerHandlers(
-    'v3.10',
+    'v4.0',
     appConfig.netVersion,
     genesisBlock.id.slice(0, 8)
   );
