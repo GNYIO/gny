@@ -1,7 +1,7 @@
 {
   "name": "@gnyio/transaction-pool-persistent",
   "private": true,
-  "version": "2.7.4",
+  "version": "2.8.0",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -16,7 +16,7 @@
   "main": "dist/index",
   "types": "dist/index",
   "dependencies": {
-    "@gnyio/interfaces": "2.7.4",
+    "@gnyio/interfaces": "2.8.0",
     "@types/better-sqlite3": "^7.6.9",
     "better-sqlite3": "^9.4.5"
   }
