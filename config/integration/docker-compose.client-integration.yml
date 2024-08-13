@@ -42,7 +42,6 @@ services:
     environment:
       - NODE_ENV=production
       - GNY_SINGLE_BLOCK_ONLY=true
-      - GNY_ACTIVATE_DAT=true
       - GNY_ACTIVATE_VERIFICATION=true
       - EXCHANGE_API=$EXCHANGE_FEATURE
       - GNY_NETWORK=localnet

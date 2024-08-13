@@ -223,7 +223,7 @@ function main() {
   );
 
   const p2pConfig = createPeer2PeerHandlers(
-    'v4.0',
+    'v4.1',
     appConfig.netVersion,
     genesisBlock.id.slice(0, 8)
   );
@@ -244,9 +244,10 @@ function main() {
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
 
+  // default to true
   appConfig.activateDat = JSON.parse(
     // @ts-ignore
-    process.env['GNY_ACTIVATE_DAT'] || false
+    process.env['GNY_ACTIVATE_DAT'] || true
   );
   appConfig.activateVerification = JSON.parse(
     // @ts-ignore
