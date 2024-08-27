@@ -1,18 +1,18 @@
-import { Block } from './block';
-import { Account } from './account';
-import { Delegate } from './delegate';
-import { Transaction } from './transaction';
-import { Loader } from './loader';
-import { Peer } from './peer';
-import { System } from './system';
-import { Transfer } from './transfer';
-import { Transport } from './transport';
-import { Uia } from './uia';
-import { Exchange } from './exchange';
-import { Burn } from './burn';
-import { Connection } from '../connection';
-import { Dat } from './dat';
-import { Verification } from './verification';
+import { Block } from './block.js';
+import { Account } from './account.js';
+import { Delegate } from './delegate.js';
+import { Transaction } from './transaction.js';
+import { Loader } from './loader.js';
+import { Peer } from './peer.js';
+import { System } from './system.js';
+import { Transfer } from './transfer.js';
+import { Transport } from './transport.js';
+import { Uia } from './uia.js';
+import { Exchange } from './exchange.js';
+import { Burn } from './burn.js';
+import { Connection } from '../connection.js';
+import { Dat } from './dat.js';
+import { Verification } from './verification.js';
 
 export const Api = (connection: Connection) => {
   return {

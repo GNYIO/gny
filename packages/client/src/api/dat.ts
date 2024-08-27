@@ -1,4 +1,4 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   ValidationError,
@@ -8,7 +8,7 @@ import {
   SingleDatWrapper,
   MultipleDats,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 interface OnlyHash {
   hash: string;

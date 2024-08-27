@@ -1,5 +1,5 @@
-import { Base } from '../api/base';
-import { basic, Connection } from '../';
+import { Base } from '../api/base.js';
+import { basic, Connection } from '../index.js';
 import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
 export class Basic {

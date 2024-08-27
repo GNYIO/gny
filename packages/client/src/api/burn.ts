@@ -1,6 +1,6 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import { ApiResult, ValidationError, BurnWrapper } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Burn {
   private base: Base;

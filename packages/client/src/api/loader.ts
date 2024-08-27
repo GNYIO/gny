@@ -1,6 +1,6 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import { ApiResult, LoaderStatus, SyncStatus } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Loader {
   private base: Base;

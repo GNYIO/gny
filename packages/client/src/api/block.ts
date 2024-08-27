@@ -1,4 +1,4 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   BlockWrapper,
@@ -12,7 +12,7 @@ import {
   SupplyWrapper,
   Status,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Block {
   private base: Base;

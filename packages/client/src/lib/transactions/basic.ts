@@ -1,5 +1,5 @@
 import * as webBase from '@gnyio/web-base';
-import * as transaction from './transaction';
+import * as transaction from './transaction.js';
 
 function transfer(
   recipientId: string,

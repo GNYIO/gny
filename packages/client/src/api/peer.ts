@@ -1,11 +1,11 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   PeersWrapper,
   VersionWrapper,
   PeerInfoWrapper,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Peer {
   private base: Base;

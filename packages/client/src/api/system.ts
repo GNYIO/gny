@@ -1,6 +1,6 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import { ApiResult, VersionWrapper, ServerError } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class System {
   private base: Base;
