@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const ResolveTypeScriptPlugin = require('resolve-typescript-plugin');
 
 const config = {
   mode: 'production',
@@ -20,6 +21,7 @@ const config = {
     ]
   },
   resolve: {
+    plugins: [new ResolveTypeScriptPlugin()],
     fallback: { // https://stackoverflow.com/questions/64557638/how-to-polyfill-node-core-modules-in-webpack-5
       "crypto": false,
     },
