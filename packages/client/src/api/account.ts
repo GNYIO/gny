@@ -1,4 +1,4 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   GetAccountError,
@@ -15,7 +15,7 @@ import {
   CountWrapper,
   PublicKeyWrapper,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 interface OnlyAddress {
   address: string;

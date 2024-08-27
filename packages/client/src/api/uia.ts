@@ -1,4 +1,4 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   IssuesWrapper,
@@ -14,7 +14,7 @@ import {
   BalanceError,
   AssetHoldersWrapper,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Uia {
   private base: Base;

@@ -1,5 +1,5 @@
-import { Base } from '../api/base';
-import { verification, Connection } from '../';
+import { Base } from '../api/base.js';
+import { verification, Connection } from '../index.js';
 import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
 export class Verification {

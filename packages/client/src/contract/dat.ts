@@ -1,5 +1,5 @@
-import { Base } from '../api/base';
-import { dat, Connection } from '../';
+import { Base } from '../api/base.js';
+import { dat, Connection } from '../index.js';
 import { ApiResult, TransactionIdWrapper } from '@gnyio/interfaces';
 
 export class Dat {

@@ -1,4 +1,4 @@
-import * as transaction from './transaction';
+import * as transaction from './transaction.js';
 
 function registerDatMaker(
   name: string,

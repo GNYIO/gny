@@ -1,11 +1,11 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   ValidationError,
   VerificationsWrapper,
   SingleVerificationWrapper,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Verification {
   private base: Base;

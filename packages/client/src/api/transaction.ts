@@ -1,4 +1,4 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   ApiResult,
   TransactionsWrapper,
@@ -12,7 +12,7 @@ import {
   UnconfirmedTransactionsWrapper,
   TransactionConfirmationWrapper,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 interface Query {
   limit?: number;

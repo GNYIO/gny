@@ -1,5 +1,5 @@
-import { Api } from './api';
-import { Contract } from './contract';
+import { Api } from './api/index.js';
+import { Contract } from './contract/index.js';
 import { NetworkType } from '@gnyio/interfaces';
 import { getConfig } from '@gnyio/network';
 

@@ -1,10 +1,10 @@
-import { Base } from './base';
+import { Base } from './base.js';
 import {
   UnconfirmedTransaction,
   TransactionIdWrapper,
   ApiResult,
 } from '@gnyio/interfaces';
-import { Connection } from '../connection';
+import { Connection } from '../connection.js';
 
 export class Transport {
   private base: Base;

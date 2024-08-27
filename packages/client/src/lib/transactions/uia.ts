@@ -1,4 +1,4 @@
-import * as transaction from './transaction';
+import * as transaction from './transaction.js';
 export function registerIssuer(
   name: string,
   desc: string,

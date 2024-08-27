@@ -1,4 +1,4 @@
-import * as transaction from './transaction';
+import * as transaction from './transaction.js';
 export { MessageWebBase } from '@gnyio/web-base';
 
 function createVerification(
