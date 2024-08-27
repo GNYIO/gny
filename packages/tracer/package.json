@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/tracer",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "",
   "files": [
     "dist"
@@ -21,7 +21,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@gnyio/interfaces": "2.9.0",
+    "@gnyio/interfaces": "2.9.1",
     "@types/jaeger-client": "^3.18.4",
     "jaeger-client": "^3.19.0"
   },
