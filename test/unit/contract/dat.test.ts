@@ -50,6 +50,7 @@ describe('dat contract', () => {
         const context = {
           sender: {
             publicKey: 'one',
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           },
           trs: {
             senderPublicKey: 'two',
@@ -89,7 +90,9 @@ describe('dat contract', () => {
         const param2 = 'description';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -102,7 +105,9 @@ describe('dat contract', () => {
         const param2 = 'description';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -115,7 +120,9 @@ describe('dat contract', () => {
         const param2 = 'description';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -130,7 +137,9 @@ describe('dat contract', () => {
         const description = 'a'.repeat(101);
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -150,7 +159,7 @@ describe('dat contract', () => {
 
         const context = {
           sender: {
-            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           } as IAccount,
         } as Context;
 
@@ -176,7 +185,7 @@ describe('dat contract', () => {
 
         const context = {
           sender: {
-            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           } as IAccount,
           trs: {
             id: 'ididididididididididididididididididididid',
@@ -206,7 +215,7 @@ describe('dat contract', () => {
 
         expect(createMock).toHaveBeenCalledTimes(1);
         expect(createMock).toHaveBeenNthCalledWith(1, expect.any(Function), {
-          address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+          address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           desc: 'short description',
           name: 'MY_NFT_MAKER',
           datCounter: String(0),
@@ -229,6 +238,7 @@ describe('dat contract', () => {
         const context = {
           sender: {
             publicKey: 'one',
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           },
           trs: {
             senderPublicKey: 'two',
@@ -296,7 +306,9 @@ describe('dat contract', () => {
         const param4 = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -317,7 +329,9 @@ describe('dat contract', () => {
         const param4 = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -340,7 +354,9 @@ describe('dat contract', () => {
         const url = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -361,7 +377,9 @@ describe('dat contract', () => {
         const url = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -382,7 +400,9 @@ describe('dat contract', () => {
         const url = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -403,7 +423,7 @@ describe('dat contract', () => {
         async (makerId: string) => {
           const context = {
             sender: {
-              address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+              address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             } as IAccount,
             trs: {
               id: 'idididididididididididididid',
@@ -425,7 +445,7 @@ describe('dat contract', () => {
             .mockReturnValueOnce(true);
 
           const findOneMock = jest.fn().mockReturnValueOnce({
-            address: 'GeBP6HdA2qp6KE2W9SFs9YvSc9od',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           });
 
           global.app.sdb = {
@@ -455,7 +475,9 @@ describe('dat contract', () => {
         const param4 = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -476,7 +498,9 @@ describe('dat contract', () => {
         const param4 = '';
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -499,7 +523,9 @@ describe('dat contract', () => {
         const url = {};
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -520,7 +546,9 @@ describe('dat contract', () => {
         const url = [];
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -541,7 +569,9 @@ describe('dat contract', () => {
         const url = 'http://test.com/' + 'a'.repeat(255);
 
         const context = {
-          sender: {},
+          sender: {
+            // address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         // @ts-ignore
@@ -564,7 +594,9 @@ describe('dat contract', () => {
         const url = 'https://test.com';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         const existMock = jest.fn().mockReturnValueOnce(true);
@@ -596,7 +628,9 @@ describe('dat contract', () => {
         const url = 'https://test.com';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         const existsMock = jest
@@ -635,7 +669,9 @@ describe('dat contract', () => {
         const url = 'https://test.com';
 
         const context = {
-          sender: {},
+          sender: {
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+          },
         } as Context;
 
         const existsMock = jest
@@ -679,7 +715,7 @@ describe('dat contract', () => {
         // trs caller is not owner of maker
         const context = {
           sender: {
-            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           } as IAccount,
         } as Context;
 
@@ -725,7 +761,7 @@ describe('dat contract', () => {
         // trs caller is not owner of maker
         const context = {
           sender: {
-            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           } as IAccount,
           trs: {
             id: 'idididididididididididididid',
@@ -746,7 +782,7 @@ describe('dat contract', () => {
           // return dat maker
           name: 'NFT_MAKER',
           desc: 'some desc',
-          address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T', // same address
+          address: 'G2ofFMDz8GtWq9n65khKit83bWkQr', // same address
           tid: 'beforebeforebeforebeforebeforebefore',
           datCounter: String(0),
         });
@@ -787,7 +823,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           name: 'NFT_MAKER.NFTdat',
           datMakerId: 'NFT_MAKER',
-          ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+          ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           previousHash: null,
           tid: 'idididididididididididididid',
           timestamp: 1234000000,
@@ -818,7 +854,7 @@ describe('dat contract', () => {
         // trs caller is not owner of maker
         const context = {
           sender: {
-            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           } as IAccount,
           trs: {
             id: 'idididididididididididididid',
@@ -841,7 +877,7 @@ describe('dat contract', () => {
             // return dat maker
             name: 'NFT_MAKER',
             desc: 'some desc',
-            address: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T', // same address
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
             tid: 'beforebeforebeforebeforebeforebefore',
             datCounter: String(1), // this dat maker already created one dat
           })
@@ -878,7 +914,7 @@ describe('dat contract', () => {
           hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           name: 'NFT_MAKER.NFTdatsecond',
           datMakerId: 'NFT_MAKER',
-          ownerAddress: 'G3JrsGY4WGo7qfJJTeLLso4KE8J4T',
+          ownerAddress: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
           previousHash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           tid: 'idididididididididididididid',
           timestamp: 1234000000,

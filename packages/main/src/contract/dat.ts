@@ -5,6 +5,13 @@ import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
 import { isUrl, isDatMaker, isDatNameOnly, isDatHash } from '@gnyio/utils';
 
+const whitelist = [
+  'G2BRzPmrSBkJFMNiHjrJDrL1rC5Bf', // mainnet
+  'G3ygohbWCxvCK8J5TabnAnkhxTpex', // testnet
+  'G2ofFMDz8GtWq9n65khKit83bWkQr', // localnet (genesis account)
+  'G4EaQhF6kckgg9cHVcxf9VeQiEsTm', // used during testing
+];
+
 export default {
   async registerDatMaker(this: Context, name, desc) {
     if (arguments.length !== 2) return 'Invalid arguments length';
@@ -13,6 +20,10 @@ export default {
       this.sender.publicKey !== this.trs.senderPublicKey
     ) {
       return 'collission attack attempt';
+    }
+
+    if (!whitelist.includes(this.sender.address)) {
+      return 'address not whitelisted';
     }
 
     if (!isDatMaker(name)) return 'Invalid dat maker name';
@@ -57,6 +68,10 @@ export default {
 
     if (url.length > 255) return 'Dat url too long';
     if (!isUrl(url)) return 'Invalid dat url';
+
+    if (!whitelist.includes(this.sender.address)) {
+      return 'address not whitelisted';
+    }
 
     const fullName = `${makerId}.${name}`;
 
