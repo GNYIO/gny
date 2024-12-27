@@ -12,6 +12,7 @@ import Loader from './loader.js';
 import { serializedSpanContext } from '@gnyio/tracer';
 import pMinDelay from 'p-min-delay';
 import { LoaderHelper } from './LoaderHelper.js';
+import { Cron } from 'croner';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -224,23 +225,6 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static dialRendezvousNodeIfNormalNode = async (
-    bootstrapNode: string[]
-  ) => {
-    // execute right away
-    await Peer.dial(bootstrapNode);
-    const tenSeconds = 10 * 1000;
-
-    // execute forever every 10 seconds
-    const dialRendezvousLoop = async () => {
-      console.log('[p2p] dial rendezvous node');
-      await Peer.dial(bootstrapNode);
-      setTimeout(dialRendezvousLoop, tenSeconds);
-    };
-
-    setImmediate(dialRendezvousLoop);
-  };
-
   public static askRendezvousNodeForPeers = async (bootstrapNode: string[]) => {
     const m = multiaddr(bootstrapNode[0]);
     const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
@@ -359,7 +343,20 @@ export default class Peer implements ICoreModule {
       await Peer.rendezvousBroadcastIfRendezvous();
       await sleep(7 * 1000); // else wait for a few peers to connect
     } else {
-      await Peer.dialRendezvousNodeIfNormalNode(bootstrapNode);
+      await Peer.dial(bootstrapNode);
+      let isDialing = false;
+      new Cron('*/10 * * * * *', async () => {
+        // every 10 seconds
+        if (isDialing) {
+          return;
+        }
+        // do not dial
+        isDialing = true;
+        console.log('[p2p] bootstrap dialing');
+        await Peer.dial(bootstrapNode);
+        isDialing = false;
+      });
+
       await Peer.askRendezvousNodeForPeers(bootstrapNode);
     }
 
