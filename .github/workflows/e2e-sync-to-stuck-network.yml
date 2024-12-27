@@ -4,7 +4,7 @@ on: [push]
 jobs:
   e2e-sync-to-stuck-network:
     timeout-minutes: 45
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
