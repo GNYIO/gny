@@ -343,19 +343,21 @@ export default class Peer implements ICoreModule {
       await Peer.rendezvousBroadcastIfRendezvous();
       await sleep(7 * 1000); // else wait for a few peers to connect
     } else {
+      // one manual dial
       await Peer.dial(bootstrapNode);
-      let isDialing = false;
-      new Cron('*/10 * * * * *', async () => {
-        // every 10 seconds
-        if (isDialing) {
-          return;
+
+      new Cron(
+        '*/10 * * * * *',
+        {
+          interval: 10, // Minimum number of seconds between triggers.
+          unref: true, // Setting this to true unrefs the internal timer, which allows the process to exit even if a cron job is running.
+          protect: true, // Enabled over-run protection. Will block new triggers as long as an old trigger is in progress. Pass either true or a callback function to enable
+        },
+        async () => {
+          // also supports asynchronous functions
+          await Peer.dial(bootstrapNode);
         }
-        // do not dial
-        isDialing = true;
-        console.log('[p2p] bootstrap dialing');
-        await Peer.dial(bootstrapNode);
-        isDialing = false;
-      });
+      );
 
       await Peer.askRendezvousNodeForPeers(bootstrapNode);
     }
