@@ -19,7 +19,7 @@ on:
 
 jobs:
   new-release-on-testnet:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout testnet branch
         uses: actions/checkout@v2
