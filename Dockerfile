@@ -113,8 +113,6 @@ RUN npm run lerna:bootstrap
 
 # copy the rest of the code
 COPY . .
-RUN rm -rf config
-COPY --chown=gny:gny config config
 
 # compile all TypeScript files
 RUN npm run lerna:tsc
