@@ -14,6 +14,8 @@ import {
   ExtendedDelegatesWrapper,
   ForgingStatus,
   SimpleAccountsWrapper,
+  ApiSuccess,
+  DelegateOwnProducedBlocks,
 } from '@gnyio/interfaces';
 import { BlockReward, isAddress } from '@gnyio/utils';
 import { StateHelper } from '../../core/StateHelper.js';
@@ -642,12 +644,14 @@ export default class DelegatesApi implements IHttpApi {
       statusCode: '200',
     });
 
-    return res.json({
+    const result: ApiSuccess & DelegateOwnProducedBlocks = {
       success: true,
       delegate: delegate,
       blocks: blocks,
       count,
-    });
+    };
+
+    return res.json(result);
   };
 
   private forgingStatus = (req: Request, res: Response, next: Next) => {

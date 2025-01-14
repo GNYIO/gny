@@ -628,7 +628,7 @@ export interface BlockWrapper {
 }
 
 export interface BlocksWrapper {
-  count?: string;
+  count: string;
   blocks: IBlock[];
 }
 
@@ -705,10 +705,10 @@ export type OwnProducedBlocksQuery =
 export interface DelegateOwnProducedBlocks {
   delegate: DelegateViewModel;
   blocks: IBlock[];
+  count: number;
 }
 
 export interface DelegatesWrapper {
-  totalCount?: number;
   delegates: DelegateViewModel[];
 }
 
@@ -776,7 +776,7 @@ export interface UnconfirmedTransactionWrapper {
 }
 
 export interface TransactionsWrapper {
-  count?: number;
+  count: number;
   transactions: Array<UnconfirmedTransaction | ITransaction>;
 }
 
