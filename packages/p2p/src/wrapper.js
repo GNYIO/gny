@@ -9,6 +9,7 @@ const pipe = require('it-pipe');
 const first = require('it-first');
 const multiaddr = require('multiaddr');
 const { duplex: abortableDuplex } = require('abortable-iterator');
+const lodash = require('lodash');
 
 export class Bundle extends Libp2p {
   constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
@@ -244,7 +245,8 @@ export class Bundle extends Libp2p {
       stream,
       async function test(source) {
         for await (const msg of source) {
-          return msg;
+          const copyOfMsg = lodash.cloneDeep(msg);
+          return copyOfMsg;
         }
       }
     );

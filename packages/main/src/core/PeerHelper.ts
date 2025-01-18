@@ -26,6 +26,7 @@ import {
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { getSmallBlockHash } from '@gnyio/tracer';
+import { cloneDeep } from 'lodash';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {
@@ -70,7 +71,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   const response = async source => {
     let temp = null;
     for await (const msg of source) {
-      temp = msg;
+      temp = cloneDeep(msg);
       break;
     }
     const wrapper: TracerWrapper<BlockIdWrapper> = JSON.parse(temp.toString());
@@ -258,7 +259,7 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
   const response = async source => {
     let temp = null;
     for await (const msg of source) {
-      temp = msg;
+      temp = cloneDeep(msg);
       break;
     }
     const raw: TracerWrapper<CommonBlockParams> = JSON.parse(temp.toString());
@@ -431,7 +432,7 @@ function V1_GET_HEIGH_HANDLER(bundle) {
   const response = async source => {
     let temp = null;
     for await (const msg of source) {
-      temp = msg;
+      temp = cloneDeep(msg);
     }
     const body: TracerWrapper<string> = JSON.parse(temp.toString());
 
@@ -492,7 +493,7 @@ function V1_BLOCKS_HANDLER(bundle) {
   const response = async source => {
     let temp = null;
     for await (const msg of source) {
-      temp = msg;
+      temp = cloneDeep(msg);
       break;
     }
     const raw: TracerWrapper<BlocksWrapperParams> = JSON.parse(temp.toString());
@@ -607,7 +608,7 @@ function V1_GET_PEERS_HANDLER(bundle) {
   const response = async source => {
     let temp = null;
     for await (const msg of source) {
-      temp = msg;
+      temp = cloneDeep(msg);
       break;
     }
 
