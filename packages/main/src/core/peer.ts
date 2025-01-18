@@ -180,34 +180,6 @@ export default class Peer implements ICoreModule {
     );
   };
 
-  public static rendezvousBroadcastIfRendezvous = async () => {
-    // only the rondezvous node should announce the peers it has
-    // this replaces the constant announcing yourself to the network
-    // which produces far to many messages
-    // no peers === I am rendezvous node
-    async function announce() {
-      const span = global.library.tracer.startSpan('rendezvous broadcast');
-
-      const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
-
-      const data = {
-        spanId: serializedSpanContext(global.library.tracer, span.context()),
-        peers: peers,
-      };
-      span.log(data);
-
-      const converted = uint8Arrays.fromString(JSON.stringify(data));
-      await Peer.p2p.rendezvousBroadcastsPeers(converted);
-
-      span.finish();
-
-      setTimeout(announce, 10 * 1000);
-    }
-
-    // execute right away
-    setImmediate(announce);
-  };
-
   public static dial = async (bootstrapNode: string[]) => {
     // dial to peers in GNY_P2P_PEERS env variable
     // normally this is only the rendezvous node
@@ -340,8 +312,40 @@ export default class Peer implements ICoreModule {
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
     if (isRondezvous) {
-      await Peer.rendezvousBroadcastIfRendezvous();
-      await sleep(7 * 1000); // else wait for a few peers to connect
+      // only the rondezvous node should announce the peers it has
+      // this replaces the constant announcing yourself to the network
+      // which produces far to many messages
+      // no peers === I am rendezvous node
+
+      await sleep(7 * 1000); // wait for a few peers to connect
+
+      new Cron(
+        '*/10 * * * * *',
+        {
+          interval: 10,
+          unref: true,
+          protect: true,
+        },
+        async () => {
+          const span = global.library.tracer.startSpan('rendezvous broadcast');
+
+          const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
+
+          const data = {
+            spanId: serializedSpanContext(
+              global.library.tracer,
+              span.context()
+            ),
+            peers: peers,
+          };
+          span.log(data);
+
+          const converted = uint8Arrays.fromString(JSON.stringify(data));
+          await Peer.p2p.rendezvousBroadcastsPeers(converted);
+
+          span.finish();
+        }
+      );
     } else {
       // one manual dial
       await Peer.dial(bootstrapNode);
