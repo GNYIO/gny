@@ -26,7 +26,6 @@ import {
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { getSmallBlockHash } from '@gnyio/tracer';
-import * as lodash from 'lodash';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
 import {
@@ -35,14 +34,15 @@ import {
   createSpanContextFromSerializedParentContext,
 } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
+import first from 'it-first';
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
-  const request = async (
+  async function request(
     peerId: PeerId,
     blockIdWrapper: BlockIdWrapper,
     span: ISpan
-  ): Promise<TracerWrapper<BlockAndVotes>> => {
+  ): Promise<TracerWrapper<BlockAndVotes>> {
     const raw: TracerWrapper<BlockIdWrapper> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: blockIdWrapper,
@@ -65,15 +65,11 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     }
 
     return result;
-  };
+  }
 
   // step2: node2 -> node1
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = lodash.cloneDeep(msg);
-      break;
-    }
+  async function response(source) {
+    const temp = await first(source);
     const wrapper: TracerWrapper<BlockIdWrapper> = JSON.parse(temp.toString());
     const body = wrapper.data;
 
@@ -140,7 +136,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 
     const converted = [uint8Arrays.fromString(JSON.stringify(result))];
     return converted;
-  };
+  }
 
   bundle.requestBlockAndVotes = request;
   bundle.directResponse(
@@ -152,7 +148,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 function V1_VOTES_HANDLER(bundle) {
   // not duplex
   // async
-  const request = async (peerId: PeerId, votes: ManyVotes, span: ISpan) => {
+  async function request(peerId: PeerId, votes: ManyVotes, span: ISpan) {
     const before: TracerWrapper<ManyVotes> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: votes,
@@ -160,11 +156,14 @@ function V1_VOTES_HANDLER(bundle) {
 
     const data = uint8Arrays.fromString(JSON.stringify(before));
     await bundle.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
-  };
+  }
 
   // not duplex
   // not async
-  const response: SimplePushTypeCallback = (err: Error, values: BufferList) => {
+  async function response(
+    err: Error,
+    values: BufferList
+  ): SimplePushTypeCallback {
     if (err) {
       console.log(
         'received error while handling error from pushVotes (response)'
@@ -210,7 +209,7 @@ function V1_VOTES_HANDLER(bundle) {
     );
 
     global.library.bus.message('onReceiveVotes', votes, span);
-  };
+  }
 
   bundle.pushVotesToPeer = request;
   bundle.handlePushOnly(global.Config.p2pConfig.V1_VOTES, response);
@@ -218,11 +217,11 @@ function V1_VOTES_HANDLER(bundle) {
 
 function V1_COMMON_BLOCK_HANDLER(bundle) {
   // step1: node1 -> node2
-  const request = async (
+  async function request(
     peerId: PeerId,
     commonBlockParams: CommonBlockParams,
     span: ISpan
-  ): Promise<CommonBlockResult> => {
+  ): Promise<CommonBlockResult> {
     const raw: TracerWrapper<CommonBlockParams> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: commonBlockParams,
@@ -254,14 +253,11 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     }
 
     return result;
-  };
+  }
 
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = lodash.cloneDeep(msg);
-      break;
-    }
+  async function response(source) {
+    const temp = await first(source);
+
     const raw: TracerWrapper<CommonBlockParams> = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
       global.library.tracer,
@@ -380,17 +376,17 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
       const result: CommonBlockResult = null;
       return [uint8Arrays.fromString(JSON.stringify(result))];
     }
-  };
+  }
 
   bundle.requestCommonBlock = request;
   bundle.directResponse(global.Config.p2pConfig.V1_COMMON_BLOCK, response);
 }
 
 function V1_GET_HEIGH_HANDLER(bundle) {
-  const request = async (
+  async function request(
     peerId: PeerId,
     parentSpan: ISpan
-  ): Promise<HeightWrapper> => {
+  ): Promise<HeightWrapper> {
     const heightSpan = global.library.tracer.startSpan('get height', {
       childOf: parentSpan.context(),
     });
@@ -427,13 +423,11 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     heightSpan.finish();
 
     return result;
-  };
+  }
 
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = lodash.cloneDeep(msg);
-    }
+  async function response(source) {
+    const temp = await first(source);
+
     const body: TracerWrapper<string> = JSON.parse(temp.toString());
 
     if (!isTracerWrapper(body)) {
@@ -461,18 +455,18 @@ function V1_GET_HEIGH_HANDLER(bundle) {
 
     const converted = [uint8Arrays.fromString(JSON.stringify(result))];
     return converted;
-  };
+  }
 
   bundle.requestHeight = request;
   bundle.directResponse(global.Config.p2pConfig.V1_GET_HEIGHT, response);
 }
 
 function V1_BLOCKS_HANDLER(bundle) {
-  const request = async (
+  async function request(
     peerId: PeerId,
     params: BlocksWrapperParams,
     span: ISpan
-  ): Promise<IBlock[]> => {
+  ): Promise<IBlock[]> {
     const raw: TracerWrapper<BlocksWrapperParams> = {
       spanId: serializedSpanContext(global.library.tracer, span.context()),
       data: params,
@@ -488,14 +482,11 @@ function V1_BLOCKS_HANDLER(bundle) {
     const result: IBlock[] = JSON.parse(resultRaw.toString());
     // TODO validate
     return result;
-  };
+  }
 
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = lodash.cloneDeep(msg);
-      break;
-    }
+  async function response(source) {
+    const temp = await first(source);
+
     const raw: TracerWrapper<BlocksWrapperParams> = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
       global.library.tracer,
@@ -580,14 +571,14 @@ function V1_BLOCKS_HANDLER(bundle) {
       const result: IBlock[] = [];
       return [uint8Arrays.fromString(JSON.stringify(result))];
     }
-  };
+  }
 
   bundle.requestBlocks = request;
   bundle.directResponse(global.Config.p2pConfig.V1_BLOCKS, response);
 }
 
 function V1_GET_PEERS_HANDLER(bundle) {
-  const request = async (peerId: PeerId, span: ISpan) => {
+  async function request(peerId: PeerId, span: ISpan) {
     const raw = serializedSpanContext(global.library.tracer, span.context());
     const data = JSON.stringify(raw);
 
@@ -603,14 +594,10 @@ function V1_GET_PEERS_HANDLER(bundle) {
       throw new Error(`[p2p][getPeers] validation failed`);
     }
     return result;
-  };
+  }
 
-  const response = async source => {
-    let temp = null;
-    for await (const msg of source) {
-      temp = lodash.cloneDeep(msg);
-      break;
-    }
+  async function response(source) {
+    const temp = await first(source);
 
     const raw = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
@@ -630,7 +617,7 @@ function V1_GET_PEERS_HANDLER(bundle) {
     span.finish();
 
     return [uint8Arrays.fromString(JSON.stringify(peers))];
-  };
+  }
 
   bundle.requestGetPeers = request;
   bundle.directResponse(global.Config.p2pConfig.V1_GET_PEERS, response);
