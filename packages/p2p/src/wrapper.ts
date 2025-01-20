@@ -16,6 +16,7 @@ import {
   ManyVotes,
   CommonBlockParams,
   CommonBlockResult,
+  HeightWrapper,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
@@ -158,6 +159,48 @@ export class Bundle extends Libp2p {
         '[p2p][commonBlock] CommonBlockResult could not be validated'
       );
     }
+
+    return result;
+  }
+
+  async requestHeight(
+    peerId: PeerId,
+    parentSpan: ISpan
+  ): Promise<HeightWrapper> {
+    const heightSpan = global.library.tracer.startSpan('get height', {
+      childOf: parentSpan.context(),
+    });
+
+    const raw: TracerWrapper<string> = {
+      spanId: serializedSpanContext(
+        global.library.tracer,
+        heightSpan.context()
+      ),
+      data: 'no param',
+    };
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_HEIGHT,
+      data
+    );
+    const result: HeightWrapper = JSON.parse(resultRaw.toString());
+
+    if (!isHeightWrapper(result)) {
+      heightSpan.log({
+        log: '[p2p] validation for isHeightWrapper failed',
+        got: result,
+      });
+      heightSpan.setTag('error', true);
+      heightSpan.finish();
+      throw new Error('[p2p] validation for isHeightWrapper failed');
+    }
+
+    heightSpan.log({
+      result: result,
+    });
+    heightSpan.finish();
 
     return result;
   }

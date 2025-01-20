@@ -301,48 +301,6 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
 }
 
 function V1_GET_HEIGH_HANDLER(bundle) {
-  async function request(
-    peerId: PeerId,
-    parentSpan: ISpan
-  ): Promise<HeightWrapper> {
-    const heightSpan = global.library.tracer.startSpan('get height', {
-      childOf: parentSpan.context(),
-    });
-
-    const raw: TracerWrapper<string> = {
-      spanId: serializedSpanContext(
-        global.library.tracer,
-        heightSpan.context()
-      ),
-      data: 'no param',
-    };
-    const data = uint8Arrays.fromString(JSON.stringify(raw));
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_GET_HEIGHT,
-      data
-    );
-    const result: HeightWrapper = JSON.parse(resultRaw.toString());
-
-    if (!isHeightWrapper(result)) {
-      heightSpan.log({
-        log: '[p2p] validation for isHeightWrapper failed',
-        got: result,
-      });
-      heightSpan.setTag('error', true);
-      heightSpan.finish();
-      throw new Error('[p2p] validation for isHeightWrapper failed');
-    }
-
-    heightSpan.log({
-      result: result,
-    });
-    heightSpan.finish();
-
-    return result;
-  }
-
   async function response(source) {
     const temp = await first(source);
 
@@ -375,7 +333,6 @@ function V1_GET_HEIGH_HANDLER(bundle) {
     return converted;
   }
 
-  bundle.requestHeight = request;
   bundle.directResponse(global.Config.p2pConfig.V1_GET_HEIGHT, response);
 }
 
