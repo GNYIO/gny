@@ -1,14 +1,32 @@
-const Libp2p = require('libp2p');
-const TCP = require('libp2p-tcp');
-const mplex = require('libp2p-mplex');
-const { NOISE } = require('libp2p-noise');
-const Gossipsub = require('libp2p-gossipsub');
-const DHT = require('libp2p-kad-dht');
-const PeerId = require('peer-id');
-const pipe = require('it-pipe');
-const first = require('it-first');
-const multiaddr = require('multiaddr');
-const { duplex: abortableDuplex } = require('abortable-iterator');
+import Libp2p from 'libp2p';
+import TCP from 'libp2p-tcp';
+import mplex from 'libp2p-mplex';
+import { NOISE } from 'libp2p-noise';
+import Gossipsub from 'libp2p-gossipsub';
+import DHT from 'libp2p-kad-dht';
+import * as PeerId from 'peer-id';
+import pipe from 'it-pipe';
+import first from 'it-first';
+import multiaddr from 'multiaddr';
+import { duplex as abortableDuplex } from 'abortable-iterator';
+import {
+  BlockAndVotes,
+  TracerWrapper,
+  BlockIdWrapper,
+} from '@gnyio/interfaces';
+import { serializedSpanContext, ISpan } from '@gnyio/tracer';
+import uint8Arrays from 'uint8arrays';
+import {
+  isCommonBlockParams,
+  isBlocksWrapperParams,
+  isBlockAndVotes,
+  isManyVotes,
+  isHeightWrapper,
+  isBlockIdWrapper,
+  isCommonBlockResult,
+  isSimplePeerInfoArray,
+  isTracerWrapper,
+} from '@gnyio/type-validation';
 
 export class Bundle extends Libp2p {
   constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
@@ -59,6 +77,35 @@ export class Bundle extends Libp2p {
     super(options);
     this.logger = logger;
     this.p2pConfig = p2pConfig;
+  }
+
+  async requestBlockAndVotes(
+    peerId: PeerId,
+    blockIdWrapper: BlockIdWrapper,
+    span: ISpan
+  ): Promise<TracerWrapper<BlockAndVotes>> {
+    const raw: TracerWrapper<BlockIdWrapper> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: blockIdWrapper,
+    };
+
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
+      data
+    );
+
+    // TracerWrapper<BlockAndVotes>
+    const result: TracerWrapper<BlockAndVotes> = JSON.parse(
+      resultRaw.toString()
+    );
+    if (!isTracerWrapper(result) || !isBlockAndVotes(result.data)) {
+      throw new Error('[p2p] validation for requested isBlockPropose failed');
+    }
+
+    return result;
   }
 
   getAllConnections() {

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { ILogger, P2PMessage, SimplePeerInfo } from '@gnyio/interfaces';
 import * as PeerInfo from 'peer-info';
-import { create } from '@gnyio/p2p';
+import * as p2p from '@gnyio/p2p';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -50,7 +50,7 @@ async function createNewBundle(
     },
   };
 
-  const node = create(config, logger);
+  const node = p2p.create(config, logger);
 
   return node;
 }

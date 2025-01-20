@@ -1,4 +1,4 @@
-import { SimplePushTypeCallback } from '@gnyio/p2p';
+import * as p2p from '@gnyio/p2p';
 import { StateHelper } from './StateHelper.js';
 import {
   BlockIdWrapper,
@@ -38,34 +38,6 @@ import first from 'it-first';
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
-  async function request(
-    peerId: PeerId,
-    blockIdWrapper: BlockIdWrapper,
-    span: ISpan
-  ): Promise<TracerWrapper<BlockAndVotes>> {
-    const raw: TracerWrapper<BlockIdWrapper> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: blockIdWrapper,
-    };
-
-    const data = uint8Arrays.fromString(JSON.stringify(raw));
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
-      data
-    );
-
-    // TracerWrapper<BlockAndVotes>
-    const result: TracerWrapper<BlockAndVotes> = JSON.parse(
-      resultRaw.toString()
-    );
-    if (!isTracerWrapper(result) || !isBlockAndVotes(result.data)) {
-      throw new Error('[p2p] validation for requested isBlockPropose failed');
-    }
-
-    return result;
-  }
 
   // step2: node2 -> node1
   async function response(source) {
@@ -138,7 +110,6 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     return converted;
   }
 
-  bundle.requestBlockAndVotes = request;
   bundle.directResponse(
     global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
     response
@@ -160,10 +131,10 @@ function V1_VOTES_HANDLER(bundle) {
 
   // not duplex
   // not async
-  async function response(
+  const response: p2p.SimplePushTypeCallback = async function response(
     err: Error,
     values: BufferList
-  ): SimplePushTypeCallback {
+  ) {
     if (err) {
       console.log(
         'received error while handling error from pushVotes (response)'
@@ -209,7 +180,7 @@ function V1_VOTES_HANDLER(bundle) {
     );
 
     global.library.bus.message('onReceiveVotes', votes, span);
-  }
+  };
 
   bundle.pushVotesToPeer = request;
   bundle.handlePushOnly(global.Config.p2pConfig.V1_VOTES, response);

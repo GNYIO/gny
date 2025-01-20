@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { create } from '@gnyio/p2p';
+import * as p2p from '@gnyio/p2p';
 import { PeerNode, ICoreModule } from '@gnyio/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper.js';
@@ -102,7 +102,7 @@ export default class Peer implements ICoreModule {
     bootstrapNode: string[],
     peerId: PeerId
   ) => {
-    const wrapper = create(
+    const wrapper = p2p.create(
       peerId,
       global.library.config.publicIp,
       global.library.config.peerPort,

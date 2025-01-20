@@ -25,7 +25,7 @@ const packageJson = JSON.parse(
 import { IConfig, IBlock } from '@gnyio/interfaces';
 import ip from 'ip';
 import { getConfig } from '@gnyio/network';
-import { createPeer2PeerHandlers } from '@gnyio/p2p';
+import * as p2p from '@gnyio/p2p';
 
 const version = packageJson.version;
 
@@ -222,7 +222,7 @@ function main() {
     appConfig.netVersion
   );
 
-  const p2pConfig = createPeer2PeerHandlers(
+  const p2pConfig = p2p.createPeer2PeerHandlers(
     'v4.1',
     appConfig.netVersion,
     genesisBlock.id.slice(0, 8)
