@@ -174,45 +174,6 @@ function V1_VOTES_HANDLER(bundle) {
 }
 
 function V1_COMMON_BLOCK_HANDLER(bundle) {
-  // step1: node1 -> node2
-  async function request(
-    peerId: PeerId,
-    commonBlockParams: CommonBlockParams,
-    span: ISpan
-  ): Promise<CommonBlockResult> {
-    const raw: TracerWrapper<CommonBlockParams> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: commonBlockParams,
-    };
-    const data = JSON.stringify(raw);
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_COMMON_BLOCK,
-      data
-    );
-    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
-
-    if (!isCommonBlockResult(result)) {
-      span.setTag('error', true);
-      span.log({
-        value: '[p2p][commonBlock] CommonBlockResult could not be validated',
-      });
-      span.log({
-        returnValue: result,
-      });
-      span.finish();
-      global.app.logger.error(
-        '[p2p][commonBlock] CommonBlockResult could not be validated'
-      );
-      throw new Error(
-        '[p2p][commonBlock] CommonBlockResult could not be validated'
-      );
-    }
-
-    return result;
-  }
-
   async function response(source) {
     const temp = await first(source);
 
@@ -336,7 +297,6 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
     }
   }
 
-  bundle.requestCommonBlock = request;
   bundle.directResponse(global.Config.p2pConfig.V1_COMMON_BLOCK, response);
 }
 

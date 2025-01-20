@@ -14,6 +14,8 @@ import {
   TracerWrapper,
   BlockIdWrapper,
   ManyVotes,
+  CommonBlockParams,
+  CommonBlockResult,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
@@ -116,6 +118,45 @@ export class Bundle extends Libp2p {
     );
     if (!isTracerWrapper(result) || !isBlockAndVotes(result.data)) {
       throw new Error('[p2p] validation for requested isBlockPropose failed');
+    }
+
+    return result;
+  }
+
+  // step1: node1 -> node2
+  async requestCommonBlock(
+    peerId: PeerId,
+    commonBlockParams: CommonBlockParams,
+    span: ISpan
+  ): Promise<CommonBlockResult> {
+    const raw: TracerWrapper<CommonBlockParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: commonBlockParams,
+    };
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_COMMON_BLOCK,
+      data
+    );
+    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
+
+    if (!isCommonBlockResult(result)) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p][commonBlock] CommonBlockResult could not be validated',
+      });
+      span.log({
+        returnValue: result,
+      });
+      span.finish();
+      global.app.logger.error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
+      throw new Error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
     }
 
     return result;
