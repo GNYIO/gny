@@ -118,18 +118,6 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
 
 function V1_VOTES_HANDLER(bundle) {
   // not duplex
-  // async
-  async function request(peerId: PeerId, votes: ManyVotes, span: ISpan) {
-    const before: TracerWrapper<ManyVotes> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: votes,
-    };
-
-    const data = uint8Arrays.fromString(JSON.stringify(before));
-    await bundle.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
-  }
-
-  // not duplex
   // not async
   const response: p2p.SimplePushTypeCallback = async function response(
     err: Error,
@@ -182,7 +170,6 @@ function V1_VOTES_HANDLER(bundle) {
     global.library.bus.message('onReceiveVotes', votes, span);
   };
 
-  bundle.pushVotesToPeer = request;
   bundle.handlePushOnly(global.Config.p2pConfig.V1_VOTES, response);
 }
 

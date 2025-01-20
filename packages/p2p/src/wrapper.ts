@@ -13,6 +13,7 @@ import {
   BlockAndVotes,
   TracerWrapper,
   BlockIdWrapper,
+  ManyVotes,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
@@ -77,6 +78,18 @@ export class Bundle extends Libp2p {
     super(options);
     this.logger = logger;
     this.p2pConfig = p2pConfig;
+  }
+
+  // not duplex
+  // async
+  async pushVotesToPeer(peerId: PeerId, votes: ManyVotes, span: ISpan) {
+    const before: TracerWrapper<ManyVotes> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: votes,
+    };
+
+    const data = uint8Arrays.fromString(JSON.stringify(before));
+    await this.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
   }
 
   async requestBlockAndVotes(
