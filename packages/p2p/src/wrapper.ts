@@ -229,6 +229,24 @@ export class Bundle extends Libp2p {
     return result;
   }
 
+  async requestGetPeers(peerId: PeerId, span: ISpan) {
+    const raw = serializedSpanContext(global.library.tracer, span.context());
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_PEERS,
+      data
+    );
+
+    const result = JSON.parse(resultRaw.toString());
+
+    if (!isSimplePeerInfoArray(result)) {
+      throw new Error(`[p2p][getPeers] validation failed`);
+    }
+    return result;
+  }
+
   getAllConnections() {
     const connections = Array.from(this.connections.values());
 

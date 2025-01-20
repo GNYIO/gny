@@ -430,24 +430,6 @@ function V1_BLOCKS_HANDLER(bundle) {
 }
 
 function V1_GET_PEERS_HANDLER(bundle) {
-  async function request(peerId: PeerId, span: ISpan) {
-    const raw = serializedSpanContext(global.library.tracer, span.context());
-    const data = JSON.stringify(raw);
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_GET_PEERS,
-      data
-    );
-
-    const result = JSON.parse(resultRaw.toString());
-
-    if (!isSimplePeerInfoArray(result)) {
-      throw new Error(`[p2p][getPeers] validation failed`);
-    }
-    return result;
-  }
-
   async function response(source) {
     const temp = await first(source);
 
@@ -471,7 +453,6 @@ function V1_GET_PEERS_HANDLER(bundle) {
     return [uint8Arrays.fromString(JSON.stringify(peers))];
   }
 
-  bundle.requestGetPeers = request;
   bundle.directResponse(global.Config.p2pConfig.V1_GET_PEERS, response);
 }
 
