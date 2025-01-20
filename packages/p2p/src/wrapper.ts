@@ -17,6 +17,8 @@ import {
   CommonBlockParams,
   CommonBlockResult,
   HeightWrapper,
+  BlocksWrapperParams,
+  IBlock,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
@@ -202,6 +204,28 @@ export class Bundle extends Libp2p {
     });
     heightSpan.finish();
 
+    return result;
+  }
+
+  async requestBlocks(
+    peerId: PeerId,
+    params: BlocksWrapperParams,
+    span: ISpan
+  ): Promise<IBlock[]> {
+    const raw: TracerWrapper<BlocksWrapperParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: params,
+    };
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_BLOCKS,
+      data
+    );
+
+    const result: IBlock[] = JSON.parse(resultRaw.toString());
+    // TODO validate
     return result;
   }
 

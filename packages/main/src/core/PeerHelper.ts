@@ -337,28 +337,6 @@ function V1_GET_HEIGH_HANDLER(bundle) {
 }
 
 function V1_BLOCKS_HANDLER(bundle) {
-  async function request(
-    peerId: PeerId,
-    params: BlocksWrapperParams,
-    span: ISpan
-  ): Promise<IBlock[]> {
-    const raw: TracerWrapper<BlocksWrapperParams> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
-      data: params,
-    };
-    const data = JSON.stringify(raw);
-
-    const resultRaw = await bundle.directRequest(
-      peerId,
-      global.Config.p2pConfig.V1_BLOCKS,
-      data
-    );
-
-    const result: IBlock[] = JSON.parse(resultRaw.toString());
-    // TODO validate
-    return result;
-  }
-
   async function response(source) {
     const temp = await first(source);
 
@@ -448,7 +426,6 @@ function V1_BLOCKS_HANDLER(bundle) {
     }
   }
 
-  bundle.requestBlocks = request;
   bundle.directResponse(global.Config.p2pConfig.V1_BLOCKS, response);
 }
 
