@@ -1,18 +1,54 @@
-const Libp2p = require('libp2p');
-const TCP = require('libp2p-tcp');
-const mplex = require('libp2p-mplex');
-const { NOISE } = require('libp2p-noise');
-const Gossipsub = require('libp2p-gossipsub');
-const DHT = require('libp2p-kad-dht');
-const PeerId = require('peer-id');
-const pipe = require('it-pipe');
-const first = require('it-first');
-const multiaddr = require('multiaddr');
-const { duplex: abortableDuplex } = require('abortable-iterator');
+import Libp2p from 'libp2p';
+import TCP from 'libp2p-tcp';
+import mplex from 'libp2p-mplex';
+import { NOISE } from 'libp2p-noise';
+import Gossipsub from 'libp2p-gossipsub';
+import DHT from 'libp2p-kad-dht';
+import * as PeerId from 'peer-id';
+import pipe from 'it-pipe';
+import first from 'it-first';
+import multiaddr from 'multiaddr';
+import { duplex as abortableDuplex } from 'abortable-iterator';
+import {
+  BlockAndVotes,
+  TracerWrapper,
+  BlockIdWrapper,
+  ManyVotes,
+  CommonBlockParams,
+  CommonBlockResult,
+  HeightWrapper,
+  BlocksWrapperParams,
+  IBlock,
+  ILogger,
+  IPeer2PeerHandlers,
+} from '@gnyio/interfaces';
+import { serializedSpanContext, ISpan } from '@gnyio/tracer';
+import uint8Arrays from 'uint8arrays';
+import {
+  isCommonBlockParams,
+  isBlocksWrapperParams,
+  isBlockAndVotes,
+  isManyVotes,
+  isHeightWrapper,
+  isBlockIdWrapper,
+  isCommonBlockResult,
+  isSimplePeerInfoArray,
+  isTracerWrapper,
+} from '@gnyio/type-validation';
 
 export class Bundle extends Libp2p {
-  constructor(peerId, announceIp, port, bootstrapNode, logger, p2pConfig) {
-    const options = {
+  private logger: ILogger;
+  private p2pConfig: IPeer2PeerHandlers;
+
+  constructor(
+    peerId: PeerId,
+    announceIp: string,
+    port: number,
+    bootstrapNode: string[],
+    logger: ILogger,
+    p2pConfig: IPeer2PeerHandlers
+  ) {
+    const options: Libp2p.Libp2pOptions = {
       peerId,
       addresses: {
         listen: [`/ip4/0.0.0.0/tcp/${port}`],
@@ -61,7 +97,183 @@ export class Bundle extends Libp2p {
     this.p2pConfig = p2pConfig;
   }
 
+  // not duplex
+  // async
+  async pushVotesToPeer(peerId: PeerId, votes: ManyVotes, span: ISpan) {
+    this.logger.info('[p2p/wrapper] called pushVotesToPeer()');
+
+    const before: TracerWrapper<ManyVotes> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: votes,
+    };
+
+    const data = uint8Arrays.fromString(JSON.stringify(before));
+    await this.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
+  }
+
+  async requestBlockAndVotes(
+    peerId: PeerId,
+    blockIdWrapper: BlockIdWrapper,
+    span: ISpan
+  ): Promise<TracerWrapper<BlockAndVotes>> {
+    this.logger.info('[p2p/wrapper] called requestBlockAndVotes()');
+
+    const raw: TracerWrapper<BlockIdWrapper> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: blockIdWrapper,
+    };
+
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
+      data
+    );
+
+    // TracerWrapper<BlockAndVotes>
+    const result: TracerWrapper<BlockAndVotes> = JSON.parse(
+      resultRaw.toString()
+    );
+    if (!isTracerWrapper(result) || !isBlockAndVotes(result.data)) {
+      throw new Error('[p2p] validation for requested isBlockPropose failed');
+    }
+
+    return result;
+  }
+
+  // step1: node1 -> node2
+  async requestCommonBlock(
+    peerId: PeerId,
+    commonBlockParams: CommonBlockParams,
+    span: ISpan
+  ): Promise<CommonBlockResult> {
+    this.logger.info('[p2p/wrapper] called requestCommonBlock()');
+
+    const raw: TracerWrapper<CommonBlockParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: commonBlockParams,
+    };
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_COMMON_BLOCK,
+      data
+    );
+    const result: CommonBlockResult = JSON.parse(resultRaw.toString());
+
+    if (!isCommonBlockResult(result)) {
+      span.setTag('error', true);
+      span.log({
+        value: '[p2p][commonBlock] CommonBlockResult could not be validated',
+      });
+      span.log({
+        returnValue: result,
+      });
+      span.finish();
+      global.app.logger.error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
+      throw new Error(
+        '[p2p][commonBlock] CommonBlockResult could not be validated'
+      );
+    }
+
+    return result;
+  }
+
+  async requestHeight(
+    peerId: PeerId,
+    parentSpan: ISpan
+  ): Promise<HeightWrapper> {
+    this.logger.info('[p2p/wrapper] called requestHeight()');
+
+    const heightSpan = global.library.tracer.startSpan('get height', {
+      childOf: parentSpan.context(),
+    });
+
+    const raw: TracerWrapper<string> = {
+      spanId: serializedSpanContext(
+        global.library.tracer,
+        heightSpan.context()
+      ),
+      data: 'no param',
+    };
+    const data = uint8Arrays.fromString(JSON.stringify(raw));
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_HEIGHT,
+      data
+    );
+    const result: HeightWrapper = JSON.parse(resultRaw.toString());
+
+    if (!isHeightWrapper(result)) {
+      heightSpan.log({
+        log: '[p2p] validation for isHeightWrapper failed',
+        got: result,
+      });
+      heightSpan.setTag('error', true);
+      heightSpan.finish();
+      throw new Error('[p2p] validation for isHeightWrapper failed');
+    }
+
+    heightSpan.log({
+      result: result,
+    });
+    heightSpan.finish();
+
+    return result;
+  }
+
+  async requestBlocks(
+    peerId: PeerId,
+    params: BlocksWrapperParams,
+    span: ISpan
+  ): Promise<IBlock[]> {
+    this.logger.info('[p2p/wrapper] called requestBlocks()');
+
+    const raw: TracerWrapper<BlocksWrapperParams> = {
+      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      data: params,
+    };
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_BLOCKS,
+      data
+    );
+
+    const result: IBlock[] = JSON.parse(resultRaw.toString());
+    // TODO validate
+    return result;
+  }
+
+  async requestGetPeers(peerId: PeerId, span: ISpan) {
+    this.logger.info('[p2p/wrapper] called requestGetPeers()');
+
+    const raw = serializedSpanContext(global.library.tracer, span.context());
+    const data = JSON.stringify(raw);
+
+    const resultRaw = await this.bundle.directRequest(
+      peerId,
+      global.Config.p2pConfig.V1_GET_PEERS,
+      data
+    );
+
+    const result = JSON.parse(resultRaw.toString());
+
+    if (!isSimplePeerInfoArray(result)) {
+      throw new Error(`[p2p][getPeers] validation failed`);
+    }
+    return result;
+  }
+
   getAllConnections() {
+    this.logger.info('[p2p/wrapper] called getAllConnections()');
+
     const connections = Array.from(this.connections.values());
 
     const result = connections.flat().map(x => JSON.parse(JSON.stringify(x)));
@@ -73,6 +285,8 @@ export class Bundle extends Libp2p {
   }
 
   getAllConnectedPeersPeerInfo() {
+    this.logger.info('[p2p/wrapper] called getAllConnectedPeersPeerInfo()');
+
     const connections = Array.from(this.connections.keys());
     if (connections.length === 0) {
       return [];
@@ -109,6 +323,8 @@ export class Bundle extends Libp2p {
   }
 
   info() {
+    this.logger.info('[p2p/wrapper] called info()');
+
     const id = this.peerId.toB58String();
     const multi = this.addressManager.getAnnounceAddrs();
 
@@ -119,6 +335,8 @@ export class Bundle extends Libp2p {
   }
 
   async findPeerInfoInDHT(p2pMsg) {
+    this.logger.info('[p2p/wrapper] called findPeerInfoInDHT()');
+
     const targetPeerId = PeerId.createFromB58String(p2pMsg.from);
 
     if (targetPeerId.equals(this.peerId)) {
@@ -148,6 +366,8 @@ export class Bundle extends Libp2p {
   }
 
   async connect(peer, peerMultiaddr) {
+    this.logger.info('[p2p/wrapper] called connect()');
+
     if (PeerId.isPeerId(peer) === false) {
       throw new Error('argument is not PeerId');
     }
@@ -181,7 +401,10 @@ export class Bundle extends Libp2p {
           2
         )}`
       );
-      await this.dial(peer);
+      const signal = AbortSignal.timeout(3000);
+      await this.dial(peer, {
+        signal,
+      });
     } catch (err) {
       console.log(
         `[p2p][connect] error: ${err.message}, ${JSON.stringify(
@@ -195,6 +418,8 @@ export class Bundle extends Libp2p {
   }
 
   async pushOnly(peerId, protocol, data) {
+    this.logger.info('[p2p/wrapper] called pushOnly()');
+
     this.logger.info(
       `[p2p] pushOnly "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
     );
@@ -211,6 +436,8 @@ export class Bundle extends Libp2p {
   }
 
   handlePushOnly(protocol, cb) {
+    this.logger.info('[p2p/wrapper] called handlePushOnly()');
+
     this.handle(protocol, ({ stream }) => {
       try {
         // result of type BufferList
@@ -231,28 +458,32 @@ export class Bundle extends Libp2p {
   }
 
   async directRequest(peerId, protocol, data) {
+    this.logger.info('[p2p/wrapper] called directRequest()');
+
     this.logger.info(
       `[p2p] dialing protocol "${protocol}" from ${this.peerId.toB58String()} -> ${peerId.toB58String()}`
     );
 
     const signal = AbortSignal.timeout(3000);
     const myDial = await this.dialProtocol(peerId, protocol);
-    const stream = abortableDuplex(myDial.stream, signal);
 
     const result = await pipe(
       [data],
-      stream,
-      async function test(source) {
-        for await (const msg of source) {
-          return msg;
-        }
-      }
+      abortableDuplex(myDial.stream, signal),
+      first
+      // async function test(source) {
+      //   for await (const msg of source) {
+      //     return msg;
+      //   }
+      // }
     );
 
     return result.toString();
   }
 
   directResponse(protocol, func) {
+    this.logger.info('[p2p/wrapper] called directResponse()');
+
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
 
     this.handle(protocol, ({ stream }) => {
@@ -265,19 +496,27 @@ export class Bundle extends Libp2p {
   }
 
   async rendezvousBroadcastsPeers(data) {
+    this.logger.info('[p2p/wrapper] called rendezvousBroadcastsPeers()');
+
     await this.pubsub.publish(this.p2pConfig.V1_RENDEZVOUS_BROADCAST, data);
     this.logger.info(`[p2p][rendezvous] announced all my peers to the network`);
   }
 
   async broadcastProposeAsync(data) {
+    this.logger.info('[p2p/wrapper] called broadcastProposeAsync()');
+
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_PROPOSE, data);
   }
 
   async broadcastTransactionAsync(data) {
+    this.logger.info('[p2p/wrapper] called broadcastTransactionAsync()');
+
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_TRANSACTION, data);
   }
 
   async broadcastManyTransactionsAsync(data) {
+    this.logger.info('[p2p/wrapper] called broadcastManyTransactionsAsync()');
+
     await this.pubsub.publish(
       this.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS,
       data
@@ -285,6 +524,8 @@ export class Bundle extends Libp2p {
   }
 
   async broadcastNewBlockHeaderAsync(data) {
+    this.logger.info('[p2p/wrapper] called broadcastNewBlockHeaderAsync()');
+
     await this.pubsub.publish(
       this.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
       data
@@ -292,7 +533,7 @@ export class Bundle extends Libp2p {
   }
 }
 
-function attachEventHandlers(node, name) {
+function attachEventHandlers(node: Bundle, name: string) {
   node.on('error', err => {
     try {
       console.log(`[${name}] err: ${err.message}`);
@@ -331,7 +572,14 @@ function attachEventHandlers(node, name) {
   });
 }
 
-export function create(peerId, ip, port, bootstrapNode, logger, p2pConfig) {
+export function create(
+  peerId: PeerId,
+  ip: string,
+  port: number,
+  bootstrapNode: string[],
+  logger: ILogger,
+  p2pConfig: IPeer2PeerHandlers
+) {
   const node = new Bundle(peerId, ip, port, bootstrapNode, logger, p2pConfig);
   attachEventHandlers(node, ip);
   return node;
