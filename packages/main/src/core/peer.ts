@@ -180,7 +180,7 @@ export default class Peer implements ICoreModule {
     );
   };
 
-  public static dial = async (bootstrapNode: string[]) => {
+  public static async dial(bootstrapNode: string[]) {
     // dial to peers in GNY_P2P_PEERS env variable
     // normally this is only the rendezvous node
     for (let i = 0; i < bootstrapNode.length; ++i) {
@@ -195,7 +195,7 @@ export default class Peer implements ICoreModule {
         console.log(err);
       }
     }
-  };
+  }
 
   public static askRendezvousNodeForPeers = async (bootstrapNode: string[]) => {
     const m = multiaddr(bootstrapNode[0]);
