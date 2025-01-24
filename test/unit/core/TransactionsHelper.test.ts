@@ -1,4 +1,4 @@
-import { TransactionsHelper } from '@gnyio/main/transactionshelper';
+import * as TransactionsHelper from '@gnyio/main/transactionshelper';
 
 describe('TransactionsHelper', () => {
   describe('pure functions', () => {

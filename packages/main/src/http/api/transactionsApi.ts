@@ -15,7 +15,7 @@ import {
 import { StateHelper } from '../../core/StateHelper.js';
 import { Transaction } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
-import { TransactionsHelper } from '../../core/TransactionsHelper.js';
+import * as TransactionsHelper from '../../core/TransactionsHelper.js';
 import BigNumber from 'bignumber.js';
 
 export default class TransactionsApi implements IHttpApi {
