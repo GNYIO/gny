@@ -11,7 +11,7 @@ import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
 import { serializedSpanContext } from '@gnyio/tracer';
 import pMinDelay from 'p-min-delay';
-import { LoaderHelper } from './LoaderHelper.js';
+import * as LoaderHelper from './LoaderHelper.js';
 import { Cron } from 'croner';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

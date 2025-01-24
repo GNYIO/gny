@@ -1,6 +1,6 @@
 import { IBlock, ICoreModule } from '@gnyio/interfaces';
 import { StateHelper } from './StateHelper.js';
-import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper.js';
+import * as LoaderHelper from './LoaderHelper.js';
 import Blocks from './blocks.js';
 import Peer from './peer.js';
 import * as PeerId from 'peer-id';
@@ -37,7 +37,7 @@ export default class Loader implements ICoreModule {
       return;
     }
 
-    const result: PeerIdCommonBlockHeight[] = await LoaderHelper.contactEachPeer(
+    const result: LoaderHelper.PeerIdCommonBlockHeight[] = await LoaderHelper.contactEachPeer(
       allPeerInfos,
       lastBlock,
       parentSpan
