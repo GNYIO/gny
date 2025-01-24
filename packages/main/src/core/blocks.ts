@@ -20,7 +20,7 @@ import pWhilst from 'p-whilst';
 import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
-import { BlocksHelper } from './BlocksHelper.js';
+import * as BlocksHelper from './BlocksHelper.js';
 import { ConsensusHelper } from './ConsensusHelper.js';
 import { StateHelper } from './StateHelper.js';
 import Transactions from './transactions.js';

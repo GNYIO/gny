@@ -12,7 +12,7 @@ import {
   P2PApiResult,
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
-import { BlocksHelper } from '../../core/BlocksHelper.js';
+import * as BlocksHelper from '../../core/BlocksHelper.js';
 import { StateHelper } from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
 

@@ -27,7 +27,7 @@ import {
 import { StateHelper } from './StateHelper.js';
 import { TransportHelper } from './TransportHelper.js';
 import Peer from './peer.js';
-import { BlocksHelper } from './BlocksHelper.js';
+import * as BlocksHelper from './BlocksHelper.js';
 import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,

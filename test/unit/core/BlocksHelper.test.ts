@@ -1,4 +1,4 @@
-import { BlocksHelper } from '@gnyio/main/blockshelper';
+import * as BlocksHelper from '@gnyio/main/blockshelper';
 import {
   ITransaction,
   IConfig,

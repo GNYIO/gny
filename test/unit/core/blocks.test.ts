@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 import { generateAddress } from '@gnyio/utils';
 import * as ed from '@gnyio/ed';
 import { slots } from '@gnyio/utils';
-import { BlocksHelper } from '@gnyio/main/blockshelper';
+import * as BlocksHelper from '@gnyio/main/blockshelper';
 import { StateHelper } from '@gnyio/main/statehelper';
 import { ISpan } from '@gnyio/tracer';
 import { getConfig } from '@gnyio/network';

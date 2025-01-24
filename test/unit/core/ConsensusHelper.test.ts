@@ -2,7 +2,7 @@ import { IBlock, ManyVotes, ITransaction, ILogger } from '@gnyio/interfaces';
 import { ConsensusHelper } from '@gnyio/main/consensushelper';
 import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
-import { BlocksHelper } from '@gnyio/main/blockshelper';
+import * as BlocksHelper from '@gnyio/main/blockshelper';
 import { slots } from '@gnyio/utils';
 import { ConsensusBase } from '@gnyio/base';
 import { StateHelper } from '@gnyio/main/statehelper';
