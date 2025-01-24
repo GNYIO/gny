@@ -74,6 +74,7 @@
   },
   "dependencies": {
     "@gnyio/base": "2.13.1",
+    "@gnyio/container": "2.13.1",
     "@gnyio/database-postgres": "2.13.1",
     "@gnyio/ed": "2.13.1",
     "@gnyio/extended-joi": "2.13.1",
