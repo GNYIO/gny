@@ -25,7 +25,7 @@ import {
   isManyVotes,
 } from '@gnyio/type-validation';
 import { StateHelper } from './StateHelper.js';
-import { TransportHelper } from './TransportHelper.js';
+import * as TransportHelper from './TransportHelper.js';
 import Peer from './peer.js';
 import * as BlocksHelper from './BlocksHelper.js';
 import {
