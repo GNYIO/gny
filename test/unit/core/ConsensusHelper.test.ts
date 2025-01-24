@@ -1,5 +1,5 @@
 import { IBlock, ManyVotes, ITransaction, ILogger } from '@gnyio/interfaces';
-import { ConsensusHelper } from '@gnyio/main/consensushelper';
+import * as ConsensusHelper from '@gnyio/main/consensushelper';
 import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
 import * as BlocksHelper from '@gnyio/main/blockshelper';

@@ -20,7 +20,7 @@ import {
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { RoundBase } from '@gnyio/base';
-import { ConsensusHelper } from './ConsensusHelper.js';
+import * as ConsensusHelper from './ConsensusHelper.js';
 import { StateHelper } from './StateHelper.js';
 import Blocks from './blocks.js';
 import BigNumber from 'bignumber.js';
