@@ -21,6 +21,8 @@ import Transactions from '../../core/transactions.js';
 import { joi } from '@gnyio/extended-joi';
 import { generateAddressByPublicKey, getAccount } from '../util.js';
 import * as bip39 from 'bip39';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 export default class ExchangeApi implements IHttpApi {
   private library: IScope;
@@ -171,7 +173,9 @@ export default class ExchangeApi implements IHttpApi {
         }
       );
 
-      await global.app.mutex.runExclusive(async () => {
+      const mutex = container.get<Mutex>(TYPES.MutexService);
+
+      await mutex.runExclusive(async () => {
         waitOnMutexSpan.finish();
 
         span.log({

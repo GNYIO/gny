@@ -34,6 +34,8 @@ import { Account } from '@gnyio/database-postgres';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import pImmediate from 'p-immediate';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -945,7 +947,9 @@ export default class Blocks implements ICoreModule {
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -1123,7 +1127,8 @@ export default class Blocks implements ICoreModule {
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -1382,7 +1387,8 @@ export default class Blocks implements ICoreModule {
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       span.log({
@@ -1478,7 +1484,8 @@ export default class Blocks implements ICoreModule {
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -1689,7 +1696,9 @@ export default class Blocks implements ICoreModule {
   public static onBind = async () => {
     // this.loaded = true; // TODO: use stateK
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       try {
         let state = StateHelper.getState();
 
@@ -1766,7 +1775,9 @@ export default class Blocks implements ICoreModule {
 
     await sleep(3 * 1000);
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       global.library.logger.info(
         `[stopWithHeight] setInterval add sequence [start]`
       );

@@ -5,6 +5,8 @@ import Blocks from './blocks.js';
 import Peer from './peer.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocksFromPeerProxy(
@@ -82,7 +84,9 @@ export default class Loader implements ICoreModule {
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       global.library.logger.debug('syncBlocksFromPeer enter sequence');

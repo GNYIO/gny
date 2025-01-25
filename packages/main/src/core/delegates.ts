@@ -27,6 +27,8 @@ import BigNumber from 'bignumber.js';
 import { Variable } from '@gnyio/database-postgres';
 import { Delegate } from '@gnyio/database-postgres';
 import { getSmallBlockHash } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 const blockReward = new BlockReward();
 
@@ -150,7 +152,8 @@ export default class Delegates implements ICoreModule {
       return;
     }
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       // make sure that this mutex is run not later than 3 second after

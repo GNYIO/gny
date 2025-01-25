@@ -8,8 +8,19 @@ import { IScope, IConfig } from '@gnyio/interfaces';
 import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gnyio/type-validation';
 import { MessageBus } from '@gnyio/utils';
-
 import { composeNetwork } from './http/index.js';
+import { container, TYPES } from '@gnyio/container';
+import { ContainerModule, interfaces } from 'inversify';
+import { Mutex } from 'async-mutex';
+
+export const mutexServiceModule = new ContainerModule(
+  (bind: interfaces.Bind) => {
+    // it's important that  we use the single scope
+    bind<Mutex>(TYPES.MutexService)
+      .to(Mutex)
+      .inSingletonScope();
+  }
+);
 
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;
@@ -56,6 +67,10 @@ async function init_alt(options: IOptions) {
   });
 
   scope.bus = new MessageBus(scope.modules, scope.coreApi);
+
+  // register module
+  container.load(mutexServiceModule /* other modules */);
+
   return scope;
 }
 

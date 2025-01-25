@@ -1,10 +1,3 @@
-import { Container, ContainerModule, interfaces } from 'inversify';
-import { TYPES } from './inversify.types';
-import {
-  ICheckDat,
-  IConfig,
-  ICountDatsWithWrongName,
-  IPromService,
-} from './inversify.interfaces';
+import { Container } from 'inversify';
 
-export const container = new Container();
+export const container: Container = new Container();

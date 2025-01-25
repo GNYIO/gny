@@ -13,6 +13,8 @@ import { serializedSpanContext } from '@gnyio/tracer';
 import pMinDelay from 'p-min-delay';
 import * as LoaderHelper from './LoaderHelper.js';
 import { Cron } from 'croner';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -261,7 +263,9 @@ export default class Peer implements ICoreModule {
             typeof result === 'object' &&
             result.decision.action === 'rollback'
           ) {
-            await global.app.mutex.runExclusive(async () => {
+            const mutex = container.get<Mutex>(TYPES.MutexService);
+
+            await mutex.runExclusive(async () => {
               await LoaderHelper.investigateFork(lastBlock, span);
             });
             await Loader.syncBlocksFromPeer(
@@ -393,7 +397,9 @@ export default class Peer implements ICoreModule {
     }
 
     if (result.decision.action === 'rollback') {
-      await global.app.mutex.runExclusive(async () => {
+      const mutex = container.get<Mutex>(TYPES.MutexService);
+
+      await mutex.runExclusive(async () => {
         await LoaderHelper.investigateFork(lastBlock, span);
       });
       await Loader.syncBlocksFromPeer(

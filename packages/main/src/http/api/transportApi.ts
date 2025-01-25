@@ -15,6 +15,8 @@ import { TransactionBase } from '@gnyio/base';
 import * as BlocksHelper from '../../core/BlocksHelper.js';
 import * as StateHelper from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 const osInfo = {
   getOS() {
@@ -144,7 +146,9 @@ export default class TransportApi implements IHttpApi {
     span.setTag('senderId', unconfirmedTrs.senderId);
 
     try {
-      await global.app.mutex.runExclusive(async () => {
+      const mutex = container.get<Mutex>(TYPES.MutexService);
+
+      await mutex.runExclusive(async () => {
         span.log({
           value: 'start sequence',
         });
