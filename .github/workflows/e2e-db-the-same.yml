@@ -78,10 +78,6 @@ jobs:
         run: npm run lerna:tsc
 
 
-      - name: Docker cache
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-
       - name: Build docker image
         run: docker compose --file config/integration/docker-compose.integration.yml build
 
