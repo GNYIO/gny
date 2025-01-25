@@ -14,6 +14,7 @@ import {
   SimplePeerInfo,
   ISerializedSpanContext,
   TracerWrapper,
+  ITracer,
 } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
@@ -48,12 +49,11 @@ export default class Transport implements ICoreModule {
     transaction: UnconfirmedTransaction,
     parentSpan: ISpan
   ) => {
-    const span = global.library.tracer.startSpan(
-      'broadcast unconfirmed transaction',
-      {
-        childOf: parentSpan.context(),
-      }
-    );
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('broadcast unconfirmed transaction', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('transactionId', transaction.id);
     span.setTag('senderId', transaction.senderId);
     span.log({
@@ -70,7 +70,7 @@ export default class Transport implements ICoreModule {
     }
 
     const raw: TracerWrapper<UnconfirmedTransaction[]> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: [obj],
     };
 
@@ -88,7 +88,9 @@ export default class Transport implements ICoreModule {
     votes: ManyVotes,
     parentSpan: ISpan
   ) => {
-    const span = global.app.tracer.startSpan('onNewBlock', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('onNewBlock', {
       childOf: parentSpan.context(),
     });
     span.setTag('hash', getSmallBlockHash(block));
@@ -123,7 +125,7 @@ export default class Transport implements ICoreModule {
     };
 
     const wrapped: TracerWrapper<NewBlockMessage> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: message,
     };
 
@@ -156,7 +158,9 @@ export default class Transport implements ICoreModule {
   ) => {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    const span = global.app.tracer.startSpan('broadcasting BlockPropose', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('broadcasting BlockPropose', {
       childOf: parentSpan.context(),
     });
     span.setTag('hash', getSmallBlockHash(propose));
@@ -176,7 +180,7 @@ export default class Transport implements ICoreModule {
     });
 
     const full: TracerWrapper<BlockPropose> = {
-      spanId: serializedSpanContext(global.app.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: propose,
     };
 
@@ -221,11 +225,13 @@ export default class Transport implements ICoreModule {
       )}`
     );
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received Block Header', {
+    const span = tracerService.startSpan('received Block Header', {
       references: [parentReference],
     });
 
@@ -233,7 +239,7 @@ export default class Transport implements ICoreModule {
     const modules = !StateHelper.ModulesAreLoaded();
 
     if (isSyncing || modules) {
-      const isSyncingSpan = global.library.tracer.startSpan(
+      const isSyncingSpan = tracerService.startSpan(
         'received Block Header (is syncing)',
         {
           childOf: span.context(),
@@ -273,7 +279,7 @@ export default class Transport implements ICoreModule {
     };
 
     let peerId: PeerId;
-    const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
+    const findPeerInfoInDHTSpan = tracerService.startSpan(
       'find peer-info in DHT',
       {
         childOf: span.context(),
@@ -290,7 +296,7 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const requestBlockAndVotesSpan = global.library.tracer.startSpan(
+    const requestBlockAndVotesSpan = tracerService.startSpan(
       'request block and votes',
       {
         childOf: span.context(),
@@ -321,15 +327,12 @@ export default class Transport implements ICoreModule {
     span.finish();
 
     const receiveBlockVotesSpanContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       result.spanId
     );
-    const receiveBlockSpan = global.library.tracer.startSpan(
-      'going to receiveBlock',
-      {
-        childOf: receiveBlockVotesSpanContext,
-      }
-    );
+    const receiveBlockSpan = tracerService.startSpan('going to receiveBlock', {
+      childOf: receiveBlockVotesSpanContext,
+    });
 
     if (!isBlockAndVotes(result.data)) {
       global.library.logger.error(
@@ -445,11 +448,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received Block Propose', {
+    const span = tracerService.startSpan('received Block Propose', {
       references: [parentReference],
     });
 
@@ -470,7 +475,7 @@ export default class Transport implements ICoreModule {
         modules,
       });
 
-      const isSyncingSpan = global.library.tracer.startSpan(
+      const isSyncingSpan = tracerService.startSpan(
         'received Block Propose (but syncing)',
         {
           childOf: span.context(),
@@ -635,12 +640,14 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const context = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       raw.spanId
     );
 
-    const span = global.library.tracer.startSpan('receive rendezvous', {
+    const span = tracerService.startSpan('receive rendezvous', {
       childOf: context,
     });
     span.finish();
@@ -756,16 +763,15 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan(
-      'received many trs broadcast',
-      {
-        references: [parentReference],
-      }
-    );
+    const span = tracerService.startSpan('received many trs broadcast', {
+      references: [parentReference],
+    });
 
     const unconfirmedTrs = wrapper.data;
     const result = [];
@@ -827,11 +833,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received trs broadcast', {
+    const span = tracerService.startSpan('received trs broadcast', {
       references: [parentReference],
     });
 

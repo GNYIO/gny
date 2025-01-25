@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import * as p2p from '@gnyio/p2p';
-import { PeerNode, ICoreModule } from '@gnyio/interfaces';
+import { PeerNode, ICoreModule, ITracer } from '@gnyio/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper.js';
 import Transport from './transport.js';
@@ -55,7 +55,9 @@ export default class Peer implements ICoreModule {
       }
       return result.data;
     } catch (err) {
-      const span = global.app.tracer.startSpan('request');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('request');
       span.setTag('error', true);
       span.log({
         value: `Failed to request remote peer: ${err.message}`,
@@ -90,7 +92,9 @@ export default class Peer implements ICoreModule {
       )}`
     );
 
-    const startUpSpan = global.library.tracer.startSpan('startUp');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const startUpSpan = tracerService.startSpan('startUp');
     startUpSpan.setTag('peerId', p2pService.peerId.toB58String());
     startUpSpan.log({
       announceAddresses: p2pService.addressManager
@@ -165,7 +169,9 @@ export default class Peer implements ICoreModule {
     const m = multiaddr(bootstrapNode[0]);
     const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
 
-    const span = global.app.tracer.startSpan('request peers');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('request peers');
     let peers = null;
     try {
       const p2pService = container.get<IP2PService>(TYPES.P2PService);
@@ -204,7 +210,9 @@ export default class Peer implements ICoreModule {
 
       // no new height for 30 seconds, look if any other node has a higher node
       if (new BigNumber(height30SecondsAgo).isEqualTo(heightNow)) {
-        const span = global.library.tracer.startSpan('is stuck');
+        const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+        const span = tracerService.startSpan('is stuck');
         span.log({
           height30SecondsAgo,
           heightNow,
@@ -293,16 +301,15 @@ export default class Peer implements ICoreModule {
           protect: true,
         },
         async () => {
-          const span = global.library.tracer.startSpan('rendezvous broadcast');
+          const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+          const span = tracerService.startSpan('rendezvous broadcast');
 
           const p2pService = container.get<IP2PService>(TYPES.P2PService);
           const peers = p2pService.getAllConnectedPeersPeerInfo();
 
           const data = {
-            spanId: serializedSpanContext(
-              global.library.tracer,
-              span.context()
-            ),
+            spanId: serializedSpanContext(tracerService, span.context()),
             peers: peers,
           };
           span.log(data);
@@ -339,7 +346,9 @@ export default class Peer implements ICoreModule {
     Peer.syncIfStuck();
 
     // ask peers for their height
-    const span = global.library.tracer.startSpan('ask peers');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('ask peers');
     const lastBlock = StateHelper.getState().lastBlock;
 
     const result = await Loader.silentlyContactPeers(lastBlock, span);

@@ -17,6 +17,7 @@ import {
   IBlock,
   IVariable,
   ICoreModule,
+  ITracer,
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { RoundBase } from '@gnyio/base';
@@ -124,6 +125,8 @@ export default class Delegates implements ICoreModule {
     const isSyncingRightNow = StateHelper.IsSyncing();
     const keyPairs = StateHelper.GetKeyPairs();
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const error = Delegates.isLoopReady(
       preState,
       now,
@@ -215,9 +218,7 @@ export default class Delegates implements ICoreModule {
               }, options: ${options.votes.id} h: ${options.votes.height}`
             );
 
-            const span = global.library.tracer.startSpan(
-              'Block.processBlock()'
-            );
+            const span = tracerService.startSpan('Block.processBlock()');
             span.setTag('hash', getSmallBlockHash(newBlock));
             span.setTag('height', newBlock.height);
             span.setTag('id', newBlock.id);
@@ -234,7 +235,7 @@ export default class Delegates implements ICoreModule {
             span.finish();
 
             if (stateResult.success === false) {
-              const processBlockError = global.library.tracer.startSpan(
+              const processBlockError = tracerService.startSpan(
                 'processBlock error',
                 {
                   childOf: span.context(),
@@ -257,7 +258,7 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
-        const span = global.app.tracer.startSpan('loop');
+        const span = tracerService.startSpan('loop');
         span.setTag('error', true);
         span.log({
           value: `Failed generate block within slot: ${e}`,
@@ -318,7 +319,9 @@ export default class Delegates implements ICoreModule {
         }
       }
     } catch (e) {
-      const span = global.app.tracer.startSpan('loadMyDelegates');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('loadMyDelegates');
       span.setTag('error', true);
       span.log({
         value: e,
@@ -386,7 +389,9 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
-      const span = global.app.tracer.startSpan('generateDelegateList');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('generateDelegateList');
       span.setTag('error', true);
       span.log({
         value: `error while generating DelgateList ${e}`,

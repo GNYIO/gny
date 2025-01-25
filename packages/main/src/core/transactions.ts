@@ -4,6 +4,7 @@ import {
   IAccount,
   ICoreModule,
   UnconfirmedTransaction,
+  ITracer,
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { TransactionBase } from '@gnyio/base';
@@ -13,6 +14,7 @@ import { Account } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';
 import { isAddress } from '@gnyio/utils';
 import { ISpan } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
 
 export default class Transactions implements ICoreModule {
   public static processUnconfirmedTransactionsAsync = async (
@@ -20,13 +22,12 @@ export default class Transactions implements ICoreModule {
     transactions: Array<UnconfirmedTransaction>,
     parentSpan: ISpan
   ) => {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     for (const transaction of transactions) {
-      const span = global.library.tracer.startSpan(
-        'process multiple transactions',
-        {
-          childOf: parentSpan.context(),
-        }
-      );
+      const span = tracerService.startSpan('process multiple transactions', {
+        childOf: parentSpan.context(),
+      });
       span.setTag('transactionId', transaction.id);
       span.setTag('senderId', transaction.senderId);
 
@@ -82,7 +83,9 @@ export default class Transactions implements ICoreModule {
       );
       StateHelper.AddUnconfirmedTransactions(transaction);
 
-      const addTransactionToPoolspan = global.library.tracer.startSpan(
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const addTransactionToPoolspan = tracerService.startSpan(
         'add trs to pool',
         {
           childOf: span.context(),
@@ -108,12 +111,11 @@ export default class Transactions implements ICoreModule {
     transaction: ITransaction | UnconfirmedTransaction,
     parentSpan: ISpan
   ) => {
-    const span = global.library.tracer.startSpan(
-      'apply unconfirmed transaction',
-      {
-        childOf: parentSpan.context(),
-      }
-    );
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('apply unconfirmed transaction', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('transactionId', transaction.id);
     span.setTag('senderId', transaction.senderId);
 

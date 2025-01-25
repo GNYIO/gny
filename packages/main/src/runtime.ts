@@ -27,7 +27,6 @@ export default async function runtime(options: IOptions) {
     contract: {},
     contractTypeMapping: {},
     logger: options.logger,
-    tracer: options.tracer,
   };
   global.app.prom = {
     accounts: new prom.Gauge<string>({

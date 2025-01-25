@@ -11,20 +11,16 @@ import {
   BufferList,
   CommonBlockResult,
   TracerWrapper,
+  ITracer,
 } from '@gnyio/interfaces';
 import {
   isCommonBlockParams,
   isBlocksWrapperParams,
-  isBlockAndVotes,
   isManyVotes,
-  isHeightWrapper,
   isBlockIdWrapper,
-  isCommonBlockResult,
-  isSimplePeerInfoArray,
   isTracerWrapper,
 } from '@gnyio/type-validation';
 import BigNumber from 'bignumber.js';
-import * as PeerId from 'peer-id';
 import { getSmallBlockHash } from '@gnyio/tracer';
 
 import { getBlocks as getBlocksFromApi } from '../http/util.js';
@@ -35,6 +31,7 @@ import {
 } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
 import first from 'it-first';
+import { container, TYPES } from '@gnyio/container';
 
 function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
   // step1: node1 -> node2
@@ -45,16 +42,15 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     const wrapper: TracerWrapper<BlockIdWrapper> = JSON.parse(temp.toString());
     const body = wrapper.data;
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan(
-      'response to BlockVotes request',
-      {
-        childOf: parentContext,
-      }
-    );
+    const span = tracerService.startSpan('response to BlockVotes request', {
+      childOf: parentContext,
+    });
 
     // validate id
     if (!isTracerWrapper(wrapper) || !isBlockIdWrapper(body)) {
@@ -78,12 +74,9 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     if (!newBlock) {
       span.finish();
 
-      const notFoundSpan = global.library.tracer.startSpan(
-        'new block not found',
-        {
-          childOf: span.context(),
-        }
-      );
+      const notFoundSpan = tracerService.startSpan('new block not found', {
+        childOf: span.context(),
+      });
       notFoundSpan.log({
         value: `not found: ${body.id}`,
       });
@@ -99,7 +92,7 @@ function V1_NEW_BLOCK_PROTOCOL_HANDLER(bundle) {
     span.finish();
 
     const result: TracerWrapper<BlockAndVotes> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: {
         block: newBlock.block,
         votes: newBlock.votes,
@@ -132,12 +125,14 @@ function V1_VOTES_HANDLER(bundle) {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const wrapper: TracerWrapper<ManyVotes> = JSON.parse(values.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('receive votes', {
+    const span = tracerService.startSpan('receive votes', {
       childOf: parentContext,
     });
 
@@ -177,17 +172,16 @@ function V1_COMMON_BLOCK_HANDLER(bundle) {
   async function response(source) {
     const temp = await first(source);
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const raw: TracerWrapper<CommonBlockParams> = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       raw.spanId
     );
-    const span = global.library.tracer.startSpan(
-      'receive commonBlock request',
-      {
-        childOf: parentContext,
-      }
-    );
+    const span = tracerService.startSpan('receive commonBlock request', {
+      childOf: parentContext,
+    });
     span.setTag('syncing', true);
 
     const body = raw.data;
@@ -310,9 +304,11 @@ function V1_GET_HEIGH_HANDLER(bundle) {
       throw new Error('[p2p] validation for getHeight isTracerWrapper failed');
     }
 
-    const span = global.library.tracer.startSpan('receive height request', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('receive height request', {
       childOf: createSpanContextFromSerializedParentContext(
-        global.library.tracer,
+        tracerService,
         body.spanId
       ),
     });
@@ -340,12 +336,14 @@ function V1_BLOCKS_HANDLER(bundle) {
   async function response(source) {
     const temp = await first(source);
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const raw: TracerWrapper<BlocksWrapperParams> = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       raw.spanId
     );
-    const span = global.library.tracer.startSpan('receive blocks request', {
+    const span = tracerService.startSpan('receive blocks request', {
       childOf: parentContext,
     });
     span.setTag('syncing', true);
@@ -370,7 +368,7 @@ function V1_BLOCKS_HANDLER(bundle) {
     try {
       const lastBlock = await global.app.sdb.getBlockById(lastBlockId);
       if (!lastBlock) {
-        const lastBlockNotFoundSpan = global.library.tracer.startSpan(
+        const lastBlockNotFoundSpan = tracerService.startSpan(
           'block not found',
           {
             childOf: span.context(),
@@ -433,13 +431,15 @@ function V1_GET_PEERS_HANDLER(bundle) {
   async function response(source) {
     const temp = await first(source);
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const raw = JSON.parse(temp.toString());
     const parentContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       raw
     );
 
-    const span = global.library.tracer.startSpan('receive get peers request', {
+    const span = tracerService.startSpan('receive get peers request', {
       childOf: parentContext,
     });
 

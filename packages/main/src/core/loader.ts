@@ -1,4 +1,4 @@
-import { IBlock, ICoreModule } from '@gnyio/interfaces';
+import { IBlock, ICoreModule, ITracer } from '@gnyio/interfaces';
 import * as StateHelper from './StateHelper.js';
 import * as LoaderHelper from './LoaderHelper.js';
 import Blocks from './blocks.js';
@@ -32,12 +32,11 @@ export default class Loader implements ICoreModule {
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
 
-      const noPeersSpan = global.library.tracer.startSpan(
-        'no connected peers',
-        {
-          childOf: parentSpan.context(),
-        }
-      );
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const noPeersSpan = tracerService.startSpan('no connected peers', {
+        childOf: parentSpan.context(),
+      });
       noPeersSpan.finish();
       return;
     }
@@ -77,10 +76,12 @@ export default class Loader implements ICoreModule {
       return;
     }
 
-    const span = global.library.tracer.startSpan('sync blocks from peer');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('sync blocks from peer');
     span.setTag('syncing', true);
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on syncBlocks',
       {
         childOf: span.context(),
@@ -98,7 +99,9 @@ export default class Loader implements ICoreModule {
       const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
-        const rollbackBlockSpan = global.library.tracer.startSpan(
+        const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+        const rollbackBlockSpan = tracerService.startSpan(
           'rollback Block (height)',
           {
             childOf: span.context(),

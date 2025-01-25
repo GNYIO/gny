@@ -3,6 +3,7 @@ import {
   CommonBlockResult,
   HeightWrapper,
   IBlock,
+  ITracer,
 } from '@gnyio/interfaces';
 import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
@@ -35,7 +36,9 @@ export async function contactEachPeer(
   lastBlock: IBlock,
   span: ISpan
 ) {
-  const infoSpan = global.library.tracer.startSpan('query multiple peers', {
+  const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+  const infoSpan = tracerService.startSpan('query multiple peers', {
     childOf: span.context(),
   });
   global.library.logger.info('[p2p] query multiple peers');
@@ -44,12 +47,9 @@ export async function contactEachPeer(
 
   for (let i = 0; i < allPeerInfos.length; ++i) {
     // request commonBlock from peer
-    const collectInfoSpan = global.library.tracer.startSpan(
-      'info from one peer',
-      {
-        childOf: infoSpan.context(),
-      }
-    );
+    const collectInfoSpan = tracerService.startSpan('info from one peer', {
+      childOf: infoSpan.context(),
+    });
 
     // check if the peer is in the PeerStore?
     const currentPeerInfo = allPeerInfos[i];
@@ -148,7 +148,9 @@ export async function getCommonBlock(
     global.app.sdb.getBlocksByHeightRange
   );
 
-  const span = global.app.tracer.startSpan('get commonBlock', {
+  const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+  const span = tracerService.startSpan('get commonBlock', {
     childOf: parentSpan.context(),
   });
   span.log({
@@ -302,13 +304,15 @@ export function syncStrategy(
 }
 
 export async function investigateFork(lastBlock: IBlock, parentSpan: ISpan) {
-  const forkSpan = global.library.tracer.startSpan('investigate fork', {
+  const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+  const forkSpan = tracerService.startSpan('investigate fork', {
     childOf: parentSpan.context(),
   });
   forkSpan.finish();
 
   // clear unconfirmed transactions
-  const clearUnconfirmedTrsSpan = global.library.tracer.startSpan(
+  const clearUnconfirmedTrsSpan = tracerService.startSpan(
     'clear unconfirmed transactions',
     {
       childOf: forkSpan.context(),
@@ -330,7 +334,7 @@ export async function investigateFork(lastBlock: IBlock, parentSpan: ISpan) {
   }
 
   // rollback current block (to revert transactions)
-  const revertCurrentBlockSpan = global.library.tracer.startSpan(
+  const revertCurrentBlockSpan = tracerService.startSpan(
     'rollback current block',
     {
       childOf: clearUnconfirmedTrsSpan.context(),
@@ -366,7 +370,7 @@ export async function investigateFork(lastBlock: IBlock, parentSpan: ISpan) {
   }
 
   // rollback to block minus1
-  const rollbackToMinus1BlockSpan = global.library.tracer.startSpan(
+  const rollbackToMinus1BlockSpan = tracerService.startSpan(
     'rollback block minus1',
     {
       childOf: revertCurrentBlockSpan.context(),

@@ -1,3 +1,5 @@
+import { container, TYPES } from '@gnyio/container';
+import { ITracer } from '@gnyio/interfaces';
 import { ISpan } from '@gnyio/tracer';
 import { slots } from '@gnyio/utils';
 
@@ -16,7 +18,9 @@ export function timestampWithinTreshold(
   const currentEpoch = slots.getEpochTime();
 
   if (diff >= 6) {
-    const diffSpan = global.library.tracer.startSpan('block header too late', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const diffSpan = tracerService.startSpan('block header too late', {
       childOf: parentSpan.context(),
     });
     diffSpan.log({

@@ -10,6 +10,7 @@ import {
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
   P2PApiResult,
+  ITracer,
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
 import * as BlocksHelper from '../../core/BlocksHelper.js';
@@ -99,9 +100,9 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private transactions = async (req: Request, res: Response, next: Next) => {
-    const span = global.library.tracer.startSpan(
-      'receive transaction via http'
-    );
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('receive transaction via http');
 
     let unconfirmedTrs: UnconfirmedTransaction;
     try {

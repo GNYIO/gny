@@ -1,10 +1,11 @@
-import { ManyVotes, IBlock } from '@gnyio/interfaces';
+import { ManyVotes, IBlock, ITracer } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { ConsensusBase } from '@gnyio/base';
 import { slots } from '@gnyio/utils';
 import { copyObject } from '@gnyio/base';
 import * as StateHelper from './StateHelper.js';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
 
 export function createPendingBlockAndVotes(
   oldState: IState,
@@ -16,7 +17,9 @@ export function createPendingBlockAndVotes(
   const block = copyObject(oldBlock);
   const votes = copyObject(oldVotes);
 
-  const span = global.library.tracer.startSpan('create pending votes', {
+  const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+  const span = tracerService.startSpan('create pending votes', {
     childOf: parentSpan.context(),
   });
   span.setTag('height', block.height);
@@ -77,7 +80,7 @@ export function createPendingBlockAndVotes(
   });
   span.finish();
 
-  const votesSpan = global.library.tracer.startSpan('add votes', {
+  const votesSpan = tracerService.startSpan('add votes', {
     childOf: span.context(),
   });
   votesSpan.log({
@@ -211,7 +214,9 @@ export function addPendingVotes(
   const state = StateHelper.copyState(oldState);
   const votes = copyObject(oldVotes);
 
-  const span = global.library.tracer.startSpan('add necessary votes', {
+  const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+  const span = tracerService.startSpan('add necessary votes', {
     childOf: parentSpan.context(),
   });
 
@@ -284,7 +289,7 @@ export function addPendingVotes(
 
   span.finish();
 
-  const votesSpan = global.library.tracer.startSpan('add votes', {
+  const votesSpan = tracerService.startSpan('add votes', {
     childOf: span.context(),
   });
   votesSpan.log({

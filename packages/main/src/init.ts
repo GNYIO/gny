@@ -4,7 +4,7 @@ import { Sequence } from '@gnyio/utils';
 import { getSchema } from '@gnyio/protobuf';
 import loadedModules from './loadModules.js';
 import loadCoreApi from './loadCoreApi.js';
-import { IScope, IConfig } from '@gnyio/interfaces';
+import { IScope, IConfig, ILogger, ITracer } from '@gnyio/interfaces';
 import { IOptions } from './globalInterfaces';
 import { isConfig } from '@gnyio/type-validation';
 import { MessageBus } from '@gnyio/utils';
@@ -14,6 +14,7 @@ import { ContainerModule, interfaces } from 'inversify';
 import { Mutex } from 'async-mutex';
 import { IP2PService, create } from '@gnyio/p2p';
 import * as PeerId from 'peer-id';
+import * as tracerpkg from '@gnyio/tracer';
 
 export const mutexServiceModule = new ContainerModule(
   (bind: interfaces.Bind) => {
@@ -52,6 +53,26 @@ async function createInversifyP2PService() {
   });
 
   return p2pServiceModule;
+}
+
+function createInversifyTracer(appConfig: IConfig, logger: ILogger) {
+  const tracerServiceModule = new ContainerModule((bind: interfaces.Bind) => {
+    // it's important that  we use the single scope
+
+    // tracer
+    const tracer = tracerpkg.initTracer(
+      appConfig.publicIp,
+      appConfig.jaegerHost,
+      appConfig.version,
+      appConfig.magic,
+      appConfig.netVersion,
+      appConfig.p2pConfig.P2P_VERSION,
+      logger
+    );
+    bind<ITracer>(TYPES.TracerService).toConstantValue(tracer);
+  });
+
+  return tracerServiceModule;
 }
 
 async function init_alt(options: IOptions) {
@@ -102,7 +123,15 @@ async function init_alt(options: IOptions) {
 
   // register module
   const p2pServiceModule = await createInversifyP2PService();
-  container.load(mutexServiceModule, p2pServiceModule /* other modules */);
+  const tracerServiceModule = createInversifyTracer(
+    options.appConfig,
+    options.logger
+  );
+  container.load(
+    mutexServiceModule,
+    p2pServiceModule,
+    tracerServiceModule /* other modules */
+  );
 
   return scope;
 }

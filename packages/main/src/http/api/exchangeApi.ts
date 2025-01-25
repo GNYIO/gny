@@ -14,6 +14,7 @@ import {
   AccountGenerateModel,
   ServerError,
   PublicKeyWrapper,
+  ITracer,
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
 import * as StateHelper from '../../core/StateHelper.js';
@@ -74,9 +75,9 @@ export default class ExchangeApi implements IHttpApi {
     res: Response,
     next: Next
   ) => {
-    const span = global.library.tracer.startSpan(
-      'received unsigned transaction'
-    );
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('received unsigned transaction');
 
     const query = req.body;
     const unsigendTransactionSchema = joi.object().keys({
@@ -166,7 +167,7 @@ export default class ExchangeApi implements IHttpApi {
 
     let result = null;
     try {
-      const waitOnMutexSpan = global.library.tracer.startSpan(
+      const waitOnMutexSpan = tracerService.startSpan(
         'mutex wait on unsigned trs',
         {
           childOf: span.context(),

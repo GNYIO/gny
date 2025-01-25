@@ -14,6 +14,7 @@ import {
   SupplyWrapper,
   Status,
   IBurn,
+  ITracer,
 } from '@gnyio/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gnyio/base';
@@ -22,6 +23,7 @@ import * as StateHelper from '../../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { joi } from '@gnyio/extended-joi';
 import { Burn } from '@gnyio/database-postgres';
+import { container, TYPES } from '@gnyio/container';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;
@@ -58,11 +60,13 @@ export default class BlocksApi implements IHttpApi {
       res.status(500).send({ success: false, error: 'API endpoint not found' });
     });
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     this.library.network.app.use('/api/blocks', router);
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = global.library.tracer.startSpan('BlocksApi');
+        const span = tracerService.startSpan('BlocksApi');
         span.setTag('error', true);
         span.log({
           value: `req.url ${err}`,
