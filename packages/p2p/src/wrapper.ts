@@ -251,13 +251,16 @@ export class Bundle extends Libp2p {
     return result;
   }
 
-  async requestGetPeers(peerId: PeerId, span: ISpan) {
+  async requestGetPeers(
+    peerId: PeerId,
+    span: ISpan
+  ): Promise<SimplePeerInfo[]> {
     this.logger.info('[p2p/wrapper] called requestGetPeers()');
 
     const raw = serializedSpanContext(global.library.tracer, span.context());
     const data = JSON.stringify(raw);
 
-    const resultRaw = await this.bundle.directRequest(
+    const resultRaw = await this.directRequest(
       peerId,
       global.Config.p2pConfig.V1_GET_PEERS,
       data
