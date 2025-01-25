@@ -8,7 +8,7 @@ import {
   SingleVerificationWrapper,
   ApiResult,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 import { Verification } from '@gnyio/database-postgres';
 

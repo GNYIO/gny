@@ -24,7 +24,7 @@ import {
   getAccount,
 } from '../util.js';
 import Delegates from '../../core/delegates.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Balance } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';
 import { Vote } from '@gnyio/database-postgres';

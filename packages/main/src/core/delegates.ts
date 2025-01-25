@@ -21,7 +21,7 @@ import {
 import { IState } from '../globalInterfaces.js';
 import { RoundBase } from '@gnyio/base';
 import * as ConsensusHelper from './ConsensusHelper.js';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import Blocks from './blocks.js';
 import BigNumber from 'bignumber.js';
 import { Variable } from '@gnyio/database-postgres';

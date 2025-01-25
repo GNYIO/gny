@@ -1,4 +1,4 @@
-import { StateHelper } from '@gnyio/main/statehelper';
+import * as StateHelper from '@gnyio/main/statehelper';
 import { IBlock } from '@gnyio/interfaces';
 import { IState } from '@gnyio/main/globalInterfaces';
 

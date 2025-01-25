@@ -11,7 +11,7 @@ import { slots } from '@gnyio/utils';
 import queryParser from './express-query-int/index.js';
 import { IConfig, Modules, ILogger, INetwork } from '@gnyio/interfaces';
 import Peer from '../core/peer.js';
-import { StateHelper } from '../core/StateHelper.js';
+import * as StateHelper from '../core/StateHelper.js';
 
 const CIPHERS = `
   ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:

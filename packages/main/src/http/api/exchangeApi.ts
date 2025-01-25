@@ -16,7 +16,7 @@ import {
   PublicKeyWrapper,
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
 import { joi } from '@gnyio/extended-joi';
 import { generateAddressByPublicKey, getAccount } from '../util.js';

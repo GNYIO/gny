@@ -18,7 +18,7 @@ import {
   DelegateOwnProducedBlocks,
 } from '@gnyio/interfaces';
 import { BlockReward, isAddress } from '@gnyio/utils';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import Delegates from '../../core/delegates.js';
 import { Vote } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';

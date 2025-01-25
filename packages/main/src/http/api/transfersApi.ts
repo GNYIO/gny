@@ -10,7 +10,7 @@ import {
   AmountWrapper,
 } from '@gnyio/interfaces';
 import { Merge } from 'type-fest';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Transfer } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';

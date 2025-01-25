@@ -8,7 +8,7 @@ import {
   ApiResult,
   SystemInfo,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 
 export default class SystemApi implements IHttpApi {
   private library: IScope;

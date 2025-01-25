@@ -22,7 +22,7 @@ import { TransactionBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
 import * as BlocksHelper from './BlocksHelper.js';
 import * as ConsensusHelper from './ConsensusHelper.js';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import Transactions from './transactions.js';
 import Peer from './peer.js';
 import Delegates from './delegates.js';

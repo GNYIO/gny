@@ -7,7 +7,7 @@ import {
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { TransactionBase } from '@gnyio/base';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { Account } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';

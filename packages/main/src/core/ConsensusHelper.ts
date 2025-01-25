@@ -3,7 +3,7 @@ import { IState } from '../globalInterfaces.js';
 import { ConsensusBase } from '@gnyio/base';
 import { slots } from '@gnyio/utils';
 import { copyObject } from '@gnyio/base';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 
 export function createPendingBlockAndVotes(

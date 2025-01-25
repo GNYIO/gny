@@ -12,174 +12,172 @@ import { LimitCache } from '@gnyio/utils';
 import LRU from 'lru-cache';
 import { copyObject } from '@gnyio/base';
 
-export class StateHelper {
-  // state management
-  public static getInitialState() {
-    const state: IState = {
-      // TODO: check correct init values
-      votesKeySet: {},
-      pendingBlock: undefined,
-      pendingVotes: undefined,
+// state management
+export function getInitialState() {
+  const state: IState = {
+    // TODO: check correct init values
+    votesKeySet: {},
+    pendingBlock: undefined,
+    pendingVotes: undefined,
 
-      lastBlock: undefined,
+    lastBlock: undefined,
 
-      proposeCache: {},
-      lastPropose: null,
-      privIsCollectingVotes: false,
-      lastVoteTime: undefined,
-    };
+    proposeCache: {},
+    lastPropose: null,
+    privIsCollectingVotes: false,
+    lastVoteTime: undefined,
+  };
 
-    return state;
-  }
+  return state;
+}
 
-  public static setState(state: IState) {
-    global.state = state;
-  }
+export function setState(state: IState) {
+  global.state = state;
+}
 
-  public static stateBeforeRollback(lastBlock: IBlock) {
-    const state: IState = {
-      votesKeySet: {},
-      pendingBlock: undefined,
-      pendingVotes: undefined,
+export function stateBeforeRollback(lastBlock: IBlock) {
+  const state: IState = {
+    votesKeySet: {},
+    pendingBlock: undefined,
+    pendingVotes: undefined,
 
-      lastBlock: lastBlock,
+    lastBlock: lastBlock,
 
-      proposeCache: {},
-      lastPropose: null,
-      privIsCollectingVotes: false,
-      lastVoteTime: undefined,
-    };
-    return state;
-  }
+    proposeCache: {},
+    lastPropose: null,
+    privIsCollectingVotes: false,
+    lastVoteTime: undefined,
+  };
+  return state;
+}
 
-  /**
-   * returns always a deepCopy of the current state
-   */
-  public static getState() {
-    const state = StateHelper.copyState(global.state);
-    return state;
-  }
+/**
+ * returns always a deepCopy of the current state
+ */
+export function getState() {
+  const state = copyState(global.state);
+  return state;
+}
 
-  public static copyState(state: IState) {
-    return copyObject(state);
-  }
+export function copyState(state: IState) {
+  return copyObject(state);
+}
 
-  // keyPairs
-  public static getInitialKeyPairs() {
-    return {} as KeyPairsIndexer;
+// keyPairs
+export function getInitialKeyPairs() {
+  return {} as KeyPairsIndexer;
+}
+export function SetKeyPairs(keyPairs: KeyPairsIndexer) {
+  global.keyPairs = keyPairs;
+}
+export function GetKeyPairs() {
+  return global.keyPairs;
+}
+export function isPublicKeyInKeyPairs(publicKey: string) {
+  if (global.keyPairs[publicKey]) {
+    return true;
+  } else {
+    return false;
   }
-  public static SetKeyPairs(keyPairs: KeyPairsIndexer) {
-    global.keyPairs = keyPairs;
-  }
-  public static GetKeyPairs() {
-    return global.keyPairs;
-  }
-  public static isPublicKeyInKeyPairs(publicKey: string) {
-    if (global.keyPairs[publicKey]) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  public static setKeyPair(publicKey: string, keys: KeyPair) {
-    global.keyPairs[publicKey] = keys;
-  }
-  public static removeKeyPair(publicKey: string) {
-    delete global.keyPairs[publicKey];
-  }
+}
+export function setKeyPair(publicKey: string, keys: KeyPair) {
+  global.keyPairs[publicKey] = keys;
+}
+export function removeKeyPair(publicKey: string) {
+  delete global.keyPairs[publicKey];
+}
 
-  // isForgingEnabled
-  public static IsForgingEnabled() {
-    return global.isForgingEnabled;
-  }
-  public static SetForgingEnabled(newStatus: boolean) {
-    global.isForgingEnabled = newStatus;
-  }
+// isForgingEnabled
+export function IsForgingEnabled() {
+  return global.isForgingEnabled;
+}
+export function SetForgingEnabled(newStatus: boolean) {
+  global.isForgingEnabled = newStatus;
+}
 
-  // privSyncing
-  public static IsSyncing() {
-    return global.privSyncing;
-  }
-  public static SetIsSyncing(newState: boolean) {
-    global.privSyncing = newState;
-  }
+// privSyncing
+export function IsSyncing() {
+  return global.privSyncing;
+}
+export function SetIsSyncing(newState: boolean) {
+  global.privSyncing = newState;
+}
 
-  // blocksToSync
-  public static SetBlocksToSync(height: number) {
-    global.blocksToSync = height;
-  }
-  public static GetBlocksToSync() {
-    return global.blocksToSync;
-  }
+// blocksToSync
+export function SetBlocksToSync(height: number) {
+  global.blocksToSync = height;
+}
+export function GetBlocksToSync() {
+  return global.blocksToSync;
+}
 
-  // Transaction Pool
-  public static InitializeTransactionPool() {
-    global.transactionPool = new TransactionPoolPersistent(':memory:');
-  }
-  public static GetUnconfirmedTransaction(id: string) {
-    return global.transactionPool.get(id);
-  }
-  public static GetUnconfirmedTransactionList() {
-    return global.transactionPool.getUnconfirmed();
-  }
-  public static TrsAlreadyInUnconfirmedPool(id: string) {
-    return global.transactionPool.has(id);
-  }
-  public static ClearUnconfirmedTransactions() {
-    global.transactionPool.clear();
-  }
-  public static AddUnconfirmedTransactions(
-    transaction: ITransaction | UnconfirmedTransaction
-  ) {
-    global.transactionPool.add(transaction);
-  }
+// Transaction Pool
+export function InitializeTransactionPool() {
+  global.transactionPool = new TransactionPoolPersistent(':memory:');
+}
+export function GetUnconfirmedTransaction(id: string) {
+  return global.transactionPool.get(id);
+}
+export function GetUnconfirmedTransactionList() {
+  return global.transactionPool.getUnconfirmed();
+}
+export function TrsAlreadyInUnconfirmedPool(id: string) {
+  return global.transactionPool.has(id);
+}
+export function ClearUnconfirmedTransactions() {
+  global.transactionPool.clear();
+}
+export function AddUnconfirmedTransactions(
+  transaction: ITransaction | UnconfirmedTransaction
+) {
+  global.transactionPool.add(transaction);
+}
 
-  // failedTrsCache
-  public static InitializeFailedTrsCache() {
-    global.failedTrsCache = new LimitCache<string, boolean>();
-  }
-  public static TrsAlreadyFailed(key: string) {
-    return global.failedTrsCache.has(key);
-  }
-  public static AddFailedTrs(key: string) {
-    global.failedTrsCache.set(key, true);
-  }
+// failedTrsCache
+export function InitializeFailedTrsCache() {
+  global.failedTrsCache = new LimitCache<string, boolean>();
+}
+export function TrsAlreadyFailed(key: string) {
+  return global.failedTrsCache.has(key);
+}
+export function AddFailedTrs(key: string) {
+  global.failedTrsCache.set(key, true);
+}
 
-  // allModulesLoaded (new)
-  public static InitializeModulesAreLoaded() {
-    global.areAllModulesLoaded = false;
-  }
-  public static ModulesAreLoaded() {
-    return global.areAllModulesLoaded;
-  }
-  public static SetAllModulesLoaded(newVal: boolean) {
-    global.areAllModulesLoaded = newVal;
-  }
+// allModulesLoaded (new)
+export function InitializeModulesAreLoaded() {
+  global.areAllModulesLoaded = false;
+}
+export function ModulesAreLoaded() {
+  return global.areAllModulesLoaded;
+}
+export function SetAllModulesLoaded(newVal: boolean) {
+  global.areAllModulesLoaded = newVal;
+}
 
-  // blockchainReady (new)
-  public static InitializeBlockchainReady() {
-    global.blockchainReady = false;
-  }
-  public static BlockchainReady() {
-    return global.blockchainReady;
-  }
-  public static SetBlockchainReady(newVal: boolean) {
-    global.blockchainReady = newVal;
-  }
+// blockchainReady (new)
+export function InitializeBlockchainReady() {
+  global.blockchainReady = false;
+}
+export function BlockchainReady() {
+  return global.blockchainReady;
+}
+export function SetBlockchainReady(newVal: boolean) {
+  global.blockchainReady = newVal;
+}
 
-  // latestBlocksCache
-  public static InitializeLatestBlockCache() {
-    global.latestBlocksCache = new LRU<string, BlockAndVotes>({
-      max: 200,
-    });
-  }
-  public static SetBlockToLatestBlockCache(
-    blockId: string,
-    blockAndVotes: BlockAndVotes
-  ) {
-    global.latestBlocksCache.set(blockId, blockAndVotes);
-  }
-  public static GetBlockFromLatestBlockCache(blockId: string) {
-    return global.latestBlocksCache.get(blockId);
-  }
+// latestBlocksCache
+export function InitializeLatestBlockCache() {
+  global.latestBlocksCache = new LRU<string, BlockAndVotes>({
+    max: 200,
+  });
+}
+export function SetBlockToLatestBlockCache(
+  blockId: string,
+  blockAndVotes: BlockAndVotes
+) {
+  global.latestBlocksCache.set(blockId, blockAndVotes);
+}
+export function GetBlockFromLatestBlockCache(blockId: string) {
+  return global.latestBlocksCache.get(blockId);
 }

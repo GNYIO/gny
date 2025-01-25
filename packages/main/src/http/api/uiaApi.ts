@@ -19,7 +19,7 @@ import {
   IAssetWithIssuer,
   IAsset,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Issuer } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';
 import { Balance } from '@gnyio/database-postgres';

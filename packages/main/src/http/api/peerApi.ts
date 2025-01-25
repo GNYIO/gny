@@ -10,7 +10,7 @@ import {
   PeerInfoWrapper,
 } from '@gnyio/interfaces';
 import Peer from '../../core/peer.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 
 export default class PeerApi implements IHttpApi {
   private library: IScope;

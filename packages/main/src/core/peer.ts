@@ -6,7 +6,7 @@ import { attachDirectP2PCommunication } from './PeerHelper.js';
 import Transport from './transport.js';
 import uint8Arrays from 'uint8arrays';
 import multiaddr from 'multiaddr';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
 import { serializedSpanContext } from '@gnyio/tracer';

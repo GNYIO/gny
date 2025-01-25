@@ -9,7 +9,7 @@ import * as PeerId from 'peer-id';
 import { ISpan } from '@gnyio/tracer';
 import { Block } from '@gnyio/database-postgres';
 import Peer from './peer.js';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 
 export interface PeerIdCommonBlockHeight {
   peerId: PeerId;

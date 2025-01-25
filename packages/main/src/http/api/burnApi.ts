@@ -1,7 +1,7 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { IScope, Next, IHttpApi, IBurn } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 import { Burn } from '@gnyio/database-postgres';
 

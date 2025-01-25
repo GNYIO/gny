@@ -18,7 +18,7 @@ import {
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gnyio/base';
 import { getBlocks as getBlocksFromApi } from '../util.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { joi } from '@gnyio/extended-joi';
 import { Burn } from '@gnyio/database-postgres';

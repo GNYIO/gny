@@ -4,7 +4,7 @@ import loadContracts from './loadContracts.js';
 
 import BigNumber from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
-import { StateHelper } from './core/StateHelper.js';
+import * as StateHelper from './core/StateHelper.js';
 import * as prom from 'prom-client';
 import { Account, Block, Transaction } from '@gnyio/database-postgres';
 import Peer from './core/peer.js';

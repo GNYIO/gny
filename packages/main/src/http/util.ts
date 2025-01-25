@@ -2,7 +2,7 @@ import { AccountViewModel } from '@gnyio/interfaces';
 import { generateAddress } from '@gnyio/utils';
 import { joi } from '@gnyio/extended-joi';
 import Peer from '../core/peer.js';
-import { StateHelper } from '../core/StateHelper.js';
+import * as StateHelper from '../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { Transaction } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';

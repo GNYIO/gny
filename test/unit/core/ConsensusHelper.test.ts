@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import * as BlocksHelper from '@gnyio/main/blockshelper';
 import { slots } from '@gnyio/utils';
 import { ConsensusBase } from '@gnyio/base';
-import { StateHelper } from '@gnyio/main/statehelper';
+import * as StateHelper from '@gnyio/main/statehelper';
 import { ISpan } from '@gnyio/tracer';
 
 function createRandomBlock(

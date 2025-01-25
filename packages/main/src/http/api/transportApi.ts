@@ -13,7 +13,7 @@ import {
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
 import * as BlocksHelper from '../../core/BlocksHelper.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
 
 const osInfo = {

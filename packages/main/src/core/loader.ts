@@ -1,5 +1,5 @@
 import { IBlock, ICoreModule } from '@gnyio/interfaces';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import * as LoaderHelper from './LoaderHelper.js';
 import Blocks from './blocks.js';
 import Peer from './peer.js';

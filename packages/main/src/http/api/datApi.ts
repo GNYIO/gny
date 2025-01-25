@@ -10,7 +10,7 @@ import {
   SingleDatMakerWrapper,
   MultipleDats,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 
 import { DatMaker } from '@gnyio/database-postgres';

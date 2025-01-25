@@ -12,7 +12,7 @@ import {
   UnconfirmedTransactionWrapper,
   TransactionConfirmationWrapper,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Transaction } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
 import * as TransactionsHelper from '../../core/TransactionsHelper.js';

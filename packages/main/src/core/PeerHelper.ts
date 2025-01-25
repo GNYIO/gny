@@ -1,5 +1,5 @@
 import * as p2p from '@gnyio/p2p';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import {
   BlockIdWrapper,
   BlockAndVotes,

@@ -18,7 +18,7 @@ import { BlockBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
 import { slots } from '@gnyio/utils';
 import { copyObject } from '@gnyio/base';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { Block } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';

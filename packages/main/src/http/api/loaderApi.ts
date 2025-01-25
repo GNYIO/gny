@@ -8,7 +8,7 @@ import {
   LoaderStatus,
   SyncStatus,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 
 export default class LoaderApi implements IHttpApi {
   private library: IScope;
