@@ -11,6 +11,8 @@ import {
 } from '@gnyio/interfaces';
 import Peer from '../../core/peer.js';
 import * as StateHelper from '../../core/StateHelper.js';
+import { container, TYPES } from '@gnyio/container';
+import { IP2PService } from '@gnyio/p2p';
 
 export default class PeerApi implements IHttpApi {
   private library: IScope;
@@ -52,7 +54,9 @@ export default class PeerApi implements IHttpApi {
   };
 
   private getConnections = (req: Request, res: Response, next: Next) => {
-    const peers = Peer.p2p.getAllConnections();
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+    const peers = p2pService.getAllConnections();
     return res.json(peers);
   };
 
@@ -63,7 +67,9 @@ export default class PeerApi implements IHttpApi {
       statusCode: '200',
     });
 
-    const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+    const peers = p2pService.getAllConnectedPeersPeerInfo();
     const result: ApiResult<PeersWrapper> = {
       success: true,
       peers,
@@ -79,9 +85,11 @@ export default class PeerApi implements IHttpApi {
       statusCode: '200',
     });
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
     const result: ApiResult<PeerInfoWrapper> = {
       success: true,
-      ...Peer.p2p.info(),
+      ...p2pService.info(),
       publicIp: this.library.config.publicIp,
       address: this.library.config.address,
     };

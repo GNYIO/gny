@@ -6,10 +6,10 @@ import BigNumber from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
 import * as StateHelper from './core/StateHelper.js';
 import * as prom from 'prom-client';
-import { Account, Block, Transaction } from '@gnyio/database-postgres';
-import Peer from './core/peer.js';
-import { Mutex } from 'async-mutex';
+import { Account, Transaction } from '@gnyio/database-postgres';
 import { isNewUsername } from '@gnyio/utils';
+import { container, TYPES } from '@gnyio/container';
+import { IP2PService } from '@gnyio/p2p';
 
 export default async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
@@ -68,7 +68,9 @@ export default async function runtime(options: IOptions) {
       name: 'gny_peers_connected',
       help: 'number of peers we are connected to',
       collect: function getPeers() {
-        const data = Peer.p2p.getAllConnectedPeersPeerInfo();
+        const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+        const data = p2pService.getAllConnectedPeersPeerInfo();
         this.set(data.length);
       },
     }),

@@ -36,6 +36,7 @@ import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import pImmediate from 'p-immediate';
 import { container, TYPES } from '@gnyio/container';
 import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -647,7 +648,8 @@ export default class Blocks implements ICoreModule {
 
         let body: IBlockWithTransactions[];
         try {
-          body = await Peer.p2p.requestBlocks(peer, params, syncSpan);
+          const p2pService = container.get<IP2PService>(TYPES.P2PService);
+          body = await p2pService.requestBlocks(peer, params, syncSpan);
         } catch (err) {
           global.library.logger.error(
             `failed to requestBlocks from "${peer.toB58String()}", error: ${
@@ -1313,9 +1315,8 @@ export default class Blocks implements ICoreModule {
                   }`
                 );
 
-                const bundle = Peer.p2p;
-
-                const peerId = await bundle.findPeerInfoInDHT(message);
+                const p2pService = container.get<IP2PService>(TYPES.P2PService);
+                const peerId = await p2pService.findPeerInfoInDHT(message);
 
                 span.log({
                   value: `going to push votes to ${peerId.toB58String()}`,
@@ -1323,7 +1324,7 @@ export default class Blocks implements ICoreModule {
                 });
 
                 // todo add timing on how long it takes to find
-                await bundle.pushVotesToPeer(peerId, votes, span);
+                await p2pService.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
 

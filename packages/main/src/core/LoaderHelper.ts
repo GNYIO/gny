@@ -8,8 +8,9 @@ import BigNumber from 'bignumber.js';
 import * as PeerId from 'peer-id';
 import { ISpan } from '@gnyio/tracer';
 import { Block } from '@gnyio/database-postgres';
-import Peer from './peer.js';
 import * as StateHelper from './StateHelper.js';
+import { container, TYPES } from '@gnyio/container';
+import { IP2PService } from '@gnyio/p2p';
 
 export interface PeerIdCommonBlockHeight {
   peerId: PeerId;
@@ -89,7 +90,9 @@ export async function contactEachPeer(
     // request height from peer
     let heightWrapper: HeightWrapper = null;
     try {
-      heightWrapper = await Peer.p2p.requestHeight(
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+      heightWrapper = await p2pService.requestHeight(
         currentPeerId,
         collectInfoSpan
       );
@@ -154,7 +157,9 @@ export async function getCommonBlock(
 
   let ret: CommonBlockResult;
   try {
-    ret = await Peer.p2p.requestCommonBlock(peer, params, span);
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+    ret = await p2pService.requestCommonBlock(peer, params, span);
   } catch (err) {
     span.setTag('error', true);
     span.log({

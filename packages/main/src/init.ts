@@ -12,6 +12,8 @@ import { composeNetwork } from './http/index.js';
 import { container, TYPES } from '@gnyio/container';
 import { ContainerModule, interfaces } from 'inversify';
 import { Mutex } from 'async-mutex';
+import { IP2PService, create } from '@gnyio/p2p';
+import * as PeerId from 'peer-id';
 
 export const mutexServiceModule = new ContainerModule(
   (bind: interfaces.Bind) => {
@@ -21,6 +23,36 @@ export const mutexServiceModule = new ContainerModule(
       .inSingletonScope();
   }
 );
+
+async function preparePeerId() {
+  const buf = Buffer.from(global.library.config.peers.privateP2PKey, 'base64');
+  const peerId = await PeerId.createFromPrivKey(buf);
+
+  return peerId;
+}
+
+async function createInversifyP2PService() {
+  const bootstrapNode = global.library.config.peers.bootstrap
+    ? global.library.config.peers.bootstrap
+    : [];
+  const peerId = await preparePeerId();
+
+  const p2pServiceModule = new ContainerModule((bind: interfaces.Bind) => {
+    // it's important that  we use the single scope
+
+    const p2pService: IP2PService = create(
+      peerId,
+      global.library.config.publicIp,
+      global.library.config.peerPort,
+      bootstrapNode,
+      global.library.logger,
+      global.Config.p2pConfig
+    );
+    bind<IP2PService>(TYPES.P2PService).toConstantValue(p2pService);
+  });
+
+  return p2pServiceModule;
+}
 
 async function init_alt(options: IOptions) {
   const scope = {} as IScope;
@@ -69,7 +101,8 @@ async function init_alt(options: IOptions) {
   scope.bus = new MessageBus(scope.modules, scope.coreApi);
 
   // register module
-  container.load(mutexServiceModule /* other modules */);
+  const p2pServiceModule = await createInversifyP2PService();
+  container.load(mutexServiceModule, p2pServiceModule /* other modules */);
 
   return scope;
 }

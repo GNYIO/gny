@@ -1,4 +1,4 @@
 export const TYPES = {
-  CoreBlocks: Symbol.for('CoreBlocks'),
   MutexService: Symbol.for('MutexService'),
+  P2PService: Symbol.for('P2PService'),
 };

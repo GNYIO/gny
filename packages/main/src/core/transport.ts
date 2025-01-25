@@ -39,6 +39,8 @@ import {
 import * as PeerId from 'peer-id';
 import uint8Arrays from 'uint8arrays';
 import multiaddr from 'multiaddr';
+import { container, TYPES } from '@gnyio/container';
+import { IP2PService } from '@gnyio/p2p';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
@@ -73,7 +75,9 @@ export default class Transport implements ICoreModule {
     };
 
     const encodedTransaction = uint8Arrays.fromString(JSON.stringify(raw));
-    await Peer.p2p.broadcastManyTransactionsAsync(encodedTransaction);
+
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastManyTransactionsAsync(encodedTransaction);
 
     span.finish();
   };
@@ -139,7 +143,8 @@ export default class Transport implements ICoreModule {
 
       return;
     }
-    await Peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
 
     span.finish();
   };
@@ -190,7 +195,8 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    await Peer.p2p.broadcastProposeAsync(encodedBlockPropose);
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastProposeAsync(encodedBlockPropose);
 
     span.finish();
   };
@@ -274,8 +280,8 @@ export default class Transport implements ICoreModule {
       }
     );
     try {
-      const bundle = Peer.p2p;
-      peerId = await bundle.findPeerInfoInDHT(message);
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      peerId = await p2pService.findPeerInfoInDHT(message);
 
       findPeerInfoInDHTSpan.finish();
     } catch (err) {
@@ -292,8 +298,8 @@ export default class Transport implements ICoreModule {
     );
     let result: TracerWrapper<BlockAndVotes>;
     try {
-      const bundle = Peer.p2p;
-      result = await bundle.requestBlockAndVotes(
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      result = await p2pService.requestBlockAndVotes(
         peerId,
         params,
         requestBlockAndVotesSpan
@@ -532,6 +538,8 @@ export default class Transport implements ICoreModule {
 
     // dial, even when syncing
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
     let raw: P2PPeerIdAndMultiaddr = null;
     try {
       raw = JSON.parse(uint8Arrays.toString(message.data));
@@ -558,14 +566,14 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    if (peerId.equals(Peer.p2p.peerId)) {
+    if (peerId.equals(p2pService.peerId)) {
       global.library.logger.info(`[p2p] "newMember" is me`);
 
       return;
     }
 
     // is in PeerStore
-    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    const test = p2pService.peerStore.addressBook.get(peerId);
     if (test === undefined) {
       const multi = parsed.multiaddr.filter(x => {
         const address = multiaddr(x).nodeAddress().address;
@@ -585,7 +593,7 @@ export default class Transport implements ICoreModule {
       }
 
       // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
-      Peer.p2p.peerStore.addressBook.set(
+      p2pService.peerStore.addressBook.set(
         peerId,
         parsed.multiaddr.map(x => multiaddr(x))
       );
@@ -595,12 +603,12 @@ export default class Transport implements ICoreModule {
     }
 
     // has connection
-    const connections = Array.from(Peer.p2p.connections.keys());
+    const connections = Array.from(p2pService.connections.keys());
     const inConnection = connections.find(x => x === parsed.peerId);
     // if not, dial
     if (!inConnection) {
       try {
-        await Peer.p2p.dial(peerId);
+        await p2pService.dial(peerId);
       } catch (err) {
         global.library.logger.info(
           `[p2p] "newMember" dial failed for "${peerId.toB58String()}"`
@@ -657,6 +665,8 @@ export default class Transport implements ICoreModule {
     // 2.check if there is a connection
     // if not, dial
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
     // P2PPeerIdAndMultiaddr
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
       global.library.logger.error(
@@ -674,7 +684,7 @@ export default class Transport implements ICoreModule {
     }
 
     // do not log if we receive ourselves
-    if (peerId.equals(Peer.p2p.peerId)) {
+    if (peerId.equals(p2pService.peerId)) {
       return;
     }
     global.library.logger.info(
@@ -682,7 +692,7 @@ export default class Transport implements ICoreModule {
     );
 
     // is in PeerStore
-    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    const test = p2pService.peerStore.addressBook.get(peerId);
     if (test === undefined) {
       const multi = parsed.multiaddr.filter(x => {
         const address = multiaddr(x).nodeAddress().address;
@@ -703,7 +713,7 @@ export default class Transport implements ICoreModule {
       }
 
       // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
-      Peer.p2p.peerStore.addressBook.set(
+      p2pService.peerStore.addressBook.set(
         peerId,
         parsed.multiaddr.map(x => multiaddr(x))
       );
@@ -713,12 +723,12 @@ export default class Transport implements ICoreModule {
     }
 
     // has connection
-    const connections = Array.from(Peer.p2p.connections.keys());
+    const connections = Array.from(p2pService.connections.keys());
     const inConnection = connections.find(x => x === parsed.peerId);
     // if not, dial
     if (!inConnection) {
       try {
-        await Peer.p2p.dial(peerId);
+        await p2pService.dial(peerId);
       } catch (err) {
         global.library.logger.info(
           `[p2p][rendezvous] dial failed for peer "${peerId.toB58String()}"`

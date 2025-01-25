@@ -7,6 +7,7 @@ import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import { container, TYPES } from '@gnyio/container';
 import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocksFromPeerProxy(
@@ -25,7 +26,9 @@ export default class Loader implements ICoreModule {
       lastBlock,
     });
 
-    const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+    const allPeerInfos = p2pService.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
 

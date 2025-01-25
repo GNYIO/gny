@@ -15,12 +15,11 @@ import * as LoaderHelper from './LoaderHelper.js';
 import { Cron } from 'croner';
 import { container, TYPES } from '@gnyio/container';
 import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
-  public static p2p;
-
   public static getVersion = () => ({
     version: global.library.config.version,
     build: global.library.config.buildVersion,
@@ -73,111 +72,73 @@ export default class Peer implements ICoreModule {
     }
   };
 
-  public static randomRequestAsync = async (method: string, params: any) => {
-    const randomNode = Peer.p2p.getConnectedRandomNode();
-    if (!randomNode) throw new Error('no contact');
-    global.library.logger.debug(
-      `[p2p] select random contract: ${JSON.stringify(randomNode)}`
-    );
-    try {
-      const result = await Peer.request(method, params, randomNode, 4000);
-      return {
-        data: result,
-        node: randomNode,
-      };
-    } catch (err) {
-      throw err;
-    }
-  };
+  public static initializeLibP2P = async () => {
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    attachDirectP2PCommunication(p2pService);
 
-  public static preparePeerId = async () => {
-    const buf = Buffer.from(
-      global.library.config.peers.privateP2PKey,
-      'base64'
-    );
-    const peerId = await PeerId.createFromPrivKey(buf);
-
-    return peerId;
-  };
-
-  public static initializeLibP2P = async (
-    bootstrapNode: string[],
-    peerId: PeerId
-  ) => {
-    const wrapper = p2p.create(
-      peerId,
-      global.library.config.publicIp,
-      global.library.config.peerPort,
-      bootstrapNode,
-      global.library.logger,
-      global.Config.p2pConfig
-    );
-    Peer.p2p = wrapper;
-    attachDirectP2PCommunication(Peer.p2p);
-
-    await Peer.p2p.start();
+    await p2pService.start();
     global.library.logger.info('[p2p] libp2p started');
 
     global.library.logger.info(
       `announceAddresses: ${JSON.stringify(
-        Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
+        p2pService.addressManager.getAnnounceAddrs().map(x => x.toString())
       )}`
     );
     global.library.logger.info(
       `listenAddresses: ${JSON.stringify(
-        Peer.p2p.addressManager.getListenAddrs().map(x => x.toString())
+        p2pService.addressManager.getListenAddrs().map(x => x.toString())
       )}`
     );
 
     const startUpSpan = global.library.tracer.startSpan('startUp');
-    startUpSpan.setTag('peerId', Peer.p2p.peerId.toB58String());
+    startUpSpan.setTag('peerId', p2pService.peerId.toB58String());
     startUpSpan.log({
-      announceAddresses: Peer.p2p.addressManager
+      announceAddresses: p2pService.addressManager
         .getAnnounceAddrs()
         .map(x => x.toString()),
-      listenAddresses: Peer.p2p.addressManager
+      listenAddresses: p2pService.addressManager
         .getListenAddrs()
         .map(x => x.toString()),
     });
     startUpSpan.finish();
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
       Transport.receivePeer_NewBlockHeader
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_PROPOSE,
       Transport.receivePeer_Propose
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_PROPOSE
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_TRANSACTION,
       Transport.receivePeer_Transaction
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_TRANSACTION
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS,
       Transport.receivePeer_many_Transactions
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
       Transport.receivePeers_from_rendezvous_Broadcast
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
     );
   };
@@ -192,7 +153,8 @@ export default class Peer implements ICoreModule {
 
         const peerId = PeerId.createFromB58String(b58String);
 
-        await Peer.p2p.connect(peerId, m2);
+        const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);
+        await p2pService.connect(peerId, m2);
       } catch (err) {
         console.log(err);
       }
@@ -206,7 +168,8 @@ export default class Peer implements ICoreModule {
     const span = global.app.tracer.startSpan('request peers');
     let peers = null;
     try {
-      peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      peers = await p2pService.requestGetPeers(rendezvousNode, span);
     } catch (err) {
       span.log({
         err,
@@ -309,9 +272,8 @@ export default class Peer implements ICoreModule {
     const bootstrapNode = global.library.config.peers.bootstrap
       ? global.library.config.peers.bootstrap
       : [];
-    const peerId = await Peer.preparePeerId();
 
-    await Peer.initializeLibP2P(bootstrapNode, peerId);
+    await Peer.initializeLibP2P();
 
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
@@ -333,7 +295,8 @@ export default class Peer implements ICoreModule {
         async () => {
           const span = global.library.tracer.startSpan('rendezvous broadcast');
 
-          const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
+          const p2pService = container.get<IP2PService>(TYPES.P2PService);
+          const peers = p2pService.getAllConnectedPeersPeerInfo();
 
           const data = {
             spanId: serializedSpanContext(
@@ -345,7 +308,7 @@ export default class Peer implements ICoreModule {
           span.log(data);
 
           const converted = uint8Arrays.fromString(JSON.stringify(data));
-          await Peer.p2p.rendezvousBroadcastsPeers(converted);
+          await p2pService.rendezvousBroadcastsPeers(converted);
 
           span.finish();
         }
@@ -414,7 +377,9 @@ export default class Peer implements ICoreModule {
   };
 
   public static cleanup = cb => {
-    Peer.p2p.stop(cb);
+    const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);
+    p2pService.stop(cb);
+
     global.library.logger.debug('Cleaning up core/peer');
   };
 }

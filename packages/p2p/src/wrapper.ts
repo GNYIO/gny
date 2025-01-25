@@ -1,4 +1,4 @@
-import Libp2p from 'libp2p';
+import Libp2p, { Pubsub } from 'libp2p';
 import TCP from 'libp2p-tcp';
 import mplex from 'libp2p-mplex';
 import { NOISE } from 'libp2p-noise';
@@ -21,6 +21,8 @@ import {
   IBlock,
   ILogger,
   IPeer2PeerHandlers,
+  SimplePeerInfo,
+  IBlockWithTransactions,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
@@ -35,8 +37,96 @@ import {
   isSimplePeerInfoArray,
   isTracerWrapper,
 } from '@gnyio/type-validation';
+import AddressManager from 'libp2p/src/address-manager';
 
-export class Bundle extends Libp2p {
+export interface IPeerInfo {
+  id: {
+    id: string;
+    pubKey: null;
+  };
+  multiaddrs: string[];
+  simple: {
+    host: string;
+    port: string;
+  };
+}
+
+export interface IInfo {
+  id: string;
+  multiaddrs: string[];
+}
+
+export interface IBundle {
+  logger: ILogger;
+  p2pConfig: Libp2p.Libp2pOptions;
+
+  pushVotesToPeer(peerId: PeerId, votes: ManyVotes, span: ISpan): Promise<void>;
+
+  requestBlockAndVotes(
+    peerId: PeerId,
+    blockIdWrapper: BlockIdWrapper,
+    span: ISpan
+  ): Promise<TracerWrapper<BlockAndVotes>>;
+
+  requestCommonBlock(
+    peerId: PeerId,
+    commonBlockParams: CommonBlockParams,
+    span: ISpan
+  ): Promise<CommonBlockResult>;
+
+  requestHeight(peerId: PeerId, parentSpan: ISpan): Promise<HeightWrapper>;
+
+  requestBlocks(
+    peerId: PeerId,
+    params: BlocksWrapperParams,
+    span: ISpan
+  ): Promise<IBlockWithTransactions[]>;
+
+  requestGetPeers(peerId: PeerId, span: ISpan): Promise<SimplePeerInfo[]>;
+
+  getAllConnections(): any[];
+
+  getAllConnectedPeersPeerInfo(): IPeerInfo[];
+
+  info(): IInfo;
+
+  findPeerInfoInDHT(p2pMsg): Promise<PeerId>;
+
+  connect(peer, peerMultiaddr): Promise<void>;
+
+  pushOnly(peerId, protocol, data): Promise<void>;
+
+  handlePushOnly(protocol, cb): void;
+
+  directRequest(peerId, protocol, data): Promise<any>;
+
+  directResponse(protocol, func): void;
+
+  rendezvousBroadcastsPeers(data): Promise<void>;
+
+  broadcastProposeAsync(data): Promise<void>;
+
+  broadcastTransactionAsync(data): Promise<void>;
+
+  broadcastManyTransactionsAsync(data): Promise<void>;
+
+  broadcastNewBlockHeaderAsync(data): Promise<void>;
+
+  attachEventHandlers(node: Bundle, name: string): void;
+
+  // from Libp2p
+  start(): Promise<void>;
+  stop(): Promise<void>;
+
+  peerId: PeerId;
+
+  addressManager: AddressManager;
+  pubsub: Pubsub;
+}
+
+export type IP2PService = InstanceType<typeof Bundle>;
+
+export class Bundle extends Libp2p implements IBundle {
   private logger: ILogger;
   private p2pConfig: IPeer2PeerHandlers;
 
@@ -231,7 +321,7 @@ export class Bundle extends Libp2p {
     peerId: PeerId,
     params: BlocksWrapperParams,
     span: ISpan
-  ): Promise<IBlock[]> {
+  ): Promise<IBlockWithTransactions[]> {
     this.logger.info('[p2p/wrapper] called requestBlocks()');
 
     const raw: TracerWrapper<BlocksWrapperParams> = {
@@ -274,12 +364,14 @@ export class Bundle extends Libp2p {
     return result;
   }
 
-  getAllConnections() {
+  getAllConnections(): any[] {
     this.logger.info('[p2p/wrapper] called getAllConnections()');
 
     const connections = Array.from(this.connections.values());
 
-    const result = connections.flat().map(x => JSON.parse(JSON.stringify(x)));
+    const result: any[] = connections
+      .flat()
+      .map(x => JSON.parse(JSON.stringify(x)));
 
     for (let i = 0; i < result.length; ++i) {
       delete result[i].localPeer;
@@ -287,15 +379,16 @@ export class Bundle extends Libp2p {
     return result;
   }
 
-  getAllConnectedPeersPeerInfo() {
+  getAllConnectedPeersPeerInfo(): IPeerInfo[] {
     this.logger.info('[p2p/wrapper] called getAllConnectedPeersPeerInfo()');
 
     const connections = Array.from(this.connections.keys());
     if (connections.length === 0) {
-      return [];
+      const empty: IPeerInfo[] = [];
+      return empty;
     }
 
-    const allConnectedPeers = connections.map(x => {
+    const allConnectedPeers: IPeerInfo[] = connections.map(x => {
       const peerId = PeerId.createFromB58String(x);
       const addresses = this.peerStore.addressBook
         .get(peerId)
@@ -309,7 +402,7 @@ export class Bundle extends Libp2p {
         return null;
       }
 
-      return {
+      const result: IPeerInfo = {
         id: {
           id: peerId.toB58String(),
           pubKey: null,
@@ -320,12 +413,13 @@ export class Bundle extends Libp2p {
           port: addresses[0].nodeAddress().port,
         },
       };
+      return result;
     });
 
     return allConnectedPeers;
   }
 
-  info() {
+  info(): IInfo {
     this.logger.info('[p2p/wrapper] called info()');
 
     const id = this.peerId.toB58String();
@@ -337,7 +431,7 @@ export class Bundle extends Libp2p {
     };
   }
 
-  async findPeerInfoInDHT(p2pMsg) {
+  async findPeerInfoInDHT(p2pMsg): Promise<PeerId> {
     this.logger.info('[p2p/wrapper] called findPeerInfoInDHT()');
 
     const targetPeerId = PeerId.createFromB58String(p2pMsg.from);
@@ -368,7 +462,7 @@ export class Bundle extends Libp2p {
     }
   }
 
-  async connect(peer, peerMultiaddr) {
+  async connect(peer, peerMultiaddr): Promise<void> {
     this.logger.info('[p2p/wrapper] called connect()');
 
     if (PeerId.isPeerId(peer) === false) {
@@ -420,7 +514,7 @@ export class Bundle extends Libp2p {
     }
   }
 
-  async pushOnly(peerId, protocol, data) {
+  async pushOnly(peerId, protocol, data): Promise<void> {
     this.logger.info('[p2p/wrapper] called pushOnly()');
 
     this.logger.info(
@@ -438,7 +532,7 @@ export class Bundle extends Libp2p {
     );
   }
 
-  handlePushOnly(protocol, cb) {
+  handlePushOnly(protocol, cb): void {
     this.logger.info('[p2p/wrapper] called handlePushOnly()');
 
     this.handle(protocol, ({ stream }) => {
@@ -460,7 +554,7 @@ export class Bundle extends Libp2p {
     });
   }
 
-  async directRequest(peerId, protocol, data) {
+  async directRequest(peerId, protocol, data): Promise<any> {
     this.logger.info('[p2p/wrapper] called directRequest()');
 
     this.logger.info(
@@ -484,7 +578,7 @@ export class Bundle extends Libp2p {
     return result.toString();
   }
 
-  directResponse(protocol, func) {
+  directResponse(protocol, func): void {
     this.logger.info('[p2p/wrapper] called directResponse()');
 
     this.logger.info(`[p2p] attach protocol "${protocol}"`);
@@ -498,26 +592,26 @@ export class Bundle extends Libp2p {
     });
   }
 
-  async rendezvousBroadcastsPeers(data) {
+  async rendezvousBroadcastsPeers(data): Promise<void> {
     this.logger.info('[p2p/wrapper] called rendezvousBroadcastsPeers()');
 
     await this.pubsub.publish(this.p2pConfig.V1_RENDEZVOUS_BROADCAST, data);
     this.logger.info(`[p2p][rendezvous] announced all my peers to the network`);
   }
 
-  async broadcastProposeAsync(data) {
+  async broadcastProposeAsync(data): Promise<void> {
     this.logger.info('[p2p/wrapper] called broadcastProposeAsync()');
 
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_PROPOSE, data);
   }
 
-  async broadcastTransactionAsync(data) {
+  async broadcastTransactionAsync(data): Promise<void> {
     this.logger.info('[p2p/wrapper] called broadcastTransactionAsync()');
 
     await this.pubsub.publish(this.p2pConfig.V1_BROADCAST_TRANSACTION, data);
   }
 
-  async broadcastManyTransactionsAsync(data) {
+  async broadcastManyTransactionsAsync(data): Promise<void> {
     this.logger.info('[p2p/wrapper] called broadcastManyTransactionsAsync()');
 
     await this.pubsub.publish(
@@ -526,7 +620,7 @@ export class Bundle extends Libp2p {
     );
   }
 
-  async broadcastNewBlockHeaderAsync(data) {
+  async broadcastNewBlockHeaderAsync(data): Promise<void> {
     this.logger.info('[p2p/wrapper] called broadcastNewBlockHeaderAsync()');
 
     await this.pubsub.publish(
@@ -536,7 +630,7 @@ export class Bundle extends Libp2p {
   }
 }
 
-function attachEventHandlers(node: Bundle, name: string) {
+function attachEventHandlers(node: Bundle, name: string): void {
   node.on('error', err => {
     try {
       console.log(`[${name}] err: ${err.message}`);
