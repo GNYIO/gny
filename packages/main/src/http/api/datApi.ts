@@ -77,12 +77,6 @@ export default class DatApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('datApi');
-        span.setTag('error', true);
-        span.log({
-          value: `${req.url} ${err}`,
-        });
-        span.finish();
 
         this.library.logger.error(req.url);
         this.library.logger.error(err);

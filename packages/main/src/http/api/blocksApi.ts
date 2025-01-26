@@ -60,19 +60,10 @@ export default class BlocksApi implements IHttpApi {
       res.status(500).send({ success: false, error: 'API endpoint not found' });
     });
 
-    const tracerService = container.get<ITracer>(TYPES.TracerService);
-
     this.library.network.app.use('/api/blocks', router);
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = tracerService.startSpan('BlocksApi');
-        span.setTag('error', true);
-        span.log({
-          value: `req.url ${err}`,
-        });
-        span.finish();
-
         this.library.logger.error(req.url);
         this.library.logger.error(err);
 
@@ -148,13 +139,6 @@ export default class BlocksApi implements IHttpApi {
         endpoint: '/api/blocks/getBlock',
         statusCode: '500',
       });
-
-      const span = this.library.tracer.startSpan('BlocksApi.getBlock');
-      span.setTag('error', true);
-      span.log({
-        value: e.message,
-      });
-      span.finish();
 
       this.library.logger.error(e);
       return next('Server error');
