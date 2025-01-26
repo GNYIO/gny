@@ -26,56 +26,7 @@ export default class Peer implements ICoreModule {
     net: global.library.config.netVersion,
   });
 
-  public static request = async (
-    endpoint: string,
-    body: any,
-    contact: PeerNode,
-    timeout?: number
-  ) => {
-    const address = `${contact.host}:${contact.port - 1}`;
-    const uri = `http://${address}/peer/${endpoint}`;
-    global.library.logger.debug(`start to request ${uri}`);
-    const headers = {
-      magic: global.Config.magic,
-      version: global.Config.version,
-    };
-
-    let result;
-    try {
-      const config: AxiosRequestConfig = {
-        headers: headers,
-        responseType: 'json',
-        timeout: undefined || timeout,
-      };
-      result = await axios.post(uri, body, config);
-      if (result.status !== 200) {
-        throw new Error(
-          `Invalid status code: ${result.statusCode}, error: ${result.data}`
-        );
-      }
-      return result.data;
-    } catch (err) {
-      const tracerService = container.get<ITracer>(TYPES.TracerService);
-
-      const span = tracerService.startSpan('request');
-      span.setTag('error', true);
-      span.log({
-        value: `Failed to request remote peer: ${err.message}`,
-      });
-      span.finish();
-
-      global.library.logger.error(
-        `Failed to request remote peer: ${err.message}`
-      );
-      global.library.logger.error(
-        JSON.stringify(err.response ? err.response.data : err.message)
-      );
-      throw err;
-    }
-  };
-
-  public static initializeLibP2P = async () => {
-    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+  public static async initializeLibP2P(p2pService: IP2PService) {
     attachDirectP2PCommunication(p2pService);
 
     await p2pService.start();
@@ -145,7 +96,7 @@ export default class Peer implements ICoreModule {
     await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
     );
-  };
+  }
 
   public static async dial(bootstrapNode: string[]) {
     // dial to peers in GNY_P2P_PEERS env variable
@@ -262,7 +213,7 @@ export default class Peer implements ICoreModule {
   };
 
   // Events
-  public static onBlockchainReady = async () => {
+  public static async onBlockchainReady() {
     // # if rendezvous node
     //   # broadcast neighor nodes
     // # if not rendezvous node
@@ -277,11 +228,11 @@ export default class Peer implements ICoreModule {
     //     # rollbackback if necessary
     //     # then activate block creation
 
+    console.log('[Peer.ts] onBlockchainReady()');
+
     const bootstrapNode = global.library.config.peers.bootstrap
       ? global.library.config.peers.bootstrap
       : [];
-
-    await Peer.initializeLibP2P();
 
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
@@ -383,7 +334,7 @@ export default class Peer implements ICoreModule {
     }
 
     throw new Error('should never come here');
-  };
+  }
 
   public static cleanup = cb => {
     const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);

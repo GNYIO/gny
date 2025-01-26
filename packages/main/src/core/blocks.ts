@@ -926,12 +926,12 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onReceiveBlock = async (
+  public static async onReceiveBlock(
     peerId: PeerId,
     block: IBlock,
     votes: ManyVotes,
     span: ISpan
-  ) => {
+  ) {
     // check before if block fits in line
     const state = StateHelper.getState();
     const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(state, block);
@@ -1109,13 +1109,13 @@ export default class Blocks implements ICoreModule {
       // this is important
       return;
     });
-  };
+  }
 
-  public static onReceivePropose = async (
+  public static async onReceivePropose(
     propose: BlockPropose,
     message: P2PMessage,
     parentSpan: ISpan
-  ) => {
+  ) {
     global.library.logger.info(`[p2p] onReceivePropose ${propose.id}`);
 
     const tracerService = container.get<ITracer>(TYPES.TracerService);
@@ -1374,12 +1374,12 @@ export default class Blocks implements ICoreModule {
         }
       );
     });
-  };
+  }
 
-  public static onReceiveTransaction = async (
+  public static async onReceiveTransaction(
     unconfirmedTrs: UnconfirmedTransaction,
     parentSpan: ISpan
-  ) => {
+  ) {
     const tracerService = container.get<ITracer>(TYPES.TracerService);
 
     const span = tracerService.startSpan('execute transaction', {
@@ -1465,9 +1465,9 @@ export default class Blocks implements ICoreModule {
       await pImmediate();
       return;
     });
-  };
+  }
 
-  public static onReceiveVotes = async (votes: ManyVotes, span: ISpan) => {
+  public static async onReceiveVotes(votes: ManyVotes, span: ISpan) {
     const isSyncing = StateHelper.IsSyncing();
     const modules = !StateHelper.ModulesAreLoaded();
 
@@ -1645,7 +1645,7 @@ export default class Blocks implements ICoreModule {
         return;
       }
     });
-  };
+  }
 
   public static RunGenesisOrLoadLastBlock = async (
     old: IState,
@@ -1704,7 +1704,7 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onBind = async () => {
+  public static async onBind() {
     // this.loaded = true; // TODO: use stateK
 
     const mutex = container.get<Mutex>(TYPES.MutexService);
@@ -1779,7 +1779,7 @@ export default class Blocks implements ICoreModule {
         throw new Error('Failed to prepare local blockchain');
       }
     });
-  };
+  }
 
   public static shutDownInXSeconds = async () => {
     // we need to wait a few seconds after processBlock before shutting down
@@ -1801,7 +1801,7 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onBlockchainRollback = async () => {
+  public static async onBlockchainRollback() {
     global.app.logger.info(`executed onBlockchainRollback`);
     const replace = global.Config.nodeAction;
     const rollbackHeight = replace.split(':')[1];
@@ -1834,5 +1834,5 @@ export default class Blocks implements ICoreModule {
 
     global.app.logger.info(`successfully rolled back to ${rollbackHeight}`);
     process.exit(0);
-  };
+  }
 }

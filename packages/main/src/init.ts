@@ -12,7 +12,12 @@ import { composeNetwork } from './http/index.js';
 import { container, TYPES } from '@gnyio/container';
 import { ContainerModule, interfaces } from 'inversify';
 import { Mutex } from 'async-mutex';
-import { IP2PService, create } from '@gnyio/p2p';
+import {
+  IP2PService,
+  Bundle,
+  P2POptions,
+  attachEventHandlers,
+} from '@gnyio/p2p';
 import * as PeerId from 'peer-id';
 import * as tracerpkg from '@gnyio/tracer';
 
@@ -40,16 +45,24 @@ async function createInversifyP2PService() {
 
   const p2pServiceModule = new ContainerModule((bind: interfaces.Bind) => {
     // it's important that  we use the single scope
+    bind<IP2PService>(TYPES.P2PService)
+      .toDynamicValue((context: interfaces.Context) => {
+        const p2pOptions: P2POptions = {
+          peerId,
+          announceIp: global.library.config.publicIp,
+          port: global.library.config.peerPort,
+          logger: global.library.logger,
+          config: global.Config.p2pConfig,
+        };
 
-    const p2pService: IP2PService = create(
-      peerId,
-      global.library.config.publicIp,
-      global.library.config.peerPort,
-      bootstrapNode,
-      global.library.logger,
-      global.Config.p2pConfig
-    );
-    bind<IP2PService>(TYPES.P2PService).toConstantValue(p2pService);
+        const tracer = context.container.get<ITracer>(TYPES.TracerService);
+
+        const wrapper = new Bundle(p2pOptions, tracer);
+        attachEventHandlers(wrapper, p2pOptions.announceIp);
+
+        return wrapper;
+      })
+      .inSingletonScope();
   });
 
   return p2pServiceModule;
@@ -60,16 +73,20 @@ function createInversifyTracer(appConfig: IConfig, logger: ILogger) {
     // it's important that  we use the single scope
 
     // tracer
-    const tracer = tracerpkg.initTracer(
-      appConfig.publicIp,
-      appConfig.jaegerHost,
-      appConfig.version,
-      appConfig.magic,
-      appConfig.netVersion,
-      appConfig.p2pConfig.P2P_VERSION,
-      logger
-    );
-    bind<ITracer>(TYPES.TracerService).toConstantValue(tracer);
+    bind<ITracer>(TYPES.TracerService)
+      .toDynamicValue((context: interfaces.Context) => {
+        const tracer = tracerpkg.initTracer(
+          appConfig.publicIp,
+          appConfig.jaegerHost,
+          appConfig.version,
+          appConfig.magic,
+          appConfig.netVersion,
+          appConfig.p2pConfig.P2P_VERSION,
+          logger
+        );
+        return tracer;
+      })
+      .inSingletonScope();
   });
 
   return tracerServiceModule;
@@ -127,11 +144,16 @@ async function init_alt(options: IOptions) {
     options.appConfig,
     options.logger
   );
+  container.load(tracerServiceModule);
   container.load(
     mutexServiceModule,
-    p2pServiceModule,
-    tracerServiceModule /* other modules */
+    p2pServiceModule
+    /* other modules */
   );
+
+  // initialize p2pService in an async way
+  const p2pService = container.get<IP2PService>(TYPES.P2PService);
+  await scope.modules.peer.initializeLibP2P(p2pService);
 
   return scope;
 }

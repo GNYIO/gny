@@ -37,7 +37,7 @@ export default class Delegates implements ICoreModule {
   private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
 
   // Events
-  public static onPeerReady = async () => {
+  public static async onPeerReady() {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
@@ -54,7 +54,7 @@ export default class Delegates implements ICoreModule {
 
     // refactor, reunite
     StateHelper.SetBlockchainReady(true);
-  };
+  }
 
   public static getBlockSlotData = (
     slot: number,

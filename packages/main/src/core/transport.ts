@@ -45,10 +45,10 @@ import { IP2PService } from '@gnyio/p2p';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
-  public static onUnconfirmedTransaction = async (
+  public static async onUnconfirmedTransaction(
     transaction: UnconfirmedTransaction,
     parentSpan: ISpan
-  ) => {
+  ) {
     const tracerService = container.get<ITracer>(TYPES.TracerService);
 
     const span = tracerService.startSpan('broadcast unconfirmed transaction', {
@@ -80,14 +80,14 @@ export default class Transport implements ICoreModule {
     await p2pService.broadcastManyTransactionsAsync(encodedTransaction);
 
     span.finish();
-  };
+  }
 
   // broadcast to peers NewBlockMessage
-  public static onNewBlock = async (
+  public static async onNewBlock(
     block: IBlock,
     votes: ManyVotes,
     parentSpan: ISpan
-  ) => {
+  ) {
     const tracerService = container.get<ITracer>(TYPES.TracerService);
 
     const span = tracerService.startSpan('onNewBlock', {
@@ -149,13 +149,10 @@ export default class Transport implements ICoreModule {
     await p2pService.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
 
     span.finish();
-  };
+  }
 
   // broadcast to peers Propose
-  public static onNewPropose = async (
-    propose: BlockPropose,
-    parentSpan: ISpan
-  ) => {
+  public static async onNewPropose(propose: BlockPropose, parentSpan: ISpan) {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
     const tracerService = container.get<ITracer>(TYPES.TracerService);
@@ -203,7 +200,7 @@ export default class Transport implements ICoreModule {
     await p2pService.broadcastProposeAsync(encodedBlockPropose);
 
     span.finish();
-  };
+  }
 
   // peerEvent
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {

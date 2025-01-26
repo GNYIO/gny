@@ -23,9 +23,11 @@
     }
   },
   "dependencies": {
+    "@gnyio/container": "2.13.1",
     "@gnyio/interfaces": "2.13.1",
     "@gnyio/tracer": "2.13.1",
     "@gnyio/type-validation": "2.13.1",
+    "inversify": "^6.2.1",
     "it-first": "^1.0.4",
     "it-pipe": "^1.1.0",
     "libp2p": "^0.30.0",

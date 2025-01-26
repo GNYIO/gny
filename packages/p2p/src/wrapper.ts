@@ -23,21 +23,20 @@ import {
   IPeer2PeerHandlers,
   SimplePeerInfo,
   IBlockWithTransactions,
+  ITracer,
 } from '@gnyio/interfaces';
 import { serializedSpanContext, ISpan } from '@gnyio/tracer';
 import uint8Arrays from 'uint8arrays';
 import {
-  isCommonBlockParams,
-  isBlocksWrapperParams,
   isBlockAndVotes,
-  isManyVotes,
   isHeightWrapper,
-  isBlockIdWrapper,
   isCommonBlockResult,
   isSimplePeerInfoArray,
   isTracerWrapper,
 } from '@gnyio/type-validation';
 import AddressManager from 'libp2p/src/address-manager';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '@gnyio/container';
 
 export interface IPeerInfo {
   id: {
@@ -58,7 +57,7 @@ export interface IInfo {
 
 export interface IBundle {
   logger: ILogger;
-  p2pConfig: Libp2p.Libp2pOptions;
+  p2pConfig: IPeer2PeerHandlers;
 
   pushVotesToPeer(peerId: PeerId, votes: ManyVotes, span: ISpan): Promise<void>;
 
@@ -112,8 +111,6 @@ export interface IBundle {
 
   broadcastNewBlockHeaderAsync(data): Promise<void>;
 
-  attachEventHandlers(node: Bundle, name: string): void;
-
   // from Libp2p
   start(): Promise<void>;
   stop(): Promise<void>;
@@ -126,23 +123,30 @@ export interface IBundle {
 
 export type IP2PService = InstanceType<typeof Bundle>;
 
+export interface P2POptions {
+  peerId: PeerId;
+  announceIp: string;
+  port: number;
+
+  logger: ILogger;
+  config: IPeer2PeerHandlers;
+}
+
+@injectable()
 export class Bundle extends Libp2p implements IBundle {
-  private logger: ILogger;
-  private p2pConfig: IPeer2PeerHandlers;
+  logger: ILogger;
+  p2pConfig: IPeer2PeerHandlers;
+  tracer: ITracer;
 
   constructor(
-    peerId: PeerId,
-    announceIp: string,
-    port: number,
-    bootstrapNode: string[],
-    logger: ILogger,
-    p2pConfig: IPeer2PeerHandlers
+    @inject(TYPES.P2POptions) p2pOptions: P2POptions,
+    @inject(TYPES.TracerService) tracer: ITracer
   ) {
     const options: Libp2p.Libp2pOptions = {
-      peerId,
+      peerId: p2pOptions.peerId,
       addresses: {
-        listen: [`/ip4/0.0.0.0/tcp/${port}`],
-        announce: [`/ip4/${announceIp}/tcp/${port}`],
+        listen: [`/ip4/0.0.0.0/tcp/${p2pOptions.port}`],
+        announce: [`/ip4/${p2pOptions.announceIp}/tcp/${p2pOptions.port}`],
       },
       modules: {
         transport: [TCP],
@@ -183,8 +187,9 @@ export class Bundle extends Libp2p implements IBundle {
     };
 
     super(options);
-    this.logger = logger;
-    this.p2pConfig = p2pConfig;
+    this.logger = p2pOptions.logger;
+    this.p2pConfig = p2pOptions.config;
+    this.tracer = tracer;
   }
 
   // not duplex
@@ -193,12 +198,12 @@ export class Bundle extends Libp2p implements IBundle {
     this.logger.info('[p2p/wrapper] called pushVotesToPeer()');
 
     const before: TracerWrapper<ManyVotes> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(this.tracer, span.context()),
       data: votes,
     };
 
     const data = uint8Arrays.fromString(JSON.stringify(before));
-    await this.pushOnly(peerId, global.Config.p2pConfig.V1_VOTES, data);
+    await this.pushOnly(peerId, this.p2pConfig.V1_VOTES, data);
   }
 
   async requestBlockAndVotes(
@@ -209,7 +214,7 @@ export class Bundle extends Libp2p implements IBundle {
     this.logger.info('[p2p/wrapper] called requestBlockAndVotes()');
 
     const raw: TracerWrapper<BlockIdWrapper> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(this.tracer, span.context()),
       data: blockIdWrapper,
     };
 
@@ -217,7 +222,7 @@ export class Bundle extends Libp2p implements IBundle {
 
     const resultRaw = await this.directRequest(
       peerId,
-      global.Config.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
+      this.p2pConfig.V1_NEW_BLOCK_PROTOCOL,
       data
     );
 
@@ -241,14 +246,14 @@ export class Bundle extends Libp2p implements IBundle {
     this.logger.info('[p2p/wrapper] called requestCommonBlock()');
 
     const raw: TracerWrapper<CommonBlockParams> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(this.tracer, span.context()),
       data: commonBlockParams,
     };
     const data = JSON.stringify(raw);
 
     const resultRaw = await this.directRequest(
       peerId,
-      global.Config.p2pConfig.V1_COMMON_BLOCK,
+      this.p2pConfig.V1_COMMON_BLOCK,
       data
     );
     const result: CommonBlockResult = JSON.parse(resultRaw.toString());
@@ -262,7 +267,7 @@ export class Bundle extends Libp2p implements IBundle {
         returnValue: result,
       });
       span.finish();
-      global.app.logger.error(
+      this.logger.error(
         '[p2p][commonBlock] CommonBlockResult could not be validated'
       );
       throw new Error(
@@ -279,22 +284,19 @@ export class Bundle extends Libp2p implements IBundle {
   ): Promise<HeightWrapper> {
     this.logger.info('[p2p/wrapper] called requestHeight()');
 
-    const heightSpan = global.library.tracer.startSpan('get height', {
+    const heightSpan = this.tracer.startSpan('get height', {
       childOf: parentSpan.context(),
     });
 
     const raw: TracerWrapper<string> = {
-      spanId: serializedSpanContext(
-        global.library.tracer,
-        heightSpan.context()
-      ),
+      spanId: serializedSpanContext(this.tracer, heightSpan.context()),
       data: 'no param',
     };
     const data = uint8Arrays.fromString(JSON.stringify(raw));
 
     const resultRaw = await this.directRequest(
       peerId,
-      global.Config.p2pConfig.V1_GET_HEIGHT,
+      this.p2pConfig.V1_GET_HEIGHT,
       data
     );
     const result: HeightWrapper = JSON.parse(resultRaw.toString());
@@ -325,14 +327,14 @@ export class Bundle extends Libp2p implements IBundle {
     this.logger.info('[p2p/wrapper] called requestBlocks()');
 
     const raw: TracerWrapper<BlocksWrapperParams> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(this.tracer, span.context()),
       data: params,
     };
     const data = JSON.stringify(raw);
 
     const resultRaw = await this.directRequest(
       peerId,
-      global.Config.p2pConfig.V1_BLOCKS,
+      this.p2pConfig.V1_BLOCKS,
       data
     );
 
@@ -347,12 +349,12 @@ export class Bundle extends Libp2p implements IBundle {
   ): Promise<SimplePeerInfo[]> {
     this.logger.info('[p2p/wrapper] called requestGetPeers()');
 
-    const raw = serializedSpanContext(global.library.tracer, span.context());
+    const raw = serializedSpanContext(this.tracer, span.context());
     const data = JSON.stringify(raw);
 
     const resultRaw = await this.directRequest(
       peerId,
-      global.Config.p2pConfig.V1_GET_PEERS,
+      this.p2pConfig.V1_GET_PEERS,
       data
     );
 
@@ -630,7 +632,7 @@ export class Bundle extends Libp2p implements IBundle {
   }
 }
 
-function attachEventHandlers(node: Bundle, name: string): void {
+export function attachEventHandlers(node: Bundle, name: string): void {
   node.on('error', err => {
     try {
       console.log(`[${name}] err: ${err.message}`);
@@ -667,17 +669,4 @@ function attachEventHandlers(node: Bundle, name: string): void {
       `[${name}] peer:disconnect peer "${connection.localPeer.toB58String()}`
     );
   });
-}
-
-export function create(
-  peerId: PeerId,
-  ip: string,
-  port: number,
-  bootstrapNode: string[],
-  logger: ILogger,
-  p2pConfig: IPeer2PeerHandlers
-) {
-  const node = new Bundle(peerId, ip, port, bootstrapNode, logger, p2pConfig);
-  attachEventHandlers(node, ip);
-  return node;
 }
