@@ -3,7 +3,7 @@ on: [push]
 jobs:
   client-integration-tests:
     timeout-minutes: 45
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-large
     steps:
       - uses: actions/checkout@v2
 

@@ -3,7 +3,7 @@ on: [push]
 jobs:
   integration-contract-basic-tests:
     timeout-minutes: 75
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-large
     steps:
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master

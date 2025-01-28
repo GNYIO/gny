@@ -12,7 +12,7 @@ on:
 jobs:
   integration-contract-uia-tests:
     timeout-minutes: 75
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-large
     steps:
       # Enable tmate debugging of manually-triggered workflows if the input option was provided
       - name: Setup tmate session
