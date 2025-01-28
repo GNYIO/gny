@@ -1,4 +1,10 @@
-import { IBlock, ManyVotes, ITransaction, ILogger } from '@gnyio/interfaces';
+import {
+  IBlock,
+  ManyVotes,
+  ITransaction,
+  ILogger,
+  ITracer,
+} from '@gnyio/interfaces';
 import * as ConsensusHelper from '@gnyio/main/consensushelper';
 import * as ed from '@gnyio/ed';
 import * as crypto from 'crypto';
@@ -7,6 +13,7 @@ import { slots } from '@gnyio/utils';
 import { ConsensusBase } from '@gnyio/base';
 import * as StateHelper from '@gnyio/main/statehelper';
 import { ISpan } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
 
 function createRandomBlock(
   height: string = String(6),
@@ -65,22 +72,27 @@ describe('ConsensusHelper', () => {
       fatal: x => x,
     };
 
-    const tracer = {
-      startSpan: () => createSpan(),
-    } as any;
-
     global.library = {
       logger,
-      tracer,
     };
+
+    container.snapshot();
+    const mockTracer = ({
+      startSpan: () => createSpan(),
+    } as unknown) as ITracer;
+    container.bind<ITracer>(TYPES.TracerService).toConstantValue(mockTracer);
   });
 
   afterEach(() => {
     delete global.library;
+
+    container.restore();
   });
 
   describe('addPendingVotes', () => {
     it('addPendingVotes() - throws if there is no pendingBlock', () => {
+      expect.assertions(2);
+
       // preparation
       const state = StateHelper.getInitialState();
       expect(state.pendingBlock).toBeUndefined();
@@ -92,13 +104,15 @@ describe('ConsensusHelper', () => {
       );
 
       // act
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       return expect(() =>
         ConsensusHelper.addPendingVotes(state, votes, testSpan)
       ).toThrowError('no pending block');
     });
 
     it('addPendingVotes() - throws if votes id do not match pendingBlock id', () => {
+      expect.assertions(1);
+
       // preparation
       const state = StateHelper.getInitialState();
       const block = createRandomBlock(String(3));
@@ -106,7 +120,7 @@ describe('ConsensusHelper', () => {
         [randomKeyPair()],
         block
       );
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       const temp = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -122,13 +136,15 @@ describe('ConsensusHelper', () => {
       // mess up the votes id (from a peer)
       votes2.id = 'some bad id';
 
-      const testSpan2 = global.library.tracer.startSpan('test2');
+      const testSpan2 = createSpan();
       return expect(() =>
         ConsensusHelper.addPendingVotes(temp, votes2, testSpan2)
       ).toThrowError('votes and block do not match');
     });
 
     it('addPendingVotes() - throws if votes height do not match pendingBlock height', () => {
+      expect.assertions(1);
+
       // preparation
       const state = StateHelper.getInitialState();
       const block = createRandomBlock(String(3));
@@ -136,7 +152,7 @@ describe('ConsensusHelper', () => {
         [randomKeyPair()],
         block
       );
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       const temp = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -152,13 +168,15 @@ describe('ConsensusHelper', () => {
       // mess up the votes height (from a peer)
       votes2.height = String(9);
 
-      const testSpan2 = global.library.tracer.startSpan('test2');
+      const testSpan2 = createSpan();
       return expect(() =>
         ConsensusHelper.addPendingVotes(temp, votes2, testSpan2)
       ).toThrowError('votes and block do not match');
     });
 
     it('addingPendingVotes() - throws if any signature is wrong', () => {
+      expect.assertions(1);
+
       const state = StateHelper.getInitialState();
       const block = createRandomBlock(String(3));
       const votes: ManyVotes = ConsensusBase.createVotes(
@@ -166,7 +184,7 @@ describe('ConsensusHelper', () => {
         block
       );
 
-      const spanTest = global.library.tracer.startSpan('test');
+      const spanTest = createSpan();
       const temp = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -182,7 +200,7 @@ describe('ConsensusHelper', () => {
       votes2.id = votes.id; // only the signatures should be wrong for this test
       votes2.height = votes.height; // only the signatures should be wrong for this test
 
-      const spanTest2 = global.library.tracer.startSpan('test');
+      const spanTest2 = createSpan();
       return expect(() =>
         ConsensusHelper.addPendingVotes(temp, votes2, spanTest2)
       ).toThrowError('not all signatures are valid');
@@ -190,7 +208,9 @@ describe('ConsensusHelper', () => {
   });
 
   describe('createPendingBlockAndVotes', () => {
-    it('createPendingBlockAndVotes() - sets pendingBlock and pendingVotes', done => {
+    it('createPendingBlockAndVotes() - sets pendingBlock and pendingVotes', () => {
+      expect.assertions(10);
+
       const state = StateHelper.getInitialState();
       const newBlock = createRandomBlock(String(1));
       const votes: ManyVotes = ConsensusBase.createVotes(
@@ -202,7 +222,7 @@ describe('ConsensusHelper', () => {
       expect(votes.id).toEqual(newBlock.id);
       expect(votes.signatures).toHaveLength(1);
 
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       const result = ConsensusHelper.createPendingBlockAndVotes(
         state,
         newBlock,
@@ -222,10 +242,11 @@ describe('ConsensusHelper', () => {
       expect(result.pendingVotes.height).toEqual(votes.height);
 
       randomKeyPair;
-      return done();
     });
 
     it('createPendingBlockAndVotes() - throws when one wrong signature is passed in', () => {
+      expect.assertions(1);
+
       // create ManyVotes that have wrong signature
       const block = createRandomBlock(String(3));
       const votes = ConsensusBase.createVotes(
@@ -236,7 +257,7 @@ describe('ConsensusHelper', () => {
       votes.id = block.id;
 
       const state = StateHelper.getInitialState();
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       return expect(() =>
         ConsensusHelper.createPendingBlockAndVotes(
           state,
@@ -248,6 +269,8 @@ describe('ConsensusHelper', () => {
     });
 
     it('createPendingBlockAndVotes() - throw if not at least one correct vote gets passed in', () => {
+      expect.assertions(1);
+
       const block = createRandomBlock(String(2));
       // votes without signatures
       const votes: ManyVotes = {
@@ -257,7 +280,7 @@ describe('ConsensusHelper', () => {
       };
 
       const state = StateHelper.getInitialState();
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
 
       return expect(() =>
         ConsensusHelper.createPendingBlockAndVotes(
@@ -270,12 +293,14 @@ describe('ConsensusHelper', () => {
     });
 
     it('createPendingBlockAndVotes() - throws if votes id is different than block id', () => {
+      expect.assertions(1);
+
       const block = createRandomBlock(String(5));
       const votes = ConsensusBase.createVotes([randomKeyPair()], block);
       // mess up votes.id
       votes.id = 'wrong id';
 
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       const state = StateHelper.getInitialState();
 
       return expect(() =>
@@ -290,18 +315,20 @@ describe('ConsensusHelper', () => {
   });
 
   describe('hasPendingBlock', () => {
-    it('hasPendingBlock() - returns false if state has no pendingBlock', done => {
+    it('hasPendingBlock() - returns false if state has no pendingBlock', () => {
+      expect.assertions(1);
+
       const state = StateHelper.getInitialState();
       const timestamp = Date.now();
 
       const result = ConsensusHelper.hasPendingBlock(state, timestamp);
 
       expect(result).toEqual(false);
-
-      done();
     });
 
-    it('hasPendingBlock() - returns true if state has pendingBlock and currentTimestamp are in the same slot', done => {
+    it('hasPendingBlock() - returns true if state has pendingBlock and currentTimestamp are in the same slot', () => {
+      expect.assertions(2);
+
       // preparation
       let state = StateHelper.getInitialState();
       const block = createRandomBlock(String(1));
@@ -315,7 +342,7 @@ describe('ConsensusHelper', () => {
       block.timestamp = nowInEpochTime;
 
       // set pending block
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       state = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -329,11 +356,11 @@ describe('ConsensusHelper', () => {
       // act
       const result = ConsensusHelper.hasPendingBlock(state, nowInEpochTime);
       expect(result).toEqual(true);
-
-      done();
     });
 
-    it('hasPendingBlock() - returns false if timestamp of pendingBlock was 10 seconds before current timestamp', done => {
+    it('hasPendingBlock() - returns false if timestamp of pendingBlock was 10 seconds before current timestamp', () => {
+      expect.assertions(3);
+
       let state = StateHelper.getInitialState();
       const block = createRandomBlock(String(1));
       const votes: ManyVotes = ConsensusBase.createVotes(
@@ -357,7 +384,7 @@ describe('ConsensusHelper', () => {
       expect(slot1).toEqual(slot2 + 1);
 
       // prepare state
-      const testSpan = global.library.tracer.startSpan('test');
+      const testSpan = createSpan();
       state = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -371,21 +398,22 @@ describe('ConsensusHelper', () => {
       const result = ConsensusHelper.hasPendingBlock(state, currentEpochTime);
 
       expect(result).toEqual(false);
-      done();
     });
   });
 
   describe('getPendingBlock', () => {
-    it('getPendingBlock() - returns no pendingBlock if there is not one', done => {
+    it('getPendingBlock() - returns no pendingBlock if there is not one', () => {
+      expect.assertions(1);
+
       const state = StateHelper.getInitialState();
 
       const result = ConsensusHelper.getPendingBlock(state);
       expect(result).toBeUndefined();
-
-      done();
     });
 
-    it('getPendingBlock() - returns pendingblock if there is one', done => {
+    it('getPendingBlock() - returns pendingblock if there is one', () => {
+      expect.assertions(1);
+
       const state = StateHelper.getInitialState();
       const block = createRandomBlock(String(2));
       const votes: ManyVotes = ConsensusBase.createVotes(
@@ -393,7 +421,7 @@ describe('ConsensusHelper', () => {
         block
       );
 
-      const spanTest = global.library.tracer.startSpan('test');
+      const spanTest = createSpan();
       const tempState = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -403,13 +431,13 @@ describe('ConsensusHelper', () => {
 
       const result = ConsensusHelper.getPendingBlock(tempState);
       expect(result).toEqual(block);
-
-      done();
     });
   });
 
   describe('clearState', () => {
-    it('clearState() - resets pendingBlock, pendingVotes and votesKeySet', done => {
+    it('clearState() - resets pendingBlock, pendingVotes and votesKeySet', () => {
+      expect.assertions(7);
+
       // preparation
       const state = StateHelper.getInitialState();
 
@@ -419,7 +447,7 @@ describe('ConsensusHelper', () => {
         [randomKeyPair(), randomKeyPair(), randomKeyPair()],
         block
       );
-      const spanTest = global.library.tracer.startSpan('test');
+      const spanTest = createSpan();
       const temp = ConsensusHelper.createPendingBlockAndVotes(
         state,
         block,
@@ -440,12 +468,12 @@ describe('ConsensusHelper', () => {
       expect(result.pendingBlock).toBeUndefined();
       expect(result.pendingVotes).toBeUndefined();
       expect(Object.keys(result.votesKeySet).length).toEqual(0);
-
-      done();
     });
 
     describe('CollectingVotes', () => {
-      it('CollectingVotes() - set the privIsCollectingVotes prop to true', done => {
+      it('CollectingVotes() - set the privIsCollectingVotes prop to true', () => {
+        expect.assertions(3);
+
         const state = StateHelper.getInitialState();
 
         // pre check
@@ -455,8 +483,6 @@ describe('ConsensusHelper', () => {
 
         expect(result.privIsCollectingVotes).toEqual(true);
         expect(result).not.toBe(state); // returned state is is other object reference
-
-        done();
       });
     });
   });
