@@ -5,7 +5,7 @@ import { getSchema } from '@gnyio/protobuf';
 import loadedModules from './loadModules.js';
 import loadCoreApi from './loadCoreApi.js';
 import { IScope, IConfig, ILogger, ITracer } from '@gnyio/interfaces';
-import { IOptions } from './globalInterfaces';
+import { IOptions, IProm } from './globalInterfaces';
 import { isConfig } from '@gnyio/type-validation';
 import { MessageBus } from '@gnyio/utils';
 import { composeNetwork } from './http/index.js';
@@ -20,6 +20,9 @@ import {
 } from '@gnyio/p2p';
 import * as PeerId from 'peer-id';
 import * as tracerpkg from '@gnyio/tracer';
+import * as prom from 'prom-client';
+import * as StateHelper from './core/StateHelper.js';
+import { Account, Transaction } from '@gnyio/database-postgres';
 
 export const mutexServiceModule = new ContainerModule(
   (bind: interfaces.Bind) => {
@@ -66,6 +69,74 @@ async function createInversifyP2PService() {
   });
 
   return p2pServiceModule;
+}
+
+function createPrometheus() {
+  // IProm
+  const prometheusService = new ContainerModule((bind: interfaces.Bind) => {
+    bind<IProm>(TYPES.PrometheusService)
+      .toDynamicValue((context: interfaces.Context) => {
+        const prometheus: IProm = {
+          accounts: new prom.Gauge<string>({
+            name: 'gny_accounts',
+            help: 'the number of accounts',
+            collect: async function getAccounts() {
+              const data = await global.app.sdb.count<Account>(Account, {});
+              this.set(Number.parseInt(data));
+            },
+          }),
+          blocks: new prom.Gauge<string>({
+            name: 'gny_blocks',
+            help: 'the number of blocks',
+            collect: async function getBlocks() {
+              const lastBlock = StateHelper.getState().lastBlock;
+              // +1, because height 0 is also a block
+              this.set(Number.parseInt(lastBlock.height) + 1);
+            },
+          }),
+          transactions: new prom.Gauge<string>({
+            name: 'gny_transactions',
+            help: 'the number of transactions',
+            collect: async function getTransactions() {
+              const data = await global.app.sdb.count<Transaction>(
+                Transaction,
+                {}
+              );
+              this.set(Number.parseInt(data));
+            },
+          }),
+          syncing: new prom.Gauge<string>({
+            name: 'gny_syncing',
+            help: 'if we are syncing or not, yes if 1, if not then 0',
+            collect: function getSyncingStatus() {
+              const isSyncing = StateHelper.IsSyncing();
+              const data = isSyncing === true ? 1 : 0;
+              this.set(data);
+            },
+          }),
+          peers: new prom.Gauge<string>({
+            name: 'gny_peers_connected',
+            help: 'number of peers we are connected to',
+            collect: function getPeers() {
+              const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+              const data = p2pService.getAllConnectedPeersPeerInfo();
+              this.set(data.length);
+            },
+          }),
+          requests: new prom.Counter<string>({
+            name: 'gny_requests',
+            help: 'a counter for requests counter',
+            labelNames: ['method', 'endpoint', 'statusCode'],
+          }),
+        };
+
+        return prometheus;
+      })
+      .inSingletonScope();
+  });
+
+  return prometheusService;
 }
 
 function createInversifyTracer(appConfig: IConfig, logger: ILogger) {
@@ -144,10 +215,12 @@ async function init_alt(options: IOptions) {
     options.appConfig,
     options.logger
   );
+  const prometheusServiceModule = createPrometheus();
   container.load(tracerServiceModule);
   container.load(
     mutexServiceModule,
-    p2pServiceModule
+    p2pServiceModule,
+    prometheusServiceModule
     /* other modules */
   );
 

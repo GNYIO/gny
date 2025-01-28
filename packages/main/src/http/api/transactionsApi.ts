@@ -17,6 +17,8 @@ import { Transaction } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
 import * as TransactionsHelper from '../../core/TransactionsHelper.js';
 import BigNumber from 'bignumber.js';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class TransactionsApi implements IHttpApi {
   private library: IScope;
@@ -101,9 +103,11 @@ export default class TransactionsApi implements IHttpApi {
       message: joi.transactionMessage(),
     });
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions',
         statusCode: '422',
@@ -147,7 +151,7 @@ export default class TransactionsApi implements IHttpApi {
       if (query.blockId) {
         block = await global.app.sdb.getBlockById(query.blockId);
         if (block === undefined) {
-          global.app.prom.requests.inc({
+          prom.requests.inc({
             method: 'GET',
             endpoint: '/api/transactions',
             statusCode: '200',
@@ -181,7 +185,7 @@ export default class TransactionsApi implements IHttpApi {
         transactions: transactions as ITransaction[],
       };
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions',
         statusCode: '200',
@@ -189,7 +193,7 @@ export default class TransactionsApi implements IHttpApi {
 
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions',
         statusCode: '500',
@@ -206,6 +210,8 @@ export default class TransactionsApi implements IHttpApi {
     res: Response,
     next: Next
   ) => {
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     try {
       const { query } = req;
       const schema = joi
@@ -218,7 +224,7 @@ export default class TransactionsApi implements IHttpApi {
 
       const report = joi.validate(query, schema);
       if (report.error) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/transactions/count',
           statusCode: '422',
@@ -277,9 +283,11 @@ export default class TransactionsApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/newestFirst',
         statusCode: '422',
@@ -372,9 +380,12 @@ export default class TransactionsApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, typeSchema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/unconfirmed/get',
         statusCode: '422',
@@ -394,7 +405,7 @@ export default class TransactionsApi implements IHttpApi {
       transaction: unconfirmedTransaction,
     };
     if (!unconfirmedTransaction) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/unconfirmed/get',
         statusCode: '500',
@@ -402,7 +413,7 @@ export default class TransactionsApi implements IHttpApi {
 
       return next('Transaction not found');
     } else {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/unconfirmed/get',
         statusCode: '200',
@@ -428,9 +439,12 @@ export default class TransactionsApi implements IHttpApi {
         .address()
         .optional(),
     });
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, publicKeyAddress);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/unconfirmed',
         statusCode: '422',
@@ -458,7 +472,7 @@ export default class TransactionsApi implements IHttpApi {
       transactions.forEach(t => toSend.push(t));
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/transactions/unconfirmed',
       statusCode: '200',
@@ -486,9 +500,12 @@ export default class TransactionsApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, typeSchema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transactions/confirmations',
         statusCode: '422',

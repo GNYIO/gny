@@ -1,4 +1,4 @@
-import initRuntime from './runtime.js';
+import { runtime } from './runtime.js';
 import initAlt from './init.js';
 import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gnyio/interfaces';
 import * as StateHelper from './core/StateHelper.js';
@@ -121,7 +121,7 @@ export default class Application {
     options.library = scope;
 
     try {
-      await initRuntime(options);
+      await runtime(options);
     } catch (e) {
       const tracerService = container.get<ITracer>(TYPES.TracerService);
 

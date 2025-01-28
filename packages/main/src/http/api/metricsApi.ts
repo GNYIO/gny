@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { IScope, Next, IHttpApi } from '@gnyio/interfaces';
 import * as StateHelper from '../../core/StateHelper.js';
 import { register } from 'prom-client';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class MetricsApi implements IHttpApi {
   private library: IScope;
@@ -42,7 +44,9 @@ export default class MetricsApi implements IHttpApi {
   };
 
   private metrics = async (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/metrics',
       statusCode: '200',

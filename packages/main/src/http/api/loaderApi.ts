@@ -9,6 +9,8 @@ import {
   SyncStatus,
 } from '@gnyio/interfaces';
 import * as StateHelper from '../../core/StateHelper.js';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class LoaderApi implements IHttpApi {
   private library: IScope;
@@ -55,7 +57,9 @@ export default class LoaderApi implements IHttpApi {
       loaded,
     };
 
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/loader/status',
       statusCode: '200',
@@ -69,7 +73,9 @@ export default class LoaderApi implements IHttpApi {
     const syncing = StateHelper.IsSyncing();
     const blocksToSync = StateHelper.GetBlocksToSync();
 
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/loader/status/sync',
       statusCode: '200',

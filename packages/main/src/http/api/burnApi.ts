@@ -4,6 +4,8 @@ import { IScope, Next, IHttpApi, IBurn } from '@gnyio/interfaces';
 import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 import { Burn } from '@gnyio/database-postgres';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class Burnapi implements IHttpApi {
   private library: IScope;
@@ -43,7 +45,9 @@ export default class Burnapi implements IHttpApi {
   };
 
   private burn = async (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/burn',
       statusCode: '200',
@@ -74,7 +78,7 @@ export default class Burnapi implements IHttpApi {
 
     const report = schema.validate(query);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks',
         statusCode: '422',

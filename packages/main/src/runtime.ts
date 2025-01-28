@@ -5,13 +5,12 @@ import loadContracts from './loadContracts.js';
 import BigNumber from 'bignumber.js';
 import { IOptions, IValidatorConstraints } from './globalInterfaces.js';
 import * as StateHelper from './core/StateHelper.js';
-import * as prom from 'prom-client';
 import { Account, Transaction } from '@gnyio/database-postgres';
 import { isNewUsername } from '@gnyio/utils';
 import { container, TYPES } from '@gnyio/container';
 import { IP2PService } from '@gnyio/p2p';
 
-export default async function runtime(options: IOptions) {
+export async function runtime(options: IOptions) {
   global.state = StateHelper.getInitialState();
   StateHelper.SetForgingEnabled(true);
   StateHelper.InitializeTransactionPool();
@@ -27,57 +26,6 @@ export default async function runtime(options: IOptions) {
     contract: {},
     contractTypeMapping: {},
     logger: options.logger,
-  };
-  global.app.prom = {
-    accounts: new prom.Gauge<string>({
-      name: 'gny_accounts',
-      help: 'the number of accounts',
-      collect: async function getAccounts() {
-        const data = await global.app.sdb.count<Account>(Account, {});
-        this.set(Number.parseInt(data));
-      },
-    }),
-    blocks: new prom.Gauge<string>({
-      name: 'gny_blocks',
-      help: 'the number of blocks',
-      collect: async function getBlocks() {
-        const lastBlock = StateHelper.getState().lastBlock;
-        // +1, because height 0 is also a block
-        this.set(Number.parseInt(lastBlock.height) + 1);
-      },
-    }),
-    transactions: new prom.Gauge<string>({
-      name: 'gny_transactions',
-      help: 'the number of transactions',
-      collect: async function getTransactions() {
-        const data = await global.app.sdb.count<Transaction>(Transaction, {});
-        this.set(Number.parseInt(data));
-      },
-    }),
-    syncing: new prom.Gauge<string>({
-      name: 'gny_syncing',
-      help: 'if we are syncing or not, yes if 1, if not then 0',
-      collect: function getSyncingStatus() {
-        const isSyncing = StateHelper.IsSyncing();
-        const data = isSyncing === true ? 1 : 0;
-        this.set(data);
-      },
-    }),
-    peers: new prom.Gauge<string>({
-      name: 'gny_peers_connected',
-      help: 'number of peers we are connected to',
-      collect: function getPeers() {
-        const p2pService = container.get<IP2PService>(TYPES.P2PService);
-
-        const data = p2pService.getAllConnectedPeersPeerInfo();
-        this.set(data.length);
-      },
-    }),
-    requests: new prom.Counter<string>({
-      name: 'gny_requests',
-      help: 'a counter for requests counter',
-      labelNames: ['method', 'endpoint', 'statusCode'],
-    }),
   };
   global.app.validators = {
     amount: amount => {

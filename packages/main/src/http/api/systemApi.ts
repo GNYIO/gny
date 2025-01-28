@@ -62,7 +62,9 @@ export default class SystemApi implements IHttpApi {
         network: global.Config.netVersion,
       };
 
-      global.app.prom.requests.inc({
+      const prom = container.get<IProm>(TYPES.PrometheusService);
+
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/system',
         statusCode: '200',
@@ -70,7 +72,7 @@ export default class SystemApi implements IHttpApi {
 
       return res.json(result);
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/system',
         statusCode: '500',

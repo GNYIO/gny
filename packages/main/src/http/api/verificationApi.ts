@@ -11,6 +11,8 @@ import {
 import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 import { Verification } from '@gnyio/database-postgres';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class VerificationApi implements IHttpApi {
   private library: IScope;
@@ -55,7 +57,9 @@ export default class VerificationApi implements IHttpApi {
     res: Response,
     next: Next
   ) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/verification/get',
       statusCode: '200',
@@ -76,7 +80,7 @@ export default class VerificationApi implements IHttpApi {
 
     const report = schema.validate(query);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/verification/get',
         statusCode: '422',
@@ -110,7 +114,9 @@ export default class VerificationApi implements IHttpApi {
   };
 
   public getVerifications = async (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/verification',
       statusCode: '200',
@@ -141,7 +147,7 @@ export default class VerificationApi implements IHttpApi {
 
     const report = schema.validate(query);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/verification',
         statusCode: '422',

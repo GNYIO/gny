@@ -28,6 +28,8 @@ import { joi } from '@gnyio/extended-joi';
 import BigNumber from 'bignumber.js';
 import { slots } from '@gnyio/utils';
 import { RoundBase } from '@gnyio/base';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 async function getDelegateAccount(
   sliced: DelegateViewModel[]
@@ -169,6 +171,8 @@ export default class DelegatesApi implements IHttpApi {
   };
 
   private count = async (req: Request, res: Response, next: Next) => {
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     try {
       const delegates = await global.app.sdb.getAll<Delegate>(Delegate);
       const result: ApiResult<CountWrapper> = {
@@ -176,7 +180,7 @@ export default class DelegatesApi implements IHttpApi {
         count: delegates.length,
       };
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/count',
         statusCode: '200',
@@ -184,7 +188,7 @@ export default class DelegatesApi implements IHttpApi {
 
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/count',
         statusCode: '500',
@@ -208,9 +212,12 @@ export default class DelegatesApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, nameSchema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getVoters',
         statusCode: '422',
@@ -236,7 +243,7 @@ export default class DelegatesApi implements IHttpApi {
         accounts: [] as AccountWeightViewModel[],
       };
       if (!votes || !votes.length) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/delegates/getVoters',
           statusCode: '200',
@@ -277,7 +284,7 @@ export default class DelegatesApi implements IHttpApi {
         }
       }
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getVoters',
         statusCode: '200',
@@ -289,7 +296,7 @@ export default class DelegatesApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getVoters',
         statusCode: '500',
@@ -312,9 +319,12 @@ export default class DelegatesApi implements IHttpApi {
       })
       .xor('username', 'address')
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, nameSchema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getOwnVotes',
         statusCode: '422',
@@ -344,7 +354,7 @@ export default class DelegatesApi implements IHttpApi {
       }
 
       if (!account) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/delegates/getOwnVotes',
           statusCode: '200',
@@ -364,7 +374,7 @@ export default class DelegatesApi implements IHttpApi {
       });
 
       if (!votes || !votes.length) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/delegates/getOwnVotes',
           statusCode: '200',
@@ -382,7 +392,7 @@ export default class DelegatesApi implements IHttpApi {
       const delegates: DelegateViewModel[] = await Delegates.getDelegates();
       const result = delegates.filter(x => voteResult.includes(x.username));
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getOwnVotes',
         statusCode: '200',
@@ -394,7 +404,7 @@ export default class DelegatesApi implements IHttpApi {
       };
       return res.json(resultPretty);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/getOwnVotes',
         statusCode: '500',
@@ -418,9 +428,12 @@ export default class DelegatesApi implements IHttpApi {
       })
       .xor('publicKey', 'username', 'address')
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/get',
         statusCode: '422',
@@ -434,7 +447,7 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/get',
         statusCode: '200',
@@ -458,7 +471,7 @@ export default class DelegatesApi implements IHttpApi {
     });
 
     if (delegate) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/get',
         statusCode: '200',
@@ -471,7 +484,7 @@ export default class DelegatesApi implements IHttpApi {
       return res.json(result);
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/delegates/get',
       statusCode: '500',
@@ -500,9 +513,11 @@ export default class DelegatesApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates',
         statusCode: '422',
@@ -519,7 +534,7 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates',
         statusCode: '500',
@@ -528,7 +543,7 @@ export default class DelegatesApi implements IHttpApi {
       return next('No delegates found');
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/delegates',
       statusCode: '200',
@@ -572,9 +587,12 @@ export default class DelegatesApi implements IHttpApi {
       })
       .xor('publicKey', 'username', 'address')
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, publicKeyOrNameOrAddress);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/ownProducedBlocks',
         statusCode: '422',
@@ -591,7 +609,7 @@ export default class DelegatesApi implements IHttpApi {
 
     const delegates: DelegateViewModel[] = await Delegates.getDelegates();
     if (!delegates) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/ownProducedBlocks',
         statusCode: '500',
@@ -614,7 +632,7 @@ export default class DelegatesApi implements IHttpApi {
       return false;
     });
     if (!delegate) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/ownProducedBlocks',
         statusCode: '500',
@@ -638,7 +656,7 @@ export default class DelegatesApi implements IHttpApi {
       },
     });
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/delegates/ownProducedBlocks',
       statusCode: '200',
@@ -665,9 +683,12 @@ export default class DelegatesApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, needPublicKey);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/forging/status',
         statusCode: '422',
@@ -679,7 +700,7 @@ export default class DelegatesApi implements IHttpApi {
       });
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/delegates/forging/status',
       statusCode: '200',
@@ -712,9 +733,11 @@ export default class DelegatesApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, rules);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/delegates/forging/status',
         statusCode: '422',

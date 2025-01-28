@@ -3,4 +3,5 @@ export const TYPES = {
   P2POptions: Symbol.for('P2POptions'),
   P2PService: Symbol.for('P2PService'),
   TracerService: Symbol.for('TracerService'),
+  PrometheusService: Symbol.for('PrometheusService'),
 };

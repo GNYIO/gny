@@ -61,7 +61,9 @@ export default class PeerApi implements IHttpApi {
   };
 
   private getPeers = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/peers',
       statusCode: '200',
@@ -79,7 +81,9 @@ export default class PeerApi implements IHttpApi {
   };
 
   private info = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/peers/info',
       statusCode: '200',
@@ -97,7 +101,9 @@ export default class PeerApi implements IHttpApi {
   };
 
   private version = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/peers/version',
       statusCode: '200',

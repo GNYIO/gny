@@ -24,6 +24,7 @@ import { generateAddressByPublicKey, getAccount } from '../util.js';
 import * as bip39 from 'bip39';
 import { container, TYPES } from '@gnyio/container';
 import { Mutex } from 'async-mutex';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class ExchangeApi implements IHttpApi {
   private library: IScope;
@@ -101,9 +102,12 @@ export default class ExchangeApi implements IHttpApi {
       args: joi.array().optional(),
       message: joi.transactionMessage(),
     });
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, unsigendTransactionSchema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'PUT',
         endpoint: '/api/exchange',
         statusCode: '500',
@@ -150,7 +154,7 @@ export default class ExchangeApi implements IHttpApi {
         keypair,
       });
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'PUT',
         endpoint: '/api/exchange',
         statusCode: '500',
@@ -211,7 +215,7 @@ export default class ExchangeApi implements IHttpApi {
         }
       });
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'PUT',
         endpoint: '/api/exchange',
         statusCode: '500',
@@ -231,7 +235,7 @@ export default class ExchangeApi implements IHttpApi {
     });
     span.finish();
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'PUT',
       endpoint: '/api/exchange',
       statusCode: '200',
@@ -253,8 +257,10 @@ export default class ExchangeApi implements IHttpApi {
       .required();
     const report = joi.validate(body, secret);
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/exchange/openAccount',
         statusCode: '422',
@@ -268,7 +274,7 @@ export default class ExchangeApi implements IHttpApi {
 
     const result1 = await this.openAccountWithSecret(body.secret);
     if (typeof result1 === 'string') {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/exchange/openAccount',
         statusCode: '500',
@@ -277,7 +283,7 @@ export default class ExchangeApi implements IHttpApi {
       return next(result1);
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/exchange/openAccount',
       statusCode: '200',
@@ -334,7 +340,9 @@ export default class ExchangeApi implements IHttpApi {
       address,
     };
 
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/exchange/generateAccount',
       statusCode: '200',
@@ -354,9 +362,12 @@ export default class ExchangeApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(body, hasSecret);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/exchange/generatePublicKey',
         statusCode: '422',
@@ -377,7 +388,7 @@ export default class ExchangeApi implements IHttpApi {
       );
       const publicKey = kp.publicKey.toString('hex');
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/exchange/generatePublicKey',
         statusCode: '200',
@@ -389,7 +400,7 @@ export default class ExchangeApi implements IHttpApi {
       };
       return res.json(result);
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/exchange/generatePublicKey',
         statusCode: '500',
