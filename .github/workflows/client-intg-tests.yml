@@ -65,7 +65,7 @@ jobs:
 
 
       - name: Build docker image
-        run: docker compose --file config/integration/docker-compose.integration.yml build
+        run: docker compose --file config/integration/docker-compose.integration.yml build --memory 2g
 
       - name: Run integration tests
         run: npm run test:integration:client

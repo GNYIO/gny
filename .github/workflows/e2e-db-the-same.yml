@@ -79,7 +79,7 @@ jobs:
 
 
       - name: Build docker image
-        run: docker compose --file config/integration/docker-compose.integration.yml build
+        run: docker compose --file config/integration/docker-compose.integration.yml build --memory 2g
 
       - name: Run e2e-db-the-same
         run: npm run test:e2e:db-the-same
