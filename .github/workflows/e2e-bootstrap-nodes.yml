@@ -45,6 +45,7 @@ jobs:
             packages/base/node_modules
             packages/cli/node_modules
             packages/client/node_modules
+            packages/container/node_modules
             packages/database-postgres/node_modules
             packages/ed/node_modules
             packages/extended-joi/node_modules
