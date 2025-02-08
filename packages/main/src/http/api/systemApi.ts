@@ -9,6 +9,8 @@ import {
   SystemInfo,
 } from '@gnyio/interfaces';
 import * as StateHelper from '../../core/StateHelper.js';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class SystemApi implements IHttpApi {
   private library: IScope;
@@ -44,6 +46,8 @@ export default class SystemApi implements IHttpApi {
     });
   };
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     try {
       const lastBlock = StateHelper.getState().lastBlock;
       const result: ApiResult<SystemInfo> = {
@@ -61,8 +65,6 @@ export default class SystemApi implements IHttpApi {
         p2p: global.Config.p2pConfig.P2P_VERSION,
         network: global.Config.netVersion,
       };
-
-      const prom = container.get<IProm>(TYPES.PrometheusService);
 
       prom.requests.inc({
         method: 'GET',
