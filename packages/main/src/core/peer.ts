@@ -111,7 +111,7 @@ export default class Peer implements ICoreModule {
         const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);
         await p2pService.connect(peerId, m2);
       } catch (err) {
-        console.log(err);
+        console.log(err.message);
       }
     }
   }

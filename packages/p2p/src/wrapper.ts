@@ -387,6 +387,7 @@ export class Bundle extends Libp2p implements IBundle {
     const connections = Array.from(this.connections.keys());
     if (connections.length === 0) {
       const empty: IPeerInfo[] = [];
+      this.logger.info('[p2p/wrapper] getAllConnectedPeersPeerInfo empty[]');
       return empty;
     }
 
@@ -418,7 +419,14 @@ export class Bundle extends Libp2p implements IBundle {
       return result;
     });
 
-    return allConnectedPeers;
+    const temp = allConnectedPeers.filter(x => x !== null);
+    this.logger.info(
+      `[p2p/wrapper] getAllConnectedPeersPeerInfo result: ${JSON.stringify(
+        temp
+      )}`
+    );
+
+    return temp;
   }
 
   info(): IInfo {
@@ -470,7 +478,7 @@ export class Bundle extends Libp2p implements IBundle {
     if (PeerId.isPeerId(peer) === false) {
       throw new Error('argument is not PeerId');
     }
-    console.log('[p2p][connect] peer is valid');
+    this.logger.info('[p2p][connect] peer is valid');
 
     if (this.peerId.equals(peer)) {
       return;
@@ -479,6 +487,11 @@ export class Bundle extends Libp2p implements IBundle {
     // check if there are addresses for this peer saved
     const addresses = this.peerStore.addressBook.get(peer);
     if (!addresses) {
+      this.logger.info(
+        `[p2p/wrapper] connect() added peer to addressBook: ${JSON.stringify(
+          peerMultiaddr
+        )}`
+      );
       this.peerStore.addressBook.set(peer, [peerMultiaddr]);
     }
 
@@ -493,24 +506,13 @@ export class Bundle extends Libp2p implements IBundle {
     }
 
     try {
-      console.log(
-        `[p2p][connect] dialing peer: ${peer}, ${JSON.stringify(
-          this.peerStore.addressBook.get(peer),
-          null,
-          2
-        )}`
-      );
-      const signal = AbortSignal.timeout(3000);
-      await this.dial(peer, {
-        signal,
-      });
+      this.logger.info(`[p2p][connect] dialing peer: ${peer.toB58String()}`);
+      // does not work when using with AbortSignal
+      await this.dial(peer);
+      this.logger.info('[p2p][connect] connected successfully');
     } catch (err) {
-      console.log(
-        `[p2p][connect] error: ${err.message}, ${JSON.stringify(
-          peerMultiaddr,
-          null,
-          2
-        )}`
+      this.logger.info(
+        `[p2p][connect] error: ${err.message}, ${JSON.stringify(peerMultiaddr)}`
       );
       return; // for next remote peer
     }
@@ -525,7 +527,7 @@ export class Bundle extends Libp2p implements IBundle {
 
     const { stream } = await this.dialProtocol(peerId, protocol);
 
-    console.log(
+    this.logger.info(
       `pushOnly: "${protocol}" data: ${data.constructor === Uint8Array}`
     );
     await pipe(
@@ -657,11 +659,11 @@ export function attachEventHandlers(node: Bundle, name: string): void {
   });
 
   node.connectionManager.on('peer:connect', connection => {
-    // console.log(
-    //   `[${name}] peer:connect peer "${connection.localPeer.toB58String()}"`
-    // );
+    console.log(
+      `[${name}] peer:connect peer "${connection.localPeer.toB58String()}"`
+    );
     // const addresses = node.peerStore.addressBook.get(peer);
-    // console.log(`[${name}] peer:connect addresses "${peer.toB58String()}", "${JSON.stringify(addresses, null, 2)}`);
+    // this.logger.info(`[${name}] peer:connect addresses "${peer.toB58String()}", "${JSON.stringify(addresses, null, 2)}`);
   });
 
   node.connectionManager.on('peer:disconnect', connection => {
