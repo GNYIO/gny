@@ -84,7 +84,7 @@ export async function waitForLoaded(port: number) {
       const height = await getHeight(port);
       if (
         typeof height === 'string' &&
-        new BigNumber(height).isGreaterThan(0)
+        new BigNumber(height).isGreaterThanOrEqualTo(0)
       ) {
         loaded = true;
       }
