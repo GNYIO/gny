@@ -6,6 +6,7 @@ import { BigNumber } from 'bignumber.js';
 import shellJS from 'shelljs';
 import { log as consoleLog } from 'console';
 import 'jest-extended';
+import { isAddress } from '@gnyio/utils';
 
 import pkg from 'pg';
 const Client = pkg.Client;
@@ -228,9 +229,39 @@ export function createEnvironmentVariables(
 
 // matchers
 export const matchPositiveNumber = expect.toBePositive();
-export const matchHeightString = expect.stringMatching(/^[1-9]{1}[0-9]*$/);
-
+export const matchPositiveOrZeroIntString = expect.stringMatching(
+  /^(0|[1-9][0-9]*)$/
+);
 export const matchP2PVersion = expect.stringMatching(/^v\d+\.\d+$/);
 export const matchNetwork = expect.stringMatching(/^mainnet|testnet|localnet$/);
-
 export const matchSemver = expect.stringMatching(/^\d+\.\d+\.\d+$/);
+
+export const matchPublicKey = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
+// same as regex above
+export const matchTid = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
+export const matchProcentString = expect.stringMatching(/^0|(\d+\.\d+$)/);
+export const matchId = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
+export const matchSignature = expect.stringMatching(/^[0-9a-fA-F]{128}$/);
+
+expect.extend({
+  matchAddress(received, expected) {
+    if (typeof received !== 'string') {
+      return {
+        pass: false,
+        message: 'object is not a string',
+      };
+    }
+
+    if (isAddress(received)) {
+      return {
+        pass: true,
+        message: 'is address',
+      };
+    } else {
+      return {
+        pass: false,
+        message: 'is not an address',
+      };
+    }
+  },
+});

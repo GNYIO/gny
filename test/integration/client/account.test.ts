@@ -100,7 +100,30 @@ describe('account', () => {
           const publicKey =
             '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
           const response = await accountApi.openAccount(publicKey);
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            account: {
+              address: 'G4GDW6G78sgQdSdVAQUXdm5xPS13t',
+              balance: lib.matchPositiveOrZeroIntString,
+              secondPublicKey: null,
+              lockHeight: lib.matchPositiveOrZeroIntString,
+              lockAmount: lib.matchPositiveOrZeroIntString,
+              isDelegate: 0,
+              username: null,
+              publicKey:
+                '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b',
+            },
+            latestBlock: {
+              height: lib.matchPositiveOrZeroIntString,
+              timestamp: lib.matchPositiveNumber,
+            },
+            version: {
+              version: lib.matchSemver,
+              build: expect.any(String),
+              net: lib.matchNetwork,
+            },
+          });
         },
         lib.oneMinute
       );
@@ -114,7 +137,16 @@ describe('account', () => {
 
           const address = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
           const response = (await accountApi.getBalance(address)) as ApiSuccess;
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            count: 1,
+            balances: [
+              {
+                gny: '40000000000000000',
+              },
+            ],
+          });
         },
         lib.oneMinute
       );
@@ -156,7 +188,28 @@ describe('account', () => {
             address,
             currecny
           )) as ApiSuccess;
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            balance: {
+              address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              currency: 'AAA.ONE',
+              balance: lib.matchPositiveOrZeroIntString,
+              flag: lib.matchPositiveNumber,
+              _version_: lib.matchPositiveNumber,
+              asset: {
+                name: 'AAA.ONE',
+                tid: lib.matchTid,
+                timestamp: lib.matchPositiveNumber,
+                maximum: lib.matchPositiveOrZeroIntString,
+                precision: lib.matchPositiveNumber,
+                quantity: lib.matchPositiveOrZeroIntString,
+                desc: expect.any(String),
+                issuerId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                _version_: lib.matchPositiveNumber,
+              },
+            },
+          });
         },
         lib.oneMinute
       );
@@ -172,7 +225,20 @@ describe('account', () => {
           const response = (await accountApi.getAccountByAddress(
             address
           )) as ApiSuccess;
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+            username: null,
+            gny: lib.matchPositiveOrZeroIntString,
+            publicKey: null,
+            secondPublicKey: null,
+            isDelegate: 0,
+            isLocked: 0,
+            lockHeight: lib.matchPositiveOrZeroIntString,
+            lockAmount: lib.matchPositiveOrZeroIntString,
+            _version_: lib.matchPositiveNumber,
+          });
         },
         lib.oneMinute
       );
@@ -200,7 +266,20 @@ describe('account', () => {
           const response = (await accountApi.getAccountByUsername(
             username
           )) as ApiSuccess;
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+            username: 'xpgeng',
+            gny: lib.matchPositiveOrZeroIntString,
+            publicKey: null,
+            secondPublicKey: null,
+            isDelegate: 0,
+            isLocked: 0,
+            lockHeight: lib.matchPositiveOrZeroIntString,
+            lockAmount: lib.matchPositiveOrZeroIntString,
+            _version_: lib.matchPositiveNumber,
+          });
         },
         lib.oneMinute
       );
@@ -270,7 +349,28 @@ describe('account', () => {
           const response = (await accountApi.getVotedDelegates({
             address,
           })) as ApiSuccess;
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            delegates: [
+              {
+                address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                username: 'xpgeng',
+                tid: lib.matchTid,
+                publicKey: lib.matchPublicKey,
+                votes: lib.matchPositiveOrZeroIntString,
+                producedBlocks: lib.matchPositiveOrZeroIntString,
+                missedBlocks: lib.matchPositiveOrZeroIntString,
+                fees: lib.matchPositiveOrZeroIntString,
+                rewards: lib.matchPositiveOrZeroIntString,
+                eligible: 1,
+                _version_: lib.matchPositiveNumber,
+                rate: expect.any(Number),
+                approval: lib.matchProcentString,
+                productivity: lib.matchProcentString,
+              },
+            ],
+          });
         },
         lib.oneMinute
       );
@@ -280,12 +380,15 @@ describe('account', () => {
       it(
         'should get the number of accounts',
         async () => {
-          expect.assertions(2);
+          expect.assertions(1);
 
           const response = (await accountApi.countAccounts()) as (ApiSuccess &
             CountWrapper);
-          expect(response.success).toBeTruthy();
-          expect(response.count).toEqual(103);
+
+          expect(response).toEqual({
+            success: true,
+            count: 103,
+          });
         },
         lib.oneMinute
       );

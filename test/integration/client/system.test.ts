@@ -48,7 +48,7 @@ describe('system', () => {
           os: expect.any(String),
           timestamp: lib.matchPositiveNumber,
           lastBlock: {
-            height: lib.matchHeightString,
+            height: lib.matchPositiveOrZeroIntString,
             timestamp: lib.matchPositiveNumber,
             behind: expect.any(Number),
           },

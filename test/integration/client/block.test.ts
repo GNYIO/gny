@@ -54,7 +54,23 @@ describe('block', () => {
         const response = (await blockApi.getBlockByHeight(
           height
         )) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          block: {
+            id: lib.matchId,
+            version: expect.any(Number),
+            timestamp: lib.matchPositiveNumber,
+            height: lib.matchPositiveOrZeroIntString,
+            prevBlockId: lib.matchId,
+            count: expect.any(Number),
+            fees: lib.matchPositiveOrZeroIntString,
+            reward: lib.matchPositiveOrZeroIntString,
+            payloadHash: lib.matchId,
+            delegate: lib.matchPublicKey,
+            signature: lib.matchSignature,
+          },
+        });
       },
       lib.oneMinute
     );
@@ -77,7 +93,23 @@ describe('block', () => {
         )) as (ApiSuccess & BlockWrapper);
         const id = blockResponse.block.id;
         const response = await blockApi.getBlockById(id);
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          block: {
+            id: lib.matchId,
+            version: expect.any(Number),
+            timestamp: lib.matchPositiveNumber,
+            height: lib.matchPositiveOrZeroIntString,
+            prevBlockId: lib.matchId,
+            count: expect.any(Number),
+            fees: lib.matchPositiveOrZeroIntString,
+            reward: lib.matchPositiveOrZeroIntString,
+            payloadHash: lib.matchId,
+            delegate: lib.matchPublicKey,
+            signature: lib.matchSignature,
+          },
+        });
       },
       lib.oneMinute
     );
@@ -98,7 +130,39 @@ describe('block', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await blockApi.getBlocks(offset, limit);
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          count: lib.matchPositiveNumber,
+          blocks: [
+            {
+              id: lib.matchId,
+              version: expect.any(Number),
+              timestamp: 0,
+              height: '0',
+              prevBlockId: null,
+              count: expect.any(Number),
+              fees: lib.matchPositiveOrZeroIntString,
+              reward: lib.matchPositiveOrZeroIntString,
+              payloadHash: lib.matchId,
+              delegate: lib.matchPublicKey,
+              signature: lib.matchSignature,
+            },
+            {
+              id: lib.matchId,
+              version: expect.any(Number),
+              timestamp: lib.matchPositiveNumber,
+              height: '1',
+              prevBlockId: lib.matchId,
+              count: expect.any(Number),
+              fees: lib.matchPositiveOrZeroIntString,
+              reward: lib.matchPositiveOrZeroIntString,
+              payloadHash: lib.matchId,
+              delegate: lib.matchPublicKey,
+              signature: lib.matchSignature,
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -111,7 +175,10 @@ describe('block', () => {
         expect.assertions(1);
 
         const response = await blockApi.getHeight();
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          height: lib.matchPositiveOrZeroIntString,
+        });
       },
       lib.oneMinute
     );
@@ -124,7 +191,11 @@ describe('block', () => {
         expect.assertions(1);
 
         const response = await blockApi.getMilestone();
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          milestone: expect.any(Number),
+        });
       },
       lib.oneMinute
     );
@@ -137,7 +208,11 @@ describe('block', () => {
         expect.assertions(1);
 
         const response = await blockApi.getReward();
-        expect(response.success).toBeTruthy();
+        // expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          reward: expect.any(Number), // why number not BigIntString?
+        });
       },
       lib.oneMinute
     );
@@ -147,7 +222,7 @@ describe('block', () => {
     it(
       'should get the supply',
       async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const response: ApiResult<SupplyWrapper> = await blockApi.getSupply();
 
@@ -158,6 +233,9 @@ describe('block', () => {
         expect(response.burned).toEqual(String(0));
         // @ts-ignore
         expect(response.supply).toEqual(String(400_000_000 * 1e8));
+
+        // make sure there is no additional properties
+        expect(Object.keys(response).length).toEqual(4);
       },
       lib.oneMinute
     );
@@ -165,7 +243,7 @@ describe('block', () => {
     it(
       'supply should decrease when token were burned',
       async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const secret =
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
@@ -193,6 +271,9 @@ describe('block', () => {
         expect(response.burned).toEqual(String(2_000_000 * 1e8));
         // @ts-ignore
         expect(response.supply).toEqual(String(398_000_000 * 1e8));
+
+        // make sure there is no additional properties
+        expect(Object.keys(response).length).toEqual(4);
       },
       lib.oneMinute * 2
     );
@@ -205,7 +286,14 @@ describe('block', () => {
         expect.assertions(1);
 
         const response = await blockApi.getStatus();
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          fee: lib.matchPositiveOrZeroIntString,
+          height: lib.matchPositiveOrZeroIntString,
+          milestone: expect.any(Number),
+          reward: expect.any(Number),
+          supply: lib.matchPositiveOrZeroIntString,
+        });
       },
       lib.oneMinute
     );
