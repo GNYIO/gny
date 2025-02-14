@@ -5,6 +5,7 @@ import { generateAddress } from '@gnyio/utils';
 import { BigNumber } from 'bignumber.js';
 import shellJS from 'shelljs';
 import { log as consoleLog } from 'console';
+import 'jest-extended';
 
 import pkg from 'pg';
 const Client = pkg.Client;
@@ -224,3 +225,12 @@ export function createEnvironmentVariables(
 
   return arr.join(' ');
 }
+
+// matchers
+export const matchPositiveNumber = expect.toBePositive();
+export const matchHeightString = expect.stringMatching(/^[1-9]{1}[0-9]*$/);
+
+export const matchP2PVersion = expect.stringMatching(/^v\d+\.\d+$/);
+export const matchNetwork = expect.stringMatching(/^mainnet|testnet|localnet$/);
+
+export const matchSemver = expect.stringMatching(/^\d+\.\d+\.\d+$/);
