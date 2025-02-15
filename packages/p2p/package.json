@@ -1,7 +1,7 @@
 {
   "name": "@gnyio/p2p",
   "private": true,
-  "version": "2.13.2",
+  "version": "2.14.0",
   "type": "module",
   "description": "",
   "scripts": {
@@ -23,10 +23,10 @@
     }
   },
   "dependencies": {
-    "@gnyio/container": "2.13.2",
-    "@gnyio/interfaces": "2.13.2",
-    "@gnyio/tracer": "2.13.2",
-    "@gnyio/type-validation": "2.13.2",
+    "@gnyio/container": "2.14.0",
+    "@gnyio/interfaces": "2.14.0",
+    "@gnyio/tracer": "2.14.0",
+    "@gnyio/type-validation": "2.14.0",
     "inversify": "^6.2.1",
     "it-first": "^1.0.4",
     "it-pipe": "^1.1.0",
