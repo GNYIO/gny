@@ -14,17 +14,17 @@ import {
   P2PMessage,
   BlocksWrapperParams,
   IBlockWithTransactions,
+  ITracer,
 } from '@gnyio/interfaces';
 import { IState, IStateSuccess } from '../globalInterfaces.js';
 import pWhilst from 'p-whilst';
 import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
 import { ConsensusBase } from '@gnyio/base';
-import { BlocksHelper } from './BlocksHelper.js';
-import { ConsensusHelper } from './ConsensusHelper.js';
-import { StateHelper } from './StateHelper.js';
+import * as BlocksHelper from './BlocksHelper.js';
+import * as ConsensusHelper from './ConsensusHelper.js';
+import * as StateHelper from './StateHelper.js';
 import Transactions from './transactions.js';
-import Peer from './peer.js';
 import Delegates from './delegates.js';
 import BigNumber from 'bignumber.js';
 import { Transaction } from '@gnyio/database-postgres';
@@ -34,6 +34,9 @@ import { Account } from '@gnyio/database-postgres';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
 import pImmediate from 'p-immediate';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -162,7 +165,9 @@ export default class Blocks implements ICoreModule {
   ) => {
     global.app.logger.trace('enter applyblock');
 
-    const span = global.library.tracer.startSpan('apply block', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('apply block', {
       childOf: parentSpan.context(),
     });
     span.setTag('id', block.id);
@@ -179,7 +184,7 @@ export default class Blocks implements ICoreModule {
           (block.transactions && block.transactions.length) || 0,
       });
       for (const transaction of block.transactions) {
-        const applyBlockTransactionsSpan = global.library.tracer.startSpan(
+        const applyBlockTransactionsSpan = tracerService.startSpan(
           'execute transaction (block)',
           {
             childOf: span.context(),
@@ -268,7 +273,9 @@ export default class Blocks implements ICoreModule {
     options: ProcessBlockOptions,
     parentSpan: ISpan
   ) {
-    const span = global.library.tracer.startSpan('process block db io', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('process block db io', {
       childOf: parentSpan.context(),
     });
     span.setTag('hash', getSmallBlockHash(block));
@@ -279,7 +286,7 @@ export default class Blocks implements ICoreModule {
       value: 'begin block',
     });
 
-    const beginBlockSpan = global.library.tracer.startSpan('begin block', {
+    const beginBlockSpan = tracerService.startSpan('begin block', {
       childOf: span.context(),
     });
     beginBlockSpan.setTag('hash', getSmallBlockHash(block));
@@ -312,7 +319,7 @@ export default class Blocks implements ICoreModule {
       await Blocks.applyRound(block, span);
 
       // what happens if commitBlock throws an exception?
-      const commitBlockSpan = global.library.tracer.startSpan('commit block', {
+      const commitBlockSpan = tracerService.startSpan('commit block', {
         childOf: span.context(),
       });
 
@@ -328,12 +335,9 @@ export default class Blocks implements ICoreModule {
       });
       span.finish();
 
-      const rollbackBlockSpan = global.library.tracer.startSpan(
-        'rollback Block',
-        {
-          childOf: span.context(),
-        }
-      );
+      const rollbackBlockSpan = tracerService.startSpan('rollback Block', {
+        childOf: span.context(),
+      });
       rollbackBlockSpan.setTag('height', block.height);
       rollbackBlockSpan.setTag('id', block.id);
       rollbackBlockSpan.setTag('hash', getSmallBlockHash(block));
@@ -415,9 +419,9 @@ export default class Blocks implements ICoreModule {
       const lastHeight = state.lastBlock.height;
 
       if (new BigNumber(lastHeight).isEqualTo(stopHeight)) {
-        const stopWithHeightSpan = global.library.tracer.startSpan(
-          'stop with height'
-        );
+        const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+        const stopWithHeightSpan = tracerService.startSpan('stop with height');
         stopWithHeightSpan.log({
           stopHeight,
           lastHeight,
@@ -444,7 +448,9 @@ export default class Blocks implements ICoreModule {
     block: IBlock,
     parentSpan: ISpan
   ) => {
-    const saveBlockTransaction = global.library.tracer.startSpan(
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const saveBlockTransaction = tracerService.startSpan(
       'save block transactions',
       {
         childOf: parentSpan.context(),
@@ -459,7 +465,7 @@ export default class Blocks implements ICoreModule {
     );
 
     for (let trs of block.transactions) {
-      const span = global.library.tracer.startSpan('transaction', {
+      const span = tracerService.startSpan('transaction', {
         childOf: saveBlockTransaction.context(),
       });
       span.setTag('transactionId', trs.id);
@@ -519,8 +525,10 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     // block height multiple of 101
-    const span = global.library.tracer.startSpan('apply round', {
+    const span = tracerService.startSpan('apply round', {
       childOf: parentSpan.context(),
     });
     span.setTag('height', block.height);
@@ -601,7 +609,9 @@ export default class Blocks implements ICoreModule {
     id: string,
     parentSpan: ISpan
   ) => {
-    const span = global.library.tracer.startSpan('load blocks from peer', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('load blocks from peer', {
       childOf: parentSpan.context(),
     });
     span.setTag('syncing', true);
@@ -624,7 +634,7 @@ export default class Blocks implements ICoreModule {
     await pWhilst(
       () => !loaded && count < 30,
       async () => {
-        const syncSpan = global.library.tracer.startSpan('sync 200 blocks', {
+        const syncSpan = tracerService.startSpan('sync 200 blocks', {
           childOf: span.context(),
         });
         syncSpan.setTag('syncing', true);
@@ -645,7 +655,8 @@ export default class Blocks implements ICoreModule {
 
         let body: IBlockWithTransactions[];
         try {
-          body = await Peer.p2p.requestBlocks(peer, params, syncSpan);
+          const p2pService = container.get<IP2PService>(TYPES.P2PService);
+          body = await p2pService.requestBlocks(peer, params, syncSpan);
         } catch (err) {
           global.library.logger.error(
             `failed to requestBlocks from "${peer.toB58String()}", error: ${
@@ -696,7 +707,7 @@ export default class Blocks implements ICoreModule {
         });
         syncSpan.finish();
 
-        const multipleBlocksSpan = global.library.tracer.startSpan(
+        const multipleBlocksSpan = tracerService.startSpan(
           'process multiple blocks',
           {
             childOf: syncSpan.context(),
@@ -706,7 +717,7 @@ export default class Blocks implements ICoreModule {
 
         try {
           for (const block of blocks) {
-            const processBlockSpan = global.library.tracer.startSpan(
+            const processBlockSpan = tracerService.startSpan(
               'process block (syncing)',
               {
                 childOf: multipleBlocksSpan.context(),
@@ -754,7 +765,7 @@ export default class Blocks implements ICoreModule {
 
               processBlockSpan.finish();
 
-              const processBlockError = global.library.tracer.startSpan(
+              const processBlockError = tracerService.startSpan(
                 'processBlock error',
                 {
                   childOf: processBlockSpan.context(),
@@ -818,7 +829,9 @@ export default class Blocks implements ICoreModule {
       unconfirmedTransactions
     );
 
-    const span = global.library.tracer.startSpan('generate block');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('generate block');
     span.setTag('height', newBlock.height);
     span.setTag('hash', getSmallBlockHash(newBlock));
 
@@ -913,12 +926,12 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onReceiveBlock = async (
+  public static async onReceiveBlock(
     peerId: PeerId,
     block: IBlock,
     votes: ManyVotes,
     span: ISpan
-  ) => {
+  ) {
     // check before if block fits in line
     const state = StateHelper.getState();
     const fitInLineResult = BlocksHelper.DoesTheNewBlockFitInLine(state, block);
@@ -938,14 +951,18 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on onReceiveBlock',
       {
         childOf: span.context(),
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -965,12 +982,9 @@ export default class Blocks implements ICoreModule {
       );
 
       if (fitInLineResult === false) {
-        const longForkSpan = global.library.tracer.startSpan(
-          'does not fit in line',
-          {
-            childOf: span.context(),
-          }
-        );
+        const longForkSpan = tracerService.startSpan('does not fit in line', {
+          childOf: span.context(),
+        });
 
         global.library.logger.warn(
           'Receive new block header does not fit in line'
@@ -996,7 +1010,7 @@ export default class Blocks implements ICoreModule {
       span.finish();
 
       if (fitInLineResult === true) {
-        const processBlockSpan = global.library.tracer.startSpan(
+        const processBlockSpan = tracerService.startSpan(
           'process block (on receive block)',
           {
             childOf: span.context(),
@@ -1006,12 +1020,9 @@ export default class Blocks implements ICoreModule {
         processBlockSpan.setTag('height', block.height);
         processBlockSpan.setTag('id', block.id);
 
-        const rollbackBlockSpan = global.library.tracer.startSpan(
-          'rollback Block',
-          {
-            childOf: processBlockSpan.context(),
-          }
-        );
+        const rollbackBlockSpan = tracerService.startSpan('rollback Block', {
+          childOf: processBlockSpan.context(),
+        });
 
         try {
           StateHelper.ClearUnconfirmedTransactions();
@@ -1067,7 +1078,7 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
 
           if (!stateResult.success) {
-            const processBlockError = global.library.tracer.startSpan(
+            const processBlockError = tracerService.startSpan(
               'processBlock error',
               {
                 childOf: processBlockSpan.context(),
@@ -1098,16 +1109,18 @@ export default class Blocks implements ICoreModule {
       // this is important
       return;
     });
-  };
+  }
 
-  public static onReceivePropose = async (
+  public static async onReceivePropose(
     propose: BlockPropose,
     message: P2PMessage,
     parentSpan: ISpan
-  ) => {
+  ) {
     global.library.logger.info(`[p2p] onReceivePropose ${propose.id}`);
 
-    const span = global.library.tracer.startSpan('push Votes', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('push Votes', {
       childOf: parentSpan.context(),
     });
     span.setTag('height', propose.height);
@@ -1116,14 +1129,15 @@ export default class Blocks implements ICoreModule {
     span.setTag('hash', getSmallBlockHash(propose));
     span.setTag('proposeHash', propose.hash);
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on onReceivePropose',
       {
         childOf: span.context(),
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -1144,7 +1158,7 @@ export default class Blocks implements ICoreModule {
       );
 
       if (BlocksHelper.AlreadyReceivedPropose(state, propose)) {
-        const alreadyReceivedSpan = global.library.tracer.startSpan(
+        const alreadyReceivedSpan = tracerService.startSpan(
           'already received propose',
           {
             childOf: span.context(),
@@ -1308,9 +1322,8 @@ export default class Blocks implements ICoreModule {
                   }`
                 );
 
-                const bundle = Peer.p2p;
-
-                const peerId = await bundle.findPeerInfoInDHT(message);
+                const p2pService = container.get<IP2PService>(TYPES.P2PService);
+                const peerId = await p2pService.findPeerInfoInDHT(message);
 
                 span.log({
                   value: `going to push votes to ${peerId.toB58String()}`,
@@ -1318,7 +1331,7 @@ export default class Blocks implements ICoreModule {
                 });
 
                 // todo add timing on how long it takes to find
-                await bundle.pushVotesToPeer(peerId, votes, span);
+                await p2pService.pushVotesToPeer(peerId, votes, span);
 
                 state = BlocksHelper.SetLastPropose(state, Date.now(), propose);
 
@@ -1361,13 +1374,15 @@ export default class Blocks implements ICoreModule {
         }
       );
     });
-  };
+  }
 
-  public static onReceiveTransaction = async (
+  public static async onReceiveTransaction(
     unconfirmedTrs: UnconfirmedTransaction,
     parentSpan: ISpan
-  ) => {
-    const span = global.library.tracer.startSpan('execute transaction', {
+  ) {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('execute transaction', {
       childOf: parentSpan.context(),
     });
     span.setTag('transactionId', unconfirmedTrs.id);
@@ -1375,14 +1390,15 @@ export default class Blocks implements ICoreModule {
 
     global.library.logger.info(`[p2p] onReceiveTransaction`);
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on onReceiveTransaction',
       {
         childOf: span.context(),
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       span.log({
@@ -1449,9 +1465,9 @@ export default class Blocks implements ICoreModule {
       await pImmediate();
       return;
     });
-  };
+  }
 
-  public static onReceiveVotes = async (votes: ManyVotes, span: ISpan) => {
+  public static async onReceiveVotes(votes: ManyVotes, span: ISpan) {
     const isSyncing = StateHelper.IsSyncing();
     const modules = !StateHelper.ModulesAreLoaded();
 
@@ -1471,14 +1487,17 @@ export default class Blocks implements ICoreModule {
       return;
     }
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on onReceiveVotes',
       {
         childOf: span.context(),
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       let state = StateHelper.getState();
@@ -1509,12 +1528,9 @@ export default class Blocks implements ICoreModule {
 
       // first we need to check if the votes fit in line
       if (!ConsensusHelper.doIncomingVotesFitInLine(state, votes)) {
-        const errorSpan = global.library.tracer.startSpan(
-          'incoming votes bad',
-          {
-            childOf: span.context(),
-          }
-        );
+        const errorSpan = tracerService.startSpan('incoming votes bad', {
+          childOf: span.context(),
+        });
         errorSpan.setTag('error', true);
         errorSpan.log({
           value: 'incoming votes do not fit in line',
@@ -1569,7 +1585,7 @@ export default class Blocks implements ICoreModule {
           });
           span.finish();
 
-          const processBlockSpan = global.library.tracer.startSpan(
+          const processBlockSpan = tracerService.startSpan(
             'process Block (on receive votes)',
             {
               childOf: span.context(),
@@ -1590,7 +1606,7 @@ export default class Blocks implements ICoreModule {
           state = stateResult.state;
 
           if (!stateResult.success) {
-            const processBlockError = global.library.tracer.startSpan(
+            const processBlockError = tracerService.startSpan(
               'processBlock error',
               {
                 childOf: processBlockSpan.context(),
@@ -1629,7 +1645,7 @@ export default class Blocks implements ICoreModule {
         return;
       }
     });
-  };
+  }
 
   public static RunGenesisOrLoadLastBlock = async (
     old: IState,
@@ -1646,10 +1662,12 @@ export default class Blocks implements ICoreModule {
   ) => {
     let state = StateHelper.copyState(old);
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     if (new BigNumber(0).isEqualTo(numberOfBlocksInDb)) {
       state = BlocksHelper.setPreGenesisBlock(state);
 
-      const span = global.library.tracer.startSpan('process block (genesis)');
+      const span = tracerService.startSpan('process block (genesis)');
       span.setTag('hash', getSmallBlockHash(genesisBlock));
       span.setTag('height', genesisBlock.height);
       span.setTag('id', genesisBlock.id);
@@ -1668,7 +1686,7 @@ export default class Blocks implements ICoreModule {
       state = stateResult.state;
 
       if (!stateResult.success) {
-        const processBlockError = global.library.tracer.startSpan(
+        const processBlockError = tracerService.startSpan(
           'processBlock error',
           {
             childOf: span.context(),
@@ -1686,10 +1704,14 @@ export default class Blocks implements ICoreModule {
   };
 
   // Events
-  public static onBind = async () => {
+  public static async onBind() {
     // this.loaded = true; // TODO: use stateK
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    await mutex.runExclusive(async () => {
       try {
         let state = StateHelper.getState();
 
@@ -1726,7 +1748,7 @@ export default class Blocks implements ICoreModule {
           );
 
           if (new BigNumber(lastHeight).isGreaterThanOrEqualTo(stopHeight)) {
-            const span = global.library.tracer.startSpan('stop with height');
+            const span = tracerService.startSpan('stop with height');
             span.log({
               stopHeight,
               lastHeight,
@@ -1745,7 +1767,7 @@ export default class Blocks implements ICoreModule {
 
         return;
       } catch (err) {
-        const span = global.app.tracer.startSpan('onBind');
+        const span = tracerService.startSpan('onBind');
         span.setTag('error', true);
         span.log({
           value: `Failed to prepare local blockchain ${err}`,
@@ -1757,7 +1779,7 @@ export default class Blocks implements ICoreModule {
         throw new Error('Failed to prepare local blockchain');
       }
     });
-  };
+  }
 
   public static shutDownInXSeconds = async () => {
     // we need to wait a few seconds after processBlock before shutting down
@@ -1766,7 +1788,9 @@ export default class Blocks implements ICoreModule {
 
     await sleep(3 * 1000);
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       global.library.logger.info(
         `[stopWithHeight] setInterval add sequence [start]`
       );
@@ -1777,7 +1801,7 @@ export default class Blocks implements ICoreModule {
     });
   };
 
-  public static onBlockchainRollback = async () => {
+  public static async onBlockchainRollback() {
     global.app.logger.info(`executed onBlockchainRollback`);
     const replace = global.Config.nodeAction;
     const rollbackHeight = replace.split(':')[1];
@@ -1810,5 +1834,5 @@ export default class Blocks implements ICoreModule {
 
     global.app.logger.info(`successfully rolled back to ${rollbackHeight}`);
     process.exit(0);
-  };
+  }
 }

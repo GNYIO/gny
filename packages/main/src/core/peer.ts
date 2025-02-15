@@ -1,184 +1,102 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import * as p2p from '@gnyio/p2p';
-import { PeerNode, ICoreModule } from '@gnyio/interfaces';
+import { PeerNode, ICoreModule, ITracer } from '@gnyio/interfaces';
 import * as PeerId from 'peer-id';
 import { attachDirectP2PCommunication } from './PeerHelper.js';
 import Transport from './transport.js';
 import uint8Arrays from 'uint8arrays';
 import multiaddr from 'multiaddr';
-import { StateHelper } from './StateHelper.js';
+import * as StateHelper from './StateHelper.js';
 import BigNumber from 'bignumber.js';
 import Loader from './loader.js';
 import { serializedSpanContext } from '@gnyio/tracer';
 import pMinDelay from 'p-min-delay';
-import { LoaderHelper } from './LoaderHelper.js';
+import * as LoaderHelper from './LoaderHelper.js';
 import { Cron } from 'croner';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class Peer implements ICoreModule {
-  public static p2p;
-
   public static getVersion = () => ({
     version: global.library.config.version,
     build: global.library.config.buildVersion,
     net: global.library.config.netVersion,
   });
 
-  public static request = async (
-    endpoint: string,
-    body: any,
-    contact: PeerNode,
-    timeout?: number
-  ) => {
-    const address = `${contact.host}:${contact.port - 1}`;
-    const uri = `http://${address}/peer/${endpoint}`;
-    global.library.logger.debug(`start to request ${uri}`);
-    const headers = {
-      magic: global.Config.magic,
-      version: global.Config.version,
-    };
+  public static async initializeLibP2P(p2pService: IP2PService) {
+    attachDirectP2PCommunication(p2pService);
 
-    let result;
-    try {
-      const config: AxiosRequestConfig = {
-        headers: headers,
-        responseType: 'json',
-        timeout: undefined || timeout,
-      };
-      result = await axios.post(uri, body, config);
-      if (result.status !== 200) {
-        throw new Error(
-          `Invalid status code: ${result.statusCode}, error: ${result.data}`
-        );
-      }
-      return result.data;
-    } catch (err) {
-      const span = global.app.tracer.startSpan('request');
-      span.setTag('error', true);
-      span.log({
-        value: `Failed to request remote peer: ${err.message}`,
-      });
-      span.finish();
-
-      global.library.logger.error(
-        `Failed to request remote peer: ${err.message}`
-      );
-      global.library.logger.error(
-        JSON.stringify(err.response ? err.response.data : err.message)
-      );
-      throw err;
-    }
-  };
-
-  public static randomRequestAsync = async (method: string, params: any) => {
-    const randomNode = Peer.p2p.getConnectedRandomNode();
-    if (!randomNode) throw new Error('no contact');
-    global.library.logger.debug(
-      `[p2p] select random contract: ${JSON.stringify(randomNode)}`
-    );
-    try {
-      const result = await Peer.request(method, params, randomNode, 4000);
-      return {
-        data: result,
-        node: randomNode,
-      };
-    } catch (err) {
-      throw err;
-    }
-  };
-
-  public static preparePeerId = async () => {
-    const buf = Buffer.from(
-      global.library.config.peers.privateP2PKey,
-      'base64'
-    );
-    const peerId = await PeerId.createFromPrivKey(buf);
-
-    return peerId;
-  };
-
-  public static initializeLibP2P = async (
-    bootstrapNode: string[],
-    peerId: PeerId
-  ) => {
-    const wrapper = p2p.create(
-      peerId,
-      global.library.config.publicIp,
-      global.library.config.peerPort,
-      bootstrapNode,
-      global.library.logger,
-      global.Config.p2pConfig
-    );
-    Peer.p2p = wrapper;
-    attachDirectP2PCommunication(Peer.p2p);
-
-    await Peer.p2p.start();
+    await p2pService.start();
     global.library.logger.info('[p2p] libp2p started');
 
     global.library.logger.info(
       `announceAddresses: ${JSON.stringify(
-        Peer.p2p.addressManager.getAnnounceAddrs().map(x => x.toString())
+        p2pService.addressManager.getAnnounceAddrs().map(x => x.toString())
       )}`
     );
     global.library.logger.info(
       `listenAddresses: ${JSON.stringify(
-        Peer.p2p.addressManager.getListenAddrs().map(x => x.toString())
+        p2pService.addressManager.getListenAddrs().map(x => x.toString())
       )}`
     );
 
-    const startUpSpan = global.library.tracer.startSpan('startUp');
-    startUpSpan.setTag('peerId', Peer.p2p.peerId.toB58String());
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const startUpSpan = tracerService.startSpan('startUp');
+    startUpSpan.setTag('peerId', p2pService.peerId.toB58String());
     startUpSpan.log({
-      announceAddresses: Peer.p2p.addressManager
+      announceAddresses: p2pService.addressManager
         .getAnnounceAddrs()
         .map(x => x.toString()),
-      listenAddresses: Peer.p2p.addressManager
+      listenAddresses: p2pService.addressManager
         .getListenAddrs()
         .map(x => x.toString()),
     });
     startUpSpan.finish();
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER,
       Transport.receivePeer_NewBlockHeader
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_NEW_BLOCK_HEADER
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_PROPOSE,
       Transport.receivePeer_Propose
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_PROPOSE
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_TRANSACTION,
       Transport.receivePeer_Transaction
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_TRANSACTION
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS,
       Transport.receivePeer_many_Transactions
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_BROADCAST_MANY_TRANSACTIONS
     );
 
-    Peer.p2p.pubsub.on(
+    p2pService.pubsub.on(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST,
       Transport.receivePeers_from_rendezvous_Broadcast
     );
-    await Peer.p2p.pubsub.subscribe(
+    await p2pService.pubsub.subscribe(
       global.Config.p2pConfig.V1_RENDEZVOUS_BROADCAST
     );
-  };
+  }
 
   public static async dial(bootstrapNode: string[]) {
     // dial to peers in GNY_P2P_PEERS env variable
@@ -190,9 +108,10 @@ export default class Peer implements ICoreModule {
 
         const peerId = PeerId.createFromB58String(b58String);
 
-        await Peer.p2p.connect(peerId, m2);
+        const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);
+        await p2pService.connect(peerId, m2);
       } catch (err) {
-        console.log(err);
+        console.log(err.message);
       }
     }
   }
@@ -201,10 +120,13 @@ export default class Peer implements ICoreModule {
     const m = multiaddr(bootstrapNode[0]);
     const rendezvousNode = PeerId.createFromB58String(m.getPeerId());
 
-    const span = global.app.tracer.startSpan('request peers');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('request peers');
     let peers = null;
     try {
-      peers = await Peer.p2p.requestGetPeers(rendezvousNode, span);
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      peers = await p2pService.requestGetPeers(rendezvousNode, span);
     } catch (err) {
       span.log({
         err,
@@ -239,7 +161,9 @@ export default class Peer implements ICoreModule {
 
       // no new height for 30 seconds, look if any other node has a higher node
       if (new BigNumber(height30SecondsAgo).isEqualTo(heightNow)) {
-        const span = global.library.tracer.startSpan('is stuck');
+        const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+        const span = tracerService.startSpan('is stuck');
         span.log({
           height30SecondsAgo,
           heightNow,
@@ -261,7 +185,9 @@ export default class Peer implements ICoreModule {
             typeof result === 'object' &&
             result.decision.action === 'rollback'
           ) {
-            await global.app.mutex.runExclusive(async () => {
+            const mutex = container.get<Mutex>(TYPES.MutexService);
+
+            await mutex.runExclusive(async () => {
               await LoaderHelper.investigateFork(lastBlock, span);
             });
             await Loader.syncBlocksFromPeer(
@@ -287,7 +213,7 @@ export default class Peer implements ICoreModule {
   };
 
   // Events
-  public static onBlockchainReady = async () => {
+  public static async onBlockchainReady() {
     // # if rendezvous node
     //   # broadcast neighor nodes
     // # if not rendezvous node
@@ -302,12 +228,11 @@ export default class Peer implements ICoreModule {
     //     # rollbackback if necessary
     //     # then activate block creation
 
+    console.log('[Peer.ts] onBlockchainReady()');
+
     const bootstrapNode = global.library.config.peers.bootstrap
       ? global.library.config.peers.bootstrap
       : [];
-    const peerId = await Peer.preparePeerId();
-
-    await Peer.initializeLibP2P(bootstrapNode, peerId);
 
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
@@ -327,21 +252,21 @@ export default class Peer implements ICoreModule {
           protect: true,
         },
         async () => {
-          const span = global.library.tracer.startSpan('rendezvous broadcast');
+          const tracerService = container.get<ITracer>(TYPES.TracerService);
 
-          const peers = Peer.p2p.getAllConnectedPeersPeerInfo();
+          const span = tracerService.startSpan('rendezvous broadcast');
+
+          const p2pService = container.get<IP2PService>(TYPES.P2PService);
+          const peers = p2pService.getAllConnectedPeersPeerInfo();
 
           const data = {
-            spanId: serializedSpanContext(
-              global.library.tracer,
-              span.context()
-            ),
+            spanId: serializedSpanContext(tracerService, span.context()),
             peers: peers,
           };
           span.log(data);
 
           const converted = uint8Arrays.fromString(JSON.stringify(data));
-          await Peer.p2p.rendezvousBroadcastsPeers(converted);
+          await p2pService.rendezvousBroadcastsPeers(converted);
 
           span.finish();
         }
@@ -372,7 +297,9 @@ export default class Peer implements ICoreModule {
     Peer.syncIfStuck();
 
     // ask peers for their height
-    const span = global.library.tracer.startSpan('ask peers');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('ask peers');
     const lastBlock = StateHelper.getState().lastBlock;
 
     const result = await Loader.silentlyContactPeers(lastBlock, span);
@@ -393,7 +320,9 @@ export default class Peer implements ICoreModule {
     }
 
     if (result.decision.action === 'rollback') {
-      await global.app.mutex.runExclusive(async () => {
+      const mutex = container.get<Mutex>(TYPES.MutexService);
+
+      await mutex.runExclusive(async () => {
         await LoaderHelper.investigateFork(lastBlock, span);
       });
       await Loader.syncBlocksFromPeer(
@@ -405,10 +334,12 @@ export default class Peer implements ICoreModule {
     }
 
     throw new Error('should never come here');
-  };
+  }
 
   public static cleanup = cb => {
-    Peer.p2p.stop(cb);
+    const p2pService = container.get<p2p.IP2PService>(TYPES.P2PService);
+    p2pService.stop(cb);
+
     global.library.logger.debug('Cleaning up core/peer');
   };
 }

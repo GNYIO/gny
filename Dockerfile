@@ -59,7 +59,8 @@ COPY packages/tracer/package-lock.json ./packages/tracer/package-lock.json
 RUN true
 COPY packages/json-sql/package-lock.json ./packages/json-sql/package-lock.json
 RUN true
-
+COPY packages/container/package-lock.json ./packages/container/package-lock.json
+RUN true
 
 # copy all package.json files
 COPY packages/p2p/package.json ./packages/p2p/package.json
@@ -105,6 +106,8 @@ RUN true
 COPY packages/network/package.json ./packages/network/package.json
 RUN true
 COPY packages/json-sql/package.json ./packages/json-sql/package.json
+RUN true
+COPY packages/container/package.json ./packages/container/package.json
 RUN true
 
 

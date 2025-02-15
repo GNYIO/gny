@@ -1,10 +1,13 @@
-import { IBlock, ICoreModule } from '@gnyio/interfaces';
-import { StateHelper } from './StateHelper.js';
-import { LoaderHelper, PeerIdCommonBlockHeight } from './LoaderHelper.js';
+import { IBlock, ICoreModule, ITracer } from '@gnyio/interfaces';
+import * as StateHelper from './StateHelper.js';
+import * as LoaderHelper from './LoaderHelper.js';
 import Blocks from './blocks.js';
 import Peer from './peer.js';
 import * as PeerId from 'peer-id';
 import { ISpan, getSmallBlockHash } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
+import { IP2PService } from '@gnyio/p2p';
 
 export default class Loader implements ICoreModule {
   public static async loadBlocksFromPeerProxy(
@@ -23,21 +26,22 @@ export default class Loader implements ICoreModule {
       lastBlock,
     });
 
-    const allPeerInfos = Peer.p2p.getAllConnectedPeersPeerInfo();
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
+    const allPeerInfos = p2pService.getAllConnectedPeersPeerInfo();
     if (allPeerInfos.length === 0) {
       global.library.logger.info('[p2p] loadBlocks() no connected peers');
 
-      const noPeersSpan = global.library.tracer.startSpan(
-        'no connected peers',
-        {
-          childOf: parentSpan.context(),
-        }
-      );
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const noPeersSpan = tracerService.startSpan('no connected peers', {
+        childOf: parentSpan.context(),
+      });
       noPeersSpan.finish();
       return;
     }
 
-    const result: PeerIdCommonBlockHeight[] = await LoaderHelper.contactEachPeer(
+    const result: LoaderHelper.PeerIdCommonBlockHeight[] = await LoaderHelper.contactEachPeer(
       allPeerInfos,
       lastBlock,
       parentSpan
@@ -72,17 +76,21 @@ export default class Loader implements ICoreModule {
       return;
     }
 
-    const span = global.library.tracer.startSpan('sync blocks from peer');
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('sync blocks from peer');
     span.setTag('syncing', true);
 
-    const waitOnMutexSpan = global.library.tracer.startSpan(
+    const waitOnMutexSpan = tracerService.startSpan(
       'mutex wait on syncBlocks',
       {
         childOf: span.context(),
       }
     );
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+
+    await mutex.runExclusive(async () => {
       waitOnMutexSpan.finish();
 
       global.library.logger.debug('syncBlocksFromPeer enter sequence');
@@ -91,7 +99,9 @@ export default class Loader implements ICoreModule {
       const lastBlock = StateHelper.getState().lastBlock; // TODO refactor whole method
       StateHelper.ClearUnconfirmedTransactions();
       try {
-        const rollbackBlockSpan = global.library.tracer.startSpan(
+        const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+        const rollbackBlockSpan = tracerService.startSpan(
           'rollback Block (height)',
           {
             childOf: span.context(),

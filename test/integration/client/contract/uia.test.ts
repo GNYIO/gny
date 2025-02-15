@@ -52,7 +52,10 @@ describe('uia', () => {
           'summer produce nation depth home scheme trade pitch marble season crumble autumn';
 
         const response = await uiaApi.registerIssuer(name, desc, secret);
-        expect(response).toHaveProperty('transactionId');
+        expect(response).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
       },
       lib.oneMinute
     );
@@ -82,7 +85,10 @@ describe('uia', () => {
           precision,
           secret
         );
-        expect(response).toHaveProperty('transactionId');
+        expect(response).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
       },
       lib.oneMinute
     );

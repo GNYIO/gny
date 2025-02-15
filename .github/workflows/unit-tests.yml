@@ -3,7 +3,7 @@ on: push
 jobs:
   unit-tests:
     timeout-minutes: 15
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-large
     steps:
     - uses: actions/checkout@v2
 
@@ -18,7 +18,7 @@ jobs:
         cat packages.txt | md5sum | awk '{print $1}' > hash.txt
 
     - name: restore lerna
-      uses: actions/cache@v2
+      uses: actions/cache@v4.2.0
       id: cache-node-modules
       with:
         key: ${{ runner.os }}-unit-tests-${{ hashFiles('hash.txt') }}
@@ -28,6 +28,7 @@ jobs:
           packages/base/node_modules
           packages/cli/node_modules
           packages/client/node_modules
+          packages/container/node_modules
           packages/database-postgres/node_modules
           packages/ed/node_modules
           packages/extended-joi/node_modules

@@ -3,6 +3,7 @@ import {
   ILogger,
   BlockHeightId,
   ISerializedSpanContext,
+  ITracer,
 } from '@gnyio/interfaces';
 import * as opentracing from 'opentracing';
 
@@ -31,7 +32,7 @@ export interface ISpan {
 }
 
 export function serializedSpanContext(
-  myTracer: jaegerClient.JaegerTracer,
+  myTracer: ITracer,
   context: opentracing.SpanContext
 ) {
   const obj: ISerializedSpanContext = {} as ISerializedSpanContext;

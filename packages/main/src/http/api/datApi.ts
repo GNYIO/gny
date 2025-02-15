@@ -10,13 +10,15 @@ import {
   SingleDatMakerWrapper,
   MultipleDats,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { joi } from '@gnyio/extended-joi';
 
 import { DatMaker } from '@gnyio/database-postgres';
 import { Dat } from '@gnyio/database-postgres';
 
 import { datMakerRegex, datNameRegex, datHashRegex } from '@gnyio/utils';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export function isDatNameOrDatHash(arr: any) {
   const eitherHashOrName = joi
@@ -77,12 +79,6 @@ export default class DatApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('datApi');
-        span.setTag('error', true);
-        span.log({
-          value: `${req.url} ${err}`,
-        });
-        span.finish();
 
         this.library.logger.error(req.url);
         this.library.logger.error(err);
@@ -119,9 +115,11 @@ export default class DatApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/dat/makers',
         statusCode: '422',
@@ -170,9 +168,11 @@ export default class DatApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.params, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/dat/dat/:hash',
         statusCode: '422',
@@ -230,9 +230,11 @@ export default class DatApi implements IHttpApi {
       .oxor('maker', 'ownerAddress') // either maker or ownerAddress
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/dat/dat',
         statusCode: '422',
@@ -288,9 +290,11 @@ export default class DatApi implements IHttpApi {
       .xor('hash', 'name')
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.query, hashOrName);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/dat/getDat',
         statusCode: '422',
@@ -325,8 +329,10 @@ export default class DatApi implements IHttpApi {
   private getMultipleDats = async (req: Request, res: Response, next: Next) => {
     const { body } = req;
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     if (!isDatNameOrDatHash(body)) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/dat/getMultipleDats',
         statusCode: '422',

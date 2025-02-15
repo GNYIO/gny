@@ -19,11 +19,13 @@ import {
   IAssetWithIssuer,
   IAsset,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Issuer } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';
 import { Balance } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class UiaApi implements IHttpApi {
   private library: IScope;
@@ -79,9 +81,11 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, addressValidation);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/isIssuer/:address',
         statusCode: '422',
@@ -99,7 +103,7 @@ export default class UiaApi implements IHttpApi {
         },
       });
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/isIssuer/:address',
         statusCode: '200',
@@ -112,7 +116,7 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/isIssuer/:address',
         statusCode: '500',
@@ -139,9 +143,11 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, limitOffset);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers',
         statusCode: '422',
@@ -164,7 +170,7 @@ export default class UiaApi implements IHttpApi {
         offset,
       });
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers',
         statusCode: '200',
@@ -177,7 +183,7 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers',
         statusCode: '500',
@@ -197,9 +203,12 @@ export default class UiaApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, nameMustBeNameOrAddress);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name',
         statusCode: '422',
@@ -226,7 +235,7 @@ export default class UiaApi implements IHttpApi {
           issuer,
         };
 
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/uia/issuers/:name',
           statusCode: '200',
@@ -240,7 +249,7 @@ export default class UiaApi implements IHttpApi {
           },
         });
         if (!issuer) {
-          global.app.prom.requests.inc({
+          prom.requests.inc({
             method: 'GET',
             endpoint: '/api/uia/issuers/:name',
             statusCode: '500',
@@ -249,7 +258,7 @@ export default class UiaApi implements IHttpApi {
           return next('Issuer not found');
         }
 
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/uia/issuers/:name',
           statusCode: '200',
@@ -262,7 +271,7 @@ export default class UiaApi implements IHttpApi {
         return res.json(result);
       }
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name',
         statusCode: '500',
@@ -282,9 +291,12 @@ export default class UiaApi implements IHttpApi {
           .required(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const nameReport = joi.validate(req.params, nameSchema);
     if (nameReport.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name/assets',
         statusCode: '422',
@@ -314,7 +326,7 @@ export default class UiaApi implements IHttpApi {
 
     const report = joi.validate(query, limitOffset);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name/assets',
         statusCode: '422',
@@ -335,7 +347,7 @@ export default class UiaApi implements IHttpApi {
         condition: { name: issuerName },
       });
       if (!issuer) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/uia/issuers/:name/assets',
           statusCode: '500',
@@ -360,7 +372,7 @@ export default class UiaApi implements IHttpApi {
         return assetWithIssuer;
       });
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name/assets',
         statusCode: '200',
@@ -373,7 +385,7 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/uia/issuers/:name/assets',
         statusCode: '500',
@@ -400,8 +412,16 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, limitOffset);
     if (report.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -442,6 +462,12 @@ export default class UiaApi implements IHttpApi {
         return temp;
       });
 
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets',
+        statusCode: '200',
+      });
+
       const result: ApiResult<AssetsWrapper> = {
         success: true,
         count,
@@ -449,6 +475,12 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets',
+        statusCode: '500',
+      });
+
       return next(`Failed to get assets: ${dbErr}`);
     }
   };
@@ -465,8 +497,16 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, nameSchema);
     if (report.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets/:name',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -498,12 +538,24 @@ export default class UiaApi implements IHttpApi {
         issuer: tempIssuer,
       };
 
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets/:name',
+        statusCode: '200',
+      });
+
       const result: ApiResult<AssetWrapper> = {
         success: true,
         asset,
       };
       return res.json(result);
     } catch (dbErr) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/assets/:name',
+        statusCode: '500',
+      });
+
       return next(`Failed to get asset: ${dbErr}`);
     }
   };
@@ -519,8 +571,16 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const addressReport = joi.validate(req.params, addressSchema);
     if (addressReport.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: addressReport.error.message,
@@ -544,6 +604,12 @@ export default class UiaApi implements IHttpApi {
       .required();
     const report = joi.validate(query, limitOffset);
     if (report.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -561,6 +627,13 @@ export default class UiaApi implements IHttpApi {
         limit,
         offset,
       });
+
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address',
+        statusCode: '200',
+      });
+
       const result: ApiResult<BalancesWrapper> = {
         success: true,
         count,
@@ -568,6 +641,12 @@ export default class UiaApi implements IHttpApi {
       };
       return res.json(result);
     } catch (dbErr) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address',
+        statusCode: '500',
+      });
+
       return next(`Failed to get balances: ${dbErr}`);
     }
   };
@@ -587,8 +666,16 @@ export default class UiaApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.params, schema);
     if (report.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address/:currency',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -605,12 +692,25 @@ export default class UiaApi implements IHttpApi {
       });
       if (!balances || balances.length === 0)
         return next('Balance info not found');
+
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address/:currency',
+        statusCode: '200',
+      });
+
       const result: ApiResult<BalanceWrapper> = {
         success: true,
         balance: balances[0],
       };
       return res.json(result);
     } catch (dbErr) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/balances/:address/:currency',
+        statusCode: '500',
+      });
+
       return next(`Failed to get issuers: ${dbErr}`);
     }
   };
@@ -637,8 +737,17 @@ export default class UiaApi implements IHttpApi {
           .optional(),
       })
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/holders/:currency',
+        statusCode: '422',
+      });
+
       return res.status(422).send({
         success: false,
         error: report.error.message,
@@ -656,9 +765,21 @@ export default class UiaApi implements IHttpApi {
         },
       });
       if (!dbCurrency) {
+        prom.requests.inc({
+          method: 'GET',
+          endpoint: '/api/uia/holders/:currency',
+          statusCode: '500',
+        });
+
         return next('could not find asset');
       }
     } catch (err) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/holders/:currency',
+        statusCode: '500',
+      });
+
       return next('error during querying asset');
     }
 
@@ -688,8 +809,21 @@ export default class UiaApi implements IHttpApi {
           return result;
         }),
       };
+
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/holders/:currency',
+        statusCode: '200',
+      });
+
       return res.json(result);
     } catch (dbErr) {
+      prom.requests.inc({
+        method: 'GET',
+        endpoint: '/api/uia/holders/:currency',
+        statusCode: '500',
+      });
+
       return next(`Failed to get Holders: ${dbErr}`);
     }
   };

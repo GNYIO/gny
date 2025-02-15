@@ -14,6 +14,7 @@ import {
   SimplePeerInfo,
   ISerializedSpanContext,
   TracerWrapper,
+  ITracer,
 } from '@gnyio/interfaces';
 import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
@@ -24,10 +25,10 @@ import {
   isP2PPeerIdAndMultiaddr,
   isManyVotes,
 } from '@gnyio/type-validation';
-import { StateHelper } from './StateHelper.js';
-import { TransportHelper } from './TransportHelper.js';
+import * as StateHelper from './StateHelper.js';
+import * as TransportHelper from './TransportHelper.js';
 import Peer from './peer.js';
-import { BlocksHelper } from './BlocksHelper.js';
+import * as BlocksHelper from './BlocksHelper.js';
 import {
   serializedSpanContext,
   createSpanContextFromSerializedParentContext,
@@ -39,19 +40,20 @@ import {
 import * as PeerId from 'peer-id';
 import uint8Arrays from 'uint8arrays';
 import multiaddr from 'multiaddr';
+import { container, TYPES } from '@gnyio/container';
+import { IP2PService } from '@gnyio/p2p';
 
 export default class Transport implements ICoreModule {
   // broadcast to peers Transaction
-  public static onUnconfirmedTransaction = async (
+  public static async onUnconfirmedTransaction(
     transaction: UnconfirmedTransaction,
     parentSpan: ISpan
-  ) => {
-    const span = global.library.tracer.startSpan(
-      'broadcast unconfirmed transaction',
-      {
-        childOf: parentSpan.context(),
-      }
-    );
+  ) {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('broadcast unconfirmed transaction', {
+      childOf: parentSpan.context(),
+    });
     span.setTag('transactionId', transaction.id);
     span.setTag('senderId', transaction.senderId);
     span.log({
@@ -68,23 +70,27 @@ export default class Transport implements ICoreModule {
     }
 
     const raw: TracerWrapper<UnconfirmedTransaction[]> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: [obj],
     };
 
     const encodedTransaction = uint8Arrays.fromString(JSON.stringify(raw));
-    await Peer.p2p.broadcastManyTransactionsAsync(encodedTransaction);
+
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastManyTransactionsAsync(encodedTransaction);
 
     span.finish();
-  };
+  }
 
   // broadcast to peers NewBlockMessage
-  public static onNewBlock = async (
+  public static async onNewBlock(
     block: IBlock,
     votes: ManyVotes,
     parentSpan: ISpan
-  ) => {
-    const span = global.app.tracer.startSpan('onNewBlock', {
+  ) {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('onNewBlock', {
       childOf: parentSpan.context(),
     });
     span.setTag('hash', getSmallBlockHash(block));
@@ -119,7 +125,7 @@ export default class Transport implements ICoreModule {
     };
 
     const wrapped: TracerWrapper<NewBlockMessage> = {
-      spanId: serializedSpanContext(global.library.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: message,
     };
 
@@ -139,19 +145,19 @@ export default class Transport implements ICoreModule {
 
       return;
     }
-    await Peer.p2p.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastNewBlockHeaderAsync(encodedNewBlockMessage);
 
     span.finish();
-  };
+  }
 
   // broadcast to peers Propose
-  public static onNewPropose = async (
-    propose: BlockPropose,
-    parentSpan: ISpan
-  ) => {
+  public static async onNewPropose(propose: BlockPropose, parentSpan: ISpan) {
     global.library.logger.info(`[p2p] broadcasting propose "${propose.id}"`);
 
-    const span = global.app.tracer.startSpan('broadcasting BlockPropose', {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+    const span = tracerService.startSpan('broadcasting BlockPropose', {
       childOf: parentSpan.context(),
     });
     span.setTag('hash', getSmallBlockHash(propose));
@@ -171,7 +177,7 @@ export default class Transport implements ICoreModule {
     });
 
     const full: TracerWrapper<BlockPropose> = {
-      spanId: serializedSpanContext(global.app.tracer, span.context()),
+      spanId: serializedSpanContext(tracerService, span.context()),
       data: propose,
     };
 
@@ -190,10 +196,11 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    await Peer.p2p.broadcastProposeAsync(encodedBlockPropose);
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await p2pService.broadcastProposeAsync(encodedBlockPropose);
 
     span.finish();
-  };
+  }
 
   // peerEvent
   public static receivePeer_NewBlockHeader = async (message: P2PMessage) => {
@@ -215,11 +222,13 @@ export default class Transport implements ICoreModule {
       )}`
     );
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received Block Header', {
+    const span = tracerService.startSpan('received Block Header', {
       references: [parentReference],
     });
 
@@ -227,7 +236,7 @@ export default class Transport implements ICoreModule {
     const modules = !StateHelper.ModulesAreLoaded();
 
     if (isSyncing || modules) {
-      const isSyncingSpan = global.library.tracer.startSpan(
+      const isSyncingSpan = tracerService.startSpan(
         'received Block Header (is syncing)',
         {
           childOf: span.context(),
@@ -267,15 +276,15 @@ export default class Transport implements ICoreModule {
     };
 
     let peerId: PeerId;
-    const findPeerInfoInDHTSpan = global.library.tracer.startSpan(
+    const findPeerInfoInDHTSpan = tracerService.startSpan(
       'find peer-info in DHT',
       {
         childOf: span.context(),
       }
     );
     try {
-      const bundle = Peer.p2p;
-      peerId = await bundle.findPeerInfoInDHT(message);
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      peerId = await p2pService.findPeerInfoInDHT(message);
 
       findPeerInfoInDHTSpan.finish();
     } catch (err) {
@@ -284,7 +293,7 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    const requestBlockAndVotesSpan = global.library.tracer.startSpan(
+    const requestBlockAndVotesSpan = tracerService.startSpan(
       'request block and votes',
       {
         childOf: span.context(),
@@ -292,8 +301,8 @@ export default class Transport implements ICoreModule {
     );
     let result: TracerWrapper<BlockAndVotes>;
     try {
-      const bundle = Peer.p2p;
-      result = await bundle.requestBlockAndVotes(
+      const p2pService = container.get<IP2PService>(TYPES.P2PService);
+      result = await p2pService.requestBlockAndVotes(
         peerId,
         params,
         requestBlockAndVotesSpan
@@ -315,15 +324,12 @@ export default class Transport implements ICoreModule {
     span.finish();
 
     const receiveBlockVotesSpanContext = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       result.spanId
     );
-    const receiveBlockSpan = global.library.tracer.startSpan(
-      'going to receiveBlock',
-      {
-        childOf: receiveBlockVotesSpanContext,
-      }
-    );
+    const receiveBlockSpan = tracerService.startSpan('going to receiveBlock', {
+      childOf: receiveBlockVotesSpanContext,
+    });
 
     if (!isBlockAndVotes(result.data)) {
       global.library.logger.error(
@@ -439,11 +445,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received Block Propose', {
+    const span = tracerService.startSpan('received Block Propose', {
       references: [parentReference],
     });
 
@@ -464,7 +472,7 @@ export default class Transport implements ICoreModule {
         modules,
       });
 
-      const isSyncingSpan = global.library.tracer.startSpan(
+      const isSyncingSpan = tracerService.startSpan(
         'received Block Propose (but syncing)',
         {
           childOf: span.context(),
@@ -532,6 +540,8 @@ export default class Transport implements ICoreModule {
 
     // dial, even when syncing
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
     let raw: P2PPeerIdAndMultiaddr = null;
     try {
       raw = JSON.parse(uint8Arrays.toString(message.data));
@@ -558,14 +568,14 @@ export default class Transport implements ICoreModule {
       return;
     }
 
-    if (peerId.equals(Peer.p2p.peerId)) {
+    if (peerId.equals(p2pService.peerId)) {
       global.library.logger.info(`[p2p] "newMember" is me`);
 
       return;
     }
 
     // is in PeerStore
-    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    const test = p2pService.peerStore.addressBook.get(peerId);
     if (test === undefined) {
       const multi = parsed.multiaddr.filter(x => {
         const address = multiaddr(x).nodeAddress().address;
@@ -585,7 +595,7 @@ export default class Transport implements ICoreModule {
       }
 
       // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
-      Peer.p2p.peerStore.addressBook.set(
+      p2pService.peerStore.addressBook.set(
         peerId,
         parsed.multiaddr.map(x => multiaddr(x))
       );
@@ -595,12 +605,12 @@ export default class Transport implements ICoreModule {
     }
 
     // has connection
-    const connections = Array.from(Peer.p2p.connections.keys());
+    const connections = Array.from(p2pService.connections.keys());
     const inConnection = connections.find(x => x === parsed.peerId);
     // if not, dial
     if (!inConnection) {
       try {
-        await Peer.p2p.dial(peerId);
+        await p2pService.dial(peerId);
       } catch (err) {
         global.library.logger.info(
           `[p2p] "newMember" dial failed for "${peerId.toB58String()}"`
@@ -627,12 +637,14 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const context = createSpanContextFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       raw.spanId
     );
 
-    const span = global.library.tracer.startSpan('receive rendezvous', {
+    const span = tracerService.startSpan('receive rendezvous', {
       childOf: context,
     });
     span.finish();
@@ -657,6 +669,8 @@ export default class Transport implements ICoreModule {
     // 2.check if there is a connection
     // if not, dial
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+
     // P2PPeerIdAndMultiaddr
     if (!isP2PPeerIdAndMultiaddr(parsed, global.library.logger)) {
       global.library.logger.error(
@@ -674,7 +688,7 @@ export default class Transport implements ICoreModule {
     }
 
     // do not log if we receive ourselves
-    if (peerId.equals(Peer.p2p.peerId)) {
+    if (peerId.equals(p2pService.peerId)) {
       return;
     }
     global.library.logger.info(
@@ -682,7 +696,7 @@ export default class Transport implements ICoreModule {
     );
 
     // is in PeerStore
-    const test = Peer.p2p.peerStore.addressBook.get(peerId);
+    const test = p2pService.peerStore.addressBook.get(peerId);
     if (test === undefined) {
       const multi = parsed.multiaddr.filter(x => {
         const address = multiaddr(x).nodeAddress().address;
@@ -703,7 +717,7 @@ export default class Transport implements ICoreModule {
       }
 
       // TODO: do not add addresses like 127.0.0.1 or 0.0.0.0
-      Peer.p2p.peerStore.addressBook.set(
+      p2pService.peerStore.addressBook.set(
         peerId,
         parsed.multiaddr.map(x => multiaddr(x))
       );
@@ -713,12 +727,12 @@ export default class Transport implements ICoreModule {
     }
 
     // has connection
-    const connections = Array.from(Peer.p2p.connections.keys());
+    const connections = Array.from(p2pService.connections.keys());
     const inConnection = connections.find(x => x === parsed.peerId);
     // if not, dial
     if (!inConnection) {
       try {
-        await Peer.p2p.dial(peerId);
+        await p2pService.dial(peerId);
       } catch (err) {
         global.library.logger.info(
           `[p2p][rendezvous] dial failed for peer "${peerId.toB58String()}"`
@@ -746,16 +760,15 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan(
-      'received many trs broadcast',
-      {
-        references: [parentReference],
-      }
-    );
+    const span = tracerService.startSpan('received many trs broadcast', {
+      references: [parentReference],
+    });
 
     const unconfirmedTrs = wrapper.data;
     const result = [];
@@ -817,11 +830,13 @@ export default class Transport implements ICoreModule {
       return;
     }
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const parentReference = createReferenceFromSerializedParentContext(
-      global.library.tracer,
+      tracerService,
       wrapper.spanId
     );
-    const span = global.library.tracer.startSpan('received trs broadcast', {
+    const span = tracerService.startSpan('received trs broadcast', {
       references: [parentReference],
     });
 

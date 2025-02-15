@@ -17,13 +17,10 @@ import { EventEmitter } from 'events';
 import BalanceManager from './smartdb/balance-manager.js';
 import LRU from 'lru-cache';
 import * as Prom from 'prom-client';
-import { Mutex } from 'async-mutex';
 
 export interface IProm {
   peers: Prom.Gauge<string>;
-  current_block_height: Prom.Gauge<string>;
   syncing: Prom.Gauge<string>;
-  http_access_total: Prom.Counter<string>;
   accounts: Prom.Gauge<string>;
   blocks: Prom.Gauge<string>;
   transactions: Prom.Gauge<string>;
@@ -102,9 +99,7 @@ export interface IApp {
     [name: string]: any;
   };
   logger: ILogger;
-  tracer: ITracer;
   prom: IProm;
-  mutex: Mutex;
 }
 
 declare global {

@@ -24,12 +24,14 @@ import {
   getAccount,
 } from '../util.js';
 import Delegates from '../../core/delegates.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Balance } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';
 import { Vote } from '@gnyio/database-postgres';
 import { Account } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 interface BalanceCondition {
   address: string;
@@ -74,13 +76,6 @@ export default class AccountsApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = this.library.tracer.startSpan('accountsApi');
-        span.setTag('error', true);
-        span.log({
-          value: `${req.url} ${err}`,
-        });
-        span.finish();
-
         this.library.logger.error(req.url);
         this.library.logger.error(err);
 
@@ -107,9 +102,11 @@ export default class AccountsApi implements IHttpApi {
       .xor('address', 'username')
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts',
         statusCode: '422',
@@ -121,7 +118,7 @@ export default class AccountsApi implements IHttpApi {
       });
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/accounts',
       statusCode: '200',
@@ -195,8 +192,10 @@ export default class AccountsApi implements IHttpApi {
       .required();
     const report = joi.validate(body, publicKey);
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/accounts/openAccount',
         statusCode: '422',
@@ -208,7 +207,7 @@ export default class AccountsApi implements IHttpApi {
       });
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/accounts/openAccount',
       statusCode: '200',
@@ -265,8 +264,11 @@ export default class AccountsApi implements IHttpApi {
       })
       .required();
     const report = joi.validate(query, hasAddress);
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/getBalance',
         statusCode: '422',
@@ -278,7 +280,7 @@ export default class AccountsApi implements IHttpApi {
       });
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/accounts/getBalance',
       statusCode: '200',
@@ -362,9 +364,11 @@ export default class AccountsApi implements IHttpApi {
         .required(),
     });
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.params, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/:address/:currency',
         statusCode: '422',
@@ -376,7 +380,7 @@ export default class AccountsApi implements IHttpApi {
       });
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/accounts/:address/:currency',
       statusCode: '200',
@@ -420,9 +424,12 @@ export default class AccountsApi implements IHttpApi {
       })
       .xor('address', 'username')
       .required();
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, addressOrAccountName);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/getVotes',
         statusCode: '422',
@@ -441,7 +448,7 @@ export default class AccountsApi implements IHttpApi {
           username: query.username,
         });
         if (!account) {
-          global.app.prom.requests.inc({
+          prom.requests.inc({
             method: 'GET',
             endpoint: '/api/accounts/:address/:currency',
             statusCode: '500',
@@ -459,7 +466,7 @@ export default class AccountsApi implements IHttpApi {
         },
       });
       if (!votes || !votes.length) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/accounts/:address/:currency',
           statusCode: '200',
@@ -479,7 +486,7 @@ export default class AccountsApi implements IHttpApi {
           delegates: [] as DelegateViewModel[],
         };
 
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/accounts/:address/:currency',
           statusCode: '200',
@@ -496,7 +503,7 @@ export default class AccountsApi implements IHttpApi {
         delegates: myVotedDelegates,
       };
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/:address/:currency',
         statusCode: '200',
@@ -504,20 +511,11 @@ export default class AccountsApi implements IHttpApi {
 
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/:address/:currency',
         statusCode: '500',
       });
-
-      const span = this.library.tracer.startSpan(
-        'AccountsApi.getVotedDelegates'
-      );
-      span.setTag('error', true);
-      span.log({
-        value: `get voted delegates error ${e.message}`,
-      });
-      span.finish();
 
       this.library.logger.error('get voted delegates error');
       this.library.logger.error(e);
@@ -534,7 +532,9 @@ export default class AccountsApi implements IHttpApi {
         count,
       };
 
-      global.app.prom.requests.inc({
+      const prom = container.get<IProm>(TYPES.PrometheusService);
+
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/count',
         statusCode: '200',
@@ -542,7 +542,7 @@ export default class AccountsApi implements IHttpApi {
 
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/count',
         statusCode: '500',
@@ -564,9 +564,11 @@ export default class AccountsApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, isAddress);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/getPublicKey',
         statusCode: '422',
@@ -580,7 +582,7 @@ export default class AccountsApi implements IHttpApi {
 
     const accountInfoOrError = await getAccount(query.address);
     if (typeof accountInfoOrError === 'string') {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/getPublicKey',
         statusCode: '500',
@@ -589,7 +591,7 @@ export default class AccountsApi implements IHttpApi {
       return next(accountInfoOrError);
     }
     if (!accountInfoOrError.account || !accountInfoOrError.account.publicKey) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/accounts/getPublicKey',
         statusCode: '500',
@@ -602,7 +604,7 @@ export default class AccountsApi implements IHttpApi {
       publicKey: accountInfoOrError.account.publicKey,
     };
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/accounts/getPublicKey',
       statusCode: '200',

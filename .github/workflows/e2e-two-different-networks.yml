@@ -4,7 +4,7 @@ on: [push]
 jobs:
   e2e-two-different-networks:
     timeout-minutes: 45
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest-large
     steps:
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
@@ -37,7 +37,7 @@ jobs:
           cat packages.txt | md5sum | awk '{print $1}' > hash.txt
 
       - name: restore lerna
-        uses: actions/cache@v2
+        uses: actions/cache@v4.2.0
         id: cache-node-modules
         with:
           key: ${{ runner.os }}-e2e-two-different-networks-${{ hashFiles('hash.txt') }}
@@ -47,6 +47,7 @@ jobs:
             packages/base/node_modules
             packages/cli/node_modules
             packages/client/node_modules
+            packages/container/node_modules
             packages/database-postgres/node_modules
             packages/ed/node_modules
             packages/extended-joi/node_modules
@@ -81,12 +82,8 @@ jobs:
 
 
 
-      - name: Docker cache
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-
       - name: Build docker image
-        run: docker compose --file config/integration/docker-compose.integration.yml build
+        run: docker compose --file config/integration/docker-compose.integration.yml build --memory 2g
 
       - name: Run e2e-two-different-networks
         run: npm run test:e2e:two-different-networks

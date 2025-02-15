@@ -41,7 +41,10 @@ describe('loader', () => {
         expect.assertions(1);
 
         const response = (await loaderApi.getStatus()) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          loaded: true,
+        });
       },
       lib.oneMinute
     );
@@ -54,7 +57,11 @@ describe('loader', () => {
         expect.assertions(1);
 
         const response = (await loaderApi.syncStatus()) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          height: lib.matchPositiveOrZeroIntString,
+          success: true,
+          syncing: false,
+        });
       },
       lib.oneMinute
     );

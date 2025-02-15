@@ -14,14 +14,17 @@ import {
   SupplyWrapper,
   Status,
   IBurn,
+  ITracer,
 } from '@gnyio/interfaces';
 import { Request, Response, Router } from 'express';
 import { BlockBase } from '@gnyio/base';
 import { getBlocks as getBlocksFromApi } from '../util.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import BigNumber from 'bignumber.js';
 import { joi } from '@gnyio/extended-joi';
 import { Burn } from '@gnyio/database-postgres';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class BlocksApi implements IHttpApi {
   private library: IScope;
@@ -62,13 +65,6 @@ export default class BlocksApi implements IHttpApi {
     this.library.network.app.use(
       (err: string, req: Request, res: Response, next: Next) => {
         if (!err) return next();
-        const span = global.library.tracer.startSpan('BlocksApi');
-        span.setTag('error', true);
-        span.log({
-          value: `req.url ${err}`,
-        });
-        span.finish();
-
         this.library.logger.error(req.url);
         this.library.logger.error(err);
 
@@ -96,9 +92,12 @@ export default class BlocksApi implements IHttpApi {
         ],
       })
       .xor('id', 'height');
+
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, idOrHeight);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks/getBlock',
         statusCode: '422',
@@ -119,7 +118,7 @@ export default class BlocksApi implements IHttpApi {
       }
 
       if (!block) {
-        global.app.prom.requests.inc({
+        prom.requests.inc({
           method: 'GET',
           endpoint: '/api/blocks/getBlock',
           statusCode: '500',
@@ -128,7 +127,7 @@ export default class BlocksApi implements IHttpApi {
         return next('Block not found');
       }
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks/getBlock',
         statusCode: '200',
@@ -139,18 +138,11 @@ export default class BlocksApi implements IHttpApi {
       };
       return res.json(result);
     } catch (e) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks/getBlock',
         statusCode: '500',
       });
-
-      const span = this.library.tracer.startSpan('BlocksApi.getBlock');
-      span.setTag('error', true);
-      span.log({
-        value: e.message,
-      });
-      span.finish();
 
       this.library.logger.error(e);
       return next('Server error');
@@ -182,9 +174,11 @@ export default class BlocksApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks',
         statusCode: '422',
@@ -240,7 +234,7 @@ export default class BlocksApi implements IHttpApi {
         blocks,
       };
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks',
         statusCode: '200',
@@ -248,7 +242,7 @@ export default class BlocksApi implements IHttpApi {
 
       return res.json(result);
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/blocks',
         statusCode: '500',
@@ -259,7 +253,9 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getHeight = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getHeight',
       statusCode: '200',
@@ -274,7 +270,9 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getMilestone = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getMilestone',
       statusCode: '200',
@@ -290,7 +288,9 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getReward = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getReward',
       statusCode: '200',
@@ -306,7 +306,9 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getSupply = async (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getSupply',
       statusCode: '200',
@@ -335,7 +337,9 @@ export default class BlocksApi implements IHttpApi {
   };
 
   private getStatus = (req: Request, res: Response, next: Next) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/blocks/getStatus',
       statusCode: '200',

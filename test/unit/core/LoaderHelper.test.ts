@@ -1,11 +1,13 @@
 import { jest } from '@jest/globals';
-import {
-  LoaderHelper,
-  PeerIdCommonBlockHeight,
-  createRandomPeerId,
-} from '@gnyio/main/loaderhelper';
+import * as LoaderHelper from '@gnyio/main/loaderhelper';
 import { IBlock } from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
+import * as PeerId from 'peer-id';
+
+export function createRandomPeerId(bytes: Buffer) {
+  const peerId = PeerId.createFromBytes(bytes);
+  return peerId;
+}
 
 describe('LoaderHelper', () => {
   describe('getIdSequence2', () => {
@@ -93,7 +95,7 @@ describe('LoaderHelper', () => {
         height: String(commonBlocHeight),
       } as IBlock;
 
-      const result: PeerIdCommonBlockHeight = {
+      const result: LoaderHelper.PeerIdCommonBlockHeight = {
         peerId: createRandomPeerId(peerBytes),
         height: String(height),
         commonBlock: commonBlock,
@@ -102,7 +104,7 @@ describe('LoaderHelper', () => {
     }
 
     it('syncStrategy() - no peers should -> "forge"', () => {
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       const lastBlock = {
         height: String(0),
       } as IBlock;
@@ -120,7 +122,7 @@ describe('LoaderHelper', () => {
       } as IBlock;
 
       const peer1 = createPeerIdCommonBlockHeight('0', '0');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
 
       const result = LoaderHelper.syncStrategy(peers, lastBlock);
@@ -136,7 +138,7 @@ describe('LoaderHelper', () => {
       } as IBlock;
 
       const peer1 = createPeerIdCommonBlockHeight('0', '1');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
 
       const result = LoaderHelper.syncStrategy(peers, lastBlock);
@@ -155,7 +157,7 @@ describe('LoaderHelper', () => {
       const peer1 = createPeerIdCommonBlockHeight('0', '6');
       const peer2 = createPeerIdCommonBlockHeight('0', '7');
       const peer3 = createPeerIdCommonBlockHeight('0', '5');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
       peers.push(peer2);
       peers.push(peer3);
@@ -174,7 +176,7 @@ describe('LoaderHelper', () => {
       } as IBlock;
 
       const peer1 = createPeerIdCommonBlockHeight('5', '12');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
 
       const result = LoaderHelper.syncStrategy(peers, lastBlock);
@@ -193,7 +195,7 @@ describe('LoaderHelper', () => {
       const peer1 = createPeerIdCommonBlockHeight('3', '3');
       const peer2 = createPeerIdCommonBlockHeight('5', '8');
       const peer3 = createPeerIdCommonBlockHeight('5', '7');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
       peers.push(peer2);
       peers.push(peer3);
@@ -212,7 +214,7 @@ describe('LoaderHelper', () => {
       } as IBlock;
 
       const peer1 = createPeerIdCommonBlockHeight('4', '6');
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
 
       const result = LoaderHelper.syncStrategy(peers, lastBlock);
@@ -239,7 +241,7 @@ describe('LoaderHelper', () => {
       const peer2 = createPeerIdCommonBlockHeight('4', '7');
       const peer3 = createPeerIdCommonBlockHeight('4', '5');
 
-      const peers: PeerIdCommonBlockHeight[] = [];
+      const peers: LoaderHelper.PeerIdCommonBlockHeight[] = [];
       peers.push(peer1);
       peers.push(peer2);
       peers.push(peer3);

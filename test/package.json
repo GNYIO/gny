@@ -10,6 +10,7 @@
     "@gnyio/base": "2.13.2",
     "@gnyio/cli": "2.13.2",
     "@gnyio/client": "2.13.2",
+    "@gnyio/container": "2.13.2",
     "@gnyio/database-postgres": "2.13.2",
     "@gnyio/ed": "2.13.2",
     "@gnyio/extended-joi": "2.13.2",

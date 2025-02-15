@@ -1,4 +1,4 @@
-import { BlocksHelper } from '@gnyio/main/blockshelper';
+import * as BlocksHelper from '@gnyio/main/blockshelper';
 import {
   ITransaction,
   IConfig,
@@ -10,9 +10,9 @@ import {
 import * as crypto from 'crypto';
 import { generateAddress } from '@gnyio/utils';
 import * as ed from '@gnyio/ed';
-import { ConsensusHelper } from '@gnyio/main/consensushelper';
+import * as ConsensusHelper from '@gnyio/main/consensushelper';
 import { slots } from '@gnyio/utils';
-import { StateHelper } from '@gnyio/main/statehelper';
+import * as StateHelper from '@gnyio/main/statehelper';
 import { BigNumber } from 'bignumber.js';
 import { getConfig } from '@gnyio/network';
 

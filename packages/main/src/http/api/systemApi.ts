@@ -8,7 +8,9 @@ import {
   ApiResult,
   SystemInfo,
 } from '@gnyio/interfaces';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class SystemApi implements IHttpApi {
   private library: IScope;
@@ -44,6 +46,8 @@ export default class SystemApi implements IHttpApi {
     });
   };
   private getSystemInfo = (req: Request, res: Response, next: Next) => {
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     try {
       const lastBlock = StateHelper.getState().lastBlock;
       const result: ApiResult<SystemInfo> = {
@@ -62,7 +66,7 @@ export default class SystemApi implements IHttpApi {
         network: global.Config.netVersion,
       };
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/system',
         statusCode: '200',
@@ -70,7 +74,7 @@ export default class SystemApi implements IHttpApi {
 
       return res.json(result);
     } catch (err) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/system',
         statusCode: '500',

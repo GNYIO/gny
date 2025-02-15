@@ -1,0 +1,29 @@
+{
+  "name": "@gnyio/container",
+  "private": true,
+  "version": "2.13.2",
+  "description": "",
+  "scripts": {
+    "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
+    "removeArtifacts": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@gnyio/interfaces": "2.13.2",
+    "inversify": "6.2.1",
+    "reflect-metadata": "0.2.2"
+  }
+}

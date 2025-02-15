@@ -17,16 +17,19 @@ import {
   IBlock,
   IVariable,
   ICoreModule,
+  ITracer,
 } from '@gnyio/interfaces';
 import { IState } from '../globalInterfaces.js';
 import { RoundBase } from '@gnyio/base';
-import { ConsensusHelper } from './ConsensusHelper.js';
-import { StateHelper } from './StateHelper.js';
+import * as ConsensusHelper from './ConsensusHelper.js';
+import * as StateHelper from './StateHelper.js';
 import Blocks from './blocks.js';
 import BigNumber from 'bignumber.js';
 import { Variable } from '@gnyio/database-postgres';
 import { Delegate } from '@gnyio/database-postgres';
 import { getSmallBlockHash } from '@gnyio/tracer';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
 
 const blockReward = new BlockReward();
 
@@ -34,7 +37,7 @@ export default class Delegates implements ICoreModule {
   private static readonly BOOK_KEEPER_NAME = 'round_bookkeeper';
 
   // Events
-  public static onPeerReady = async () => {
+  public static async onPeerReady() {
     // this.loaded = true;
 
     const secrets = global.Config.forging.secret;
@@ -51,7 +54,7 @@ export default class Delegates implements ICoreModule {
 
     // refactor, reunite
     StateHelper.SetBlockchainReady(true);
-  };
+  }
 
   public static getBlockSlotData = (
     slot: number,
@@ -122,6 +125,8 @@ export default class Delegates implements ICoreModule {
     const isSyncingRightNow = StateHelper.IsSyncing();
     const keyPairs = StateHelper.GetKeyPairs();
 
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+
     const error = Delegates.isLoopReady(
       preState,
       now,
@@ -150,7 +155,8 @@ export default class Delegates implements ICoreModule {
       return;
     }
 
-    await global.app.mutex.runExclusive(async () => {
+    const mutex = container.get<Mutex>(TYPES.MutexService);
+    await mutex.runExclusive(async () => {
       let state = StateHelper.getState();
 
       // make sure that this mutex is run not later than 3 second after
@@ -212,9 +218,7 @@ export default class Delegates implements ICoreModule {
               }, options: ${options.votes.id} h: ${options.votes.height}`
             );
 
-            const span = global.library.tracer.startSpan(
-              'Block.processBlock()'
-            );
+            const span = tracerService.startSpan('Block.processBlock()');
             span.setTag('hash', getSmallBlockHash(newBlock));
             span.setTag('height', newBlock.height);
             span.setTag('id', newBlock.id);
@@ -231,7 +235,7 @@ export default class Delegates implements ICoreModule {
             span.finish();
 
             if (stateResult.success === false) {
-              const processBlockError = global.library.tracer.startSpan(
+              const processBlockError = tracerService.startSpan(
                 'processBlock error',
                 {
                   childOf: span.context(),
@@ -254,7 +258,7 @@ export default class Delegates implements ICoreModule {
           StateHelper.setState(state);
         }
       } catch (e) {
-        const span = global.app.tracer.startSpan('loop');
+        const span = tracerService.startSpan('loop');
         span.setTag('error', true);
         span.log({
           value: `Failed generate block within slot: ${e}`,
@@ -315,7 +319,9 @@ export default class Delegates implements ICoreModule {
         }
       }
     } catch (e) {
-      const span = global.app.tracer.startSpan('loadMyDelegates');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('loadMyDelegates');
       span.setTag('error', true);
       span.log({
         value: e,
@@ -383,7 +389,9 @@ export default class Delegates implements ICoreModule {
 
       return truncDelegateList;
     } catch (e) {
-      const span = global.app.tracer.startSpan('generateDelegateList');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('generateDelegateList');
       span.setTag('error', true);
       span.log({
         value: `error while generating DelgateList ${e}`,

@@ -2,7 +2,6 @@ import program from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createLogger, LogLevel } from '@gnyio/logger';
-import * as tracerpkg from '@gnyio/tracer';
 
 import Application from './index.js';
 
@@ -229,17 +228,6 @@ function main() {
   );
   appConfig.p2pConfig = p2pConfig;
 
-  // tracer
-  const tracer = tracerpkg.initTracer(
-    appConfig.publicIp,
-    appConfig.jaegerHost,
-    version,
-    appConfig.magic,
-    appConfig.netVersion,
-    p2pConfig.P2P_VERSION,
-    logger
-  );
-
   // action: default "forging"
   appConfig.nodeAction =
     program.nodeAction || process.env['GNY_NODE_ACTION'] || 'forging';
@@ -265,7 +253,7 @@ function main() {
     appConfig,
     genesisBlock,
     logger,
-    tracer,
+    version,
   };
 
   const application = new Application(options);

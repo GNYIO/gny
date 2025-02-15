@@ -10,11 +10,15 @@ import {
   TransactionIdWrapper,
   UnconfirmedTransactionsWrapper,
   P2PApiResult,
+  ITracer,
 } from '@gnyio/interfaces';
 import { TransactionBase } from '@gnyio/base';
-import { BlocksHelper } from '../../core/BlocksHelper.js';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as BlocksHelper from '../../core/BlocksHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import Transactions from '../../core/transactions.js';
+import { container, TYPES } from '@gnyio/container';
+import { Mutex } from 'async-mutex';
+import { IProm } from '../../globalInterfaces.js';
 
 const osInfo = {
   getOS() {
@@ -97,9 +101,10 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private transactions = async (req: Request, res: Response, next: Next) => {
-    const span = global.library.tracer.startSpan(
-      'receive transaction via http'
-    );
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    const span = tracerService.startSpan('receive transaction via http');
 
     let unconfirmedTrs: UnconfirmedTransaction;
     try {
@@ -131,7 +136,7 @@ export default class TransportApi implements IHttpApi {
       });
       span.finish();
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/peer/transactions',
         statusCode: '500',
@@ -144,7 +149,9 @@ export default class TransportApi implements IHttpApi {
     span.setTag('senderId', unconfirmedTrs.senderId);
 
     try {
-      await global.app.mutex.runExclusive(async () => {
+      const mutex = container.get<Mutex>(TYPES.MutexService);
+
+      await mutex.runExclusive(async () => {
         span.log({
           value: 'start sequence',
         });
@@ -194,7 +201,7 @@ export default class TransportApi implements IHttpApi {
     } catch (err) {
       span.finish();
 
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'POST',
         endpoint: '/api/peer/transactions',
         statusCode: '500',
@@ -207,7 +214,7 @@ export default class TransportApi implements IHttpApi {
     span.finish();
     this.library.bus.message('onUnconfirmedTransaction', unconfirmedTrs, span);
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/peer/transactions',
       statusCode: '200',
@@ -222,7 +229,9 @@ export default class TransportApi implements IHttpApi {
 
   // POST
   private getUnconfirmedTransactions = (req: Request, res: Response) => {
-    global.app.prom.requests.inc({
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
+    prom.requests.inc({
       method: 'POST',
       endpoint: '/api/peer/getUnconfirmedTransactions',
       statusCode: '200',

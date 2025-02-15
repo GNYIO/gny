@@ -10,11 +10,13 @@ import {
   AmountWrapper,
 } from '@gnyio/interfaces';
 import { Merge } from 'type-fest';
-import { StateHelper } from '../../core/StateHelper.js';
+import * as StateHelper from '../../core/StateHelper.js';
 import { Transfer } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';
 import { Asset } from '@gnyio/database-postgres';
 import { joi } from '@gnyio/extended-joi';
+import { container, TYPES } from '@gnyio/container';
+import { IProm } from '../../globalInterfaces.js';
 
 export default class TransfersApi implements IHttpApi {
   private library: IScope;
@@ -53,6 +55,7 @@ export default class TransfersApi implements IHttpApi {
     });
   };
 
+  // returns newest transfers first
   private getRoot = async (req: Request, res: Response, next: Next) => {
     const condition = {} as Merge<
       Pick<ITransfer, 'senderId' | 'recipientId' | 'currency'>,
@@ -83,9 +86,11 @@ export default class TransfersApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transfers',
         statusCode: '422',
@@ -149,7 +154,7 @@ export default class TransfersApi implements IHttpApi {
       }
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/transfers',
       statusCode: '200',
@@ -181,9 +186,11 @@ export default class TransfersApi implements IHttpApi {
       })
       .required();
 
+    const prom = container.get<IProm>(TYPES.PrometheusService);
+
     const report = joi.validate(req.query, schema);
     if (report.error) {
-      global.app.prom.requests.inc({
+      prom.requests.inc({
         method: 'GET',
         endpoint: '/api/transfers/amount',
         statusCode: '422',
@@ -237,7 +244,7 @@ export default class TransfersApi implements IHttpApi {
       }
     }
 
-    global.app.prom.requests.inc({
+    prom.requests.inc({
       method: 'GET',
       endpoint: '/api/transfers/amount',
       statusCode: '200',
@@ -247,7 +254,7 @@ export default class TransfersApi implements IHttpApi {
     const result: ApiResult<AmountWrapper> = {
       success: true,
       count,
-      strTotalAmount,
+      strTotalAmount, // TODO: rename, this is a bad name
     };
     return res.json(result);
   };

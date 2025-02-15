@@ -45,7 +45,7 @@ describe('exchange', () => {
       it(
         'on the start there should be no burned tokens',
         async () => {
-          expect.assertions(4);
+          expect.assertions(5);
 
           const response = await burnApi.getAll();
           expect(response.success).toBeTruthy();
@@ -55,6 +55,8 @@ describe('exchange', () => {
           expect(response.burn).toHaveLength(0);
           // @ts-ignore
           expect(response.count).toEqual(0);
+
+          expect(Object.keys(response).length).toEqual(3);
         },
         lib.oneMinute
       );

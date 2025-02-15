@@ -1,49 +1,48 @@
+import { container, TYPES } from '@gnyio/container';
+import { ITracer } from '@gnyio/interfaces';
 import { ISpan } from '@gnyio/tracer';
 import { slots } from '@gnyio/utils';
 
 export type TimeStampType = 'block-header' | 'propose';
 
-export class TransportHelper {
-  /**
-   * do not accept block headers for blocks that
-   * were created more than 5 seconds ago
-   */
-  public static timestampWithinTreshold(
-    timestampType: TimeStampType,
-    incomingEpoch: number,
-    parentSpan: ISpan
-  ): boolean {
-    const diff = slots.secondsAfterTimestamp(incomingEpoch);
-    const currentEpoch = slots.getEpochTime();
+/**
+ * do not accept block headers for blocks that
+ * were created more than 5 seconds ago
+ */
+export function timestampWithinTreshold(
+  timestampType: TimeStampType,
+  incomingEpoch: number,
+  parentSpan: ISpan
+): boolean {
+  const diff = slots.secondsAfterTimestamp(incomingEpoch);
+  const currentEpoch = slots.getEpochTime();
 
-    if (diff >= 6) {
-      const diffSpan = global.library.tracer.startSpan(
-        'block header too late',
-        {
-          childOf: parentSpan.context(),
-        }
-      );
-      diffSpan.log({
-        value: timestampType,
-      });
-      diffSpan.setTag('error', true);
-      diffSpan.log({
-        message:
-          'we will not accept this block header. Returning. The timestamp of the block indicates that the block was created more than 5 seconds ago. Variable diff is the difference of currentEpoch - incomingEpoch (block timestamp)',
-        diff,
-        currentEpoch,
-        incomingEpoch,
-      });
-      global.library.logger.info(
-        `[p2p] we will not accept this block header. Returning. The timestamp of the block indicates that the block was created more than 5 seconds ago. Variable diff is the difference of currentEpoch - incomingEpoch (block timestamp) (diff: ${diff}, currentEpoch ${currentEpoch} -  incomingEpoch ${incomingEpoch})`
-      );
+  if (diff >= 6) {
+    const tracerService = container.get<ITracer>(TYPES.TracerService);
 
-      diffSpan.finish();
-      parentSpan.finish();
+    const diffSpan = tracerService.startSpan('block header too late', {
+      childOf: parentSpan.context(),
+    });
+    diffSpan.log({
+      value: timestampType,
+    });
+    diffSpan.setTag('error', true);
+    diffSpan.log({
+      message:
+        'we will not accept this block header. Returning. The timestamp of the block indicates that the block was created more than 5 seconds ago. Variable diff is the difference of currentEpoch - incomingEpoch (block timestamp)',
+      diff,
+      currentEpoch,
+      incomingEpoch,
+    });
+    global.library.logger.info(
+      `[p2p] we will not accept this block header. Returning. The timestamp of the block indicates that the block was created more than 5 seconds ago. Variable diff is the difference of currentEpoch - incomingEpoch (block timestamp) (diff: ${diff}, currentEpoch ${currentEpoch} -  incomingEpoch ${incomingEpoch})`
+    );
 
-      return false;
-    }
+    diffSpan.finish();
+    parentSpan.finish();
 
-    return true;
+    return false;
   }
+
+  return true;
 }

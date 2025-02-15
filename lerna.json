@@ -4,6 +4,7 @@
     "packages/base",
     "packages/cli",
     "packages/client",
+    "packages/container",
     "packages/database-postgres",
     "packages/ed",
     "packages/extended-joi",

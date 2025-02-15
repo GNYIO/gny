@@ -1,14 +1,14 @@
-import initRuntime from './runtime.js';
+import { runtime } from './runtime.js';
 import initAlt from './init.js';
 import { IScope, IConfig, ILogger, IBlock, ITracer } from '@gnyio/interfaces';
-import { StateHelper } from './core/StateHelper.js';
+import * as StateHelper from './core/StateHelper.js';
 import { verifyGenesisBlock } from './verifyGenesisBlock.js';
+import { container, TYPES } from '@gnyio/container';
 
-interface LocalOptions {
+export interface LocalOptions {
   appConfig: IConfig;
   genesisBlock: IBlock;
   logger: ILogger;
-  tracer: ITracer;
   library?: Partial<IScope>;
 }
 
@@ -49,28 +49,36 @@ export default class Application {
     });
 
     process.once('SIGTERM', () => {
-      global.app.tracer.startSpan('sigterm').finish();
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      tracerService.startSpan('sigterm').finish();
       process.emit('cleanup');
 
       // important
-      global.library.tracer.close();
+      tracerService.close();
     });
 
     process.once('exit', () => {
-      global.app.tracer.startSpan('exit').finish();
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      tracerService.startSpan('exit').finish();
       scope.logger.info('process exited');
     });
 
     process.once('SIGINT', () => {
-      global.app.tracer.startSpan('sigint').finish();
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      tracerService.startSpan('sigint').finish();
       process.emit('cleanup');
 
       // important
-      global.library.tracer.close();
+      tracerService.close();
     });
 
     process.on('uncaughtException', (err: Error) => {
-      const span = global.app.tracer.startSpan('uncaughtException');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('uncaughtException');
       span.setTag('error', true);
       span.log({
         value: `uncaughtException ${err}`,
@@ -84,11 +92,13 @@ export default class Application {
       process.emit('cleanup');
 
       // important
-      global.library.tracer.close();
+      tracerService.close();
     });
 
     process.on('unhandledRejection', (err: Error) => {
-      const span = global.app.tracer.startSpan('unhandledRejection');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('unhandledRejection');
       span.setTag('error', true);
       span.log({
         value: `unhandledRejection ${err}`,
@@ -103,7 +113,7 @@ export default class Application {
       process.emit('cleanup');
 
       // important
-      global.library.tracer.close();
+      tracerService.close();
     });
 
     verifyGenesisBlock(scope.genesisBlock);
@@ -111,9 +121,11 @@ export default class Application {
     options.library = scope;
 
     try {
-      await initRuntime(options);
+      await runtime(options);
     } catch (e) {
-      const span = global.app.tracer.startSpan('init runtime error');
+      const tracerService = container.get<ITracer>(TYPES.TracerService);
+
+      const span = tracerService.startSpan('init runtime error');
       span.setTag('error', true);
       span.log({
         value: `init runtime error ${e}`,

@@ -1,7 +1,12 @@
 import { jest } from '@jest/globals';
 
 import Blocks from '@gnyio/main/blocks';
-import { IBlock, KeyPair, ProcessBlockOptions } from '@gnyio/interfaces';
+import {
+  IBlock,
+  ITracer,
+  KeyPair,
+  ProcessBlockOptions,
+} from '@gnyio/interfaces';
 import { IState, IStateSuccess } from '@gnyio/main/globalInterfaces';
 import { BlockBase } from '@gnyio/base';
 import { TransactionBase } from '@gnyio/base';
@@ -10,10 +15,11 @@ import * as crypto from 'crypto';
 import { generateAddress } from '@gnyio/utils';
 import * as ed from '@gnyio/ed';
 import { slots } from '@gnyio/utils';
-import { BlocksHelper } from '@gnyio/main/blockshelper';
-import { StateHelper } from '@gnyio/main/statehelper';
+import * as BlocksHelper from '@gnyio/main/blockshelper';
+import * as StateHelper from '@gnyio/main/statehelper';
 import { ISpan } from '@gnyio/tracer';
 import { getConfig } from '@gnyio/network';
+import { container, TYPES } from '@gnyio/container';
 
 function loadGenesisBlock() {
   return getConfig('localnet').genesisBlock;
@@ -113,22 +119,23 @@ function createSpan(): ISpan {
 
 describe('core/blocks', () => {
   beforeEach(done => {
-    const tracer = {
-      startSpan: () => createSpan(),
-    };
-
     global.app = {
       logger: dummyLogger,
     };
-    global.library = {
-      // @ts-ignore
-      tracer,
-    };
+
+    container.snapshot();
+    const mockTracer = ({
+      startSpan: () => createSpan(),
+    } as unknown) as ITracer;
+    container.bind<ITracer>(TYPES.TracerService).toConstantValue(mockTracer);
+
     done();
   });
   afterEach(done => {
     global.app = {};
-    global.library = {};
+
+    container.restore();
+
     done();
   });
 
@@ -218,6 +225,8 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - wrong Block can not get Id', () => {
+      expect.assertions(1);
+
       const initialState = StateHelper.getInitialState();
       const wrongBlock = {} as IBlock;
       const options = {};
@@ -230,6 +239,8 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - previousBlock should not be null', async () => {
+      expect.assertions(1);
+
       const initialState = StateHelper.getInitialState();
       // important: no "prevBlockId"
       const block: IBlock = {
@@ -255,6 +266,8 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - signature is not correct returns error', () => {
+      expect.assertions(1);
+
       const state = StateHelper.getInitialState();
       const block: BlockModel = {
         height: String(1),
@@ -303,6 +316,8 @@ describe('core/blocks', () => {
     });
 
     it('verifyBlock() - Invalid amount of block assets (too much transactions)', () => {
+      expect.assertions(3);
+
       // prepare
       const TOO_MUCH_TRANSACTIONS = 20000 + 1;
 

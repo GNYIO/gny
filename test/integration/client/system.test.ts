@@ -4,6 +4,7 @@
 import { Connection } from '@gnyio/client';
 import * as lib from './lib';
 import { ApiSuccess } from '@gnyio/interfaces';
+import 'jest-extended';
 
 const GNY_PORT = 10096;
 const GNY_APP_NAME = 'app7';
@@ -41,7 +42,20 @@ describe('system', () => {
         expect.assertions(1);
 
         const response = (await systemApi.getSystemInfo()) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          os: expect.any(String),
+          timestamp: lib.matchPositiveNumber,
+          lastBlock: {
+            height: lib.matchPositiveOrZeroIntString,
+            timestamp: lib.matchPositiveNumber,
+            behind: expect.any(Number),
+          },
+          p2p: lib.matchP2PVersion,
+          network: lib.matchNetwork,
+          version: lib.matchSemver,
+        });
       },
       lib.oneMinute
     );
