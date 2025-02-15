@@ -55,6 +55,7 @@ export default class TransfersApi implements IHttpApi {
     });
   };
 
+  // returns newest transfers first
   private getRoot = async (req: Request, res: Response, next: Next) => {
     const condition = {} as Merge<
       Pick<ITransfer, 'senderId' | 'recipientId' | 'currency'>,
@@ -253,7 +254,7 @@ export default class TransfersApi implements IHttpApi {
     const result: ApiResult<AmountWrapper> = {
       success: true,
       count,
-      strTotalAmount,
+      strTotalAmount, // TODO: rename, this is a bad name
     };
     return res.json(result);
   };

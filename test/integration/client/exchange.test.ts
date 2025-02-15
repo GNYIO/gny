@@ -52,7 +52,29 @@ describe('exchange', () => {
 
           const secret = genesisSecret;
           const response = await exchangeApi.openAccount(secret);
-          expect(response.success).toBeTruthy();
+
+          expect(response).toEqual({
+            success: true,
+            account: {
+              address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              balance: lib.matchPositiveOrZeroIntString,
+              isDelegate: 0,
+              lockAmount: lib.matchPositiveOrZeroIntString,
+              lockHeight: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              secondPublicKey: null,
+              username: null,
+            },
+            latestBlock: {
+              height: lib.matchPositiveOrZeroIntString,
+              timestamp: lib.matchPositiveNumber,
+            },
+            version: {
+              build: expect.any(String),
+              net: lib.matchNetwork,
+              version: lib.matchSemver,
+            },
+          });
         },
         lib.oneMinute
       );
@@ -65,7 +87,13 @@ describe('exchange', () => {
           expect.assertions(1);
 
           const response = await exchangeApi.generateAccount();
-          expect(response.success).toBeTruthy();
+          expect(response).toEqual({
+            success: true,
+            address: expect.any(String),
+            privateKey: expect.any(String),
+            publicKey: lib.matchPublicKey,
+            secret: expect.any(String),
+          });
         },
         lib.oneMinute
       );
@@ -79,7 +107,10 @@ describe('exchange', () => {
 
           const secret = genesisSecret;
           const response = await exchangeApi.generatePublicKey(secret);
-          expect(response.success).toBeTruthy();
+          expect(response).toEqual({
+            success: true,
+            publicKey: lib.matchPublicKey,
+          });
         },
         lib.oneMinute
       );

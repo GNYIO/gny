@@ -41,7 +41,11 @@ describe('peer', () => {
         expect.assertions(1);
 
         const response = (await peerApi.getPeers()) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          count: 0,
+          peers: [],
+        });
       },
       lib.oneMinute
     );
@@ -54,7 +58,12 @@ describe('peer', () => {
         expect.assertions(1);
 
         const response = (await peerApi.getVersion()) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          build: expect.any(String),
+          net: lib.matchNetwork,
+          version: lib.matchSemver,
+        });
       },
       lib.oneMinute
     );

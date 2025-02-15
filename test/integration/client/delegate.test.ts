@@ -117,7 +117,11 @@ describe('delegate', () => {
         expect.assertions(1);
 
         const response = await delegateApi.count();
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          count: 101,
+        });
       },
       lib.oneMinute
     );
@@ -183,7 +187,42 @@ describe('delegate', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await delegateApi.getVoters(username);
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          accounts: [
+            {
+              _version_: lib.matchPositiveNumber,
+              address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              balance: lib.matchPositiveOrZeroIntString,
+              delegate: {
+                _version_: lib.matchPositiveNumber,
+                address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                approval: lib.matchProcentString,
+                eligible: 1,
+                fees: lib.matchPositiveOrZeroIntString,
+                missedBlocks: lib.matchPositiveOrZeroIntString,
+                producedBlocks: lib.matchPositiveOrZeroIntString,
+                productivity: lib.matchPositiveOrZeroIntString,
+                publicKey: lib.matchTid,
+                rate: expect.any(Number),
+                rewards: lib.matchPositiveOrZeroIntString,
+                tid: lib.matchTid,
+                username: 'xpgeng',
+                votes: lib.matchPositiveOrZeroIntString,
+              },
+              gny: lib.matchPositiveOrZeroIntString,
+              isDelegate: 1,
+              isLocked: 1,
+              lockAmount: lib.matchPositiveOrZeroIntString,
+              lockHeight: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              secondPublicKey: null,
+              username: 'xpgeng',
+              weightRatio: lib.matchProcentString,
+            },
+          ],
+          success: true,
+        });
       },
       lib.oneMinute
     );
@@ -193,7 +232,7 @@ describe('delegate', () => {
     it(
       'should get own votes by address',
       async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         // lock the account
         const lockTrs = gnyClient.basic.lock(
@@ -237,6 +276,48 @@ describe('delegate', () => {
         })) as (ApiSuccess & SimpleAccountsWrapper);
         expect(response.success).toBeTruthy();
 
+        expect(response).toEqual({
+          delegates: [
+            {
+              _version_: lib.matchPositiveNumber,
+              address: expect.stringMatching(
+                /^(GkBnc7eU4x3YnGRz8RXxZT6neLyT)|(GAmhahhJ8km2Lter42Ln6e4qwfxS)$/
+              ),
+              approval: lib.matchProcentString,
+              eligible: 1,
+              fees: lib.matchPositiveOrZeroIntString,
+              missedBlocks: lib.matchPositiveOrZeroIntString,
+              producedBlocks: lib.matchPositiveOrZeroIntString,
+              productivity: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              rate: expect.any(Number),
+              rewards: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              username: expect.stringMatching(/^(gny_d1)|gny_d2$/),
+              votes: lib.matchPositiveOrZeroIntString,
+            },
+            {
+              _version_: lib.matchPositiveNumber,
+              address: expect.stringMatching(
+                /^(GkBnc7eU4x3YnGRz8RXxZT6neLyT)|(GAmhahhJ8km2Lter42Ln6e4qwfxS)$/
+              ),
+              approval: lib.matchProcentString,
+              eligible: 1,
+              fees: lib.matchPositiveOrZeroIntString,
+              missedBlocks: lib.matchPositiveOrZeroIntString,
+              producedBlocks: lib.matchPositiveOrZeroIntString,
+              productivity: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              rate: expect.any(Number),
+              rewards: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              username: expect.stringMatching(/^(gny_d1)|gny_d2$/),
+              votes: lib.matchPositiveOrZeroIntString,
+            },
+          ],
+          success: true,
+        });
+
         expect(response.delegates).toHaveLength(2);
         const gny_d100 = response.delegates.filter(
           x => x.username === 'gny_d100'
@@ -253,7 +334,7 @@ describe('delegate', () => {
     it(
       'should get own votes by username',
       async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         // set username
         const username = 'xpgeng';
@@ -307,6 +388,67 @@ describe('delegate', () => {
         const response = (await delegateApi.getOwnVotes({
           username,
         })) as (ApiSuccess & SimpleAccountsWrapper);
+
+        expect(response).toEqual({
+          delegates: [
+            {
+              _version_: lib.matchPositiveNumber,
+              address: expect.stringMatching(
+                /^(GkBnc7eU4x3YnGRz8RXxZT6neLyT)|(G4GsxDgoEiMYvrNja8AR8bemdxRzi)|(GAmhahhJ8km2Lter42Ln6e4qwfxS)$/
+              ),
+              approval: lib.matchProcentString,
+              eligible: 1,
+              fees: lib.matchPositiveOrZeroIntString,
+              missedBlocks: lib.matchPositiveOrZeroIntString,
+              producedBlocks: lib.matchPositiveOrZeroIntString,
+              productivity: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              rate: lib.matchPositiveNumber,
+              rewards: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              username: expect.stringMatching(/^(gny_d1)|(gny_d2)|(gny_d3)$/),
+              votes: lib.matchPositiveOrZeroIntString,
+            },
+            {
+              _version_: lib.matchPositiveNumber,
+              address: expect.stringMatching(
+                /^(GkBnc7eU4x3YnGRz8RXxZT6neLyT)|(G4GsxDgoEiMYvrNja8AR8bemdxRzi)|(GAmhahhJ8km2Lter42Ln6e4qwfxS)$/
+              ),
+              approval: lib.matchProcentString,
+              eligible: 1,
+              fees: lib.matchPositiveOrZeroIntString,
+              missedBlocks: lib.matchPositiveOrZeroIntString,
+              producedBlocks: lib.matchPositiveOrZeroIntString,
+              productivity: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              rate: lib.matchPositiveNumber,
+              rewards: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              username: expect.stringMatching(/^(gny_d1)|(gny_d2)|(gny_d3)$/),
+              votes: lib.matchPositiveOrZeroIntString,
+            },
+            {
+              _version_: lib.matchPositiveNumber,
+              address: expect.stringMatching(
+                /^(GkBnc7eU4x3YnGRz8RXxZT6neLyT)|(G4GsxDgoEiMYvrNja8AR8bemdxRzi)|(GAmhahhJ8km2Lter42Ln6e4qwfxS)$/
+              ),
+              approval: lib.matchProcentString,
+              eligible: 1,
+              fees: lib.matchPositiveOrZeroIntString,
+              missedBlocks: lib.matchPositiveOrZeroIntString,
+              producedBlocks: lib.matchPositiveOrZeroIntString,
+              productivity: lib.matchPositiveOrZeroIntString,
+              publicKey: lib.matchPublicKey,
+              rate: lib.matchPositiveNumber,
+              rewards: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              username: expect.stringMatching(/^(gny_d1)|(gny_d2)|(gny_d3)$/),
+              votes: lib.matchPositiveOrZeroIntString,
+            },
+          ],
+          success: true,
+        });
+
         expect(response.success).toBeTruthy();
 
         expect(response.delegates).toHaveLength(3);
@@ -357,7 +499,25 @@ describe('delegate', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await delegateApi.getDelegateByUsername(username);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          delegate: {
+            _version_: lib.matchPositiveNumber,
+            address: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+            approval: lib.matchProcentString,
+            eligible: 0,
+            fees: lib.matchPositiveOrZeroIntString,
+            missedBlocks: lib.matchPositiveOrZeroIntString,
+            producedBlocks: lib.matchPositiveOrZeroIntString,
+            productivity: lib.matchPositiveOrZeroIntString,
+            publicKey: lib.matchPublicKey,
+            rate: lib.matchPositiveNumber,
+            rewards: lib.matchPositiveOrZeroIntString,
+            tid: lib.matchTid,
+            username: 'xpgeng',
+            votes: lib.matchPositiveOrZeroIntString,
+          },
+        });
       },
       lib.oneMinute
     );
@@ -367,13 +527,50 @@ describe('delegate', () => {
     it(
       'should get delegates',
       async () => {
-        expect.assertions(1);
+        expect.assertions(8);
 
         const offset = '1';
         const limit = '5';
 
         const response = await delegateApi.getDelegates(offset, limit);
-        expect(response.success).toBeTruthy();
+
+        const oneDelegate = {
+          _version_: 1,
+          address: expect.any(String),
+          approval: lib.matchProcentString,
+          eligible: 0,
+          fees: lib.matchPositiveOrZeroIntString,
+          gny: lib.matchPositiveOrZeroIntString,
+          isLocked: 0,
+          lockAmount: lib.matchPositiveOrZeroIntString,
+          lockHeight: lib.matchPositiveOrZeroIntString,
+          missedBlocks: lib.matchPositiveOrZeroIntString,
+          producedBlocks: lib.matchPositiveOrZeroIntString,
+          productivity: lib.matchPositiveOrZeroIntString,
+          publicKey: lib.matchPublicKey,
+          rate: lib.matchPositiveNumber,
+          rewards: lib.matchPositiveOrZeroIntString,
+          tid: lib.matchTid,
+          username: expect.any(String),
+          votes: lib.matchPositiveOrZeroIntString,
+        };
+
+        // @ts-ignore
+        expect(response.success).toEqual(true);
+        // @ts-ignore
+        expect(response.delegates).toHaveLength(5);
+        // @ts-ignore
+        expect(response.totalCount).toEqual(101);
+        // @ts-ignore
+        expect(response.delegates[0]).toEqual(oneDelegate);
+        // @ts-ignore
+        expect(response.delegates[1]).toEqual(oneDelegate);
+        // @ts-ignore
+        expect(response.delegates[2]).toEqual(oneDelegate);
+        // @ts-ignore
+        expect(response.delegates[3]).toEqual(oneDelegate);
+        // @ts-ignore
+        expect(response.delegates[4]).toEqual(oneDelegate);
       },
       lib.oneMinute
     );
@@ -388,7 +585,11 @@ describe('delegate', () => {
         const publicKey =
           '575bf8f32b941b9e6ae1af82539689198327b73d77d22a98cdef2460c9257f7b';
         const response = await delegateApi.forgingStatus(publicKey);
-        expect(response.success).toBeTruthy();
+
+        expect(response).toEqual({
+          success: true,
+          enabled: false,
+        });
       },
       lib.oneMinute
     );
@@ -398,7 +599,7 @@ describe('delegate', () => {
     it(
       'get own Produced Blocks',
       async () => {
-        // expect.assertions(1);
+        expect.assertions(102);
 
         await lib.sleep(20 * 1000);
 
@@ -410,7 +611,7 @@ describe('delegate', () => {
           })) as (ApiSuccess & DelegateOwnProducedBlocks);
           blocks.push(...response.blocks);
 
-          expect(response).toMatchObject({
+          expect(response).toEqual({
             success: expect.any(Boolean),
             delegate: expect.any(Object),
             blocks: expect.any(Array),
@@ -428,7 +629,7 @@ describe('delegate', () => {
     it(
       'return found delegates that matches the search string, result is sorted by highest rank frist',
       async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         // this type (ApiSuccess & DelegatesWrapper) should be correct because
         // the validation will not throw an error
@@ -436,6 +637,11 @@ describe('delegate', () => {
           'x'
         )) as (ApiSuccess & DelegatesWrapper);
         expect(noDelegateWithThisName.delegates).toHaveLength(0);
+        expect(noDelegateWithThisName).toEqual({
+          success: true,
+          delegates: [],
+          count: 0,
+        });
 
         const manyResults = (await delegateApi.search('1')) as (ApiSuccess &
           DelegatesWrapper);

@@ -237,10 +237,10 @@ export const matchNetwork = expect.stringMatching(/^mainnet|testnet|localnet$/);
 export const matchSemver = expect.stringMatching(/^\d+\.\d+\.\d+$/);
 
 export const matchPublicKey = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
-// same as regex above
-export const matchTid = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
-export const matchProcentString = expect.stringMatching(/^0|(\d+\.\d+$)/);
-export const matchId = expect.stringMatching(/^[0-9a-fA-F]{64}$/);
+export const matchTid = matchPublicKey;
+export const matchId = matchPublicKey;
+
+export const matchProcentString = expect.stringMatching(/^\d{1}|(\d+\.\d+$)/);
 export const matchSignature = expect.stringMatching(/^[0-9a-fA-F]{128}$/);
 
 expect.extend({

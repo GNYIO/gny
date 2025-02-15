@@ -54,7 +54,10 @@ describe('transfer', () => {
       async () => {
         expect.assertions(1);
 
-        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        // genesis account
+        const senderId = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -76,9 +79,68 @@ describe('transfer', () => {
           config
         );
         await lib.onNewBlock(GNY_PORT);
+        await lib.onNewBlock(GNY_PORT);
+
         const query = { ownerId: senderId };
+
+        // returns newest transfers first
         const response = (await transferApi.getRoot(query)) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          count: 2,
+          success: true,
+          transfers: [
+            {
+              _version_: lib.matchPositiveNumber,
+              amount: lib.matchPositiveOrZeroIntString,
+              currency: 'GNY',
+              height: lib.matchPositiveOrZeroIntString,
+              recipientId: 'GuQr4DM3aiTD36EARqDpbfsEHoNF',
+              recipientName: null,
+              senderId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              tid: lib.matchTid,
+              timestamp: lib.matchPositiveNumber,
+              transaction: {
+                _version_: lib.matchPositiveNumber,
+                args: expect.any(String),
+                fee: lib.matchPositiveOrZeroIntString,
+                height: lib.matchPositiveOrZeroIntString,
+                id: lib.matchId,
+                message: expect.any(String),
+                secondSignature: null,
+                senderId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+                senderPublicKey: lib.matchPublicKey,
+                signatures: expect.any(String),
+                timestamp: lib.matchPositiveNumber,
+                type: 0,
+              },
+            },
+            {
+              _version_: lib.matchPositiveNumber,
+              amount: lib.matchPositiveOrZeroIntString,
+              currency: 'GNY',
+              height: lib.matchPositiveOrZeroIntString,
+              recipientId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              recipientName: null,
+              senderId: 'G3ZVTpgNYPi1proETRSSQdn6jQB9n',
+              tid: lib.matchTid,
+              timestamp: 0, // in genesis block
+              transaction: {
+                _version_: lib.matchPositiveNumber,
+                args: expect.any(String),
+                fee: lib.matchPositiveOrZeroIntString,
+                height: lib.matchPositiveOrZeroIntString,
+                id: lib.matchId,
+                message: '',
+                secondSignature: null,
+                senderId: 'G3ZVTpgNYPi1proETRSSQdn6jQB9n',
+                senderPublicKey: lib.matchPublicKey,
+                signatures: expect.any(String),
+                timestamp: 0, // in genesis block
+                type: 0,
+              },
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -90,7 +152,10 @@ describe('transfer', () => {
       async () => {
         expect.assertions(1);
 
-        const senderId = 'G2ofFMDz8GtWq9n65khKit83bWkQr';
+        // genesis account
+        const senderId = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -124,7 +189,11 @@ describe('transfer', () => {
           startTimestamp,
           endTimestamp
         )) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          count: 1,
+          strTotalAmount: '500000000', // TODO: rename
+        });
       },
       lib.oneMinute
     );

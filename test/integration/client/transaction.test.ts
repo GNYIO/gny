@@ -113,7 +113,11 @@ describe('transaction', () => {
         const response = (await transactionApi.getTransactions(
           query
         )) as ApiSuccess;
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          count: 0,
+          success: true,
+          transactions: [],
+        });
       },
       lib.oneMinute
     );
@@ -127,7 +131,10 @@ describe('transaction', () => {
 
         const response = (await transactionApi.getCount()) as (ApiSuccess &
           TransactionCountWrapper);
-        expect(response.count).toEqual(203);
+        expect(response).toEqual({
+          success: true,
+          count: 203,
+        });
       },
       lib.oneMinute
     );
@@ -148,13 +155,19 @@ describe('transaction', () => {
         const responseAddress = (await transactionApi.getCount({
           senderId: genesisAddress,
         })) as (ApiSuccess & TransactionCountWrapper);
-        expect(responseAddress.count).toEqual(2);
+        expect(responseAddress).toEqual({
+          success: true,
+          count: 2,
+        });
 
         // check publicKey
         const responsePublicKey = (await transactionApi.getCount({
           senderPublicKey: publicKey,
         })) as (ApiSuccess & TransactionCountWrapper);
-        expect(responsePublicKey.count).toEqual(2);
+        expect(responsePublicKey).toEqual({
+          success: true,
+          count: 2,
+        });
       },
       lib.oneMinute
     );
@@ -162,7 +175,7 @@ describe('transaction', () => {
 
   describe('/newestFirst', () => {
     it(
-      'get 10 of the newest transactions',
+      'get 10 of the first transactions',
       async () => {
         expect.assertions(12);
 
@@ -176,38 +189,76 @@ describe('transaction', () => {
           limit,
         })) as (ApiSuccess & NewestTransactionWrapper);
 
+        function matchTransaction(id: string) {
+          return {
+            _version_: expect.any(Number),
+            args: expect.toBeOneOf([expect.any(String), expect.toBeNil()]),
+            fee: lib.matchPositiveOrZeroIntString,
+            height: lib.matchPositiveOrZeroIntString,
+            id: id,
+            message: '',
+            secondSignature: null,
+            senderId: expect.any(String),
+            senderPublicKey: lib.matchPublicKey,
+            signatures: expect.any(String),
+            timestamp: expect.any(Number),
+            type: expect.any(Number),
+          };
+        }
+
+        // 3c6c6fa4316c63f64bc0ee7374a4635004c2a1a9f0c1e14cac31866a0986c69d
         expect(response.count).toEqual(203);
         expect(response.transactions).toHaveLength(10);
 
-        expect(response.transactions[0].id).toEqual(
-          '3c6c6fa4316c63f64bc0ee7374a4635004c2a1a9f0c1e14cac31866a0986c69d'
+        expect(response.transactions[0]).toEqual(
+          matchTransaction(
+            '3c6c6fa4316c63f64bc0ee7374a4635004c2a1a9f0c1e14cac31866a0986c69d'
+          )
         );
-        expect(response.transactions[1].id).toEqual(
-          '91e7c6b7eead8b94d053eee5cba070a1fd4ec93d916ee85459b8dc99e2a18fc0'
+        expect(response.transactions[1]).toEqual(
+          matchTransaction(
+            '91e7c6b7eead8b94d053eee5cba070a1fd4ec93d916ee85459b8dc99e2a18fc0'
+          )
         );
-        expect(response.transactions[2].id).toEqual(
-          'c58cef6e9e4cf4743226650352eb0723e31e3b2ec60e1d49fb959665a488a1ca'
+        expect(response.transactions[2]).toEqual(
+          matchTransaction(
+            'c58cef6e9e4cf4743226650352eb0723e31e3b2ec60e1d49fb959665a488a1ca'
+          )
         );
-        expect(response.transactions[3].id).toEqual(
-          'b75f60435dda71a23108639afa6a99db5901bbfb554f1eae227e1119b45675df'
+        expect(response.transactions[3]).toEqual(
+          matchTransaction(
+            'b75f60435dda71a23108639afa6a99db5901bbfb554f1eae227e1119b45675df'
+          )
         );
-        expect(response.transactions[4].id).toEqual(
-          '13e0ebcba2fff96d50b310fda578746a4d8d120d1ff31f7c0e39349e566fe551'
+        expect(response.transactions[4]).toEqual(
+          matchTransaction(
+            '13e0ebcba2fff96d50b310fda578746a4d8d120d1ff31f7c0e39349e566fe551'
+          )
         );
-        expect(response.transactions[5].id).toEqual(
-          'fa0e41b0beec51e9a358ec32a8d9eaf9d2345bc916f17915db0465534031251b'
+        expect(response.transactions[5]).toEqual(
+          matchTransaction(
+            'fa0e41b0beec51e9a358ec32a8d9eaf9d2345bc916f17915db0465534031251b'
+          )
         );
-        expect(response.transactions[6].id).toEqual(
-          '407f4f695187cd009bbe07025b2ce44b2241c8e6ee34e182501f3658b672a433'
+        expect(response.transactions[6]).toEqual(
+          matchTransaction(
+            '407f4f695187cd009bbe07025b2ce44b2241c8e6ee34e182501f3658b672a433'
+          )
         );
-        expect(response.transactions[7].id).toEqual(
-          '9533c69180350070cd483d367bff51a94adb5e4f329e2be1780ff0af9080c264'
+        expect(response.transactions[7]).toEqual(
+          matchTransaction(
+            '9533c69180350070cd483d367bff51a94adb5e4f329e2be1780ff0af9080c264'
+          )
         );
-        expect(response.transactions[8].id).toEqual(
-          'c9a1f8cab21e60b3c520e297bb2d2aff115b69889000cb579ec794d83ff35772'
+        expect(response.transactions[8]).toEqual(
+          matchTransaction(
+            'c9a1f8cab21e60b3c520e297bb2d2aff115b69889000cb579ec794d83ff35772'
+          )
         );
-        expect(response.transactions[9].id).toEqual(
-          '67387a102b482ef3a0471c082340331d70fa99431add718e452218620bd9549e'
+        expect(response.transactions[9]).toEqual(
+          matchTransaction(
+            '67387a102b482ef3a0471c082340331d70fa99431add718e452218620bd9549e'
+          )
         );
       },
       lib.oneMinute
@@ -234,7 +285,10 @@ describe('transaction', () => {
         const countByAddress = (await transactionApi.getCount({
           senderId: genesisAddress,
         })) as (ApiSuccess & TransactionCountWrapper);
-        expect(countByAddress.count).toEqual(3);
+        expect(countByAddress).toEqual({
+          success: true,
+          count: 3,
+        });
 
         // newestfirst returns the transactions reversed
         const getTrsFirst = (await transactionApi.newestFirst({
