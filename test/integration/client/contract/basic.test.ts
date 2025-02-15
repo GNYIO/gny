@@ -127,7 +127,10 @@ describe('account', () => {
           await lib.onNewBlock(GNY_PORT);
 
           const response = await basicApi.lockAccount(height, amount, secret);
-          expect(response).toHaveProperty('transactionId');
+          expect(response).toEqual({
+            success: true,
+            transactionId: lib.matchTid,
+          });
         },
         lib.oneMinute
       );
@@ -156,7 +159,10 @@ describe('account', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await basicApi.registerDelegate(secret);
-        expect(response).toHaveProperty('transactionId');
+        expect(response).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
       },
       lib.oneMinute
     );
@@ -184,7 +190,10 @@ describe('account', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await basicApi.registerDelegate(secret);
-        expect(response).toHaveProperty('transactionId');
+        expect(response).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
       },
       lib.oneMinute
     );
@@ -198,7 +207,10 @@ describe('account', () => {
 
       // vote
       const response = await basicApi.vote(keyList, secret);
-      expect(response).toHaveProperty('transactionId');
+      expect(response).toEqual({
+        success: true,
+        transactionId: lib.matchTid,
+      });
     }
 
     it(
@@ -251,7 +263,10 @@ describe('account', () => {
 
       // unvote
       const response = await basicApi.unvote(keyList, secret);
-      expect(response).toHaveProperty('transactionId');
+      expect(response).toEqual({
+        success: true,
+        transactionId: lib.matchTid,
+      });
     }
 
     it(

@@ -67,23 +67,26 @@ describe('verify', () => {
           'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
           genesisSecret
         );
-        expect(trs).toHaveProperty('transactionId');
+        expect(trs).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
 
         await lib.onNewBlock(GNY_PORT);
 
         const oneVerification = await connection.api.Verification.get(
           'MY_IDENTIFIER'
         );
-        expect(oneVerification).toMatchObject({
+        expect(oneVerification).toEqual({
           success: true,
           verification: {
             identifier: 'MY_IDENTIFIER',
-            tid: expect.any(String),
+            tid: lib.matchTid,
             senderId: address,
             signature:
               'b01b781b89b7f6b7de1fba0cc992bf528f8422e3960e087f396cc83014028ad891bd848c2405b47419fdba643ce2206e1bad18a540b1a64e84d04c0c6aa1a40f',
             timestamp: expect.any(Number),
-            height: expect.stringMatching(/^[0-9]+$/),
+            height: lib.matchPositiveOrZeroIntString,
             _version_: expect.any(Number),
           },
         });

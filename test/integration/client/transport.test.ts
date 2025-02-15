@@ -59,7 +59,10 @@ describe('transport', () => {
         );
 
         const response = await transportApi.sendTransaction(trs);
-        expect(response).toHaveProperty('transactionId');
+        expect(response).toEqual({
+          success: true,
+          transactionId: lib.matchTid,
+        });
       },
       lib.oneMinute
     );

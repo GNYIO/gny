@@ -144,7 +144,20 @@ describe('uia', () => {
           limit,
           offset
         )) as (ApiSuccess & IssuesWrapper);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          count: 1,
+          issues: [
+            // TODO: this property needs to be renamed
+            {
+              _version_: lib.matchPositiveNumber,
+              desc: 'liang',
+              issuerId: 'G2ofFMDz8GtWq9n65khKit83bWkQr',
+              name: 'liang',
+              tid: lib.matchTid,
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -177,7 +190,11 @@ describe('uia', () => {
 
         const response = (await uiaApi.isIssuer(address)) as (ApiSuccess &
           IsIssuerWrapper);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          isIssuer: true,
+          issuerName: 'liang',
+        });
       },
       lib.oneMinute
     );
@@ -190,7 +207,9 @@ describe('uia', () => {
         expect.assertions(1);
 
         const name = 'liang';
-
+        const senderAddress = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
         // register issuer
         const trs = gnyClient.uia.registerIssuer(
           'liang',
@@ -210,7 +229,16 @@ describe('uia', () => {
 
         const response = (await uiaApi.getIssuer(name)) as (ApiSuccess &
           IssuerWrapper);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          issuer: {
+            _version_: 1,
+            desc: 'liang',
+            issuerId: senderAddress,
+            name: 'liang',
+            tid: lib.matchTid,
+          },
+        });
       },
       lib.oneMinute
     );
@@ -225,6 +253,9 @@ describe('uia', () => {
         const name = 'liang';
         const limit = 5;
         const offset = 0;
+        const senderAddress = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
 
         // register issuer
         const issuerTrs = gnyClient.uia.registerIssuer(
@@ -266,7 +297,30 @@ describe('uia', () => {
           limit,
           offset
         )) as (ApiSuccess & AssetsWrapper);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          count: 1,
+          assets: [
+            {
+              _version_: 1,
+              desc: expect.any(String),
+              issuer: {
+                _version_: 1,
+                desc: 'liang',
+                issuerId: senderAddress,
+                name: 'liang',
+                tid: lib.matchTid,
+              },
+              issuerId: senderAddress,
+              maximum: lib.matchPositiveOrZeroIntString,
+              name: 'liang.BBB',
+              precision: lib.matchPositiveNumber,
+              quantity: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              timestamp: lib.matchPositiveNumber,
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -277,6 +331,10 @@ describe('uia', () => {
       'should get assets',
       async () => {
         expect.assertions(1);
+
+        const senderAddress = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
 
         // register issuer
         const issuerTrs = gnyClient.uia.registerIssuer(
@@ -314,7 +372,30 @@ describe('uia', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getAssets();
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          assets: [
+            {
+              _version_: lib.matchPositiveNumber,
+              desc: expect.any(String),
+              issuer: {
+                _version_: lib.matchPositiveNumber,
+                desc: 'liang',
+                issuerId: senderAddress,
+                name: 'liang',
+                tid: lib.matchTid,
+              },
+              issuerId: senderAddress,
+              maximum: lib.matchPositiveOrZeroIntString,
+              name: 'liang.BBB',
+              precision: lib.matchPositiveNumber,
+              quantity: lib.matchPositiveOrZeroIntString,
+              tid: lib.matchTid,
+              timestamp: lib.matchPositiveNumber,
+            },
+          ],
+          count: 1,
+        });
       },
       lib.oneMinute
     );
@@ -325,6 +406,10 @@ describe('uia', () => {
       'should get asset by username',
       async () => {
         expect.assertions(1);
+
+        const senderAddress = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
 
         const name = 'liang.BBB';
 
@@ -364,7 +449,27 @@ describe('uia', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getAsset(name);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          asset: {
+            _version_: 1,
+            desc: expect.any(String),
+            issuer: {
+              _version_: lib.matchPositiveNumber,
+              desc: 'liang',
+              issuerId: senderAddress,
+              name: 'liang',
+              tid: lib.matchTid,
+            },
+            issuerId: senderAddress,
+            maximum: lib.matchPositiveOrZeroIntString,
+            name: 'liang.BBB',
+            precision: lib.matchPositiveNumber,
+            quantity: lib.matchPositiveOrZeroIntString,
+            tid: lib.matchTid,
+            timestamp: lib.matchPositiveNumber,
+          },
+        });
       },
       lib.oneMinute
     );
@@ -375,6 +480,10 @@ describe('uia', () => {
       'should get balances by address',
       async () => {
         expect.assertions(1);
+
+        const senderAddress = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
 
         const recipient = randomAddress();
         // prepare
@@ -398,8 +507,21 @@ describe('uia', () => {
         );
         await lib.onNewBlock(GNY_PORT);
 
+        // check balance of recipient
         const response = await uiaApi.getBalances(recipient);
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          count: 1,
+          balances: [
+            {
+              _version_: lib.matchPositiveNumber,
+              address: recipient,
+              balance: lib.matchPositiveOrZeroIntString,
+              currency: 'ABC.BBB',
+              flag: 2,
+            },
+          ],
+        });
       },
       lib.oneMinute
     );
@@ -434,7 +556,16 @@ describe('uia', () => {
         await lib.onNewBlock(GNY_PORT);
 
         const response = await uiaApi.getBalance(recipient, 'ABC.BBB');
-        expect(response.success).toBeTruthy();
+        expect(response).toEqual({
+          success: true,
+          balance: {
+            _version_: lib.matchPositiveNumber,
+            address: recipient,
+            balance: lib.matchPositiveOrZeroIntString,
+            currency: 'ABC.BBB',
+            flag: 2,
+          },
+        });
       },
       lib.oneMinute
     );

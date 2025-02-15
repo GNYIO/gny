@@ -28,7 +28,10 @@ async function registerDatMaker(
     description,
     secret
   );
-  expect(makerResponse).toHaveProperty('transactionId');
+  expect(makerResponse).toEqual({
+    success: true,
+    transactionId: lib.matchTid,
+  });
 
   await lib.onNewBlock(GNY_PORT);
 
@@ -49,7 +52,10 @@ async function registerDat(
     url,
     secret
   );
-  expect(datResponse).toHaveProperty('transactionId');
+  expect(datResponse).toEqual({
+    success: true,
+    transactionId: lib.matchTid,
+  });
 
   await lib.onNewBlock(GNY_PORT);
 
@@ -58,7 +64,10 @@ async function registerDat(
 
 async function transferGNY(to: string, amount: string, secret: string) {
   const sendResponse = await connection.contract.Basic.send(to, amount, secret);
-  expect(sendResponse).toHaveProperty('transactionId');
+  expect(sendResponse).toEqual({
+    success: true,
+    transactionId: lib.matchTid,
+  });
 
   await lib.onNewBlock(GNY_PORT);
 
