@@ -32,6 +32,7 @@ import {
   Verification1712752540000,
   AugmentDATs1715108311000,
   AugmentDATsAgain1715108311000,
+  MoreIndexes1739732168000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -58,6 +59,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       Verification1712752540000,
       AugmentDATs1715108311000,
       AugmentDATsAgain1715108311000,
+      MoreIndexes1739732168000,
     ],
   };
 

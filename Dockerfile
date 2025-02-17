@@ -1,4 +1,4 @@
-FROM node:20.17.0
+FROM node:20.18.3
 WORKDIR /usr/src/app
 
 # first install all dependencies (this step gets cached)

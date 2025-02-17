@@ -757,3 +757,21 @@ export class AugmentDATsAgain1715108311000 implements MigrationInterface {
 
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class MoreIndexes1739732168000 implements MigrationInterface {
+  async up(queryRunner: QueryRunner): Promise<any> {
+    // change block_delegate_idx index by recreating it with different columns
+    await queryRunner.query(`
+      DROP INDEX block_delegate_idx;
+
+      CREATE INDEX block_delegate_idx ON public.block USING btree (delegate asc, height asc);
+    `);
+
+    // add extra index for dat_maker (because API is filtering with address)
+    await queryRunner.query(`
+      CREATE INDEX dat_maker_address_idx ON public.dat_maker USING btree (address);
+    `);
+  }
+
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}

@@ -15,8 +15,9 @@
     "web": "npm run removeBrowserDir && ../../node_modules/webpack/bin/webpack.js",
     "removeBrowserDir": "rm -rf browser"
   },
+  "engineStrict": true,
   "engines": {
-    "node": "=20.17.0"
+    "node": ">= 20.18.3"
   },
   "main": "dist/index.js",
   "type": "module",
