@@ -8,7 +8,7 @@ import * as PeerId from 'peer-id';
 import pipe from 'it-pipe';
 import first from 'it-first';
 import multiaddr from 'multiaddr';
-import { duplex as abortableDuplex } from 'abortable-iterator';
+import { abortableDuplex } from 'abortable-iterator';
 import {
   BlockAndVotes,
   TracerWrapper,
