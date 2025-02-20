@@ -234,6 +234,9 @@ export default class Peer implements ICoreModule {
       ? global.library.config.peers.bootstrap
       : [];
 
+    const p2pService = container.get<IP2PService>(TYPES.P2PService);
+    await Peer.initializeLibP2P(p2pService);
+
     const isRondezvous =
       Array.isArray(bootstrapNode) === false || bootstrapNode.length === 0;
     if (isRondezvous) {

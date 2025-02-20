@@ -221,10 +221,6 @@ async function init_alt(options: IOptions) {
   container.load(p2pServiceModule);
   container.load(prometheusServiceModule);
 
-  // initialize p2pService in an async way
-  const p2pService = container.get<IP2PService>(TYPES.P2PService);
-  await scope.modules.peer.initializeLibP2P(p2pService);
-
   return scope;
 }
 
