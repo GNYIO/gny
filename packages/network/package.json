@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/network",
-  "version": "2.15.0",
+  "version": "2.15.1",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -22,6 +22,6 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.15.0"
+    "@gnyio/interfaces": "2.15.1"
   }
 }
