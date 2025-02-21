@@ -58,6 +58,12 @@ export function isTransaction(transaction: any): transaction is ITransaction {
         .integer()
         .positive()
         .optional(),
+      placement: joi
+        .number()
+        .integer()
+        .min(0)
+        .max(1000)
+        .optional(),
     })
     .required();
 
