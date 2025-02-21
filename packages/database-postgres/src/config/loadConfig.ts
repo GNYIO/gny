@@ -33,6 +33,7 @@ import {
   AugmentDATs1715108311000,
   AugmentDATsAgain1715108311000,
   MoreIndexes1739732168000,
+  TransactionPlacement1740078090000,
 } from './migrations.js';
 
 export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
@@ -60,6 +61,7 @@ export async function loadConfig(logger: ILogger, input: SmartDBOptions) {
       AugmentDATs1715108311000,
       AugmentDATsAgain1715108311000,
       MoreIndexes1739732168000,
+      TransactionPlacement1740078090000,
     ],
   };
 
