@@ -464,7 +464,7 @@ export default class Blocks implements ICoreModule {
       `Blocks#saveBlockTransactions height: ${block.height}`
     );
 
-    for (let trs of block.transactions) {
+    for (let [index, trs] of block.transactions.entries()) {
       const span = tracerService.startSpan('transaction', {
         childOf: saveBlockTransaction.context(),
       });
@@ -478,6 +478,9 @@ export default class Blocks implements ICoreModule {
       span.log({
         transaction: trs,
       });
+
+      // order of transaction within block
+      trs.placement = index;
 
       await global.app.sdb.create<Transaction>(Transaction, trs);
 

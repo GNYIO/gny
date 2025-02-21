@@ -82,6 +82,12 @@ export class Transaction implements Versioned {
   public message?: string;
 
   @Column({
+    type: 'integer',
+    nullable: false,
+  })
+  public placement?: number;
+
+  @Column({
     default: 0,
     type: 'integer',
     nullable: false,

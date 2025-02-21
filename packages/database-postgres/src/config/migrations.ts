@@ -786,7 +786,10 @@ export class TransactionPlacement1740078090000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      ALTER TABLE public.transaction ADD COLUMN placement integer NOT NULL DEFAULT 0;
+      ALTER TABLE public.transaction
+        ADD COLUMN placement integer NOT NULL
+          DEFAULT 0
+          CONSTRAINT transaction_placement_smaller_than_1000 CHECK(placement >= 0 AND placement <= 1000);
     `);
 
     // populate "placement" column
