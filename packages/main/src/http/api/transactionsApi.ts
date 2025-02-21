@@ -176,6 +176,10 @@ export default class TransactionsApi implements IHttpApi {
           condition,
           limit,
           offset,
+          sort: {
+            height: 1,
+            placement: 1,
+          },
         }
       );
       if (!transactions) transactions = [];
@@ -343,6 +347,10 @@ export default class TransactionsApi implements IHttpApi {
           condition,
           offset: start,
           limit: difference,
+          sort: {
+            height: -1,
+            placement: -1,
+          },
         }
       );
 
