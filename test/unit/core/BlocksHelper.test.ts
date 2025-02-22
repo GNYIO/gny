@@ -368,6 +368,36 @@ describe('BlocksHelper', () => {
       expect(hex).toHaveLength(64);
     });
 
+    it('payloadHashOfAllTransactions() - returns different hash if order of transactions is different', () => {
+      expect.assertions(7);
+
+      const trs1 = createRandomTransaction();
+      const trs2 = createRandomTransaction();
+
+      // act 1
+      const transactions1 = [trs1, trs2];
+
+      const hash1 = BlocksHelper.payloadHashOfAllTransactions(transactions1);
+      expect(Buffer.isBuffer(hash1)).toEqual(true);
+
+      const hex1 = hash1.toString('hex');
+      expect(typeof hex1).toEqual('string');
+      expect(hex1).toHaveLength(64);
+
+      // act 2
+      const transactions2 = [trs2, trs1];
+
+      const hash2 = BlocksHelper.payloadHashOfAllTransactions(transactions2);
+      expect(Buffer.isBuffer(hash2)).toEqual(true);
+
+      const hex2 = hash2.toString('hex');
+      expect(typeof hex2).toEqual('string');
+      expect(hex2).toHaveLength(64);
+
+      // the two hashes should **not** be equal
+      expect(hex1 !== hex2).toEqual(true);
+    });
+
     it('DoesNewBlockProposeMatchOldOne() - returns true if height, generatorPublicKey', () => {
       // preparation
       const id = randomHex(32);
