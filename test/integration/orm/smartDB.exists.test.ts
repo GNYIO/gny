@@ -1,5 +1,9 @@
 import { SmartDB } from '@gnyio/database-postgres';
-import { ITransaction, IVariable } from '@gnyio/interfaces';
+import {
+  ITransaction,
+  ITransactionInBlock,
+  IVariable,
+} from '@gnyio/interfaces';
 import * as lib from '../lib';
 import { Account } from '@gnyio/database-postgres';
 import { Balance } from '@gnyio/database-postgres';
@@ -91,7 +95,7 @@ describe('smartDB.exists()', () => {
     await saveGenesisBlock(sut);
 
     // create block to persist changes to db
-    const transaction1: ITransaction = {
+    const transaction1: ITransactionInBlock = {
       type: 0,
       fee: String(0.1 * 1e8),
       timestamp: 0,
@@ -104,8 +108,9 @@ describe('smartDB.exists()', () => {
       id: '981a56749865bc920ce1533556322fa3605b5513cc2a9eaab30ea8a2d4e3213a',
       args: JSON.stringify([30 * 1e8, 'G3HWZL5vryPZ5bHamaE9uFtwU3Gca']),
       height: String(1),
+      placement: 0, // first trs in block
     };
-    const transaction2: ITransaction = {
+    const transaction2: ITransactionInBlock = {
       type: 0,
       fee: String(0.1 * 1e8),
       timestamp: 0,
@@ -121,8 +126,9 @@ describe('smartDB.exists()', () => {
       ]),
       id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
       height: String(1),
+      placement: 1, // 2nd trs in block
     };
-    const transaction3: ITransaction = {
+    const transaction3: ITransactionInBlock = {
       type: 10,
       fee: String(0 * 1e8),
       timestamp: 0,
@@ -135,6 +141,7 @@ describe('smartDB.exists()', () => {
       id: '13906840a802fda216d96a8b9fa9c0ddf5fe33c9552f1f2701ca9d59268ae8ca',
       args: JSON.stringify([50 * 1e8, 'G45bu64FwHeShUrty7viXpRUSfoiL']),
       height: String(1),
+      placement: 2, // 3rd trs in block
     };
     const createdTrans1 = await sut.create<Transaction>(
       Transaction,
@@ -168,7 +175,7 @@ describe('smartDB.exists()', () => {
     await saveGenesisBlock(sut);
 
     // the following transaction will be saved to the db
-    const transaction: ITransaction = {
+    const transaction: ITransactionInBlock = {
       type: 0,
       fee: String(0),
       timestamp: 0,
@@ -184,6 +191,7 @@ describe('smartDB.exists()', () => {
       ]),
       id: 'c680c100cf810c9cf9551378d8eee733f620441cf936eb6f68986be8df291585',
       height: String(1),
+      placement: 0, // first trs in block
     };
     const createdTrans = await sut.create<Transaction>(
       Transaction,
