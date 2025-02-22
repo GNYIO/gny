@@ -1,5 +1,5 @@
 import { SmartDB } from '@gnyio/database-postgres';
-import { IAsset, ITransaction, IBalance } from '@gnyio/interfaces';
+import { IAsset, ITransactionInBlock, IBalance } from '@gnyio/interfaces';
 import * as lib from '../lib';
 import { Account } from '@gnyio/database-postgres';
 import { Balance } from '@gnyio/database-postgres';
@@ -497,7 +497,7 @@ describe('smartDB.findAll()', () => {
 
     // save first transaction in block 1
     const trs1 = createTransaction(String(1));
-    const createdTrs1: ITransaction = await sut.create<Transaction>(
+    const createdTrs1: ITransactionInBlock = await sut.create<Transaction>(
       Transaction,
       trs1
     );

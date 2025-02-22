@@ -112,6 +112,7 @@ describe('transfer', () => {
                 signatures: expect.any(String),
                 timestamp: lib.matchPositiveNumber,
                 type: 0,
+                placement: expect.any(Number),
               },
             },
             {
@@ -137,6 +138,7 @@ describe('transfer', () => {
                 signatures: expect.any(String),
                 timestamp: 0, // in genesis block
                 type: 0,
+                placement: expect.any(Number),
               },
             },
           ],

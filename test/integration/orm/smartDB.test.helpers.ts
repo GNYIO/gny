@@ -5,6 +5,7 @@ import {
   IAsset,
   IBlock,
   ITransaction,
+  ITransactionInBlock,
   ILogger,
 } from '@gnyio/interfaces';
 import { randomBytes } from 'crypto';
@@ -43,7 +44,7 @@ export function createRandomBytes(length: number) {
 }
 
 export function createBlock(height: string) {
-  const block: IBlock & { transactions: ITransaction[] } = {
+  const block: IBlock & { transactions: ITransactionInBlock[] } = {
     height,
     id: createRandomBytes(32),
     count: 0,
@@ -86,7 +87,7 @@ export function createAccount(address: string) {
 
 export function createTransaction(height: string) {
   const publicKey = createRandomBytes(32);
-  const transaction: ITransaction = {
+  const transaction: ITransactionInBlock = {
     height,
     type: 0,
     args: JSON.stringify([10 * 1e8, 'G3SSkWs6UFuoVHU3N4rLvXoobbQCt']),
@@ -96,6 +97,7 @@ export function createTransaction(height: string) {
     senderPublicKey: publicKey,
     signatures: JSON.stringify([randomBytes(32).toString('hex')]),
     timestamp: 300235235,
+    placement: 0, // by default create trs as first in block
   };
   return transaction;
 }
@@ -104,7 +106,7 @@ export async function saveGenesisBlock(smartDB: SmartDB) {
   const block = copyObject(CUSTOM_GENESIS);
 
   await smartDB.beginBlock(block);
-  const transactions = copyObject(block.transactions) as ITransaction[];
+  const transactions = copyObject(block.transactions) as ITransactionInBlock[];
   for (const trs of transactions) {
     trs.height = block.height;
     // trs.block = block;

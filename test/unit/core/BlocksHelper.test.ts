@@ -368,6 +368,36 @@ describe('BlocksHelper', () => {
       expect(hex).toHaveLength(64);
     });
 
+    it('payloadHashOfAllTransactions() - returns different hash if order of transactions is different', () => {
+      expect.assertions(7);
+
+      const trs1 = createRandomTransaction();
+      const trs2 = createRandomTransaction();
+
+      // act 1
+      const transactions1 = [trs1, trs2];
+
+      const hash1 = BlocksHelper.payloadHashOfAllTransactions(transactions1);
+      expect(Buffer.isBuffer(hash1)).toEqual(true);
+
+      const hex1 = hash1.toString('hex');
+      expect(typeof hex1).toEqual('string');
+      expect(hex1).toHaveLength(64);
+
+      // act 2
+      const transactions2 = [trs2, trs1];
+
+      const hash2 = BlocksHelper.payloadHashOfAllTransactions(transactions2);
+      expect(Buffer.isBuffer(hash2)).toEqual(true);
+
+      const hex2 = hash2.toString('hex');
+      expect(typeof hex2).toEqual('string');
+      expect(hex2).toHaveLength(64);
+
+      // the two hashes should **not** be equal
+      expect(hex1 !== hex2).toEqual(true);
+    });
+
     it('DoesNewBlockProposeMatchOldOne() - returns true if height, generatorPublicKey', () => {
       // preparation
       const id = randomHex(32);
@@ -1499,6 +1529,49 @@ describe('BlocksHelper', () => {
         'fbf93acfbcdd4d1bbf0891d1c68e9e4c64672a1a9284e8422981f6216f4922df',
         '232c01e5d768f80569c33301b913e9a6b4fdca264a1ae3dbc8bd2e6080382a8f',
       ]);
+    });
+
+    it('payloadHashesAreMatching() - throws if order is not the same', () => {
+      expect.assertions(4);
+
+      // preparation
+      const trs1 = createRandomTransaction();
+      const trs2 = createRandomTransaction();
+
+      const height = String(1);
+      const prevBlockId = randomHex(32);
+
+      const keyPair = randomKeyPair();
+      const timestamp = slots.getSlotNumber(slots.getSlotNumber());
+      const lastBlock = {
+        id: prevBlockId,
+        height: new BigNumber(height).minus(1).toFixed(),
+      } as IBlock;
+      const unconfirmedTrs: ITransaction[] = [trs1, trs2];
+      const block = BlocksHelper.generateBlockShort(
+        keyPair,
+        timestamp,
+        lastBlock,
+        unconfirmedTrs
+      );
+
+      // assert
+      const expectedPayloadHash = BlocksHelper.payloadHashOfAllTransactions(
+        unconfirmedTrs
+      ).toString('hex');
+      expect(typeof expectedPayloadHash).toEqual('string');
+
+      expect(block.payloadHash).toEqual(expectedPayloadHash);
+
+      expect(() => BlocksHelper.payloadHashesAreMatching(block)).not.toThrow();
+
+      // another assert
+      const transactionsInWrongOrder = [trs2, trs1];
+      block.transactions = transactionsInWrongOrder;
+
+      expect(() => BlocksHelper.payloadHashesAreMatching(block)).toThrowError(
+        'payloadHash property of block and its hash of transactions do not match'
+      );
     });
   });
 });

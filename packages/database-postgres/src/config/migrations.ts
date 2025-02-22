@@ -775,3 +775,55 @@ export class MoreIndexes1739732168000 implements MigrationInterface {
 
   async down(queryRunner: QueryRunner): Promise<any> {}
 }
+
+export class TransactionPlacement1740078090000 implements MigrationInterface {
+  // transaction = false;
+
+  async up(queryRunner: QueryRunner): Promise<any> {
+    // add column temporary columnt "ordered" with default value
+    await queryRunner.query(`
+      ALTER TABLE public.transaction ADD COLUMN ordered SERIAL;
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE public.transaction
+        ADD COLUMN placement integer NOT NULL
+          DEFAULT 0
+          CONSTRAINT transaction_placement_smaller_than_1000 CHECK(placement >= 0 AND placement <= 1000);
+    `);
+
+    // populate "placement" column
+    await queryRunner.query(`
+      update transaction t
+      set placement = t2.seqnum -1
+      from (
+          select
+            t2.*,
+            row_number() over (
+              PARTITION BY height
+              ORDER BY ordered
+            ) as seqnum
+
+          from transaction t2
+          ) t2
+      where t2.id = t.id;
+    `);
+
+    // drop default value on "placement" column
+    await queryRunner.query(`
+      ALTER TABLE public.transaction ALTER COLUMN placement DROP DEFAULT;
+    `);
+
+    // drop temporary column
+    await queryRunner.query(`
+      ALTER TABLE public.transaction DROP COLUMN ordered;
+    `);
+
+    // add unique constraint for two columns
+    await queryRunner.query(`
+      ALTER TABLE ONLY public.transaction
+        ADD CONSTRAINT "transaction_height_placement_key" UNIQUE (height, placement);
+    `);
+  }
+  async down(queryRunner: QueryRunner): Promise<any> {}
+}
