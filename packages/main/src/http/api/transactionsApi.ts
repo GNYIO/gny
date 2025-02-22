@@ -348,8 +348,8 @@ export default class TransactionsApi implements IHttpApi {
           offset: start,
           limit: difference,
           sort: {
-            height: -1,
-            placement: -1,
+            height: 1,
+            placement: 1,
           },
         }
       );
