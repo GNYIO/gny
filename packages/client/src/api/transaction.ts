@@ -3,7 +3,7 @@ import {
   ApiResult,
   TransactionsWrapper,
   TransactionCountWrapper,
-  NewestTransactionWrapper,
+  TransactionInBlockWrapper,
   ValidationError,
   ServerError,
   UnconfirmedTransactionWrapper,
@@ -62,7 +62,7 @@ export class Transaction {
   public async newestFirst(
     newestFirstQuery: NewestFirstQuery
   ): Promise<
-    ApiResult<NewestTransactionWrapper, ValidationError | ServerError>
+    ApiResult<TransactionInBlockWrapper, ValidationError | ServerError>
   > {
     const params = {
       count: newestFirstQuery.count,
@@ -73,7 +73,7 @@ export class Transaction {
     };
     const res = await this.base.get('/api/transactions/newestFirst', params);
     const result: ApiResult<
-      NewestTransactionWrapper,
+      TransactionInBlockWrapper,
       ValidationError | ServerError
     > = res.data;
     return result;
@@ -95,7 +95,7 @@ export class Transaction {
     };
     const res = await this.base.get('/api/transactions/', params);
     const result: ApiResult<
-      TransactionsWrapper,
+      TransactionInBlockWrapper,
       ValidationError | ServerError
     > = res.data;
     return result;

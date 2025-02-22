@@ -771,13 +771,13 @@ export interface TransactionsWrapper {
   transactions: Array<UnconfirmedTransaction | ITransaction>;
 }
 
-export interface TransactionCountWrapper {
+export interface TransactionInBlockWrapper {
   count: number;
+  transactions: Array<ITransactionInBlock>;
 }
 
-export interface NewestTransactionWrapper {
+export interface TransactionCountWrapper {
   count: number;
-  transactions: Array<ITransaction>;
 }
 
 export interface UnconfirmedTransactionsWrapper {

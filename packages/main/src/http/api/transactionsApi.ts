@@ -11,6 +11,7 @@ import {
   TransactionsWrapper,
   UnconfirmedTransactionWrapper,
   TransactionConfirmationWrapper,
+  ITransactionInBlock,
 } from '@gnyio/interfaces';
 import * as StateHelper from '../../core/StateHelper.js';
 import { Transaction } from '@gnyio/database-postgres';
@@ -170,23 +171,22 @@ export default class TransactionsApi implements IHttpApi {
         Transaction,
         condition
       );
-      let transactions = await global.app.sdb.findAll<Transaction>(
-        Transaction,
-        {
-          condition,
-          limit,
-          offset,
-          sort: {
-            height: 1,
-            placement: 1,
-          },
-        }
-      );
+      let transactions: ITransactionInBlock[] = await global.app.sdb.findAll<
+        Transaction
+      >(Transaction, {
+        condition,
+        limit,
+        offset,
+        sort: {
+          height: 1,
+          placement: 1,
+        },
+      });
       if (!transactions) transactions = [];
       result = {
         success: true,
         count: count,
-        transactions: transactions as ITransaction[],
+        transactions: transactions,
       };
 
       prom.requests.inc({
@@ -341,18 +341,17 @@ export default class TransactionsApi implements IHttpApi {
         limit
       );
 
-      let transactions = await global.app.sdb.findAll<Transaction>(
-        Transaction,
-        {
-          condition,
-          offset: start,
-          limit: difference,
-          sort: {
-            height: 1,
-            placement: 1,
-          },
-        }
-      );
+      let transactions: ITransactionInBlock[] = await global.app.sdb.findAll<
+        Transaction
+      >(Transaction, {
+        condition,
+        offset: start,
+        limit: difference,
+        sort: {
+          height: 1,
+          placement: 1,
+        },
+      });
 
       if (!transactions) {
         transactions = [];
@@ -364,7 +363,7 @@ export default class TransactionsApi implements IHttpApi {
         // offset: start,
         // limit: difference,
         count,
-        transactions: transactions as ITransaction[],
+        transactions: transactions,
       };
 
       return res.json(result);

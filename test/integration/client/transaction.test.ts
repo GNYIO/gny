@@ -6,7 +6,7 @@ import * as gnyClient from '@gnyio/client';
 import axios from 'axios';
 import {
   ApiSuccess,
-  NewestTransactionWrapper,
+  TransactionInBlockWrapper,
   TransactionCountWrapper,
   TransactionsWrapper,
 } from '@gnyio/interfaces';
@@ -205,7 +205,7 @@ describe('transaction', () => {
           count,
           offset,
           limit,
-        })) as (ApiSuccess & NewestTransactionWrapper);
+        })) as (ApiSuccess & TransactionInBlockWrapper);
 
         function matchTransaction(id: string, placement: number) {
           return {
@@ -326,7 +326,7 @@ describe('transaction', () => {
         const getTrsFirst = (await transactionApi.newestFirst({
           senderId: genesisAddress,
           count: countByAddress.count,
-        })) as (ApiSuccess & NewestTransactionWrapper);
+        })) as (ApiSuccess & TransactionInBlockWrapper);
         const normalOne = (await transactionApi.getTransactions({
           senderId: genesisAddress,
         })) as (ApiSuccess & TransactionsWrapper);
