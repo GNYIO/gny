@@ -1530,5 +1530,48 @@ describe('BlocksHelper', () => {
         '232c01e5d768f80569c33301b913e9a6b4fdca264a1ae3dbc8bd2e6080382a8f',
       ]);
     });
+
+    it('payloadHashesAreMatching() - throws if order is not the same', () => {
+      expect.assertions(4);
+
+      // preparation
+      const trs1 = createRandomTransaction();
+      const trs2 = createRandomTransaction();
+
+      const height = String(1);
+      const prevBlockId = randomHex(32);
+
+      const keyPair = randomKeyPair();
+      const timestamp = slots.getSlotNumber(slots.getSlotNumber());
+      const lastBlock = {
+        id: prevBlockId,
+        height: new BigNumber(height).minus(1).toFixed(),
+      } as IBlock;
+      const unconfirmedTrs: ITransaction[] = [trs1, trs2];
+      const block = BlocksHelper.generateBlockShort(
+        keyPair,
+        timestamp,
+        lastBlock,
+        unconfirmedTrs
+      );
+
+      // assert
+      const expectedPayloadHash = BlocksHelper.payloadHashOfAllTransactions(
+        unconfirmedTrs
+      ).toString('hex');
+      expect(typeof expectedPayloadHash).toEqual('string');
+
+      expect(block.payloadHash).toEqual(expectedPayloadHash);
+
+      expect(() => BlocksHelper.payloadHashesAreMatching(block)).not.toThrow();
+
+      // another assert
+      const transactionsInWrongOrder = [trs2, trs1];
+      block.transactions = transactionsInWrongOrder;
+
+      expect(() => BlocksHelper.payloadHashesAreMatching(block)).toThrowError(
+        'payloadHash property of block and its hash of transactions do not match'
+      );
+    });
   });
 });
