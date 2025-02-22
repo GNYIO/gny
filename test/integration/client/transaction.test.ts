@@ -85,7 +85,9 @@ describe('transaction', () => {
       async () => {
         expect.assertions(1);
 
-        const senderId = 'G4GDW6G78sgQdSdVAQUXdm5xPS13t';
+        const senderId = gnyClient.crypto.getAddress(
+          gnyClient.crypto.getKeys(genesisSecret).publicKey
+        );
         const amount = 5 * 1e8;
         const recipient = 'GuQr4DM3aiTD36EARqDpbfsEHoNF';
         const message = '';
@@ -114,9 +116,25 @@ describe('transaction', () => {
           query
         )) as ApiSuccess;
         expect(response).toEqual({
-          count: 0,
+          count: 1,
           success: true,
-          transactions: [],
+          transactions: [
+            {
+              _version_: 1,
+              args: '["500000000","GuQr4DM3aiTD36EARqDpbfsEHoNF"]',
+              fee: lib.matchPositiveOrZeroIntString,
+              height: lib.matchPositiveOrZeroIntString,
+              id: lib.matchId,
+              message: '',
+              placement: expect.any(Number),
+              secondSignature: null,
+              senderId: expect.any(String),
+              senderPublicKey: lib.matchPublicKey,
+              signatures: expect.any(String),
+              timestamp: expect.any(Number),
+              type: 0,
+            },
+          ],
         });
       },
       lib.oneMinute
@@ -189,7 +207,7 @@ describe('transaction', () => {
           limit,
         })) as (ApiSuccess & NewestTransactionWrapper);
 
-        function matchTransaction(id: string) {
+        function matchTransaction(id: string, placement: number) {
           return {
             _version_: expect.any(Number),
             args: expect.toBeOneOf([expect.any(String), expect.toBeNil()]),
@@ -203,6 +221,7 @@ describe('transaction', () => {
             signatures: expect.any(String),
             timestamp: expect.any(Number),
             type: expect.any(Number),
+            placement: placement,
           };
         }
 
@@ -212,52 +231,62 @@ describe('transaction', () => {
 
         expect(response.transactions[0]).toEqual(
           matchTransaction(
-            '3c6c6fa4316c63f64bc0ee7374a4635004c2a1a9f0c1e14cac31866a0986c69d'
+            '3c6c6fa4316c63f64bc0ee7374a4635004c2a1a9f0c1e14cac31866a0986c69d',
+            202
           )
         );
         expect(response.transactions[1]).toEqual(
           matchTransaction(
-            '91e7c6b7eead8b94d053eee5cba070a1fd4ec93d916ee85459b8dc99e2a18fc0'
+            '91e7c6b7eead8b94d053eee5cba070a1fd4ec93d916ee85459b8dc99e2a18fc0',
+            201
           )
         );
         expect(response.transactions[2]).toEqual(
           matchTransaction(
-            'c58cef6e9e4cf4743226650352eb0723e31e3b2ec60e1d49fb959665a488a1ca'
+            'c58cef6e9e4cf4743226650352eb0723e31e3b2ec60e1d49fb959665a488a1ca',
+            200
           )
         );
         expect(response.transactions[3]).toEqual(
           matchTransaction(
-            'b75f60435dda71a23108639afa6a99db5901bbfb554f1eae227e1119b45675df'
+            'b75f60435dda71a23108639afa6a99db5901bbfb554f1eae227e1119b45675df',
+            199
           )
         );
         expect(response.transactions[4]).toEqual(
           matchTransaction(
-            '13e0ebcba2fff96d50b310fda578746a4d8d120d1ff31f7c0e39349e566fe551'
+            '13e0ebcba2fff96d50b310fda578746a4d8d120d1ff31f7c0e39349e566fe551',
+            198
           )
         );
         expect(response.transactions[5]).toEqual(
           matchTransaction(
-            'fa0e41b0beec51e9a358ec32a8d9eaf9d2345bc916f17915db0465534031251b'
+            'fa0e41b0beec51e9a358ec32a8d9eaf9d2345bc916f17915db0465534031251b',
+            197
           )
         );
         expect(response.transactions[6]).toEqual(
           matchTransaction(
-            '407f4f695187cd009bbe07025b2ce44b2241c8e6ee34e182501f3658b672a433'
+            '407f4f695187cd009bbe07025b2ce44b2241c8e6ee34e182501f3658b672a433',
+            196
           )
         );
         expect(response.transactions[7]).toEqual(
           matchTransaction(
-            '9533c69180350070cd483d367bff51a94adb5e4f329e2be1780ff0af9080c264'
+            '9533c69180350070cd483d367bff51a94adb5e4f329e2be1780ff0af9080c264',
+            195
           )
         );
         expect(response.transactions[8]).toEqual(
           matchTransaction(
-            'c9a1f8cab21e60b3c520e297bb2d2aff115b69889000cb579ec794d83ff35772'
+            'c9a1f8cab21e60b3c520e297bb2d2aff115b69889000cb579ec794d83ff35772',
+            194
           )
         );
         expect(response.transactions[9]).toEqual(
           matchTransaction(
-            '67387a102b482ef3a0471c082340331d70fa99431add718e452218620bd9549e'
+            '67387a102b482ef3a0471c082340331d70fa99431add718e452218620bd9549e',
+            193
           )
         );
       },
@@ -270,8 +299,11 @@ describe('transaction', () => {
         expect.assertions(5);
 
         const trs1 = await send();
+        await lib.sleep(500);
         const trs2 = await send();
+        await lib.sleep(500);
         const trs3 = await send();
+        await lib.sleep(500);
 
         console.log(`trs1: ${JSON.stringify(trs1, null, 2)}`);
         console.log(`trs2: ${JSON.stringify(trs2, null, 2)}`);
@@ -307,7 +339,7 @@ describe('transaction', () => {
           offset: 0,
           limit: 1,
         })) as (ApiSuccess & TransactionsWrapper);
-        expect(oldest.transactions[0].id).toEqual(trs3.id);
+        expect(oldest.transactions[0].id).toEqual(trs1.id);
 
         // second oldest
         const secondOldest = (await transactionApi.getTransactions({
@@ -323,7 +355,7 @@ describe('transaction', () => {
           offset: 2,
           limit: 1,
         })) as (ApiSuccess & TransactionsWrapper);
-        expect(thirdOldest.transactions[0].id).toEqual(trs1.id);
+        expect(thirdOldest.transactions[0].id).toEqual(trs3.id);
 
         // first, second, third
         // third, second, first         (newestFirst)
