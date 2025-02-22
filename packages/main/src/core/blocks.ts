@@ -386,6 +386,8 @@ export default class Blocks implements ICoreModule {
       // check block fields
       block = Blocks.CheckBlockEffect(block, options);
 
+      BlocksHelper.payloadHashesAreMatching(block);
+
       // Check block logic also to previous block
       Blocks.CheckBlock(state, block, options, delegateList);
 

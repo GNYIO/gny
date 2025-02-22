@@ -23,6 +23,7 @@ import BigNumber from 'bignumber.js';
 import { Block } from '@gnyio/database-postgres';
 import { Transaction } from '@gnyio/database-postgres';
 import { RoundBase } from '@gnyio/base';
+import * as assert from 'assert';
 
 const blockReward = new BlockReward();
 
@@ -467,4 +468,17 @@ export function delegatesWhoMissedBlock(
   }
 
   return delegatesWhoMissedBlocks;
+}
+
+export function payloadHashesAreMatching(block: IBlock) {
+  const transactionHash = payloadHashOfAllTransactions(
+    block.transactions || []
+  );
+  const given = block.payloadHash;
+
+  assert.equal(
+    transactionHash.toString('hex'),
+    given,
+    'payloadHash property of block and its hash of transactions do not match'
+  );
 }
