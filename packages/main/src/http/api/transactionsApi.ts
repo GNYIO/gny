@@ -541,7 +541,7 @@ export default class TransactionsApi implements IHttpApi {
     const result: ApiResult<TransactionConfirmationWrapper> = {
       success: true,
       info: {
-        id: query.id,
+        id: query.id as string,
         confirmations: String(diff),
         inBlock: String(transaction.height),
         currentBlock: String(height),

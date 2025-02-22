@@ -85,7 +85,7 @@ export class Transaction implements Versioned {
     type: 'integer',
     nullable: false,
   })
-  public placement?: number;
+  public placement: number;
 
   @Column({
     default: 0,

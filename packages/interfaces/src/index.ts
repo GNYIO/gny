@@ -346,20 +346,8 @@ export interface AccountWeightViewModel extends IAccount {
   delegate?: DelegateViewModel;
 }
 
-export interface UnconfirmedTransaction {
-  // ITransaction without "height"
-  id: string;
-  type: number;
-  timestamp: number;
-  senderId: string;
-  senderPublicKey: string;
-  fee: string;
-  signatures?: any;
-  secondSignature?: any;
-  args: any;
-  message?: string;
-  _version_?: number;
-}
+// ITransaction without "height"
+export type UnconfirmedTransaction = Omit<ITransaction, 'height'>;
 
 export interface ITransaction {
   id: string;
@@ -375,6 +363,9 @@ export interface ITransaction {
   message?: string;
   _version_?: number;
 }
+
+// Transaction with "placement" property
+export type ITransactionInBlock = ITransaction & { placement: number };
 
 export interface ITransfer {
   tid: string;
