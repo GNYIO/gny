@@ -796,7 +796,7 @@ export class TransactionPlacement1740078090000 implements MigrationInterface {
             t2.*,
             row_number() over (
               PARTITION BY height
-              ORDER BY timestamp ASC
+              ORDER BY timestamp ASC, id ASC
             ) as seqnum
 
           from transaction t2
