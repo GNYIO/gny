@@ -1,7 +1,7 @@
 {
   "name": "@gnyio/container",
   "private": true,
-  "version": "2.16.0",
+  "version": "2.16.1",
   "description": "",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.16.0",
+    "@gnyio/interfaces": "2.16.1",
     "inversify": "6.2.1",
     "reflect-metadata": "0.2.2"
   }
