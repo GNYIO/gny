@@ -1,6 +1,6 @@
 {
   "name": "@gnyio/utils",
-  "version": "2.16.2",
+  "version": "2.16.3",
   "scripts": {
     "tsc": "npm run removeArtifacts && ../../node_modules/typescript/bin/tsc || true",
     "removeArtifacts": "rm -rf dist"
@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "@gnyio/interfaces": "2.16.2",
+    "@gnyio/interfaces": "2.16.3",
     "@types/async": "^1.4.29",
     "@types/bs58": "^4.0.1",
     "@types/lodash": "^4.14.138",
