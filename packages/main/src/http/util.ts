@@ -1,4 +1,4 @@
-import { AccountViewModel } from '@gnyio/interfaces';
+import { AccountViewModel, IBlock } from '@gnyio/interfaces';
 import { generateAddress } from '@gnyio/utils';
 import { joi } from '@gnyio/extended-joi';
 import Peer from '../core/peer.js';
@@ -12,39 +12,14 @@ export async function getBlocks(
   maxHeight: string,
   withTransaction: boolean
 ) {
-  const blocks = await global.app.sdb.getBlocksByHeightRange(
+  const blocks: IBlock[] = await global.app.sdb.getBlocksByHeightRange(
     minHeight,
-    maxHeight
+    maxHeight,
+    withTransaction
   );
 
   if (!blocks || !blocks.length) {
     return [];
-  }
-
-  maxHeight = blocks[blocks.length - 1].height;
-  if (withTransaction) {
-    const transactions = await global.app.sdb.findAll<Transaction>(
-      Transaction,
-      {
-        condition: {
-          height: {
-            $gte: minHeight,
-            $lte: maxHeight,
-          },
-        },
-      }
-    );
-    const firstHeight = blocks[0].height;
-    for (const t of transactions) {
-      const index = new BigNumber(t.height).minus(firstHeight).toFixed();
-      const b = blocks[index];
-      if (b) {
-        if (!b.transactions) {
-          b.transactions = [];
-        }
-        b.transactions.push(t);
-      }
-    }
   }
 
   return blocks;
