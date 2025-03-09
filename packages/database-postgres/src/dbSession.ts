@@ -587,6 +587,7 @@ export class DbSession {
         min,
         max,
       })
+      .orderBy('b.height', 'ASC')
       .getMany();
     return blocks;
   }
@@ -597,6 +598,8 @@ export class DbSession {
       .select('t')
       .from(Transaction, 't')
       .where('t.height = :height', { height })
+      .orderBy('t.height', 'ASC')
+      .addOrderBy('t.placement', 'ASC')
       .getMany();
     return trans;
   }
