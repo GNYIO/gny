@@ -391,10 +391,17 @@ export class Bundle extends Libp2p implements IBundle {
       return empty;
     }
 
-    const allConnectedPeers: IPeerInfo[] = connections.map(x => {
+    const allConnectedPeers: (IPeerInfo | null)[] = connections.map(x => {
       const peerId = PeerId.createFromB58String(x);
-      const addresses = this.peerStore.addressBook
-        .get(peerId)
+      const peer = this.peerStore.addressBook.get(peerId);
+      if (peer === null || peer === undefined) {
+        this.logger.warn(
+          `[p2p] peer is not in addressBook: ${peerId.toB58String()} (should not happen)`
+        );
+        return null;
+      }
+
+      const addresses = peer
         .map(x => multiaddr(x.multiaddr))
         .map(x => x.encapsulate(`/p2p/${peerId.toB58String()}`));
 
@@ -419,7 +426,7 @@ export class Bundle extends Libp2p implements IBundle {
       return result;
     });
 
-    const temp = allConnectedPeers.filter(x => x !== null);
+    const temp: IPeerInfo[] = allConnectedPeers.filter(x => x !== null);
     this.logger.info(
       `[p2p/wrapper] getAllConnectedPeersPeerInfo result: ${JSON.stringify(
         temp
